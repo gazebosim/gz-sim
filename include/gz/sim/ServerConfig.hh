@@ -83,24 +83,6 @@ namespace gz
         /// \param[in] _entityType Entity type which should receive  this
         /// plugin. The type is used in conjuction with _entityName to
         /// uniquely identify an entity.
-        /// \param[in] _filename Plugin library filename.
-        /// \param[in] _name Name of the interface within the plugin library
-        /// to load.
-        /// \param[in] _sdf Plugin XML elements associated with this plugin.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: GZ_DEPRECATED(7) PluginInfo(const std::string &_entityName,
-                           const std::string &_entityType,
-                           const std::string &_filename,
-                           const std::string &_name,
-                           const sdf::ElementPtr &_sdf);
-
-        /// \brief Constructor with plugin information specified.
-        /// \param[in] _entityName Name of the entity which should receive
-        /// this plugin. The name is used in conjuction with _entityType to
-        /// uniquely identify an entity.
-        /// \param[in] _entityType Entity type which should receive  this
-        /// plugin. The type is used in conjuction with _entityName to
-        /// uniquely identify an entity.
         /// \param[in] _plugin SDF Plugin library information.
         public: PluginInfo(const std::string &_entityName,
                            const std::string &_entityType,
@@ -138,40 +120,6 @@ namespace gz
         /// uniquely identify an entity.
         /// \param[in] _entityType Entity type string.
         public: void SetEntityType(const std::string &_entityType);
-
-        /// \brief Get the plugin library filename.
-        /// \return Plugin library filename.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string GZ_DEPRECATED(7) & Filename() const;
-
-        /// \brief Set the type of the entity which should receive this
-        /// plugin. The type is used in conjuction with EntityName to
-        /// uniquely identify an entity.
-        /// \param[in] _filename Entity type string.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetFilename(const std::string &_filename);
-
-        /// \brief Name of the interface within the plugin library
-        /// to load.
-        /// \return Interface name.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const std::string GZ_DEPRECATED(7) & Name() const;
-
-        /// \brief Set the name of the interface within the plugin library
-        /// to load.
-        /// \param[in] _name Interface name.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetName(const std::string &_name);
-
-        /// \brief Plugin XML elements associated with this plugin.
-        /// \return SDF pointer.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: const sdf::ElementPtr GZ_DEPRECATED(7) & Sdf() const;
-
-        /// \brief Set the plugin XML elements associated with this plugin.
-        /// \param[in] _sdf SDF pointer, it will be cloned.
-        /// \deprecated Use `sdf::Plugin` interface.
-        public: void GZ_DEPRECATED(7) SetSdf(const sdf::ElementPtr &_sdf);
 
         /// \brief Get the SDF plugin information.
         /// \return The SDF Plugin object.
@@ -376,14 +324,14 @@ namespace gz
               UpdatePeriod() const;
 
       /// \brief Path to where simulation resources, such as models downloaded
-      /// from fuel.ignitionrobotics.org, should be stored.
+      /// from fuel.gazebosim.org, should be stored.
       /// \return Path to a location on disk. An empty string indicates that
       /// the default value will be used, which is currently
       /// ~/.gz/fuel.
       public: const std::string &ResourceCache() const;
 
       /// \brief Set the path to where simulation resources, such as models
-      /// downloaded from fuel.ignitionrobotics.org, should be stored.
+      /// downloaded from fuel.gazebosim.org, should be stored.
       /// \param[in] _path Path to a location on disk. An empty string
       /// indicates that the default value will be used, which is currently
       /// ~/.gz/fuel.

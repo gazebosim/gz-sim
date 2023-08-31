@@ -42,9 +42,15 @@ endfunction()
 set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
 pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/_gz_sim_pybind11.cc
+  src/gz/sim/Actor.cc
   src/gz/sim/EntityComponentManager.cc
   src/gz/sim/EventManager.cc
+  src/gz/sim/Joint.cc
+  src/gz/sim/Light.cc
+  src/gz/sim/Link.cc
+  src/gz/sim/Model.cc
   src/gz/sim/TestFixture.cc
+  src/gz/sim/Sensor.cc
   src/gz/sim/Server.cc
   src/gz/sim/ServerConfig.cc
   src/gz/sim/UpdateInfo.cc
@@ -61,17 +67,22 @@ target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
 # TODO(ahcorde): Move this module to gz-common
-pybind11_add_module(common MODULE
+
+set(GZ_COMMON_BINDINGS_MODULE_NAME "common${GZ_COMMON_VER}")
+pybind11_add_module(${GZ_COMMON_BINDINGS_MODULE_NAME} MODULE
   src/gz/common/_gz_common_pybind11.cc
   src/gz/common/Console.cc
 )
 
-target_link_libraries(common PRIVATE
+target_compile_definitions(${GZ_COMMON_BINDINGS_MODULE_NAME} PRIVATE
+  BINDINGS_MODULE_NAME=${GZ_COMMON_BINDINGS_MODULE_NAME})
+
+target_link_libraries(${GZ_COMMON_BINDINGS_MODULE_NAME} PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
 configure_build_install_location(${BINDINGS_MODULE_NAME})
-configure_build_install_location(common)
+configure_build_install_location(${GZ_COMMON_BINDINGS_MODULE_NAME})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Workaround for Clang and pybind11 on Focal
@@ -86,7 +97,14 @@ endif()
 
 if (BUILD_TESTING)
   set(python_tests
+    actor_TEST
+    joint_TEST
+    light_TEST
+    link_TEST
+    model_TEST
+    sensor_TEST
     testFixture_TEST
+    world_TEST
   )
 
   execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version

@@ -32,6 +32,7 @@
 
 #include <gz/plugin/Loader.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include <gz/sim/config.hh>
 
 using namespace gz::sim;
@@ -54,7 +55,7 @@ class gz::sim::SystemLoaderPrivate
     common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(common::joinPaths(
         homePath, ".gz", "sim", "plugins"));
-    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
+    systemPaths.AddPluginPaths(gz::sim::getPluginInstallDir());
 
     return systemPaths.PluginPaths();
   }
@@ -225,39 +226,6 @@ std::list<std::string> SystemLoader::PluginPaths() const
 void SystemLoader::AddSystemPluginPath(const std::string &_path)
 {
   this->dataPtr->systemPluginPaths.insert(_path);
-}
-
-//////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
-  const std::string &_filename,
-  const std::string &_name,
-  const sdf::ElementPtr &_sdf)
-{
-  if (_filename == "")
-  {
-    gzerr << "Failed to instantiate system plugin: empty argument "
-              "[(filename): " << _filename << "] " << std::endl;
-    return {};
-  }
-
-  sdf::Plugin plugin;
-  plugin.Load(_sdf);
-  plugin.SetFilename(_filename);
-  plugin.SetName(_name);
-  return LoadPlugin(plugin);
-}
-
-//////////////////////////////////////////////////
-std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
-  const sdf::ElementPtr &_sdf)
-{
-  if (nullptr == _sdf)
-  {
-    return {};
-  }
-  sdf::Plugin plugin;
-  plugin.Load(_sdf);
-  return LoadPlugin(plugin);
 }
 
 //////////////////////////////////////////////////

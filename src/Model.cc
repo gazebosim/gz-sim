@@ -130,7 +130,7 @@ std::string Model::SourceFilePath(const EntityComponentManager &_ecm) const
 
 //////////////////////////////////////////////////
 Entity Model::JointByName(const EntityComponentManager &_ecm,
-    const std::string &_name)
+    const std::string &_name) const
 {
   return _ecm.EntityByComponents(
       components::ParentEntity(this->dataPtr->id),
@@ -140,7 +140,7 @@ Entity Model::JointByName(const EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 Entity Model::LinkByName(const EntityComponentManager &_ecm,
-    const std::string &_name)
+    const std::string &_name) const
 {
   return _ecm.EntityByComponents(
       components::ParentEntity(this->dataPtr->id),

@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <world name="world_test">
+        <physics name="1ms" type="ignored">
+            <max_step_size>0.01</max_step_size>
+            <real_time_factor>1.0</real_time_factor>
+        </physics>
+        <plugin
+            filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics">
+        </plugin>
+        <gravity>0 0 -10</gravity>
+        <magnetic_field>1 2 3</magnetic_field>
+        <atmosphere type="adiabatic">
+            <temperature>300</temperature>
+            <pressure>100000</pressure>
+            <temperature_gradient>-0.005</temperature_gradient>
+        </atmosphere>
+        <spherical_coordinates>
+            <surface_model>EARTH_WGS84</surface_model>
+            <latitude_deg>10</latitude_deg>
+            <longitude_deg>15</longitude_deg>
+            <elevation>20</elevation>
+            <heading_deg>25</heading_deg>
+        </spherical_coordinates>
+
+        <light type="point" name="light_point_test">
+        </light>
+
+        <actor name="actor_test">
+        </actor>
+
+        <model name="model_test">
+            <link name="model_link_test">
+                <pose>0 0 0 0 0 0</pose>
+            </link>
+        </model>
+    </world>
+</sdf>

@@ -23,7 +23,7 @@
 #include <gz/sim/Export.hh>
 
 #include "NetworkRole.hh"
-#include "msgs/peer_info.pb.h"
+#include "gz/sim/private_msgs/peer_info.pb.h"
 
 namespace gz
 {

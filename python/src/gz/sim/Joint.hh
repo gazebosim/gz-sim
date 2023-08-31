@@ -12,8 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-#include <gz/sim/Actor.hh>
-#include <ignition/gazebo/config.hh>
+#ifndef GZ_SIM_PYTHON__JOINT_HH_
+#define GZ_SIM_PYTHON__JOINT_HH_
+
+#include <pybind11/pybind11.h>
+
+#include <gz/sim/Joint.hh>
+
+namespace gz
+{
+namespace sim
+{
+namespace python
+{
+/// Define a pybind11 wrapper for a gz::sim::Joint
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void
+defineSimJoint(pybind11::object module);
+}  // namespace python
+}  // namespace sim
+}  // namespace gz
+
+#endif  // GZ_SIM_PYTHON__JOINT_HH_

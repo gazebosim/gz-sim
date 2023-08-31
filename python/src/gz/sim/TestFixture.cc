@@ -34,6 +34,11 @@ defineSimTestFixture(pybind11::object module)
 {
   pybind11::class_<TestFixture, std::shared_ptr<TestFixture>> testFixture(module, "TestFixture");
 
+  // Since this class starts with "Test", pytest thinks it's a test and emits a
+  // warning when it can't "collect" it.
+  // Silence the warning by setting `__test__=False`.
+  testFixture.attr("__test__") = false;
+
   testFixture
   .def(pybind11::init<const std::string &>())
   .def(

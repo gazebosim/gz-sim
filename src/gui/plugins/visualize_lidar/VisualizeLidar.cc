@@ -180,7 +180,7 @@ void VisualizeLidar::LoadLidar()
     return;
   }
 
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  if (!scene->IsInitialized())
   {
     return;
   }

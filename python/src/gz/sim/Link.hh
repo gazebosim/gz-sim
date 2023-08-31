@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
-*/
+ */
 
-#include <gz/sim/components/BatteryPowerLoad.hh>
-#include <ignition/gazebo/config.hh>
+#ifndef GZ_SIM_PYTHON__LINK_HH_
+#define GZ_SIM_PYTHON__LINK_HH_
+
+#include <pybind11/pybind11.h>
+
+#include <gz/sim/Link.hh>
+
+namespace gz
+{
+namespace sim
+{
+namespace python
+{
+/// Define a pybind11 wrapper for a gz::sim::Link
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void
+defineSimLink(pybind11::object module);
+}  // namespace python
+}  // namespace sim
+}  // namespace gz
+
+#endif  // GZ_SIM_PYTHON__Link_HH_

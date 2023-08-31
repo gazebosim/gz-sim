@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
-*/
+ */
 
-#include <gtest/gtest.h>
+#ifndef GZ_SIM_PYTHON__LIGHT_HH_
+#define GZ_SIM_PYTHON__LIGHT_HH_
 
-#include <ignition/gazebo/System.hh>
-#include <ignition/utils/SuppressWarning.hh>
+#include <pybind11/pybind11.h>
 
-GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+#include <gz/sim/Light.hh>
 
-/////////////////////////////////////////////////
-// Make sure the ignition namespace still works
-TEST(Deprecated, IgnitionNamespace)
+namespace gz
 {
-  ignition::gazebo::System system;
-}
+namespace sim
+{
+namespace python
+{
+/// Define a pybind11 wrapper for a gz::sim::Light
+/**
+ * \param[in] module a pybind11 module to add the definition to
+ */
+void
+defineSimLight(pybind11::object module);
+}  // namespace python
+}  // namespace sim
+}  // namespace gz
 
-#undef SUPPRESS_IGNITION_HEADER_DEPRECATION
-
-GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+#endif  // GZ_SIM_PYTHON__LIGHT_HH_

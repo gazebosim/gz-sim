@@ -25,6 +25,7 @@
 #include <gz/fuel_tools/Result.hh>
 #include <gz/math/Rand.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -93,25 +94,6 @@ ServerConfig::PluginInfo::~PluginInfo() = default;
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_entityType,
-                       const std::string &_filename,
-                       const std::string &_name,
-                       const sdf::ElementPtr &_sdf)
-  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(this->dataPtr->sdf);
-  }
-  this->dataPtr->plugin.SetName(_name);
-  this->dataPtr->plugin.SetFilename(_filename);
-  this->dataPtr->entityName = _entityName;
-  this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
-                       const std::string &_entityType,
                        const sdf::Plugin &_plugin)
   : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>(_entityName,
         _entityType, _plugin))
@@ -155,48 +137,6 @@ const std::string &ServerConfig::PluginInfo::EntityType() const
 void ServerConfig::PluginInfo::SetEntityType(const std::string &_entityType)
 {
   this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Filename() const
-{
-  return this->dataPtr->plugin.Filename();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
-{
-  this->dataPtr->plugin.SetFilename(_filename);
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Name() const
-{
-  return this->dataPtr->plugin.Name();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetName(const std::string &_name)
-{
-  this->dataPtr->plugin.SetName(_name);
-}
-
-//////////////////////////////////////////////////
-const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
-{
-  return this->dataPtr->sdf;
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(_sdf);
-  }
-  else
-    this->dataPtr->sdf = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -267,7 +207,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -846,6 +787,7 @@ ServerConfig::SourceType ServerConfig::Source() const
 }
 
 /////////////////////////////////////////////////
+namespace {
 void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
@@ -952,6 +894,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
@@ -1048,7 +991,7 @@ sim::loadPluginInfo(bool _isPlayback)
   if (!common::exists(defaultConfig))
   {
     auto installedConfig = common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+        gz::sim::getServerConfigPath(),
         configFilename);
 
     if (!common::createDirectories(defaultConfigDir))
