@@ -16,6 +16,12 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/server_control.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <csignal>
 #include <vector>
 #include <gz/common/StringUtils.hh>

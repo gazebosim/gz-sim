@@ -18,7 +18,7 @@
 #include "PlaybackScrubber.hh"
 
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 
 #include <chrono>
 #include <ctime>

@@ -15,6 +15,16 @@
  *
 */
 
+#include "ComponentInspector.hh"
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
+#include <gz/msgs/empty.pb.h>
+
 #include <iostream>
 #include <list>
 #include <regex>
@@ -27,6 +37,7 @@
 #include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
+
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Actor.hh"
@@ -78,7 +89,6 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-#include "ComponentInspector.hh"
 #include "Inertial.hh"
 #include "Pose3d.hh"
 #include "SystemPluginInfo.hh"
