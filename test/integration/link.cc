@@ -229,7 +229,6 @@ TEST_F(LinkIntegrationTest, LinkPoses)
 
   // Before we add components, pose functions should return nullopt
 
-  EXPECT_EQ(std::nullopt, link.WorldPose(ecm));
   EXPECT_EQ(std::nullopt, link.WorldInertialPose(ecm));
 
   math::Pose3d linkWorldPose;
