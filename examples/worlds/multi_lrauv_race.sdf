@@ -57,10 +57,10 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <include>
+    <!-- <include>
       <pose>-5 0 0 0 0 0</pose>
       <uri>https://fuel.gazebosim.org/1.0/mabelzhang/models/Turquoise turbidity generator</uri>
-    </include>
+    </include> -->
 
     <include>
       <pose>0 0 1 0 0 1.57</pose>

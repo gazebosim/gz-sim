@@ -33,6 +33,7 @@
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/FeatureList.hh>
 #include <gz/physics/FeaturePolicy.hh>
+#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/config.hh>
 #include <gz/plugin/Loader.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -111,7 +112,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // modifications)
     common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv("GZ_SIM_PHYSICS_ENGINE_PATH");
-    systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
     auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);
     ASSERT_FALSE(pathToLib.empty())
