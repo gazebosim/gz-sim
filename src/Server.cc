@@ -26,11 +26,14 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
+#include <sdf/ParserConfig.hh>
+#include <sdf/Types.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
 
+#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -117,7 +120,10 @@ Server::Server(const ServerConfig &_config)
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
       gzmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      errors = this->dataPtr->sdfRoot.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 
@@ -136,12 +142,16 @@ Server::Server(const ServerConfig &_config)
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRoot;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+
+      MeshInertiaCalculator meshInertiaCalculator;
+      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      errors = sdfRoot.Load(filePath);
+      errors = sdfRoot.Load(filePath, sdfParserConfig);
       if (errors.empty()) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
@@ -150,7 +160,8 @@ Server::Server(const ServerConfig &_config)
         {
           // If the specified file only contains a model, load the default
           // world and add the model to it.
-          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+          errors = this->dataPtr->sdfRoot.LoadSdfString(
+            DefaultWorld::World(), sdfParserConfig);
           sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
           if (world == nullptr) {
             return;
@@ -161,6 +172,8 @@ Server::Server(const ServerConfig &_config)
           }
         }
       }
+
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 
