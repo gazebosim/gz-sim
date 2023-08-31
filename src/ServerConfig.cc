@@ -546,17 +546,7 @@ const std::string &ServerConfig::RenderEngineServer() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the server. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineServer = engine;
+  this->dataPtr->renderEngineServer = _engine;
 }
 
 /////////////////////////////////////////////////
@@ -593,17 +583,7 @@ const std::string &ServerConfig::RenderEngineGui() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the GUI. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineGui = engine;
+  this->dataPtr->renderEngineGui = _engine;
 }
 
 /////////////////////////////////////////////////
