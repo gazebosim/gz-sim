@@ -292,7 +292,7 @@ TEST_F(BatteryPluginTest,
       // the LinearBatteryPlugin is not zero when created. If
       // components::BatterySoC is zero on start, then the Physics plugin
       // can disable a joint. This in turn can prevent the joint from
-      // rotating. See https://github.com/ignitionrobotics/ign-gazebo/issues/55
+      // rotating. See https://github.com/gazebosim/gz-sim/issues/55
       EXPECT_GT(batComp->Data(), 0);
       EXPECT_GT(batComp2->Data(), 0);
     };
@@ -333,7 +333,7 @@ TEST_F(BatteryPluginTest,
 
 /////////////////////////////////////////////////
 // Battery with power draining topics
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 {
   const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),

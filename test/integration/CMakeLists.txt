@@ -138,6 +138,11 @@ else()
   endforeach(test)
 endif()
 
+# Add tests that need pybind11
+if (${pybind11_FOUND})
+  list(APPEND tests python_system_loader.cc)
+endif()
+
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
   # by a class are not being exported. These generated source files have private
@@ -233,4 +238,9 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
+endif()
+
+if (TARGET INTEGRATION_python_system_loader)
+  set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
+    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
 endif()

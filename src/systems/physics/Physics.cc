@@ -478,6 +478,10 @@ class gz::sim::systems::PhysicsPrivate
             JointFeatureList,
             gz::physics::sdf::ConstructSdfJoint>{};
 
+  /// \brief Feature list for mimic constraints
+  public: struct MimicConstraintJointFeatureList : gz::physics::FeatureList<
+            physics::SetMimicConstraintFeature>{};
+
   //////////////////////////////////////////////////
   // Detachable joints
 
@@ -681,6 +685,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
+            MimicConstraintJointFeatureList,
             JointVelocityCommandFeatureList,
             JointGetTransmittedWrenchFeatureList,
             JointPositionLimitsCommandFeatureList,
@@ -774,16 +779,6 @@ void Physics::Configure(const Entity &_entity,
   if (pluginLib.empty())
   {
     pluginLib = "gz-physics-dartsim-plugin";
-  }
-
-  // Deprecated: accept ignition-prefixed engines
-  std::string deprecatedPrefix{"ignition"};
-  auto pos = pluginLib.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    auto msg = "Trying to load deprecated plugin [" + pluginLib + "]. Use [";
-    pluginLib.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << msg << pluginLib << "] instead." << std::endl;
   }
 
   // Update component
@@ -1683,6 +1678,62 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->entityJointMap.AddEntity(_entity, existingJoint);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+
+          // Check if mimic constraint should be applied to this joint's axes.
+          using AxisIndex = std::size_t;
+          std::map<AxisIndex, sdf::JointAxis> jointAxisByIndex;
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            jointAxisByIndex[0] = jointAxis->Data();
+          }
+
+          if (jointAxis2)
+          {
+            jointAxisByIndex[1] = jointAxis2->Data();
+          }
+
+          for (const auto &[axisIndex, axis] : jointAxisByIndex)
+          {
+            if (auto mimic = axis.Mimic())
+            {
+              auto jointPtrMimic = this->entityJointMap
+                  .EntityCast<MimicConstraintJointFeatureList>(existingJoint);
+              if (jointPtrMimic)
+              {
+                const auto leaderJoint =
+                    basicModelPtrPhys->GetJoint(mimic->Joint());
+                std::size_t leaderAxis = 0;
+                if (mimic->Axis() == "axis2")
+                {
+                  leaderAxis = 1;
+                }
+                jointPtrMimic->SetMimicConstraint(axisIndex,
+                    leaderJoint,
+                    leaderAxis,
+                    mimic->Multiplier(),
+                    mimic->Offset(),
+                    mimic->Reference());
+              }
+              else
+              {
+                static bool informed{false};
+                if (!informed)
+                {
+                  gzerr << "Attempting to create a mimic constraint for joint ["
+                        << _name->Data()
+                        << "] but the chosen physics engine does not support "
+                        << "mimic constraints, so no constraint will be "
+                        << "created."
+                        << std::endl;
+                  informed = true;
+                }
+              }
+            }
+          }
+
           return true;
         }
 

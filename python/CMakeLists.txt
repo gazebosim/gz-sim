@@ -63,6 +63,8 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
+set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES CXX_VISIBILITY_PRESET "hidden")
+
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
 
@@ -83,17 +85,6 @@ target_link_libraries(${GZ_COMMON_BINDINGS_MODULE_NAME} PRIVATE
 
 configure_build_install_location(${BINDINGS_MODULE_NAME})
 configure_build_install_location(${GZ_COMMON_BINDINGS_MODULE_NAME})
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # Workaround for Clang and pybind11 on Focal
-  # https://github.com/pybind/pybind11/issues/1604
-  # Resolved by newer versions of pybind11
-  if(${pybind11_VERSION} VERSION_LESS "2.4.4")
-    target_compile_options(common PRIVATE -fsized-deallocation)
-    target_compile_options(sim PRIVATE -fsized-deallocation)
-  endif()
-endif()
-
 
 if (BUILD_TESTING)
   set(python_tests
