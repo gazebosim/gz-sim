@@ -29,11 +29,14 @@
 #endif
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
-#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
 #include <gz/msgs/visual.pb.h>
 #include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 

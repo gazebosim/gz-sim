@@ -17,9 +17,16 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/empty.pb.h>
-#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/float.pb.h>
+#include <gz/msgs/header.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/int32_v.pb.h>
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector2d.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>

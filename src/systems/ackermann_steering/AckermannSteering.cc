@@ -19,7 +19,11 @@
 #include "AckermannSteering.hh"
 
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <mutex>
 #include <set>
@@ -30,6 +34,8 @@
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Angle.hh>
 #include <gz/math/SpeedLimiter.hh>
+
+
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
