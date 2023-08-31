@@ -120,7 +120,7 @@ Server::Server(const ServerConfig &_config)
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
       gzmsg <<  msg;
-      sdf::ParserConfig sdfParserConfig;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
       errors = this->dataPtr->sdfRoot.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
@@ -142,7 +142,7 @@ Server::Server(const ServerConfig &_config)
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRoot;
-      sdf::ParserConfig sdfParserConfig;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
 
       MeshInertiaCalculator meshInertiaCalculator;
       sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
