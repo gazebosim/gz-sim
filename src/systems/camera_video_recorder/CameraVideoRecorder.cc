@@ -425,6 +425,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
       }
     }
 
+   this->scene.reset();
+   this->camera.reset();
     // reset the event connection to prevent unnecessary render callbacks
     this->postRenderConn.reset();
   }

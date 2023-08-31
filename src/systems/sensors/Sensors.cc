@@ -414,6 +414,7 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->scene.reset();
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
