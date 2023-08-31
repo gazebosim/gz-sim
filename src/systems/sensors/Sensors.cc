@@ -17,6 +17,8 @@
 
 #include "Sensors.hh"
 
+#include <atomic>
+#include <chrono>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -281,11 +283,14 @@ void SensorsPrivate::RunOnce()
 {
   {
     std::unique_lock<std::mutex> cvLock(this->renderMutex);
-    this->renderCv.wait(cvLock, [this]()
+    this->renderCv.wait_for(cvLock, std::chrono::microseconds(1000), [this]()
     {
       return !this->running || this->updateAvailable;
     });
   }
+
+  if (!this->updateAvailable)
+    return;
 
   if (!this->running)
     return;
@@ -411,6 +416,7 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->scene.reset();
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
@@ -640,7 +646,7 @@ void Sensors::Update(const UpdateInfo &_info,
        _ecm.HasComponentType(components::WideAngleCamera::typeId)))
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    igndbg << "Initialization needed" << std::endl;
+    gzdbg << "Initialization needed" << std::endl;
     this->dataPtr->renderUtil.Init();
     this->dataPtr->nextUpdateTime = _info.simTime;
   }

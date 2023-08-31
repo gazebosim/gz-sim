@@ -24,7 +24,9 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gz/common/Mesh.hh>
 #include <gz/math/Pose3.hh>
+#include <sdf/Mesh.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
@@ -232,7 +234,7 @@ namespace gz
     ///    2. "../shapes.sdf" - This is referencing a relative world file.
     ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
     ///       file.
-    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf"
+    ///    4. "https://fuel.gazebosim.org/1.0/openrobotics/worlds/shapes.sdf"
     /// This is referencing a Fuel URI. This will download the world file.
     /// \param[in] _fuelResourceCache Path to a Fuel resource cache, if
     /// known.
@@ -308,6 +310,11 @@ namespace gz
       const EntityComponentManager &_ecm,
       const math::Vector3d& _worldPosition,
       const std::shared_ptr<components::EnvironmentalData>& _gridField);
+
+    /// \brief Load a mesh from a Mesh SDF DOM
+    /// \param[in] _meshSdf Mesh SDF DOM
+    /// \return The loaded mesh or null if the mesh can not be loaded.
+    GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};

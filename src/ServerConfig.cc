@@ -25,6 +25,7 @@
 #include <gz/fuel_tools/Result.hh>
 #include <gz/math/Rand.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -206,7 +207,8 @@ class gz::sim::ServerConfigPrivate
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
-            isHeadlessRendering(_cfg->isHeadlessRendering) { }
+            isHeadlessRendering(_cfg->isHeadlessRendering),
+            source(_cfg->source){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -544,17 +546,7 @@ const std::string &ServerConfig::RenderEngineServer() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the server. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineServer = engine;
+  this->dataPtr->renderEngineServer = _engine;
 }
 
 /////////////////////////////////////////////////
@@ -591,17 +583,7 @@ const std::string &ServerConfig::RenderEngineGui() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the GUI. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineGui = engine;
+  this->dataPtr->renderEngineGui = _engine;
 }
 
 /////////////////////////////////////////////////
@@ -785,6 +767,7 @@ ServerConfig::SourceType ServerConfig::Source() const
 }
 
 /////////////////////////////////////////////////
+namespace {
 void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 {
   _sdf->SetName(_xml->Value());
@@ -891,6 +874,7 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
@@ -987,7 +971,7 @@ sim::loadPluginInfo(bool _isPlayback)
   if (!common::exists(defaultConfig))
   {
     auto installedConfig = common::joinPaths(
-        GZ_SIM_SERVER_CONFIG_PATH,
+        gz::sim::getServerConfigPath(),
         configFilename);
 
     if (!common::createDirectories(defaultConfigDir))

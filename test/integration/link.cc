@@ -229,7 +229,6 @@ TEST_F(LinkIntegrationTest, LinkPoses)
 
   // Before we add components, pose functions should return nullopt
 
-  EXPECT_EQ(std::nullopt, link.WorldPose(ecm));
   EXPECT_EQ(std::nullopt, link.WorldInertialPose(ecm));
 
   math::Pose3d linkWorldPose;
@@ -604,6 +603,32 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
 
   // apply opposite force again and verify the resulting wrench values are zero
   link.AddWorldForce(ecm, -force, offset);
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // apply world force at an offset and world torque
+  math::Vector3d torque{1.0, 0.0, 0.0};
+  link.AddWorldWrench(ecm, force, torque, offset);
+
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  math::Vector3d posComWorldCoord = linkWorldPose.Rot().RotateVector(offset);
+  expectedTorque = torque + posComWorldCoord.Cross(force);
+  EXPECT_EQ(force, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(expectedTorque, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // apply opposite wrench again and verify the resulting wrench values are zero
+  link.AddWorldWrench(ecm, -force, -torque, offset);
   wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
   EXPECT_NE(nullptr, wrenchComp);
   wrenchMsg = wrenchComp->Data();

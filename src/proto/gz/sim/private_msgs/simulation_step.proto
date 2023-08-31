@@ -20,7 +20,7 @@ syntax = "proto3";
 package gz.sim.private_msgs;
 
 import "gz/msgs/world_stats.proto";
-import "performer_affinity.proto";
+import "gz/sim/private_msgs/performer_affinity.proto";
 
 /// \brief Message to contain simulation step information for distributed
 /// simulation.
@@ -33,5 +33,5 @@ message SimulationStep
 
   /// \brief Updated performer affinities. It will be empty if there are no
   /// affinity changes.
-  repeated PerformerAffinity affinity = 2;
+  repeated gz.sim.private_msgs.PerformerAffinity affinity = 2;
 }

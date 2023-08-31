@@ -1,6 +1,6 @@
 \page model_photo_shoot Model Photo Shoot
 
-## Using the model photo shot plugin
+## Using the Model Photo Shoot plugin
 
 Gazebo offers a model photo taking tool that will take perspective,
 top, front, and both sides pictures of a model. You can test the demo world
@@ -53,7 +53,7 @@ plugin will also affect the final resulting background color on the images.
 
 ```
 <include>
-  <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Robonaut</uri>
+  <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Robonaut</uri>
   <plugin
     filename="gz-sim-model-photo-shoot-system"
     name="gz::sim::systems::ModelPhotoShoot">

@@ -32,6 +32,7 @@
 
 #include <gz/plugin/Loader.hh>
 
+#include "gz/sim/InstallationDirectories.hh"
 #include <gz/sim/config.hh>
 
 using namespace gz::sim;
@@ -54,7 +55,7 @@ class gz::sim::SystemLoaderPrivate
     common::env(GZ_HOMEDIR, homePath);
     systemPaths.AddPluginPaths(common::joinPaths(
         homePath, ".gz", "sim", "plugins"));
-    systemPaths.AddPluginPaths(GZ_SIM_PLUGIN_INSTALL_DIR);
+    systemPaths.AddPluginPaths(gz::sim::getPluginInstallDir());
 
     return systemPaths.PluginPaths();
   }
@@ -63,7 +64,8 @@ class gz::sim::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
               gz::plugin::PluginPtr &_gzPlugin)
   {
-    // Deprecated: accept ignition-gazebo-prefixed systems
+    // Deprecated: accept ignition-gazebo-prefixed systems. Remove this on
+    // gz-sim9
     std::string deprecatedPrefix{"ignition-gazebo"};
     auto filename = _sdfPlugin.Filename();
     auto pos = filename.find(deprecatedPrefix);
@@ -123,6 +125,7 @@ class gz::sim::SystemLoaderPrivate
     std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
         pluginName : _sdfPlugin.Name();
 
+    // Deprecated: accept ignition plugins. Remove this on gz-sim9
     std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
     pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
     if (pos != std::string::npos)

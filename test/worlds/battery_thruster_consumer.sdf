@@ -11,12 +11,12 @@
     <gravity>0 0 0</gravity>
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -95,8 +95,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
         <namespace>lowbattery</namespace>
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.005</thrust_coefficient>
@@ -108,8 +108,8 @@
         <topic>thrust</topic>
       </plugin>
 
-      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+      <plugin filename="gz-sim-linearbatteryplugin-system"
+        name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
@@ -186,8 +186,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-thruster-system"
-        name="ignition::gazebo::systems::Thruster">
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
         <namespace>lowbattery</namespace>
         <joint_name>propeller_joint</joint_name>
         <thrust_coefficient>0.005</thrust_coefficient>
@@ -201,8 +201,8 @@
         <battery_name>linear_battery2</battery_name>
       </plugin>
 
-      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+      <plugin filename="gz-sim-linearbatteryplugin-system"
+        name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery2</battery_name>
         <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>

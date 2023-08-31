@@ -75,14 +75,8 @@ class gz::sim::systems::LensFlarePrivate
   /// \brief Name of the camera
   public: std::string cameraName;
 
-  /// \brief Pointer to the light
-  public: rendering::LightPtr light;
-
   /// \brief Name of the Light
   public: std::string lightName;
-
-  /// \brief Pointer to the LensFlarePass
-  public: rendering::LensFlarePassPtr lensFlarePass;
 
   /// \brief Scale of the lens flare
   public: double scale = 1.0;
@@ -193,10 +187,7 @@ void LensFlarePrivate::OnPostRender()
   }
 
   // get light
-  if (!this->light)
-  {
-    this->light = this->scene->LightByIndex(0);
-  }
+  auto light = this->scene->LightByIndex(0);
 
   rendering::RenderEngine *engine = this->camera->Scene()->Engine();
   rendering::RenderPassSystemPtr rpSystem = engine->RenderPassSystem();
@@ -212,14 +203,14 @@ void LensFlarePrivate::OnPostRender()
       return;
     }
 
-    this->lensFlarePass =
+    auto lensFlarePass =
       std::dynamic_pointer_cast<rendering::LensFlarePass>(flarePass);
-    this->lensFlarePass->Init(this->scene);
-    this->lensFlarePass->SetEnabled(true);
-    this->lensFlarePass->SetLight(this->light);
-    this->lensFlarePass->SetScale(this->scale);
-    this->lensFlarePass->SetColor(this->color);
-    this->lensFlarePass->SetOcclusionSteps(this->occlusionSteps);
+    lensFlarePass->Init(this->scene);
+    lensFlarePass->SetEnabled(true);
+    lensFlarePass->SetLight(light);
+    lensFlarePass->SetScale(this->scale);
+    lensFlarePass->SetColor(this->color);
+    lensFlarePass->SetOcclusionSteps(this->occlusionSteps);
 
     this->camera->AddRenderPass(lensFlarePass);
     gzmsg << "LensFlare Render pass added to the camera" << std::endl;
@@ -228,6 +219,8 @@ void LensFlarePrivate::OnPostRender()
   // disconnect from render event after adding lens flare pass to prevent
   // unecessary callbacks;
   this->postRenderConn.reset();
+  this->scene.reset();
+  this->camera.reset();
 }
 
 GZ_ADD_PLUGIN(LensFlare,

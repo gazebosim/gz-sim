@@ -186,7 +186,8 @@ bool Link::WindMode(const EntityComponentManager &_ecm) const
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::WorldPose>(this->dataPtr->id);
+  return _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+      .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 }
 
 //////////////////////////////////////////////////
@@ -194,12 +195,13 @@ std::optional<math::Pose3d> Link::WorldInertialPose(
     const EntityComponentManager &_ecm) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
-  if (!worldPose || !inertial)
+  if (!inertial)
     return std::nullopt;
 
-  return std::make_optional(worldPose->Data() * inertial->Data().Pose());
+  return std::make_optional(worldPose * inertial->Data().Pose());
 }
 
 //////////////////////////////////////////////////
@@ -216,17 +218,17 @@ std::optional<math::Vector3d> Link::WorldLinearVelocity(
 {
   auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->dataPtr->id);
-  auto worldPose =
-      _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
   auto worldAngVel =
       _ecm.Component<components::WorldAngularVelocity>(this->dataPtr->id);
 
-  if (!worldLinVel || !worldPose || !worldAngVel)
+  if (!worldLinVel || !worldAngVel)
     return std::nullopt;
 
   return std::make_optional(
       worldLinVel->Data() +
-      worldAngVel->Data().Cross(worldPose->Data().Rot().RotateVector(_offset)));
+      worldAngVel->Data().Cross(worldPose.Rot().RotateVector(_offset)));
 }
 
 //////////////////////////////////////////////////
@@ -326,13 +328,14 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
     const EntityComponentManager &_ecm) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
-  if (!worldPose || !inertial)
+  if (!inertial)
     return std::nullopt;
 
   const math::Pose3d &comWorldPose =
-      worldPose->Data() * inertial->Data().Pose();
+      worldPose * inertial->Data().Pose();
   return std::make_optional(
       math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
 }
@@ -367,17 +370,18 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
                          const math::Vector3d &_force) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
   // Can't apply force if the inertial's pose is not found
-  if (!inertial || !worldPose)
+  if (!inertial)
     return;
 
   // We want the force to be applied at the center of mass, but
   // ExternalWorldWrenchCmd applies the force at the link origin so we need to
   // compute the resulting force and torque on the link origin.
   auto posComWorldCoord =
-      worldPose->Data().Rot().RotateVector(inertial->Data().Pose().Pos());
+      worldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
 
   math::Vector3d torque = posComWorldCoord.Cross(_force);
 
@@ -390,16 +394,17 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
                          const math::Vector3d &_position) const
 {
   auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
-  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
   // Can't apply force if the inertial's pose is not found
-  if (!inertial || !worldPose)
+  if (!inertial)
     return;
 
   // We want the force to be applied at an offset from the center of mass, but
   // ExternalWorldWrenchCmd applies the force at the link origin so we need to
   // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord = worldPose->Data().Rot().RotateVector(
+  auto posComWorldCoord = worldPose.Rot().RotateVector(
     _position + inertial->Data().Pose().Pos());
 
   math::Vector3d torque = posComWorldCoord.Cross(_force);
@@ -412,23 +417,46 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_torque) const
 {
+  this->AddWorldWrench(_ecm, _force, _torque, math::Vector3d::Zero);
+}
+
+//////////////////////////////////////////////////
+void Link::AddWorldWrench(EntityComponentManager &_ecm,
+                          const math::Vector3d &_force,
+                          const math::Vector3d &_torque,
+                          const math::Vector3d &_offset) const
+{
+  math::Pose3d linkWorldPose;
+  auto worldPoseComp = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+  if (worldPoseComp)
+  {
+    linkWorldPose = worldPoseComp->Data();
+  }
+  else
+  {
+    linkWorldPose = worldPose(this->dataPtr->id, _ecm);
+  }
+
+  // We want the force to be applied at an offset from the link origin, so we
+  // must compute the resulting force and torque on the link origin.
+  auto posComWorldCoord = linkWorldPose.Rot().RotateVector(_offset);
+  math::Vector3d torqueWithOffset = _torque + posComWorldCoord.Cross(_force);
+
   auto linkWrenchComp =
-      _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
-
-  components::ExternalWorldWrenchCmd wrench;
-
+    _ecm.Component<components::ExternalWorldWrenchCmd>(this->dataPtr->id);
   if (!linkWrenchComp)
   {
+    components::ExternalWorldWrenchCmd wrench;
     msgs::Set(wrench.Data().mutable_force(), _force);
-    msgs::Set(wrench.Data().mutable_torque(), _torque);
+    msgs::Set(wrench.Data().mutable_torque(), torqueWithOffset);
     _ecm.CreateComponent(this->dataPtr->id, wrench);
   }
   else
   {
     msgs::Set(linkWrenchComp->Data().mutable_force(),
-              msgs::Convert(linkWrenchComp->Data().force()) + _force);
+      msgs::Convert(linkWrenchComp->Data().force()) + _force);
 
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
-              msgs::Convert(linkWrenchComp->Data().torque()) + _torque);
+      msgs::Convert(linkWrenchComp->Data().torque()) + torqueWithOffset);
   }
 }

@@ -17,6 +17,10 @@
 
 #include <numeric>
 
+#ifdef HAVE_PYBIND11
+#include <pybind11/embed.h>
+#endif
+
 #include <gz/common/SystemPaths.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
@@ -28,8 +32,8 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/MeshInertiaCalculator.hh"
 
+#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -58,6 +62,24 @@ struct DefaultWorld
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
+#ifdef HAVE_PYBIND11
+  if (Py_IsInitialized() == 0)
+  {
+    // We can't used pybind11::scoped_interpreter because:
+    //   1. It gets destructed before plugins are unloaded, which can cause
+    //      segfaults if the plugin tries to run python code, e.g. a message
+    //      that arrives during destruction.
+    //   2. It will prevent instantiation of other Servers. Running python
+    //      systems will not be supported with multiple servers in the same
+    //      process, but we shouldn't break existing behior for non-python use
+    //      cases.
+    // This means, we will not be calling pybind11::finalize_interpreter to
+    // clean up the interpreter. This could cause issues with tests suites that
+    // have multiple tests that load python systems.
+    pybind11::initialize_interpreter();
+  }
+#endif
+
   this->dataPtr->config = _config;
 
   // Configure the fuel client
@@ -98,9 +120,10 @@ Server::Server(const ServerConfig &_config)
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
       gzmsg <<  msg;
-      sdf::ParserConfig sdfParserConfig;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString(), sdfParserConfig);
-      this->dataPtr->sdfRoot.CalculateInertials(errors, sdfParserConfig);
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      errors = this->dataPtr->sdfRoot.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 
@@ -119,7 +142,7 @@ Server::Server(const ServerConfig &_config)
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRoot;
-      sdf::ParserConfig sdfParserConfig;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
 
       MeshInertiaCalculator meshInertiaCalculator;
       sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
@@ -149,8 +172,8 @@ Server::Server(const ServerConfig &_config)
           }
         }
       }
-      
-      this->dataPtr->sdfRoot.CalculateInertials(errors, sdfParserConfig);
+
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 

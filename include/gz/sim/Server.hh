@@ -80,13 +80,15 @@ namespace gz
     ///
     /// List syntax: *service_name(request_msg_type) : response_msg_type*
     ///
-    ///   1. `/world/<world_name>/scene/info(none)` : gz::msgs::Scene
+    ///   1. `/world/<world_name>/scene/info`(none) : gz::msgs::Scene
     ///     + Returns the current scene information.
     ///
-    ///   2. `/gazebo/resource_paths/get` : gz::msgs::StringMsg_V
+    ///   2. `/gazebo/resource_paths/get`(gz::msgs::Empty) :
+    ///         gz::msgs::StringMsg_V
     ///     + Get list of resource paths.
     ///
-    ///   3. `/gazebo/resource_paths/add` : gz::msgs::Empty
+    ///   3. `/gazebo/resource_paths/add`(gz::msgs::StringMsg_V) :
+    ///         gz::msgs::Empty
     ///     + Add new resource paths.
     ///
     ///   4. `/server_control`(gz::msgs::ServerControl) :

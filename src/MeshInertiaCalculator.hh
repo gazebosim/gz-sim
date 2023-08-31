@@ -21,12 +21,12 @@
 #include <optional>
 #include <vector>
 
-#include <sdf/sdf.hh>
 #include <sdf/CustomInertiaCalcProperties.hh>
 #include <sdf/Types.hh>
 
-#include <gz/sim/Util.hh>
 #include <gz/sim/Export.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/config.hh>
 
 #include <gz/common/graphics.hh>
 #include <gz/common/Mesh.hh>
@@ -66,13 +66,10 @@ namespace gz
       /// The calculation method used in this class is described here:
       /// https://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
       /// and it works on triangle water-tight meshes for simple polyhedron
-      class GZ_SIM_VISIBLE MeshInertiaCalculator
+      class MeshInertiaCalculator
       {
         /// \brief Constructor
-        public: MeshInertiaCalculator();
-
-        /// \brief  Destructor
-        public: ~MeshInertiaCalculator();
+        public: MeshInertiaCalculator() = default;
 
         /// \brief Function to get the vertices & indices of the given mesh
         /// & convert them into instances of the Triangle struct
@@ -95,7 +92,7 @@ namespace gz
         /// \param[out] _centreOfMass Pose3d object to hold the centre of
         /// mass of the object
         public: void CalculateMassProperties(
-          std::vector<Triangle>& _triangles,
+          const std::vector<Triangle>& _triangles,
           double _density,
           gz::math::MassMatrix3d& _massMatrix,
           gz::math::Pose3d& _centreOfMass);

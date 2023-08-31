@@ -293,16 +293,7 @@ void Hydrodynamics::Configure(
   gz::sim::EventManager &/*_eventMgr*/
 )
 {
-  if (_sdf->HasElement("waterDensity"))
-  {
-    ignwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
-      << "\tPlease update your SDF to use <water_density> instead.";
-  }
-
-  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "waterDensity",
-                                  SdfParamDouble(_sdf, "water_density", 998)
-                                );
+  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "water_density", 998);
   // Load stability derivatives
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
@@ -342,7 +333,7 @@ void Hydrodynamics::Configure(
 
   if (warnBehaviourChange)
   {
-    ignwarn << "You are using parameters that may cause instabilities "
+    gzwarn << "You are using parameters that may cause instabilities "
       << "in your simulation. If your simulation crashes we recommend "
       << "renaming <xUU> -> <xUabsU> and likewise for other axis "
       << "for more information see:" << std::endl

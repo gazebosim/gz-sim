@@ -38,12 +38,19 @@ else()
   set (EXTRA_TEST_LIB_DEPS)
 endif()
 
-include(test/find_dri.cmake)
-FindDRI()
+# We're disabling pybind11 by default on Windows because they
+# don't have active CI on them for now.
+set(skip_pybind11_default_value OFF)
+if (MSVC)
+  set(skip_pybind11_default_value ON)
+endif()
 
 option(SKIP_PYBIND11
       "Skip generating Python bindings via pybind11"
-      OFF)
+      ${skip_pybind11_default_value})
+
+include(test/find_dri.cmake)
+FindDRI()
 
 include(CMakeDependentOption)
 cmake_dependent_option(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION
@@ -90,11 +97,11 @@ set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 # Always use the profiler component to get the headers, regardless of status.
 gz_find_package(gz-common5
   COMPONENTS
-    profiler
-    events
     av
-    io
+    events
     graphics
+    io
+    profiler
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
@@ -199,16 +206,15 @@ set(Protobuf_IMPORT_DIRS ${gz-msgs10_INCLUDE_DIRS})
 if (SKIP_PYBIND11)
   message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  find_package(PythonLibs QUIET)
-  if (NOT PYTHONLIBS_FOUND)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
+  if (NOT Python3_FOUND)
     GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
     message (STATUS "Searching for Python - not found.")
   else()
     message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
     set(PYBIND11_PYTHON_VERSION 3)
-    find_package(Python3 QUIET COMPONENTS Interpreter Development)
-    find_package(pybind11 2.2 QUIET)
+    find_package(pybind11 2.9 CONFIG QUIET)
 
     if (pybind11_FOUND)
       message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
@@ -238,7 +244,7 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (${pybind11_FOUND})
+if (pybind11_FOUND)
 	add_subdirectory(python)
 endif()
 #============================================================================

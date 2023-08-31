@@ -56,6 +56,9 @@ namespace gz
       /// \brief Constructor
       public: EventManager() = default;
 
+      public: EventManager(const EventManager &) = delete;
+      public: EventManager &operator=(const EventManager &) = delete;
+
       /// \brief Destructor
       public: ~EventManager() = default;
 

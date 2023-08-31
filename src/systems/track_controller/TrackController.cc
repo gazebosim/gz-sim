@@ -25,10 +25,12 @@
 
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/marker.pb.h>
+#include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/Utility.hh>
 
 #include <gz/math/eigen3.hh>
 #include <gz/math/SpeedLimiter.hh>
+#include <gz/math/Helpers.hh>
 
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
@@ -140,6 +142,8 @@ class gz::sim::systems::TrackControllerPrivate
   /// \brief World poses of all collision elements of the track's link.
   public: std::unordered_map<Entity, math::Pose3d> collisionsWorldPose;
 
+  /// \brief Track position
+  public: double position {0};
   /// \brief The last commanded velocity.
   public: double velocity {0};
   /// \brief Commanded velocity clipped to allowable range.
@@ -148,8 +152,9 @@ class gz::sim::systems::TrackControllerPrivate
   public: double prevVelocity {0};
   /// \brief Second previous clipped commanded velocity.
   public: double prevPrevVelocity {0};
+
   /// \brief The point around which the track circles (in world coords). Should
-  /// be set to +Inf if the track is going straight.
+  /// be set to Inf or NaN if the track is going straight.
   public: math::Vector3d centerOfRotation {math::Vector3d::Zero * math::INF_D};
   /// \brief protects velocity and centerOfRotation
   public: std::mutex cmdMutex;
@@ -169,6 +174,13 @@ class gz::sim::systems::TrackControllerPrivate
 
   /// \brief Limiter of the commanded velocity.
   public: math::SpeedLimiter limiter;
+
+  /// \brief Odometry message publisher.
+  public: transport::Node::Publisher odometryPub;
+  /// \brief Update period calculated from <odometry_publish_frequency>.
+  public: std::chrono::steady_clock::duration odometryPubPeriod{0};
+  /// \brief Last sim time the odometry was published.
+  public: std::chrono::steady_clock::duration lastOdometryPubTime{0};
 };
 
 //////////////////////////////////////////////////
@@ -267,6 +279,26 @@ void TrackController::Configure(const Entity &_entity,
   }
   gzdbg << "Subscribed to " << corTopic << " for receiving track center "
          << "of rotation commands." << std::endl;
+
+  // Publish track odometry
+  const auto kDefaultOdometryTopic = topicPrefix + "/odometry";
+  const auto odometryTopic = validTopic({_sdf->Get<std::string>(
+    "odometry_topic", kDefaultOdometryTopic).first, kDefaultOdometryTopic});
+  this->dataPtr->odometryPub =
+    this->dataPtr->node.Advertise<msgs::Odometry>(odometryTopic);
+
+  double odometryFreq = _sdf->Get<double>(
+    "odometry_publish_frequency", 50).first;
+  std::chrono::duration<double> odomPer{0.0};
+  if (odometryFreq > 0)
+  {
+    odomPer = std::chrono::duration<double>(1 / odometryFreq);
+    this->dataPtr->odometryPubPeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
+  }
+  gzdbg << "Publishing odometry to " << odometryTopic
+    << " with period " << odomPer.count() << " seconds." << std::endl;
+
 
   this->dataPtr->trackOrientation = _sdf->Get<math::Quaterniond>(
     "track_orientation", math::Quaterniond::Identity).first;
@@ -423,6 +455,10 @@ void TrackController::PreUpdate(
     this->dataPtr->prevVelocity,
     this->dataPtr->prevPrevVelocity, _info.dt);
 
+  // Integrate track position
+  const double dtSec = std::chrono::duration<double>(_info.dt).count();
+  this->dataPtr->position += ( this->dataPtr->limitedVelocity * dtSec );
+
   this->dataPtr->prevPrevVelocity = this->dataPtr->prevVelocity;
   this->dataPtr->prevVelocity = this->dataPtr->limitedVelocity;
 
@@ -432,6 +468,71 @@ void TrackController::PreUpdate(
     this->dataPtr->markerId = 1;
   }
 }
+
+//////////////////////////////////////////////////
+void TrackController::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager & /*_ecm*/)
+{
+  // Nothing left to do if paused.
+  if (_info.paused)
+    return;
+
+  // Throttle publishing
+  auto diff = _info.simTime - this->dataPtr->lastOdometryPubTime;
+  if (diff < this->dataPtr->odometryPubPeriod)
+  {
+    return;
+  }
+  this->dataPtr->lastOdometryPubTime = _info.simTime;
+
+
+  // Construct the odometry message and publish it:
+  //
+  // Only odometry info is published (i.e. no other kinematic state info such
+  // as acceleration or jerk), as these are the only known values.
+  // E.g. at timestep 'k':
+  // - For an ideal system: (position k) = (position k-1) + (velocity k-1) * dt,
+  // - And (velocity k) is known from the velocity command (possibly limited by
+  // the SpeedLimiter).
+  // However, since this is a velocity-resolved controler, (acceleration k)
+  // and (jerk k) are unknown, e.g.:
+  //   (acceleration k) = ( (velocity k+1) - (velocity k) ) / dt
+  //   in which (velocity k+1) is unknown in timestep k.
+  //
+  // Note that, in case of a lower publish frequency than the simulation
+  // frequency, a similar issue exists for the velocity, since only the
+  // instantaneous velocity is known at each time step, and not the average
+  // velocity. E.g. consider:
+  //
+  //    Time        0    1    2    3    4    5
+  //    Velocity   10   10   10   10    0    0
+  //    Position    0   10   20   30   40   40
+  //
+  // with publish at:
+  // - time 0: position 0 and velocity 10
+  // - time 5: position 40 and velocity 0
+  //
+  // For '(pos k) = (pos k-1) + (vel k-1) * dt' to hold, with k = time 5
+  // and k-1 = time 0, the reported velocity at time 0 should be '8':
+  //   (40 - 0) / 5 = 8  (i.e. the average velocity over time 0 to 5),
+  // instead of the reported (instantaneous) velocity '10'.
+  //
+  // Imo. this error is acceptable, as real life sensors (e.g. encoder and
+  // resolver) also report instantaneous values for position and velocity.
+  //
+  msgs::Odometry msg;
+
+  // Set the time stamp in the header
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
+      convert<msgs::Time>(_info.simTime));
+
+  // Set position and velocity
+  msg.mutable_pose()->mutable_position()->set_x(this->dataPtr->position);
+  msg.mutable_twist()->mutable_linear()->set_x(this->dataPtr->limitedVelocity);
+
+  this->dataPtr->odometryPub.Publish(msg);
+}
+
 
 //////////////////////////////////////////////////
 void TrackControllerPrivate::ComputeSurfaceProperties(
@@ -616,7 +717,8 @@ void TrackControllerPrivate::OnCenterOfRotation(const msgs::Vector3d& _msg)
 GZ_ADD_PLUGIN(TrackController,
                     System,
                     TrackController::ISystemConfigure,
-                    TrackController::ISystemPreUpdate)
+                    TrackController::ISystemPreUpdate,
+                    TrackController::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(TrackController,
                           "gz::sim::systems::TrackController")

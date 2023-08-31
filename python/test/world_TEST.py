@@ -16,7 +16,7 @@
 import os
 import unittest
 
-from gz.common import set_verbosity
+from gz_test_deps.common import set_verbosity
 from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, World, world_entity
 from gz_test_deps.math import SphericalCoordinates, Vector3d
 from gz_test_deps.sdformat import Atmosphere

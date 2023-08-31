@@ -16,9 +16,9 @@
 import os
 import unittest
 
-from gz.common import set_verbosity
+from gz_test_deps.common import set_verbosity
 from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
-from gz_test_deps.math import Matrix3d, Vector3d
+from gz_test_deps.math import Matrix3d, Vector3d, Pose3d
 
 class TestModel(unittest.TestCase):
     post_iterations = 0
@@ -59,9 +59,8 @@ class TestModel(unittest.TestCase):
             # Visuals Test
             self.assertNotEqual(K_NULL_ENTITY, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))
-            # World Pose Test
-            self.assertEqual(None, link.world_pose(_ecm))
-            self.assertEqual(None, link.world_inertial_pose(_ecm))
+            # World Inertial Pose Test.
+            self.assertEqual(Pose3d(), link.world_inertial_pose(_ecm))
             # World Velocity Test
             self.assertEqual(None, link.world_linear_velocity(_ecm))
             self.assertEqual(None, link.world_angular_velocity(_ecm))

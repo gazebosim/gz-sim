@@ -14,6 +14,8 @@
  * limitations under the License.
  *
  */
+#include <cstdlib>
+#include <gz/transport/TopicUtils.hh>
 #include <memory>
 #include <mutex>
 #include <limits>
@@ -144,6 +146,18 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Linear velocity of the vehicle.
   public: double linearVelocity = 0.0;
 
+  /// \brief deadband in newtons
+  public: double deadband = 0.0;
+
+  /// \brief Flag to enable/disable deadband
+  public: bool enableDeadband = false;
+
+  /// \brief Mutex to protect enableDeadband
+  public: std::mutex deadbandMutex;
+
+  /// \brief Topic name used to enable/disable the deadband
+  public: std::string deadbandTopic = "";
+
   /// \brief Topic name used to control thrust. Optional
   public: std::string topic = "";
 
@@ -158,6 +172,11 @@ class gz::sim::systems::ThrusterPrivateData
 
   /// \brief Callback for handling thrust update
   public: void OnCmdThrust(const msgs::Double &_msg);
+
+  /// \brief Callback for handling deadband enable/disable update
+  /// \param[in] _msg boolean msg to indicate whether to enable or disable
+  ///                 the deadband
+  public: void OnDeadbandEnable(const msgs::Boolean &_msg);
 
   /// \brief Recalculates and updates the thrust coefficient.
   public: void UpdateThrustCoefficient();
@@ -179,6 +198,12 @@ class gz::sim::systems::ThrusterPrivateData
   /// \return True if battery is charged, false otherwise. If no battery found,
   /// returns true.
   public: bool HasSufficientBattery(const EntityComponentManager &_ecm) const;
+
+  /// \brief Applies the deadband to the thrust and angular velocity by setting
+  /// those values to zero if the thrust absolute value is below the deadband
+  /// \param[in] _thrust thrust in N used for check
+  /// \param[in] _angvel angular velocity in rad/s
+  public: void ApplyDeadband(double &_thrust, double &_angVel);
 };
 
 /////////////////////////////////////////////////
@@ -277,6 +302,13 @@ void Thruster::Configure(
     }
   }
 
+  // Get deadband, default to 0
+  if (_sdf->HasElement("deadband"))
+  {
+    this->dataPtr->deadband = _sdf->Get<double>("deadband");
+    this->dataPtr->enableDeadband = true;
+  }
+
   // Get a custom topic.
   if (_sdf->HasElement("topic"))
   {
@@ -312,6 +344,8 @@ void Thruster::Configure(
     // Subscribe to specified topic for force commands
     thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
       ns + "/" + this->dataPtr->topic);
+    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
+      ns + "/" + this->dataPtr->topic + "/enable_deadband");
     if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
     {
       this->dataPtr->node.Subscribe(
@@ -347,6 +381,9 @@ void Thruster::Configure(
 
     feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
       "/model/" + ns + "/joint/" + jointName + "/ang_vel");
+
+    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/enable_deadband");
   }
   else
   {
@@ -362,10 +399,23 @@ void Thruster::Configure(
 
     feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
         "/model/" + ns + "/joint/" + jointName + "/force");
+
+    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
+      "/model/" + ns + "/joint/" + jointName + "/enable_deadband");
   }
 
   gzmsg << "Thruster listening to commands on [" << thrusterTopic << "]"
         << std::endl;
+
+  if (!this->dataPtr->deadbandTopic.empty())
+  {
+    this->dataPtr->node.Subscribe(
+        this->dataPtr->deadbandTopic,
+        &ThrusterPrivateData::OnDeadbandEnable,
+        this->dataPtr.get());
+    gzmsg << "Thruster listening to enable_deadband on ["
+          << this->dataPtr->deadbandTopic << "]" << std::endl;
+  }
 
   this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
       feedbackTopic);
@@ -451,7 +501,7 @@ void Thruster::Configure(
   {
     if (!_sdf->HasElement("battery_name"))
     {
-      ignerr << "Specified a <power_load> but missing <battery_name>."
+      gzerr << "Specified a <power_load> but missing <battery_name>."
           "Specify a battery name so the power load can be assigned to it."
           << std::endl;
     }
@@ -473,6 +523,26 @@ void ThrusterPrivateData::OnCmdThrust(const gz::msgs::Double &_msg)
   // Thrust is proportional to the Rotation Rate squared
   // See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 246
   this->propellerAngVel = this->ThrustToAngularVec(this->thrust);
+}
+
+/////////////////////////////////////////////////
+void ThrusterPrivateData::OnDeadbandEnable(const gz::msgs::Boolean &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->deadbandMutex);
+  if (_msg.data() != this->enableDeadband)
+  {
+    if (_msg.data())
+    {
+      gzmsg << "Enabling deadband." << std::endl;
+    }
+    else
+    {
+      gzmsg << "Disabling deadband." << std::endl;
+    }
+
+    this->enableDeadband = _msg.data();
+  }
+
 }
 
 /////////////////////////////////////////////////
@@ -551,6 +621,16 @@ bool ThrusterPrivateData::HasSufficientBattery(
 }
 
 /////////////////////////////////////////////////
+void ThrusterPrivateData::ApplyDeadband(double &_thrust, double &_angVel)
+{
+    if (abs(_thrust) < this->deadband)
+    {
+        _thrust = 0.0;
+        _angVel = 0.0;
+    }
+}
+
+/////////////////////////////////////////////////
 void Thruster::PreUpdate(
   const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
@@ -560,6 +640,9 @@ void Thruster::PreUpdate(
 
   if (!this->dataPtr->enabled)
   {
+    return;
+  }
+  if (!_ecm.HasEntity(this->dataPtr->linkEntity)){
     return;
   }
 
@@ -586,17 +669,17 @@ void Thruster::PreUpdate(
       });
     if (numBatteriesWithName == 0)
     {
-      ignerr << "Can't assign battery consumption to battery: ["
-             << this->dataPtr->batteryName << "]. No batteries"
-             "were found with the given name." << std::endl;
+      gzerr << "Can't assign battery consumption to battery: ["
+            << this->dataPtr->batteryName << "]. No batteries"
+            "were found with the given name." << std::endl;
       return;
     }
     if (numBatteriesWithName > 1)
     {
-      ignerr << "More than one battery found with name: ["
-             << this->dataPtr->batteryName << "]. Please make"
-             "sure battery names are unique within the system."
-             << std::endl;
+      gzerr << "More than one battery found with name: ["
+            << this->dataPtr->batteryName << "]. Please make"
+            "sure battery names are unique within the system."
+            << std::endl;
       return;
     }
 
@@ -630,6 +713,15 @@ void Thruster::PreUpdate(
         this->dataPtr->ThrustToAngularVec(this->dataPtr->thrust);
     desiredPropellerAngVel = this->dataPtr->propellerAngVel;
   }
+
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->deadbandMutex);
+    if (this->dataPtr->enableDeadband)
+    {
+      this->dataPtr->ApplyDeadband(desiredThrust, desiredPropellerAngVel);
+    }
+  }
+
 
   msgs::Double angvel;
   // PID control

@@ -40,6 +40,7 @@
 #include "gz/sim/Util.hh"
 
 #include "helpers/EnvTestFixture.hh"
+#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;
@@ -973,11 +974,11 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 
   // URI to a Fuel world.
   std::string fuelUri =
-    "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/test world";
+    "https://fuel.gazebosim.org/1.0/openrobotics/worlds/test world";
 
   // The expect path for the local Fuel world.
   std::string expectedPath = common::joinPaths(
-      config.CacheLocation(), "fuel.ignitionrobotics.org",
+      config.CacheLocation(), "fuel.gazebosim.org",
       "openrobotics", "worlds", "test world");
 
   // Get the Fuel world.
@@ -1002,4 +1003,24 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 
   // A bad relative path should return an empty string
   EXPECT_TRUE(resolveSdfWorldFile("../invalid/does_not_exist.sdf").empty());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, LoadMesh)
+{
+  sdf::Mesh meshSdf;
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("invalid_uri");
+  meshSdf.SetFilePath("invalid_filepath");
+  EXPECT_EQ(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("name://unit_box");
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
+
+  meshSdf.SetUri("duck.dae");
+  std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "media", "duck.dae");
+  meshSdf.SetFilePath(filePath);
+  EXPECT_NE(nullptr, loadMesh(meshSdf));
 }

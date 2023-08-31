@@ -25,7 +25,6 @@
 #include <gz/sim/Model.hh>
 #include <gz/sim/Entity.hh>
 #include <gz/sim/EntityComponentManager.hh>
-#include <gz/sim/MeshInertiaCalculator.hh>
 
 #include <gz/sim/components/Inertial.hh>
 #include <gz/sim/components/Model.hh>
@@ -53,18 +52,20 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 
 TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
 {
-  std::string worldFilePath = "test/worlds/mesh_inertia_calculation.sdf";
   size_t kIter = 100u;
 
   gz::math::Pose3d linkPose(4, 4, 1, 0, 0, 0);
   gz::math::Inertiald linkInertial;
   // Start server and run.
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(
-    common::joinPaths(PROJECT_SOURCE_PATH, worldFilePath)
-  );
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf"));
 
-  gz::sim::Server server = gz::sim::Server(serverConfig);
+  common::setenv(
+      "GZ_SIM_RESOURCE_PATH",
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
+
+  gz::sim::Server server(serverConfig);
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -80,6 +81,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
+  ASSERT_NE(nullptr, ecm);
 
   // Get link of collada cylinder
   gz::sim::Entity modelEntity = ecm->EntityByComponents(
@@ -101,6 +103,11 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
   ASSERT_NE(link.WorldInertialPose(*ecm), std::nullopt);
   ASSERT_NE(link.WorldPose(*ecm), std::nullopt);
 
+  // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
+  // Volume: πr²h = 2π ≈ 6.283
+  // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
+  // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
+  // Iz : ½mr² ≈ 3895.57
   gz::math::Inertiald meshInertial;
   meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
       7791.1497,

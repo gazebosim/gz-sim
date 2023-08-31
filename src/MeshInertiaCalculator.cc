@@ -15,10 +15,11 @@
  *
  */
 
+#include "MeshInertiaCalculator.hh"
+
 #include <optional>
 #include <vector>
 
-#include <sdf/sdf.hh>
 #include <sdf/CustomInertiaCalcProperties.hh>
 #include <sdf/Types.hh>
 
@@ -33,16 +34,8 @@
 #include <gz/math/MassMatrix3.hh>
 #include <gz/math/Inertial.hh>
 
-#include <gz/sim/MeshInertiaCalculator.hh>
-
 using namespace gz;
 using namespace sim;
-
-//////////////////////////////////////////////////
-MeshInertiaCalculator::MeshInertiaCalculator() = default;
-
-//////////////////////////////////////////////////
-MeshInertiaCalculator::~MeshInertiaCalculator() = default;
 
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::GetMeshTriangles(
@@ -58,40 +51,40 @@ void MeshInertiaCalculator::GetMeshTriangles(
   for (unsigned int i = 0; i < _mesh->IndexCount(); i += 3)
   {
     Triangle triangle;
-    triangle.v0.X() = vertArray[3 * indArray[i]];
-    triangle.v0.Y() = vertArray[3 * indArray[i] + 1];
-    triangle.v0.Z() = vertArray[3 * indArray[i] + 2];
-    triangle.v1.X() = vertArray[3 * indArray[i+1]];
-    triangle.v1.Y() = vertArray[3 * indArray[i+1] + 1];
-    triangle.v1.Z() = vertArray[3 * indArray[i+1] + 2];
-    triangle.v2.X() = vertArray[3 * indArray[i+2]];
-    triangle.v2.Y() = vertArray[3 * indArray[i+2] + 1];
-    triangle.v2.Z() = vertArray[3 * indArray[i+2] + 2];
+    triangle.v0.X() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i])];
+    triangle.v0.Y() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i] + 1)];
+    triangle.v0.Z() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i] + 2)];
+    triangle.v1.X() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+1])];
+    triangle.v1.Y() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+1] + 1)];
+    triangle.v1.Z() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+1] + 2)];
+    triangle.v2.X() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2])];
+    triangle.v2.Y() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2] + 1)];
+    triangle.v2.Z() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2] + 2)];
     _triangles.push_back(triangle);
   }
 }
 
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::CalculateMassProperties(
-  std::vector<Triangle>& _triangles,
+  const std::vector<Triangle>& _triangles,
   double _density,
   gz::math::MassMatrix3d& _massMatrix,
   gz::math::Pose3d& _centreOfMass)
 {
   // Some coefficients for the calculation of integral terms
-  const double coefficients[10] = {1.0/6, 1.0/24, 1.0/24,
-                                  1.0/24, 1.0/60, 1.0/60,
-                                  1.0/60, 1.0/120, 1.0/120, 1.0/120};
+  const double coefficients[10] = {1.0 / 6,   1.0 / 24, 1.0 / 24, 1.0 / 24,
+                                   1.0 / 60,  1.0 / 60, 1.0 / 60, 1.0 / 120,
+                                   1.0 / 120, 1.0 / 120};
 
   // Number of triangles of in the mesh
-  int numTriangles = _triangles.size();
+  std::size_t numTriangles = _triangles.size();
 
   // Vector to store cross products of 2 vectors of the triangles
   std::vector<gz::math::Vector3d> crosses(numTriangles);
 
   // Caculating cross products of 2 vectors emerging from a common vertex
   // This basically gives a vector normal to the plane of triangle
-  for (int i = 0; i < numTriangles; ++i)
+  for (std::size_t i = 0; i < numTriangles; ++i)
   {
     crosses[i] =
       (_triangles[i].v1 - _triangles[i].v0).Cross(
@@ -102,7 +95,7 @@ void MeshInertiaCalculator::CalculateMassProperties(
   std::vector<gz::math::Vector3d> f1(numTriangles), f2(numTriangles),
   f3(numTriangles), g0(numTriangles), g1(numTriangles), g2(numTriangles);
 
-  for (int i = 0; i < numTriangles; ++i)
+  for (std::size_t i = 0; i < numTriangles; ++i)
   {
       f1[i] = _triangles[i].v0 + _triangles[i].v1 + _triangles[i].v2;
       f2[i] = _triangles[i].v0 * _triangles[i].v0 +
@@ -121,7 +114,7 @@ void MeshInertiaCalculator::CalculateMassProperties(
 
   // Calculate integral terms
   std::vector<double> integral(10);
-  for (int i = 0; i < numTriangles; ++i)
+  for (std::size_t i = 0; i < numTriangles; ++i)
   {
       double x0 = _triangles[i].v0.X();
       double y0 = _triangles[i].v0.Y();

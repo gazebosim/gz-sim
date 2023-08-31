@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <utility>
 
 #include <gz/common/geospatial/Dem.hh>
 #include <gz/common/geospatial/HeightmapData.hh>
@@ -477,6 +478,10 @@ class gz::sim::systems::PhysicsPrivate
             JointFeatureList,
             gz::physics::sdf::ConstructSdfJoint>{};
 
+  /// \brief Feature list for mimic constraints
+  public: struct MimicConstraintJointFeatureList : gz::physics::FeatureList<
+            physics::SetMimicConstraintFeature>{};
+
   //////////////////////////////////////////////////
   // Detachable joints
 
@@ -680,6 +685,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
+            MimicConstraintJointFeatureList,
             JointVelocityCommandFeatureList,
             JointGetTransmittedWrenchFeatureList,
             JointPositionLimitsCommandFeatureList,
@@ -773,16 +779,6 @@ void Physics::Configure(const Entity &_entity,
   if (pluginLib.empty())
   {
     pluginLib = "gz-physics-dartsim-plugin";
-  }
-
-  // Deprecated: accept ignition-prefixed engines
-  std::string deprecatedPrefix{"ignition"};
-  auto pos = pluginLib.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    auto msg = "Trying to load deprecated plugin [" + pluginLib + "]. Use [";
-    pluginLib.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << msg << pluginLib << "] instead." << std::endl;
   }
 
   // Update component
@@ -1391,15 +1387,9 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             return true;
           }
 
-          auto &meshManager = *common::MeshManager::Instance();
-          auto fullPath = asFullPath(meshSdf->Uri(), meshSdf->FilePath());
-          auto *mesh = meshManager.Load(fullPath);
-          if (nullptr == mesh)
-          {
-            gzwarn << "Failed to load mesh from [" << fullPath
-                    << "]." << std::endl;
+          const common::Mesh *mesh = loadMesh(*meshSdf);
+          if (!mesh)
             return true;
-          }
 
           auto linkMeshFeature =
               this->entityLinkMap.EntityCast<MeshFeatureList>(_parent->Data());
@@ -1688,6 +1678,62 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->entityJointMap.AddEntity(_entity, existingJoint);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+
+          // Check if mimic constraint should be applied to this joint's axes.
+          using AxisIndex = std::size_t;
+          std::map<AxisIndex, sdf::JointAxis> jointAxisByIndex;
+          auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
+          auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
+
+          if (jointAxis)
+          {
+            jointAxisByIndex[0] = jointAxis->Data();
+          }
+
+          if (jointAxis2)
+          {
+            jointAxisByIndex[1] = jointAxis2->Data();
+          }
+
+          for (const auto &[axisIndex, axis] : jointAxisByIndex)
+          {
+            if (auto mimic = axis.Mimic())
+            {
+              auto jointPtrMimic = this->entityJointMap
+                  .EntityCast<MimicConstraintJointFeatureList>(existingJoint);
+              if (jointPtrMimic)
+              {
+                const auto leaderJoint =
+                    basicModelPtrPhys->GetJoint(mimic->Joint());
+                std::size_t leaderAxis = 0;
+                if (mimic->Axis() == "axis2")
+                {
+                  leaderAxis = 1;
+                }
+                jointPtrMimic->SetMimicConstraint(axisIndex,
+                    leaderJoint,
+                    leaderAxis,
+                    mimic->Multiplier(),
+                    mimic->Offset(),
+                    mimic->Reference());
+              }
+              else
+              {
+                static bool informed{false};
+                if (!informed)
+                {
+                  gzerr << "Attempting to create a mimic constraint for joint ["
+                        << _name->Data()
+                        << "] but the chosen physics engine does not support "
+                        << "mimic constraints, so no constraint will be "
+                        << "created."
+                        << std::endl;
+                  informed = true;
+                }
+              }
+            }
+          }
+
           return true;
         }
 
@@ -3733,12 +3779,21 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
+  // Using ExtraContactData to expose contact Norm, Force & Depth
+  using Policy = physics::FeaturePolicy3d;
+  using GCFeature = physics::GetContactsFromLastStepFeature;
+  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
+
+  // A contact is described by a contactPoint and the corresponding
+  // extraContactData which we bundle in a pair data structure
+  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+                                const ExtraContactData *>;
   // Each contact object we get from gz-physics contains the EntityPtrs of the
   // two colliding entities and other data about the contact such as the
-  // position. This map groups contacts so that it is easy to query all the
+  // position and extra contact date (wrench, normal and penetration depth).
+  // This map groups contacts so that it is easy to query all the
   // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity,
-      std::deque<const WorldShapeType::ContactPoint *>>;
+  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
 
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
@@ -3752,16 +3807,19 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
   for (const auto &contactComposite : allContacts)
   {
-    const auto &contact = contactComposite.Get<WorldShapeType::ContactPoint>();
-    auto coll1Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact.collision1->EntityID());
-    auto coll2Entity =
-      this->entityCollisionMap.GetByPhysicsId(contact.collision2->EntityID());
+    const auto &contactPoint =
+        contactComposite.Get<WorldShapeType::ContactPoint>();
+    const auto &extraContactData = contactComposite.Query<ExtraContactData>();
+    auto coll1Entity = this->entityCollisionMap.GetByPhysicsId(
+        contactPoint.collision1->EntityID());
+    auto coll2Entity = this->entityCollisionMap.GetByPhysicsId(
+        contactPoint.collision2->EntityID());
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      entityContactMap[coll1Entity][coll2Entity].push_back(&contact);
-      entityContactMap[coll2Entity][coll1Entity].push_back(&contact);
+      ContactData data = std::make_pair(&contactPoint, extraContactData);
+      entityContactMap[coll1Entity][coll2Entity].push_back(data);
+      entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }
   }
 
@@ -3802,9 +3860,36 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();
-            position->set_x(contact->point.x());
-            position->set_y(contact->point.y());
-            position->set_z(contact->point.z());
+            position->set_x(contact.first->point.x());
+            position->set_y(contact.first->point.y());
+            position->set_z(contact.first->point.z());
+
+            // Check if the extra contact data exists,
+            // since not all physics engines support it.
+            // Then, fill the msg with extra data.
+            if(contact.second != nullptr)
+            {
+              auto *normal = contactMsg->add_normal();
+              normal->set_x(contact.second->normal.x());
+              normal->set_y(contact.second->normal.y());
+              normal->set_z(contact.second->normal.z());
+
+              auto *wrench = contactMsg->add_wrench();
+              auto *body1Wrench = wrench->mutable_body_1_wrench();
+              auto *body1Force = body1Wrench->mutable_force();
+              body1Force->set_x(contact.second->force.x());
+              body1Force->set_y(contact.second->force.y());
+              body1Force->set_z(contact.second->force.z());
+
+              // The force on the second body is equal and opposite
+              auto *body2Wrench = wrench->mutable_body_2_wrench();
+              auto *body2Force = body2Wrench->mutable_force();
+              body2Force->set_x(-contact.second->force.x());
+              body2Force->set_y(-contact.second->force.y());
+              body2Force->set_z(-contact.second->force.z());
+
+              contactMsg->add_depth(contact.second->depth);
+            }
           }
         }
 
