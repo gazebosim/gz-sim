@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/world_control.pb.h>
+
 #include <gz/transport/Node.hh>
 #include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/AngularVelocityCmd.hh>

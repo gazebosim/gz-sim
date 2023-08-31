@@ -16,6 +16,11 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>

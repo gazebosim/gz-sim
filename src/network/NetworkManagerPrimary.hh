@@ -18,6 +18,7 @@
 #define GZ_SIM_NETWORK_NETWORKMANAGERPRIMARY_HH_
 
 #include <gz/msgs/serialized_map.pb.h>
+#include "gz/sim/private_msgs/simulation_step.pb.h"
 
 #include <atomic>
 #include <future>
@@ -31,7 +32,6 @@
 #include <gz/sim/Entity.hh>
 #include <gz/transport/Node.hh>
 
-#include "msgs/simulation_step.pb.h"
 
 #include "NetworkManager.hh"
 

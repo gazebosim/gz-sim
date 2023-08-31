@@ -18,9 +18,13 @@
 
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <gz/msgs/pose.pb.h>
-#include <gz/msgs/double.pb.h>
+
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

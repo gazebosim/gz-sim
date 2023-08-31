@@ -15,8 +15,13 @@
  *
 */
 
+#include "VisualizeContacts.hh"
+
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
+#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/marker.pb.h>
 
 #include <string>
 #include <vector>
@@ -45,8 +50,6 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
-
-#include "VisualizeContacts.hh"
 
 namespace gz
 {
