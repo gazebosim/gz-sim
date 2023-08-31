@@ -17,10 +17,15 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/physics.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/visual.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>

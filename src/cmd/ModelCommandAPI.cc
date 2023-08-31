@@ -17,6 +17,10 @@
 
 #include "ModelCommandAPI.hh"
 
+#include <gz/msgs/serialized.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -29,9 +33,6 @@
 #include <sdf/Magnetometer.hh>
 #include <sdf/Noise.hh>
 #include <sdf/Sensor.hh>
-
-#include <gz/msgs/serialized.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>

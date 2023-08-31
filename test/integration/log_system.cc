@@ -16,7 +16,13 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 #include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <algorithm>
 #include <climits>

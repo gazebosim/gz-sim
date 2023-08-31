@@ -17,6 +17,17 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/projector.pb.h>
+#include <gz/msgs/scene.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/uint32_v.pb.h>
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4251)

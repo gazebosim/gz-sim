@@ -17,8 +17,11 @@
 
 #include "LogVideoRecorder.hh"
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 #include <gz/msgs/scene.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <chrono>
 #include <set>
