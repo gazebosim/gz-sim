@@ -16,7 +16,13 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 #include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <algorithm>
 #include <climits>
@@ -1669,7 +1675,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordPeriod))
 #ifndef __APPLE__
   // Log from command line
   {
-    // Command line triggers ign.cc, which handles initializing ignLogDirectory
+    // Command line triggers gz.cc, which handles initializing gzlogDirectory
     std::string cmd = kGzCommand + " -r -v 4 --iterations "
       + std::to_string(numIterations) + " "
       + "--record-period 0.002 "

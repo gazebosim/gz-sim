@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="ApplyForceTorque/">
+  <file>ApplyForceTorque.qml</file>
+</qresource>
+</RCC>

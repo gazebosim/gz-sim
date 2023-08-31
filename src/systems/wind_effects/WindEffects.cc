@@ -28,8 +28,7 @@
 #pragma warning(pop)
 #endif
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/wind.pb.h>
 
 #include <string>
 #include <utility>

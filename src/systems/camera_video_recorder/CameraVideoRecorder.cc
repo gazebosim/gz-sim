@@ -15,6 +15,11 @@
  *
 */
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/video_record.pb.h>
+
 #include <regex>
 #include <set>
 #include <string>

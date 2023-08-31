@@ -18,6 +18,8 @@
 #include "MecanumDrive.hh"
 
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 #include <mutex>

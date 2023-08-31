@@ -16,7 +16,13 @@
 */
 
 #include <gtest/gtest.h>
+
 #include <tinyxml2.h>
+
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -32,8 +38,8 @@
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
-
 #include "test_config.hh"
+
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"

@@ -18,6 +18,8 @@
 #include "PosePublisher.hh"
 
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/time.pb.h>
 
 #include <stack>
 #include <string>

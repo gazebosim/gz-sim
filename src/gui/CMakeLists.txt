@@ -75,6 +75,8 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 if(TARGET UNIT_Gui_clean_exit_TEST)
