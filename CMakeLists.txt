@@ -90,10 +90,11 @@ set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 # Always use the profiler component to get the headers, regardless of status.
 gz_find_package(gz-common5
   COMPONENTS
-    profiler
-    events
     av
+    events
+    graphics
     io
+    profiler
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
