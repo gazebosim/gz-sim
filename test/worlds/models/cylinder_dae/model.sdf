@@ -28,6 +28,20 @@
           <specular>0.7 0.7 0.7 1.0</specular>
         </material>
       </visual>
+      <visual name="cylinder_visual_comparison">
+        <pose>3 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>1</radius>
+            <length>2.0</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <diffuse>0.7 0.0 0.0 1.0</diffuse>
+          <ambient>0.7 0.7 0.7 1.0</ambient>
+          <specular>0.7 0.7 0.7 1.0</specular>
+        </material>
+      </visual>
     </link>
   </model>
 </sdf>

@@ -32,8 +32,8 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/MeshInertiaCalculator.hh"
 
+#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
@@ -123,9 +123,7 @@ Server::Server(const ServerConfig &_config)
       sdf::ParserConfig sdfParserConfig;
       errors = this->dataPtr->sdfRoot.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
-      sdf::Errors inertialErr =
-        this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
-      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 
@@ -175,9 +173,7 @@ Server::Server(const ServerConfig &_config)
         }
       }
 
-      sdf::Errors inertialErr =
-        this->dataPtr->sdfRoot.CalculateInertials(sdfParserConfig);
-      errors.insert(errors.end(), inertialErr.begin(), inertialErr.end());
+      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
 
