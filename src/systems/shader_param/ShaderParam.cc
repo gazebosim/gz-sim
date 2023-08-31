@@ -509,7 +509,6 @@ void ShaderParamPrivate::OnUpdate()
 //////////////////////////////////////////////////
 void ShaderParamPrivate::OnRenderTeardown()
 {
-  std::cerr << "shader param render tear down " << std::endl;
   this->visual.reset();
   this->scene.reset();
   this->material.reset();
