@@ -254,9 +254,9 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 
   if (inertiaOrigin != centreOfMass)
   {
-    // TODO(jasmeet0915): tranform the calculated inertia matrix 
+    // TODO(jasmeet0915): tranform the calculated inertia matrix
     // from inertia origin to centre of mass
-    gzwarn << "Calculated centroid does not match the mesh origin. " 
+    gzwarn << "Calculated centroid does not match the mesh origin. "
     "Inertia Tensor values won't be correct. Use mesh with origin at "
     "geometric center." << std::endl;
   }
