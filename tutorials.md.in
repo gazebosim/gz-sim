@@ -4,25 +4,61 @@ Welcome to the Gazebo @GZ_DESIGNATION_CAP@ tutorials. These tutorials
 will guide you through the process of understanding the capabilities of the
 Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 
-## Getting Started
+## Tutorials
+
+The Tutorials section contains step-by-step instructions with self-contained examples to help you get started using Gazebo.
+
+### Beginner
 
 * \subpage install "Installation": Install instructions.
-* \subpage terminology "Terminology": List of terms used across the documentation.
-* \subpage gui_config "GUI configuration": Customizing your layout.
-* \subpage server_config "Server configuration": Customizing what system plugins are loaded.
+* \subpage move_camera_to_model Move camera to model
+* \subpage apply_force_torque "Apply Force and Torque": Apply forces and/or torques to models during simulation through the GUI.
+* \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
 * \subpage reset_simulation Reset simulation
-* \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
-* \subpage debugging "Debugging": Information about debugging Gazebo.
+* \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
 
-### GUI and rendering features
+### Intermediate
 
-* \subpage move_camera_to_model Move camera to model
+* \subpage log "Logging": Record and play back time series of world state.
+* \subpage levels "Levels": Load entities on demand in large environments.
+
+## How-to Guides
+
+The How-to Guides provide recipes for specific "How to..." questions or things you may want to do.
+They assume some experience.
+If you are an absolute beginner, start with the Tutorials section.
+
+### Beginner
+
+* \subpage gui_config "GUI configuration": Customize your layout.
+* \subpage server_config "Server configuration": Customize what system plugins are loaded.
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
-* \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
-* \subpage apply_force_torque "Apply Force and Torque": Applying forces and/or torques to models during simulation through the GUI.
-* \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
+
+### Intermediate
+
+* \subpage light_config "Light config": Configure lights in the scene.
+* \subpage entity_creation "Entity creation": Insert models or lights using services.
+* \subpage battery "Battery": Keep track of battery charge on robot models.
+* \subpage particle_emitter "Particle emitter": Use particle emitters in simulation
+* \subpage detachablejoints "Detachable Joints": Create models that start off rigidly attached and then get detached during simulation.
+* \subpage triggeredpublisher "Triggered Publisher": Use the TriggeredPublisher system to orchestrate actions in simulation.
+* \subpage spherical_coordinates "Spherical coordinates": Work with latitude and longitude
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
+* \subpage logicalaudiosensor "Logical Audio Sensor": Use the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
+
+### Advanced
+
+* \subpage physics "Physics engines": Load different physics engines.
+* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
+* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
+
+### Developers
+
+* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
+* \subpage test_fixture "Test Fixture": Writing automated CI tests
 
 ### Migration from Gazebo classic
 
@@ -37,37 +73,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage migrationsensorapi "Sensor API": Guide on what Sensor C++ functions to call in Gazebo when migrating from Gazebo classic
 * \subpage ardupilot "Case Study": Migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo.
 
-## Intermediate
-
-* \subpage log "Logging": Record and play back time series of world state.
-* \subpage light_config "Light config": Configure lights in the scene.
-* \subpage levels "Levels": Load entities on demand in large environments.
-* \subpage python_interfaces Python interfaces
-
-### Specific systems and features
-
-* \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
-* \subpage triggeredpublisher "Triggered Publisher": Using the TriggeredPublisher system to orchestrate actions in simulation.
-* \subpage battery "Battery": Keep track of battery charge on robot models.
-* \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
-* \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
-* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
-* \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
-
-## Advanced users
-
-* \subpage physics "Physics engines": Loading different physics engines.
-* \subpage entity_creation "Entity creation": Insert models or lights using services.
-* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
-* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
-
-## Developers
-
-* \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
-* \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
-* \subpage test_fixture "Test Fixture": Writing automated CI tests
-
-## 3D modeling help
+### 3D modeling help
 
 * \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
@@ -79,6 +85,20 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
 * \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
 * \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
+
+## Explanation
+
+The explanation section discusses concepts that require additional understanding than the scope of the Tutorials and How-to Guides.
+
+* \subpage terminology "Terminology": List of terms used across the documentation.
+
+## Reference
+
+The reference section contains information that may come in handy for lookup.
+
+* \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
+* \subpage python_interfaces Python interfaces
+* \subpage debugging "Debugging": Information about debugging Gazebo.
 
 ## License
 
