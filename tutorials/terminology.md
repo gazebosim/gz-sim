@@ -20,9 +20,9 @@ to developers touching the source code.
     [components](namespacegz_1_1sim_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
-    [BaseComponent](classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
+    [BaseComponent](classgz_1_1sim_1_1components_1_1BaseComponent.html)
     class or instantiating a template of
-    [Component](classignition_1_1gazebo_1_1components_1_1Component.html).
+    [Component](classgz_1_1sim_1_1components_1_1Component.html).
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
@@ -32,7 +32,7 @@ to developers touching the source code.
 * **Entity-component manager** (**ECM**): Provides functions for
     querying, creating, removing and updating entities and components.
     See the whole API
-    [here](classignition_1_1gazebo_1_1EntityComponentManager.html).
+    [here](classgz_1_1sim_1_1EntityComponentManager.html).
 
 * **Level**: Part of a world, defined by a box volume and the static entities
     inside it. An entity can be present in more than one level, or in none of
@@ -63,10 +63,10 @@ to developers touching the source code.
     the world, while the **primary** runner is keeping all secondaries in sync.
     Worlds that are not split across runners don't have a primary runner.
 
-* **[Event manager](classignition_1_1gazebo_1_1EventManager.html)**:
+* **[Event manager](classgz_1_1sim_1_1EventManager.html)**:
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
-    [Event](https://gazebosim.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
+    [Event](https://gazebosim.org/api/common/3.0/classgz_1_1common_1_1Event.html)s
     and / or emit / listen to events from Gazebo.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
