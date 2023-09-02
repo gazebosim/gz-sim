@@ -66,7 +66,7 @@ to developers touching the source code.
 * \ref gz::sim::EventManager "Event manager":
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
-    [Event](https://gazebosim.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
+    [Event](https://gazebosim.org/api/common/5/classgz_1_1common_1_1Event.html)s
     and / or emit / listen to events from Gazebo.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no
