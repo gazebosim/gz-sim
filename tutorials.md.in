@@ -23,6 +23,10 @@ The Tutorials section contains step-by-step instructions with self-contained exa
 * \subpage log "Logging": Record and play back time series of world state.
 * \subpage levels "Levels": Load entities on demand in large environments.
 
+### Advanced
+
+* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
+
 ## How-to Guides
 
 The How-to Guides provide recipes for specific "How to..." questions or things you may want to do.
@@ -51,8 +55,6 @@ If you are an absolute beginner, start with the Tutorials section.
 ### Advanced
 
 * \subpage physics "Physics engines": Load different physics engines.
-* \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
-* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 
 ### Developers
 
@@ -86,12 +88,6 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
 * \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
 
-## Explanation
-
-The explanation section discusses concepts that require additional understanding than the scope of the Tutorials and How-to Guides.
-
-* \subpage terminology "Terminology": List of terms used across the documentation.
-
 ## Reference
 
 The reference section contains information that may come in handy for lookup.
@@ -99,6 +95,13 @@ The reference section contains information that may come in handy for lookup.
 * \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
 * \subpage python_interfaces Python interfaces
 * \subpage debugging "Debugging": Information about debugging Gazebo.
+
+## Concepts
+
+The concepts section explains things that require additional understanding than the scope of the Tutorials and How-to Guides.
+
+* \subpage terminology "Terminology": List of terms used across the documentation.
+* \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
 
 ## License
 
