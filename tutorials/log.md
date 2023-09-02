@@ -42,7 +42,7 @@ Other options for recording:
 ### From C++ API
 
 All features available through the command line are also available through
-[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1ServerConfig.html).
+[gz::sim::ServerConfig](classgz_1_1sim_1_1ServerConfig.html).
 When instantiating a server programmatically, logging options can be passed
 to the constructor, for example:
 

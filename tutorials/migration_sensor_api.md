@@ -32,15 +32,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/Sensor.hh](https://gazebosim.org/api/gazebo/6/Sensor_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/6/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/6/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [gz/sim/Sensor.hh](Sensor_8hh.html)
+* [gz/sim/Util.hh](Util_8hh.html)
+* [gz/sim/SdfEntityCreator.hh](SdfEntityCreator_8hh.html)
+* [gz/sim/EntityComponentManager.hh](classgz_1_1sim_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Sensor::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 

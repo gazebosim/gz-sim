@@ -34,16 +34,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [gz/sim/Actor.hh](https://gazebosim.org/api/gazebo/7/Actor_8hh.html)
-* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* [gz/sim/Actor.hh](Actor_8hh.html)
+* [gz/sim/Util.hh](Util_8hh.html)
+* [gz/sim/SdfEntityCreator.hh](SdfEntityCreator_8hh.html)
+* [gz/sim/EntityComponentManager.hh](classgz_1_1sim_1_1EntityComponentManager.html)
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
-
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Actor::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
