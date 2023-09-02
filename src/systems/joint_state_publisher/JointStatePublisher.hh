@@ -33,8 +33,8 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \brief The JointStatePublisher system publishes joint state information for
-  /// a model. The published message type is gz::msgs::Model, and the
+  /// \brief The JointStatePublisher system publishes joint state information
+  /// for a model. The published message type is gz::msgs::Model, and the
   /// publication topic is determined by the `<topic>` parameter.
   ///
   /// By default the JointStatePublisher will publish all joints for
