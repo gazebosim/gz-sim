@@ -131,7 +131,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     std::string dataPath =
         this->sdf->Get<std::string>("data");
 
-    if (common::isRelativePath(this->dataDescription.path()))
+    if (common::isRelativePath(dataPath))
     {
       auto *component =
           _ecm.Component<components::WorldSdf>(worldEntity(_ecm));
