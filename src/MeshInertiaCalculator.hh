@@ -103,6 +103,9 @@ namespace gz
         public: void CalculateMeshCentroid(gz::math::Pose3d &_centreOfMass,
           std::vector<Triangle> &_triangles);
 
+        public: void TransformInertiaMatrixToCOM(gz::math::MassMatrix3d &_massMatrix,
+          gz::math::Pose3d &_centreOfMass, gz::math::Pose3d &_inertiaOrigin);
+
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
         /// \param[in] _triangles A vector of all the Triangles of the mesh

@@ -102,6 +102,36 @@ void MeshInertiaCalculator::CalculateMeshCentroid(
 }
 
 //////////////////////////////////////////////////
+void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
+  gz::math::MassMatrix3d &_massMatrix,
+  gz::math::Pose3d &_centreOfMass,
+  gz::math::Pose3d &_inertiaOrigin
+)
+{
+  gz::math::Pose3d comRelativeToOrigin = _centreOfMass - _inertiaOrigin;
+  std::cout << comRelativeToOrigin << std::endl;
+  std::cout << _centreOfMass <<std::endl;
+
+  gz::math::Vector3d ixxyyzz = _massMatrix.DiagonalMoments();
+  gz::math::Vector3d ixyxzyz = _massMatrix.OffDiagonalMoments();
+  double mass = _massMatrix.Mass();
+
+  ixxyyzz.X() = ixxyyzz.X() - mass * (comRelativeToOrigin.Y() * comRelativeToOrigin.Y()
+                                    + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
+  ixxyyzz.Y() = ixxyyzz.Y() - mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
+                                    + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
+  ixxyyzz.Z() = ixxyyzz.Z() - mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
+                                    + comRelativeToOrigin.Y() * comRelativeToOrigin.Y());
+
+  ixyxzyz.X() = ixyxzyz.X() + mass * comRelativeToOrigin.X() * comRelativeToOrigin.Y();
+  ixyxzyz.Y() = ixyxzyz.Y() + mass * comRelativeToOrigin.X() * comRelativeToOrigin.Z();
+  ixyxzyz.Z() = ixyxzyz.Z() + mass * comRelativeToOrigin.Y() * comRelativeToOrigin.Z();
+
+  _massMatrix.SetDiagonalMoments(ixxyyzz);
+  _massMatrix.SetOffDiagonalMoments(ixyxzyz);
+}
+
+//////////////////////////////////////////////////
 void MeshInertiaCalculator::CalculateMassProperties(
   const std::vector<Triangle>& _triangles,
   double _density,
@@ -268,6 +298,8 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     gzwarn << "Calculated centroid does not match the mesh origin. "
     "Inertia Tensor values won't be correct. Use mesh with origin at "
     "geometric center." << std::endl;
+
+    this->TransformInertiaMatrixToCOM(meshMassMatrix, centreOfMass, inertiaOrigin);
   }
 
   gz::math::Inertiald meshInertial;
