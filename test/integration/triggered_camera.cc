@@ -16,6 +16,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/boolean.pb.h>
 
 #ifdef _MSC_VER
 #pragma warning(push, 0)
@@ -33,7 +34,7 @@
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
-#include <gz/utilities/ExtraTestMacros.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"

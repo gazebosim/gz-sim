@@ -132,7 +132,7 @@ indicating where the sensor is on the ground.
       <parent_link>body</parent_link>
       <child_model>box1</child_model>
       <child_link>box_body</child_link>
-      <topic>/box1/detach</topic>
+      <detach_topic>/box1/detach</detach_topic>
     </plugin>
   </model>
 
@@ -227,7 +227,7 @@ static model `trigger` by adding the following to `trigger`
     <parent_link>body</parent_link>
     <child_model>box2</child_model>
     <child_link>box_body</child_link>
-    <topic>/box2/detach</topic>
+    <detach_topic>/box2/detach</detach_topic>
   </plugin>
 </model>
 ```

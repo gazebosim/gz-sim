@@ -160,12 +160,16 @@ gz_add_component(gz
     ${cli_sources}
   GET_TARGET_NAME gz_lib_target)
 target_link_libraries(${gz_lib_target}
-  PRIVATE
+  PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-sim${PROJECT_VERSION_MAJOR}
     gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
+
+# Executable target that runs the GUI without ruby for debugging purposes.
+add_executable(runGui gz.cc)
+target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)

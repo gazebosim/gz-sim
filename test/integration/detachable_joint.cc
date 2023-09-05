@@ -213,3 +213,145 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
   // the expected distance.
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
 }
+
+ /////////////////////////////////////////////////
+ // Test for re-attaching a detached joint. This uses the vehicle_blue and B1
+ // box models. The B1 model is first detached from the vehicle. Although
+ // detached, the distance (x-direction) between B1 and vehicle is 1.5, which
+ // is the default offset. Then, linear velocity of 1.0 is published on the
+ // `/cmd_vel` topic. After 200 iterations, the B1 model will remain in the same
+ // position whereas the vehicle will move in the x-direction. Now the
+ // distance between B1 and the vehicle will be the default offset (1.5)
+ // in addition to the distance traveled by the vehicle. Next, B1 is re-attached
+ // to the vehicle. After 200 iterations, we can confirm that B1 has moved with
+ // the vehicle and the distance traveled by B1 is close to that of the vehicle.
+ // Therefore, it confirms that B1 is re-attached to the vehicle.
+ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ReAttach))
+ {
+   using namespace std::chrono_literals;
+
+   this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
+
+   // A lambda that takes a model name and a mutable reference to a vector of
+   // poses and returns another lambda that can be passed to
+   // `Relay::OnPostUpdate`.
+   auto poseRecorder =
+       [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
+   {
+     return [&, _modelName](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
+     {
+       _ecm.Each<components::Model, components::Name, components::Pose>(
+           [&](const Entity &_entity, const components::Model *,
+               const components::Name *_name,
+               const components::Pose *_pose) -> bool
+           {
+             if (_name->Data() == _modelName)
+             {
+               EXPECT_NE(kNullEntity, _entity);
+               _poses.push_back(_pose->Data());
+             }
+             return true;
+           });
+     };
+   };
+
+   std::vector<math::Pose3d> b1Poses, vehiclePoses;
+   test::Relay testSystem1;
+   testSystem1.OnPostUpdate(poseRecorder("B1", b1Poses));
+   test::Relay testSystem2;
+   testSystem2.OnPostUpdate(poseRecorder("vehicle_blue", vehiclePoses));
+
+   this->server->AddSystem(testSystem1.systemPtr);
+   this->server->AddSystem(testSystem2.systemPtr);
+
+   transport::Node node;
+   // time required for the child and parent links to be attached
+   gzdbg << "Initially attaching the links" << std::endl;
+   const std::size_t nItersInitialize{100};
+   this->server->Run(true, nItersInitialize, false);
+
+   // detach the B1 model from the vehicle model
+   auto pub = node.Advertise<msgs::Empty>("/B1/detach");
+   pub.Publish(msgs::Empty());
+   std::this_thread::sleep_for(250ms);
+   const std::size_t nItersAfterDetach{100};
+   this->server->Run(true, nItersAfterDetach, false);
+
+   ASSERT_EQ(nItersAfterDetach + nItersInitialize, b1Poses.size());
+   ASSERT_EQ(nItersAfterDetach + nItersInitialize, vehiclePoses.size());
+
+   // Deafult distance between B1 and the vehicle is 1.5.
+   auto defaultDist = 1.5;
+   // Although detached, distance (x-axis) between B1 and vehicle should be 1.5.
+   EXPECT_NEAR(vehiclePoses.back().Pos().X(),
+       abs(b1Poses.back().Pos().X()) - defaultDist, 0.0001);
+
+   // clear the vectors
+   b1Poses.clear();
+   vehiclePoses.clear();
+
+   // Move the vehicle along the x-axis with linear speed of x = 1.0. Since B1
+   // has been detached, it's just the vehicle moving forward.
+   auto cmdVelPub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+   msgs::Twist msg;
+   msgs::Set(msg.mutable_linear(), math::Vector3d(1.0, 0, 0));
+   cmdVelPub.Publish(msg);
+   std::this_thread::sleep_for(250ms);
+   const std::size_t nItersAfterMoving{200};
+   this->server->Run(true, nItersAfterMoving, false);
+
+   ASSERT_EQ(nItersAfterMoving, b1Poses.size());
+   ASSERT_EQ(nItersAfterMoving, vehiclePoses.size());
+
+   // Model B1 X pos is stationary. Therefore the diff will be close to 0.
+   EXPECT_TRUE(abs(b1Poses.front().Pos().X() -
+       b1Poses.back().Pos().X()) < 0.001);
+
+   // Model vehicle_blue X pos will be different since it moved.
+   auto distTraveled = 0.1;
+   EXPECT_TRUE(abs(vehiclePoses.front().Pos().X() -
+       vehiclePoses.back().Pos().X()) > distTraveled);
+
+   // Distance between the B1 and vehicle model confirms that it is detached
+   // and the vehicle traveled away from B1.
+   auto totalDist = defaultDist + distTraveled;
+   EXPECT_TRUE(abs(vehiclePoses.back().Pos().X() -
+       b1Poses.back().Pos().X()) > totalDist);
+
+   // clear the vectors
+   b1Poses.clear();
+   vehiclePoses.clear();
+
+   // Now re-attach the B1 model back to the vehicle. B1 will move with the
+   // vehicle.
+   auto attachPub = node.Advertise<msgs::Empty>("/B1/attach");
+   attachPub.Publish(msgs::Empty());
+   std::this_thread::sleep_for(250ms);
+   const std::size_t nItersAfterMovingTogether{200};
+   this->server->Run(true, nItersAfterMovingTogether, false);
+
+   ASSERT_EQ(nItersAfterMovingTogether, b1Poses.size());
+   ASSERT_EQ(nItersAfterMovingTogether, vehiclePoses.size());
+
+   // Model B1 should move along with the vehicle. Therefore the position should
+   // change.
+   EXPECT_TRUE(abs(b1Poses.front().Pos().X() -
+       b1Poses.back().Pos().X()) > distTraveled);
+
+   // distance traveled along the x-axis by the B1 model
+   auto distTraveledB1 = abs(b1Poses.back().Pos().X() -
+       b1Poses.front().Pos().X());
+
+   // distance traveled along the x-axis by the vehicle model
+   auto distTraveledVehicle = abs(vehiclePoses.back().Pos().X() -
+       vehiclePoses.front().Pos().X());
+   gzdbg << "dist by B1: " << distTraveledB1 << " ,dist by vehicle: "
+          << distTraveledVehicle << ", diff: "
+          << abs(distTraveledB1 - distTraveledVehicle) << std::endl;
+
+   // since the two models are attached, the distances traveled by both objects
+   // should be close.
+   EXPECT_TRUE(abs(distTraveledB1 - distTraveledVehicle) < 0.01);
+ }

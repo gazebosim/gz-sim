@@ -24,6 +24,7 @@
 #include <condition_variable>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <gz/common/Profiler.hh>
@@ -268,7 +269,14 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \brief Flag used to indicate if periodic changes need to be published
   /// This is currently only used in playback mode.
   public: bool pubPeriodicChanges{false};
+
+  /// \brief Stores a cache of components that are changed. (This prevents
+  ///  dropping of periodic change components which may not be updated
+  ///  frequently enough)
+  public: std::unordered_map<ComponentTypeId,
+    std::unordered_set<Entity>> changedComponents;
 };
+
 
 //////////////////////////////////////////////////
 SceneBroadcaster::SceneBroadcaster()
@@ -352,6 +360,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
+  // Iterate through entities and their changes to cache them.
+  _manager.UpdatePeriodicChangeCache(this->dataPtr->changedComponents);
+
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
   // * also publish off-rate if there are change events:
@@ -394,15 +405,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     else if (!_info.paused)
     {
       GZ_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-
-      if (_manager.HasPeriodicComponentChanges())
-      {
-        auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-        _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-             {}, periodicComponents);
-        this->dataPtr->pubPeriodicChanges = false;
-      }
-      else
+      if (!_manager.HasPeriodicComponentChanges())
       {
         // log files may be recorded at lower rate than sim time step. So in
         // playback mode, the scene broadcaster may not see any periodic
@@ -427,6 +430,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
         // we may be able to remove this in the future and update tests
         this->dataPtr->stepMsg.mutable_state();
       }
+
+      // Apply changes that were caught by the periodic state tracker and then
+      // clear the change tracker.
+      _manager.PeriodicStateFromCache(*this->dataPtr->stepMsg.mutable_state(),
+        this->dataPtr->changedComponents);
+      this->dataPtr->changedComponents.clear();
     }
 
     // Full state on demand
