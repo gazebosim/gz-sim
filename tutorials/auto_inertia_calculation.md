@@ -2,8 +2,9 @@
 
 ## Automatic Inertia Calculation for SDFormat Links
 
-This feature enables automatic calculation for the Moments of Inertia, Mass, and Inertial Pose (Center of Mass pose) of a link described using SDFormat. The following geometry types are currently supported
- for this feature:
+This feature enables automatic calculation for the Moments of Inertia, Mass, and 
+Inertial Pose (Center of Mass pose) of a link described using SDFormat. The following 
+geometry types are currently supported for this feature:
  * Box
  * Capsule
  * Cylinder
@@ -11,19 +12,28 @@ This feature enables automatic calculation for the Moments of Inertia, Mass, and
  * Sphere
  * Mesh
    
-Using this feature, a user can easily set up an accurate simulation with physically plausible inertial values for a link. This also removes the dependency on manual calculations or 3rd-party mesh processing software which can help lower the barrier of entry for beginners.
+Using this feature, a user can easily set up an accurate simulation with physically 
+plausible inertial values for a link. This also removes the dependency on manual calculations 
+or 3rd-party mesh processing software which can help lower the barrier of entry for beginners.
 
-This tutorial will focus on how this feature can be enabled and how the inertia values for a link can be configured. Some limitations and recommendations would also be discussed along the way that would allow users to more mindfully utilize this feature.
+This tutorial will focus on how this feature can be enabled and how the 
+inertia values for a link can be configured. Some limitations and recommendations 
+would also be discussed along the way that would allow users to more mindfully utilize this feature.
 
 ## Basic Overview
 
-This feature introduced a new `auto` attribute for the `<inertial>` tag which can be set to true or false (The value is false by default) to enable or disable the automatic calculations respectively:
+This feature introduced a new `auto` attribute for the `<inertial>` tag which can be set 
+to true or false (The value is false by default) to enable or disable the automatic 
+calculations respectively:
 
 ```xml
 <inertial auto="true" />
 ```
 
-In case, `auto` is set to true, the constituent **collision geometries** of the link are considered for the calculations. A newly introduced `<density>` tag can be used to specify the mass density value of the collision in kg/m^3. The density of water (1000 kg/m^3) is utilized as the default value:
+In case, `auto` is set to true, the constituent **collision geometries** of the link are 
+considered for the calculations. A newly introduced `<density>` tag can be used to specify 
+the mass density value of the collision in kg/m^3. The density of water (1000 kg/m^3) is 
+utilized as the default value:
 
 ```xml
 <collision name="collision">
@@ -36,13 +46,20 @@ In case, `auto` is set to true, the constituent **collision geometries** of the 
 </collision>
 ```
 
-In case of multiple collision geometries in a link, a user is free to provide different density values for each and the inertia values from each would be aggregated to calculate the final inertia of the link. However, if there are no collisions present, an `ELEMENT_MISSING` error would be thrown.
+In case of multiple collision geometries in a link, a user is free to provide different 
+density values for each and the inertia values from each would be aggregated to calculate 
+the final inertia of the link. However, if there are no collisions present, 
+an `ELEMENT_MISSING` error would be thrown.
 
-It is **important** to note here that if `auto` is set to `true` and the user has still provided values through the `<mass>`, `<pose>` and `<inertia>` tags, they would be **overwritten** by the automatically computed values.
+It is **important** to note here that if `auto` is set to `true` and the user has 
+still provided values through the `<mass>`, `<pose>` and `<inertia>` tags, they 
+would be **overwritten** by the automatically computed values.
 
->**Note:** Use SDF Spec version 1.11 or greater to utilize the new tags and attributes of this feature.
+>**Note:** Use SDF Spec version 1.11 or greater to utilize the new tags and attributes 
+of this feature.
 
-Here's an example snippet of a cylinder model that has automatic inertial calculations enabled and has a density of 1240 kg/m^3:
+Here's an example snippet of a cylinder model that has automatic inertial calculations 
+enabled and has a density of 1240 kg/m^3:
 
 ```xml
   <model name="cylinder">
@@ -74,30 +91,45 @@ Here's an example snippet of a cylinder model that has automatic inertial calcul
   </model>
 ```
 
-If you use the above snippet in an empty world and launch it with `gz-sim`, here's how it would look:
+If you use the above snippet in an empty world and launch it with `gz-sim`, here's 
+how it would look:
 
 ![Cylinder](files/auto_inertia/cylinder_inertia_demo.gif)
 
 ## Links with Multiple Collisions & the Effect of Density
 
-To understand the inertia calculation in links with multiple collisions and the effect of setting different density values, you can launch the `auto_inertia_pendulum.sdf` example world using:
+To understand the inertia calculation in links with multiple collisions and the 
+effect of setting different density values, you can launch the `auto_inertia_pendulum.sdf` 
+example world using:
 
 ```bash
 gz sim auto_inertia_pendulum.sdf
 ```
 
-After the gz-sim window opens up, you can right click on both the models and enable the centre of mass visualization by selecting the `View > Center of Mass` option from the menu. Once you play the simulation it should look this:
+After the gz-sim window opens up, you can right click on both the models and enable 
+the centre of mass visualization by selecting the `View > Center of Mass` option from 
+the menu. Once you play the simulation it should look this:
 
 ![Pendulum](files/auto_inertia/auto_inertia_pendulum.gif)
 
-This example world has two structurally indentical models. The pendulum link of both the models contain 3 cylindrical collision geometries: One on the top which forms the joint, One in longer cylinder in middle and One at the end which forms the bob of cylinder. Even, though they are indentical, the center of mass for both are different as they use different density values for the different cylinder collisions. One one hand, the upper joint collision of the pendulum on the left has the highest density which causes the center of mass to shift closer to the axis while on the other hand, the bob collision of the pendulum on the right has the highest density which causes the center of mass to shift towards the end of the pendulum.
-This difference in mass distribution about the axis of rotation results in difference in the moment of inertia of the 2 setups and hence different angular velocities.
+This example world has two structurally indentical models. The pendulum link of both 
+the models contain 3 cylindrical collision geometries: One on the top which forms the 
+joint, One in longer cylinder in middle and One at the end which forms the bob of 
+cylinder. Even, though they are indentical, the center of mass for both are different 
+as they use different density values for the different cylinder collisions. One one 
+hand, the upper joint collision of the pendulum on the left has the highest density 
+which causes the center of mass to shift closer to the axis while on the other hand, 
+the bob collision of the pendulum on the right has the highest density which causes 
+the center of mass to shift towards the end of the pendulum.
+This difference in mass distribution about the axis of rotation results in difference 
+in the moment of inertia of the 2 setups and hence different angular velocities.
 
 ## Mesh Inertia Calculation with Rolling Shapes Demo
 
-Let's try another example world, `auto_inertia_rolling_shapes.sdf`. This can be launched with `gz sim` using the following command:
+Let's try another example world, `auto_inertia_rolling_shapes.sdf`. This can be 
+launched with `gz sim` using the following command:
 
-```xml
+```bash
 gz sim auto_inertia_rolling_shapes.sdf
 ```
 
@@ -105,12 +137,24 @@ Once you launch and play the simulation, it should look something like this:
 
 ![Rolling](files/auto_inertia/rolling_inertia_demo.gif)
 
-Here the right most shapes is a hollow cylinder (yellow). This model is load from fuel and is made using a collada mesh of a hollow cylinder. Apart from this, we can see there is a solid cylinder, a solid sphere and a solid capsule. All of these are made using the `<geometry>` tag and have automatic inertia calculations enabled.
-Here, the moments of inertia for the hollow cylinder (which is convex mesh shape) is calculated and from the simulation we can see that it reaches the bottom of the incline last. This is physically accurate as the mass distribution for the hollow cylinder is concetrated at a distance from the axis of rotation (which passes through the center of mass in this case).
+Here the right most shapes is a hollow cylinder (yellow). This model is load from 
+fuel and is made using a collada mesh of a hollow cylinder. Apart from this, we can 
+see there is a solid cylinder, a solid sphere and a solid capsule. All of these are 
+made using the `<geometry>` tag and have automatic inertia calculations enabled.
+Here, the moments of inertia for the hollow cylinder (which is convex mesh shape) is 
+calculated and from the simulation we can see that it reaches the bottom of the 
+incline last. This is physically accurate as the mass distribution for the hollow 
+cylinder is concetrated at a distance from the axis of rotation (which passes through 
+the center of mass in this case).
 
 ## Key Points Regarding Mesh Inertia Calculator
 
 Here are some key points to consider when using automatic inertia calculation with 3D Meshes:
  * Water-tight triangle meshes are required for the Mesh Inertia Calculator.
- * Currently, the mesh inertia is calculated about the mesh origin. Since the link inertia value needs to be about the Center of Mass, the mesh origin needs to be set at the Center of Mass (Centroid). 
- * Since the vertex data is used for inertia calculations, high vertex count would be needed for near ideal values. However, it is recommended to use basic shapes with the geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries to reduce the load of calculations. 
+ * Currently, the mesh inertia is calculated about the mesh origin. Since the link 
+ inertia value needs to be about the Center of Mass, the mesh origin needs to be set 
+ at the Center of Mass (Centroid). 
+ * Since the vertex data is used for inertia calculations, high vertex count would be 
+ needed for near ideal values. However, it is recommended to use basic shapes with the 
+ geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries to 
+ reduce the load of calculations. 
