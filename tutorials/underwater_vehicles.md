@@ -55,9 +55,9 @@ rpm. Under the `<include>` or `<model>` tag add the following:
     <propeller_diameter>0.2</propeller_diameter>
 </plugin>
 ```
-Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_pos`
+Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_thrust`
 ```
-gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
    -m gz.msgs.Double -p 'data: -31'
 ```
 we should see the model move. The thrusters are governed by the equation on
@@ -185,7 +185,7 @@ gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
 ```
 To apply a thrust you may run the following command
 ```
-gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
 -m gz.msgs.Double -p 'data: -31'
 ```
 The vehicle should move in a circle.
