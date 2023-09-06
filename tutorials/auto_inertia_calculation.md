@@ -157,4 +157,4 @@ Here are some key points to consider when using automatic inertia calculation wi
  * Since the vertex data is used for inertia calculations, high vertex count would be 
  needed for near ideal values. However, it is recommended to use basic shapes with the 
  geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries to 
- reduce the load of calculations. 
+ reduce the load of calculations.
