@@ -47,7 +47,7 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
-
+#include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -100,7 +100,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   // Keep world name
-  this->worldName = _world->Name();
+  this->worldName = transport::TopicUtils::AsValidTopic(_world->Name());
+
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (this->worldName.empty())
+  {
+    gzerr << "Can't start simulation runner with this world name ["
+          << worldName << "]." << std::endl;
+    return;
+  }
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(
