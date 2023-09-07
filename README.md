@@ -129,7 +129,7 @@ See the [installation tutorial](https://gazebosim.org/api/sim/8/install.html).
 
 # Testing
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/8/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/8/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
