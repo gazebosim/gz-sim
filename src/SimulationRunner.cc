@@ -105,7 +105,8 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
   if (this->worldName.empty())
   {
-    gzerr << "Can't start simulation runner with this world name [" << worldName << "]." << std::endl;
+    gzerr << "Can't start simulation runner with this world name ["
+          << worldName << "]." << std::endl;
     return;
   }
 
