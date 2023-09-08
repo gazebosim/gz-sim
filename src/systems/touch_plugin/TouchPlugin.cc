@@ -217,9 +217,10 @@ void TouchPluginPrivate::Enable(const bool _value)
 
   if (_value)
   {
-    this->touchedPub.reset();
-    this->touchedPub = this->node.Advertise<msgs::Boolean>(
-        "/" + this->ns + "/touched");
+    if (!this->touchedPub.has_value()){
+      this->touchedPub = this->node.Advertise<msgs::Boolean>(
+          "/" + this->ns + "/touched");
+    }
 
     this->touchStart = DurationType::zero();
     this->enabled = true;
@@ -228,7 +229,6 @@ void TouchPluginPrivate::Enable(const bool _value)
   }
   else
   {
-    this->touchedPub.reset();
     this->enabled = false;
 
     gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
@@ -330,7 +330,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
 
     {
       std::lock_guard<std::mutex> lock(this->serviceMutex);
-      if (this->touchedPub.has_value())
+      if (this->enabled)
       {
         msgs::Boolean msg;
         msg.set_data(true);
