@@ -157,7 +157,6 @@
                 <friction>1</friction>
                 <friction2>1</friction2>
                 <rolling_friction>0.1</rolling_friction>
-                <spinning_friction>0.1</spinning_friction>
               </bullet>
             </friction>
           </surface>
@@ -208,7 +207,6 @@
                 <friction>1</friction>
                 <friction2>1</friction2>
                 <rolling_friction>0.1</rolling_friction>
-                <spinning_friction>0.1</spinning_friction>
               </bullet>
             </friction>
           </surface>
@@ -379,7 +377,6 @@
                 <friction>1</friction>
                 <friction2>1</friction2>
                 <rolling_friction>0.1</rolling_friction>
-                <spinning_friction>0.1</spinning_friction>
               </bullet>
             </friction>
           </surface>
@@ -430,7 +427,6 @@
                 <friction>1</friction>
                 <friction2>1</friction2>
                 <rolling_friction>0.1</rolling_friction>
-                <spinning_friction>0.1</spinning_friction>
               </bullet>
             </friction>
           </surface>
