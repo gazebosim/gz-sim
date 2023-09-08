@@ -55,7 +55,7 @@ rpm. Under the `<include>` or `<model>` tag add the following:
     <propeller_diameter>0.2</propeller_diameter>
 </plugin>
 ```
-Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_pos`
+Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_thrust`
 ```
 gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
    -m gz.msgs.Double -p 'data: -31'
