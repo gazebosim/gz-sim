@@ -73,7 +73,8 @@ namespace systems
   class DetachableJoint
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemReset
   {
     /// Documentation inherited
     public: DetachableJoint() = default;
@@ -88,6 +89,10 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) final;
+
+    /// Documentation inherited
+    public: void Reset(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm) final;
 
     /// \brief Gazebo communication node.
     private: transport::Node node;

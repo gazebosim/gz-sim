@@ -212,6 +212,15 @@ void DetachableJoint::Configure(const Entity &_entity,
   this->validConfig = true;
 }
 
+void DetachableJoint::Reset(const gz::sim::UpdateInfo &/*_info*/,
+   gz::sim::EntityComponentManager &/*_ecm*/)
+{
+  // When the physics engine is resetted the detachable joint is removed
+  // We need to reattach it
+  this->attachRequested = true;
+  this->isAttached = false;
+}
+
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
   const UpdateInfo &/*_info*/,
@@ -314,9 +323,10 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 }
 
 GZ_ADD_PLUGIN(DetachableJoint,
-                    System,
-                    DetachableJoint::ISystemConfigure,
-                    DetachableJoint::ISystemPreUpdate)
+              System,
+              DetachableJoint::ISystemConfigure,
+              DetachableJoint::ISystemPreUpdate,
+              DetachableJoint::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(DetachableJoint,
   "gz::sim::systems::DetachableJoint")
