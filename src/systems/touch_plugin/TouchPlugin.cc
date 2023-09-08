@@ -109,10 +109,20 @@ class gz::sim::systems::TouchPluginPrivate
   /// \brief Whether the plugin is enabled.
   public: bool enabled{false};
 
+  /// Value used to reset the world with the initial value
+  public: bool enableInitialValue{false};
+
   /// \brief Mutex for variables mutated by the service callback.
   /// The variables are: touchPub, touchStart, enabled
   public: std::mutex serviceMutex;
 };
+
+//////////////////////////////////////////////////
+void TouchPlugin::Reset(const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm)
+{
+  this->dataPtr->Enable(this->dataPtr->enableInitialValue);
+}
 
 //////////////////////////////////////////////////
 void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
@@ -195,6 +205,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Start enabled or not
   if (_sdf->Get<bool>("enabled", false).first)
   {
+    this->enableInitialValue = true;
     this->Enable(true);
   }
 }
@@ -408,9 +419,10 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(TouchPlugin,
-                    System,
-                    TouchPlugin::ISystemConfigure,
-                    TouchPlugin::ISystemPreUpdate,
-                    TouchPlugin::ISystemPostUpdate)
+              System,
+              TouchPlugin::ISystemConfigure,
+              TouchPlugin::ISystemPreUpdate,
+              TouchPlugin::ISystemPostUpdate,
+              TouchPlugin::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
