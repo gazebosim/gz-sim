@@ -158,9 +158,6 @@
         </gz-gui>
       </plugin>
 
-
-
-
       <plugin filename="ImageDisplay" name="Image Display">
         <gz-gui>
           <title>Thermal camera</title>
