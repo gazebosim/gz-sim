@@ -45,8 +45,9 @@ Once you get the name of the model you want to see, you may run the following co
 					- Name: chassis
 					- Parent: vehicle_blue [8]
 					- Mass (kg): [1.143950]
-					- Inertial Pose:
-							[0.000000 | 0.000000 | 0.000000]
+					- Inertial Pose [ XYZ (m) ] [ RPY (rad) ]:
+    						[0.000000 0.000000 0.000000]
+    						[0.000000 -0.000000 0.000000]
 					- Inertial Matrix (kg⋅m^2):
 							[0.126164 | 0.000000 | 0.000000]
 							[0.000000 | 0.416519 | 0.000000]
@@ -118,12 +119,12 @@ Once you get the name of the model you want to see, you may run the following co
 			- Joint [23]
 					- Name: caster_wheel
 					- Parent: vehicle_blue [8]
-					- Type:  ball
-					- Parent Link: caster
-					- Child Link:  chassis
+					- Type: ball
+					- Parent Link: chassis [9]
+					- Child Link: caster [18]
 					- Pose [ XYZ (m) ] [ RPY (rad) ]:
-					[0.000000 | 0.000000 | 0.000000]
-					[0.000000 | 0.000000 | 0.000000]
+						[0.000000 0.000000 0.000000]
+						[0.000000 -0.000000 0.000000]
 
 ```
 
