@@ -361,13 +361,16 @@ void SensorsPrivate::RunOnce()
 
     // safety check to see if reset occurred while we're rendering
     // avoid publishing outdated data if reset occurred
-    std::unique_lock<std::mutex> timeLock(this->renderMutex);
-    if (updateTimeApplied <= this->updateTime)
     {
-      // publish data
-      GZ_PROFILE("RunOnce");
-      this->sensorManager.RunOnce(updateTimeApplied);
-      this->eventManager->Emit<events::Render>();
+      std::unique_lock<std::mutex> timeLock(this->renderMutex);
+      if (updateTimeApplied <= this->updateTime)
+      {
+        timeLock.unlock();
+        // publish data
+        GZ_PROFILE("RunOnce");
+        this->sensorManager.RunOnce(updateTimeApplied);
+        this->eventManager->Emit<events::Render>();
+      }
     }
 
     // re-enble sensors
@@ -390,9 +393,12 @@ void SensorsPrivate::RunOnce()
     this->activeSensors.clear();
   }
 
-  this->updateAvailable = false;
   this->forceUpdate = false;
-  this->renderCv.notify_one();
+  {
+    std::unique_lock<std::mutex> cvLock(this->renderMutex);
+    this->updateAvailable = false;
+    this->renderCv.notify_one();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -736,19 +742,22 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
         this->dataPtr->activeSensors =
             std::move(this->dataPtr->sensorsToUpdate);
-
-        this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
-            this->dataPtr->sensorsToUpdate, _info.simTime);
-
-        // Force scene tree update if there are sensors to be created or
-        // subscribes to the render events. This does not necessary force
-        // sensors to update. Only active sensors will be updated
-        this->dataPtr->forceUpdate =
-            (this->dataPtr->renderUtil.PendingSensors() > 0) ||
-            hasRenderConnections;
-        this->dataPtr->updateAvailable = true;
       }
-      this->dataPtr->renderCv.notify_one();
+
+      this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
+          this->dataPtr->sensorsToUpdate, _info.simTime);
+
+      // Force scene tree update if there are sensors to be created or
+      // subscribes to the render events. This does not necessary force
+      // sensors to update. Only active sensors will be updated
+      this->dataPtr->forceUpdate =
+          (this->dataPtr->renderUtil.PendingSensors() > 0) ||
+          hasRenderConnections;
+      {
+        std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
+        this->dataPtr->updateAvailable = true;
+        this->dataPtr->renderCv.notify_one();
+      }
     }
   }
 }
