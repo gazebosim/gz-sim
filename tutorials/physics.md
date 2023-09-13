@@ -16,8 +16,10 @@ tutorials to learn how to integrate a new engine.
 ## How Gazebo finds engines
 
 Gazebo automatically looks for all physics engine plugins that are
-installed with Gazebo Physics. At the moment, that's only DART
-(`gz-physics-dartsim-plugin`).
+installed with Gazebo Physics. At the moment, the primary implementation
+is DART (`gz-physics-dartsim-plugin`).  There is also preliminary support
+for Bullet (`gz-physics-bullet-plugin`) and the Bullet Featherstone
+implementation (`gz-physics-bullet-featherstone-plugin`)
 
 If you've created a custom engine plugin, you can tell Gazebo where to find it
 by setting the `GZ_SIM_PHYSICS_ENGINE_PATH` environment variable to the
@@ -69,6 +71,10 @@ Alternatively, you can choose a plugin from the command line using the
 `--physics-engine` option, for example:
 
 `gz sim --physics-engine CustomEngine`
+
+To use an existing alternative engine (e.g. Bullet Featherstone)
+
+`gz sim --physics-engine gz-physics-bullet-featherstone-plugin`
 
 ### From C++ API
 
