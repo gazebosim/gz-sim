@@ -23,15 +23,14 @@ would also be discussed along the way that would allow users to more mindfully u
 ## Basic Overview
 
 This feature introduced a new `auto` attribute for the `<inertial>` tag which can be set
-to true or false (The value is false by default) to enable or disable the automatic
-calculations respectively:
+ to enable or disable the automatic calculations. It'll be set to false by default.
 
 ```xml
 <inertial auto="true" />
 ```
 
 In case, `auto` is set to true, the constituent **collision geometries** of the link are
-considered for the calculations. A newly introduced `<density>` tag can be used to specify
+considered for the calculations. The `<density>` tag can be used to specify
 the mass density value of the collision in kg/m^3. The density of water (1000 kg/m^3) is
 utilized as the default value:
 
@@ -113,12 +112,15 @@ the menu. Once you play the simulation it should look this:
 ![Pendulum](files/auto_inertia/auto_inertia_pendulum.gif)
 
 This example world has two structurally indentical models. The pendulum link of both
-the models contain 3 cylindrical collision geometries: One on the top which forms the
-joint, One in longer cylinder in middle and One at the end which forms the bob of
-cylinder. Even, though they are indentical, the center of mass for both are different
+the models contain 3 cylindrical collision geometries:
+ - One on the top which forms the joint (pivot)
+ - A longer cylinder in middle
+ - One at the end which forms the bob of
+cylinder.
+Even, though they are indentical, the center of mass for both are different
 as they use different density values for the different cylinder collisions. One one
 hand, the upper joint collision of the pendulum on the left has the highest density
-which causes the center of mass to shift closer to the axis while on the other hand,
+which causes the center of mass to shift closer to the axis. While on the other hand,
 the bob collision of the pendulum on the right has the highest density which causes
 the center of mass to shift towards the end of the pendulum.
 This difference in mass distribution about the axis of rotation results in difference
@@ -137,17 +139,18 @@ Once you launch and play the simulation, it should look something like this:
 
 ![Rolling](files/auto_inertia/rolling_inertia_demo.gif)
 
-Here the right most shapes is a hollow cylinder (yellow). This model is load from
-fuel and is made using a collada mesh of a hollow cylinder. Apart from this, we can
+Here the right most shapes is a hollow cylinder (yellow). This model is loaded from
+[Gazebo Fuel](https://app.gazebosim.org/jasmeetsingh/fuel/models/Hollow%20Cylinder)
+and is made using a collada mesh of a hollow cylinder. Apart from this, we can
 see there is a solid cylinder, a solid sphere and a solid capsule. All of these are
 made using the `<geometry>` tag and have automatic inertia calculations enabled.
 Here, the moments of inertia for the hollow cylinder (which is convex mesh shape) is
 calculated and from the simulation we can see that it reaches the bottom of the
 incline last. This is physically accurate as the mass distribution for the hollow
-cylinder is concetrated at a distance from the axis of rotation (which passes through
+cylinder is concentrated at a distance from the axis of rotation (which passes through
 the center of mass in this case).
 
-## Key Points Regarding Mesh Inertia Calculator
+## Key Points on Mesh Inertia Calculator
 
 Here are some key points to consider when using automatic inertia calculation with 3D Meshes:
  * Water-tight triangle meshes are required for the Mesh Inertia Calculator.
