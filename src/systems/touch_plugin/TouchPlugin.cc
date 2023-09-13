@@ -118,8 +118,8 @@ class gz::sim::systems::TouchPluginPrivate
 };
 
 //////////////////////////////////////////////////
-void TouchPlugin::Reset(const gz::sim::UpdateInfo &_info,
-  gz::sim::EntityComponentManager &_ecm)
+void TouchPlugin::Reset(const gz::sim::UpdateInfo &/*_info*/,
+  gz::sim::EntityComponentManager &/*_ecm*/)
 {
   this->dataPtr->Enable(this->dataPtr->enableInitialValue);
 }
