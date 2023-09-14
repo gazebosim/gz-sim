@@ -103,11 +103,6 @@ Please use the command line argument.
 
 ## Known issues
 
-* When using command-line playback there is currently a small caveat.
-In the case that the recorded file uses `ogre2`, the playback appears
-brighter, because the default SDF that is loaded by Server.cc for playback
-uses `ogre`.
-
 * Currently, specifying record and playback at the same time is not allowed.
 We may support this in the future, to support cropping a recording or
 changing the encoding.
