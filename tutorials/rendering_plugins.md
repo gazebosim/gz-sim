@@ -70,8 +70,7 @@ different for each plugin type.
 
 ### Render events on the GUI
 
-The GUI plugin will need to listen to
-[gz::gui::events::Render](https://gazebosim.org/api/gui/8/classgz_1_1gui_1_1events_1_1Render.html)
+The GUI plugin will need to listen to \ref gz::gui::events::Render
 events. Here's how to do it:
 
 1. Include the GUI events header:
