@@ -54,8 +54,7 @@ It is **important** to note here that if `auto` is set to `true` and the user ha
 still provided values through the `<mass>`, `<pose>` and `<inertia>` tags, they
 would be **overwritten** by the automatically computed values.
 
->**Note:** Use SDF Spec version 1.11 or greater to utilize the new tags and attributes
-of this feature.
+> **Note:** Use SDF Spec version 1.11 or greater to utilize the new tags and attributes of this feature.
 
 Here's an example snippet of a cylinder model that has automatic inertial calculations
 enabled and has a density of 1240 kg/m^3:
@@ -115,15 +114,15 @@ This example world has two structurally indentical models. The pendulum link of 
 the models contain 3 cylindrical collision geometries:
  - One on the top which forms the joint (pivot)
  - A longer cylinder in middle
- - One at the end which forms the bob of
-cylinder.
-Even, though they are indentical, the center of mass for both are different
-as they use different density values for the different cylinder collisions. One one
+ - One at the end which forms the bob of the cylinder.
+
+Even, though they are identical, the center of mass for both are different
+as they use different density values for the different cylinder collisions. On one
 hand, the upper joint collision of the pendulum on the left has the highest density
 which causes the center of mass to shift closer to the axis. While on the other hand,
 the bob collision of the pendulum on the right has the highest density which causes
 the center of mass to shift towards the end of the pendulum.
-This difference in mass distribution about the axis of rotation results in difference
+This difference in mass distribution about the axis of rotation results in a difference
 in the moment of inertia of the 2 setups and hence different angular velocities.
 
 ## Mesh Inertia Calculation with Rolling Shapes Demo
@@ -144,7 +143,7 @@ Here the right most shapes is a hollow cylinder (yellow). This model is loaded f
 and is made using a collada mesh of a hollow cylinder. Apart from this, we can
 see there is a solid cylinder, a solid sphere and a solid capsule. All of these are
 made using the `<geometry>` tag and have automatic inertia calculations enabled.
-Here, the moments of inertia for the hollow cylinder (which is convex mesh shape) is
+Here, the moments of inertia for the hollow cylinder (which is a non-convex mesh shape) is
 calculated and from the simulation we can see that it reaches the bottom of the
 incline last. This is physically accurate as the mass distribution for the hollow
 cylinder is concentrated at a distance from the axis of rotation (which passes through
@@ -156,8 +155,10 @@ Here are some key points to consider when using automatic inertia calculation wi
  * Water-tight triangle meshes are required for the Mesh Inertia Calculator.
  * Currently, the mesh inertia is calculated about the mesh origin. Since the link
  inertia value needs to be about the Center of Mass, the mesh origin needs to be set
- at the Center of Mass (Centroid).
+ at the Center of Mass (Centroid). Functions to transform the inertia matrix to the mesh
+ centroid in case the mesh origin is set elsewhere are under development. Therefore, this 
+ should hopefully be fixed in the future.
  * Since the vertex data is used for inertia calculations, high vertex count would be
  needed for near ideal values. However, it is recommended to use basic shapes with the
- geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries to
- reduce the load of calculations.
+ geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries get
+ a better overall simulation performance or RTF.
