@@ -10,7 +10,7 @@ by default.
 
 Downstream developers may also integrate other physics engines by creating new
 Gazebo Physics engine plugins. See
-[Gazebo Physics](https://gazebosim.org/api/physics/2.0/tutorials.html)'s
+[Gazebo Physics](https://gazebosim.org/api/physics/7/tutorials.html)'s
 tutorials to learn how to integrate a new engine.
 
 ## How Gazebo finds engines
@@ -79,7 +79,7 @@ To use an existing alternative engine (e.g. Bullet Featherstone)
 ### From C++ API
 
 All features available through the command line are also available through
-[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1ServerConfig.html).
+\ref gz::sim::ServerConfig.
 When instantiating a server programmatically, a physics engine can be passed
 to the constructor, for example:
 

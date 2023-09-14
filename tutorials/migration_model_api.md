@@ -1,6 +1,4 @@
-\page migrationmodelapi
-
-# Migration from Gazebo-classic: Model API
+\page migrationmodelapi Migration from Gazebo-classic: Model API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -34,15 +32,14 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [gz/sim/Model.hh](https://gazebosim.org/api/gazebo/3.3/Model_8hh.html)
-* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/3.3/Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/3.3/SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Model.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/3.3/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly. The functions presented here exist for convenience and readability.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
+The functions presented here exist for convenience and readability.
 
 ### Properties
 
