@@ -53,6 +53,7 @@ void createLight()
 
   entityFactoryRequest.mutable_light()->set_name("point");
   entityFactoryRequest.mutable_light()->set_range(4);
+  entityFactoryRequest.mutable_light()->set_intensity(1);
   entityFactoryRequest.mutable_light()->set_attenuation_linear(0.5);
   entityFactoryRequest.mutable_light()->set_attenuation_constant(0.2);
   entityFactoryRequest.mutable_light()->set_attenuation_quadratic(0.01);
@@ -149,6 +150,7 @@ int main(int argc, char **argv)
 //! [modify light]
     lightRequest.set_name("point");
     lightRequest.set_range(4);
+    lightRequest.set_intensity(1);
     lightRequest.set_attenuation_linear(0.5);
     lightRequest.set_attenuation_constant(0.2);
     lightRequest.set_attenuation_quadratic(0.01);
