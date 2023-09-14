@@ -132,7 +132,7 @@
       <link name="sphere_link">
         <inertial auto="true" />
         <collision name="sphere_collision">
-          <densiyt>1000</density>
+          <density>1000</density>
           <geometry>
             <sphere>
               <radius>0.5</radius>
