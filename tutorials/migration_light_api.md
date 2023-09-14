@@ -29,10 +29,10 @@ In Gazebo, the light APIs has been consolidated into a single Light class with
 some of generic functions available through other utility / core classes.
 You'll find the APIs below on the following headers:
 
-* [gz/sim/Light.hh](Light_8hh.html)
-* [gz/sim/Util.hh](Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](classgz_1_1sim_1_1EntityComponentManager.html)
+* \ref gz/sim/Light.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
 the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.

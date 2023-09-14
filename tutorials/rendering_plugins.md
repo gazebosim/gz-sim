@@ -45,8 +45,7 @@ To interact with the server-side scene, you'll need to write an
 See [Create System Plugins](createsystemplugins.html).
 
 To interact with the client-side scene, you'll need to write an
-[gz::gui::Plugin](https://gazebosim.org/api/gui/8/classgz_1_1gui_1_1Plugin.html),
-or a more specialized `gz::sim::GuiSystem`
+\ref gz::gui::Plugin, or a more specialized `gz::sim::GuiSystem`
 if you need to access entities and components.
 See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/gui_system_plugin).
 

@@ -58,7 +58,7 @@ gz service --list
 # Factory message
 
 To create new entities in the world we need to use the
-[gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1EntityFactory__V.html)
+[gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1EntityFactory.html)
 message to send a request to the create service.
 This message allows us to create entities from strings, files,
 [Models](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Model.html),

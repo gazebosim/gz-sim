@@ -34,10 +34,10 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [gz/sim/World.hh](World_8hh.html)
-* [gz/sim/Util.hh](Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](classgz_1_1sim_1_1EntityComponentManager.html)
+* \ref gz/sim/World.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
 the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
