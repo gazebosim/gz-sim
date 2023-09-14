@@ -20,7 +20,7 @@ As you can see in the snippet below, we then modify the specular and diffuse col
 
 \snippet examples/standalone/light_control/light_control.cc modify light
 
-The `r`, `g`, `b` components of the light diffuse and specular color are randomly generated and constantly changing:
+The `r`, `g`, `b` components of the light diffuse and specular colors are randomly generated and constantly changing:
 
 \snippet examples/standalone/light_control/light_control.cc random numbers
 
