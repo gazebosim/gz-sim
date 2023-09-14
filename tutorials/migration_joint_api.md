@@ -1,6 +1,4 @@
-\page migrationjointapi
-
-# Migration from Gazebo-classic: Joint API
+\page migrationjointapi Migration from Gazebo-classic: Joint API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to

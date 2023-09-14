@@ -33,8 +33,7 @@ System plugins may be loaded through:
 * Passing the shared library and class to be loaded through
   \ref gz::sim::ServerConfig::PluginInfo "PluginInfo"
   (within \ref gz::sim::ServerConfig "ServerConfig")
-  when instantiating the
-  \ref gz::sim::Server "Server"
+  when instantiating the \ref gz::sim::Server "Server".
 
 Gazebo will look for system plugins on the following paths, in order:
 

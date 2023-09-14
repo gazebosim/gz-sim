@@ -1,6 +1,4 @@
-\page migrationlinkapi
-
-# Migration from Gazebo-classic: Link API
+\page migrationlinkapi Migration from Gazebo-classic: Link API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
