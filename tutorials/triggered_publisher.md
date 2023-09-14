@@ -297,6 +297,6 @@ Multiple `<service>` tags can be used as well as with the `<output>` tag.
 Publish an empty message to the `/reset_robot` topic to reset the vehicle
 back to its original position.
 
-```
+```bash
 gz topic -t "/reset_robot" -m gz.msgs.Empty -p " "
 ```
