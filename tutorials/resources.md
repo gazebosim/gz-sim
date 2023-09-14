@@ -61,7 +61,7 @@ Gazebo will look for GUI plugins on the following paths, in order:
 2. [GUI plugins that are installed with Gazebo](https://github.com/gazebosim/gz-sim/tree/main/src/gui/plugins)
 3. Other paths added by calling `gz::gui::App()->AddPluginPath`
 4. `~/.gz/gui/plugins`
-5. [Plugins which are installed with Gazebo GUI](https://gazebosim.org/api/gui/8/namespacegz_1_1gui_1_1plugins.html)
+5. \ref gz::gui::plugins "Plugins which are installed with Gazebo GUI"
 
 ### Physics engines
 
