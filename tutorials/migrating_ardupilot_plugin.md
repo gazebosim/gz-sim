@@ -1,6 +1,4 @@
-\page ardupilot
-
-# Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo
+\page ardupilot Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo
 
 A variety of changes are required when migrating a plugin from Gazebo classic
 to Gazebo. In this tutorial we offer as a case

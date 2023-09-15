@@ -1,6 +1,4 @@
-\page migrationlightapi
-
-# Migration from Gazebo-classic: Light API
+\page migrationlightapi Migration from Gazebo-classic: Light API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -29,15 +27,13 @@ In Gazebo, the light APIs has been consolidated into a single Light class with
 some of generic functions available through other utility / core classes.
 You'll find the APIs below on the following headers:
 
-* [gz/sim/Light.hh](https://gazebosim.org/api/gazebo/7/Light_8hh.html)
-* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Light.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Light::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
