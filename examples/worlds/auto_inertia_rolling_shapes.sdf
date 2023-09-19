@@ -3,7 +3,7 @@
   Demo of simple shapes rolling downhill with automatic inertia enabled
 -->
 <sdf version="1.11">
-  <world name="shapes">
+  <world name="auto_inertia_rolling_shapes">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
