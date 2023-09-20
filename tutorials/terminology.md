@@ -73,7 +73,8 @@ to developers touching the source code.
     more than 1 world.
     * It has a single ECM with all the entities and components
       relevant to the levels / world / performer being simulated.
-        * It's still TBD how to support multiple `<worlds>` in parallel.
+        * It's still [an open task](https://github.com/gazebosim/gz-sim/issues/18)
+          to support multiple `<worlds>` in parallel.
     * It has an event manager.
     * It has a network manager, if simulation is distributed.
     * It loads up a set of systems.
