@@ -50,7 +50,7 @@ def export_sdf(prefix_path):
 
     # 1 model and 1 link
     model = ET.SubElement(sdf, "model", attrib={"name": "test"})
-    static = ET.SubElement(sdf, "static")
+    static = ET.SubElement(model, "static")
     static.text = "true"
     link = ET.SubElement(model, "link", attrib={"name": "testlink"})
     # for each geometry in geometry library add a <visual> tag
@@ -165,8 +165,8 @@ def export_sdf(prefix_path):
     uri.text = path.join(meshes_folder_prefix, dae_filename)
 
     surface = ET.SubElement(collision, "surface")
-    contact = ET.SubElement(collision, "contact")
-    collide_bitmask = ET.SubElement(collision, "collide_bitmask")
+    contact = ET.SubElement(surface, "contact")
+    collide_bitmask = ET.SubElement(contact, "collide_bitmask")
     collide_bitmask.text = "0x01"
 
     ## sdf write to file
