@@ -162,3 +162,5 @@ Here are some key points to consider when using automatic inertia calculation wi
  needed for near ideal values. However, it is recommended to use basic shapes with the
  geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries get
  a better overall simulation performance or RTF.
+ * Currently, the mesh inertia calculator does not work well with meshes having submeshes.
+ Therefore, they are not recommended for automatic computation.
