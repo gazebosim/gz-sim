@@ -338,7 +338,7 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
   Entity entityId = kNullEntity;
   try
   {
-    entityId = std::get<unsigned int>(visualToMove->UserData("gazebo-entity"));
+    entityId = std::get<uint64_t>(visualToMove->UserData("gazebo-entity"));
   }
   catch(std::bad_variant_access &_e)
   {

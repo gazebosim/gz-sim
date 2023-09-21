@@ -13,8 +13,9 @@ Gazebo that already has this plugin included in the GUI.
 gz sim -v 4 video_record_dbl_pendulum.sdf
 ```
 
-In this plugin, you should see a single button with a video recorder icon.
-Clicking on the button gives you the video format options that are available.
+In this demo world, you should see a video recorder icon positioned on the top.
+left area of the window along with other buttons. Clicking on the video
+recorder button gives you the video format options that are available.
 
 @image html files/video_recorder/video_recorder.png
 
