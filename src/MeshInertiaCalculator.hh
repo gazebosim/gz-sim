@@ -85,6 +85,7 @@ namespace gz
         /// \param[in] _mesh Mesh object
         public: void GetMeshTriangles(
           std::vector<Triangle>& _triangles,
+          gz::math::Vector3d _meshScale,
           const gz::common::Mesh* _mesh);
 
         /// \brief Function to calculate the centroid of the mesh. Since
