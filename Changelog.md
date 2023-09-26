@@ -147,9 +147,6 @@
 1. Speed up Resource Spawner load time by fetching model list asynchronously
     * [Pull request #1962](https://github.com/gazebosim/gz-sim/pull/1962)
 
-1. Use `ignition::gazebo::` in class instantiation
-    * [Pull request #1967](https://github.com/gazebosim/gz-sim/pull/1967)
-
 1. Add redirection header gz/sim.hh
     * [Pull request #1983](https://github.com/gazebosim/gz-sim/pull/1983)
 
