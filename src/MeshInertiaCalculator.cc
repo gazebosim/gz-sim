@@ -39,8 +39,8 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::GetMeshTriangles(
-  std::vector<Triangle>& _triangles,
-  gz::math::Vector3d _meshScale,
+  std::vector<Triangle> &_triangles,
+  const gz::math::Vector3d &_meshScale,
   const gz::common::Mesh* _mesh)
 {
   // Get the vertices & indices of the mesh
