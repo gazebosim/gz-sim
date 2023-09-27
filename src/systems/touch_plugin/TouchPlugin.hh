@@ -66,7 +66,8 @@ namespace systems
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
-        public ISystemPostUpdate
+        public ISystemPostUpdate,
+        public ISystemReset
   {
     /// \brief Constructor
     public: TouchPlugin();
@@ -83,6 +84,10 @@ namespace systems
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void Reset(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(
