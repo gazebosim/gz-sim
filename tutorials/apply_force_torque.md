@@ -15,7 +15,7 @@ gz sim shapes.sdf
 From the plugin dropdown, select the `Apply Force Torque` plugin. Make sure the
 simulation isn't paused.
 
-![Interface](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/Interface.png)
+\image html files/apply_force_torque/Interface.png width=60%
 
 ### Apply force to a link
 
@@ -29,14 +29,14 @@ On the dialog, write `10000` on the `X` field under `Force` and click on
 applied in the link's `X` direction for a single time-step, which is in the
 order of milliseconds, thus the need for such a large force.
 
-![Apply Force](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/Force.png)
+\image html files/apply_force_torque/Force.png width=60%
 
 ### Apply torque to a link
 
 On the dialog, write `2000` on the `X` field under `Torque` and click on
 `Apply Torque` to see the cylinder rotate slightly.
 
-![Apply Torque](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/Torque.png)
+\image html files/apply_force_torque/Torque.png width=60%
 
 ### Apply force with an offset
 
@@ -46,7 +46,7 @@ field under `Force` and `1` under the `Z` field under `Offset`. Press
 `Apply Force` to see the model move slightly in the `X` direction while also
 rotating around the `Y` direction.
 
-![Apply Force Offset](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/ForceOffset.png)
+\image html files/apply_force_torque/ForceOffset.png width=60%
 
 ### Rotation tool
 
@@ -56,7 +56,7 @@ force around the `Z` axis so that it is aligned with the `Y` direction. Notice
 how the XYZ fields changed, but not the magnitude. Press `Apply Force` to see
 the model move in the `Y` direction.
 
-![Rotation tool](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/apply_force_torque/RotationTool.png)
+\image html files/apply_force_torque/RotationTool.png width=60%
 
 ## The interface explained
 
