@@ -82,9 +82,12 @@ namespace gz
         /// \param[out] _triangles A vector to hold all the Triangle
         /// instances obtained
         /// from the vertices & indices of the mesh
+        /// \param[in] _meshScale A vector with the scaling factor
+        /// of all the 3 axes
         /// \param[in] _mesh Mesh object
         public: void GetMeshTriangles(
-          std::vector<Triangle>& _triangles,
+          std::vector<Triangle> &_triangles,
+          const gz::math::Vector3d &_meshScale,
           const gz::common::Mesh* _mesh);
 
         /// \brief Function to calculate the centroid of the mesh. Since

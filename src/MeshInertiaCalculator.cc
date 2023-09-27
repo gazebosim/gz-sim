@@ -39,7 +39,8 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::GetMeshTriangles(
-  std::vector<Triangle>& _triangles,
+  std::vector<Triangle> &_triangles,
+  const gz::math::Vector3d &_meshScale,
   const gz::common::Mesh* _mesh)
 {
   // Get the vertices & indices of the mesh
@@ -60,6 +61,12 @@ void MeshInertiaCalculator::GetMeshTriangles(
     triangle.v2.X() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2])];
     triangle.v2.Y() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2] + 1)];
     triangle.v2.Z() = vertArray[static_cast<ptrdiff_t>(3 * indArray[i+2] + 2)];
+
+    // Apply mesh scale to the triangle coordinates
+    triangle.v0 = triangle.v0 * _meshScale;
+    triangle.v1 = triangle.v1 * _meshScale;
+    triangle.v2 = triangle.v2 * _meshScale;
+
     triangle.centroid = (triangle.v0 + triangle.v1 + triangle.v2) / 3;
     _triangles.push_back(triangle);
   }
@@ -245,7 +252,7 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   gz::math::Pose3d inertiaOrigin;
 
   // Create a list of Triangle objects from the mesh vertices and indices
-  this->GetMeshTriangles(meshTriangles, mesh);
+  this->GetMeshTriangles(meshTriangles, sdfMesh->Scale(), mesh);
 
   // Calculate the mesh centroid and set is as centre of mass
   this->CalculateMeshCentroid(centreOfMass, meshTriangles);
