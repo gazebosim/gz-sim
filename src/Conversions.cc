@@ -1424,6 +1424,37 @@ sdf::Sensor gazebo::convert(const msgs::Sensor &_in)
 
     out.SetCameraSensor(sensor);
   }
+
+  else if (out.Type() == sdf::SensorType::GPS ||
+           out.Type() == sdf::SensorType::NAVSAT)
+  {
+      sdf::NavSat sensor;
+      if (_in.has_gps())
+      {
+          if (_in.gps().position().has_horizontal_noise())
+          {
+              sensor.SetHorizontalPositionNoise(gazebo::convert<sdf::Noise>(_in.gps().position().horizontal_noise()));
+          }
+          if (_in.gps().position().has_vertical_noise())
+          {
+              sensor.SetVerticalPositionNoise(gazebo::convert<sdf::Noise>(_in.gps().position().vertical_noise()));
+          }
+          if (_in.gps().velocity().has_horizontal_noise())
+          {
+              sensor.SetHorizontalVelocityNoise(gazebo::convert<sdf::Noise>(_in.gps().velocity().horizontal_noise()));
+          }
+          if (_in.gps().velocity().has_vertical_noise())
+          {
+              sensor.SetVerticalVelocityNoise(gazebo::convert<sdf::Noise>(_in.gps().velocity().vertical_noise()));
+          }
+      }
+      else
+      {
+          ignerr << "Attempting to convert an navsat sensor message, but the "
+                 << "message does not have a navsat nested message.\n";
+      }
+  }
+
   else if (out.Type() == sdf::SensorType::ALTIMETER)
   {
     sdf::Altimeter sensor;
