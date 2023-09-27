@@ -422,7 +422,7 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
   EXPECT_EQ(
-    "https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/2",
+    "https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/3",
      std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
