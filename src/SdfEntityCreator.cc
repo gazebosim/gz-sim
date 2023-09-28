@@ -47,11 +47,11 @@
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointType.hh"
 #include "gz/sim/components/LaserRetro.hh"
-#include "gz/sim/components/Lidar.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/LightType.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/LogicalCamera.hh"
 #include "gz/sim/components/MagneticField.hh"
@@ -81,6 +81,7 @@
 #include "gz/sim/components/Visibility.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WideAngleCamera.hh"
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
@@ -304,6 +305,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
+
+  // Wind
+  auto windEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(windEntity, components::Wind());
+  this->dataPtr->ecm->CreateComponent(
+      windEntity, components::WorldLinearVelocity(
+                      _world->WindLinearVelocity()));
+  // Initially the wind linear velocity is used as the seed velocity
+  this->dataPtr->ecm->CreateComponent(
+      windEntity, components::WorldLinearVelocitySeed(
+                      _world->WindLinearVelocity()));
+  this->SetParent(windEntity, worldEntity);
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
