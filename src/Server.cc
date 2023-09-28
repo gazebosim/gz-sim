@@ -121,6 +121,8 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->dataPtr->sdfRoot.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
@@ -143,6 +145,8 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
 
       MeshInertiaCalculator meshInertiaCalculator;
       sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
