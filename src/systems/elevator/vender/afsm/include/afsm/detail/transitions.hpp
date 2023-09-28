@@ -444,19 +444,19 @@ public:
 
     state_transition_table(fsm_type& fsm, state_transition_table const& rhs)
         : fsm_{&fsm},
-          current_state_{ (::std::size_t)rhs.current_state_ },
+          current_state_{ static_cast<::std::size_t>(rhs.current_state_) },
           states_{ inner_states_constructor::copy_construct(fsm, rhs.states_) }
       {}
     state_transition_table(fsm_type& fsm, state_transition_table&& rhs)
         : fsm_{&fsm},
-          current_state_{ (::std::size_t)rhs.current_state_ },
+          current_state_{ static_cast<::std::size_t>(rhs.current_state_) },
           states_{ inner_states_constructor::move_construct(fsm, ::std::move(rhs.states_)) }
       {}
 
     state_transition_table(state_transition_table const&) = delete;
     state_transition_table(state_transition_table&& rhs)
         : fsm_{rhs.fsm_},
-          current_state_{ (::std::size_t)rhs.current_state_ },
+          current_state_{ static_cast<::std::size_t>(rhs.current_state_) },
           states_{ ::std::move(rhs.states_) }
     {}
     state_transition_table&
@@ -499,7 +499,7 @@ public:
 
     ::std::size_t
     current_state() const
-    { return (::std::size_t)current_state_; }
+    { return static_cast<::std::size_t>(current_state_); }
 
     void
     set_current_state(::std::size_t val)
