@@ -241,7 +241,7 @@ if (UNIX AND NOT APPLE)
     PRIVATE stdc++fs)
 endif()
 
-add_executable(simulation_main simulation/simulation_main.cc)
+add_executable(simulation_main simulation/simulation_main.cc ${simulation_sources})
 target_link_libraries(simulation_main ${PROJECT_LIBRARY_TARGET_NAME})
 
 target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}

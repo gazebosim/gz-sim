@@ -28,37 +28,38 @@ void CreateEmptyWorld()
     .Build();
 }
 
+void CreateWorldFromString()
+{
+  auto sim = SimulationBuilder()
+    .World(std::string("<sdf></sdf>"))
+    .Build();
+}
+
 void CreateWorldFromFile()
 {
   auto sim = SimulationBuilder()
-    .World(std::string("my_simple_world.sdf"))
-    .Build();
+    .World(std::filesystem::path("my_simple_world.sdf"));
 }
 
 void DependencyInjection()
 {
-  auto simClock = gz::sim::simulation::Clock(gz::sim::simulation::ClockType::kSimTime);
-  auto wallClock = gz::sim::simulation::Clock(gz::sim::simulation::ClockType::kSystemTime);
   auto ecm = gz::sim::EntityComponentManager();
+  auto eventMgr = gz::sim::EventManager();
 
   auto sim = gz::sim::simulation::SimulationBuilder()
-    .WallClock(&wallClock)
-    .SimClock(&simClock)
     .EntityComponentManager(&ecm)
+    .EventManager(&eventMgr)
     .Build();
 
   for (size_t ii = 0; ii < 100; ++ii)
   {
-    std::cout << wallClock.Now().Seconds() << " " << simClock.Now().Seconds() << std::endl;
-    std::cout << sim.IterationCount() << std::endl;
-
-    sim.Step();
+    std::cout << sim->IterationCount() << std::endl;
+    sim->Step();
   }
 }
 
-int main(int argc, char **argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
-
   CreateEmptyWorld();
 
   CreateWorldFromFile();

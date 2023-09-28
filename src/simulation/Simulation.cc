@@ -17,10 +17,15 @@
 
 #include <gz/sim/simulation/Simulation.hh>
 
+#include "SimulationPrivate.hh"
+
 namespace gz::sim::simulation
 {
 
-Simulation::Simulation() = default;
+Simulation::Simulation()
+: dataPtr(gz::utils::MakeImpl<SimulationPrivate>())
+{
+}
 
 void Simulation::Reset()
 {
@@ -50,4 +55,4 @@ std::size_t Simulation::IterationCount() const
   return 0;
 }
 
-}
+}  // namespace gz::sim::simulation

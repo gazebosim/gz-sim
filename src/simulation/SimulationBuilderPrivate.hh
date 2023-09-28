@@ -26,6 +26,7 @@
 #include <gz/fuel_tools/ClientConfig.hh>
 
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
 #include <gz/sim/simulation/Clock.hh>
 
 namespace gz::sim::simulation
@@ -55,18 +56,20 @@ struct WorldInfo
 
   std::function<std::string(const gz::common::URI&)> fetchResourceUriCb;
 
-  sdf::Root Create() const;
+  [[nodiscard]] sdf::Root Create() const;
 };
 
-class SimulationBuilderPrivate
+struct SimulationBuilderPrivate
 {
-  public: WorldInfo worldInfo;
+  WorldInfo worldInfo;
 
-  public: gz::sim::EntityComponentManager *ecm {nullptr};
+  gz::sim::EntityComponentManager *ecm {nullptr};
 
-  public: Clock *wallClock {nullptr};
+  gz::sim::EventManager *eventMgr {nullptr};
 
-  public: Clock *simClock {nullptr};
+  Clock *wallClock {nullptr};
+
+  Clock *simClock {nullptr};
 };
 
 }  // namespace gz::sim::simulation

@@ -38,7 +38,6 @@ DefaultSimulationInterfaces & defaultSimulationInterfaces()
 {
   static gz::utils::NeverDestroyed<DefaultSimulationInterfaces> instance;
   return instance.Access();
-
 }
 
 

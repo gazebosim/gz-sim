@@ -37,11 +37,8 @@ sdf::Root WorldInfo::Create() const
     {
       return this->fetchResourceCb(_uri);
     }
-    else
-    {
-      auto path = gz::fuel_tools::fetchResourceWithClient(_uri, fuelClient);
-      return path;
-    }
+    auto path = gz::fuel_tools::fetchResourceWithClient(_uri, fuelClient);
+    return path;
   };
 
   auto fetchResourceUri = [this, &fetchResource](const gz::common::URI &_uri) {
@@ -49,17 +46,14 @@ sdf::Root WorldInfo::Create() const
     {
       return this->fetchResourceUriCb(_uri);
     }
-    else
-    {
-      return fetchResource(_uri.Str());
-    }
+    return fetchResource(_uri.Str());
   };
 
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(fetchResource);
   gz::common::addFindFileURICallback(fetchResourceUri);
 
-  switch(this->source)
+  switch (this->source)
   {
     case WorldSource::kEmptyWorld:
       ret.LoadSdfString(defaultEmptyWorld());

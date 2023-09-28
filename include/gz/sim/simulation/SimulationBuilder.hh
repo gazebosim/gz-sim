@@ -20,10 +20,13 @@
 #include <gz/sim/simulation/Clock.hh>
 
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
+#include <gz/sim/SdfEntityCreator.hh>
 
 #include <sdf/Root.hh>
 
 #include <filesystem>
+#include <string>
 #include <memory>
 
 namespace gz::sim::simulation
@@ -34,23 +37,28 @@ class SimulationBuilderPrivate;
 
 class SimulationBuilder
 {
-  public: SimulationBuilder();
+ public:
+  SimulationBuilder();
 
-  public: SimulationBuilder & EmptyWorld();
+  SimulationBuilder & EmptyWorld();
 
-  public: SimulationBuilder & World(sdf::Root *_root);
+  SimulationBuilder & World(sdf::Root *_root);
 
-  public: SimulationBuilder & World(const std::string &_sdfString);
+  SimulationBuilder & World(const std::string &_sdfString);
 
-  public: SimulationBuilder & World(const std::filesystem::path &_sdfFilename);
+  SimulationBuilder & World(const std::filesystem::path &_sdfFilename);
 
-  public: SimulationBuilder & EntityComponentManager(gz::sim::EntityComponentManager *_ecm);
+  SimulationBuilder & EntityComponentManager(gz::sim::EntityComponentManager *_ecm);
 
-  public: SimulationBuilder & WallClock(Clock *_wallClock);
+  SimulationBuilder & EventManager(gz::sim::EventManager *_eventMgr);
 
-  public: SimulationBuilder & SimClock(Clock *_simClock);
+  SimulationBuilder & SdfEntityCreator(gz::sim::SdfEntityCreator *_entityCreator);
 
-  public: std::unique_ptr<Simulation> Build() const;
+  SimulationBuilder & WallClock(Clock *_wallClock);
+
+  SimulationBuilder & SimClock(Clock *_simClock);
+
+  [[nodiscard]] std::unique_ptr<Simulation> Build() const;
 
   /// \brief Private data pointer.
   GZ_UTILS_IMPL_PTR_FWD(SimulationBuilderPrivate, dataPtr)

@@ -22,6 +22,7 @@
 #include <string>
 
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/SdfEntityCreator.hh>
 #include <gz/sim/simulation/Clock.hh>
 
 namespace gz::sim::simulation
@@ -32,6 +33,8 @@ namespace gz::sim::simulation
 struct DefaultSimulationInterfaces
 {
   std::unique_ptr<gz::sim::EntityComponentManager> ecm {nullptr};
+
+  std::unique_ptr<gz::sim::EventManager> eventMgr{nullptr};
 
   std::unique_ptr<Clock> simClock {nullptr};
 

@@ -18,6 +18,7 @@
 #define GZ_SIM_SIMULATION_HH_
 
 #include <cstdint>
+#include <string>
 
 #include <gz/sim/simulation/SimulationBuilder.hh>
 
@@ -32,57 +33,64 @@ class Joint;
 
 class Joint
 {
-  public: std::string Name() const;
+ public:
+  [[nodiscard]] std::string Name() const;
 
-  public: friend Model;
+  friend Model;
 
-  private: Joint();
+ private:
+  Joint();
 };
 
 
 class Link
 {
-  public: std::string Name() const;
+ public:
+  [[nodiscard]] std::string Name() const;
 
-  public: friend Model;
+  friend Model;
 
-  private: Link();
+ private:
+    Link();
 };
 
 class Model
 {
-  public: std::string Name() const;
+ public:
+    [[nodiscard]] std::string Name() const;
 
-  public: Link LinkByName(const std::string &_linkName);
+  Link LinkByName(const std::string &_linkName);
 
-  public: Joint JointByName(const std::string &_jointName);
+  Joint JointByName(const std::string &_jointName);
 
-  public: friend Simulation;
+  friend Simulation;
 
-  private: Model();
+ private:
+  Model();
 };
 
 
 class Simulation
 {
-  public: void Reset();
+ public:
+  void Reset();
 
-  public: void Step();
+  void Step();
 
+  Model ModelByName(const std::string &_modelName);
 
-  public: Model ModelByName(const std::string &_modelName);
+  [[nodiscard]] std::string WorldName() const;
 
-  public: [[nodiscard]] std::string WorldName() const;
+  [[nodiscard]] std::size_t SystemCount() const;
 
-  public: [[nodiscard]] std::size_t SystemCount() const;
+  [[nodiscard]] std::size_t EntityCount() const;
 
-  public: [[nodiscard]] std::size_t EntityCount() const;
+  [[nodiscard]] std::size_t IterationCount() const;
 
-  public: [[nodiscard]] std::size_t IterationCount() const;
+  friend SimulationBuilder;
 
-  public: friend SimulationBuilder;
-
-  private: Simulation();
+ private:
+  Simulation();
 
   /// \brief Private data pointer.
   GZ_UTILS_IMPL_PTR_FWD(SimulationPrivate, dataPtr)

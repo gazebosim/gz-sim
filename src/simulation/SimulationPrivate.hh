@@ -18,6 +18,8 @@
 #ifndef SIMULATIONPRIVATE_HH_
 #define SIMULATIONPRIVATE_HH_
 
+#include <gz/sim/Entity.hh>
+#include <gz/sim/SdfEntityCreator.hh>
 #include <gz/sim/simulation/Clock.hh>
 
 namespace gz::sim::simulation
@@ -25,11 +27,19 @@ namespace gz::sim::simulation
 
 class SimulationPrivate
 {
-  public: gz::sim::EntityComponentManager *ecm {nullptr};
+ public:
+    Entity worldEntity {kNullEntity};
 
-  public: Clock *wallClock {nullptr};
+    gz::sim::EntityComponentManager *ecm {nullptr};
 
-  public: Clock *simClock {nullptr};
+    gz::sim::EventManager *eventMgr {nullptr};
+
+    Clock *wallClock {nullptr};
+
+    Clock *simClock {nullptr};
+
+    gz::sim::SdfEntityCreator *entityCreator {nullptr};
+
 };
 
 }  // namespace gz::sim::simulation

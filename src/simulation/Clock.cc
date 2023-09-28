@@ -26,9 +26,10 @@ class Clock::Implementation
 {
 };
 
-Clock::Clock(ClockType _clockType)
-  : dataPtr(utils::MakeImpl<Implementation>())
+Clock::Clock()
+: dataPtr(gz::utils::MakeImpl<Implementation>())
 {
+
 }
 
 Time Clock::Now() const

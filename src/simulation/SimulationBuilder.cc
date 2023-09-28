@@ -22,6 +22,7 @@
 #include "SimulationDefaults.hh"
 #include "SimulationPrivate.hh"
 #include "SimulationBuilderPrivate.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
 #include <gz/utils/ImplPtr.hh>
 
@@ -31,6 +32,12 @@ namespace gz::sim::simulation
 SimulationBuilder::SimulationBuilder()
   : dataPtr(utils::MakeImpl<SimulationBuilderPrivate>())
 {
+}
+
+SimulationBuilder & SimulationBuilder::EmptyWorld()
+{
+  this->dataPtr->worldInfo.source = WorldSource::kEmptyWorld;
+  return *this;
 }
 
 SimulationBuilder & SimulationBuilder::World(sdf::Root *_root)
@@ -50,13 +57,19 @@ SimulationBuilder & SimulationBuilder::World(const std::string &_sdfString)
 SimulationBuilder & SimulationBuilder::World(const std::filesystem::path &_sdfPath)
 {
   this->dataPtr->worldInfo.source = WorldSource::kSdfFilename;
-  this->dataPtr->worldInfo.sdfPath= _sdfPath;
+  this->dataPtr->worldInfo.sdfPath = _sdfPath;
   return *this;
 }
 
 SimulationBuilder & SimulationBuilder::EntityComponentManager(gz::sim::EntityComponentManager *_ecm)
 {
   this->dataPtr->ecm = _ecm;
+  return *this;
+}
+
+SimulationBuilder & SimulationBuilder::EventManager(gz::sim::EventManager *_eventMgr)
+{
+  this->dataPtr->eventMgr = _eventMgr;
   return *this;
 }
 
@@ -68,7 +81,7 @@ SimulationBuilder & SimulationBuilder::WallClock(Clock *_wallClock)
 
 SimulationBuilder & SimulationBuilder::SimClock(Clock *_simClock)
 {
-  this->dataPtr->simClock= _simClock;
+  this->dataPtr->simClock = _simClock;
   return *this;
 }
 
@@ -77,47 +90,51 @@ std::unique_ptr<Simulation> SimulationBuilder::Build() const
   std::unique_ptr<Simulation> ret {new Simulation};
   auto worldRoot = this->dataPtr->worldInfo.Create();
 
-  if (this->dataPtr->ecm)
+  if (this->dataPtr->ecm != nullptr)
   {
     ret->dataPtr->ecm = this->dataPtr->ecm;
-  }
-  else if(!defaultSimulationInterfaces().ecm)
-  {
-    defaultSimulationInterfaces().ecm = std::make_unique<gz::sim::EntityComponentManager>();
+  } else if (!defaultSimulationInterfaces().ecm) {
+    defaultSimulationInterfaces().ecm =
+      std::make_unique<gz::sim::EntityComponentManager>();
     ret->dataPtr->ecm = defaultSimulationInterfaces().ecm.get();
-  }
-  else
-  {
+  } else {
     return nullptr;
   }
 
-  if (this->dataPtr->simClock)
+  if (this->dataPtr->eventMgr != nullptr)
+  {
+    ret->dataPtr->eventMgr = this->dataPtr->eventMgr;
+  } else if (!defaultSimulationInterfaces().eventMgr) {
+    defaultSimulationInterfaces().eventMgr =
+      std::make_unique<gz::sim::EventManager>();
+    ret->dataPtr->eventMgr = defaultSimulationInterfaces().eventMgr.get();
+  } else {
+    return nullptr;
+  }
+
+  if (this->dataPtr->simClock != nullptr)
   {
     ret->dataPtr->simClock = this->dataPtr->simClock;
-  }
-  else if(!defaultSimulationInterfaces().simClock)
-  {
+  } else if (!defaultSimulationInterfaces().simClock) {
     defaultSimulationInterfaces().simClock = std::make_unique<Clock>();
     ret->dataPtr->simClock = defaultSimulationInterfaces().simClock.get();
-  }
-  else
-  {
+  } else {
     return nullptr;
   }
 
-  if (this->dataPtr->wallClock)
-  {
-    ret->dataPtr->wallClock= this->dataPtr->wallClock;
-  }
-  else if (!defaultSimulationInterfaces().wallClock)
-  {
+  if (this->dataPtr->wallClock != nullptr) {
+    ret->dataPtr->wallClock = this->dataPtr->wallClock;
+  } else if (!defaultSimulationInterfaces().wallClock) {
     defaultSimulationInterfaces().wallClock = std::make_unique<Clock>();
     ret->dataPtr->wallClock = defaultSimulationInterfaces().wallClock.get();
-  }
-  else
-  {
+  } else {
     return nullptr;
   }
+
+  // Populate the ECM from the given world
+
+  gz::sim::SdfEntityCreator entityCreator(*ret->dataPtr->ecm,
+                                          *ret->dataPtr->eventMgr);
 
   return ret;
 }
