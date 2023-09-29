@@ -1,6 +1,6 @@
 ## Gazebo Sim 8.x
 
-### Gazebo Sim 8.X.X (20XX-XX-XX)
+### Gazebo Sim 8.0.0 (2023-09-29)
 
 1. TouchPlugin: Reset the plugin with the initial values
     * [Pull request #2132](https://github.com/gazebosim/gz-sim/pull/2132)
