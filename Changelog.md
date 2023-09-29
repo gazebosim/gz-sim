@@ -2,6 +2,133 @@
 
 ### Gazebo Sim 8.X.X (20XX-XX-XX)
 
+1. TouchPlugin: Reset the plugin with the initial values
+    * [Pull request #2132](https://github.com/gazebosim/gz-sim/pull/2132)
+
+1. Fix another deadlock in sensors system
+    * [Pull request #2141](https://github.com/gazebosim/gz-sim/pull/2141)
+
+1. Documentation fixes
+    * [Pull request #2157](https://github.com/gazebosim/gz-sim/pull/2157)
+    * [Pull request #2150](https://github.com/gazebosim/gz-sim/pull/2150)
+    * [Pull request #2148](https://github.com/gazebosim/gz-sim/pull/2148)
+    * [Pull request #2147](https://github.com/gazebosim/gz-sim/pull/2147)
+    * [Pull request #2143](https://github.com/gazebosim/gz-sim/pull/2143)
+    * [Pull request #2133](https://github.com/gazebosim/gz-sim/pull/2133)
+    * [Pull request #2130](https://github.com/gazebosim/gz-sim/pull/2130)
+    * [Pull request #2128](https://github.com/gazebosim/gz-sim/pull/2128)
+    * [Pull request #2124](https://github.com/gazebosim/gz-sim/pull/2124)
+    * [Pull request #2114](https://github.com/gazebosim/gz-sim/pull/2114)
+    * [Pull request #2107](https://github.com/gazebosim/gz-sim/pull/2107)
+
+1. Fix Examples
+    * [Pull request #2151](https://github.com/gazebosim/gz-sim/pull/2151)
+    * [Pull request #2149](https://github.com/gazebosim/gz-sim/pull/2149)
+    * [Pull request #2145](https://github.com/gazebosim/gz-sim/pull/2145)
+    * [Pull request #2144](https://github.com/gazebosim/gz-sim/pull/2144)
+    * [Pull request #2129](https://github.com/gazebosim/gz-sim/pull/2129)
+    * [Pull request #2127](https://github.com/gazebosim/gz-sim/pull/2127)
+    * [Pull request #2123](https://github.com/gazebosim/gz-sim/pull/2123)
+    * [Pull request #2122](https://github.com/gazebosim/gz-sim/pull/2122)
+    * [Pull request #2111](https://github.com/gazebosim/gz-sim/pull/2111)
+
+1. Load transform control and select entities plugins in thermal camera world
+    * [Pull request #2139](https://github.com/gazebosim/gz-sim/pull/2139)
+
+1. Fixed invalid service names
+    * [Pull request #2121](https://github.com/gazebosim/gz-sim/pull/2121)
+
+1. Add automatic moment of inertia calculation for meshes
+    * [Pull request #2171](https://github.com/gazebosim/gz-sim/pull/2171)
+    * [Pull request #2166](https://github.com/gazebosim/gz-sim/pull/2166)
+    * [Pull request #2119](https://github.com/gazebosim/gz-sim/pull/2119)
+    * [Pull request #2105](https://github.com/gazebosim/gz-sim/pull/2105)
+    * [Pull request #2061](https://github.com/gazebosim/gz-sim/pull/2061)
+
+1. ign -> gz
+    * [Pull request #2055](https://github.com/gazebosim/gz-sim/pull/2055)
+
+1. Adds python demo examples
+    * [Pull request #2044](https://github.com/gazebosim/gz-sim/pull/2044)
+
+1. Add support for writing systems in Python
+    * [Pull request #2081](https://github.com/gazebosim/gz-sim/pull/2081)
+
+1. Apply mimic constraint to joints (only Bullet-featherstone)
+    * [Pull request #1838](https://github.com/gazebosim/gz-sim/pull/1838)
+
+1. Fix rendering tests
+    * [Pull request #2086](https://github.com/gazebosim/gz-sim/pull/2086)
+
+1. Make systems and tests include headers they use
+    * [Pull request #2100](https://github.com/gazebosim/gz-sim/pull/2100)
+
+1. Adds Python bindings for the Actor, Joint, Light, Link, Model, Sensor, World convenience class
+    * [Pull request #2043](https://github.com/gazebosim/gz-sim/pull/2043)
+    * [Pull request #2042](https://github.com/gazebosim/gz-sim/pull/2042)
+    * [Pull request #2041](https://github.com/gazebosim/gz-sim/pull/2041)
+    * [Pull request #2040](https://github.com/gazebosim/gz-sim/pull/2040)
+    * [Pull request #2039](https://github.com/gazebosim/gz-sim/pull/2039)
+    * [Pull request #2036](https://github.com/gazebosim/gz-sim/pull/2036)
+    * [Pull request #2035](https://github.com/gazebosim/gz-sim/pull/2035)
+
+1. Add version number to gz.common python binding
+    * [Pull request #2093](https://github.com/gazebosim/gz-sim/pull/2093)
+
+1. Infrastructure
+    * [Pull request #2046](https://github.com/gazebosim/gz-sim/pull/2046)
+
+1. Bumps in harmonic : sdformat14, gz-physics6, gz-sensors8, gz-gui8, gz-rendering8, gz-transport13, gz-msgs10, gz-fuel-tools9
+    * [Pull request #2062](https://github.com/gazebosim/gz-sim/pull/2062)
+    * [Pull request #1892](https://github.com/gazebosim/gz-sim/pull/1892)
+    * [Pull request #1837](https://github.com/gazebosim/gz-sim/pull/1837)
+
+1. Use new sky cubemap, instead of header
+    * [Pull request #2060](https://github.com/gazebosim/gz-sim/pull/2060)
+
+1. Remove deprecations and address some todos for Harmonic
+    * [Pull request #2054](https://github.com/gazebosim/gz-sim/pull/2054)
+    * [Pull request #2053](https://github.com/gazebosim/gz-sim/pull/2053)
+
+1. Use ogre2 in wide angle camera and lens flares worlds
+    * [Pull request #2063](https://github.com/gazebosim/gz-sim/pull/2063)
+
+1. Use new API for creating projector
+    * [Pull request #2064](https://github.com/gazebosim/gz-sim/pull/2064)
+
+1. Fix const-correctness of the `Model::JointByName` and `Model::LinkByName` APIs
+    * [Pull request #2059](https://github.com/gazebosim/gz-sim/pull/2059)
+
+1. Change type of `Component::typeName` and address outstanding todos
+    * [Pull request #2049](https://github.com/gazebosim/gz-sim/pull/2049)
+
+1. Add Lens Flare System
+    * [Pull request #1933](https://github.com/gazebosim/gz-sim/pull/1933)
+
+1. Fix TopicInfo deprecation warnings in Harmonic
+    * [Pull request #1922](https://github.com/gazebosim/gz-sim/pull/1922)
+
+1. Add DopplerVelocityLogSystem plugin
+    * [Pull request #1804](https://github.com/gazebosim/gz-sim/pull/1804)
+
+1. GUI for Global Illumination (VCT / CI VCT)
+    * [Pull request #1597](https://github.com/gazebosim/gz-sim/pull/1597)
+
+1. Add CLI to switch to Vulkan & Metal backends
+    * [Pull request #1735](https://github.com/gazebosim/gz-sim/pull/1735)
+
+1. Remove deprecations for main/gz-sim8
+    * [Pull request #1783](https://github.com/gazebosim/gz-sim/pull/1783)
+
+1. Acoustic comms plugin
+    * [Pull request #1608](https://github.com/gazebosim/gz-sim/pull/1608)
+
+1. Set seed value using CLI
+    * [Pull request #1618](https://github.com/gazebosim/gz-sim/pull/1618)
+
+1. ⬆️  Bump main to 8.0.0~pre1
+    * [Pull request #1640](https://github.com/gazebosim/gz-sim/pull/1640)
+
 ## Gazebo Sim 7.x
 
 ### Gazebo Sim 7.6.0 (2023-09-26)
