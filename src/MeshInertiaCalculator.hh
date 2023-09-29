@@ -103,6 +103,17 @@ namespace gz
         public: void CalculateMeshCentroid(gz::math::Pose3d &_centreOfMass,
           std::vector<Triangle> &_triangles);
 
+        /// \brief Function to transform the Inertia Matrix from a
+        /// given point to the Center of Mass. This function is used
+        /// in cases where the origin of the mesh is not at the centroid
+        /// (Center of Mass). The function uses the reverse of the
+        /// Parallel Axis Theorem for the transformation.
+        /// \param[out] _massMatrix MassMatrix object to hold mass &
+        /// moment of inertia of the mesh
+        /// \param[in] _centerOfMass The centroid (center of mass) of the mesh
+        /// to which the inertia matrix has to be transformed.
+        /// \param[in] _inertiaOrigin The point about which the inertia matrix
+        /// was calculated. This would be the origin of the mesh.
         public: void TransformInertiaMatrixToCOM(gz::math::MassMatrix3d &_massMatrix,
           gz::math::Pose3d &_centreOfMass, gz::math::Pose3d &_inertiaOrigin);
 
