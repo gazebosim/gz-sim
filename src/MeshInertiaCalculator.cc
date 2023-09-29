@@ -234,8 +234,8 @@ void MeshInertiaCalculator::CalculateMassProperties(
 
   // Off Diagonal Elements of the Mass Matrix
   ixyxzyz.X() = -(integral[7] - mass * _inertiaOrigin.X() * _inertiaOrigin.Y());
-  ixyxzyz.Y() = -(integral[8] - mass * _inertiaOrigin.Y() * _inertiaOrigin.Z());
-  ixyxzyz.Z() = -(integral[9] - mass * _inertiaOrigin.X() * _inertiaOrigin.Z());
+  ixyxzyz.Y() = -(integral[9] - mass * _inertiaOrigin.X() * _inertiaOrigin.Z());
+  ixyxzyz.Z() = -(integral[8] - mass * _inertiaOrigin.Y() * _inertiaOrigin.Z());
 
   // Set the values in the MassMatrix object
   _massMatrix.SetMass(mass);
