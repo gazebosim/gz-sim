@@ -33,6 +33,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/MassMatrix3.hh>
 #include <gz/math/Inertial.hh>
+#include <gz/math/Quaternion.hh>
 
 using namespace gz;
 using namespace sim;
@@ -108,14 +109,16 @@ void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
   gz::math::Pose3d &_inertiaOrigin
 )
 {
-  gz::math::Pose3d comRelativeToOrigin = _centreOfMass - _inertiaOrigin;
-  std::cout << comRelativeToOrigin << std::endl;
-  std::cout << _centreOfMass <<std::endl;
+  std::cout << _centreOfMass << std::endl;
+  std::cout << _inertiaOrigin << std::endl;
+  gz::math::Vector3d comRelativeToOrigin = _centreOfMass.CoordPositionSub(_inertiaOrigin);
 
   gz::math::Vector3d ixxyyzz = _massMatrix.DiagonalMoments();
   gz::math::Vector3d ixyxzyz = _massMatrix.OffDiagonalMoments();
   double mass = _massMatrix.Mass();
 
+  // Transform the Inertia Matrix to COM using the
+  // reverse of the Parallel Axis Theorem
   ixxyyzz.X() = ixxyyzz.X() - mass * (comRelativeToOrigin.Y() * comRelativeToOrigin.Y()
                                     + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
   ixxyyzz.Y() = ixxyyzz.Y() - mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
@@ -129,6 +132,27 @@ void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
 
   _massMatrix.SetDiagonalMoments(ixxyyzz);
   _massMatrix.SetOffDiagonalMoments(ixyxzyz);
+
+  gz::math::Quaterniond rotOffset = _massMatrix.PrincipalAxesOffset();
+  
+  std::cout << "Before Rotation: " << std::endl;
+  std::cout << _massMatrix.Moi() << std::endl;
+
+  if (rotOffset != gz::math::Quaterniond::Identity)
+  {
+    gz::math::Matrix3d rotMat = gz::math::Matrix3d(rotOffset);
+    gz::math::Matrix3d rotatedMoi = rotMat.Transposed() * _massMatrix.Moi() * rotMat;
+    _massMatrix.SetMoi(rotatedMoi);
+    
+    // This is required since the rotation will place the
+    // diagonal elements in an ascending order which might not
+    // be the original one
+    _massMatrix.SetDiagonalMoments(ixxyyzz);
+
+    std::cout << _massMatrix.PrincipalMoments() << std::endl;
+    std::cout << _massMatrix.DiagonalMoments() << std::endl;
+    std::cout << _massMatrix.Moi() << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
