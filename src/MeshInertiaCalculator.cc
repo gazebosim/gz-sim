@@ -109,9 +109,8 @@ void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
   gz::math::Pose3d &_inertiaOrigin
 )
 {
-  std::cout << _centreOfMass << std::endl;
-  std::cout << _inertiaOrigin << std::endl;
-  gz::math::Vector3d comRelativeToOrigin = _centreOfMass.CoordPositionSub(_inertiaOrigin);
+  gz::math::Vector3d comRelativeToOrigin =
+    _centreOfMass.CoordPositionSub(_inertiaOrigin);
 
   gz::math::Vector3d ixxyyzz = _massMatrix.DiagonalMoments();
   gz::math::Vector3d ixyxzyz = _massMatrix.OffDiagonalMoments();
@@ -119,39 +118,40 @@ void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
 
   // Transform the Inertia Matrix to COM using the
   // reverse of the Parallel Axis Theorem
-  ixxyyzz.X() = ixxyyzz.X() - mass * (comRelativeToOrigin.Y() * comRelativeToOrigin.Y()
-                                    + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
-  ixxyyzz.Y() = ixxyyzz.Y() - mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
-                                    + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
-  ixxyyzz.Z() = ixxyyzz.Z() - mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
-                                    + comRelativeToOrigin.Y() * comRelativeToOrigin.Y());
+  ixxyyzz.X() = ixxyyzz.X() -
+                mass * (comRelativeToOrigin.Y() * comRelativeToOrigin.Y()
+                + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
+  ixxyyzz.Y() = ixxyyzz.Y() -
+                mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
+                + comRelativeToOrigin.Z() * comRelativeToOrigin.Z());
+  ixxyyzz.Z() = ixxyyzz.Z() -
+                mass * (comRelativeToOrigin.X() * comRelativeToOrigin.X()
+                + comRelativeToOrigin.Y() * comRelativeToOrigin.Y());
 
-  ixyxzyz.X() = ixyxzyz.X() + mass * comRelativeToOrigin.X() * comRelativeToOrigin.Y();
-  ixyxzyz.Y() = ixyxzyz.Y() + mass * comRelativeToOrigin.X() * comRelativeToOrigin.Z();
-  ixyxzyz.Z() = ixyxzyz.Z() + mass * comRelativeToOrigin.Y() * comRelativeToOrigin.Z();
+  ixyxzyz.X() = ixyxzyz.X() +
+                mass * comRelativeToOrigin.X() * comRelativeToOrigin.Y();
+  ixyxzyz.Y() = ixyxzyz.Y() +
+                mass * comRelativeToOrigin.X() * comRelativeToOrigin.Z();
+  ixyxzyz.Z() = ixyxzyz.Z() +
+                mass * comRelativeToOrigin.Y() * comRelativeToOrigin.Z();
 
   _massMatrix.SetDiagonalMoments(ixxyyzz);
   _massMatrix.SetOffDiagonalMoments(ixyxzyz);
 
   gz::math::Quaterniond rotOffset = _massMatrix.PrincipalAxesOffset();
-  
-  std::cout << "Before Rotation: " << std::endl;
-  std::cout << _massMatrix.Moi() << std::endl;
 
+  // If there is a rotational offset remove that
   if (rotOffset != gz::math::Quaterniond::Identity)
   {
     gz::math::Matrix3d rotMat = gz::math::Matrix3d(rotOffset);
-    gz::math::Matrix3d rotatedMoi = rotMat.Transposed() * _massMatrix.Moi() * rotMat;
+    gz::math::Matrix3d rotatedMoi =
+      rotMat.Transposed() * _massMatrix.Moi() * rotMat;
     _massMatrix.SetMoi(rotatedMoi);
-    
-    // This is required since the rotation will place the
-    // diagonal elements in an ascending order which might not
-    // be the original one
-    _massMatrix.SetDiagonalMoments(ixxyyzz);
 
-    std::cout << _massMatrix.PrincipalMoments() << std::endl;
-    std::cout << _massMatrix.DiagonalMoments() << std::endl;
-    std::cout << _massMatrix.Moi() << std::endl;
+    // This is required since the rotation will place the
+    // principal moments on the diagonal in an ascending order
+    // which might not be the original one
+    _massMatrix.SetDiagonalMoments(ixxyyzz);
   }
 }
 
@@ -315,15 +315,13 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   this->CalculateMassProperties(meshTriangles, density,
     meshMassMatrix, inertiaOrigin);
 
+  // The if the mesh origin (about which the inertia matrix was calculated)
+  // is not the mesh centroid (center of mass), then transform the inertia
+  // matrix to the COM
   if (inertiaOrigin != centreOfMass)
   {
-    // TODO(jasmeet0915): tranform the calculated inertia matrix
-    // from inertia origin to centre of mass
-    gzwarn << "Calculated centroid does not match the mesh origin. "
-    "Inertia Tensor values won't be correct. Use mesh with origin at "
-    "geometric center." << std::endl;
-
-    this->TransformInertiaMatrixToCOM(meshMassMatrix, centreOfMass, inertiaOrigin);
+    this->TransformInertiaMatrixToCOM(
+      meshMassMatrix, centreOfMass, inertiaOrigin);
   }
 
   gz::math::Inertiald meshInertial;
