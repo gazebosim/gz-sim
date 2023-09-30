@@ -38,18 +38,21 @@ namespace systems
   /// \brief System which recordings videos from log playback
   /// There are two ways to specify what entities in the log playback to follow
   /// and record videos for: 1) by entity name and 2) by region. See the
-  /// following parameters:
-  ///   - `<entity>`         Name of entity to record.
-  ///   - `<region>`         Axis-aligned box where entities are at start of log
-  ///     + `<min>` Min corner position of box region.
-  ///     + `<max>`  Max corner position of box region.
-  ///   - `<start_time>`     Sim time when recording should start
-  ///   - `<end_time>`       Sim time when recording should end
-  ///   - `<exit_on_finish>` Exit gz-sim when log playback recording ends
+  /// system parameters.
   ///
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a
   /// timestamped directory
+  ///
+  /// ## System Parameters
+  ///
+  /// - `<entity>`         Name of entity to record.
+  /// - `<region>`         Axis-aligned box where entities are at start of log
+  ///   + `<min>` Min corner position of box region.
+  ///   + `<max>`  Max corner position of box region.
+  /// - `<start_time>`     Sim time when recording should start
+  /// - `<end_time>`       Sim time when recording should end
+  /// - `<exit_on_finish>` Exit gz-sim when log playback recording ends
   class LogVideoRecorder final:
     public System,
     public ISystemConfigure,

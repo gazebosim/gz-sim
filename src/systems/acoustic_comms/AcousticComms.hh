@@ -76,6 +76,7 @@ namespace systems
   ///       * <seed> : Seed value to be used for random sampling.
   ///
   /// Here's an example:
+  /// ```
   ///  <plugin
   ///    filename="gz-sim-acoustic-comms-system"
   ///    name="gz::sim::systems::AcousticComms">
