@@ -138,7 +138,7 @@ class gz::sim::systems::AdvancedLiftDragPrivate
   public: double CemaStall = 0.0;
 
   /// \brief AVL reference point (it replaces the center of pressure in the original LiftDragPlugin)
-  public: gz::math::Vector3d ref_pt = math::Vector3d::Zero;
+  public: gz::math::Vector3d cp = math::Vector3d::Zero;
 
   // Get the derivatives with respect to non-dimensional rates.
   // In the next few lines, if you see "roll/pitch/yaw rate", remember it is in
@@ -313,7 +313,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->Cenb = _sdf->Get<double>("Cenb", this->Cenb).first;
   this->alphaStall = _sdf->Get<double>("alpha_stall", this->alphaStall).first;
   this->CemaStall = _sdf->Get<double>("Cema_stall", this->CemaStall).first;
-  this->ref_pt = _sdf->Get<gz::math::Vector3d>("ref_pt", this->ref_pt).first;
+  this->cp = _sdf->Get<gz::math::Vector3d>("cp", this->cp).first;
   this->CDp = _sdf->Get<double>("CDp", this->CDp).first;
   this->CYp = _sdf->Get<double>("CYp", this->CYp).first;
   this->CLp = _sdf->Get<double>("CLp", this->CLp).first;
@@ -349,7 +349,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
     auto ctrl_surface_name = curr_ctrl_surface->GetElement("name")->Get<std::string>();
     auto entities =
         entitiesFromScopedName(ctrl_surface_name, _ecm, this->model.Entity());
-    
+
     if (entities.empty())
     {
       gzerr << "Joint with name[" << ctrl_surface_name << "] not found. "
@@ -460,7 +460,7 @@ AdvancedLiftDrag::AdvancedLiftDrag()
 void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AdvancedLiftDragPrivate::Update");
-  // get linear velocity at ref_pt in world frame
+  // get linear velocity at cp in world frame
   const auto worldLinVel =
       _ecm.Component<components::WorldLinearVelocity>(this->linkEntity);
   const auto worldAngVel =
@@ -471,11 +471,10 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   std::vector<components::JointPosition*> controlJointPosition_vec(this->num_ctrl_surfaces);
   //Generate a new vector that contains the current positions for all joints
-  // //Check this
   for(int i=0; i < this->num_ctrl_surfaces;i++){
     components::JointPosition *controlJointPosition = nullptr;
     if(this->controlJoints[i] != kNullEntity){
-      controlJointPosition = _ecm.Component<components::JointPosition>(controlJoints[i]);
+      controlJointPosition = _ecm.Component<components::JointPosition>(this->controlJoints[i]);
       controlJointPosition_vec[i] = controlJointPosition;
     }
   }
@@ -485,8 +484,8 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     return;
 
   const auto &pose = worldPose->Data();
-  const auto ref_ptWorld = pose.Rot().RotateVector(this->ref_pt);
-  const auto air_velocity = worldLinVel->Data() + worldAngVel->Data().Cross(ref_ptWorld);
+  const auto cpWorld = pose.Rot().RotateVector(this->cp);
+  const auto air_velocity = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld);
 
   //Define body frame: X forward, Z downward, Y out the right wing
   gz::math::Vector3d body_x_axis = pose.Rot().RotateVector(this->forward);
@@ -514,7 +513,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     //wings, but for more complex wing shapes, doing the integral is preferred.
     this->mac = this->area/span;
   }
-
 
   //Get non-dimensional body rates. Gazebo uses ENU, so some have to be flipped
   // gz::math::Vector3d body_rates = this->link->GetRelativeAngularVel();
@@ -548,7 +546,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   double half_rho_vel = 0.5 * this->rho * speedInLDPlane;
   gzdbg << "LD Plane Vel:" << speedInLDPlane;
 
-  // Compute CL at ref_pt, check for stall
+  // Compute CL at cp, check for stall
   double CL{0.0};
 
    // Use a sigmoid function to blend pre- and post-stall models
@@ -590,11 +588,10 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   for(int i = 0; i < this->num_ctrl_surfaces; i++){
     double controlAngle = 0.0;
-    // double controlAngle = this->controlJoints[i]->Position(0) * 180/M_PI;
     if (controlJointPosition_vec[i] && !controlJointPosition_vec[i]->Data().empty())
     {
       components::JointPosition *tmp_controlJointPosition = controlJointPosition_vec[i];
-      controlAngle = tmp_controlJointPosition->Data()[0];
+      controlAngle = tmp_controlJointPosition->Data()[0] * 180/M_PI;
     }
 
     /* AVL's and Gazebo's direction of "positive" deflection may be different.
@@ -612,10 +609,10 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   CL = CL+CL_ctrl_tot;
   // gzdbg << "Current CL:" << CL << "\n";
 
-  // Compute lift force at ref_pt
+  // Compute lift force at cp
   gz::math::Vector3d lift = (CL * dyn_pres + (this->CLp * (rr*span/2) * half_rho_vel) + (this->CLq * (pr*this->mac/2) * half_rho_vel) + (this->CLr * (yr*span/2) * half_rho_vel)) * (this->area * (-1 * stability_z_axis));
 
-  // Compute CD at ref_pt, check for stall
+  // Compute CD at cp, check for stall
   double CD{0.0};
 
   //Add in quadratic model and a high-angle-of-attack (Newtonian) model
@@ -647,7 +644,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   CD = CD + CD_ctrl_tot;
   gzdbg << "Current CD:" << CD << "\n";
 
-  // Place drag at ref_pt
+  // Place drag at cp
   gz::math::Vector3d drag = (CD * dyn_pres + (this->CDp * (rr*span/2) * half_rho_vel) + (this->CDq * (pr*this->mac/2) * half_rho_vel) + (this->CDr * (yr*span/2) * half_rho_vel)) * (this->area * (-1*stability_x_axis));
 
   // Compute sideforce coefficient, CY
@@ -709,22 +706,18 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   gz::math::Vector3d force = lift + drag + sideforce;
   gz::math::Vector3d torque = moment;
 
-  // std::cout << "Force value" << force << "\n";
-  // std::cout << "Torque value" << torque << "\n";
-
-
   // gzdbg << "force: " << force << "\n";
   // gzdbg << "moment: " << moment << "\n\n";
 
 
   // Correct for nan or inf
   force.Correct();
-  this->ref_pt.Correct();
+  this->cp.Correct();
   torque.Correct();
 
   // \todo(addisu) Create a convenient API for applying forces at offset
   // positions
-  const auto totalTorque = torque + ref_ptWorld.Cross(force);
+  const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
   link.AddWorldWrench(_ecm, force, totalTorque);
 

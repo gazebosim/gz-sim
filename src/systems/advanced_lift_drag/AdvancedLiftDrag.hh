@@ -59,7 +59,7 @@ namespace systems
   /// Cenb        : dCn/dbeta (yaw moment slope wrt beta)
   /// alphaStall  : angle of attack when airfoil stalls
   /// CemaStall   : Slope of the Cm-alpha curve after stall
-  /// ref_pt      : 3-vector replacing the center of pressure in the original LiftDragPlugin
+  /// cp          : 3-vector replacing the center of pressure in the original LiftDragPlugin
   /// CDp         : dCD/dp (drag coefficient slope wrt roll rate)
   /// CYp         : dCY/dp (sideforce slope wrt roll rate)
   /// CLp         : dCL/dp (lift coefficient slope wrt roll rate)
