@@ -73,9 +73,6 @@ class gz::sim::systems::AdvancedLiftDragPrivate
   /// components
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
   public: void Update(EntityComponentManager &_ecm);
-  
-  public: std::vector<components::JointPosition*> CurrPositionCalc(std::vector<Entity> controlJoints,int num_ctrl_surfaces,EntityComponentManager &_ecm);
-
 
   /// \brief Compute Control Surface effects
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
@@ -163,8 +160,6 @@ class gz::sim::systems::AdvancedLiftDragPrivate
   /// \brief dCn/dp (yaw moment slope wrt roll rate)
   public: double Cenp = 0.0;
   
-
-
   /// \brief dCD/dq (drag coefficient slope wrt pitching rate)
   public: double CDq = 0.0;
 
@@ -182,8 +177,6 @@ class gz::sim::systems::AdvancedLiftDragPrivate
 
   /// \brief dCn/dq (yaw moment slope wrt pitching rate)
   public: double Cenq = 0.0;
-
-
 
   /// \brief dCD/dr (drag coefficient slope wrt yaw rate)
   public: double CDr = 0.0;
@@ -206,11 +199,9 @@ class gz::sim::systems::AdvancedLiftDragPrivate
   /// \brief Number of present control surfaces
   public: int num_ctrl_surfaces = 0;
 
-
   /// Initialize storage of control surface properties
   /// \brief Joint that the control surface connects to
   public: std::vector<Entity> controlJoints;
-
 
   /// \brief Direction the control surface deflects to
   public: std::vector<double> ctrl_surface_direction;
@@ -339,13 +330,11 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
   Next, get the properties of each control surface: which joint it connects to,
   which direction it deflects in, and the effect of its deflection on the
   coefficient of drag, side force, lift, roll moment, pitching moment, and yaw moment.
-*/
+  */
 
   while( _sdf->HasElement("control_surface") )
   {
-    // gzdbg << "Control surface \n";
     auto curr_ctrl_surface = _sdf->GetElement("control_surface");
-    // gzdbg << ((curr_ctrl_surface->GetElement("name"))) << "\n";
     auto ctrl_surface_name = curr_ctrl_surface->GetElement("name")->Get<std::string>();
     auto entities =
         entitiesFromScopedName(ctrl_surface_name, _ecm, this->model.Entity());
@@ -373,18 +362,22 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
       return;
     }
 
-  
     this->controlJoints.push_back(controlJointEntity);
-    this->ctrl_surface_direction.push_back(std::stod(((curr_ctrl_surface->GetElement("direction"))->GetValue())->GetAsString()));
-    this->CD_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("CD_ctrl"))->GetValue())->GetAsString()));
-    this->CY_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("CY_ctrl"))->GetValue())->GetAsString()));
-    this->CL_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("CL_ctrl"))->GetValue())->GetAsString()));
-    this->Cell_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("Cell_ctrl"))->GetValue())->GetAsString()));
-    this->Cem_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("Cem_ctrl"))->GetValue())->GetAsString()));
-    this->Cen_ctrl.push_back(std::stod(((curr_ctrl_surface->GetElement("Cen_ctrl"))->GetValue())->GetAsString()));
-
+    this->ctrl_surface_direction.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("direction"))->GetValue())->GetAsString()));
+    this->CD_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("CD_ctrl"))->GetValue())->GetAsString()));
+    this->CY_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("CY_ctrl"))->GetValue())->GetAsString()));
+    this->CL_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("CL_ctrl"))->GetValue())->GetAsString()));
+    this->Cell_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("Cell_ctrl"))->GetValue())->GetAsString()));
+    this->Cem_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("Cem_ctrl"))->GetValue())->GetAsString()));
+    this->Cen_ctrl.push_back(
+      std::stod(((curr_ctrl_surface->GetElement("Cen_ctrl"))->GetValue())->GetAsString()));
     _sdf->RemoveChild(curr_ctrl_surface);
-
   }
 
   this->AR = _sdf->Get<double>("AR", this->AR).first;
@@ -445,7 +438,6 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
     return;
   }
 
-
   // If we reached here, we have a valid configuration
   this->validConfig = true;
 }
@@ -479,7 +471,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     }
   }
 
-
   if (!worldLinVel || !worldAngVel || !worldPose)
     return;
 
@@ -492,7 +483,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   gz::math::Vector3d body_z_axis = -1*(pose.Rot().RotateVector(this->upward));
   gz::math::Vector3d body_y_axis =  body_z_axis.Cross(body_x_axis);
 
-
   // Get the in-plane velocity (remove spanwise velocity from the velocity vector air_velocity)
   gz::math::Vector3d velInLDPlane = air_velocity - air_velocity.Dot(body_y_axis)*body_y_axis;
   // compute dynamic pressure
@@ -503,7 +493,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   gz::math::Vector3d stability_x_axis = velInLDPlane/speedInLDPlane;
   gz::math::Vector3d stability_y_axis = body_y_axis;
   gz::math::Vector3d stability_z_axis = stability_x_axis.Cross(stability_y_axis);
-
 
   double span = std::sqrt(this->area*this->AR); // Wing span
   if (this->mac == 0.0){
@@ -522,7 +511,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     AngVel =_ecm.Component<components::AngularVelocity>(this->linkEntity);
   }
 
-  // double airspeed = air_velocity.Length();
   double rr = AngVel->Data()[0]; //Roll rate
   double pr = -1*AngVel->Data()[1]; //Pitch rate
   double yr = -1*AngVel->Data()[2]; //Yaw rate
@@ -544,13 +532,15 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   //Compute dynamic pressure
   double dyn_pres = 0.5 * this->rho * speedInLDPlane * speedInLDPlane;
   double half_rho_vel = 0.5 * this->rho * speedInLDPlane;
-  gzdbg << "LD Plane Vel:" << speedInLDPlane;
 
   // Compute CL at cp, check for stall
   double CL{0.0};
 
    // Use a sigmoid function to blend pre- and post-stall models
-  double sigma = (1+exp(-1*this->M*(this->alpha-this->alphaStall))+exp(this->M*(this->alpha+this->alphaStall)))/((1+exp(-1*this->M*(this->alpha-this->alphaStall)))*(1+exp(this->M*(this->alpha+this->alphaStall)))); //blending function
+  double sigma = (1+exp(-1*this->M*(this->alpha-this->alphaStall))+exp(
+    this->M*(this->alpha+this->alphaStall)))/((1+exp(
+      -1*this->M*(this->alpha-this->alphaStall)))*(1+exp(
+        this->M*(this->alpha+this->alphaStall)))); //blending function
 
 
   /*
@@ -568,14 +558,10 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   CL_poststall = 2*(this->alpha/abs(this->alpha))*pow(sinAlpha,2.0)*cosAlpha
   */
 
-  CL = (1-sigma)*(this->CL0 + this->CLa*this->alpha) + sigma*(2*(this->alpha/abs(this->alpha))*sinAlpha*sinAlpha*cosAlpha);
+  CL = (1-sigma)*(this->CL0 + this->CLa*this->alpha) + sigma*(
+    2*(this->alpha/abs(this->alpha))*sinAlpha*sinAlpha*cosAlpha);
   // Add sideslip effect, if any
   CL = CL + this->CLb*this->beta;
-  // gzdbg << "Current Zero Deflection CL:" << CL << "\n";
-  // gzdbg << "control surface: " << this->sdf->Get<std::string>("control_joint_name") << "\n";
-  // gzdbg << "alpha: " << this->alpha << "\n";
-  // gzdbg << "beta: " << this->beta << "\n";
-  // gzdbg << "sigma: " << sigma << "\n";
 
   // Compute control surface effects
   double CL_ctrl_tot = 0;
@@ -585,7 +571,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   double Cem_ctrl_tot = 0;
   double Cen_ctrl_tot = 0;
 
-
   for(int i = 0; i < this->num_ctrl_surfaces; i++){
     double controlAngle = 0.0;
     if (controlJointPosition_vec[i] && !controlJointPosition_vec[i]->Data().empty())
@@ -594,8 +579,8 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
       controlAngle = tmp_controlJointPosition->Data()[0] * 180/M_PI;
     }
 
-    /* AVL's and Gazebo's direction of "positive" deflection may be different.
-    Future users, keep an eye on this. */
+    // AVL's and Gazebo's direction of "positive" deflection may be different.
+    // Future users, keep an eye on this.
     CL_ctrl_tot += controlAngle*this->CL_ctrl[i]*this->ctrl_surface_direction[i];
     CD_ctrl_tot += controlAngle*this->CD_ctrl[i]*this->ctrl_surface_direction[i];
     CY_ctrl_tot += controlAngle*this->CY_ctrl[i]*this->ctrl_surface_direction[i];
@@ -607,62 +592,64 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   // AVL outputs a "CZ_elev", but the Z axis is down. This plugin
   // uses CL_elev, which is the negative of CZ_elev
   CL = CL+CL_ctrl_tot;
-  // gzdbg << "Current CL:" << CL << "\n";
 
   // Compute lift force at cp
-  gz::math::Vector3d lift = (CL * dyn_pres + (this->CLp * (rr*span/2) * half_rho_vel) + (this->CLq * (pr*this->mac/2) * half_rho_vel) + (this->CLr * (yr*span/2) * half_rho_vel)) * (this->area * (-1 * stability_z_axis));
+  gz::math::Vector3d lift = (CL * dyn_pres + (this->CLp * (
+    rr*span/2) * half_rho_vel) + (this->CLq * (pr*this->mac/2) * half_rho_vel) + (
+      this->CLr * (yr*span/2) * half_rho_vel)) * (this->area * (-1 * stability_z_axis));
 
   // Compute CD at cp, check for stall
   double CD{0.0};
 
   //Add in quadratic model and a high-angle-of-attack (Newtonian) model
 
-    /* The post stall model used below has two parts. The first part, the
-    (estimated) flat plate drag, comes from the data in Ostowari and Naik,
-    Post-Stall Wind Tunnel Data for NACA 44XX Series Airfoil Sections.
-    https://www.nrel.gov/docs/legosti/old/2559.pdf
-    The second part (0.5-0.5cos(2*alpha)) is fitted using data from Stringer et al,
-    A new 360° airfoil model for predicting airfoil thrust potential in
-    vertical-axis wind turbine designs.
-    https://aip.scitation.org/doi/pdf/10.1063/1.5011207
-    I halved the drag numbers to make sure it would work with my flat plate drag model.
-    */
+  // The post stall model used below has two parts. The first part, the
+  // (estimated) flat plate drag, comes from the data in Ostowari and Naik,
+  // Post-Stall Wind Tunnel Data for NACA 44XX Series Airfoil Sections.
+  // https://www.nrel.gov/docs/legosti/old/2559.pdf
+  // The second part (0.5-0.5cos(2*alpha)) is fitted using data from Stringer et al,
+  // A new 360° airfoil model for predicting airfoil thrust potential in
+  // vertical-axis wind turbine designs.
+  // https://aip.scitation.org/doi/pdf/10.1063/1.5011207
+  // I halved the drag numbers to make sure it would work with my flat plate drag model.
+  
 
-    /*To estimate the flat plate coefficient of drag, I fit a sigmoid function
-    to the data in Ostowari and Naik. The form I used was:
-    CD_FP = 2/(1+exp(k1+k2*AR)).
-    The coefficients k1 and k2 might need some tuning.
-    I chose a sigmoid because the CD would initially increase quickly with aspect
-    ratio, but that rate of increase would slow down as AR goes to infinity.*/
-  double CD_fp = 2/(1+exp(this->CD_fp_k1+this->CD_fp_k2*(std::max(this->AR,1/this->AR))));
-  CD = (1-sigma)*(this->CD0 + (CL*CL)/(M_PI*this->AR*this->eff))+sigma*abs(CD_fp*(0.5-0.5*cos(2*this->alpha)));
-  // gzdbg << "Current Efficiency:" << this->eff << "\n";
-  // gzdbg << "Current Lift-Induced CD:" << (CL*CL)/(M_PI*this->AR*this->eff) << "\n";
-  // gzdbg << "Current CD, no deflection:" << CD << "\n";
+  // To estimate the flat plate coefficient of drag, I fit a sigmoid function
+  // to the data in Ostowari and Naik. The form I used was:
+  // CD_FP = 2/(1+exp(k1+k2*AR)).
+  // The coefficients k1 and k2 might need some tuning.
+  // I chose a sigmoid because the CD would initially increase quickly with aspect
+  // ratio, but that rate of increase would slow down as AR goes to infinity.
+
+  double CD_fp = 2 / (1 + exp(this->CD_fp_k1 + this->CD_fp_k2 * (
+    std::max(this->AR,1 / this->AR))));
+  CD = (1 - sigma) * (this->CD0 + (CL*CL) / (M_PI * this->AR * this->eff)) + sigma * abs(
+    CD_fp * (0.5 - 0.5 * cos(2 * this->alpha)));
 
   // Add in control surface terms
   CD = CD + CD_ctrl_tot;
-  gzdbg << "Current CD:" << CD << "\n";
 
   // Place drag at cp
-  gz::math::Vector3d drag = (CD * dyn_pres + (this->CDp * (rr*span/2) * half_rho_vel) + (this->CDq * (pr*this->mac/2) * half_rho_vel) + (this->CDr * (yr*span/2) * half_rho_vel)) * (this->area * (-1*stability_x_axis));
+  gz::math::Vector3d drag = (CD * dyn_pres + (this->CDp * (rr*span/2) * half_rho_vel) + (
+    this->CDq * (pr*this->mac/2) * half_rho_vel) + (
+      this->CDr * (yr*span/2) * half_rho_vel)) * (this->area * (-1*stability_x_axis));
 
   // Compute sideforce coefficient, CY
   // Start with angle of attack, sideslip, and control terms
   double CY = this->CYa * this->alpha + this->CYb * this->beta + CY_ctrl_tot;
-  gzdbg << "Current CY:" << CY << "\n";
 
-  gz::math::Vector3d sideforce = (CY * dyn_pres + (this->CYp * (rr*span/2) * half_rho_vel) + (this->CYq * (pr*this->mac/2) * half_rho_vel) + (this->CYr * (yr*span/2) * half_rho_vel)) * (this->area * stability_y_axis);
+  gz::math::Vector3d sideforce = (CY * dyn_pres + (this->CYp * (
+    rr*span/2) * half_rho_vel) + (this->CYq * (pr*this->mac/2) * half_rho_vel) + (
+      this->CYr * (yr*span/2) * half_rho_vel)) * (this->area * stability_y_axis);
 
-  /*
-  The Cm is divided in three sections: alpha>stall angle, alpha<-stall angle
-  -stall angle<alpha<stall angle. The Cm is assumed to be linear in the region between
-  -stall angle and stall angle, with the slope given by dCm/da. Once we get into the
-  stall regions, the Cm is still linear, but the slope changes to dCm_stall/da after stall
-  (also provided as an input). In the alpha>stall angle region the Cm is assumed to
-  always be positive or zero, in the alpha<-stall angle the Cm is assumed to always be
-  negative or zero.
-  */
+  // The Cm is divided in three sections: alpha>stall angle, alpha<-stall angle
+  // -stall angle<alpha<stall angle. The Cm is assumed to be linear in the region between
+  // -stall angle and stall angle, with the slope given by dCm/da. Once we get into the
+  // stall regions, the Cm is still linear, but the slope changes to dCm_stall/da after stall
+  // (also provided as an input). In the alpha>stall angle region the Cm is assumed to
+  // always be positive or zero, in the alpha<-stall angle the Cm is assumed to always be
+  // negative or zero.
+  
   double Cem{0.0};
 
   if (alpha > this->alphaStall)
@@ -682,22 +669,24 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   Cem = this->Cemb * this->beta;
 
   Cem += Cem_ctrl_tot;
-  // gzdbg << "Current Cm:" << Cem << "\n";
 
-  gz::math::Vector3d pm = ((Cem * dyn_pres) + (this->Cemp * (rr*span/2) * half_rho_vel) + (this->Cemq * (pr*this->mac/2) * half_rho_vel) + (this->Cemr * (yr*span/2) * half_rho_vel)) * (this->area * this->mac * body_y_axis);
+  gz::math::Vector3d pm = ((Cem * dyn_pres) + (this->Cemp * (
+    rr*span/2) * half_rho_vel) + (this->Cemq * (pr*this->mac/2) * half_rho_vel) + (
+      this->Cemr * (yr*span/2) * half_rho_vel)) * (this->area * this->mac * body_y_axis);
 
   // Compute roll moment coefficient, Cell
   // Start with angle of attack, sideslip, and control terms
   double Cell = this-> Cella * this->alpha + this->Cellb * this-> beta + Cell_ctrl_tot;
-  gz::math::Vector3d rm = ((Cell * dyn_pres) + (this->Cellp * (rr*span/2) * half_rho_vel) + (this->Cellq * (pr*this->mac/2) * half_rho_vel) + (this->Cellr * (yr*span/2) * half_rho_vel)) * (this->area * span * body_x_axis);
+  gz::math::Vector3d rm = ((Cell * dyn_pres) + (this->Cellp * (
+    rr*span/2) * half_rho_vel) + (this->Cellq * (pr*this->mac/2) * half_rho_vel) + (
+      this->Cellr * (yr*span/2) * half_rho_vel)) * (this->area * span * body_x_axis);
 
   // Compute yaw moment coefficient, Cen
   // Start with angle of attack, sideslip, and control terms
   double Cen = this->Cena * this->alpha + this->Cenb * this->beta + Cen_ctrl_tot;
-  gz::math::Vector3d ym = ((Cen * dyn_pres) + (this->Cenp * (rr*span/2) * half_rho_vel) + (this->Cenq * (pr*this->mac/2) * half_rho_vel) + (this->Cenr * (yr*span/2) * half_rho_vel)) * (this->area * span * body_z_axis);
-
-  // gzdbg << "Current Cl:" << Cell << "\n";
-  // gzdbg << "Current Cn:" << Cen << "\n";
+  gz::math::Vector3d ym = ((Cen * dyn_pres) + (this->Cenp * (
+    rr*span/2) * half_rho_vel) + (this->Cenq * (pr*this->mac/2) * half_rho_vel) + (
+      this->Cenr * (yr*span/2) * half_rho_vel)) * (this->area * span * body_z_axis);
 
   // Compute moment (torque)
   gz::math::Vector3d moment = pm+rm+ym;
@@ -705,10 +694,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   // compute force about cg in inertial frame
   gz::math::Vector3d force = lift + drag + sideforce;
   gz::math::Vector3d torque = moment;
-
-  // gzdbg << "force: " << force << "\n";
-  // gzdbg << "moment: " << moment << "\n\n";
-
 
   // Correct for nan or inf
   force.Correct();
@@ -720,30 +705,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
   link.AddWorldWrench(_ecm, force, totalTorque);
-
-  // Debug
-  // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
-  // gzdbg << "=============================\n";
-  // gzdbg << "Link: [" << linkName << "] pose: [" << pose
-  //        << "] dynamic pressure: [" << q << "]\n";
-  // gzdbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
-  // gzdbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
-  //        << velInLDPlane << "]\n";
-  // gzdbg << "forward (inertial): " << forwardI << "\n";
-  // gzdbg << "upward (inertial): " << upwardI << "\n";
-  // gzdbg << "q: " << q << "\n";
-  // gzdbg << "cl: " << cl << "\n";
-  // gzdbg << "lift dir (inertial): " << liftI << "\n";
-  // gzdbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
-  // gzdbg << "sweep: " << sweep << "\n";
-  // gzdbg << "alpha: " << alpha << "\n";
-  // gzdbg << "lift: " << lift << "\n";
-  // gzdbg << "drag: " << drag << " cd: " << cd << " cda: "
-  // //        << this->cda << "\n";
-  // gzdbg << "moment: " << moment << "\n";
-  // gzdbg << "force: " << force << "\n";
-  // gzdbg << "torque: " << torque << "\n";
-  // gzdbg << "totalTorque: " << totalTorque << "\n";
 }
 
 //////////////////////////////////////////////////
@@ -781,12 +742,10 @@ void AdvancedLiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager
     this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
     this->dataPtr->initialized = true;
 
-
     if (this->dataPtr->validConfig)
     {
       Link link(this->dataPtr->linkEntity);
       link.EnableVelocityChecks(_ecm, true);
-
 
       for(int i = 0; i < this->dataPtr->num_ctrl_surfaces;i++){
 
@@ -796,9 +755,7 @@ void AdvancedLiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager
             _ecm.CreateComponent(this->dataPtr->controlJoints[i],
                 components::JointPosition());
           }
-
       }
-      \
     }
   }
 
