@@ -35,7 +35,7 @@ namespace systems
   /// \brief The LiftDrag system computes lift and drag forces enabling
   /// simulation of aerodynamic robots.
   ///
-  /// ##System Parameters
+  /// ## System Parameters
   ///
   /// - `<link_name>`: Name of the link affected by the group of lift/drag
   /// properties. This can be a scoped name to reference links in

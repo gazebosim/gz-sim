@@ -160,7 +160,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->area = _sdf->Get<double>("area", this->area).first;
   this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
   this->cp = _sdf->Get<math::Vector3d>("cp", this->cp).first;
-  this->cm_delta = _sdf->Get<double>("cm_delta",this->cm_delta).first;
+  this->cm_delta = _sdf->Get<double>("cm_delta", this->cm_delta).first;
 
   // blade forward (-drag) direction in link frame
   this->forward =
