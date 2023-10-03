@@ -265,10 +265,10 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto worldPose =
       _ecm.Component<components::WorldPose>(this->linkEntity);
 
+  // get wind as a component from the _ecm
   Entity windEntity = _ecm.EntityByComponents(components::Wind());
   auto windLinearVel =
           _ecm.Component<components::WorldLinearVelocity>(windEntity);
-
 
   components::JointPosition *controlJointPosition = nullptr;
   if (this->controlJointEntity != kNullEntity)
