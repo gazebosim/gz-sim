@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -86,6 +87,10 @@ class gz::sim::systems::LiftDragPrivate
 
   /// \brief Cm-alpha rate after stall
   public: double cmaStall = 0.0;
+
+  /// \brief How much Cm changes with a change in control 
+  /// surface deflection angle
+  public: double cm_delta = 0.0;
 
   /// \brief air density
   /// at 25 deg C it's about 1.1839 kg/m^3
@@ -155,6 +160,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->area = _sdf->Get<double>("area", this->area).first;
   this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
   this->cp = _sdf->Get<math::Vector3d>("cp", this->cp).first;
+  this->cm_delta = _sdf->Get<double>("cm_delta",this->cm_delta).first;
 
   // blade forward (-drag) direction in link frame
   this->forward =
@@ -205,7 +211,6 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
     this->validConfig = false;
     return;
   }
-
 
   if (_sdf->HasElement("control_joint_name"))
   {
@@ -304,7 +309,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
       spanwiseI.Dot(velI), minRatio, maxRatio);
 
   // get cos from trig identity
-  const double cosSweepAngle = 1.0 - sinSweepAngle * sinSweepAngle;
+  double cosSweepAngle = sqrt(1.0 - sinSweepAngle * sinSweepAngle);
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
@@ -336,7 +341,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // compute angle between upwardI and liftI
   // in general, given vectors a and b:
-  //   cos(theta) = a.Dot(b)/(a.Length()*b.Lenghth())
+  //   cos(theta) = a.Dot(b)/(a.Length()*b.Length())
   // given upwardI and liftI are both unit vectors, we can drop the denominator
   //   cos(theta) = a.Dot(b)
   const double cosAlpha =
@@ -435,14 +440,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   else
     cm = this->cma * alpha * cosSweepAngle;
 
-  /// \todo(anyone): implement cm
-  /// for now, reset cm to zero, as cm needs testing
-  cm = 0.0;
+  // Take into account the effect of control surface deflection angle to cm
+  cm += this->cm_delta * controlJointPosition->Data()[0];
 
   // compute moment (torque) at cp
   // spanwiseI used to be momentDirection
   math::Vector3d moment = cm * q * this->area * spanwiseI;
-
 
   // force and torque about cg in world frame
   math::Vector3d force = lift + drag;
@@ -469,30 +472,6 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
   link.AddWorldWrench(_ecm, force, totalTorque);
-
-  // Debug
-  // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
-  // gzdbg << "=============================\n";
-  // gzdbg << "Link: [" << linkName << "] pose: [" << pose
-  //        << "] dynamic pressure: [" << q << "]\n";
-  // gzdbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
-  // gzdbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
-  //        << velInLDPlane << "]\n";
-  // gzdbg << "forward (inertial): " << forwardI << "\n";
-  // gzdbg << "upward (inertial): " << upwardI << "\n";
-  // gzdbg << "q: " << q << "\n";
-  // gzdbg << "cl: " << cl << "\n";
-  // gzdbg << "lift dir (inertial): " << liftI << "\n";
-  // gzdbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
-  // gzdbg << "sweep: " << sweep << "\n";
-  // gzdbg << "alpha: " << alpha << "\n";
-  // gzdbg << "lift: " << lift << "\n";
-  // gzdbg << "drag: " << drag << " cd: " << cd << " cda: "
-  //        << this->cda << "\n";
-  // gzdbg << "moment: " << moment << "\n";
-  // gzdbg << "force: " << force << "\n";
-  // gzdbg << "torque: " << torque << "\n";
-  // gzdbg << "totalTorque: " << totalTorque << "\n";
 }
 
 //////////////////////////////////////////////////
@@ -529,7 +508,6 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // that all entities have been created when Configure is called
     this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
     this->dataPtr->initialized = true;
-
 
     if (this->dataPtr->validConfig)
     {
