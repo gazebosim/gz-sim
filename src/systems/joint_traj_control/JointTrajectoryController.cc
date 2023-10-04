@@ -922,19 +922,19 @@ void ActuatedJoint::SetTarget(
     const gz::msgs::JointTrajectoryPoint &_targetPoint,
     const size_t &_jointIndex)
 {
-  if ((signed)_jointIndex < _targetPoint.positions_size())
+  if (static_cast<int>(_jointIndex) < _targetPoint.positions_size())
   {
     this->target.position = _targetPoint.positions(_jointIndex);
   }
-  if ((signed)_jointIndex < _targetPoint.velocities_size())
+  if (static_cast<int>(_jointIndex) < _targetPoint.velocities_size())
   {
     this->target.velocity = _targetPoint.velocities(_jointIndex);
   }
-  if ((signed)_jointIndex < _targetPoint.accelerations_size())
+  if (static_cast<int>(_jointIndex) < _targetPoint.accelerations_size())
   {
     this->target.acceleration = _targetPoint.accelerations(_jointIndex);
   }
-  if ((signed)_jointIndex < _targetPoint.effort_size())
+  if (static_cast<int>(_jointIndex) < _targetPoint.effort_size())
   {
     this->target.effort = _targetPoint.effort(_jointIndex);
   }

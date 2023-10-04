@@ -108,7 +108,8 @@ void testImages(const std::string &_imageFile,
       }
     }
   }
-  ASSERT_GT((float)equalPixels/(float)totalPixels, 0.99);
+  ASSERT_GT(
+    static_cast<float>(equalPixels)/static_cast<float>(totalPixels), 0.99);
 
   // Deleting files so they do not affect future tests
   EXPECT_EQ(remove(imageFilePath.c_str()), 0);

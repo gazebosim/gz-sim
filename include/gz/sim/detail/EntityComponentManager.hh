@@ -42,9 +42,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace traits
 {
   /// \brief Helper struct to determine if an equality operator is present.
-  struct TestEqualityOperator
-  {
-  };
+  struct TestEqualityOperator {};
   template<typename T>
   TestEqualityOperator operator == (const T&, const T&);
 
@@ -52,20 +50,12 @@ namespace traits
   template<typename T>
   struct HasEqualityOperator
   {
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
     enum
     {
-      // False positive codecheck "Using C-style cast"
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
+      value = !std::is_same<decltype(std::declval<T>() == std::declval<T>()), TestEqualityOperator>::value
     };
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic pop
-#endif
   };
-}
+}  // namespace traits
 
 //////////////////////////////////////////////////
 /// \brief Helper function to compare two objects of the same type using its

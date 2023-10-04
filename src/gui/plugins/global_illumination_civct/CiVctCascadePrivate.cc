@@ -70,7 +70,7 @@ void CiVctCascadePrivate::UpdateAreaHalfSize(int _axis, float _halfSize)
 
   std::lock_guard<std::mutex> lock(this->serviceMutex);
   math::Vector3d areaHalfSize = this->cascade->AreaHalfSize();
-  areaHalfSize[(size_t)_axis] = static_cast<double>(_halfSize);
+  areaHalfSize[static_cast<size_t>(_axis)] = static_cast<double>(_halfSize);
   this->cascade->SetAreaHalfSize(areaHalfSize);
 }
 

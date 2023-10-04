@@ -61,6 +61,7 @@
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
 #include <gz/physics/GetEntities.hh>
+#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
@@ -806,7 +807,7 @@ void Physics::Configure(const Entity &_entity,
   // * Engines installed with gz-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
+  systemPaths.AddPluginPaths({gz::physics::getEngineInstallDir()});
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
 
