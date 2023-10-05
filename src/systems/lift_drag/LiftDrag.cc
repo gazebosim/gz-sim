@@ -41,6 +41,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
 
 using namespace gz;
 using namespace sim;
@@ -264,6 +265,11 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto worldPose =
       _ecm.Component<components::WorldPose>(this->linkEntity);
 
+  // get wind as a component from the _ecm
+  Entity windEntity = _ecm.EntityByComponents(components::Wind());
+  auto windLinearVel =
+          _ecm.Component<components::WorldLinearVelocity>(windEntity);
+
   components::JointPosition *controlJointPosition = nullptr;
   if (this->controlJointEntity != kNullEntity)
   {
@@ -276,7 +282,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
-  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld);
+  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld) - windLinearVel->Data();
 
   if (vel.Length() <= 0.01)
     return;
@@ -285,6 +291,11 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // rotate forward and upward vectors into world frame
   const auto forwardI = pose.Rot().RotateVector(this->forward);
+
+  if (forwardI.Dot(vel) <= 0.0){
+    // Only calculate lift or drag if the wind relative velocity is in the same direction
+    return;
+  }
 
   math::Vector3d upwardI;
   if (this->radialSymmetry)
