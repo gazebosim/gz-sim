@@ -122,6 +122,11 @@ void LensFlare::Configure(
     this->dataPtr->occlusionSteps = _sdf->Get<uint32_t>("occlusion_steps");
   }
 
+  if (_sdf->HasElement("light_name"))
+  {
+    this->dataPtr->lightName = _sdf->Get<std::string>("light_name");
+  }
+
   // Get Camera Name
   this->dataPtr->cameraName = scopedName(this->dataPtr->entity,
                       _ecm, "::", false);
@@ -187,7 +192,18 @@ void LensFlarePrivate::OnPostRender()
   }
 
   // get light
-  auto light = this->scene->LightByIndex(0);
+  rendering::LightPtr light;
+  if (!this->lightName.empty())
+  {
+    light = this->scene->LightByName(this->lightName);
+  }
+  else if (this->scene->LightCount() > 0)
+  {
+    light = this->scene->LightByIndex(0);
+  }
+  // Light not found. Keep trying in case it's not available in the world yet.
+  if (!light)
+    return;
 
   rendering::RenderEngine *engine = this->camera->Scene()->Engine();
   rendering::RenderPassSystemPtr rpSystem = engine->RenderPassSystem();
