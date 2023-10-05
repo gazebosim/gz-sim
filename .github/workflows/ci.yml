@@ -7,26 +7,34 @@ on:
       - 'ign-gazebo6'
 
 jobs:
-  bionic-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Bionic CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Compile and test
-        id: ci
-        uses: ignition-tooling/action-ignition-ci@bionic
-        with:
-          codecov-enabled: true
   focal-ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     name: Ubuntu Focal CI
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Download build script
+        run: |
+          curl -o build.sh https://raw.githubusercontent.com/gazebo-tooling/action-gz-ci/focal/entrypoint.sh
+          chmod +x build.sh
+      - name: Set cores to get stored in /cores
+        run: |
+          sudo mkdir /cores
+          sudo chmod 777 /cores
+          # Core filenames will be of the form executable.pid.timestamp:
+          sudo bash -c 'echo "/cores/%e.%p.%t" > /proc/sys/kernel/core_pattern'
       - name: Compile and test
         id: ci
-        uses: ignition-tooling/action-ignition-ci@focal
+        run: |
+          # Allow core dumps
+          ulimit -c unlimited
+          ./build.sh "" 1
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() }}  # Run only if something went wrong
+        with:
+          name: cores
+          path: /cores
+
   jammy-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Jammy CI
