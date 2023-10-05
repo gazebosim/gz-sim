@@ -88,7 +88,7 @@ class gz::sim::systems::LiftDragPrivate
   /// \brief Cm-alpha rate after stall
   public: double cmaStall = 0.0;
 
-  /// \brief How much Cm changes with a change in control 
+  /// \brief How much Cm changes with a change in control
   /// surface deflection angle
   public: double cm_delta = 0.0;
 
