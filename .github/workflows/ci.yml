@@ -28,23 +28,10 @@ jobs:
         run: |
           # Allow core dumps
           ulimit -c unlimited
-          sudo ./build.sh "" 1
+          sudo -E ./build.sh "" 1
           sudo chmod -R 777 /cores
       - uses: actions/upload-artifact@v3
         if: ${{ failure() }}  # Run only if something went wrong
         with:
           name: cores
           path: /cores
-
-  jammy-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Jammy CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Compile and test
-        id: ci
-        uses: ignition-tooling/action-ignition-ci@jammy
-        with:
-          # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
-          cmake-args: '-DBUILD_DOCS=OFF'
