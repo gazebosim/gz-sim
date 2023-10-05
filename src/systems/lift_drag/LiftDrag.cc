@@ -282,7 +282,8 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
-  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld) - windLinearVel->Data();
+  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(
+    cpWorld) - windLinearVel->Data();
 
   if (vel.Length() <= 0.01)
     return;
@@ -293,7 +294,8 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto forwardI = pose.Rot().RotateVector(this->forward);
 
   if (forwardI.Dot(vel) <= 0.0){
-    // Only calculate lift or drag if the wind relative velocity is in the same direction
+    // Only calculate lift or drag if the wind relative velocity
+    // is in the same direction
     return;
   }
 
