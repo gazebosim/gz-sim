@@ -266,10 +266,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
       _ecm.Component<components::WorldPose>(this->linkEntity);
 
   // get wind as a component from the _ecm
-  Entity windEntity = _ecm.EntityByComponents(components::Wind());
-  auto windLinearVel =
-          _ecm.Component<components::WorldLinearVelocity>(windEntity);
-
+  components::WorldLinearVelocity *windLinearVel = nullptr;
+  if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
+    Entity windEntity = _ecm.EntityByComponents(components::Wind());
+    windLinearVel =
+        _ecm.Component<components::WorldLinearVelocity>(windEntity);
+  }
   components::JointPosition *controlJointPosition = nullptr;
   if (this->controlJointEntity != kNullEntity)
   {
@@ -282,8 +284,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
-  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(
+  auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(
+  cpWorld);
+  if (windLinearVel != nullptr){
+    vel = worldLinVel->Data() + worldAngVel->Data().Cross(
     cpWorld) - windLinearVel->Data();
+  }
 
   if (vel.Length() <= 0.01)
     return;
@@ -454,7 +460,10 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
     cm = this->cma * alpha * cosSweepAngle;
 
   // Take into account the effect of control surface deflection angle to cm
-  cm += this->cm_delta * controlJointPosition->Data()[0];
+  if (controlJointPosition && !controlJointPosition->Data().empty())
+  {
+    cm += this->cm_delta * controlJointPosition->Data()[0];
+  }
 
   // compute moment (torque) at cp
   // spanwiseI used to be momentDirection
