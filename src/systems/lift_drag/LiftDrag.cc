@@ -494,6 +494,30 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
   link.AddWorldWrench(_ecm, force, totalTorque);
+
+  // Debug
+  // auto linkName = _ecm.Component<components::Name>(this->linkEntity)->Data();
+  // gzdbg << "=============================\n";
+  // gzdbg << "Link: [" << linkName << "] pose: [" << pose
+  //        << "] dynamic pressure: [" << q << "]\n";
+  // gzdbg << "spd: [" << vel.Length() << "] vel: [" << vel << "]\n";
+  // gzdbg << "LD plane spd: [" << velInLDPlane.Length() << "] vel : ["
+  //        << velInLDPlane << "]\n";
+  // gzdbg << "forward (inertial): " << forwardI << "\n";
+  // gzdbg << "upward (inertial): " << upwardI << "\n";
+  // gzdbg << "q: " << q << "\n";
+  // gzdbg << "cl: " << cl << "\n";
+  // gzdbg << "lift dir (inertial): " << liftI << "\n";
+  // gzdbg << "Span direction (normal to LD plane): " << spanwiseI << "\n";
+  // gzdbg << "sweep: " << sweep << "\n";
+  // gzdbg << "alpha: " << alpha << "\n";
+  // gzdbg << "lift: " << lift << "\n";
+  // gzdbg << "drag: " << drag << " cd: " << cd << " cda: "
+  //        << this->cda << "\n";
+  // gzdbg << "moment: " << moment << "\n";
+  // gzdbg << "force: " << force << "\n";
+  // gzdbg << "torque: " << torque << "\n";
+  // gzdbg << "totalTorque: " << totalTorque << "\n";
 }
 
 //////////////////////////////////////////////////
