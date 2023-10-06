@@ -46,8 +46,8 @@ namespace systems
   /// - `<CL0>`: Lift Coefficient at zero angle of attack
   /// - `<Cem0>`: Pitching moment coefficient at zero angle of attack
   /// - `<CD0>`: Drag Coefficient at zero angle of attack
-  /// - `<CLa>`: dCL/da (slope of CL-alpha curve) Slope of the first portion of the alpha-lift
-  /// coefficient curve.
+  /// - `<CLa>`: dCL/da (slope of CL-alpha curve) Slope of the first
+  /// portion of the alpha-lift coefficient curve.
   /// - `<CYa>`: dCy/da (sideforce slope wrt alpha)
   /// - `<Cella>`: dCl/da (roll moment slope wrt alpha)
   /// - `<Cema>`: dCm/da (pitching moment slope wrt alpha - before stall)
@@ -59,11 +59,12 @@ namespace systems
   /// - `<Cenb>`: dCn/dbeta (yaw moment slope wrt beta)
   /// - `<alphaStall>`: angle of attack when airfoil stalls
   /// - `<CemaStall>`: Slope of the Cm-alpha curve after stall
-  /// - `<cp>`: 3-vector replacing the center of pressure in the original LiftDragPlugin
+  /// - `<cp>`: 3-vector replacing the center of pressure in the original
+  /// LiftDragPlugin.
   /// - `<CDp>`: dCD/dp (drag coefficient slope wrt roll rate)
   /// - `<CYp>`: dCY/dp (sideforce slope wrt roll rate)
   /// - `<CLp>`: dCL/dp (lift coefficient slope wrt roll rate)
-  /// - `<Cellp>`: dCl/dp (roll moment slope wrt roll rate) 
+  /// - `<Cellp>`: dCl/dp (roll moment slope wrt roll rate)
   /// - `<Cenp>`: dCn/dp (yaw moment slope wrt roll rate)
   /// - `<CDq>`: dCD/dq (drag coefficient slope wrt pitching rate)
   /// - `<CYq>`: dCY/dq (side force slope wrt pitching rate)
@@ -78,7 +79,8 @@ namespace systems
   /// - `<Cemr>`: dCm/dr (pitching moment slope wrt yaw rate)
   /// - `<Cenr>`: dCn/dr (yaw moment slope wrt yaw rate)
   /// - `<num_ctrl_surfaces>`: Number of control surfaces
-  /// - `<controlJoints>`: Vector that points to the joints that connect to the control surface
+  /// - `<controlJoints>`: Vector that points to the joints that connect to the
+  /// control surface
   /// - `<ctrl_surface_direction>`: Vectors of control surface deflections
   /// - `<CD_ctrl>`: Vector of the effect of the deflection on the coefficient
   /// of drag
@@ -94,13 +96,14 @@ namespace systems
   /// of yaw moment
   /// - `<AR>`: Aspect ratio
   /// - `<mac>`: The mean-aerodynamic chord
-  /// - `<eff>`: Wing efficiency (This is the Oswald efficiency factor for a 3D wing)
+  /// - `<eff>`: Wing efficiency (This is the Oswald efficiency factor for a
+  /// 3D wing)
   /// - `<cda>`: The ratio of the coefficient of drag and alpha slope before
   /// stall.
-  /// - `<forward>`: 3-vector representing the forward direction of motion in the
-  /// link frame.
+  /// - `<forward>`: 3-vector representing the forward direction of motion in
+  /// the link frame.
   /// - `<upward>`: 3-vector representing the direction of lift or drag.
-  /// - `<alphaStall>`: Angle of attack at stall point; the peak angle of attack.
+  /// - `<alphaStall>`: Angle of attack at stall point; peak angle of attack.
   /// - `<alpha>`: The angle of attack
   /// - `<beta>`: The sideslip angle
   /// - `<M>`: The sigmoid blending parameter
