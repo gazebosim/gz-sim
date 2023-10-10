@@ -16,10 +16,10 @@ Publisher systems can be chained together by showing how the falling of the box
 can trigger another box to fall. Last, it covers how a service call can be
 triggered to reset the robot pose. The finished world SDFormat file for this
 tutorial can be found in
-[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/triggered_publisher.sdf)
+[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/diff_drive.sdf),
+[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/worlds/diff_drive.sdf),
 but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of
 the change to the `DiffDrive` system is shown below:
 
@@ -267,8 +267,11 @@ and publish the start message
 gz topic -t "/start" -m gz.msgs.Empty -p " "
 ```
 
+The vehicle will start moving forward and two boxes will eventually fall to
+the ground.
+
 Once both boxes have fallen, we can publish a message to invoke a service call
-to reset the robot position as well as set the speed to 0. As shown below, the
+to reset the vehicle position as well as set the speed to 0. As shown below, the
 `<output>` sets the linear x speed to 0, and the `<service>` tag contains
 metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
 `reqMsg` is expressed in the human-readable form of Google Protobuf meesages.
@@ -291,26 +294,9 @@ Multiple `<service>` tags can be used as well as with the `<output>` tag.
 </plugin>
 ```
 
-Once both boxes have fallen, we can publish a message to invoke a service call
-to reset the robot position as well as set the speed to 0. As shown below, the
-`<output>` sets the linear x speed to 0, and the `<service>` tag contains
-metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
-`reqMsg` is expressed in the human-readable form of Google Protobuf meesages.
-Multiple `<service>` tags can be used as well as with the `<output>` tag.
+Publish an empty message to the `/reset_robot` topic to reset the vehicle
+back to its original position.
 
-```xml
-<plugin filename="gz-sim-triggered-publisher-system"
-  name="gz::sim::systems::TriggeredPublisher">
-  <input type="gz.msgs.Empty" topic="/reset_robot"/>
-  <output type="gz.msgs.Twist" topic="/cmd_vel">
-      linear: {x: 0}
-  </output>
-  <service
-    name="/world/triggered_publisher/set_pose"
-    reqType="gz.msgs.Pose"
-    repType="gz.msgs.Boolean"
-    timeout="3000"
-    reqMsg="name: 'blue_vehicle', id: 8, position: {x: -3, z: 1}">
-  </service>
-</plugin>
+```bash
+gz topic -t "/reset_robot" -m gz.msgs.Empty -p " "
 ```

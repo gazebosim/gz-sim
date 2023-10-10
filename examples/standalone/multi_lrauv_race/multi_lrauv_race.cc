@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     rudderPubs[i] = node.Advertise<gz::msgs::Double>(rudderTopics[i]);
 
     propellerTopics[i] = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns[i] + "/joint/propeller_joint/cmd_pos");
+      "/model/" + ns[i] + "/joint/propeller_joint/cmd_thrust");
     propellerPubs[i] = node.Advertise<gz::msgs::Double>(
       propellerTopics[i]);
   }

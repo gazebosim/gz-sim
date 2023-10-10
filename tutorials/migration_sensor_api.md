@@ -1,6 +1,4 @@
-\page migrationsensorapi
-
-# Migration from Gazebo-classic: Sensor API
+\page migrationsensorapi Migration from Gazebo-classic: Sensor API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -32,15 +30,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/Sensor.hh](https://gazebosim.org/api/gazebo/6/Sensor_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/6/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/6/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Sensor.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Sensor::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 

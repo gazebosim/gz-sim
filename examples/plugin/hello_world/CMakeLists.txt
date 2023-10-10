@@ -10,7 +10,7 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 gz_find_package(gz-sim8 REQUIRED)
 set(GZ_SIM_VER ${gz-sim8_VERSION_MAJOR})
 
-add_library(HelloWorld SHARED HelloWorld)
+add_library(HelloWorld SHARED HelloWorld.cc)
 set_property(TARGET HelloWorld PROPERTY CXX_STANDARD 17)
 target_link_libraries(HelloWorld
   PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}

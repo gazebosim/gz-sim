@@ -68,15 +68,15 @@ $ python3 examples/scripts/python_api/testFixture.py
 [Msg] Resource path add service on [/gazebo/resource_paths/add].
 [Msg] Resource path get service on [/gazebo/resource_paths/get].
 [Msg] Resource paths published on [/gazebo/resource_paths].
+[Msg] Found no publishers on /stats, adding root stats topic
+[Msg] Found no publishers on /clock, adding root clock topic
+[Dbg] [SimulationRunner.cc:524] Creating PostUpdate worker threads: 2
+[Dbg] [SimulationRunner.cc:537] Creating postupdate worker thread (0)
 AddSystem1
 World entity is  1
 Gravity  0 0 -9.8
 Entity for falling model is:  4
 AddSystem2
-[Msg] Found no publishers on /stats, adding root stats topic
-[Msg] Found no publishers on /clock, adding root clock topic
-[Dbg] [SimulationRunner.cc:524] Creating PostUpdate worker threads: 2
-[Dbg] [SimulationRunner.cc:537] Creating postupdate worker thread (0)
 iterations  1000
 post_iterations  1000
 pre_iterations  1000
@@ -118,8 +118,6 @@ class TestSystem(object):
             return
 
         if info.iterations % 3000 == 0:
-            print(f"{self.id} {info.real_time} pre_update")
-
             self.link.add_world_force(
                 ecm, Vector3d(0, 0, self.force),
                 Vector3d(random.random(), random.random(), 0))

@@ -58,11 +58,11 @@ gz service --list
 # Factory message
 
 To create new entities in the world we need to use the
-[gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1EntityFactory__V.html)
+[gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1EntityFactory.html)
 message to send a request to the create service.
 This message allows us to create entities from strings, files,
-[Models](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Model.html),
-[Lights](https://gazebosim.org/api/msgs/6.0/classignition_1_1msgs_1_1Light.html) or even clone models.
+[Models](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Model.html),
+[Lights](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Light.html) or even clone models.
 This tutorial introduces how to create entities from SDF strings and light messages.
 
 ## Insert an entity based on a string
@@ -103,7 +103,7 @@ Or we can create an SDF string:
 \snippet examples/standalone/entity_creation/entity_creation.cc create light str
 
 Please check the API to know which fields are available in the
-[Light message](https://gazebosim.org/api/msgs/6.2/classignition_1_1msgs_1_1Light.html).
+[Light message](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Light.html).
 There are three types of lights: Point, Directional and Spot.
 
 Finally we should call the same service `/world/<world_name>/create`:
