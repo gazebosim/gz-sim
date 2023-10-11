@@ -399,72 +399,72 @@ void AckermannOdometry::PreUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  for (Entity joint : this->dataPtr->leftJoints)
-  {
-    // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-    }
-  }
-
-  for (Entity joint : this->dataPtr->rightJoints)
-  {
-    // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-    }
-  }
+  // for (Entity joint : this->dataPtr->leftJoints)
+  // {
+  //   // Update wheel velocity
+  //   auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+  //
+  //   if (vel == nullptr)
+  //   {
+  //     _ecm.CreateComponent(
+  //         joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
+  //   }
+  //   else
+  //   {
+  //     *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
+  //   }
+  // }
+  //
+  // for (Entity joint : this->dataPtr->rightJoints)
+  // {
+  //   // Update wheel velocity
+  //   auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+  //
+  //   if (vel == nullptr)
+  //   {
+  //     _ecm.CreateComponent(joint,
+  //         components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
+  //   }
+  //   else
+  //   {
+  //     *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
+  //   }
+  // }
 
   // Update steering
-  for (Entity joint : this->dataPtr->leftOdometryJoints)
-  {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+  // for (Entity joint : this->dataPtr->leftOdometryJoints)
+  // {
+  //   auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+  //
+  //   if (vel == nullptr)
+  //   {
+  //     _ecm.CreateComponent(
+  //         joint, components::JointVelocityCmd(
+  //                            {this->dataPtr->leftOdometryJointSpeed}));
+  //   }
+  //   else
+  //   {
+  //     *vel = components::JointVelocityCmd(
+  //                        {this->dataPtr->leftOdometryJointSpeed});
+  //   }
+  // }
 
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd(
-                             {this->dataPtr->leftOdometryJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                         {this->dataPtr->leftOdometryJointSpeed});
-    }
-  }
-
-  for (Entity joint : this->dataPtr->rightOdometryJoints)
-  {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd(
-                  {this->dataPtr->rightOdometryJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                     {this->dataPtr->rightOdometryJointSpeed});
-    }
-  }
+  // for (Entity joint : this->dataPtr->rightOdometryJoints)
+  // {
+  //   auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+  //
+  //   if (vel == nullptr)
+  //   {
+  //     _ecm.CreateComponent(joint,
+  //         components::JointVelocityCmd(
+  //                 {this->dataPtr->rightOdometryJointSpeed}));
+  //   }
+  //   else
+  //   {
+  //     *vel = components::JointVelocityCmd(
+  //                    {this->dataPtr->rightOdometryJointSpeed});
+  //   }
+  // }
 
   // Create the left and right side joint position components if they
   // don't exist.
