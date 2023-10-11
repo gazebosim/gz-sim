@@ -92,6 +92,7 @@ function(gz_add_system system_name)
   endif()
 endfunction()
 
+add_subdirectory(ackermann_odometry)
 add_subdirectory(ackermann_steering)
 add_subdirectory(air_pressure)
 add_subdirectory(altimeter)
