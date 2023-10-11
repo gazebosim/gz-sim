@@ -1,5 +1,10 @@
 freeglut3-dev
 libbenchmark-dev
+libdart6.13-collision-ode-dev
+libdart6.13-dev
+libdart6.13-external-ikfast-dev
+libdart6.13-external-odelcpsolver-dev
+libdart6.13-utils-urdf-dev
 libfreeimage-dev
 libglew-dev
 libgz-cmake3-dev
