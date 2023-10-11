@@ -4,7 +4,6 @@ on:
   pull_request:
   push:
     branches:
-      - 'gz-sim8'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,

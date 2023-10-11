@@ -729,7 +729,7 @@ In the new code we explicitly reference each Gazebo package that we use:
 # NEW
 find_package(sdformat14 REQUIRED)
 find_package(gz-common5-all REQUIRED)
-find_package(gz-sim8-all REQUIRED)
+find_package(gz-sim9-all REQUIRED)
 find_package(gz-math7-all REQUIRED)
 find_package(gz-msgs10-all REQUIRED)
 find_package(gz-physics7-all REQUIRED)
