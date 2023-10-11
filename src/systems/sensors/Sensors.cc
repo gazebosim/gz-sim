@@ -695,7 +695,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->updateTimeCv.wait(lock, [this]()
       {
         return !this->dataPtr->updateAvailable ||
-               this->dataPtr->updateTimeToApply == this->dataPtr->updateTimeApplied;
+               (this->dataPtr->updateTimeToApply ==
+               this->dataPtr->updateTimeApplied);
       });
 
       this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
