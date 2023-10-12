@@ -26,18 +26,8 @@
 
 #include "Tsa.hh"
 
-namespace gz
-{
-  namespace rendering
-  {
-    inline namespace GZ_SIM_VERSION_NAMESPACE
-    {
-      /// Forward declare the only ptr we need
-      class CiVctCascade;
-      typedef std::shared_ptr<CiVctCascade> CiVctCascadePtr;
-    }  // namespace GZ_SIM_GAZEBO_VERSION_NAMESPACE
-  }  // namespace rendering
-}  // namespace gz
+
+#include "gz/rendering/GlobalIlluminationCiVct.hh"
 
 namespace gz
 {
