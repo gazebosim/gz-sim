@@ -621,9 +621,9 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
       s->SetNextDataUpdateTime(_info.simTime);
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
-    this->dataPtr->updateTimeToApply =  _info.simTime;
-    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+    std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
     this->dataPtr->updateTime =  _info.simTime;
+    this->dataPtr->updateTimeToApply =  _info.simTime;
     this->dataPtr->updateTimeApplied =  _info.simTime;
   }
 }
