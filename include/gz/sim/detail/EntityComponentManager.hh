@@ -52,7 +52,8 @@ namespace traits
   {
     enum
     {
-      value = !std::is_same<decltype(std::declval<T>() == std::declval<T>()), TestEqualityOperator>::value
+      value = !std::is_same<decltype(
+        std::declval<T>() == std::declval<T>()), TestEqualityOperator>::value
     };
   };
 }  // namespace traits

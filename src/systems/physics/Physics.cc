@@ -48,7 +48,6 @@
 #include <gz/physics/FeatureList.hh>
 #include <gz/physics/FeaturePolicy.hh>
 #include <gz/physics/heightmap/HeightmapShape.hh>
-#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/RelativeQuantity.hh>
 #include <gz/physics/RequestEngine.hh>
 
