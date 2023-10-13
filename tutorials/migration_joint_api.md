@@ -1,6 +1,4 @@
-\page migrationjointapi
-
-# Migration from Gazebo-classic: Joint API
+\page migrationjointapi Migration from Gazebo-classic: Joint API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -32,15 +30,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [gz/sim/Joint.hh](https://gazebosim.org/api/gazebo/7/Joint_8hh.html)
-* [gz/sim/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [gz/sim/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [gz/sim/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Joint.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Join::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 

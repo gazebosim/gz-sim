@@ -21,8 +21,6 @@
 
 #include "GlobalIlluminationCiVct.hh"
 
-#include "gz/rendering/GlobalIlluminationCiVct.hh"
-
 using namespace gz;
 using namespace sim;
 

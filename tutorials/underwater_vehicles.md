@@ -1,6 +1,6 @@
 \page underwater_vehicles Underwater vehicles
 
-## Simulating Autnomous Underwater Vehicles
+## Simulating Autonomous Underwater Vehicles
 
 Gazebo now supports basic simulation of underwater vehicles.
 This capability is based on the equations described in Fossen's ["Guidance and
@@ -55,9 +55,9 @@ rpm. Under the `<include>` or `<model>` tag add the following:
     <propeller_diameter>0.2</propeller_diameter>
 </plugin>
 ```
-Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_pos`
+Now if we were to publish to `/model/tethys/joint/propeller_joint/cmd_thrust`
 ```
-gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
    -m gz.msgs.Double -p 'data: -31'
 ```
 we should see the model move. The thrusters are governed by the equation on
@@ -108,8 +108,8 @@ name="gz::sim::systems::Hydrodynamics">
 Just like aeroplanes, an underwater vehicle may also use fins for stability and
 control. Fortunately, Gazebo already has a version of the LiftDrag plugin. In
 this tutorial, we will simply add two liftdrag plugins to the rudder and
-elevator of MBARI's Tethys. For more info about the liftdrag plugin inluding
-what the parameters mean you may look
+elevator of MBARI's Tethys. For more info about the liftdrag plugin including
+what the parameters mean, you may look
 at [this gazebo classic tutorial](http://gazebosim.org/tutorials?tut=aerodynamics&cat=physics).
 Essentially when we tilt the fins, we should experience a lift force which
 will cause the vehicle to experience a torque and the vehicle should start
@@ -152,7 +152,7 @@ name="gz::sim::systems::LiftDrag">
     <cp>0 0 0</cp>
 </plugin>
 ```
-The number in this case were kindly provided by MBARI for the Tethys.
+The numbers in this case were kindly provided by MBARI for the Tethys.
 We also need to be able to control the position of the thruster fins so we will
 use the joint controller plugin.
 ```xml
@@ -185,7 +185,7 @@ gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
 ```
 To apply a thrust you may run the following command
 ```
-gz topic -t /model/tethys/joint/propeller_joint/cmd_pos \
+gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
 -m gz.msgs.Double -p 'data: -31'
 ```
 The vehicle should move in a circle.

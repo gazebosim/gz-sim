@@ -1,6 +1,4 @@
-\page migrationplugins
-
-# Migration from Gazebo Classic: Plugins
+\page migrationplugins Migration from Gazebo Classic: Plugins
 
 Gazebo Classic supports
 [6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),

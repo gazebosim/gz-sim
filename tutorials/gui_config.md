@@ -3,7 +3,7 @@
 Gazebo Sim's graphical user interface is powered by
 [Gazebo GUI](https://gazebosim.org/libs/gui). Therefore, Gazebo Sim's
 GUI layout can be defined in
-[Gazebo GUI configuration files](https://gazebosim.org/api/gui/2.1/config.html).
+[Gazebo GUI configuration files](https://gazebosim.org/api/gui/8/config.html).
 These are XML files that describe what plugins to be loaded and with what
 settings.
 

@@ -46,6 +46,9 @@ namespace systems
   ///   <occlusion_steps> Sets the number of steps to take in
   ///                     each direction to check for occlusions.
   ///                     The default value is set to 10. Use 0 to disable
+  ///   <light_name> Sets the light associated with the lens flares.
+  ///                If not specified. The first light in the scene will
+  ///                be used.
 
   class LensFlare:
     public System,

@@ -112,7 +112,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // modifications)
     common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv("GZ_SIM_PHYSICS_ENGINE_PATH");
-    systemPaths.AddPluginPaths({gz::physics::getEngineInstallDir()});
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
     auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);
     ASSERT_FALSE(pathToLib.empty())

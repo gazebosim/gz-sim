@@ -58,7 +58,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
     const std::string pluginLib = "gz-physics-dartsim-plugin";
 
     common::SystemPaths systemPaths;
-    systemPaths.AddPluginPaths({gz::physics::getEngineInstallDir()});
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
     auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
     ASSERT_FALSE(pathToLib.empty())

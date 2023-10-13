@@ -390,9 +390,12 @@ void SensorsPrivate::RunOnce()
     this->activeSensors.clear();
   }
 
-  this->updateAvailable = false;
   this->forceUpdate = false;
-  this->renderCv.notify_one();
+  {
+    std::unique_lock<std::mutex> cvLock(this->renderMutex);
+    this->updateAvailable = false;
+    this->renderCv.notify_one();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -746,9 +749,12 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->forceUpdate =
             (this->dataPtr->renderUtil.PendingSensors() > 0) ||
             hasRenderConnections;
-        this->dataPtr->updateAvailable = true;
       }
-      this->dataPtr->renderCv.notify_one();
+      {
+        std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
+        this->dataPtr->updateAvailable = true;
+        this->dataPtr->renderCv.notify_one();
+      }
     }
   }
 }

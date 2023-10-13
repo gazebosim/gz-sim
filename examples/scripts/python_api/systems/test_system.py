@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from gz.math7 import Vector3d
-from gz.sim8 import Model, Link
+from gz.sim9 import Model, Link
 import random
 
 
@@ -34,8 +34,6 @@ class TestSystem(object):
             return
 
         if info.iterations % 3000 == 0:
-            print(f"{self.id} {info.real_time} pre_update")
-
             self.link.add_world_force(
                 ecm, Vector3d(0, 0, self.force),
                 Vector3d(random.random(), random.random(), 0))

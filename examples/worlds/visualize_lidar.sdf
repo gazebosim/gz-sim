@@ -83,7 +83,6 @@
           <property type="bool" key="showTitleBar">false</property>
           <property type="bool" key="resizable">false</property>
           <property type="double" key="height">72</property>
-          <property type="double" key="width">121</property>
           <property type="double" key="z">1</property>
 
           <property type="string" key="state">floating</property>
