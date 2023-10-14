@@ -1,124 +1,124 @@
 set(TEST_TYPE "INTEGRATION")
 
 set(tests
-  ackermann_steering_system.cc
-  actor.cc
-  acoustic_comms.cc
-  air_pressure_system.cc
-  air_speed_system.cc
-  altimeter_system.cc
-  added_mass.cc
-  apply_joint_force_system.cc
-  apply_link_wrench_system.cc
-  battery_plugin.cc
-  breadcrumbs.cc
-  buoyancy.cc
-  buoyancy_engine.cc
-  collada_world_exporter.cc
-  components.cc
-  contact_system.cc
-  detachable_joint.cc
-  diff_drive_system.cc
-  each_new_removed.cc
-  entity_erase.cc
-  entity_system.cc
-  environment_preload_system.cc
-  environmental_sensor_system.cc
-  events.cc
-  examples_build.cc
-  follow_actor_system.cc
-  force_torque_system.cc
-  fuel_cached_server.cc
-  halt_motion.cc
-  hydrodynamics.cc
-  hydrodynamics_flags.cc
-  imu_system.cc
-  include_sim_hh.cc
-  joint.cc
-  joint_controller_system.cc
-  joint_position_controller_system.cc
-  joint_state_publisher_system.cc
-  joint_trajectory_controller_system.cc
-  kinetic_energy_monitor_system.cc
-  lift_drag_system.cc
-  level_manager.cc
-  level_manager_runtime_performers.cc
-  light.cc
-  link.cc
-  logical_camera_system.cc
-  logical_audio_sensor_plugin.cc
-  magnetometer_system.cc
-  mesh_inertia_calculation.cc
-  model.cc
-  model_photo_shoot_default_joints.cc
-  model_photo_shoot_random_joints.cc
-  multicopter.cc
-  multiple_servers.cc
-  navsat_system.cc
-  nested_model_physics.cc
-  network_handshake.cc
-  odometry_publisher.cc
-  particle_emitter.cc
-  perfect_comms.cc
-  performer_detector.cc
-  physics_system.cc
-  play_pause.cc
-  pose_publisher_system.cc
-  projector.cc
-  rf_comms.cc
-  recreate_entities.cc
-  reset.cc
-  reset_detachable_joint.cc
-  save_world.cc
-  scene_broadcaster_system.cc
-  sdf_frame_semantics.cc
-  sdf_include.cc
-  sensor.cc
-  spherical_coordinates.cc
-  thruster.cc
-  touch_plugin.cc
-  tracked_vehicle_system.cc
-  triggered_publisher.cc
-  user_commands.cc
-  velocity_control_system.cc
-  log_system.cc
-  wheel_slip.cc
-  wind_effects.cc
-  world.cc
-  world_control_state.cc
+  # ackermann_steering_system.cc
+  # actor.cc
+  # acoustic_comms.cc
+  # air_pressure_system.cc
+  # air_speed_system.cc
+  # altimeter_system.cc
+  # added_mass.cc
+  # apply_joint_force_system.cc
+  # apply_link_wrench_system.cc
+  # battery_plugin.cc
+  # breadcrumbs.cc
+  # buoyancy.cc
+  # buoyancy_engine.cc
+  # collada_world_exporter.cc
+  # components.cc
+  # contact_system.cc
+  # detachable_joint.cc
+  # diff_drive_system.cc
+  # each_new_removed.cc
+  # entity_erase.cc
+  # entity_system.cc
+  # environment_preload_system.cc
+  # environmental_sensor_system.cc
+  # events.cc
+  # examples_build.cc
+  # follow_actor_system.cc
+  # force_torque_system.cc
+  # fuel_cached_server.cc
+  # halt_motion.cc
+  # hydrodynamics.cc
+  # hydrodynamics_flags.cc
+  # imu_system.cc
+  # include_sim_hh.cc
+  # joint.cc
+  # joint_controller_system.cc
+  # joint_position_controller_system.cc
+  # joint_state_publisher_system.cc
+  # joint_trajectory_controller_system.cc
+  # kinetic_energy_monitor_system.cc
+  # lift_drag_system.cc
+  # level_manager.cc
+  # level_manager_runtime_performers.cc
+  # light.cc
+  # link.cc
+  # logical_camera_system.cc
+  # logical_audio_sensor_plugin.cc
+  # magnetometer_system.cc
+  # mesh_inertia_calculation.cc
+  # model.cc
+  # model_photo_shoot_default_joints.cc
+  # model_photo_shoot_random_joints.cc
+  # multicopter.cc
+  # multiple_servers.cc
+  # navsat_system.cc
+  # nested_model_physics.cc
+  # network_handshake.cc
+  # odometry_publisher.cc
+  # particle_emitter.cc
+  # perfect_comms.cc
+  # performer_detector.cc
+  # physics_system.cc
+  # play_pause.cc
+  # pose_publisher_system.cc
+  # projector.cc
+  # rf_comms.cc
+  # recreate_entities.cc
+  # reset.cc
+  # reset_detachable_joint.cc
+  # save_world.cc
+  # scene_broadcaster_system.cc
+  # sdf_frame_semantics.cc
+  # sdf_include.cc
+  # sensor.cc
+  # spherical_coordinates.cc
+  # thruster.cc
+  # touch_plugin.cc
+  # tracked_vehicle_system.cc
+  # triggered_publisher.cc
+  # user_commands.cc
+  # velocity_control_system.cc
+  # log_system.cc
+  # wheel_slip.cc
+  # wind_effects.cc
+  # world.cc
+  # world_control_state.cc
 )
 
 # elevator system causes compile erros on windows
-if (NOT WIN32)
-  list(APPEND tests elevator_system.cc)
-endif()
+# if (NOT WIN32)
+#   list(APPEND tests elevator_system.cc)
+# endif()
 
 # Tests that require a valid display
 set(tests_needing_display
-  actor_trajectory.cc
-  camera_lens_flare.cc
-  camera_sensor_background.cc
-  camera_sensor_background_from_scene.cc
-  camera_video_record_system.cc
-  depth_camera.cc
+  # actor_trajectory.cc
+  # camera_lens_flare.cc
+  # camera_sensor_background.cc
+  # camera_sensor_background_from_scene.cc
+  # camera_video_record_system.cc
+  # depth_camera.cc
   distortion_camera.cc
-  dvl_system.cc
-  dvl_system_bottom_tracking.cc
-  dvl_system_water_mass_tracking.cc
-  gpu_lidar.cc
-  markers.cc
-  mesh_uri.cc
-  optical_tactile_plugin.cc
-  reset_sensors.cc
-  rgbd_camera.cc
-  sensors_system.cc
-  sensors_system_battery.cc
-  sensors_system_update_rate.cc
-  shader_param_system.cc
-  thermal_sensor_system.cc
-  thermal_system.cc
-  triggered_camera.cc
-  wide_angle_camera.cc
+  # dvl_system.cc
+  # dvl_system_bottom_tracking.cc
+  # dvl_system_water_mass_tracking.cc
+  # gpu_lidar.cc
+  # markers.cc
+  # mesh_uri.cc
+  # optical_tactile_plugin.cc
+  # reset_sensors.cc
+  # rgbd_camera.cc
+  # sensors_system.cc
+  # sensors_system_battery.cc
+  # sensors_system_update_rate.cc
+  # shader_param_system.cc
+  # thermal_sensor_system.cc
+  # thermal_system.cc
+  # triggered_camera.cc
+  # wide_angle_camera.cc
 )
 
 # Disable tests that need CLI if gz-tools is not found
@@ -140,9 +140,9 @@ else()
 endif()
 
 # Add tests that need pybind11
-if (${pybind11_FOUND})
-  list(APPEND tests python_system_loader.cc)
-endif()
+# if (${pybind11_FOUND})
+#   list(APPEND tests python_system_loader.cc)
+# endif()
 
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used

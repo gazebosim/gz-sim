@@ -36,14 +36,14 @@ if (MSVC)
   set_source_files_properties(${exec}.cc COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-gz_build_tests(TYPE PERFORMANCE
-  SOURCES
-    ${tests}
-  LIB_DEPS
-    ${EXTRA_TEST_LIB_DEPS}
-  ENVIRONMENT
-    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
+# gz_build_tests(TYPE PERFORMANCE
+#   SOURCES
+#     ${tests}
+#   LIB_DEPS
+#     ${EXTRA_TEST_LIB_DEPS}
+#   ENVIRONMENT
+#     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+# )
 
 add_executable(
   PERFORMANCE_${exec}

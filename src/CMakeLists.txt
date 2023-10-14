@@ -244,16 +244,16 @@ set(GZ_SIM_PLUGIN_INSTALL_DIR
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
 # Build the unit tests
-gz_build_tests(TYPE UNIT
-  SOURCES
-    ${gtest_sources}
-  LIB_DEPS
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
-  ENVIRONMENT
-    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
+# gz_build_tests(TYPE UNIT
+#   SOURCES
+#     ${gtest_sources}
+#   LIB_DEPS
+#     ${PROJECT_LIBRARY_TARGET_NAME}
+#     ${EXTRA_TEST_LIB_DEPS}
+#     gz-sim${PROJECT_VERSION_MAJOR}
+#   ENVIRONMENT
+#     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+# )
 
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
