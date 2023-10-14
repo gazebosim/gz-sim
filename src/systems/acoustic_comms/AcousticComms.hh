@@ -94,6 +94,7 @@ namespace systems
   ///    </propagation_model>
   ///
   ///  </plugin>
+  /// ```
 
   class AcousticComms:
     public gz::sim::comms::ICommsModel
