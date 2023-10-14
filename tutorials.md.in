@@ -65,6 +65,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 ## Developers
 
 * \subpage createsystemplugins "Create System Plugins": Programmatically access simulation using C++ plugins.
+* \subpage usingcomponents "Using components": Using components in a system plugin.
 * \subpage rendering_plugins "Rendering plugins": Write plugins that use Gazebo Rendering on the server and client.
 * \subpage test_fixture "Test Fixture": Writing automated CI tests
 
