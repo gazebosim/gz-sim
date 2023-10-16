@@ -14,7 +14,7 @@ libgz-rendering9-dev
 libgz-sensors9-dev
 libgz-tools2-dev
 libgz-transport14-dev
-libgz-utils2-cli-dev
+libgz-utils3-cli-dev
 libogre-1.9-dev
 libogre-next-2.3-dev
 libprotobuf-dev
