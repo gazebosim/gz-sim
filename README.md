@@ -115,7 +115,7 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.gz/tools/configs -p
 cd ~/.gz/tools/configs/
 ln -s /usr/local/share/gz/fuel8.yaml .
-ln -s /usr/local/share/gz/transport13.yaml .
+ln -s /usr/local/share/gz/transport14.yaml .
 ln -s /usr/local/share/gz/transportlog13.yaml .
 ...
 export GZ_CONFIG_PATH=$HOME/.gz/tools/configs

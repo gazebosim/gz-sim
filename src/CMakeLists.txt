@@ -11,11 +11,11 @@ get_target_property(msgs_desc_file
 
 gz_msgs_generate_messages_impl(
   MSGS_GEN_SCRIPT
-    ${gz-msgs10_PROTO_GENERATOR_SCRIPT}
+    ${gz-msgs11_PROTO_GENERATOR_SCRIPT}
   FACTORY_GEN_SCRIPT
-    ${gz-msgs10_FACTORY_GENERATOR_SCRIPT}
+    ${gz-msgs11_FACTORY_GENERATOR_SCRIPT}
   GZ_PROTOC_PLUGIN
-    ${gz-msgs10_PROTO_GENERATOR_PLUGIN}
+    ${gz-msgs11_PROTO_GENERATOR_PLUGIN}
   INPUT_PROTOS
     ${gz_msgs_proto_files}
   PROTO_PACKAGE
