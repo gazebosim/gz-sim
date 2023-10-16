@@ -9,7 +9,7 @@ libgz-gui9-dev
 libgz-math8-eigen3-dev
 libgz-msgs11-dev
 libgz-physics8-dev
-libgz-plugin2-dev
+libgz-plugin3-dev
 libgz-rendering9-dev
 libgz-sensors9-dev
 libgz-tools2-dev
