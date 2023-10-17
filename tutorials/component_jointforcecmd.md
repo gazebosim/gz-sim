@@ -56,6 +56,7 @@ In this case, we use the joint entity found above to look for and modify its
 This will apply a force command to the joint.
 
 In `PreUpdate()`, look for the component:
+
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc jointForceComponent
 
 Create it if it does not exist yet, and modify it:
