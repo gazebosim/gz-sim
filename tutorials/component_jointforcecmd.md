@@ -12,9 +12,9 @@ the \ref gz::sim::systems::ApplyJointForce system
 and others.
 
 The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
-```
+
+```bash
 gz sim apply_joint_force.sdf
-```
 
 We will walk through the relevant lines of source code in `ApplyJointForce`
 that interact with `JointForceCmd`.
