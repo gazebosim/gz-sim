@@ -72,7 +72,8 @@ and a callback function allows the user to specify a force on a topic:
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc setForce
 
 You can test this by issuing a force command to the topic:
-```
+
+```bash
 gz topic -t /model/joint_force_example/joint/j1/cmd_force \
   -m gz.msgs.Double -p 'data: 1.0'
 ```
