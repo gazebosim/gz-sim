@@ -59,6 +59,7 @@ In `PreUpdate()`, look for the component:
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc jointForceComponent
 
 Create it if it does not exist yet, and modify it:
+
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc modifyComponent
 
 where the scalar joint force command is declared as a member variable:
