@@ -12,9 +12,9 @@ the \ref gz::sim::systems::ApplyJointForce system
 and others.
 
 The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
-```
+
+```bash
 gz sim apply_joint_force.sdf
-```
 
 We will walk through the relevant lines of source code in `ApplyJointForce`
 that interact with `JointForceCmd`.
@@ -56,9 +56,11 @@ In this case, we use the joint entity found above to look for and modify its
 This will apply a force command to the joint.
 
 In `PreUpdate()`, look for the component:
+
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc jointForceComponent
 
 Create it if it does not exist yet, and modify it:
+
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc modifyComponent
 
 where the scalar joint force command is declared as a member variable:
@@ -72,7 +74,8 @@ and a callback function allows the user to specify a force on a topic:
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc setForce
 
 You can test this by issuing a force command to the topic:
-```
+
+```bash
 gz topic -t /model/joint_force_example/joint/j1/cmd_force \
   -m gz.msgs.Double -p 'data: 1.0'
 ```
