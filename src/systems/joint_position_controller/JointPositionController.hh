@@ -46,56 +46,56 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// `<joint_name>` The name of the joint to control. Required parameter.
-  ///  Can also include multiple `<joint_name>` for identical joints.
+  /// - `<joint_name>` The name of the joint to control. Required parameter.
+  /// Can also include multiple `<joint_name>` for identical joints.
   ///
-  /// `<joint_index>` Axis of the joint to control. Optional parameter.
-  ///  The default value is 0.
+  /// - `<joint_index>` Axis of the joint to control. Optional parameter.
+  /// The default value is 0.
   ///
-  /// `<use_actuator_msg>` True to enable the use of actutor message
+  /// - `<use_actuator_msg>` True to enable the use of actutor message
   /// for position command. Relies on `<actuator_number>` for the
   /// index of the position actuator and defaults to topic "/actuators".
   ///
-  /// `<actuator_number>` used with `<use_actuator_commands>` to set
+  /// - `<actuator_number>` used with `<use_actuator_commands>` to set
   /// the index of the position actuator.
   ///
-  /// `<p_gain>` The proportional gain of the PID. Optional parameter.
-  ///  The default value is 1.
+  /// - `<p_gain>` The proportional gain of the PID. Optional parameter.
+  /// The default value is 1.
   ///
-  /// `<i_gain>` The integral gain of the PID. Optional parameter.
-  ///  The default value is 0.1.
+  /// - `<i_gain>` The integral gain of the PID. Optional parameter.
+  /// The default value is 0.1.
   ///
-  /// `<d_gain>` The derivative gain of the PID. Optional parameter.
-  ///  The default value is 0.01
+  /// - `<d_gain>` The derivative gain of the PID. Optional parameter.
+  /// The default value is 0.01
   ///
-  /// `<i_max>` The integral upper limit of the PID. Optional parameter.
-  ///  The default value is 1.
+  /// - `<i_max>` The integral upper limit of the PID. Optional parameter.
+  /// The default value is 1.
   ///
-  /// `<i_min>` The integral lower limit of the PID. Optional parameter.
-  ///  The default value is -1.
+  /// - `<i_min>` The integral lower limit of the PID. Optional parameter.
+  /// The default value is -1.
   ///
-  /// `<cmd_max>` Output max value of the PID. Optional parameter.
-  ///  The default value is 1000.
+  /// - `<cmd_max>` Output max value of the PID. Optional parameter.
+  /// The default value is 1000.
   ///
-  /// `<cmd_min>` Output min value of the PID. Optional parameter.
-  ///  The default value is -1000.
+  /// - `<cmd_min>` Output min value of the PID. Optional parameter.
+  /// The default value is -1000.
   ///
-  /// `<cmd_offset>` Command offset (feed-forward) of the PID. Optional
+  /// - `<cmd_offset>` Command offset (feed-forward) of the PID. Optional
   /// parameter. The default value is 0.
   ///
-  /// `<use_velocity_commands>` Bypasses the PID and creates a perfect
+  /// - `<use_velocity_commands>` Bypasses the PID and creates a perfect
   /// position. The maximum speed on the joint can be set using the `<cmd_max>`
   /// tag.
   ///
-  /// `<topic>` If you wish to listen on a non-default topic you may specify it
-  /// here, otherwise the controller defaults to listening on
+  /// - `<topic>` If you wish to listen on a non-default topic you may specify
+  /// it here, otherwise the controller defaults to listening on
   /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///
-  /// `<sub_topic>` If you wish to listen on a sub_topic you may specify it
+  /// - `<sub_topic>` If you wish to listen on a sub_topic you may specify it
   /// here "/model/<model_name>/<sub_topic>".
   ///
-  /// `<initial_position>` Initial position of a joint. Optional parameter.
-  ///  The default value is 0.
+  /// - `<initial_position>` Initial position of a joint. Optional parameter.
+  /// The default value is 0.
   class JointPositionController
       : public System,
         public ISystemConfigure,
