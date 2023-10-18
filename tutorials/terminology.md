@@ -22,7 +22,7 @@ to developers touching the source code.
     can also create their own by inheriting from the
     \ref gz::sim::components::BaseComponent "BaseComponent"
     class or instantiating a template of
-    \ref gz::sim::components::Component "Component"
+    \ref gz::sim::components::Component "Component".
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
