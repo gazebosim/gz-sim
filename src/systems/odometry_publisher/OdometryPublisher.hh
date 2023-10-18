@@ -53,9 +53,9 @@ namespace systems
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
-  /// - `<odom_covariance_topic>`: Custom topic on which this system will publish
-  /// odometry with covariance messages. This element is optional, and the
-  /// default value is `/model/{name_of_model}/odometry_with_covariance`.
+  /// - `<odom_covariance_topic>`: Custom topic on which this system will
+  /// publish odometry with covariance messages. This element is optional, and
+  /// the default value is `/model/{name_of_model}/odometry_with_covariance`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `odom_frame` to `robot_base_frame`. This element is
