@@ -85,6 +85,11 @@ void MeshInertiaCalculator::CalculateMeshCentroid(
 
   for (Triangle &triangle : _triangles)
   {
+    // TODO(jasmeet0915): Use weighted average of tetrahedron
+    // volumes instead of triangle areas for centroid value
+    // as that would provide better approximation to
+    // center of mass
+
     // Calculate the area of the triangle using half of
     // cross product magnitude
     triangleCross =
@@ -143,15 +148,11 @@ void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
   // If there is a rotational offset remove that
   if (rotOffset != gz::math::Quaterniond::Identity)
   {
-    gz::math::Matrix3d rotMat = gz::math::Matrix3d(rotOffset);
-    gz::math::Matrix3d rotatedMoi =
-      rotMat.Transposed() * _massMatrix.Moi() * rotMat;
-    _massMatrix.SetMoi(rotatedMoi);
-
-    // This is required since the rotation will place the
-    // principal moments on the diagonal in an ascending order
-    // which might not be the original one
-    _massMatrix.SetDiagonalMoments(ixxyyzz);
+    // Since the Inertia Matrix of a body about the COM aligned with
+    // Prinicipal Axes will be diagonal, we can set off diagonal
+    // elements to a diagonal matrix if there is a rotational
+    // offset after initial transformation
+    _massMatrix.SetOffDiagonalMoments(gz::math::Vector3d::Zero);
   }
 }
 
