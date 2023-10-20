@@ -126,7 +126,8 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
 }
 
-TEST(MeshInertiaCalculationTest, CylinderColladaMeshWithNonCenterOriginInertiaCalculation)
+TEST(MeshInertiaCalculationTest,
+  CylinderColladaMeshWithNonCenterOriginInertiaCalculation)
 {
   size_t kIter = 100u;
 
@@ -166,7 +167,8 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshWithNonCenterOriginInertiaCa
   gz::sim::Model model = gz::sim::Model(modelEntity);
   ASSERT_TRUE(model.Valid(*ecm));
 
-  gz::sim::Entity linkEntity = model.LinkByName(*ecm, "cylinder_dae_bottom_origin");
+  gz::sim::Entity linkEntity = model.LinkByName(*ecm,
+    "cylinder_dae_bottom_origin");
   gz::sim::Link link = gz::sim::Link(linkEntity);
   ASSERT_TRUE(link.Valid(*ecm));
 
@@ -202,5 +204,6 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshWithNonCenterOriginInertiaCa
 
   // Since the height of cylinder is 2m and origin is at center of bottom face
   // the center of mass (inertial pose) will be 1m above the ground
-  EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+  EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
+    gz::math::Pose3d(0, 0, 1, 0, 0, 0));
 }
