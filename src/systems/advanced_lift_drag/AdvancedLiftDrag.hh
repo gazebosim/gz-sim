@@ -35,6 +35,16 @@ namespace systems
   /// \brief The LiftDrag system computes lift and drag forces enabling
   /// simulation of aerodynamic robots.
   ///
+  ///
+  /// A tool can be found at the link below that automatically generates
+  /// the Advanced Lift Drag plugin for you. All that is needed is to
+  /// provide some physical parameters of the model. The README contains
+  /// all necessary setup and usage steps.
+  ///
+  /// https://github.com/PX4/PX4-Autopilot/blob/main/Tools/simulation/
+  /// gz/tools/avl_automation/
+  ///
+  ///
   /// ## System Parameters
   ///
   /// - `<link_name>`: Name of the link affected by the group of lift/drag
