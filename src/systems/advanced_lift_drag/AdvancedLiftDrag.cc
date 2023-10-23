@@ -27,7 +27,7 @@
  * in a way to be compatible with AVL.
  * Force equations are computed in the body, while
  * moment equations are computed in the stability frame.
- * Has been adapted for Gazebo (Ignition) using the ECS. 
+ * Has been adapted for Gazebo (Ignition) using the ECS.
  *
  *
  */
