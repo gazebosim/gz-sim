@@ -5,11 +5,11 @@ Gazebo advanced-lift-drag system demo
 
 This file was adapted from PX4-Autopilot/Tools/simulation/gz/models/advanced_plane/model.sdf
 
-The advanced lift drag plugin requires a set of model specific parameters as well as parameters specific 
-to each control surface. These can be obtained through AVL (Athena Lattice Vortex). 
+The advanced lift drag plugin requires a set of model specific parameters as well as parameters specific
+to each control surface. These can be obtained through AVL (Athena Lattice Vortex).
 A specific guide can be found at:
 https://github.com/PX4/PX4-SITL_gazebo-classic/blob/20ded0757b4f2cb362833538716caf1e938b162a/src/liftdrag_plugin/README.md
-Credits for the readme and the plugin go to karthik-feather. 
+Credits for the readme and the plugin go to karthik-feather.
 
 Try sending commands:
 
@@ -20,9 +20,8 @@ Listen to joint states:
 gz topic -e -t /world/advanced_lift_drag/model/advanced_lift_drag_demo_model/joint_state
 -->
 
-
 <sdf version='1.5'>
-    <world name="advanced_lift_drag>
+    <world name="advanced_lift_drag">
 
         <plugin
             filename="gz-sim-physics-system"
