@@ -202,7 +202,8 @@ std::optional<math::Inertiald> Link::WorldInertial(
 
   const math::Pose3d &comWorldPose =
       worldPose * inertial->Data().Pose();
-  return std::make_optional(math::Inertiald(inertial->Data().MassMatrix(), comWorldPose));
+  return std::make_optional(
+    math::Inertiald(inertial->Data().MassMatrix(), comWorldPose));
 }
 
 //////////////////////////////////////////////////
