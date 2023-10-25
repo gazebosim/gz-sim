@@ -352,6 +352,35 @@ TEST_F(LinkIntegrationTest, LinkAccelerations)
 }
 
 //////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, LinkInertia)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // Before we add components, pose functions should return nullopt
+  EXPECT_EQ(std::nullopt, link.WorldInertial(ecm));
+
+  math::MassMatrix3d linkMassMatrix(10.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, GZ_PI_4, GZ_PI_2);
+  math::Inertiald linkInertial{linkMassMatrix, linkWorldPose};
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+
+  ASSERT_TRUE(link.WorldInertial(ecm));
+  EXPECT_EQ(10.0, link.WorldInertial(ecm).value().MassMatrix().Mass());
+  EXPECT_EQ(linkWorldPose, link.WorldInertial(ecm).value().Pose());
+}
+
+//////////////////////////////////////////////////
 TEST_F(LinkIntegrationTest, LinkInertiaMatrix)
 {
   EntityComponentManager ecm;
