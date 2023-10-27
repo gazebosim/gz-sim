@@ -80,7 +80,7 @@ class TestModel(unittest.TestCase):
             self.assertEqual(Vector3d(), link.world_linear_acceleration(_ecm))
             self.assertEqual(Vector3d(), link.world_angular_acceleration(_ecm))
             # World Inertia Matrix Test
-            self.assertEqual(Matrix3d(1,0,0,0,1,0,0,0,1), link.world_inertia_matrix(_ecm))
+            self.assertEqual(Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1), link.world_inertia_matrix(_ecm))
             # World Kinetic Energy Test
             self.assertEqual(0, link.world_kinetic_energy(_ecm))
             link.enable_velocity_checks(_ecm, False)

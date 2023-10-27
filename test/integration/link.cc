@@ -371,13 +371,19 @@ TEST_F(LinkIntegrationTest, LinkInertia)
 
   math::MassMatrix3d linkMassMatrix(10.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
   math::Pose3d linkWorldPose;
-  linkWorldPose.Set(0.0, 0.1, 0.2, 0.0, GZ_PI_4, GZ_PI_2);
-  math::Inertiald linkInertial{linkMassMatrix, linkWorldPose};
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
+  // This is the pose of the inertia frame relative to its parent link frame
+  math::Pose3d inertiaPose;
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
+  
+  math::Inertiald linkInertial{linkMassMatrix, inertiaPose};
+
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
   ecm.CreateComponent(eLink, components::Inertial(linkInertial));
 
   ASSERT_TRUE(link.WorldInertial(ecm));
   EXPECT_EQ(10.0, link.WorldInertial(ecm).value().MassMatrix().Mass());
-  EXPECT_EQ(linkWorldPose, link.WorldInertial(ecm).value().Pose());
+  EXPECT_EQ(linkWorldPose * inertiaPose, link.WorldInertial(ecm).value().Pose());
 }
 
 //////////////////////////////////////////////////
