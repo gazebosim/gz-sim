@@ -375,7 +375,6 @@ TEST_F(LinkIntegrationTest, LinkInertia)
   // This is the pose of the inertia frame relative to its parent link frame
   math::Pose3d inertiaPose;
   inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
-  
   math::Inertiald linkInertial{linkMassMatrix, inertiaPose};
 
   ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
