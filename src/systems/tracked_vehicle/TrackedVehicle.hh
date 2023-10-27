@@ -51,11 +51,11 @@ namespace systems
   /// - `<left_track>`, `<right_track>` subelements:
   ///   - `<link>`: The link representing the track. Required parameter.
   ///   - `<velocity_topic>`: The topic on which the track accepts velocity
-  ///       commands (defaults to
-  ///       `/model/${model_name}/link/${link_name}/track_cmd_vel`).
+  ///     commands (defaults to
+  ///     `/model/${model_name}/link/${link_name}/track_cmd_vel`).
   ///   - `<center_of_rotation_topic>`: The topic on which the track accepts
-  ///       center of rotation commands (defaults to
-  ///       `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`)
+  ///     center of rotation commands (defaults to
+  ///     `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`)
   ///
   /// - `<tracks_separation>`: Distance between tracks, in meters. Required
   ///   parameter.
