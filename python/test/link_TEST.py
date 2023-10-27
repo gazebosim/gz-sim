@@ -61,7 +61,7 @@ class TestModel(unittest.TestCase):
             self.assertEqual(1, link.visual_count(_ecm))
             # World Inertial Test
             self.assertEqual(Pose3d(), link.world_inertial(_ecm).pose())
-            self.assertEqual(Matrix3d(1,0,0,0,1,0,0,0,1), link.world_inertial(_ecm).moi())
+            self.assertEqual(Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1), link.world_inertial(_ecm).moi())
             self.assertEqual(10.0, link.world_inertial(_ecm).mass_matrix().mass())
             # World Inertial Pose Test.
             self.assertEqual(Pose3d(), link.world_inertial_pose(_ecm))
