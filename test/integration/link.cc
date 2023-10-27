@@ -382,7 +382,8 @@ TEST_F(LinkIntegrationTest, LinkInertia)
 
   ASSERT_TRUE(link.WorldInertial(ecm));
   EXPECT_EQ(10.0, link.WorldInertial(ecm).value().MassMatrix().Mass());
-  EXPECT_EQ(linkWorldPose * inertiaPose, link.WorldInertial(ecm).value().Pose());
+  EXPECT_EQ(linkWorldPose * inertiaPose,
+    link.WorldInertial(ecm).value().Pose());
 }
 
 //////////////////////////////////////////////////
