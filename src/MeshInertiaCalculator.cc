@@ -110,8 +110,8 @@ void MeshInertiaCalculator::CalculateMeshCentroid(
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::TransformInertiaMatrixToCOM(
   gz::math::MassMatrix3d &_massMatrix,
-  gz::math::Pose3d &_centreOfMass,
-  gz::math::Pose3d &_inertiaOrigin
+  const gz::math::Pose3d &_centreOfMass,
+  const gz::math::Pose3d &_inertiaOrigin
 )
 {
   gz::math::Vector3d comRelativeToOrigin =

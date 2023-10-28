@@ -116,8 +116,8 @@ namespace gz
         /// was calculated. This would be the origin of the mesh.
         public: void TransformInertiaMatrixToCOM(
           gz::math::MassMatrix3d &_massMatrix,
-          gz::math::Pose3d &_centreOfMass,
-          gz::math::Pose3d &_inertiaOrigin);
+          const gz::math::Pose3d &_centreOfMass,
+          const gz::math::Pose3d &_inertiaOrigin);
 
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
