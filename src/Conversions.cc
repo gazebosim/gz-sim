@@ -1453,7 +1453,7 @@ sdf::Sensor gazebo::convert(const msgs::Sensor &_in)
     }
     else
     {
-      ignerr << "Attempting to convert an navsat sensor message, but the "
+      ignerr << "Attempting to convert a navsat sensor message, but the "
              << "message does not have a navsat nested message.\n";
     }
 
