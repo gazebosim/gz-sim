@@ -35,24 +35,23 @@ namespace systems
   /// \class FollowActor FollowActor.hh gz/sim/systems/FollowActor.hh
   /// \brief Make an actor follow a target entity in the world.
   ///
-  /// ## SDF parameters
+  /// ## System Parameters
   ///
-  /// <target>: Name of entity to follow.
+  /// - `<target>`: Name of entity to follow.
   ///
-  /// <min_distance>: Distance in meters to keep from target's origin.
+  /// - `<min_distance>`: Distance in meters to keep from target's origin.
   ///
-  /// <max_distance>: Distance in meters from target's origin when to stop
-  ///                 following. When the actor is back within range it starts
-  ///                 following again.
+  /// - `<max_distance>`: Distance in meters from target's origin when to stop
+  ///   following. When the actor is back within range it starts following
+  ///   again.
   ///
-  /// <velocity>: Actor's velocity in m/s
+  /// - `<velocity>`: Actor's velocity in m/s
   ///
-  /// <animation>: Actor's animation to play. If empty, the first animation in
-  ///              the model will be used.
+  /// - `<animation>`: Actor's animation to play. If empty, the first animation
+  ///   in the model will be used.
   ///
-  /// <animation_x_vel>: Velocity of the animation on the X axis. Used to
-  ///                    coordinate translational motion with the actor's
-  ///                    animation.
+  /// - `<animation_x_vel>`: Velocity of the animation on the X axis. Used to
+  ///   coordinate translational motion with the actor's animation.
   class FollowActor:
     public System,
     public ISystemConfigure,
