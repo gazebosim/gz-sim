@@ -69,37 +69,37 @@ class ElevatorPrivate;
 ///
 /// ## System Parameters
 ///
-/// `<update_rate>`: System update rate. This element is optional and the
+/// - `<update_rate>`: System update rate. This element is optional and the
 /// default value is 10Hz. A value of zero gets translated to the simulation
 /// rate (no throttling for the system).
 ///
-/// `<floor_link_prefix>`: Prefix in the names of the links that function as
+/// - `<floor_link_prefix>`: Prefix in the names of the links that function as
 /// a reference for each floor level. When the elevator is requested to move
 /// to a given floor level, the cabin is commanded to move to the height of
 /// the corresponding floor link. The names of the links will be expected to
 /// be `{prerix}i`, where \f$i=[0,N)\f$ and N is the number of floors. This
 /// element is optional and the default value is `floor_`.
 ///
-/// `<door_joint_prefix>`: Prefix in the names of the joints that control the
+/// - `<door_joint_prefix>`: Prefix in the names of the joints that control the
 /// doors of the elevator. The names of the joints will be expected to be
 /// `{prerix}i`, where \f$i=[0,N)\f$ and N is the number of floors. This
 /// element is optional and the default value is `door_`.
 ///
-/// `<cabin_joint>`: Name of the joint that controls the position of the
+/// - `<cabin_joint>`: Name of the joint that controls the position of the
 /// cabin. This element is optional and the default value is `lift`.
 ///
-/// `<cmd_topic>`: Topic to which this system will subscribe in order to
+/// - `<cmd_topic>`: Topic to which this system will subscribe in order to
 /// receive command messages. This element is optional and the default value
 /// is `/model/{model_name}/cmd`.
 ///
-/// `<state_topic>`: Topic on which this system will publish state (current
+/// - `<state_topic>`: Topic on which this system will publish state (current
 /// floor) messages. This element is optional and the default value is
 /// `/model/{model_name}/state`.
 ///
-/// `<state_publish_rate>`: State publication rate. This rate is bounded by
+/// - `<state_publish_rate>`: State publication rate. This rate is bounded by
 /// `<update_rate>`. This element is optional and the default value is 5Hz.
 ///
-/// `<open_door_wait_duration>`: Time to wait with a door open before the door
+/// - `<open_door_wait_duration>`: Time to wait with a door open before the door
 /// closes. This element is optional and the default value is 5 sec.
 class GZ_SIM_VISIBLE Elevator : public System,
                                          public ISystemConfigure,
