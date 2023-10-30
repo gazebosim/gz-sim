@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * @author: Karthik Srivatsan, Frederik Markus
  * @version: 1.1
  *
@@ -346,7 +346,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
     if (entities.empty())
     {
       gzerr << "Joint with name[" << ctrl_surface_name << "] not found. "
-             << "The LiftDrag will not generate forces\n";
+             << "The LiftDrag will not generate forces.\n";
       this->validConfig = false;
       return;
     }
@@ -361,7 +361,8 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Joint::typeId))
     {
       this->controlJointEntity = kNullEntity;
-      gzerr << "Entity with name[" << ctrl_surface_name << "] is not a joint\n";
+      gzerr << "Entity with name[" << ctrl_surface_name
+            << "] is not a joint.\n";
       this->validConfig = false;
       return;
     }
@@ -400,9 +401,17 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->area = _sdf->Get<double>("area", this->area).first;
 
   // blade forward (-drag) direction in link frame
-  this->forward =
-      _sdf->Get<math::Vector3d>("forward", this->forward).first;
-  this->forward.Normalize();
+  if(this->forward.Length() != 0){
+    this->forward =
+        _sdf->Get<math::Vector3d>("forward", this->forward).first;
+    this->forward.Normalize();
+  }
+  else
+  {
+    gzerr << "Forward vector length is zero. This is not valid.\n";
+    this->validConfig = false;
+    return;
+  }
 
   // blade upward (+lift) direction in link frame
   this->upward = _sdf->Get<math::Vector3d>(
@@ -422,7 +431,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
     if (entities.empty())
     {
       gzerr << "Link with name[" << linkName << "] not found. "
-             << "The AdvancedLiftDrag will not generate forces\n";
+             << "The AdvancedLiftDrag will not generate forces.\n";
       this->validConfig = false;
       return;
     }
@@ -437,14 +446,14 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
                                      components::Link::typeId))
     {
       this->linkEntity = kNullEntity;
-      gzerr << "Entity with name[" << linkName << "] is not a link\n";
+      gzerr << "Entity with name[" << linkName << "] is not a link.\n";
       this->validConfig = false;
       return;
     }
   }
   else
   {
-    gzerr << "The AdvancedLiftDrag system requires the 'link_name' parameter\n";
+    gzerr << "AdvancedLiftDrag system requires the 'link_name' parameter.\n";
     this->validConfig = false;
     return;
   }
@@ -503,6 +512,11 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     body_y_axis)*body_y_axis;
 
   // Compute dynamic pressure
+  if(velInLDPlane.Length() == 0){
+    gzerr << "In-plane velocity of vehicle cannot be 0.\n";
+    this->validConfig = false;
+    return;
+  }
   const double speedInLDPlane = velInLDPlane.Length();
 
   // Define stability frame: X is in-plane velocity, Y is the same as body Y,
@@ -529,6 +543,11 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   if (this->linkEntity != kNullEntity)
   {
     AngVel = _ecm.Component<components::AngularVelocity>(this->linkEntity);
+  }
+  if(AngVel == nullptr){
+    gzerr << "Angular Velocity cannot be null.\n";
+    this->validConfig = false;
+    return;
   }
 
   double rr = AngVel->Data()[0];  // Roll rate
@@ -818,8 +837,3 @@ GZ_ADD_PLUGIN(AdvancedLiftDrag,
                     System,
                     AdvancedLiftDrag::ISystemConfigure,
                     AdvancedLiftDrag::ISystemPreUpdate)
-
-GZ_ADD_PLUGIN_ALIAS(AdvancedLiftDrag, "gz::sim::systems::AdvancedLiftDrag")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AdvancedLiftDrag, "ignition::systems::AdvancedLiftDrag")
