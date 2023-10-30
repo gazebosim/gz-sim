@@ -128,7 +128,7 @@ gz topic -e -t /world/advanced_lift_drag/model/advanced_lift_drag_demo_model/joi
                 <gravity>1</gravity>
                 <velocity_decay/>
                 <self_collide>0</self_collide>
-                
+
                 <sensor name="imu_sensor" type="imu">
                     <always_on>1</always_on>
                     <update_rate>250</update_rate>
