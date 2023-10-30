@@ -401,11 +401,12 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->area = _sdf->Get<double>("area", this->area).first;
 
   // blade forward (-drag) direction in link frame
+  this->forward =
+      _sdf->Get<math::Vector3d>("forward", this->forward).first;
   if(this->forward.Length() != 0){
-    this->forward =
-        _sdf->Get<math::Vector3d>("forward", this->forward).first;
     this->forward.Normalize();
   }
+
   else
   {
     gzerr << "Forward vector length is zero. This is not valid.\n";
@@ -512,7 +513,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     body_y_axis)*body_y_axis;
 
   // Compute dynamic pressure
-  if(velInLDPlane.Length() == 0){
+  if(velInLDPlane.Length() <= 1e-9){
     gzerr << "In-plane velocity of vehicle cannot be 0.\n";
     this->validConfig = false;
     return;
