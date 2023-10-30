@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <gz/math/Matrix3.hh>
+#include <gz/math/Matrix6.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Vector3.hh>
@@ -267,6 +268,14 @@ namespace gz
       /// does not have components components::Inertial and
       /// components::WorldPose.
       public: std::optional<math::Matrix3d> WorldInertiaMatrix(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the fluid added mass matrix in the world frame.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Fluide added matrix in world frame, returns nullopt if link
+      /// does not have components components::Inertial and
+      /// components::WorldPose.
+      public: std::optional<math::Matrix6d> WorldFluidAddedMassMatrix(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the rotational and translational kinetic energy of the
