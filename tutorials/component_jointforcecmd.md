@@ -15,6 +15,7 @@ The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gaze
 
 ```bash
 gz sim apply_joint_force.sdf
+```
 
 We will walk through the relevant lines of source code in `ApplyJointForce`
 that interact with `JointForceCmd`.
