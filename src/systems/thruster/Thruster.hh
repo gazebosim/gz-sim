@@ -123,15 +123,17 @@ namespace systems
   /// gz sim auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following:
-  /// ```
-  /// gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
-  ///    -m gz.msgs.Double -p 'data: -0.17'
-  /// ```
+  /** ```
+      gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+         -m gz.msgs.Double -p 'data: -0.17'
+      ```
+  **/
   /// To apply a thrust you may run the following command:
-  /// ```
-  /// gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
-  ///    -m gz.msgs.Double -p 'data: -31'
-  /// ```
+  /** ```
+      gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
+         -m gz.msgs.Double -p 'data: -31'
+      ```
+  **/
   /// The vehicle should move in a circle.
   class Thruster:
     public gz::sim::System,
