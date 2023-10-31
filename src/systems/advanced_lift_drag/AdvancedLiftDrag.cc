@@ -513,15 +513,15 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     body_y_axis)*body_y_axis;
 
   // Compute dynamic pressure
-  if(std::fabs(velInLDPlane.Length()) <= 1e-9){
-    gzerr << "In-plane velocity of vehicle cannot be 0.\n";
-    this->validConfig = false;
-    return;
-  }
   const double speedInLDPlane = velInLDPlane.Length();
 
   // Define stability frame: X is in-plane velocity, Y is the same as body Y,
   // and Z perpendicular to both
+  if(speedInLDPlane <= 1e-9){
+    gzerr << "In-plane speed of vehicle cannot be 0.\n";
+    this->validConfig = false;
+    return;
+  }
   gz::math::Vector3d stability_x_axis = velInLDPlane/speedInLDPlane;
   gz::math::Vector3d stability_y_axis = body_y_axis;
   gz::math::Vector3d stability_z_axis = stability_x_axis.Cross(
@@ -838,3 +838,6 @@ GZ_ADD_PLUGIN(AdvancedLiftDrag,
                     System,
                     AdvancedLiftDrag::ISystemConfigure,
                     AdvancedLiftDrag::ISystemPreUpdate)
+
+GZ_ADD_PLUGIN_ALIAS(AdvancedLiftDrag,
+                    "gz::sim::systems::AdvancedLiftDrag")
