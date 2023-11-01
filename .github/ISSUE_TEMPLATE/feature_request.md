@@ -2,11 +2,12 @@
 name: Feature request
 about: Request a new feature
 labels: enhancement
+
 ---
 
 <!-- If you're not sure on the specifics of the feature or would like a broader
 discussion, please consider posting a proposal to
-http://community.gazebosim.org/ instead.-->
+https://robotics.stackexchange.com instead.-->
 
 ## Desired behavior
 <!-- Describe the current problem and the feature you want implemented.-->

@@ -2,10 +2,11 @@
 name: Bug report
 about: Report a bug
 labels: bug
+
 ---
 
 <!-- If you're not sure whether your problem is a bug, please ask a question at
-http://answers.gazebosim.org instead.-->
+https://robotics.stackexchange.com instead.-->
 
 ## Environment
 * OS Version: <!-- e.g, Ubuntu 20.04 -->
