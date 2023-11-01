@@ -51,8 +51,6 @@ namespace systems
   /// properties. This can be a scoped name to reference links in
   /// nested models. \sa entitiesFromScopedName to learn more
   /// about scoped names.
-  /// - `<position>`: 3-vector representing the initial position of the
-  /// link in the world frame.
   /// - `<rho>`: Density of the fluid this model is suspended in.
   /// - `<area>`: Surface area of the link.
   /// - `<CL0>`: Lift Coefficient at zero angle of attack

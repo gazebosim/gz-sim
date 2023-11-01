@@ -82,9 +82,6 @@ class gz::sim::systems::AdvancedLiftDragPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Initial position of the vehicle
-  public: gz::math::Vector3d position = math::Vector3d::Zero;
-
   /// \brief Lift Coefficient at zero angle of attack
   public: double CL0 = 0.0;
 
@@ -294,7 +291,6 @@ class gz::sim::systems::AdvancedLiftDragPrivate
 void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
                            const sdf::ElementPtr &_sdf)
 {
-  this->position = _sdf->Get<math::Vector3d>("position", this->position).first;
   this->CL0 = _sdf->Get<double>("CL0", this->CL0).first;
   this->CD0 = _sdf->Get<double>("CD0", this->CD0).first;
   this->Cem0 = _sdf->Get<double>("Cem0", this->Cem0).first;
@@ -521,8 +517,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // Define stability frame: X is in-plane velocity, Y is the same as body Y,
   // and Z perpendicular to both
-  if(speedInLDPlane <= 1e-9 && pose.Pos() != position){
-    gzerr << "In-plane speed of vehicle should not be 0 while not at rest.\n";
+  if(speedInLDPlane <= 1e-9){
     return;
   }
   gz::math::Vector3d stability_x_axis = velInLDPlane/speedInLDPlane;

@@ -568,7 +568,6 @@ gz topic -e -t /world/advanced_lift_drag/model/advanced_lift_drag_demo_model/joi
             </plugin>
 
             <plugin filename="gz-sim-advanced-lift-drag-system" name="gz::sim::systems::AdvancedLiftDrag">
-                <position>0 0 0.246</position>
                 <a0>0.0</a0>
                 <CL0>0.15188</CL0>
                 <AR>6.5</AR>
