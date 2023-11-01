@@ -13,6 +13,11 @@ Credits for the readme and the plugin go to karthik-feather.
 
 Try sending commands:
 
+To get the propeller spining send the following command
+
+gz topic -t "/advanced_lift_drag_demo_model/command/motor_speed" --msgtype gz.msgs.Actuators -p 'velocity:[2000]'
+
+You should be able to see the plane take off. You can try playing with the various control surfaces using the commands below:
 gz topic -t "/model/advanced_lift_drag_demo_model/joint/servo_0/cmd_force" -m gz.msgs.Double  -p "data: 0.7"
 
 Listen to joint states:
