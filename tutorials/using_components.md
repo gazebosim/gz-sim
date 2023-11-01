@@ -66,4 +66,4 @@ entities.
 The rest of the tutorial is case studies that walk through the usage of
 specific components.
 
-- \subpage compjointforcecmd "JointForceCmd"
+- \subpage jointforcecmdcomponent "JointForceCmd"
