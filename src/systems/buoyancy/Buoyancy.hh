@@ -67,7 +67,8 @@ namespace systems
   ///
   /// ## Examples
   ///
-  /// ### `uniform_fluid_density` world.
+  /// ### uniform_fluid_density world
+  ///
   /// The `buoyancy.sdf` SDF file contains three submarines. The first
   /// submarine is neutrally buoyant, the second sinks, and the third
   /// floats. To run:
@@ -76,7 +77,7 @@ namespace systems
   /// gz sim -v 4 buoyancy.sdf
   /// ```
   ///
-  /// ### `graded_buoyancy` world
+  /// ### graded_buoyancy world
   ///
   /// Often when simulating a maritime environment one may need to simulate both
   /// surface and underwater vessels. This means the buoyancy plugin needs to

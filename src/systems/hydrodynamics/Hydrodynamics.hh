@@ -40,7 +40,7 @@ namespace systems
   /// forces like linear and quadratic drag, buoyancy (not provided by this
   /// plugin), etc.
   ///
-  /// # System Parameters
+  /// ## System Parameters
   /// The exact description of these parameters can be found on p. 37 and
   /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
   /// quadratic drag and coriolis force.

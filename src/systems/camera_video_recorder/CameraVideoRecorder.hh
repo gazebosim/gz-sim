@@ -34,23 +34,25 @@ namespace systems
   /** \class CameraVideoRecorder CameraVideoRecorder.hh \
    * gz/sim/systems/CameraVideoRecorder.hh
   **/
+  ///
   /// \brief Record video from a camera sensor
-  /// The system takes in the following parameter:
-  ///   <service>  Name of topic for the video recorder service. If this is
-  ///              not specified, the topic defaults to:
-  ///              /world/<world_name/model/<model_name>/link/<link_name>/
-  ///              sensor/<sensor_name>/record_video
   ///
-  ///   <use_sim_time> True/false value that specifies if the video should
-  ///                   be recorded using simulation time or real time. The
-  ///                   default is false, which indicates the use of real
-  ///                   time.
+  /// ## System Parameters
   ///
-  ///   <fps> Video recorder frames per second. The default value is 25, and
-  ///         the support type is unsigned int.
+  /// - `<service>`:  Name of topic for the video recorder service. If this is
+  ///   not specified, the topic defaults to:
+  ///   /world/<world_name/model/<model_name>/link/<link_name>/
+  ///   sensor/<sensor_name>/record_video
   ///
-  ///   <bitrate> Video recorder bitrate (bps). The default value is
-  ///             2070000 bps, and the supported type is unsigned int.
+  /// - `<use_sim_time>`: True/false value that specifies if the video should
+  ///   be recorded using simulation time or real time. The default is false,
+  ///   which indicates the use of real time.
+  ///
+  /// - `<fps>`: Video recorder frames per second. The default value is 25, and
+  ///   the support type is unsigned int.
+  ///
+  /// - `<bitrate>`: Video recorder bitrate (bps). The default value is
+  ///   2070000 bps, and the supported type is unsigned int.
   class CameraVideoRecorder final:
     public System,
     public ISystemConfigure,
