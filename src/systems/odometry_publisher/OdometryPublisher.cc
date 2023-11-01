@@ -38,7 +38,6 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
@@ -59,7 +58,9 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: transport::Node node;
 
   /// \brief Model interface
+  //! [modelDeclaration]
   public: Model model{kNullEntity};
+  //! [modelDeclaration]
 
   /// \brief Name of the world-fixed coordinate frame for the odometry message.
   public: std::string odomFrame;
@@ -133,12 +134,14 @@ OdometryPublisher::OdometryPublisher()
 }
 
 //////////////////////////////////////////////////
+//! [Configure]
 void OdometryPublisher::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
+  //! [Configure]
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
@@ -233,8 +236,10 @@ void OdometryPublisher::Configure(const Entity &_entity,
   }
   else
   {
+    //! [definePub]
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
         odomTopicValid);
+    //! [definePub]
     gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
            << "]" << std::endl;
   }
@@ -287,6 +292,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
   }
 
   // Create the pose component if it does not exist.
+  //! [createComponent]
   auto pos = _ecm.Component<components::Pose>(
       this->dataPtr->model.Entity());
   if (!pos)
@@ -294,6 +300,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
     _ecm.CreateComponent(this->dataPtr->model.Entity(),
         components::Pose());
   }
+  //! [createComponent]
 }
 
 //////////////////////////////////////////////////
@@ -323,7 +330,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 
   // Construct the odometry message and publish it.
+  //! [declarePoseMsg]
   msgs::Odometry msg;
+  //! [declarePoseMsg]
 
   const std::chrono::duration<double> dt =
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
@@ -333,7 +342,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
     return;
 
   // Get and set robotBaseFrame to odom transformation.
+  //! [worldPose]
   const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
+  //! [worldPose]
+  //! [setPoseMsg]
   math::Pose3d pose = rawPose * this->offset;
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
@@ -342,6 +354,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
   {
     msg.mutable_pose()->mutable_position()->set_z(pose.Pos().Z());
   }
+  //! [setPoseMsg]
 
   // Get linear and angular displacements from last updated pose.
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
@@ -452,7 +465,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
   this->lastOdomPubTime = _info.simTime;
   if (this->odomPub.Valid())
   {
+    //! [publishMsg]
     this->odomPub.Publish(msg);
+    //! [publishMsg]
   }
 
   // Generate odometry with covariance message and publish it.
