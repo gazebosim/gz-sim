@@ -42,24 +42,24 @@ class gz::sim::systems::ApplyJointForcePrivate
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
-  //! [jointEntityDeclaration]
   /// \brief Joint Entity
+  //! [jointEntityDeclaration]
   public: Entity jointEntity;
   //! [jointEntityDeclaration]
 
   /// \brief Joint name
   public: std::string jointName;
 
-  //! [forceDeclaration]
   /// \brief Commanded joint force
+  //! [forceDeclaration]
   public: double jointForceCmd;
   //! [forceDeclaration]
 
   /// \brief mutex to protect jointForceCmd
   public: std::mutex jointForceCmdMutex;
 
-  //! [modelDeclaration]
   /// \brief Model interface
+  //! [modelDeclaration]
   public: Model model{kNullEntity};
   //! [modelDeclaration]
 };
@@ -138,8 +138,8 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
-  //! [findJoint]
   // If the joint hasn't been identified yet, look for it
+  //! [findJoint]
   if (this->dataPtr->jointEntity == kNullEntity)
   {
     this->dataPtr->jointEntity =
@@ -154,8 +154,8 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  //! [jointForceComponent]
   // Update joint force
+  //! [jointForceComponent]
   auto force = _ecm.Component<components::JointForceCmd>(
       this->dataPtr->jointEntity);
   //! [jointForceComponent]
