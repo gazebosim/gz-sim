@@ -1,4 +1,4 @@
-\page comppose Case Study: Using the Pose Component
+\page posecomponent Case Study: Using the Pose Component
 
 We will show how to use the gz::sim::components::Pose component in a system.
 
