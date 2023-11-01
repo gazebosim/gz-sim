@@ -1,4 +1,4 @@
-\page compjointforcecmd Case Study: Using the JointForceCmd Component
+\page jointforcecmdcomponent Case Study: Using the JointForceCmd Component
 
 We will show how to use one of the components,
 \ref gz::sim::components::JointForceCmd, in a system.
