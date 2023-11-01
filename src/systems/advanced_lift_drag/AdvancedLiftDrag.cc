@@ -759,7 +759,6 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   this->cp.Correct();
   torque.Correct();
 
-  // \todo(addisu) Create a convenient API for applying forces at offset
   // positions
   const auto totalTorque = torque + cpWorld.Cross(force);
   Link link(this->linkEntity);
