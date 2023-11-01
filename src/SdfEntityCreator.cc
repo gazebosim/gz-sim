@@ -21,6 +21,14 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
+#ifdef __APPLE__
+// Include all known components to ensure that they are registered by the core
+// library instead of a plugin to fix
+// https://github.com/gazebosim/gz-sim/issues/2204.
+//
+// NOTE(azeey): This should not be forward ported to ign-gazebo6.
+#include "gz/sim/components/components.hh"
+#endif
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
