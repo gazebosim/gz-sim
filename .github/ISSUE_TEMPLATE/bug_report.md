@@ -5,7 +5,7 @@ labels: bug
 ---
 
 <!-- If you're not sure whether your problem is a bug, please ask a question at
-http://answers.gazebosim.org instead.-->
+https://robotics.stackexchange.com instead.-->
 
 ## Environment
 * OS Version: <!-- e.g, Ubuntu 20.04 -->
@@ -47,9 +47,9 @@ http://answers.gazebosim.org instead.-->
       - On Mac OS, open a terminal and type `system_profiler SPDisplaysDataType`. Copy the output here.
         <!-- Please note that GUI rendering is not supported on macOS. -->
     - [ ] Please, attach the ogre.log or ogre2.log file from  `~/.ignition/rendering` <!-- Choose the relevant version based on what you checked in the "Rendering plugin" question. -->
-    
+
 <details>
-  
+
 ```
 # paste log here
 ```
