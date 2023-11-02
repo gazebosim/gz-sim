@@ -70,6 +70,9 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \brief mutex to protect joint commands
   public: std::mutex jointCmdMutex;
 
+  /// \brief Is the maximum PID gain set.
+  public: bool isMaxSet {false};
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
@@ -175,6 +178,7 @@ void JointPositionController::Configure(const Entity &_entity,
   if (_sdf->HasElement("cmd_max"))
   {
     cmdMax = _sdf->Get<double>("cmd_max");
+    this->dataPtr->isMaxSet = true;
   }
   if (_sdf->HasElement("cmd_min"))
   {
@@ -430,14 +434,14 @@ void JointPositionController::PreUpdate(
     auto maxMovement = this->dataPtr->posPid.CmdMax() * dt;
 
     // Limit the maximum change to maxMovement
-    if (abs(error) > maxMovement)
+    if (abs(error) > maxMovement && this->dataPtr->isMaxSet)
     {
       targetVel = (error < 0) ? this->dataPtr->posPid.CmdMax() :
         -this->dataPtr->posPid.CmdMax();
     }
     else
     {
-      targetVel = -error;
+      targetVel = - error / dt;
     }
     for (Entity joint : this->dataPtr->jointEntities)
     {

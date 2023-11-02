@@ -25,6 +25,7 @@
 #include <gz/physics/Entity.hh>
 #include <gz/physics/ForwardStep.hh>
 #include <gz/physics/Implements.hh>
+#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
 #include <gz/physics/config.hh>
@@ -57,7 +58,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
     const std::string pluginLib = "gz-physics-dartsim-plugin";
 
     common::SystemPaths systemPaths;
-    systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
     auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
     ASSERT_FALSE(pathToLib.empty())

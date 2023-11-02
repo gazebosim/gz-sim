@@ -48,6 +48,7 @@
 #include <gz/physics/FeatureList.hh>
 #include <gz/physics/FeaturePolicy.hh>
 #include <gz/physics/heightmap/HeightmapShape.hh>
+#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/RelativeQuantity.hh>
 #include <gz/physics/RequestEngine.hh>
 
@@ -811,7 +812,7 @@ void Physics::Configure(const Entity &_entity,
   // * Engines installed with gz-physics
   common::SystemPaths systemPaths;
   systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths({GZ_PHYSICS_ENGINE_INSTALL_DIR});
+  systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
   auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
   if (pathToLib.empty())

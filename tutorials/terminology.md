@@ -10,14 +10,14 @@ to developers touching the source code.
 
 * **Entity**: Every "object" in the world, such as models, links,
     collisions, visuals, lights, joints, etc.
-    An entity [is just a numeric ID](namespace gz_1_1gazebo.html#ad83694d867b0e3a9446b535b5dfd208d),
+    An entity [is just a numeric ID](namespacegz_1_1sim.html#ad83694d867b0e3a9446b535b5dfd208d),
     and may have several components attached to it. Entity IDs are assigned
     at runtime.
 
 * **Component**: Adds a certain functionality or characteristic (e.g., pose,
     name, material, etc.) to an entity.
     Gazebo comes with various
-    [components](namespace gz_1_1gazebo_1_1components.html)
+    [components](namespacegz_1_1sim_1_1components.html)
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
     [BaseComponent](classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
@@ -73,7 +73,8 @@ to developers touching the source code.
     more than 1 world.
     * It has a single ECM with all the entities and components
       relevant to the levels / world / performer being simulated.
-        * It's still TBD how to support multiple `<worlds>` in parallel.
+        * It's still [an open task](https://github.com/gazebosim/gz-sim/issues/18)
+          to support multiple `<worlds>` in parallel.
     * It has an event manager.
     * It has a network manager, if simulation is distributed.
     * It loads up a set of systems.
