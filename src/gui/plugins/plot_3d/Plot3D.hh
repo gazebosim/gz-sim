@@ -20,6 +20,7 @@
 
 #include <memory>
 
+#include <gz/sim/gui/Export.hh>
 #include <gz/sim/gui/GuiSystem.hh>
 
 #include "gz/gui/qt.h"
@@ -59,7 +60,7 @@ namespace gui
   /// After this number is reached, the older points start being deleted.
   /// Defaults to 1000.
   ///
-  class Plot3D : public gz::sim::GuiSystem
+  class GZ_SIM_GUI_VISIBLE Plot3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

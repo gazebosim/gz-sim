@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include <gz/sim/gui/Export.hh>
 #include <gz/sim/gui/GuiSystem.hh>
 #include <gz/sim/Types.hh>
 
@@ -36,7 +37,7 @@ namespace gui
   class JointPositionControllerPrivate;
 
   /// \brief Model holding information about joints
-  class JointsModel : public QStandardItemModel
+  class GZ_SIM_GUI_VISIBLE JointsModel : public QStandardItemModel
   {
     Q_OBJECT
 
@@ -88,7 +89,7 @@ namespace gui
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
   /// necessary to select it. If a model is given at startup, the plugin starts
   /// in locked mode.
-  class JointPositionController : public sim::GuiSystem
+  class GZ_SIM_GUI_VISIBLE JointPositionController : public sim::GuiSystem
   {
     Q_OBJECT
 
