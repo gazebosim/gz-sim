@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -40,6 +41,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
 
 using namespace gz;
 using namespace sim;
@@ -86,6 +88,10 @@ class gz::sim::systems::LiftDragPrivate
 
   /// \brief Cm-alpha rate after stall
   public: double cmaStall = 0.0;
+
+  /// \brief How much Cm changes with a change in control
+  /// surface deflection angle
+  public: double cm_delta = 0.0;
 
   /// \brief air density
   /// at 25 deg C it's about 1.1839 kg/m^3
@@ -155,6 +161,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->area = _sdf->Get<double>("area", this->area).first;
   this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
   this->cp = _sdf->Get<math::Vector3d>("cp", this->cp).first;
+  this->cm_delta = _sdf->Get<double>("cm_delta", this->cm_delta).first;
 
   // blade forward (-drag) direction in link frame
   this->forward =
@@ -205,7 +212,6 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
     this->validConfig = false;
     return;
   }
-
 
   if (_sdf->HasElement("control_joint_name"))
   {
@@ -259,6 +265,13 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto worldPose =
       _ecm.Component<components::WorldPose>(this->linkEntity);
 
+  // get wind as a component from the _ecm
+  components::WorldLinearVelocity *windLinearVel = nullptr;
+  if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
+    Entity windEntity = _ecm.EntityByComponents(components::Wind());
+    windLinearVel =
+        _ecm.Component<components::WorldLinearVelocity>(windEntity);
+  }
   components::JointPosition *controlJointPosition = nullptr;
   if (this->controlJointEntity != kNullEntity)
   {
@@ -271,7 +284,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
-  const auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(cpWorld);
+  auto vel = worldLinVel->Data() + worldAngVel->Data().Cross(
+  cpWorld);
+  if (windLinearVel != nullptr){
+    vel = worldLinVel->Data() + worldAngVel->Data().Cross(
+    cpWorld) - windLinearVel->Data();
+  }
 
   if (vel.Length() <= 0.01)
     return;
@@ -280,6 +298,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // rotate forward and upward vectors into world frame
   const auto forwardI = pose.Rot().RotateVector(this->forward);
+
+  if (forwardI.Dot(vel) <= 0.0){
+    // Only calculate lift or drag if the wind relative velocity
+    // is in the same direction
+    return;
+  }
 
   math::Vector3d upwardI;
   if (this->radialSymmetry)
@@ -304,7 +328,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
       spanwiseI.Dot(velI), minRatio, maxRatio);
 
   // get cos from trig identity
-  const double cosSweepAngle = 1.0 - sinSweepAngle * sinSweepAngle;
+  double cosSweepAngle = sqrt(1.0 - sinSweepAngle * sinSweepAngle);
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
@@ -336,7 +360,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   // compute angle between upwardI and liftI
   // in general, given vectors a and b:
-  //   cos(theta) = a.Dot(b)/(a.Length()*b.Lenghth())
+  //   cos(theta) = a.Dot(b)/(a.Length()*b.Length())
   // given upwardI and liftI are both unit vectors, we can drop the denominator
   //   cos(theta) = a.Dot(b)
   const double cosAlpha =
@@ -435,14 +459,15 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   else
     cm = this->cma * alpha * cosSweepAngle;
 
-  /// \todo(anyone): implement cm
-  /// for now, reset cm to zero, as cm needs testing
-  cm = 0.0;
+  // Take into account the effect of control surface deflection angle to cm
+  if (controlJointPosition && !controlJointPosition->Data().empty())
+  {
+    cm += this->cm_delta * controlJointPosition->Data()[0];
+  }
 
   // compute moment (torque) at cp
   // spanwiseI used to be momentDirection
   math::Vector3d moment = cm * q * this->area * spanwiseI;
-
 
   // force and torque about cg in world frame
   math::Vector3d force = lift + drag;
@@ -529,7 +554,6 @@ void LiftDrag::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // that all entities have been created when Configure is called
     this->dataPtr->Load(_ecm, this->dataPtr->sdfConfig);
     this->dataPtr->initialized = true;
-
 
     if (this->dataPtr->validConfig)
     {
