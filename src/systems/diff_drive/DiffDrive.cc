@@ -463,17 +463,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->leftJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->rightJoints)
@@ -483,17 +474,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->rightJointSpeed});
   }
 
   // Create the left and right side joint position components if they

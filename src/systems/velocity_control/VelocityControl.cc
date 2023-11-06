@@ -201,38 +201,12 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     return;
 
   // update angular velocity of model
-  auto modelAngularVel =
-    _ecm.Component<components::AngularVelocityCmd>(
-      this->dataPtr->model.Entity());
-
-  if (modelAngularVel == nullptr)
-  {
-    _ecm.CreateComponent(
-      this->dataPtr->model.Entity(),
-      components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
-  }
-  else
-  {
-    *modelAngularVel =
-      components::AngularVelocityCmd({this->dataPtr->angularVelocity});
-  }
+  _ecm.SetComponentData<components::AngularVelocityCmd>(
+    this->dataPtr->model.Entity(), {this->dataPtr->angularVelocity});
 
   // update linear velocity of model
-  auto modelLinearVel =
-    _ecm.Component<components::LinearVelocityCmd>(
-      this->dataPtr->model.Entity());
-
-  if (modelLinearVel == nullptr)
-  {
-    _ecm.CreateComponent(
-      this->dataPtr->model.Entity(),
-      components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
-  }
-  else
-  {
-    *modelLinearVel =
-      components::LinearVelocityCmd({this->dataPtr->linearVelocity});
-  }
+  _ecm.SetComponentData<components::LinearVelocityCmd>(
+    this->dataPtr->model.Entity(), {this->dataPtr->linearVelocity});
 
   // If there are links, create link components
   // If the link hasn't been identified yet, look for it
@@ -266,17 +240,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     auto it = this->dataPtr->links.find(linkName);
     if (it != this->dataPtr->links.end())
     {
-      auto linkAngularVelComp =
-          _ecm.Component<components::AngularVelocityCmd>(it->second);
-      if (!linkAngularVelComp)
-      {
-        _ecm.CreateComponent(it->second,
-            components::AngularVelocityCmd({angularVel}));
-      }
-      else
-      {
-        *linkAngularVelComp = components::AngularVelocityCmd(angularVel);
-      }
+      _ecm.SetComponentData<components::AngularVelocityCmd>(
+        it->second, {angularVel});
     }
     else
     {
@@ -290,17 +255,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     auto it = this->dataPtr->links.find(linkName);
     if (it != this->dataPtr->links.end())
     {
-      auto linkLinearVelComp =
-          _ecm.Component<components::LinearVelocityCmd>(it->second);
-      if (!linkLinearVelComp)
-      {
-        _ecm.CreateComponent(it->second,
-            components::LinearVelocityCmd({linearVel}));
-      }
-      else
-      {
-        *linkLinearVelComp = components::LinearVelocityCmd(linearVel);
-      }
+      _ecm.SetComponentData<components::LinearVelocityCmd>(
+        it->second, {linearVel});
     }
     else
     {
