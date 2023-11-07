@@ -338,8 +338,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   // Get the topics to record, if any.
   if (this->sdf->HasElement("record_topic"))
   {
-    sdf::ElementConstPtr recordTopicElem =
-      this->sdf->FindElement("record_topic");
+    auto recordTopicElem = this->sdf->FindElement("record_topic");
 
     // This is used to determine if a topic is a regular expression.
     std::regex regexMatch(".*[\\*\\?\\[\\]\\(\\)\\.]+.*");

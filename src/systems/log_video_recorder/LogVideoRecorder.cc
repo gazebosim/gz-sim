@@ -183,7 +183,7 @@ void LogVideoRecorder::Configure(
 
   if (_sdf->HasElement("region"))
   {
-    sdf::ElementConstPtr regionElem = _sdf->FindElement("region");
+    auto regionElem = _sdf->FindElement("region");
     while (regionElem)
     {
       auto min = regionElem->Get<math::Vector3d>("min");

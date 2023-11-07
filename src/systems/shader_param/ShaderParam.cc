@@ -148,7 +148,7 @@ void ShaderParam::Configure(const Entity &_entity,
   if (_sdf->HasElement("param"))
   {
     // loop and parse all shader params
-    sdf::ElementConstPtr paramElem = _sdf->FindElement("param");
+    auto paramElem = _sdf->FindElement("param");
     while (paramElem)
     {
       if (!paramElem->HasElement("shader") ||
@@ -173,7 +173,7 @@ void ShaderParam::Configure(const Entity &_entity,
 
       if (paramElem->HasElement("arg"))
       {
-        sdf::ElementConstPtr argElem = paramElem->FindElement("arg");
+        auto argElem = paramElem->FindElement("arg");
         while (argElem)
         {
           spv.args.push_back(argElem->Get<std::string>());
@@ -201,7 +201,7 @@ void ShaderParam::Configure(const Entity &_entity,
     return;
   }
   // allow mulitple shader SDF element for different shader languages
-  sdf::ElementConstPtr shaderElem = _sdf->FindElement("shader");
+  auto shaderElem = _sdf->FindElement("shader");
   while (shaderElem)
   {
     if (!shaderElem->HasElement("vertex") ||
@@ -220,11 +220,11 @@ void ShaderParam::Configure(const Entity &_entity,
       ShaderParamPrivate::ShaderUri shader;
       shader.language = api;
 
-      sdf::ElementConstPtr vertexElem = shaderElem->FindElement("vertex");
+      auto vertexElem = shaderElem->FindElement("vertex");
       shader.vertexShaderUri = common::findFile(
           asFullPath(vertexElem->Get<std::string>(),
           this->dataPtr->modelPath));
-      sdf::ElementConstPtr fragmentElem = shaderElem->FindElement("fragment");
+      auto fragmentElem = shaderElem->FindElement("fragment");
       shader.fragmentShaderUri = common::findFile(
           asFullPath(fragmentElem->Get<std::string>(),
           this->dataPtr->modelPath));

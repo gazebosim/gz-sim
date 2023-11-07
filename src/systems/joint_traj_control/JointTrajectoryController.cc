@@ -811,7 +811,7 @@ std::vector<T> JointParameters::Parse(
 
   if (_sdf->HasElement(_parameterName))
   {
-    sdf::ElementConstPtr param = _sdf->FindElement(_parameterName);
+    auto param = _sdf->FindElement(_parameterName);
     while (param)
     {
       output.push_back(param->Get<T>());

@@ -188,7 +188,7 @@ void DiffDrive::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  sdf::ElementConstPtr sdfElem = _sdf->FindElement("left_joint");
+  auto sdfElem = _sdf->FindElement("left_joint");
   while (sdfElem)
   {
     this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());

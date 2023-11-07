@@ -64,7 +64,7 @@ void JointStatePublisher::Configure(
   // specified joints. Otherwise, publish all the joints.
   if (_sdf->HasElement("joint_name"))
   {
-    sdf::ElementConstPtr elem = _sdf->FindElement("joint_name");
+    auto elem = _sdf->FindElement("joint_name");
     while (elem)
     {
       std::string jointName = elem->Get<std::string>();

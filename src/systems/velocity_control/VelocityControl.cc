@@ -157,7 +157,7 @@ void VelocityControl::Configure(const Entity &_entity,
   if (!_sdf->HasElement("link_name"))
     return;
 
-  sdf::ElementConstPtr sdfElem = _sdf->FindElement("link_name");
+  auto sdfElem = _sdf->FindElement("link_name");
   while (sdfElem)
   {
     this->dataPtr->linkNames.push_back(sdfElem->Get<std::string>());

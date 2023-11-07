@@ -239,7 +239,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     this->dataPtr->bodyLinkName = _sdf->Get<std::string>("body_link");
 
   // Get params from SDF
-  sdf::ElementConstPtr sdfElem = _sdf->FindElement("left_track");
+  auto sdfElem = _sdf->FindElement("left_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
