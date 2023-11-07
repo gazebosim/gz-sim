@@ -144,14 +144,11 @@ void ShaderParam::Configure(const Entity &_entity,
                EventManager &_eventMgr)
 {
   GZ_PROFILE("ShaderParam::Configure");
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto sdf = const_cast<sdf::Element *>(_sdf.get());
 
-  if (sdf->HasElement("param"))
+  if (_sdf->HasElement("param"))
   {
     // loop and parse all shader params
-    sdf::ElementPtr paramElem = sdf->GetElement("param");
+    sdf::ElementConstPtr paramElem = _sdf->FindElement("param");
     while (paramElem)
     {
       if (!paramElem->HasElement("shader") ||
@@ -176,7 +173,7 @@ void ShaderParam::Configure(const Entity &_entity,
 
       if (paramElem->HasElement("arg"))
       {
-        sdf::ElementPtr argElem = paramElem->GetElement("arg");
+        sdf::ElementConstPtr argElem = paramElem->FindElement("arg");
         while (argElem)
         {
           spv.args.push_back(argElem->Get<std::string>());
@@ -197,14 +194,14 @@ void ShaderParam::Configure(const Entity &_entity,
   }
 
   // parse path to shaders
-  if (!sdf->HasElement("shader"))
+  if (!_sdf->HasElement("shader"))
   {
     gzerr << "Unable to load shader param system. "
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
   // allow mulitple shader SDF element for different shader languages
-  sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+  sdf::ElementConstPtr shaderElem = _sdf->FindElement("shader");
   while (shaderElem)
   {
     if (!shaderElem->HasElement("vertex") ||
@@ -223,11 +220,11 @@ void ShaderParam::Configure(const Entity &_entity,
       ShaderParamPrivate::ShaderUri shader;
       shader.language = api;
 
-      sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
+      sdf::ElementConstPtr vertexElem = shaderElem->FindElement("vertex");
       shader.vertexShaderUri = common::findFile(
           asFullPath(vertexElem->Get<std::string>(),
           this->dataPtr->modelPath));
-      sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
+      sdf::ElementConstPtr fragmentElem = shaderElem->FindElement("fragment");
       shader.fragmentShaderUri = common::findFile(
           asFullPath(fragmentElem->Get<std::string>(),
           this->dataPtr->modelPath));

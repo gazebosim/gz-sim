@@ -233,17 +233,13 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (!links.empty())
     this->dataPtr->canonicalLink = Link(links[0]);
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  std::unordered_map<std::string, sdf::ElementPtr> tracks;
+  std::unordered_map<std::string, sdf::ElementConstPtr> tracks;
 
   if (_sdf->HasElement("body_link"))
     this->dataPtr->bodyLinkName = _sdf->Get<std::string>("body_link");
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_track");
+  sdf::ElementConstPtr sdfElem = _sdf->FindElement("left_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -251,7 +247,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     tracks[linkName] = sdfElem;
     sdfElem = sdfElem->GetNextElement("left_track");
   }
-  sdfElem = ptr->GetElement("right_track");
+  sdfElem = _sdf->FindElement("right_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -294,7 +290,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     if (!_sdf->HasElement(tag))
       continue;
 
-    auto sdf = ptr->GetElement(tag);
+    auto sdf = _sdf->FindElement(tag);
 
     // Parse speed limiter parameters.
     bool hasVelocityLimits     = false;
