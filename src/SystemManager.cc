@@ -113,16 +113,16 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsConfigureParameters.push_back(system.configureParameters);
 
     if (system.reset)
-      this->systemsReset.push_back(system.reset);
+      this->systemsReset.emplace_back(system.parentEntity, system.reset);
 
     if (system.preupdate)
-      this->systemsPreupdate.push_back(system.preupdate);
+      this->systemsPreupdate.emplace_back(system.parentEntity, system.preupdate);
 
     if (system.update)
-      this->systemsUpdate.push_back(system.update);
+      this->systemsUpdate.emplace_back(system.parentEntity, system.update);
 
     if (system.postupdate)
-      this->systemsPostupdate.push_back(system.postupdate);
+      this->systemsPostupdate.emplace_back(system.parentEntity, system.postupdate);
   }
 
   this->pendingSystems.clear();
@@ -289,25 +289,25 @@ SystemManager::SystemsConfigureParameters()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemReset *> &SystemManager::SystemsReset()
+const std::vector<SystemHolder<ISystemReset>> &SystemManager::SystemsReset()
 {
   return this->systemsReset;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemPreUpdate *>& SystemManager::SystemsPreUpdate()
+const std::vector<SystemHolder<ISystemPreUpdate>>& SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
+const std::vector<SystemHolder<ISystemUpdate>>& SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
+const std::vector<SystemHolder<ISystemPostUpdate>>& SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
 }
@@ -408,4 +408,57 @@ void SystemManager::ProcessPendingEntitySystems()
     }
   }
   this->systemsToAdd.clear();
+}
+
+template <typename T>
+struct identity
+{
+    using type = T;
+};
+//////////////////////////////////////////////////
+/// TODO(arjo) - When we move to C++20 we can just use erase_if
+/// Removes all items that match the given predicate.
+/// This function runs in O(n) time and uses memory in-place
+template<typename Tp>
+void RemoveFromVectorIf(std::vector<Tp>& vec,
+  typename identity<std::function<bool(const Tp&)>>::type pred)
+{
+  auto resizedVec = vec.size();
+  for(std::size_t i = 0; i < resizedVec; ++i) {
+    int j = 1;
+    while (pred(vec[i])) {
+      if (i+j >= vec.size()) {
+        break;
+      }
+      vec[i] = vec[i + j];
+      j++;
+      resizedVec--;
+    }
+  }
+
+  while (vec.size() > resizedVec) {
+    vec.pop_back();
+  }
+}
+
+//////////////////////////////////////////////////
+void SystemManager::ProcessRemovedEntities(
+  const EntityComponentManager &_ecm)
+{
+  RemoveFromVectorIf(this->systemsReset,
+    [&](const SystemHolder<ISystemReset>& system) {
+      return _ecm.IsMarkedForRemoval(system.parent);
+    });
+  RemoveFromVectorIf(this->systemsPreupdate,
+    [&](const SystemHolder<ISystemPreUpdate>& system) {
+      return _ecm.IsMarkedForRemoval(system.parent);
+    });
+  RemoveFromVectorIf(this->systemsUpdate,
+    [&](const SystemHolder<ISystemUpdate>& system) {
+      return _ecm.IsMarkedForRemoval(system.parent);
+    });
+  RemoveFromVectorIf(this->systemsPostupdate,
+    [&](const SystemHolder<ISystemPostUpdate>& system) {
+      return _ecm.IsMarkedForRemoval(system.parent);
+    });
 }
