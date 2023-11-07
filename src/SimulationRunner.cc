@@ -30,6 +30,7 @@
 #include <gz/msgs/world_stats.pb.h>
 
 #include <sdf/Root.hh>
+#include <vector>
 
 #include "gz/common/Profiler.hh"
 #include "gz/sim/components/Model.hh"
@@ -523,7 +524,7 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
-          system->PostUpdate(this->currentInfo, this->entityCompMgr);
+          system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
       }
@@ -554,13 +555,13 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
-      system->PreUpdate(this->currentInfo, this->entityCompMgr);
+      system.system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
     GZ_PROFILE("Update");
     for (auto& system : this->systemMgr->SystemsUpdate())
-      system->Update(this->currentInfo, this->entityCompMgr);
+      system.system->Update(this->currentInfo, this->entityCompMgr);
   }
 
   {
@@ -872,6 +873,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals

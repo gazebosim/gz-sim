@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Plugin.hh>
@@ -40,6 +41,14 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
+
+    template<typename IFace>
+    struct SystemHolder {
+      Entity parent;
+      IFace* system;
+
+      SystemHolder(Entity _parent, IFace* _iface): parent(_parent), system(_iface) {}; 
+    };
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
@@ -124,19 +133,19 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
-      public: const std::vector<ISystemReset *>& SystemsReset();
+      public: const std::vector<SystemHolder<ISystemReset>>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
-      public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
+      public: const std::vector<SystemHolder<ISystemPreUpdate>>& SystemsPreUpdate();
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
-      public: const std::vector<ISystemUpdate *>& SystemsUpdate();
+      public: const std::vector<SystemHolder<ISystemUpdate>>& SystemsUpdate();
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
-      public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
+      public: const std::vector<SystemHolder<ISystemPostUpdate>>& SystemsPostUpdate();
 
       /// \brief Get an vector of all systems attached to a given entity.
       /// \return Vector of systems.
@@ -144,6 +153,9 @@ namespace gz
 
       /// \brief Process system messages and add systems to entities
       public: void ProcessPendingEntitySystems();
+
+      public: void ProcessRemovedEntities(
+        const EntityComponentManager &_entityCompMgr);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
@@ -194,16 +206,16 @@ namespace gz
         systemsConfigureParameters;
 
       /// \brief Systems implementing Reset
-      private: std::vector<ISystemReset *> systemsReset;
+      private: std::vector<SystemHolder<ISystemReset>> systemsReset;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
+      private: std::vector<SystemHolder<ISystemPreUpdate>> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
+      private: std::vector<SystemHolder<ISystemUpdate>> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+      private: std::vector<SystemHolder<ISystemPostUpdate>> systemsPostupdate;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;
