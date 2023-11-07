@@ -35,58 +35,59 @@ namespace systems
   /// \brief Mecanum drive controller which can be attached to a model
   /// with any number of front/back left/right wheels.
   ///
-  /// # System Parameters
+  /// ## System Parameters
   ///
-  /// `<front_left_joint>`: Name of a joint that controls a front left wheel.
+  /// - `<front_left_joint>`: Name of a joint that controls a front left wheel.
   /// This element can appear multiple times, and must appear at least once.
   ///
-  /// `<front_right_joint>`: Name of a joint that controls a front right wheel.
+  /// - `<front_right_joint>`: Name of a joint that controls a front right
+  /// wheel. This element can appear multiple times, and must appear at least
+  /// once.
+  ///
+  /// - `<back_left_joint>`: Name of a joint that controls a back left wheel.
   /// This element can appear multiple times, and must appear at least once.
   ///
-  /// `<back_left_joint>`: Name of a joint that controls a back left wheel.
+  /// - `<back_right_joint>`: Name of a joint that controls a back right wheel.
   /// This element can appear multiple times, and must appear at least once.
   ///
-  /// `<back_right_joint>`: Name of a joint that controls a back right wheel.
-  /// This element can appear multiple times, and must appear at least once.
-  ///
-  /// `<wheelbase>`: Longitudinal distance between front and back wheels,
+  /// - `<wheelbase>`: Longitudinal distance between front and back wheels,
   /// in meters. This element is optional, although it is recommended to be
   /// included with an appropriate value. The default value is 1.0m.
   ///
-  /// `<wheel_separation>`: Lateral distance between left and right wheels,
+  /// - `<wheel_separation>`: Lateral distance between left and right wheels,
   /// in meters. This element is optional, although it is recommended to be
   /// included with an appropriate value. The default value is 1.0m.
   ///
-  /// `<wheel_radius>`: Wheel radius in meters. This element is optional,
+  /// - `<wheel_radius>`: Wheel radius in meters. This element is optional,
   /// although it is recommended to be included with an appropriate value. The
   /// default value is 0.2m.
   ///
-  /// `<odom_publish_frequency>`: Odometry publication frequency. This
+  /// - `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-  /// `<topic>`: Custom topic that this system will subscribe to in order to
+  /// - `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command velocity messages. This element if optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel`.
   ///
-  /// `<odom_topic>`: Custom topic on which this system will publish odometry
+  /// - `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
-  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// - `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `frame_id` to `child_frame_id`. This element if optional,
   ///  and the default value is `/model/{name_of_model}/tf`.
   ///
-  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
+  /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
   /// `gz.msgs.Pose_V` message and the `<odom_topic>`
   /// `gz.msgs.Odometry` message. This element if optional, and the
   /// default value is `{name_of_model}/odom`.
   ///
-  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
+  /// - `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   /// the target of the odometry trasnform in both the `<tf_topic>`
   /// `gz.msgs.Pose_V` message and the `<odom_topic>`
   /// `gz.msgs.Odometry` message. This element if optional,
-  ///  and the default value is `{name_of_model}/{name_of_link}`.
+  /// and the default value is `{name_of_model}/{name_of_link}`.
   class MecanumDrive
       : public System,
         public ISystemConfigure,

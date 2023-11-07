@@ -30,7 +30,7 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-  class EnvironmentVisualizationPrivate;
+  class EnvironmentVisualizationTool;
 
   /// \class EnvironmentVisualization EnvironmentVisualization.hh
   ///     gz/sim/systems/EnvironmentVisualization.hh
@@ -66,13 +66,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \internal
     /// \brief Pointer to private data
-    private: std::unique_ptr<EnvironmentVisualizationPrivate> dataPtr;
+    private: std::unique_ptr<EnvironmentVisualizationTool> dataPtr;
 
     public: unsigned int xSamples{10};
 
     public: unsigned int ySamples{10};
 
     public: unsigned int zSamples{10};
+
+    private: QTimer* qtimer;
   };
 }
 }

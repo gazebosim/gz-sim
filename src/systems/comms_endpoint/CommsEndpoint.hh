@@ -36,22 +36,23 @@ namespace systems
   /// running. The system will bind this address in the broker automatically
   /// for you and unbind it when the model is destroyed.
   ///
-  /// The endpoint can be configured with the following SDF parameters:
+  /// ## System Parameters
   ///
-  /// * Required parameters:
-  /// <address> An identifier used to receive messages (string).
-  /// <topic> The topic name where you want to receive the messages targeted to
-  /// this address.
+  /// Required parameters:
+  /// - `<address>`: An identifier used to receive messages (string).
+  /// - `<topic>`: The topic name where you want to receive the messages
+  ///   targeted to this address.
   ///
-  /// * Optional parameters:
-  /// <broker> Element used to capture where are the broker services.
-  ///          This block can contain any of the next optional parameters:
-  ///    <bind_service>: Service name used to bind an address.
-  ///                    The default value is "/broker/bind"
-  ///    <unbind_service>: Service name used to unbind from an address.
-  ///                      The default value is "/broker/unbind"
+  /// Optional parameters:
+  /// - `<broker>`: Element used to capture where are the broker services.
+  ///   This block can contain any of the next optional parameters:
+  ///   - `<bind_service>`: Service name used to bind an address.
+  ///     The default value is "/broker/bind"
+  ///   - `<unbind_service>`: Service name used to unbind from an address.
+  ///     The default value is "/broker/unbind"
   ///
-  /// Here's an example:
+  /// ## Example
+  /// ```
   /// <plugin
   ///   filename="gz-sim-comms-endpoint-system"
   ///   name="gz::sim::systems::CommsEndpoint">
@@ -62,6 +63,7 @@ namespace systems
   ///     <unbind_service>/broker/unbind</unbind_service>
   ///   </broker>
   /// </plugin>
+  /// ```
   class CommsEndpoint
       : public System,
         public ISystemConfigure,
