@@ -113,16 +113,20 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsConfigureParameters.push_back(system.configureParameters);
 
     if (system.reset)
-      this->systemsReset.emplace_back(system.parentEntity, system.reset);
+      this->systemsReset.emplace_back(system.parentEntity,
+        system.reset);
 
     if (system.preupdate)
-      this->systemsPreupdate.emplace_back(system.parentEntity, system.preupdate);
+      this->systemsPreupdate.emplace_back(system.parentEntity,
+        system.preupdate);
 
     if (system.update)
-      this->systemsUpdate.emplace_back(system.parentEntity, system.update);
+      this->systemsUpdate.emplace_back(system.parentEntity,
+        system.update);
 
     if (system.postupdate)
-      this->systemsPostupdate.emplace_back(system.parentEntity, system.postupdate);
+      this->systemsPostupdate.emplace_back(system.parentEntity,
+        system.postupdate);
   }
 
   this->pendingSystems.clear();

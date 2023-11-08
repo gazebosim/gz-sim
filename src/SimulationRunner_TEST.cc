@@ -1484,8 +1484,7 @@ TEST_P(SimulationRunnerTest,
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sphereEntity,
       componentId)) << componentId;
 
-  // Remove entities that have plugin - this is not unloading or destroying
-  // the plugin though!
+  // Remove entities that have plugin
   auto entityCount = runner.EntityCompMgr().EntityCount();
   const_cast<EntityComponentManager &>(
       runner.EntityCompMgr()).RequestRemoveEntity(boxEntity);
