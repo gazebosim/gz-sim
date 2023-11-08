@@ -10,6 +10,12 @@
 
     gz topic -e -t /model/elevator/state
 
+  Note that when commanding the lift to the ground floor:
+
+    gz topic -t "/model/elevator/cmd" -m gz.msgs.Int32 -p "data: 0"
+
+  The output of the topic echo command will stop as protobuf does not
+  distinguish between the un-set value and zero for integer fields.
 -->
 <sdf version="1.6">
   <world name="elevator_world">

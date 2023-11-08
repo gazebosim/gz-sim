@@ -615,7 +615,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     {
       components::JointPosition *tmp_controlJointPosition =
       controlJointPosition_vec[i];
-      controlAngle = tmp_controlJointPosition->Data()[0] * 180/M_PI;
+      controlAngle = tmp_controlJointPosition->Data()[0] * 180 / GZ_PI;
     }
 
     // AVL's and Gazebo's direction of "positive" deflection may be different.
@@ -671,7 +671,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   double CD_fp = 2 / (1 + exp(this->CD_fp_k1 + this->CD_fp_k2 * (
     std::max(this->AR, 1 / this->AR))));
-  CD = (1 - sigma) * (this->CD0 + (CL*CL) / (M_PI * this->AR *
+  CD = (1 - sigma) * (this->CD0 + (CL*CL) / (GZ_PI * this->AR *
     this->eff)) + sigma * abs(
       CD_fp * (0.5 - 0.5 * cos(2 * this->alpha)));
 

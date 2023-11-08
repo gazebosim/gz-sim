@@ -172,7 +172,7 @@ int main(int _argc, char **_argv)
   gz::msgs::Set(markerMsg.add_point(),
         gz::math::Vector3d(0, 0, 0.05));
   double radius = 2;
-  for (double t = 0; t <= M_PI; t+= 0.01)
+  for (double t = 0; t <= GZ_PI; t+= 0.01)
   {
     gz::msgs::Set(markerMsg.add_point(),
         gz::math::Vector3d(radius * cos(t), radius * sin(t), 0.05));
