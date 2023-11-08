@@ -42,12 +42,18 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
 
+    /// \brief Helper container to keep track of
+    /// system interfaces and their parents
     template<typename IFace>
     struct SystemHolder {
+      /// Parent entity of system
       Entity parent;
+
+      /// Interface pointer
       IFace* system;
 
-      SystemHolder(Entity _parent, IFace* _iface): parent(_parent), system(_iface) {}; 
+      /// \brief constructor
+      SystemHolder(Entity _parent, IFace* _iface): parent(_parent), system(_iface) {};
     };
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
