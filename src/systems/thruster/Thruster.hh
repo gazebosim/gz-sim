@@ -39,17 +39,34 @@ namespace systems
   /// theoretical angular velocity of the blades and spins them accordingly.
   ///
   /// ## System Parameters
+<<<<<<< HEAD
   /// - <namespace> - The namespace in which the robot exists. The plugin will
   ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`
   ///   or on {namespace}/{topic} if {topic} is set.
+=======
+  ///
+  /// - `<namespace>`: The namespace in which the robot exists. The plugin will
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`or
+  ///   `/model/{namespace}/joint/{joint_name}/cmd_vel` depending on the mode of
+  ///   operation. If {topic} is set then the plugin will listen on
+  ///   {namespace}/{topic}
+>>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   ///   [Optional]
-  /// - <topic> - The topic for receiving thrust commands. [Optional]
-  /// - <joint_name> - This is the joint in the model which corresponds to the
+  /// - `<topic>`: The topic for receiving thrust commands. [Optional]
+  /// - `<joint_name>`: This is the joint in the model which corresponds to the
   ///   propeller. [Required]
+<<<<<<< HEAD
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
+=======
+  /// - `<use_angvel_cmd>`: If set to true will make the thruster
+  ///   plugin accept commands in angular velocity in radians per seconds in
+  ///   terms of newtons. [Optional, Boolean, defaults to false]
+  /// - `<fluid_density>`: The fluid density of the liquid in which the thruster
+>>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
-  /// - <propeller_diameter> - The diameter of the propeller in meters.
+  /// - `<propeller_diameter>`: The diameter of the propeller in meters.
   ///   [Optional, m, defaults to 0.02m]
+<<<<<<< HEAD
   /// - <thrust_coefficient> - This is the coefficient which relates the angular
   ///   velocity to actual thrust. [Optional, no units, defaults to 1.0]
   ///
@@ -86,8 +103,60 @@ namespace systems
   /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
   ///
   /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
+=======
+  /// - `<thrust_coefficient>`: This is the coefficient which relates the
+  ///   angular velocity to thrust. A positive coefficient corresponds to a
+  ///   clockwise propeller, which is a propeller that spins clockwise under
+  ///   positive thrust when viewed along the parent link from stern (-x) to
+  ///   bow (+x). [Optional, no units, defaults to 1.0]
+  ///   ```
+  ///   omega = sqrt(thrust /
+  ///       (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+  ///   ```
+  ///   where omega is the propeller's angular velocity in rad/s.
+  /// - `<velocity_control>`: If true, use joint velocity commands to rotate the
+  ///   propeller. If false, use a PID controller to apply wrenches directly to
+  ///   the propeller link instead. [Optional, defaults to false].
+  /// - `<p_gain>`: Proportional gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.1]
+  /// - `<i_gain>`: Integral gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.0]
+  /// - `<d_gain>`: Derivative gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.0]
+  /// - `<max_thrust_cmd>`: Maximum input thrust or angular velocity command.
+  ///                       [Optional, defaults to 1000N or 1000rad/s]
+  /// - `<min_thrust_cmd>`: Minimum input thrust or angular velocity command.
+  ///                       [Optional, defaults to -1000N or -1000rad/s]
+  /// - `<deadband>`: Deadband of the thruster. Absolute value below which the
+  ///                 thruster won't spin nor generate thrust. This value can
+  ///                 be changed at runtime using a topic. The topic is either
+  ///                 `/model/{ns}/joint/{jointName}/enable_deadband` or
+  ///                 `{ns}/{topic}/enable_deadband` depending on other params
+  /// - `<wake_fraction>`: Relative speed reduction between the water
+  ///                      at the propeller (Va) vs behind the vessel.
+  ///                      [Optional, defults to 0.2]
+  ///
+  ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///   ```
+  ///   Va = (1 - wake_fraction) * advance_speed
+  ///   ```
+  ///
+  /// - `<alpha_1>`: Constant given by the open water propeller diagram. Used
+  ///                in the calculation of the thrust coefficient (Kt).
+  ///                [Optional, defults to 1]
+  /// - `<alpha_2>`: Constant given by the open water propeller diagram. Used
+  ///                in the calculation of the thrust coefficient (Kt).
+  ///                [Optional, defults to 0]
+  ///
+  ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///   ```
+  ///   Kt = alpha_1 * alpha_2 *
+  ///       (Va / (propeller_revolution * propeller_diameter))
+  ///   ```
+>>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   ///
   /// ## Example
+  ///
   /// An example configuration is installed with Gazebo. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
   /// thruster plugin to propell the craft and the buoyancy plugin for buoyant
@@ -96,6 +165,7 @@ namespace systems
   /// ign gazebo auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following:
+<<<<<<< HEAD
   /// ```
   /// ign topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos
   ///    -m ignition.msgs.Double -p 'data: -0.17'
@@ -105,6 +175,19 @@ namespace systems
   /// ign topic -t /model/tethys/joint/propeller_joint/cmd_thrust
   /// -m ignition.msgs.Double -p 'data: -31'
   /// ```
+=======
+  /** ```
+      gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+         -m gz.msgs.Double -p 'data: -0.17'
+      ```
+  **/
+  /// To apply a thrust you may run the following command:
+  /** ```
+      gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
+         -m gz.msgs.Double -p 'data: -31'
+      ```
+  **/
+>>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   /// The vehicle should move in a circle.
   class Thruster:
     public System,
