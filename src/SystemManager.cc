@@ -423,20 +423,19 @@ template<typename Tp>
 void RemoveFromVectorIf(std::vector<Tp>& vec,
   typename identity<std::function<bool(const Tp&)>>::type pred)
 {
-  auto resizedVec = vec.size();
-  for(std::size_t i = 0; i < resizedVec; ++i) {
-    int j = 1;
-    while (pred(vec[i])) {
-      if (i+j >= vec.size()) {
-        break;
-      }
-      vec[i] = vec[i + j];
+  auto originalSize = vec.size();
+  int j = 0;
+
+  for(std::size_t i = 0; i < vec.size(); ++i) {
+    if (pred(vec[i])) {
       j++;
-      resizedVec--;
+    }
+    else {
+      vec[i-j] = vec[i];
     }
   }
 
-  while (vec.size() > resizedVec) {
+  while (vec.size() > originalSize - j) {
     vec.pop_back();
   }
 }
