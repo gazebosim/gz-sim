@@ -299,19 +299,22 @@ const std::vector<SystemHolder<ISystemReset>> &SystemManager::SystemsReset()
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemPreUpdate>>& SystemManager::SystemsPreUpdate()
+const std::vector<SystemHolder<ISystemPreUpdate>>&
+  SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemUpdate>>& SystemManager::SystemsUpdate()
+const std::vector<SystemHolder<ISystemUpdate>>&
+  SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemPostUpdate>>& SystemManager::SystemsPostUpdate()
+const std::vector<SystemHolder<ISystemPostUpdate>>&
+  SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
 }
@@ -430,16 +433,20 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
   auto originalSize = vec.size();
   int j = 0;
 
-  for(std::size_t i = 0; i < vec.size(); ++i) {
-    if (pred(vec[i])) {
+  for(std::size_t i = 0; i < vec.size(); ++i)
+  {
+    if (pred(vec[i]))
+    {
       j++;
     }
-    else {
+    else
+    {
       vec[i-j] = vec[i];
     }
   }
 
-  while (vec.size() > originalSize - j) {
+  while (vec.size() > originalSize - j)
+  {
     vec.pop_back();
   }
 }
