@@ -40,14 +40,14 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<render_engine>` Name of the render engine, such as 'ogre' or 'ogre2'.
-  /// - `<background_color>` Color used for the scene's background. This
+  /// - `<render_engine>`: Name of the render engine, such as "ogre" or "ogre2".
+  /// - `<background_color>`: Color used for the scene's background. This
   /// will override the background color specified in a world's SDF <scene>
   /// element. This background color is used by sensors, not the GUI.
-  /// - `<ambient_light>` Color used for the scene's ambient light. This
+  /// - `<ambient_light>`: Color used for the scene's ambient light. This
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
-  /// - `<disable_on_drained_battery>` Disable sensors if the model's
+  /// - `<disable_on_drained_battery>`: Disable sensors if the model's
   /// battery plugin charge reaches zero. Sensors that are in nested
   /// models are also affected.
   ///

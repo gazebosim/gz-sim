@@ -40,95 +40,96 @@ namespace systems
   /// So far, this system only supports tracks that are parallel along a common
   /// axis (other designs are possible, but not implemented).
   ///
-  /// # Examples
+  /// ## System Parameters
   ///
-  /// See example usage in world example/tracked_vehicle_simple.sdf .
+  /// - `<left_track>`: Configuration of a left track link. This element can
+  ///   appear multiple times, and must appear at least once.
   ///
-  /// # System Parameters
+  /// - `<right_track>`: Configuration of a right track link. This element can
+  ///   appear multiple times, and must appear at least once.
   ///
-  /// `<left_track>`: Configuration of a left track link. This element can
-  /// appear multiple times, and must appear at least once.
-  ///
-  /// `<right_track>`: Configuration of a right track link. This element can
-  /// appear multiple times, and must appear at least once.
-  ///
-  /// `<left_track>`, `<right_track>` subelements:
-  /// - `<link>`: The link representing the track. Required parameter.
-  /// - `<velocity_topic>`: The topic on which the track accepts velocity
+  /// - `<left_track>`, `<right_track>` subelements:
+  ///   - `<link>`: The link representing the track. Required parameter.
+  ///   - `<velocity_topic>`: The topic on which the track accepts velocity
   ///     commands (defaults to
   ///     `/model/${model_name}/link/${link_name}/track_cmd_vel`).
-  /// - `<center_of_rotation_topic>`: The topic on which the track accepts
+  ///   - `<center_of_rotation_topic>`: The topic on which the track accepts
   ///     center of rotation commands (defaults to
   ///     `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`)
   ///
-  /// `<tracks_separation>`: Distance between tracks, in meters. Required
+  /// - `<tracks_separation>`: Distance between tracks, in meters. Required
   ///   parameter.
   ///
-  /// `<track_height>`: Height of the tracks, in meters (used for computing
-  /// odometry). Required parameter.
+  /// - `<track_height>`: Height of the tracks, in meters (used for computing
+  ///   odometry). Required parameter.
   ///
-  /// `<steering_efficiency>`: Initial steering efficiency. Defaults to 0.5.
+  /// - `<steering_efficiency>`: Initial steering efficiency. Defaults to 0.5.
   ///
-  /// `<debug>` If 1, the system will output debugging info and visualizations.
-  ///   Defaults to 0.
+  /// - `<debug>`: If 1, the system will output debugging info and
+  ///   visualizations. Defaults to 0.
   ///
-  /// `<linear_velocity>`: Limiter of linear velocity of the vehicle. Please
+  /// - `<linear_velocity>`: Limiter of linear velocity of the vehicle. Please
   /// note that the tracks can each have their own speed limitations. If the
   /// element is not specified, the velocities etc. have no implicit limits.
-  /// - `<min_velocity>`/`<max_velocity>` Min/max velocity of the vehicle (m/s).
+  ///   - `<min_velocity>`/`<max_velocity>` Min/max velocity of the vehicle
+  ///     (m/s).
   ///     If not specified, the velocity is not limited (however the physics
   ///     will, in the end, have some implicit limit).
-  /// - `<min_acceleration>`/`<max_acceleration>` Min/max acceleration of the
+  ///   - `<min_acceleration>`/`<max_acceleration>` Min/max acceleration of the
   ///     vehicle (m/s^2). If not specified, the acceleration is not limited
   ///     (however the physics will, in the end, have some implicit limit).
-  /// - `<min_jerk>`/`<max_jerk>` Min/max jerk of the vehicle (m/s^3). If not
+  ///   - `<min_jerk>`/`<max_jerk>` Min/max jerk of the vehicle (m/s^3). If not
   ///     specified, the acceleration is not limited (however the physics will,
   ///     in the end, have some implicit limit).
   ///
-  /// `<angular_velocity>`: Limiter of angular velocity of the vehicle. Please
-  /// note that the tracks can each have their own speed limitations. If the
-  /// element is not specified, the velocities etc. have no implicit limits.
-  /// - `<min_velocity>`/`<max_velocity>` Min/max velocity of the vehicle
+  /// - `<angular_velocity>`: Limiter of angular velocity of the vehicle. Please
+  ///   note that the tracks can each have their own speed limitations. If the
+  ///   element is not specified, the velocities etc. have no implicit limits.
+  ///   - `<min_velocity>`/`<max_velocity>` Min/max velocity of the vehicle
   ///     (rad/s). If not specified, the velocity is not limited (however the
-  ///      physics will, in the end, have some implicit limit).
-  /// - `<min_acceleration>`/`<max_acceleration>` Min/max acceleration of the
+  ///     physics will, in the end, have some implicit limit).
+  ///   - `<min_acceleration>`/`<max_acceleration>` Min/max acceleration of the
   ///     vehicle (rad/s^2). If not specified, the velocity is not limited
   ///     (however the physics will, in the end, have some implicit limit).
-  /// - `<min_jerk>`/`<max_jerk>` Min/max jerk of the vehicle (rad/s^3). If not
-  ///     specified, the velocity is not limited (however the physics
+  ///   - `<min_jerk>`/`<max_jerk>` Min/max jerk of the vehicle (rad/s^3). If
+  ///     not specified, the velocity is not limited (however the physics
   ///     will, in the end, have some implicit limit).
   ///
-  /// `<odom_publish_frequency>`: Odometry publication frequency. This
-  /// element is optional, and the default value is 50Hz.
+  /// - `<odom_publish_frequency>`: Odometry publication frequency. This
+  ///   element is optional, and the default value is 50Hz.
   ///
-  /// `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element is optional, and the
-  /// default value is `/model/{model_name}/cmd_vel`.
+  /// - `<topic>`: Custom topic that this system will subscribe to in order to
+  ///   receive command velocity messages. This element is optional, and the
+  ///   default value is `/model/{model_name}/cmd_vel`.
   ///
-  /// `<steering_efficiency_topic>`: Custom topic that this system will
-  /// subscribe to in order to receive steering efficiency messages.
-  /// This element is optional, and the default value is
-  /// `/model/{model_name}/steering_efficiency`.
+  /// - `<steering_efficiency_topic>`: Custom topic that this system will
+  ///   subscribe to in order to receive steering efficiency messages.
+  ///   This element is optional, and the default value is
+  ///   `/model/{model_name}/steering_efficiency`.
   ///
-  /// `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element is optional, and the default value is
-  /// `/model/{model_name}/odometry`.
+  /// - `<odom_topic>`: Custom topic on which this system will publish odometry
+  ///   messages. This element is optional, and the default value is
+  ///   `/model/{model_name}/odometry`.
   ///
-  /// `<tf_topic>`: Custom topic on which this system will publish the
-  /// transform from `frame_id` to `child_frame_id`. This element is optional,
-  ///  and the default value is `/model/{model_name}/tf`.
+  /// - `<tf_topic>`: Custom topic on which this system will publish the
+  ///   transform from `frame_id` to `child_frame_id`. This element is optional,
+  ///   and the default value is `/model/{model_name}/tf`.
   ///
-  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
-  /// origin of the odometry transform in both the `<tf_topic>`
-  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
-  /// `gz.msgs.Odometry` message. This element if optional, and the
-  /// default value is `{model_name}/odom`.
+  /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
+  ///   origin of the odometry transform in both the `<tf_topic>`
+  ///   `gz.msgs.Pose_V` message and the `<odom_topic>`
+  ///   `gz.msgs.Odometry` message. This element if optional, and the
+  ///   default value is `{model_name}/odom`.
   ///
-  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  /// the target of the odometry trasnform in both the `<tf_topic>`
-  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
-  /// `gz.msgs.Odometry` message. This element if optional,
-  ///  and the default value is `{model_name}/{link_name}`.
+  /// - `<child_frame_id>`: Custom `child_frame_id` that this system will use as
+  ///   the target of the odometry trasnform in both the `<tf_topic>`
+  ///   `gz.msgs.Pose_V` message and the `<odom_topic>`
+  ///   `gz.msgs.Odometry` message. This element if optional,
+  ///   and the default value is `{model_name}/{link_name}`.
+  ///
+  /// ## Examples
+  ///
+  /// See example usage in world `example/tracked_vehicle_simple.sdf`.
   class TrackedVehicle
       : public System,
         public ISystemConfigure,

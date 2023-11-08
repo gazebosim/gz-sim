@@ -36,44 +36,44 @@ namespace systems
   /// order to periodically publish 2D or 3D odometry data in the form of
   /// gz::msgs::Odometry messages.
   ///
-  /// # System Parameters
+  /// ## System Parameters
   ///
-  /// `<odom_frame>`: Name of the world-fixed coordinate frame for the
+  /// - `<odom_frame>`: Name of the world-fixed coordinate frame for the
   //  odometry message. This element is optional, and the default value
   /// is `{name_of_model}/odom`.
   ///
-  /// `<robot_base_frame>`: Name of the coordinate frame rigidly attached
+  /// - `<robot_base_frame>`: Name of the coordinate frame rigidly attached
   /// to the mobile robot base. This element is optional, and the default
   /// value is `{name_of_model}/base_footprint`.
   ///
-  /// `<odom_publish_frequency>`: Odometry publication frequency. This
+  /// - `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-  /// `<odom_topic>`: Custom topic on which this system will publish odometry
+  /// - `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
-  /// `<odom_covariance_topic>`: Custom topic on which this system will publish
-  /// odometry with covariance messages. This element is optional, and the
-  /// default value is `/model/{name_of_model}/odometry_with_covariance`.
+  /// - `<odom_covariance_topic>`: Custom topic on which this system will
+  /// publish odometry with covariance messages. This element is optional, and
+  /// the default value is `/model/{name_of_model}/odometry_with_covariance`.
   ///
-  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// - `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `odom_frame` to `robot_base_frame`. This element is
   /// optional, and the default value is `/model/{name_of_model}/pose`.
   ///
-  /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
+  /// - `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
   /// default value is 2.
   ///
-  /// `<xyz_offset>`: Position offset relative to the body fixed frame, the
+  /// - `<xyz_offset>`: Position offset relative to the body fixed frame, the
   /// default value is 0 0 0. This offset will be added to the odometry
   /// message.
   ///
-  /// `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
+  /// - `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
   /// default value is 0 0 0. This offset will be added to the odometry
-  ///  message.
+  /// message.
   ///
-  /// `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
+  /// - `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
   /// to pose and twist messages. This element is optional, and the default
   /// value is 0.
   class OdometryPublisher
