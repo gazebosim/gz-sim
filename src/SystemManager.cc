@@ -444,6 +444,11 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 void SystemManager::ProcessRemovedEntities(
   const EntityComponentManager &_ecm)
 {
+  if (!_ecm.HasEntitiesMarkedForRemoval())
+  {
+    return;
+  }
+
   RemoveFromVectorIf(this->systemsReset,
     [&](const SystemHolder<ISystemReset>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
