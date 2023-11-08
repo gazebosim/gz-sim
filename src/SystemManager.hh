@@ -53,7 +53,8 @@ namespace gz
       IFace* system;
 
       /// \brief constructor
-      SystemHolder(Entity _parent, IFace* _iface): parent(_parent), system(_iface) {};
+      SystemHolder(Entity _parent, IFace* _iface):
+        parent(_parent), system(_iface) {}
     };
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
@@ -143,7 +144,8 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
-      public: const std::vector<SystemHolder<ISystemPreUpdate>>& SystemsPreUpdate();
+      public: const std::vector<SystemHolder<ISystemPreUpdate>>&
+        SystemsPreUpdate();
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
@@ -151,7 +153,8 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
-      public: const std::vector<SystemHolder<ISystemPostUpdate>>& SystemsPostUpdate();
+      public: const std::vector<SystemHolder<ISystemPostUpdate>>&
+        SystemsPostUpdate();
 
       /// \brief Get an vector of all systems attached to a given entity.
       /// \return Vector of systems.
