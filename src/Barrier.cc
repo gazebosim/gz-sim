@@ -16,6 +16,7 @@
  */
 
 #include "Barrier.hh"
+#include <iostream>
 
 class gz::sim::BarrierPrivate
 {
@@ -68,9 +69,10 @@ Barrier::ExitStatus Barrier::Wait()
     this->dataPtr->generation++;
     this->dataPtr->count = this->dataPtr->threadCount;
     this->dataPtr->cv.notify_all();
+    std::cout << "Barrier reset " << this->dataPtr->count << std::endl;
     return Barrier::ExitStatus::DONE_LAST;
   }
-
+  std::cout << "Barrier waiting " << this->dataPtr->count << std::endl;
   while (gen == this->dataPtr->generation && !this->dataPtr->cancelled)
   {
     // All threads haven't reached, so wait until generation is reached
@@ -98,11 +100,12 @@ void Barrier::Cancel()
   this->dataPtr->cv.notify_all();
 }
 
-#include <iostream>
 //////////////////////////////////////////////////
 void Barrier::Drop()
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->threadCount--;
+  this->dataPtr->count--;
+  //std::cout << "Dropping " << this->dataPtr->threadCount << ", " << this->dataPtr->count <<std::endl;
   this->dataPtr->cv.notify_all();
 }
