@@ -130,13 +130,14 @@ namespace gz
 
       /// \brief Get a vector of all systems implementing "Configure"
       /// \return Vector of systems' configure interfaces.
-      public: const std::vector<ISystemConfigure *>& SystemsConfigure();
+      public: const std::vector<SystemHolder<ISystemConfigure>>&
+        SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing
       ///   "ConfigureParameters"
       /// \return Vector of systems's configure interfaces.
-      public: const std::vector<ISystemConfigureParameters *>&
-      SystemsConfigureParameters();
+      public: const std::vector<SystemHolder<ISystemConfigureParameters>>&
+        SystemsConfigureParameters();
 
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
@@ -163,8 +164,11 @@ namespace gz
       /// \brief Process system messages and add systems to entities
       public: void ProcessPendingEntitySystems();
 
+      /// \brief Remove systems that are attached to removed entities
+      /// \param[in] _entityCompMgr - ECM with entities marked for removal
       public: void ProcessRemovedEntities(
-        const EntityComponentManager &_entityCompMgr);
+        const EntityComponentManager &_entityCompMgr,
+        std::unordered_map<Entity, std::size_t> &_threadsToTerminate);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
@@ -208,10 +212,10 @@ namespace gz
       private: mutable std::mutex pendingSystemsMutex;
 
       /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure *> systemsConfigure;
+      private: std::vector<SystemHolder<ISystemConfigure>> systemsConfigure;
 
       /// \brief Systems implementing ConfigureParameters
-      private: std::vector<ISystemConfigureParameters *>
+      private: std::vector<SystemHolder<ISystemConfigureParameters>>
         systemsConfigureParameters;
 
       /// \brief Systems implementing Reset
