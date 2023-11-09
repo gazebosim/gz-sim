@@ -45,8 +45,9 @@ namespace systems
   /// PerformerDetector's region, which is also represented by an
   /// gz::math::AxisAlignedBox. When a performer is detected, the system
   /// publishes a gz.msgs.Pose message with the pose of the detected
-  /// performer with respect to the model containing the PerformerDetector. The
-  /// name and id fields of the Pose message will be set to the name and the
+  /// performer with respect to the model containing the PerformerDetector.
+  ///
+  /// The name and id fields of the Pose message will be set to the name and the
   /// entity of the detected performer respectively. The header of the Pose
   /// message contains the time stamp of detection. The `data` field of the
   /// header will contain the key "frame_id" with a value set to the name of
@@ -62,19 +63,22 @@ namespace systems
   /// The system does not assume that levels are enabled, but it does require
   /// performers to be specified.
   ///
-  /// ## System parameters
+  /// ## System Parameters
   ///
-  /// `<topic>`: Custom topic to be used for publishing when a performer is
+  /// - `<topic>`: Custom topic to be used for publishing when a performer is
   /// detected. If not set, the default topic with the following pattern would
   /// be used "/model/<model_name>/performer_detector/status". The topic type
   /// is gz.msgs.Pose
-  /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
+  ///
+  /// - `<geometry>`: Detection region. Currently, only the `<box>` geometry is
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.
-  /// `<pose>`: Additional pose offset relative to the parent model's pose.
+  ///
+  /// - `<pose>`: Additional pose offset relative to the parent model's pose.
   /// This pose is added to the parent model pose when computing the
   /// detection region. Only the position component of the `<pose>` is used.
-  /// `<header_data>`: Zero or more key-value pairs that will be
+  ///
+  /// - `<header_data>`: Zero or more key-value pairs that will be
   /// included in the header of the detection messages. A `<header_data>`
   /// element should have child `<key>` and `<value>` elements whose
   /// contents are interpreted as strings. Keys value pairs are stored in a

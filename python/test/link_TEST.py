@@ -18,7 +18,7 @@ import unittest
 
 from gz_test_deps.common import set_verbosity
 from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
-from gz_test_deps.math import Matrix3d, Vector3d, Pose3d
+from gz_test_deps.math import Inertiald, Matrix3d, Vector3d, Pose3d
 
 class TestModel(unittest.TestCase):
     post_iterations = 0
@@ -59,6 +59,10 @@ class TestModel(unittest.TestCase):
             # Visuals Test
             self.assertNotEqual(K_NULL_ENTITY, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))
+            # World Inertial Test
+            self.assertEqual(Pose3d(), link.world_inertial(_ecm).pose())
+            self.assertEqual(Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1), link.world_inertial(_ecm).moi())
+            self.assertEqual(10.0, link.world_inertial(_ecm).mass_matrix().mass())
             # World Inertial Pose Test.
             self.assertEqual(Pose3d(), link.world_inertial_pose(_ecm))
             # World Velocity Test
@@ -76,7 +80,7 @@ class TestModel(unittest.TestCase):
             self.assertEqual(Vector3d(), link.world_linear_acceleration(_ecm))
             self.assertEqual(Vector3d(), link.world_angular_acceleration(_ecm))
             # World Inertia Matrix Test
-            self.assertEqual(Matrix3d(1,0,0,0,1,0,0,0,1), link.world_inertia_matrix(_ecm))
+            self.assertEqual(Matrix3d(1, 0, 0, 0, 1, 0, 0, 0, 1), link.world_inertia_matrix(_ecm))
             # World Kinetic Energy Test
             self.assertEqual(0, link.world_kinetic_energy(_ecm))
             link.enable_velocity_checks(_ecm, False)

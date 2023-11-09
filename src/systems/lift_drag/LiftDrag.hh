@@ -64,6 +64,8 @@ namespace systems
   ///   stall.
   /// - `<control_joint_name>`: Name of joint that actuates a control surface
   ///   for this lifting body (Optional)
+  /// - `<cm_delta>`: How much Cm changes with a change in control
+  ///   surface deflection angle
   class LiftDrag
       : public System,
         public ISystemConfigure,
