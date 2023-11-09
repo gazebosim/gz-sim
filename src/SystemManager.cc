@@ -16,10 +16,12 @@
 */
 
 #include <list>
+#include <mutex>
 #include <set>
 
 #include <gz/common/StringUtils.hh>
 
+#include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
 #include "SystemManager.hh"
@@ -107,10 +109,14 @@ size_t SystemManager::ActivatePendingSystems()
     this->systems.push_back(system);
 
     if (system.configure)
-      this->systemsConfigure.push_back(system.configure);
+      this->systemsConfigure.emplace_back(
+        system.parentEntity,
+        system.configure);
 
     if (system.configureParameters)
-      this->systemsConfigureParameters.push_back(system.configureParameters);
+      this->systemsConfigureParameters.emplace_back(
+        system.parentEntity,
+        system.configureParameters);
 
     if (system.reset)
       this->systemsReset.emplace_back(system.parentEntity,
@@ -281,12 +287,12 @@ void SystemManager::AddSystemImpl(
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
+const std::vector<SystemHolder<ISystemConfigure>>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
 }
 
-const std::vector<ISystemConfigureParameters *>&
+const std::vector<SystemHolder<ISystemConfigureParameters>>&
 SystemManager::SystemsConfigureParameters()
 {
   return this->systemsConfigureParameters;
@@ -453,7 +459,8 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 
 //////////////////////////////////////////////////
 void SystemManager::ProcessRemovedEntities(
-  const EntityComponentManager &_ecm)
+  const EntityComponentManager &_ecm,
+  std::unordered_map<Entity, std::size_t> &_threadsToTerminate)
 {
   if (!_ecm.HasEntitiesMarkedForRemoval())
   {
@@ -474,6 +481,37 @@ void SystemManager::ProcessRemovedEntities(
     });
   RemoveFromVectorIf(this->systemsPostupdate,
     [&](const SystemHolder<ISystemPostUpdate>& system) {
+      // Post update system. Make sure that the threadsToTerminate
+      if (_ecm.IsMarkedForRemoval(system.parent)) {
+        auto threads = _threadsToTerminate.find(system.parent);
+        if (threads == _threadsToTerminate.end()) {
+          _threadsToTerminate.emplace(system.parent, 1);
+        }
+        else {
+          threads->second++;
+        }
+        gzerr << "Terminating system for" << system.parent <<"\n";
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systemsConfigure,
+    [&](const SystemHolder<ISystemConfigure>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
+    });
+  RemoveFromVectorIf(this->systemsConfigureParameters,
+    [&](const SystemHolder<ISystemConfigureParameters>& system) {
+      return _ecm.IsMarkedForRemoval(system.parent);
+    });
+
+  /// NOTE: We can't do this because the pointers get messed up.
+  /*RemoveFromVectorIf(this->systems,
+    [&](const SystemInternal& system) {
+      return _ecm.IsMarkedForRemoval(system.parentEntity);
+    });*/
+  std::lock_guard lock(this->pendingSystemsMutex);
+  RemoveFromVectorIf(this->pendingSystems,
+    [&](const SystemInternal& system) {
+      return _ecm.IsMarkedForRemoval(system.parentEntity);
     });
 }

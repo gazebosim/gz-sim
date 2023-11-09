@@ -97,3 +97,12 @@ void Barrier::Cancel()
   this->dataPtr->cancelled = true;
   this->dataPtr->cv.notify_all();
 }
+
+#include <iostream>
+//////////////////////////////////////////////////
+void Barrier::Drop()
+{
+  std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->threadCount--;
+  this->dataPtr->cv.notify_all();
+}

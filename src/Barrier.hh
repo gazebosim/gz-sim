@@ -81,6 +81,8 @@ namespace gz
       /// reflect that.
       public: ExitStatus Wait();
 
+      public: void Drop();
+
       /// \brief Cancel the barrier, causing all threads to unblock and
       ///        return CANCELLED
       public: void Cancel();

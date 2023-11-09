@@ -516,6 +516,7 @@ void SimulationRunner::ProcessSystemQueue()
 
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
+      auto parentEntity = system.parent;
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
       GZ_PROFILE_THREAD_NAME(ss.str().c_str());
@@ -524,11 +525,24 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
+          auto terminate = this->threadsToTerminate.find(parentEntity);
+          if (terminate != this->threadsToTerminate.end()) {
+            terminate->second--;
+            if (terminate->second == 0) {
+              this->threadsToTerminate.erase(terminate);
+            }
+            gzerr << "Terminating thread " << id << ", " << parentEntity <<"\n";
+            this->postUpdateStartBarrier->Drop();
+            this->postUpdateStopBarrier->Wait();
+            this->postUpdateStopBarrier->Drop();
+            break;
+          }
           system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
       }
-      gzdbg << "Exiting postupdate worker thread ("
+     
+      gzerr << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
     id++;
@@ -873,7 +887,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
-  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr);
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsToTerminate);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
