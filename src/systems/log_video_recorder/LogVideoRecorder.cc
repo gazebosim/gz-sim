@@ -168,13 +168,9 @@ void LogVideoRecorder::Configure(
       this->dataPtr->node.Advertise<msgs::StringMsg>(
       "/log_video_recorder/status");
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   if (_sdf->HasElement("entity"))
   {
-    auto entityElem = ptr->GetElement("entity");
+    auto entityElem = _sdf->FindElement("entity");
     while (entityElem)
     {
       this->dataPtr->modelsToRecord.insert(entityElem->Get<std::string>());
@@ -184,7 +180,7 @@ void LogVideoRecorder::Configure(
 
   if (_sdf->HasElement("region"))
   {
-    sdf::ElementPtr regionElem = ptr->GetElement("region");
+    auto regionElem = _sdf->FindElement("region");
     while (regionElem)
     {
       auto min = regionElem->Get<math::Vector3d>("min");
@@ -198,14 +194,14 @@ void LogVideoRecorder::Configure(
 
   if (_sdf->HasElement("start_time"))
   {
-    auto t = ptr->Get<double>("start_time");
+    auto t = _sdf->Get<double>("start_time");
     this->dataPtr->startTime =
         std::chrono::milliseconds(static_cast<int64_t>(t * 1000.0));
   }
 
   if (_sdf->HasElement("end_time"))
   {
-    auto t = ptr->Get<double>("end_time");
+    auto t = _sdf->Get<double>("end_time");
     std::chrono::milliseconds ms(static_cast<int64_t>(t * 1000.0));
     if (this->dataPtr->startTime > ms)
     {
@@ -219,7 +215,7 @@ void LogVideoRecorder::Configure(
 
   if (_sdf->HasElement("exit_on_finish"))
   {
-    this->dataPtr->exitOnFinish = ptr->Get<bool>("exit_on_finish");
+    this->dataPtr->exitOnFinish = _sdf->Get<bool>("exit_on_finish");
   }
 
   this->dataPtr->loadTime = std::chrono::system_clock::now();
