@@ -51,13 +51,6 @@ class gz::sim::systems::VelocityControlPrivate
   public: void OnLinkCmdVel(const msgs::Twist &_msg,
     const transport::MessageInfo &_info);
 
-  /// \brief Update the linear and angular velocities.
-  /// \param[in] _info System update information.
-  /// \param[in] _ecm The EntityComponentManager of the given simulation
-  /// instance.
-  public: void UpdateVelocity(const UpdateInfo &_info,
-    const EntityComponentManager &_ecm);
-
   /// \brief Update link velocity.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
@@ -76,9 +69,6 @@ class gz::sim::systems::VelocityControlPrivate
 
   /// \brief Linear velocity of a model
   public: math::Vector3d linearVelocity{0, 0, 0};
-
-  /// \brief Last target velocity requested.
-  public: msgs::Twist targetVel;
 
   /// \brief A mutex to protect the model velocity command.
   public: std::mutex mutex;
@@ -123,8 +113,6 @@ void VelocityControl::Configure(const Entity &_entity,
   if (_sdf->HasElement("initial_linear"))
   {
     this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("initial_linear");
-    msgs::Set(this->dataPtr->targetVel.mutable_linear(),
-        this->dataPtr->linearVelocity);
     gzmsg << "Linear velocity initialized to ["
            << this->dataPtr->linearVelocity << "]" << std::endl;
   }
@@ -133,8 +121,6 @@ void VelocityControl::Configure(const Entity &_entity,
   {
     this->dataPtr->angularVelocity =
         _sdf->Get<math::Vector3d>("initial_angular");
-    msgs::Set(this->dataPtr->targetVel.mutable_angular(),
-        this->dataPtr->angularVelocity);
     gzmsg << "Angular velocity initialized to ["
            << this->dataPtr->angularVelocity << "]" << std::endl;
   }
@@ -275,22 +261,8 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  // update model velocities
-  this->dataPtr->UpdateVelocity(_info, _ecm);
   // update link velocities
   this->dataPtr->UpdateLinkVelocity(_info, _ecm);
-}
-
-//////////////////////////////////////////////////
-void VelocityControlPrivate::UpdateVelocity(
-    const UpdateInfo &/*_info*/,
-    const EntityComponentManager &/*_ecm*/)
-{
-  GZ_PROFILE("VeocityControl::UpdateVelocity");
-
-  std::lock_guard<std::mutex> lock(this->mutex);
-  this->linearVelocity = msgs::Convert(this->targetVel.linear());
-  this->angularVelocity = msgs::Convert(this->targetVel.angular());
 }
 
 //////////////////////////////////////////////////
@@ -315,7 +287,8 @@ void VelocityControlPrivate::UpdateLinkVelocity(
 void VelocityControlPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  this->targetVel = _msg;
+  this->linearVelocity = msgs::Convert(_msg.linear());
+  this->angularVelocity = msgs::Convert(_msg.angular());
 }
 
 //////////////////////////////////////////////////
