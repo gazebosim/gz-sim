@@ -192,31 +192,27 @@ void MecanumDrive::Configure(const Entity &_entity,
     return;
   }
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("front_left_joint");
+  auto sdfElem = _sdf->FindElement("front_left_joint");
   while (sdfElem)
   {
     this->dataPtr->frontLeftJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("front_left_joint");
   }
-  sdfElem = ptr->GetElement("front_right_joint");
+  sdfElem = _sdf->FindElement("front_right_joint");
   while (sdfElem)
   {
     this->dataPtr->frontRightJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("front_right_joint");
   }
 
-  sdfElem = ptr->GetElement("back_left_joint");
+  sdfElem = _sdf->FindElement("back_left_joint");
   while (sdfElem)
   {
     this->dataPtr->backLeftJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("back_left_joint");
   }
-  sdfElem = ptr->GetElement("back_right_joint");
+  sdfElem = _sdf->FindElement("back_right_joint");
   while (sdfElem)
   {
     this->dataPtr->backRightJointNames.push_back(sdfElem->Get<std::string>());
