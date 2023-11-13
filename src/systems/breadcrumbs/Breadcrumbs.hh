@@ -56,7 +56,7 @@ namespace systems
   /// model using the `<include>` tag.
   /// See the example in examples/worlds/breadcrumbs.sdf.
   ///
-  /// System Paramters
+  /// ## System Parameters
   ///
   /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
   /// not set, the default topic with the following pattern would be used
@@ -82,7 +82,7 @@ namespace systems
   /// be deployed. Defaults to false.
   /// - `<breadcrumb>`: This is the model used as a template for deploying
   /// breadcrumbs.
-  /// `<topic_statistics>`: If true, then topic statistics are enabled on
+  /// - `<topic_statistics>`: If true, then topic statistics are enabled on
   /// `<topic>` and error messages will be generated when messages are
   /// dropped. Default to false.
   class Breadcrumbs
