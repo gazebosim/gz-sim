@@ -69,7 +69,7 @@ class EnvironmentVisualizationTool
 
   /// \brief Create publisher structures whenever a new environment is made
   /// available.
-  /// \param[in] _data Data to be visuallized
+  /// \param[in] _data Data to be visualized
   /// \param[in] _info simulation info for current time step
   private: void CreatePointCloudTopics(
     const std::shared_ptr<components::EnvironmentalData> &_data,
@@ -81,7 +81,7 @@ class EnvironmentVisualizationTool
   /// \brief Step the visualizations
   /// \param[in] _info The simulation info including timestep
   /// \param[in] _ecm The Entity-Component-Manager
-  /// \param[in] _data The data to be visuallized
+  /// \param[in] _data The data to be visualized
   /// \param[in] _xSample Samples along x
   /// \param[in] _ySample Samples along y
   /// \param[in] _zSample Samples along z
@@ -92,7 +92,7 @@ class EnvironmentVisualizationTool
     double _xSamples, double _ySamples, double _zSamples);
 
   /// \brief Publishes a sample of the data
-  /// \param[in] _data The data to be visuallized
+  /// \param[in] _data The data to be visualized
   /// \param[in] _xSample Samples along x
   /// \param[in] _ySample Samples along y
   /// \param[in] _zSample Samples along z
@@ -106,7 +106,7 @@ class EnvironmentVisualizationTool
   /// \brief Resize the point cloud structure (used to reallocate
   /// memory when resolution changes)
   /// \param[in] _ecm The Entity-Component-Manager
-  /// \param[in] _data The data to be visuallized
+  /// \param[in] _data The data to be visualized
   /// \param[in] _xSample Samples along x
   /// \param[in] _ySample Samples along y
   /// \param[in] _zSample Samples along z
