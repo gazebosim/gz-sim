@@ -89,7 +89,7 @@ class EnvironmentVisualizationTool
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm,
     const std::shared_ptr<components::EnvironmentalData> &_data,
-    double _xSamples, double _ySamples, double _zSamples);
+    unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples);
 
   /// \brief Publishes a sample of the data
   /// \param[in] _data The data to be visualized
@@ -98,7 +98,7 @@ class EnvironmentVisualizationTool
   /// \param[in] _zSample Samples along z
   private: void Visualize(
     const std::shared_ptr<components::EnvironmentalData> &_data,
-    double _xSamples, double _ySamples, double _zSamples);
+    unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples);
 
   /// \brief Get the point cloud data.
   private: void Publish();
