@@ -36,9 +36,7 @@
 
 #include <gz/transport/Node.hh>
 
-#include <gz/msgs/float_v.pb.h>
-#include <gz/msgs/pointcloud_packed.pb.h>
-#include <gz/msgs/PointCloudPackedUtils.hh>
+#include <gz/msgs/vector3d.pb.h>
 #include <gz/msgs/Utility.hh>
 
 using namespace gz;
@@ -51,201 +49,44 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
 /// \brief Private data class for EnvironmentVisualization
-class EnvironmentVisualizationPrivate
+class EnvironmentVisualizationTool
 {
-  public: EnvironmentVisualizationPrivate()
-  {
-    this->pcPub =
-      this->node.Advertise<gz::msgs::PointCloudPacked>("/point_cloud");
-  }
-  /// \brief To synchronize member access.
-  public: std::mutex mutex;
-
-  /// \brief first load we need to scan for existing data sensor
-  public: bool first {true};
-
-  public: std::atomic<bool> resample{true};
 
   /////////////////////////////////////////////////
-  public: void CreatePointCloudTopics(
-    std::shared_ptr<components::EnvironmentalData> data) {
-    this->pubs.clear();
-    this->sessions.clear();
-    for (auto key : data->frame.Keys())
-    {
-      this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
-      gz::msgs::Float_V msg;
-      this->floatFields.emplace(key, msg);
-      this->sessions.emplace(key, data->frame[key].CreateSession());
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void Step(
-    const UpdateInfo &_info,
-    std::shared_ptr<components::EnvironmentalData> &data,
-    const EntityComponentManager& _ecm,
-    double xSamples, double ySamples, double zSamples)
+  public: void Initiallize(
+    const EntityComponentManager &_ecm)
   {
-    auto now = std::chrono::steady_clock::now();
-    std::chrono::duration<double> dt(now - this->lastTick);
-
-    if (this->resample)
-    {
-      this->CreatePointCloudTopics(data);
-      this->ResizeCloud(data, _ecm, xSamples, ySamples, zSamples);
-      this->resample = false;
-      this->lastTick = now;
-    }
-
-    for (auto &it : this->sessions)
-    {
-      auto res =
-        data->frame[it.first].StepTo(it.second,
-          std::chrono::duration<double>(_info.simTime).count());
-      if (res.has_value())
-      {
-        it.second = res.value();
-      }
-    }
-
-    // Publish at 2 hz for now. In future make reconfigureable.
-    if (dt.count() > 0.5)
-    {
-      this->Visualize(data, xSamples, ySamples, zSamples);
-      this->Publish();
-      lastTick = now;
-    }
+    auto world = worldEntity(_ecm);
+    auto topic =
+      common::joinPaths(
+        scopedName(world, _ecm), "environment", "visualize", "res");
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->pcPub = node.Advertise<gz::msgs::Vector3d>(topic);
   }
 
   /////////////////////////////////////////////////
   public: void Visualize(
-    std::shared_ptr<components::EnvironmentalData> data,
-    double xSamples, double ySamples, double zSamples) {
-
-    for (auto key : data->frame.Keys())
-    {
-      const auto session = this->sessions[key];
-      auto frame = data->frame[key];
-      auto [lower_bound, upper_bound] = frame.Bounds(session);
-      auto step = upper_bound - lower_bound;
-      auto dx = step.X() / xSamples;
-      auto dy = step.Y() / ySamples;
-      auto dz = step.Z() / zSamples;
-      std::size_t idx = 0;
-      for (std::size_t x_steps = 0; x_steps < ceil(xSamples); x_steps++)
-      {
-        auto x = lower_bound.X() + x_steps * dx;
-        for (std::size_t y_steps = 0; y_steps < ceil(ySamples); y_steps++)
-        {
-          auto y = lower_bound.Y() + y_steps * dy;
-          for (std::size_t z_steps = 0; z_steps < ceil(zSamples); z_steps++)
-          {
-            auto z = lower_bound.Z() + z_steps * dz;
-            auto res = frame.LookUp(session, math::Vector3d(x, y, z));
-
-            if (res.has_value())
-            {
-              this->floatFields[key].mutable_data()->Set(idx,
-                static_cast<float>(res.value()));
-            }
-            else
-            {
-              this->floatFields[key].mutable_data()->Set(idx, std::nanf(""));
-            }
-            idx++;
-          }
-        }
-      }
-    }
-  }
-
-  /////////////////////////////////////////////////
-  public: void Publish()
+    double xSamples, double ySamples, double zSamples)
   {
-    pcPub.Publish(this->pcMsg);
-    for(auto &[key, pub] : this->pubs)
-    {
-      pub.Publish(this->floatFields[key]);
-    }
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->vec = msgs::Convert(math::Vector3d(xSamples, ySamples, zSamples));
+    this->pcPub.Publish(vec);
   }
 
-  /////////////////////////////////////////////////
-  public: void ResizeCloud(
-    std::shared_ptr<components::EnvironmentalData> data,
-    const EntityComponentManager& _ecm,
-    unsigned int xSamples, unsigned int ySamples, unsigned int zSamples)
-  {
-    assert (pubs.size() > 0);
+  /// \brief The sample resolution
+  public: gz::msgs::Vector3d vec;
 
-    // Assume all data have same point cloud.
-    gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
-        {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
-    auto numberOfPoints = xSamples * ySamples * zSamples;
-    std::size_t dataSize{
-      static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
-    pcMsg.mutable_data()->resize(dataSize);
-    pcMsg.set_height(1);
-    pcMsg.set_width(numberOfPoints);
-
-    auto session = this->sessions[this->pubs.begin()->first];
-    auto frame = data->frame[this->pubs.begin()->first];
-    auto [lower_bound, upper_bound] =
-      frame.Bounds(session);
-
-    auto step = upper_bound - lower_bound;
-    auto dx = step.X() / xSamples;
-    auto dy = step.Y() / ySamples;
-    auto dz = step.Z() / zSamples;
-
-    // Populate point cloud
-    gz::msgs::PointCloudPackedIterator<float> xIter(pcMsg, "x");
-    gz::msgs::PointCloudPackedIterator<float> yIter(pcMsg, "y");
-    gz::msgs::PointCloudPackedIterator<float> zIter(pcMsg, "z");
-
-    for (std::size_t x_steps = 0; x_steps < xSamples; x_steps++)
-    {
-      auto x = lower_bound.X() + x_steps * dx;
-      for (std::size_t y_steps = 0; y_steps < ySamples; y_steps++)
-      {
-        auto y = lower_bound.Y() + y_steps * dy;
-        for (std::size_t z_steps = 0; z_steps < zSamples; z_steps++)
-        {
-          auto z = lower_bound.Z() + z_steps * dz;
-          auto coords = getGridFieldCoordinates(
-            _ecm, math::Vector3d{x, y, z},
-            data);
-
-          if (!coords.has_value())
-          {
-            continue;
-          }
-
-          auto pos = coords.value();
-          *xIter = pos.X();
-          *yIter = pos.Y();
-          *zIter = pos.Z();
-          ++xIter;
-          ++yIter;
-          ++zIter;
-        }
-      }
-    }
-    for (auto key : data->frame.Keys())
-    {
-      this->floatFields[key].mutable_data()->Resize(
-        numberOfPoints, std::nanf(""));
-    }
-  }
-
+  /// \brief Publisher to publish sample resolution
   public: transport::Node::Publisher pcPub;
-  public: std::unordered_map<std::string, transport::Node::Publisher> pubs;
-  public: std::unordered_map<std::string, gz::msgs::Float_V> floatFields;
+
+  /// \brief Gz transport node
   public: transport::Node node;
-  public: gz::msgs::PointCloudPacked pcMsg;
-  public: std::unordered_map<std::string,
-    gz::math::InMemorySession<double, double>> sessions;
-  public:  std::chrono::time_point<std::chrono::steady_clock> lastTick;
+
+  /// \brief To synchronize member access.
+  public: std::mutex mutex;
+
+  /// \brief first load we need to scan for existing data sensor
+  public: bool first{true};
 };
 }
 }
@@ -253,10 +94,14 @@ class EnvironmentVisualizationPrivate
 
 /////////////////////////////////////////////////
 EnvironmentVisualization::EnvironmentVisualization()
-  : GuiSystem(), dataPtr(new EnvironmentVisualizationPrivate)
+  : GuiSystem(), dataPtr(new EnvironmentVisualizationTool)
 {
   gui::App()->Engine()->rootContext()->setContextProperty(
       "EnvironmentVisualization", this);
+  this->qtimer = new QTimer(this);
+  connect(qtimer, &QTimer::timeout,
+    this, &EnvironmentVisualization::ResamplePointcloud);
+  this->qtimer->start(1000);
 }
 
 /////////////////////////////////////////////////
@@ -274,38 +119,23 @@ void EnvironmentVisualization::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void EnvironmentVisualization::Update(const UpdateInfo &_info,
+void EnvironmentVisualization::Update(const UpdateInfo &,
                                EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<components::Environment>(
-    [this](
-      const Entity &/*_entity*/,
-      const components::Environment* /*environment*/
-    ) {
-      this->dataPtr->resample = true;
-      return true;
-    }
-  );
-
-  auto environData =
-    _ecm.Component<components::Environment>(
-      worldEntity(_ecm));
-
-  if (environData == nullptr)
+  if (this->dataPtr->first)
   {
-    return;
+    this->dataPtr->Initiallize(_ecm);
+    this->dataPtr->first = false;
+    this->ResamplePointcloud();
   }
-
-  this->dataPtr->Step(
-    _info, environData->Data(), _ecm,
-    this->xSamples, this->ySamples, this->zSamples
-  );
 }
 
 /////////////////////////////////////////////////
 void EnvironmentVisualization::ResamplePointcloud()
 {
-  this->dataPtr->resample = true;
+  this->dataPtr->Visualize(
+    this->xSamples, this->ySamples, this->zSamples
+  );
 }
 
 

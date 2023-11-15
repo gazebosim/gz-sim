@@ -45,78 +45,92 @@ namespace systems
   /// generated relative to the model's initial position via the <line> or
   /// <circle> elements.  Only one of these options should be used.
   ///
-  /// This plugin requires the following SDF parameters:
-  /// * Required parameters:
-  /// <link_name>: The name of the link within the model where the force/torque
-  ///              will be applied when moving the vehicle.
+  /// ## System Parameters
   ///
-  /// * Optional parameters:
-  /// <loop>: When true, all waypoints will be visited continously in a
-  ///         circular pattern. If false, the model will stop when the
-  ///         last waypoint is reached. Note, that if the vehicle moves,
-  ///         it will still try to reach the very last waypoint.
-  /// <waypoints>: Element specifying the set of waypoints that the
-  ///              the model should navigate through. This block should contain
-  ///              at least one of these blocks:
-  ///                <waypoint>: This block should contain the X, Y of a
-  ///                            waypoint.
-  /// <range_tolerance>: The current waypoint is considered reached if the
-  ///                    distance to it is within +- this tolerance (m).
-  ///                    The default value is 0.5m.
-  /// <bearing_tolerance>: If the bearing to the current waypoint is within
-  ///                      +- this tolerance, a torque won't be applied (degree)
-  ///                      The default value is 2 deg.
-  /// <zero_vel_on_bearing_reached>: Force angular velocity to be zero when
-  ///                                target bearing is reached.
-  ///                                Default is false.
-  ///                                Note: this is an experimental parameter
-  ///                                and may be removed in the future.
-  /// <force>: The force to apply at every plugin iteration in the X direction
-  ///          of the link (N). The default value is 60.
-  /// <torque>: The torque to apply at every plugin iteration in the Yaw
-  ///           direction of the link (Nm). The default value is 50.
-  /// <line>: Element that indicates the model should travel in "line" mode.
-  ///         The block should contain the relative direction and distance from
-  ///         the initial position in which the vehicle should move, specified
-  ///         in the world frame.
-  ///           <direction>: Relative direction (radians) in the world frame for
-  ///                        the vehicle to travel.
-  ///           <length>: Distance (meters) for the vehicle to travel.
-  /// <circle>: Element that indicates the model should travel in "circle" mode.
-  ///           The block should contain the desired radius of the circle about
-  ///           the vehicle's initial position
-  ///             <radius>: Radius (meters) of circular path to travel.
+  /// This plugin requires the following SDF parameters:
+  ///
+  /// Required parameters:
+  ///
+  /// - `<link_name>`: The name of the link within the model where the
+  ///   force/torque will be applied when moving the vehicle.
+  ///
+  /// Optional parameters:
+  ///
+  /// - `<loop>`: When true, all waypoints will be visited continously in a
+  ///   circular pattern. If false, the model will stop when the
+  ///   last waypoint is reached. Note, that if the vehicle moves,
+  ///   it will still try to reach the very last waypoint.
+  ///
+  /// - `<waypoints>`: Element specifying the set of waypoints that the
+  ///   the model should navigate through. This block should contain
+  ///   at least one of these blocks:
+  ///   - `<waypoint>`: This block should contain the X, Y of a waypoint.
+  ///
+  /// - `<range_tolerance>`: The current waypoint is considered reached if the
+  ///   distance to it is within +- this tolerance (m).
+  ///   The default value is 0.5m.
+  ///
+  /// - `<bearing_tolerance>`: If the bearing to the current waypoint is within
+  ///   +- this tolerance, a torque won't be applied (degree).
+  ///   The default value is 2 deg.
+  ///
+  /// - `<zero_vel_on_bearing_reached>`: Force angular velocity to be zero when
+  ///   target bearing is reached.
+  ///   Default is false.
+  ///   Note: this is an experimental parameter and may be removed in the
+  ///   future.
+  ///
+  /// - `<force>`: The force to apply at every plugin iteration in the X
+  ///   direction of the link (N). The default value is 60.
+  ///
+  /// - `<torque>`: The torque to apply at every plugin iteration in the Yaw
+  ///   direction of the link (Nm). The default value is 50.
+  ///
+  /// - `<line>`: Element that indicates the model should travel in "line" mode.
+  ///   The block should contain the relative direction and distance from
+  ///   the initial position in which the vehicle should move, specified
+  ///   in the world frame.
+  ///   - `<direction>`: Relative direction (radians) in the world frame for
+  ///     the vehicle to travel.
+  ///   - `<length>`: Distance (meters) for the vehicle to travel.
+  ///
+  /// - `<circle>`: Element that indicates the model should travel in "circle"
+  ///   mode. The block should contain the desired radius of the circle about
+  ///   the vehicle's initial position
+  ///   - `<radius>`: Radius (meters) of circular path to travel.
   ///
   /// Here are three examples:
-  // <plugin
-  //   filename="gz-sim-trajectory-follower-system"
-  //   name="gz::sim::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <waypoints>
-  //     <waypoint>25 0</waypoint>
-  //     <waypoint>15 0</waypoint>
-  //   </waypoints>
-  // </plugin>
-  // <plugin
-  //   filename="gz-sim-trajectory-follower-system"
-  //   name="gz::sim::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <line>
-  //     <direction>0</direction>
-  //     <length>5</length>
-  //   </line>
-  // </plugin>
-  // <plugin
-  //   filename="gz-sim-trajectory-follower-system"
-  //   name="gz::sim::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <circle>
-  //     <radius>2</radius>
-  //   </circle>
-  // </plugin>
+  /// ```
+  /// <plugin
+  ///   filename="gz-sim-trajectory-follower-system"
+  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   <link_name>base_link</link_name>
+  ///   <loop>true</loop>
+  ///   <waypoints>
+  ///     <waypoint>25 0</waypoint>
+  ///     <waypoint>15 0</waypoint>
+  ///   </waypoints>
+  /// </plugin>
+  /// <plugin
+  ///   filename="gz-sim-trajectory-follower-system"
+  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   <link_name>base_link</link_name>
+  ///   <loop>true</loop>
+  ///   <line>
+  ///     <direction>0</direction>
+  ///     <length>5</length>
+  ///   </line>
+  /// </plugin>
+  /// <plugin
+  ///   filename="gz-sim-trajectory-follower-system"
+  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   <link_name>base_link</link_name>
+  ///   <loop>true</loop>
+  ///   <circle>
+  ///     <radius>2</radius>
+  ///   </circle>
+  /// </plugin>
+  /// ```
   class TrajectoryFollower
       : public System,
         public ISystemConfigure,

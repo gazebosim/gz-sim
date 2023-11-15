@@ -34,19 +34,25 @@ namespace systems
 
   /// \brief A system that updates wheel slip parameters based
   /// on linear wheel spin velocity (radius * spin rate).
-  /// It currently assumes that the fdir1 friction parameter is set
+  ///
+  /// ## System parameters
+  ///
+  /// It currently assumes that the `fdir1` friction parameter is set
   /// parallel to the joint axis (often [0 0 1]) and that the link
   /// origin is on the joint axis.
-  /// The slip parameter is a Force-Dependent Slip (slip1, slip2)
+  ///
+  /// The `slip` parameter is a Force-Dependent Slip (slip1, slip2)
   /// and it has units of velocity / force (m / s / N),
   /// similar to the inverse of a viscous damping coefficient.
-  /// The slip_compliance parameters specified in this plugin
+  ///
+  /// The `slip_compliance` parameters specified in this plugin
   /// are unitless, representing the lateral or longitudinal slip ratio
   /// (see https://en.wikipedia.org/wiki/Slip_(vehicle_dynamics) )
   /// to tangential force ratio (tangential / normal force).
+  ///
   /// Note that the maximum force ratio is the friction coefficient.
   /// At each time step, these compliances are multiplied by
-  /// the linear wheel spin velocity and divided by the wheel_normal_force
+  /// the linear wheel spin velocity and divided by the `wheel_normal_force`
   /// parameter specified below in order to match the units of the
   /// slip parameters.
   ///
@@ -55,6 +61,7 @@ namespace systems
   /// The horizontal axis corresponds to the slip ratio at the wheel,
   /// and the vertical axis corresponds to the tangential force ratio
   /// (tangential / normal force).
+  ///
   /// As wheel slip increases, the tangential force increases until
   /// it reaches the maximum set by the friction coefficient.
   /// The slip compliance corresponds to the inverse of the slope
@@ -63,7 +70,7 @@ namespace systems
   /// portion of the plot below.
   /// As slip compliance increases, the slope decreases.
   ///
-  /** \verbatim
+  /** \code{.xml}
         |                                            .
         |      _________ friction coefficient        .
         |     /                                      .
@@ -74,7 +81,11 @@ namespace systems
         |/                                           .
       --+-------------------------- slipRatio
         |
-
+  \endcode */
+  ///
+  /// ## Examples
+  ///
+  /** \code{.xml}
     <plugin filename="gz-sim-wheel-slip-system"
      name="gz::sim::systems::WheelSlip">
       <wheel link_name="wheel_front_left">
@@ -102,7 +113,7 @@ namespace systems
         <wheel_radius>0.1651</wheel_radius>
       </wheel>
     </plugin>
-   \endverbatim */
+  \endcode */
 
   class WheelSlip
       : public System,
