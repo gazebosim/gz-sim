@@ -1,0 +1,232 @@
+<?xml version="1.0" ?>
+<!--
+  Gazebo velocity control plugin demo
+
+  Try sending commands:
+
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
+
+    gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
+
+-->
+<sdf version="1.11">
+  <world name="velocity_control">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="default_persistent_zero_velocity">
+      <pose>0 0 1.0 0 0 0</pose>
+      <link name="box_1x4x9">
+        <inertial auto="true"/>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+      </plugin>
+    </model>
+
+    <model name="persistent_zero_velocity">
+      <pose>0 1 1.0 0 0 0</pose>
+      <link name="box_1x4x9">
+        <inertial auto="true"/>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_angular>0 0 0</initial_angular>
+        <initial_linear>0 0 0</initial_linear>
+      </plugin>
+    </model>
+
+    <model name="explicit_persistent_zero_velocity">
+      <pose>0 2 1.0 0 0 0</pose>
+      <link name="box_1x4x9">
+        <inertial auto="true"/>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_angular persistent="true">0 0 0</initial_angular>
+        <initial_linear persistent="true">0 0 0</initial_linear>
+      </plugin>
+    </model>
+
+    <model name="initial_zero_velocity">
+      <pose>0 3 1.0 0 0 0</pose>
+      <link name="box_1x4x9">
+        <inertial auto="true"/>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_angular persistent="false">0 0 0</initial_angular>
+        <initial_linear persistent="false">0 0 0</initial_linear>
+      </plugin>
+    </model>
+
+    <model name="initial_nonzero_velocity">
+      <pose>0 -1 1.0 0 0 0</pose>
+      <link name="box_1x4x9">
+        <inertial auto="true"/>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_angular persistent="false">0.1 5 0.1</initial_angular>
+        <initial_linear persistent="false">4 -2 10</initial_linear>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>
