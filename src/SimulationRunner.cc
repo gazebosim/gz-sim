@@ -638,7 +638,6 @@ void SimulationRunner::UpdateSystems()
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
-  gzerr << "here" <<"\n";
 }
 
 /////////////////////////////////////////////////
