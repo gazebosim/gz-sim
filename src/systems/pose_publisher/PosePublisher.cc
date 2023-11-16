@@ -291,6 +291,11 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("PosePublisher::PostUpdate");
 
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzerr << "Should not have reached here";
+    return;
+  }
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -528,6 +533,8 @@ void PosePublisherPrivate::PublishPoses(
     transport::Node::Publisher &_publisher)
 {
   GZ_PROFILE("PosePublisher::PublishPoses");
+
+  gzerr << "Model " << this->model.Entity() << "\n";
 
   // publish poses
   msgs::Pose *msg = nullptr;
