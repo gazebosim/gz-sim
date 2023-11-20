@@ -130,10 +130,7 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!--sphere>
-              <radius>0.3</radius>
-            </sphere-->
-            <!--box><size>0.6 0.6 0.6</size></box-->
+            <!-- scale mesh to radius == 0.3 -->
             <mesh>
               <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_left.STL</uri>
               <scale>0.006 0.006 0.006</scale>
@@ -179,10 +176,7 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!--sphere>
-              <radius>0.3</radius>
-            </sphere-->
-            <!--box><size>0.6 0.6 0.6</size></box-->
+            <!-- scale mesh to radius == 0.3 -->
             <mesh>
               <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_right.STL</uri>
               <scale>0.006 0.006 0.006</scale>
@@ -228,10 +222,7 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!--sphere>
-              <radius>0.3</radius>
-            </sphere-->
-            <!--box><size>0.6 0.6 0.6</size></box-->
+            <!-- scale mesh to radius == 0.3 -->
             <mesh>
               <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_right.STL</uri>
               <scale>0.006 0.006 0.006</scale>
@@ -277,10 +268,7 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!--sphere>
-              <radius>0.3</radius>
-            </sphere-->
-            <!--box><size>0.6 0.6 0.6</size></box-->
+            <!-- scale mesh to radius == 0.3 -->
             <mesh>
               <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_left.STL</uri>
               <scale>0.006 0.006 0.006</scale>
