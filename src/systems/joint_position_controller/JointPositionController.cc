@@ -320,6 +320,19 @@ void JointPositionController::PreUpdate(
 {
   GZ_PROFILE("JointPositionController::PreUpdate");
 
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzwarn << "JointPositionController model no longer valid. "
+           << "Disabling plugin." << std::endl;
+    this->dataPtr->model = Model(kNullEntity);
+    return;
+  }
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
