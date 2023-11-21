@@ -2,10 +2,10 @@
 
 This example shows how to create a GUI system plugin.
 
-Gazebo supports any kind of `gz-gui` plugin
-(`gz::gui::Plugin`). However, `gz-sim` GUISystem plugins (`gz::sim::GuiSystem`)
-are a special type of GUI plugin, which also have access to entity and component
-updates coming from the server.
+Gazebo supports any kind of GUI plugin
+(`gz-gui` library: `gz::gui::Plugin`). However, GuiSystem plugins
+(`gz-sim` library: `gz::sim::GuiSystem`) are a special type of GUI plugin,
+which also have access to entity and component updates coming from the server.
 
 See `GuiSystemPluginPlugin.hh` for more information.
 
