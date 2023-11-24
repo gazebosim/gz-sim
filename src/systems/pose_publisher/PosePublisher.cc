@@ -155,16 +155,6 @@ class gz::sim::systems::PosePublisherPrivate
   /// improves performance by avoiding memory allocation
   public: std::vector<std::pair<Entity, math::Pose3d>> staticPoses;
 
-  /// \brief A variable that gets populated with poses. This also here as a
-  /// member variable to avoid repeated memory allocations and improve
-  /// performance.
-  public: msgs::Pose poseMsg;
-
-  /// \brief A variable that gets populated with poses. This also here as a
-  /// member variable to avoid repeated memory allocations and improve
-  /// performance.
-  public: msgs::Pose_V poseVMsg;
-
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
   public: bool usePoseV = false;
@@ -535,13 +525,10 @@ void PosePublisherPrivate::PublishPoses(
     transport::Node::Publisher &_publisher)
 {
   GZ_PROFILE("PosePublisher::PublishPoses");
-
-  gzerr << "Model " << this->model.Entity() << "\n";
-
+  msgs::Pose poseMsg;
+  msgs::Pose_V poseVMsg;
   // publish poses
   msgs::Pose *msg = nullptr;
-  if (this->usePoseV)
-    this->poseVMsg.Clear();
 
   for (const auto &[entity, pose] : _poses)
   {
@@ -551,12 +538,12 @@ void PosePublisherPrivate::PublishPoses(
 
     if (this->usePoseV)
     {
-      msg = this->poseVMsg.add_pose();
+      msg = poseVMsg.add_pose();
     }
     else
     {
-      this->poseMsg.Clear();
-      msg = &this->poseMsg;
+      poseMsg.Clear();
+      msg = &poseMsg;
     }
 
     // fill pose msg
@@ -583,12 +570,12 @@ void PosePublisherPrivate::PublishPoses(
 
     // publish individual pose msgs
     if (!this->usePoseV)
-      _publisher.Publish(this->poseMsg);
+      _publisher.Publish(poseMsg);
   }
 
   // publish pose vector msg
   if (this->usePoseV)
-    _publisher.Publish(this->poseVMsg);
+    _publisher.Publish(poseVMsg);
 }
 
 GZ_ADD_PLUGIN(PosePublisher,
