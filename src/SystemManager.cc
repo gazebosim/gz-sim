@@ -287,7 +287,8 @@ void SystemManager::AddSystemImpl(
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemConfigure>>& SystemManager::SystemsConfigure()
+const std::vector<SystemHolder<ISystemConfigure>>&
+  SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
 }
@@ -486,8 +487,7 @@ void SystemManager::ProcessRemovedEntities(
         auto threads = _threadsToTerminate.find(system.parent);
         if (threads == _threadsToTerminate.end()) {
           _threadsToTerminate.emplace(system.parent, 1);
-        }
-        else {
+        } else {
           threads->second++;
         }
         gzerr << "Terminating system for" << system.parent <<"\n";
