@@ -585,7 +585,7 @@ void SimulationRunner::ProcessSystemQueue()
         }
         this->postUpdateStopBarrier->Wait();
       }
-     
+
       gzerr << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
