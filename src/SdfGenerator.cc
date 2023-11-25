@@ -716,6 +716,15 @@ namespace sdf_generator
       _elem = contactComp->Data();
       return updateSensorNameAndPose();
     }
+    // air flow
+    auto airFlowComp =
+        _ecm.Component<components::AirFlowSensor>(_entity);
+    if (airFlowComp)
+    {
+      const sdf::Sensor &sensor = airFlowComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
+    }
     // air pressure
     auto airPressureComp =
         _ecm.Component<components::AirPressureSensor>(_entity);
