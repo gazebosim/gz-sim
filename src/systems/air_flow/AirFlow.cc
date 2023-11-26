@@ -40,6 +40,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
@@ -263,8 +264,19 @@ void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm)
           const math::Pose3d &worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
 
+
+          // get wind as a component from the _ecm
+          components::WorldLinearVelocity *windLinearVel = nullptr;
+          if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
+            Entity windEntity = _ecm.EntityByComponents(components::Wind());
+            windLinearVel =
+                _ecm.Component<components::WorldLinearVelocity>(windEntity);
+          }
+
           math::Vector3d sensorRelativeVel = relativeVel(_entity, _ecm);
           it->second->SetVelocity(sensorRelativeVel);
+
+          it->second->SetWindVelocity(windLinearVel);
         }
         else
         {
