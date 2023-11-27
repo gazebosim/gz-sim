@@ -134,3 +134,84 @@ TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlow))
   EXPECT_DOUBLE_EQ(0, msg.xy_direction());
   EXPECT_DOUBLE_EQ(0, msg.xy_speed());
 }
+
+TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlowWindy))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "air_flow_windy.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string sensorName = "air_flow_sensor";
+
+  auto topic = "world/air_flow_sensor/model/air_flow_model/link/link/"
+      "sensor/air_flow_sensor/air_flow";
+
+  bool updateChecked{false};
+
+  // Create a system that checks sensor topic
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::AirFlowSensor, components::Name>(
+            [&](const Entity &_entity,
+                const components::AirFlowSensor *,
+                const components::Name *_name) -> bool
+            {
+              EXPECT_EQ(_name->Data(), sensorName);
+
+              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+              EXPECT_NE(nullptr, sensorComp);
+
+              if (_info.iterations == 1)
+                return true;
+
+              // This component is created on the 2nd PreUpdate
+              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+              EXPECT_NE(nullptr, topicComp);
+              if (topicComp)
+              {
+                EXPECT_EQ(topic, topicComp->Data());
+              }
+
+              updateChecked = true;
+
+              return true;
+            });
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Subscribe to air_flow topic
+  bool received{false};
+  msgs::AirFlowSensor msg;
+  msg.Clear();
+  std::function<void(const msgs::AirFlowSensor &)>  cb =
+      [&received, &msg](const msgs::AirFlowSensor &_msg)
+  {
+
+    msg = _msg;
+    received = true;
+  };
+
+  transport::Node node;
+  node.Subscribe(topic, cb);
+
+  // Run server
+  server.Run(true, 10, false);
+  EXPECT_TRUE(updateChecked);
+
+  EXPECT_TRUE(received);
+
+  // check air flow
+  EXPECT_TRUE(msg.has_header());
+  EXPECT_TRUE(msg.header().has_stamp());
+  EXPECT_NEAR(5.0, msg.xy_speed(), 1e-3);
+  EXPECT_NEAR(-M_PI_2, msg.xy_direction(), 1e-2);
+}

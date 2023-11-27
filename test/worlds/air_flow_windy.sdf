@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="air_flow_sensor">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-air-flow-system"
+      name="gz::sim::systems::AirFlow">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-wind-effects-system"
+      name="gz::sim::systems::WindEffects">
+      <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
+      <horizontal>
+        <magnitude>
+          <time_for_rise>0.0</time_for_rise>
+          <sin>
+            <amplitude_percent>0.0</amplitude_percent>
+            <period>0.0</period>
+          </sin>
+        </magnitude>
+        <direction>
+          <time_for_rise>0.0</time_for_rise>
+          <sin>
+            <amplitude>0.0</amplitude>
+            <period>0.0</period>
+          </sin>
+        </direction>
+      </horizontal>
+    </plugin>
+
+    <wind>
+      <linear_velocity>0 5.0 0</linear_velocity>
+    </wind>
+
+    <model name="air_flow_model">
+      <static>true</static>
+      <pose>4 0 3.0 0 0.0 0</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="air_flow_sensor" type="air_flow">
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <visualize>true</visualize>
+          <air_flow>
+            <speed>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0</stddev>
+              </noise>
+            </speed>
+            <direction>
+              <noise type="gaussian">
+                <mean>0</mean>
+                <stddev>0</stddev>
+              </noise>
+            </direction>
+          </air_flow>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>
