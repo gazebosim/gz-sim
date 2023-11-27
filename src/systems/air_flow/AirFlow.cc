@@ -17,7 +17,7 @@
 
 #include "AirFlow.hh"
 
-#include <gz/msgs/fluid_pressure.pb.h>
+#include <gz/msgs/air_flow_sensor.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -41,6 +41,8 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
@@ -85,7 +87,7 @@ class gz::sim::systems::AirFlowPrivate
 
   /// \brief Update air flow sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateAirFlows(const EntityComponentManager &_ecm);
+  public: void UpdateAirFlows(const EntityComponentManager &_ecm, gz::math::Vector3d wind);
 
   /// \brief Remove air flow sensors if their entities have been removed
   /// from simulation.
@@ -143,6 +145,20 @@ void AirFlow::PostUpdate(const UpdateInfo &_info,
 
   if (!_info.paused)
   {
+
+
+    gz::math::Vector3d wind{0,0,0};
+    // get wind as a component from the _ecm
+    if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
+
+      Entity windEntity = _ecm.EntityByComponents(components::Wind());
+      auto windLinearVel = _ecm.Component<components::WorldLinearVelocity>(windEntity);
+
+      if (windLinearVel != nullptr){
+        wind = windLinearVel->Data();
+      }
+    }
+
     // check to see if update is necessary
     // we only update if there is at least one sensor that needs data
     // and that sensor has subscribers.
@@ -161,7 +177,7 @@ void AirFlow::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
-    this->dataPtr->UpdateAirFlows(_ecm);
+    this->dataPtr->UpdateAirFlows(_ecm, wind);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
@@ -250,7 +266,7 @@ void AirFlowPrivate::CreateSensors(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm)
+void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm, math::Vector3d wind)
 {
   GZ_PROFILE("AirFlowPrivate::UpdateAirFlows");
   _ecm.Each<components::AirFlowSensor, components::WorldPose>(
@@ -265,18 +281,11 @@ void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm)
           it->second->SetPose(worldPose);
 
 
-          // get wind as a component from the _ecm
-          components::WorldLinearVelocity *windLinearVel = nullptr;
-          if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
-            Entity windEntity = _ecm.EntityByComponents(components::Wind());
-            windLinearVel =
-                _ecm.Component<components::WorldLinearVelocity>(windEntity);
-          }
 
           math::Vector3d sensorRelativeVel = relativeVel(_entity, _ecm);
           it->second->SetVelocity(sensorRelativeVel);
 
-          it->second->SetWindVelocity(windLinearVel);
+          it->second->SetWindVelocity(wind);
         }
         else
         {

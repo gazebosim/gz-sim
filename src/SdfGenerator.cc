@@ -26,6 +26,7 @@
 #include <gz/common/URI.hh>
 
 #include "gz/sim/Util.hh"
+#include "gz/sim/components/AirFlowSensor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"

@@ -131,6 +131,6 @@ TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlow))
   EXPECT_TRUE(msg.header().has_stamp());
   EXPECT_EQ(0, msg.header().stamp().sec());
   EXPECT_LT(0, msg.header().stamp().nsec());
-  EXPECT_DOUBLE_EQ(0, msg.direction());
-  EXPECT_DOUBLE_EQ(288.14999389648438, msg.speed());
+  EXPECT_DOUBLE_EQ(0, msg.xy_direction());
+  EXPECT_DOUBLE_EQ(0, msg.xy_speed());
 }
