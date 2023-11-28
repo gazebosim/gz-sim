@@ -156,6 +156,8 @@ void AirFlow::PostUpdate(const UpdateInfo &_info,
 
       if (windLinearVel != nullptr){
         wind = windLinearVel->Data();
+      }else {
+        wind = gz::math::Vector3d::Zero;
       }
     }
 
@@ -280,12 +282,17 @@ void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm, math::Ve
           const math::Pose3d &worldPose = _worldPose->Data();
           it->second->SetPose(worldPose);
 
-
-
           math::Vector3d sensorRelativeVel = relativeVel(_entity, _ecm);
           it->second->SetVelocity(sensorRelativeVel);
 
-          it->second->SetWindVelocity(wind);
+          if(wind.IsFinite()){
+            it->second->SetWindVelocity(wind);
+          } else 
+          {
+            gzwarn << "Wind velocity is ignored. Contains NaN";
+            it->second->SetWindVelocity(gz::math::Vector3d::Zero);
+          }
+
         }
         else
         {

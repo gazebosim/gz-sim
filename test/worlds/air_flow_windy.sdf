@@ -1,9 +1,14 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="air_flow_sensor">
-    <physics name="fast" type="ignored">
+
+   <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <!-- Zero to run as fast as possible -->
       <real_time_factor>0</real_time_factor>
     </physics>
+
+    <gravity>0 0 0</gravity>
 
     <plugin
       filename="gz-sim-air-flow-system"
@@ -15,33 +20,38 @@
     </plugin>
 
     <plugin
+      filename="ignition-gazebo-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <!-- <plugin
       filename="gz-sim-wind-effects-system"
       name="gz::sim::systems::WindEffects">
-      <force_approximation_scaling_factor>1</force_approximation_scaling_factor>
+      <force_approximation_scaling_factor>0</force_approximation_scaling_factor>
       <horizontal>
         <magnitude>
-          <time_for_rise>0.0</time_for_rise>
+          <time_for_rise>1</time_for_rise>
           <sin>
-            <amplitude_percent>0.0</amplitude_percent>
-            <period>0.0</period>
+            <amplitude_percent>1</amplitude_percent>
+            <period>1.0</period>
           </sin>
         </magnitude>
         <direction>
-          <time_for_rise>0.0</time_for_rise>
+          <time_for_rise>1</time_for_rise>
           <sin>
-            <amplitude>0.0</amplitude>
-            <period>0.0</period>
+            <amplitude>1</amplitude>
+            <period>1.0</period>
           </sin>
         </direction>
       </horizontal>
-    </plugin>
+    </plugin> -->
 
     <wind>
-      <linear_velocity>0 5.0 0</linear_velocity>
+      <linear_velocity>0 -5.0 0</linear_velocity>
     </wind>
 
     <model name="air_flow_model">
-      <static>true</static>
+      <!-- <static>true</static> -->
       <pose>4 0 3.0 0 0.0 0</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
