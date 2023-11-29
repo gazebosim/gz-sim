@@ -37,7 +37,6 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;
@@ -142,7 +141,7 @@ TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlow))
 
 /////////////////////////////////////////////////
 // The test checks if the sensor is capable of measuring
-// the 
+// the wind conditions when it is stationary
 TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlowWindy))
 {
   // Start server
@@ -232,8 +231,8 @@ TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlowWindy))
 }
 
 /////////////////////////////////////////////////
-// The test checks if the sensor is moving at the same speed as the 
-// wind, that it measure no airflow
+// The test checks that the sensor measures the correct relative airflow
+// when it is moving within windy condition.
 TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlowMoveWindy))
 {
   // Start server
@@ -277,9 +276,8 @@ TEST_F(AirFlowTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirFlowMoveWindy))
         body = Link(bodyEntity);
         body.EnableVelocityChecks(_ecm);
 
-        body.SetLinearVelocity(_ecm, gz::math::Vector3d(1,5,0));
+        body.SetLinearVelocity(_ecm, gz::math::Vector3d(1, 5, 0));
 
-    
     }).OnPostUpdate([&](const UpdateInfo &_info,
                               const EntityComponentManager &_ecm)
       {

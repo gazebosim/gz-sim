@@ -87,7 +87,9 @@ class gz::sim::systems::AirFlowPrivate
 
   /// \brief Update air flow sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void UpdateAirFlows(const EntityComponentManager &_ecm, gz::math::Vector3d wind);
+  /// \param[in] wind The wind conditions in the environment
+  public: void UpdateAirFlows(const EntityComponentManager &_ecm,
+                              gz::math::Vector3d wind);
 
   /// \brief Remove air flow sensors if their entities have been removed
   /// from simulation.
@@ -146,13 +148,13 @@ void AirFlow::PostUpdate(const UpdateInfo &_info,
   if (!_info.paused)
   {
 
-
-    gz::math::Vector3d wind{0,0,0};
+    gz::math::Vector3d wind{0, 0, 0};
     // get wind as a component from the _ecm
     if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
 
       Entity windEntity = _ecm.EntityByComponents(components::Wind());
-      auto windLinearVel = _ecm.Component<components::WorldLinearVelocity>(windEntity);
+      auto windLinearVel = _ecm.Component<components::WorldLinearVelocity>
+                            (windEntity);
 
       if (windLinearVel != nullptr){
         wind = windLinearVel->Data();
@@ -268,7 +270,8 @@ void AirFlowPrivate::CreateSensors(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm, math::Vector3d wind)
+void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm,
+                                    math::Vector3d wind)
 {
   GZ_PROFILE("AirFlowPrivate::UpdateAirFlows");
   _ecm.Each<components::AirFlowSensor, components::WorldPose>(
@@ -287,8 +290,7 @@ void AirFlowPrivate::UpdateAirFlows(const EntityComponentManager &_ecm, math::Ve
 
           if(wind.IsFinite()){
             it->second->SetWindVelocity(wind);
-          } else 
-          {
+          } else {
             gzwarn << "Wind velocity is ignored. Contains NaN";
             it->second->SetWindVelocity(gz::math::Vector3d::Zero);
           }
