@@ -1,3 +1,4 @@
+\page adding_system_plugins
 
 # Overview
 

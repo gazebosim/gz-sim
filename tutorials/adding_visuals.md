@@ -1,3 +1,5 @@
+\page adding_visuals
+
 # Overview
 
 This tutorial describes how to import 3D meshes into Gazebo to increase the
