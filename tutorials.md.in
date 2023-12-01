@@ -81,6 +81,17 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
 * \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.
 
+## Maritime
+
+* \subpage create_vehicle "Create a maritime vehicle:" How to design a maritime
+model.
+* \subpage adding_visuals "Adding visuals:" How to import 3D meshes into Gazebo
+to increase the visual fidelity of your model.
+* \subpage frame_reference "Frame of reference:" Decide the frame of reference
+for your model.
+* \subpage adding_system_plugins "Adding system plugins:" How to add plugins to
+your model to provide extra capabilities to it.
+
 ## License
 
 The code associated with this documentation is licensed under an [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
