@@ -83,6 +83,10 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 
 ## Maritime
 
+* \subpage theory_buoyancy "Buoyancy: " Describe the theory of operation of the
+buoyancy plugin.
+* \subpage theory_hydrodynamics "Hydrodynamics:" Describe the theory of
+operation of the hydrodynamics plugin.
 * \subpage create_vehicle "Create a maritime vehicle:" How to design a maritime
 model.
 * \subpage adding_visuals "Adding visuals:" How to import 3D meshes into Gazebo
