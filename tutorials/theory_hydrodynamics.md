@@ -72,7 +72,7 @@ surrounding the cylinder.
 * Trajectory follower: It will apply some force to move the cylinder one meter
 in the positive `X` direction.
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/worlds
 wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
