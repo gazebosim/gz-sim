@@ -37,7 +37,7 @@ already exists in Gazebo, we only need to load it.
 Now, run Gazebo with the provided `buoyant_turtle.sdf` world and you'll see how
 your turtle does not sink anymore.
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/worlds
 wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -o ~/gazebo_maritime/worlds
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
