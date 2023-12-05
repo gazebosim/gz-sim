@@ -34,7 +34,7 @@ to this equation:
 
 $$volume\\_neutral = \frac{mass}{waterDensity}$$
 
-Pure water's density is 1000 kgm^-3 and seawater's density is 1025 kgm^-3
+Pure water's density is `1000 kgm^-3` and seawater's density is `1025 kgm^-3`
 approximately. The mass of your vehicle is something that you'll decide or know
 by adding the mass of all your links. With that in mind, you'll be able to
 compute the volume of air that will make your vehicle neutrally buoyant.
@@ -51,7 +51,7 @@ neutrally buoyant, the second sinks, and the third floats. Run the following
 command to see an example of a buoyancy plugin configured with a uniform fluid
 density:
 
-```
+```bash
 gz sim buoyancy.sdf
 ```
 
@@ -60,12 +60,12 @@ gz sim buoyancy.sdf
 Often when simulating a maritime environment one may need to simulate both
 surface and underwater vessels. This means the buoyancy plugin needs to
 take into account two different fluids. One being water with a density of
-~1000 kgm^-3 and another being air with a very light density of say 1 kgm^-3.
+`~1000 kgm^-3` and another being air with a very light density of say `1 kgm^-3`.
 An example for such a configuration may be found in the
 `<GAZEBO_INSTALL_PATH>/examples/worlds/graded_buoyancy.sdf` world (included
 with Gazebo).
 
-```
+```bash
 gz sim graded_buoyancy.sdf
 ```
 
@@ -74,7 +74,7 @@ harmonic motion on the surface of the fluid (this is expected behaviour
 as the harmonic motiorn is usually damped by the hydrodynamic forces. See the
 hydrodynamics tutorial for an example of how to use it). The key part of this is
 
-```
+```xml
 <graded_buoyancy>
   <default_density>1000</default_density>
   <density_change>

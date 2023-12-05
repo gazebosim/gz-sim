@@ -81,9 +81,9 @@ surrounding the cylinder.
 * Trajectory follower: It will apply some force to move the cylinder one meter
 in the positive `X` direction.
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
@@ -95,14 +95,14 @@ model only moves in `X` direction (or surge in the maritime terminology), we're
 going to reduce the value of `<xUabsU>` and `<xU>` parameters. Update these
 parameters to:
 
-```
+```xml
 <xUabsU>-0.32282</xUabsU>
 <xU>-2.5</xU>
 ```
 
 And run Gazebo again:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
@@ -113,14 +113,14 @@ direction that the model is moving.
 Let's now try the opposite. Go ahead and update the same parameters to the
 following values:
 
-```
+```xml
 <xUabsU>-3.5</xUabsU>
 <xU>-20</xU>
 ```
 
 And run Gazebo:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
@@ -132,8 +132,7 @@ damping in the surge axis, causing the vehicle to slowly move towards its goal.
 The hydrodynamics plugin requires a large number of parameters to model the
 added mass and drag behaviors of underwater vehicles. This section describes a
 method to generate an initial set of parameters for the hydrodynamics plugin.
-Note these parameters need to be tested and possibly tweaked to guarantee model
-stability.
+Note these parameters need to be tested and possibly tweaked to guarantee model stability.
 
 ## Added mass
 

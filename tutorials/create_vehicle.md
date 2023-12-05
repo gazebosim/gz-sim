@@ -14,7 +14,7 @@ https://gazebosim.org/docs/harmonic/building_robot
 
 Create a workspace to store your brand new model named `my_turtle`.
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/models/my_turtle && cd ~/gazebo_maritime/models/my_turtle
 ```
 
