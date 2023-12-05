@@ -51,7 +51,7 @@ neutrally buoyant, the second sinks, and the third floats. Run the following
 command to see an example of a buoyancy plugin configured with a uniform fluid
 density:
 
-```
+```bash
 gz sim buoyancy.sdf
 ```
 
