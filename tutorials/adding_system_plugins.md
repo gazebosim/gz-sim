@@ -82,7 +82,7 @@ Uncomment the following block from `buoyant_turtle.sdf`:
 
 And run Gazebo:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
 
