@@ -104,7 +104,7 @@ direction that the model is moving.
 Let's now try the opposite. Go ahead and update the same parameters to the
 following values:
 
-```
+```xml
 <xUabsU>-3.5</xUabsU>
 <xU>-20</xU>
 ```
