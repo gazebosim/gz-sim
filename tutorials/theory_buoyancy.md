@@ -60,7 +60,7 @@ gz sim buoyancy.sdf
 Often when simulating a maritime environment one may need to simulate both
 surface and underwater vessels. This means the buoyancy plugin needs to
 take into account two different fluids. One being water with a density of
-~1000 kgm^-3 and another being air with a very light density of say 1 kgm^-3.
+`~1000 kgm^-3` and another being air with a very light density of say `1 kgm^-3`.
 An example for such a configuration may be found in the
 `<GAZEBO_INSTALL_PATH>/examples/worlds/graded_buoyancy.sdf` world (included
 with Gazebo).
