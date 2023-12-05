@@ -93,7 +93,7 @@ parameters to:
 
 And run Gazebo again:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
