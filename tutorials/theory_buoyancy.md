@@ -74,7 +74,7 @@ harmonic motion on the surface of the fluid (this is expected behaviour
 as the harmonic motiorn is usually damped by the hydrodynamic forces. See the
 hydrodynamics tutorial for an example of how to use it). The key part of this is
 
-```
+```xml
 <graded_buoyancy>
   <default_density>1000</default_density>
   <density_change>
