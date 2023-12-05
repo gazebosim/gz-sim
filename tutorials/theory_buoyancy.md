@@ -34,7 +34,7 @@ to this equation:
 
 $$volume\\_neutral = \frac{mass}{waterDensity}$$
 
-Pure water's density is 1000 kgm^-3 and seawater's density is 1025 kgm^-3
+Pure water's density is `1000 kgm^-3` and seawater's density is `1025 kgm^-3`
 approximately. The mass of your vehicle is something that you'll decide or know
 by adding the mass of all your links. With that in mind, you'll be able to
 compute the volume of air that will make your vehicle neutrally buoyant.
