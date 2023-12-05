@@ -111,7 +111,7 @@ following values:
 
 And run Gazebo:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
