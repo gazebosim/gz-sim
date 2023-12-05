@@ -21,7 +21,7 @@ mkdir -p ~/gazebo_maritime/models/my_turtle && cd ~/gazebo_maritime/models/my_tu
 Each model must have a `model.config` file in the model's root directory that
 contains meta information about the model. Create a `model.config` file:
 
-```
+```xml
 <?xml version="1.0"?>
 <model>
   <name>my_turtle</name>
