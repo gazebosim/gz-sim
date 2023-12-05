@@ -9,7 +9,6 @@ capabilities to it.
 
 https://gazebosim.org/api/sim/8/createsystemplugins.html
 
-
 # Adding a system plugin
 
 [This Gazebo tutorial](https://gazebosim.org/api/sim/8/createsystemplugins.html)
