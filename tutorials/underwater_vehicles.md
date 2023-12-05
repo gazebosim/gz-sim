@@ -23,7 +23,6 @@ https://gazebosim.org/api/sim/8/theory_buoyancy.html
 
 https://gazebosim.org/api/sim/8/theory_hydrodynamics.html
 
-
 # Create your vehicle
 
 As an example, we'll go through the process of creating an MBARI LRAUV
