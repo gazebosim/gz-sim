@@ -45,7 +45,7 @@ You can find a description of the allowed elements in `model.config` in
 Create a `model.sdf` file that contains the Simulator Description Format of the
 model. You can find more information on the [SDF website](http://sdformat.org/).
 
-```
+```xml
 <?xml version='1.0'?>
 <sdf version='1.6'>
   <model name="my_turtle">
