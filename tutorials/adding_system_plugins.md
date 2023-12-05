@@ -67,7 +67,7 @@ the goal is to move the model one meter and stop it.
 
 Uncomment the following block from `buoyant_turtle.sdf`:
 
-```
+```bash
 <plugin filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
   <link_name>base_link</link_name>
