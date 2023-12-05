@@ -9,7 +9,6 @@ the conventions used in Gazebo.
 
 https://gazebosim.org/api/sim/8/spherical_coordinates.html
 
-
 # Gazebo world frame
 
 This page captures some of the reference frames and conventions that we use in
@@ -35,7 +34,6 @@ positive x direction, left facing being in the positive y direction, top facing
 being in the positive z direction and so forth.
 
 ![model_frame_sm](https://user-images.githubusercontent.com/1440739/156787618-3795012f-3a77-4048-8a16-94d6ba163f2b.jpg)
-
 
 # Reference frame design considerations
 

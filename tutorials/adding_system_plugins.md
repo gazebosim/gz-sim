@@ -9,7 +9,6 @@ capabilities to it.
 
 https://gazebosim.org/api/sim/8/createsystemplugins.html
 
-
 # Adding a system plugin
 
 [This Gazebo tutorial](https://gazebosim.org/api/sim/8/createsystemplugins.html)
@@ -22,7 +21,7 @@ model. Let's see what happens if you remove that tag.
 Modify your `~/gazebo_maritime/models/my_turtle/model.sdf` and remove the line
  `<static>true</static>`. Then launch the simulation:
 
-```
+```bash
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
@@ -38,7 +37,7 @@ already exists in Gazebo, we only need to load it.
 Now, run Gazebo with the provided `buoyant_turtle.sdf` world and you'll see how
 your turtle does not sink anymore.
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/worlds
 wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -o ~/gazebo_maritime/worlds
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
@@ -68,7 +67,7 @@ the goal is to move the model one meter and stop it.
 
 Uncomment the following block from `buoyant_turtle.sdf`:
 
-```
+```bash
 <plugin filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
   <link_name>base_link</link_name>
@@ -83,7 +82,7 @@ Uncomment the following block from `buoyant_turtle.sdf`:
 
 And run Gazebo:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
 
