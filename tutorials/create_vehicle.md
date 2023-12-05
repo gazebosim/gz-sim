@@ -94,7 +94,7 @@ model named `my_turtle` using SDF version 1.6.
 
 Launch Gazebo and load our model:
 
-```
+```bash
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
