@@ -39,7 +39,7 @@ your turtle does not sink anymore.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -o ~/gazebo_maritime/worlds
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -o ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
@@ -67,7 +67,7 @@ the goal is to move the model one meter and stop it.
 
 Uncomment the following block from `buoyant_turtle.sdf`:
 
-```bash
+```xml
 <plugin filename="gz-sim-trajectory-follower-system"
         name="gz::sim::systems::TrajectoryFollower">
   <link_name>base_link</link_name>
@@ -91,7 +91,7 @@ moving on ice. Now, let's add hydrodynamics.
 
 Uncomment the following block from `buoyant_turtle.sdf`:
 
-```
+```xml
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
@@ -119,7 +119,7 @@ Uncomment the following block from `buoyant_turtle.sdf`:
 
 And run Gazebo:
 
-```
+```bash
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
 

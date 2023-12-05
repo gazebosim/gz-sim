@@ -36,7 +36,7 @@ information.
 Another benefit of Gazebo's model structure is that it conveniently organizes
 resources, such as mesh files, required by the model.
 
-```
+```bash
 my_turtle
 ├── materials               Directory for textures
     └── textures
@@ -48,21 +48,21 @@ my_turtle
 
 Create the directories to add the mesh and its texture:
 
-```
+```bash
 mkdir -p ~/gazebo_maritime/models/my_turtle/meshes
 mkdir -p ~/gazebo_maritime/models/my_turtle/materials/textures
 ```
 
 Next, download the COLLADA mesh and its texture.
 
-```
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_visuals/turtle.dae -o ~/gazebo_maritime/models/my_turtle/meshes
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_visuals/Turtle_BaseColor.png -o ~/gazebo_maritime/models/my_turtle/materials/textures
+```bash
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_visuals/turtle.dae -o ~/gazebo_maritime/models/my_turtle/meshes/turtle.dae
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_visuals/Turtle_BaseColor.png -o ~/gazebo_maritime/models/my_turtle/materials/textures/Turtle_BaseColor.png
 ```
 
 Now, let's edit our `model.sdf` to use the new mesh as our visual.
 
-```
+```xml
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <model name="turtle">
@@ -108,7 +108,7 @@ Now, let's edit our `model.sdf` to use the new mesh as our visual.
 
 Launch Gazebo and load our model:
 
-```
+```bash
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
