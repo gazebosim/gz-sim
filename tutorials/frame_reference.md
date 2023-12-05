@@ -9,7 +9,6 @@ the conventions used in Gazebo.
 
 https://gazebosim.org/api/sim/8/spherical_coordinates.html
 
-
 # Gazebo world frame
 
 This page captures some of the reference frames and conventions that we use in
