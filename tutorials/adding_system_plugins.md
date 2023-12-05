@@ -21,7 +21,7 @@ model. Let's see what happens if you remove that tag.
 Modify your `~/gazebo_maritime/models/my_turtle/model.sdf` and remove the line
  `<static>true</static>`. Then launch the simulation:
 
-```
+```bash
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
