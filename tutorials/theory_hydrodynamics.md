@@ -74,7 +74,7 @@ in the positive `X` direction.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
@@ -123,8 +123,7 @@ damping in the surge axis, causing the vehicle to slowly move towards its goal.
 The hydrodynamics plugin requires a large number of parameters to model the
 added mass and drag behaviors of underwater vehicles. This section describes a
 method to generate an initial set of parameters for the hydrodynamics plugin.
-Note these parameters need to be tested and possibly tweaked to guarantee model
-stability.
+Note these parameters need to be tested and possibly tweaked to guarantee model stability.
 
 ## Added mass
 
