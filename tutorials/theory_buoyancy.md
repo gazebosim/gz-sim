@@ -65,7 +65,7 @@ An example for such a configuration may be found in the
 `<GAZEBO_INSTALL_PATH>/examples/worlds/graded_buoyancy.sdf` world (included
 with Gazebo).
 
-```
+```bash
 gz sim graded_buoyancy.sdf
 ```
 
