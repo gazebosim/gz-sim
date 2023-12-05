@@ -53,7 +53,7 @@ mkdir -p ~/gazebo_maritime/models/my_turtle/meshes
 mkdir -p ~/gazebo_maritime/models/my_turtle/materials/textures
 ```
 
-Next, download the COLADA mesh and its texture.
+Next, download the COLLADA mesh and its texture.
 
 ```
 wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/adding_visuals/turtle.dae -o ~/gazebo_maritime/models/my_turtle/meshes
