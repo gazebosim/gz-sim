@@ -86,7 +86,7 @@ model only moves in `X` direction (or surge in the maritime terminology), we're
 going to reduce the value of `<xUabsU>` and `<xU>` parameters. Update these
 parameters to:
 
-```
+```xml
 <xUabsU>-0.32282</xUabsU>
 <xU>-2.5</xU>
 ```
