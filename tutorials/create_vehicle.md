@@ -77,7 +77,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
         <pose>0.08 0 0.05 0 0 0</pose>
         <geometry>
           <cylinder>
-          <radius>0.35</radius>
+            <radius>0.35</radius>
             <length>0.23</length>
           </cylinder>
         </geometry>
@@ -87,7 +87,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
 </sdf>
 ```
 
-The model.sdf file contains the necessary tags to instantiate a very minimum
+The `model.sdf` file contains the necessary tags to instantiate a very minimum
 model named `my_turtle` using SDF version 1.6.
 
 # Load your model in Gazebo
