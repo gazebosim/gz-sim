@@ -51,7 +51,6 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage particle_emitter "Particle emitter": Using particle emitters in simulation
 * \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
-* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage auto_inertia_calculation "Automatic Inertia Calculation": Automatically compute inertia values(mass, mass matrix, center of mass) for SDFormat links.
 
@@ -95,6 +94,8 @@ to increase the visual fidelity of your model.
 for your model.
 * \subpage adding_system_plugins "Adding system plugins:" How to add plugins to
 your model to provide extra capabilities to it.
+* \subpage lander "Create a lander vehicle:" How to create a lander robot.
+* \subpage underwater_vehicles "Create an underwater vehicle:" How to create an underwater robot.
 
 ## License
 

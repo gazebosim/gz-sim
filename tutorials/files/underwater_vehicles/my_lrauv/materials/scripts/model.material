@@ -1,0 +1,53 @@
+
+material UrbanTile/Tethys_Diffuse
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Tethys_Albedo.png
+        }
+      }
+    }
+  }
+material UrbanTile/Tethys_Diffuse
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Tethys_Albedo.png
+        }
+      }
+    }
+  }
+material UrbanTile/Tethys_Diffuse
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Tethys_Albedo.png
+        }
+      }
+    }
+  }
+material UrbanTile/Tethys_Diffuse
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+        texture Tethys_Albedo.png
+        }
+      }
+    }
+  }
