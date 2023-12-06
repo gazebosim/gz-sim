@@ -95,7 +95,10 @@ for your model.
 * \subpage adding_system_plugins "Adding system plugins:" How to add plugins to
 your model to provide extra capabilities to it.
 * \subpage lander "Create a lander vehicle:" How to create a lander robot.
-* \subpage underwater_vehicles "Create an underwater vehicle:" How to create an underwater robot.
+* \subpage underwater_vehicles "Create an underwater vehicle:" How to create an
+underwater robot.
+* \subpage surface_vehicles "Create a surface vehicle:" How to create a maritime
+surface robot.
 
 ## License
 
