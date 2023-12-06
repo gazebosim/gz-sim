@@ -85,7 +85,7 @@ We can now test it in Gazebo. Launch it with:
 gz sim ~/gazebo_maritime/models/my_lander/model.sdf
 ```
 
-You should visualize your model as a box.
+You should see your model visualized as a box.
 
 @image html files/lander/simple_lander.png
 
