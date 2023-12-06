@@ -335,7 +335,7 @@ for recommendations about how to tune its values.
 ### Drop weight
 
 A common feature in maritime landers is to include a drop weight device. When
-this device is enabled, some part of the vehicle is dettached from the main
+this device is enabled, some part of the vehicle is detached from the main
 chassis. At this point, the vehicle becomes positive buoyant, and starts moving
 up towards the water surface.
 
