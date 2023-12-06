@@ -87,7 +87,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
 </sdf>
 ```
 
-The `model.sdf` file contains the necessary tags to instantiate a very minimum
+The `model.sdf` file contains the necessary tags to instantiate a very minimal
 model named `my_turtle` using SDF version 1.6.
 
 # Load your model in Gazebo
@@ -98,7 +98,7 @@ Launch Gazebo and load our model:
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
-You should visualize your model as a cylinder and the Gazebo `Entity Tree`
+You should see your model visualized as a cylinder and the Gazebo `Entity Tree`
 should capture its structure.
 
 @image html files/create_vehicle/basic_model.png
