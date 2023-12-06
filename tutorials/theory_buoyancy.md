@@ -17,10 +17,10 @@ The buoyancy plugin uses the `<collision>` elements of each SDF model to compute
 the volume of fluid displaced. 
 
 A common pattern for the maritime domain is to create very thin collision
-elements sorrounding the vehicle (with low volume) and a separate collision
+elements surrounding the vehicle (with low volume) and a separate collision
 element within the vehicle itself. The collection of low volume collision
 elements work as a shell to generate contacts when necessary. The extra
-collision element is only used to generate the agregated desired air volume.
+collision element is only used to generate the aggregated desired air volume.
 
 The outer set of collision elements in combination with the buoyancy collision 
 element induce forces at the center of each `<collision>` element. If you
@@ -71,7 +71,7 @@ gz sim graded_buoyancy.sdf
 
 You should be able to see a sphere bobbing up and down undergoing simple
 harmonic motion on the surface of the fluid (this is expected behaviour
-as the harmonic motiorn is usually damped by the hydrodynamic forces. See the
+as the harmonic motion is usually damped by the hydrodynamic forces. See the
 hydrodynamics tutorial for an example of how to use it). The key part of this is
 
 ```xml
