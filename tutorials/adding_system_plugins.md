@@ -5,6 +5,13 @@
 This tutorial explains how to add plugins to your model to provide extra
 capabilities to it.
 
+## Prerequisites
+
+Make sure to go through the following tutorial first, where you'll learn how
+to create the vehicle used in this tutorial.
+
+https://gazebosim.org/api/sim/8/create_vehicle.html
+
 ## Related tutorials
 
 https://gazebosim.org/api/sim/8/createsystemplugins.html
