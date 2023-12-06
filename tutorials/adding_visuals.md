@@ -112,6 +112,6 @@ Launch Gazebo and load our model:
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
-You should visualize your model as a mesh now!
+You should see your model visualized as a mesh now!
 
 @image html files/adding_visuals/basic_visual_model.png
