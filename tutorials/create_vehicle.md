@@ -87,7 +87,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
 </sdf>
 ```
 
-The `model.sdf` file contains the necessary tags to instantiate a very minimum
+The `model.sdf` file contains the necessary tags to instantiate a very minimal
 model named `my_turtle` using SDF version 1.6.
 
 # Load your model in Gazebo

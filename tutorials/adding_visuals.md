@@ -23,8 +23,9 @@ improve performance.
 SDF supports the notion of visual as described
 [here](http://sdformat.org/spec?ver=1.10&elem=visual).
 
-From our previous tutorial, the turtle visual is a cylinder. Let's use a COLLADA 
-mesh instead. 
+From our
+[previous tutorial](https://gazebosim.org/api/sim/8/create_vehicle.html),
+the turtle visual is a cylinder. Let's use a COLLADA mesh instead.
 
 ## Model directory structure
 
@@ -40,7 +41,7 @@ resources, such as mesh files, required by the model.
 my_turtle
 ├── materials               Directory for textures
     └── textures
-├── meshes                  Directory for COLLADA, STL, and Wavefront OBJ files
+├── meshes                  Directory for mesh files such as COLLADA, STL, and Wavefront OBJ files
 ├── thumbnails              Directory for preview images on Fuel
 ├── model.config            Meta data about the model
 └── model.sdf               SDF description of the model
