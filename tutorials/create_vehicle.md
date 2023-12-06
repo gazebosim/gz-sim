@@ -98,7 +98,7 @@ Launch Gazebo and load our model:
 gz sim ~/gazebo_maritime/models/my_turtle/model.sdf
 ```
 
-You should visualize your model as a cylinder and the Gazebo `Entity Tree`
+You should see your model visualized as a cylinder and the Gazebo `Entity Tree`
 should capture its structure.
 
 @image html files/create_vehicle/basic_model.png
