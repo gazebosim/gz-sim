@@ -71,7 +71,7 @@ gz sim graded_buoyancy.sdf
 
 You should be able to see a sphere bobbing up and down undergoing simple
 harmonic motion on the surface of the fluid (this is expected behaviour
-as the harmonic motiorn is usually damped by the hydrodynamic forces. See the
+as the harmonic motion is usually damped by the hydrodynamic forces. See the
 hydrodynamics tutorial for an example of how to use it). The key part of this is
 
 ```xml
