@@ -17,7 +17,7 @@ The buoyancy plugin uses the `<collision>` elements of each SDF model to compute
 the volume of fluid displaced. 
 
 A common pattern for the maritime domain is to create very thin collision
-elements sorrounding the vehicle (with low volume) and a separate collision
+elements surrounding the vehicle (with low volume) and a separate collision
 element within the vehicle itself. The collection of low volume collision
 elements work as a shell to generate contacts when necessary. The extra
 collision element is only used to generate the agregated desired air volume.
