@@ -250,7 +250,7 @@
   </joint>
 
   <!-- Uncomment to enable the left thruster -->
-  <plugin
+  <!-- <plugin
     filename="gz-sim-thruster-system"
     name="gz::sim::systems::Thruster">
     <joint_name>left_engine_propeller_joint</joint_name>
@@ -266,10 +266,10 @@
     <joint_name>left_chasis_engine_joint</joint_name>
     <use_velocity_commands>true</use_velocity_commands>
     <topic>/wamv/left/thruster/joint/cmd_pos</topic>
-  </plugin>
+  </plugin> -->
 
   <!-- Uncomment to enable the right thruster -->
-  <plugin
+  <!-- <plugin
     filename="gz-sim-thruster-system"
     name="gz::sim::systems::Thruster">
     <joint_name>right_engine_propeller_joint</joint_name>
@@ -285,15 +285,14 @@
     <joint_name>right_chasis_engine_joint</joint_name>
     <use_velocity_commands>true</use_velocity_commands>
     <topic>/wamv/right/thruster/joint/cmd_pos</topic>
-  </plugin>
+  </plugin> -->
 
   <!-- Uncomment to produce buoyancy on the left hull -->
-  <plugin
+  <!-- <plugin
     filename="libSurface.so"
     name="maritime::Surface">
     <link_name>base_link</link_name>
     <hull_length>4.9</hull_length>
-    <hull_width>2.4</hull_width>
     <hull_radius>0.213</hull_radius>
     <fluid_level>0</fluid_level>
     <points>
@@ -303,15 +302,14 @@
     <wavefield>
       <topic>/gazebo/wavefield/parameters</topic>
     </wavefield>
-  </plugin>
+  </plugin> -->
 
   <!-- Uncomment to produce buoyancy on the right hull -->
-  <plugin
+  <!-- <plugin
     filename="libSurface.so"
     name="maritime::Surface">
     <link_name>base_link</link_name>
     <hull_length>4.9</hull_length>
-    <hull_width>2.4</hull_width>
     <hull_radius>0.213</hull_radius>
     <fluid_level>0</fluid_level>
     <points>
@@ -321,10 +319,10 @@
     <wavefield>
       <topic>/gazebo/wavefield/parameters</topic>
     </wavefield>
-  </plugin>
+  </plugin> -->
 
   <!-- Uncomment to enable hydrodynamics -->
-  <plugin
+  <!-- <plugin
     filename="gz-sim-hydrodynamics-system"
     name="gz::sim::systems::Hydrodynamics">
     <link_name>base_link</link_name>
@@ -340,7 +338,7 @@
     <mQ>-50.0</mQ>
     <nR>-400.0</nR>
     <nAbsR>0.0</nAbsR>
-  </plugin>
+  </plugin> -->
 
 </model>
 
