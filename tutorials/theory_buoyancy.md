@@ -85,12 +85,12 @@ hydrodynamics tutorial for an example of how to use it). The key part of this is
 ```
 
 The default density tag says that by default the world has a fluid density
-of 1000 kgm^-3. This essentially states that by default the world is filled
+of `1000 kgm^-3`. This essentially states that by default the world is filled
 with dihydrogen monoxide (aka water). The `<density_change>` tag essentially
 establishes the fact that there is a another fluid. The `<above_depth>` tag says
 that above z=0 there is another fluid with a different density. The density of
 that fluid is defined by the `<density>` tag. We will be simulating air with a
-fluid density of 1 kgm^-3.
+fluid density of `1 kgm^-3`.
 
 # Known limitations
 
