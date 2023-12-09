@@ -788,8 +788,20 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // \todo(louise) Populate with default material if undefined
   if (_visual->Material())
   {
+    sdf::Material mat = *_visual->Material();
+    if (!_visual->Material()->ScriptName().empty())
+    {
+      std::string scriptElem = mat.ScriptName();
+      gzwarn << "Testing material " << scriptElem
+          << std::endl;
+      if((scriptElem == "Gazebo/DarkGrey") | (scriptElem == "Gazebo/DarkGray")) {
+        mat.SetAmbient(gz::math::Color(0.0f, 0.0f, 1.0f));
+        mat.SetDiffuse(gz::math::Color(0.0f, 0.0f, 1.0f));
+        mat.SetSpecular(gz::math::Color(0.1f, 0.1f, 0.1f, 1.0f));
+      }
+    }
     this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(*_visual->Material()));
+        components::Material(mat));
   }
 
   // store the plugin in a component

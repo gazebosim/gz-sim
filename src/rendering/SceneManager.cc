@@ -360,12 +360,6 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
     else if (_visual.Material())
     {
       material = this->LoadMaterial(*_visual.Material());
-      if (!_visual.Material()->ScriptName().empty())
-      {
-        auto scriptElem = _visual.Material()->ScriptName();
-        gzwarn << "Testing material " << scriptElem
-           << std::endl;
-      }
     }
     // Don't set a default material for meshes because they
     // may have their own
