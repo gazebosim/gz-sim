@@ -240,12 +240,17 @@ An example where p_gain was set to 2 and the joint controller failed to reach th
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/49e56746-79cd-4da9-ab56-3e2aaa64c895" width="800" height="400">
 </p>
 
+<p align="center">
+<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/e861b4ad-c2bf-4f88-a72f-ee1b958bf572" width="800" height="400">
+</p>
+
+
 ## 2) JointPositionController
 
 - Joint position controller which can be attached to a model with a reference to a single joint.
 - One can mention the axis of the joint they want to control.
 
-JointPositionController uses a PID controller to reach a desired joint.
+JointPositionController uses a PID controller to reach a desired joint position.
 
 All the parameters related to this controller can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html#:~:text=the%20target%20position.-,System%20Parameters,-%3Cjoint_name%3E%20The).
 
