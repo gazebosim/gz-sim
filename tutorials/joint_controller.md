@@ -7,7 +7,7 @@ Gazebo provides basically three joint controller plugins. Let's see a detailed d
 - Joint controller which can be attached to a model with a reference to a single joint.
 - Currently, only the first axis of a joint can be actuated.
   
-### modes of JointController
+### Modes of JointController
 
 1) Velocity mode 
 
@@ -186,7 +186,6 @@ This is how the model will look:
 
 The initial velocity is set to 1.0 rad/s.
 
-result:
 <p align="center">
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/91577d81-8726-4ca7-a878-e2796f75bf0b" width="800" height="400">
 </p>
@@ -194,7 +193,7 @@ result:
 
 
 
-One can change the joint velocity by publishing a msg on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin 
+One can change the joint velocity by publishing a message on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin 
 
 To change the topic name add following line before ```</plugin>``` tag in SDF file.
 
@@ -263,7 +262,7 @@ Example usage:
 
 For this let's use the previously discussed SDF file.
 
-1) adding the JointPositionController plugin to SDF.
+1) Adding the JointPositionController plugin to SDF.
 
 ```xml
 <plugin
@@ -315,7 +314,7 @@ Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classig
 
 Example usage:
 
-let’s set up a new model for this example. A two-linked pendulum which has a total of two joints to control ( [joint_trajectory_controller](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Can name it as `example2.sdf`.
+let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [joint_trajectory_controller](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Can name it as `example2.sdf`.
 
 - SDF file:
 
@@ -617,7 +616,7 @@ In case, PID gains are not specified then by default force mode will work.
 4) Checking progress of commanded trajectory.
 
 ```xml
-gz topic -e -t "/model/example2/joint_trajectory_progress"
+gz topic -e -t "/model/RR_position_control/joint_trajectory_progress"
 ```
 
 This return the progress of commanded trajectory which is a value between (0,1].
