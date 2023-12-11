@@ -4,27 +4,25 @@
 # 1) JointController
 
 - Joint controller which can be attached to a model with a reference to a single joint.
-- Currently, only the first axis of a joint is actuated.
-
-possible use of this controller type is where one wants only to actuate a single joint.
-
+- Currently, only the first axis of a joint can be actuated.
+  
 ### modes of JointController
 
 1) Velocity mode 
 
 2) Force mode 
 
-### velocity mode:
+### Velocity mode:
 
-This mode lets the user control the desired joint directly.
+This mode lets the user control the desired joint velocity directly.
 
-### force mode:
+### Force mode:
 
 A user who wants to control joint velocity using a PID controller can use this mode.
 
-This mode lets the user explicitly set the values of PID gains and also bounds for velocity. 
+This mode lalso ets the user explicitly set the values of PID gains and also bounds for velocity. 
 
-Note: This mode is for the user who looking to manually tune PID for velocity control according to a specific use case (e.g. Custom models). For general purposes, velocity mode will give the best results.
+Note: This force mode is for the user who looking to manually tune PID for velocity control according to a specific use case (e.g. Custom models). For general purposes, velocity mode will give the best results.
 
 Required parameters for both modes can be found [here](https://gazebosim.org/api/gazebo/4.5/classignition_1_1gazebo_1_1systems_1_1JointController.html#:~:text=joint%20is%20actuated.-,System%20Parameters,-%3Cjoint_name%3E%20The).
 
@@ -47,9 +45,9 @@ mkdir gz_tutorial
 cd gz_turtorial
 ```
 
-2) For this tutorial we will be using the following SDF file (this is just a slight modification of the original joint_controller example)
+2) For this tutorial we will be using the following SDF file (this is just a slight modification of the original joint_controller [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf).
 
-after changing the directory, one can name their SDF file as `example.sdf`
+After changing the directory, one can name their SDF file as `example.sdf`
 
 - SDF file:
 
@@ -172,7 +170,7 @@ This is how the model will look:
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f26c726f-0832-479e-95a9-5900a9d02f01" width="800" height="400">
 </p>
 
-4) Now let's add the gazebo joint controller plugin to the SDF file. Add the following line to your file just before the tag </model>.
+4) Now let's add the gazebo joint controller plugin to the SDF file. Add the following line to your file just before the tag ```</model>```.
 
 - Velocity mode
 
@@ -195,19 +193,15 @@ result:
 
 
 
-one can change the joint velocity by publishing a msg on the topic
+One can change the joint velocity by publishing a msg on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin 
 
-"/model/joint_controller_demo/joint/j1/cmd_vel”
-
-Or can change the topic name within the plugin 
-
-before </plugin> add following line
+To change the topic name add following line before ```</plugin>``` tag in SDF file.
 
 ```xml
 <topic>topic_name</topic>
 ```
 
-e.g.
+- Send velocity commands
 
 ```xml
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
@@ -217,9 +211,9 @@ gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 </p>
 
 
-- Force model
+- Force mode
 
-same as velocity mode change add the following line to the SDF file
+Same as velocity mode add the following line to the SDF file
 
 ```xml
 <plugin
