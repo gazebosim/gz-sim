@@ -306,13 +306,12 @@ gz topic -t -e
 
 JointTrajectoryController lets’s user specify the required position, velocity, and effort. For velocity and position, this controller uses a PID controller. 
 
-A detailed description of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
+A detailed description and related parameter of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
 
-By default, the trajectory message can be published or subscribed at `/model/${MODEL_NAME}/joint_trajectory`
+By default, the trajectory message can be published or subscribed at ```/model/${MODEL_NAME}/joint_trajectory``` by default
 
 Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
 
-All the parameters related to JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=the%20trajectory%20points.-,System%20Parameters,-%3Ctopic%3E%20The).
 
 Example usage:
 
