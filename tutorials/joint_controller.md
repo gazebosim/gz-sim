@@ -314,8 +314,311 @@ Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classig
 
 Example usage:
 
-let’s set up a new model for this example. A two-linked pendulum has a total of two joints to control.
+let’s set up a new model for this example. A two-linked pendulum whihc has a total of two joints to control. Can name it as `example2.sdf`.
+
+- SDF file:
 
 ```xml
+<?xml version="1.0"
+<sdf version="1.6">
+  <world name="default">
+    <!-- Physics -->
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
 
+    <!-- Scene -->
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <scene>
+      <ambient>0.4 0.4 0.4</ambient>
+      <grid>false</grid>
+    </scene>
+
+    <!--              -->
+    <!-- Illumination -->
+    <!--              -->
+    <light type="directional" name="sun">
+      <cast_shadows>false</cast_shadows>
+      <pose>5 5 5 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-1 -1 -1</direction>
+    </light>
+
+    <!--        -->
+    <!-- Models -->
+    <!--        -->
+    <model name="background_plane">
+      <pose>-0.1 0 0 0 1.5708 0</pose>
+      <static>true</static>
+      <link name="background_plane_link">
+        <visual name="background_plane_visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>5 5</size>
+            </plane>
+          </geometry>
+          <material>
+            <diffuse>0.5 0.5 0.5 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- RR robot (Red) - Position control -->
+    <model name="RR_position_control">
+      <pose>0 0 0 0 -3.14159 0</pose>
+      <!-- Fix To World -->
+      <joint name="RR_position_control_world" type="fixed">
+        <parent>world</parent>
+        <child>RR_position_control_link0</child>
+      </joint>
+      <!-- Links -->
+      <link name="RR_position_control_link0">
+        <collision name="RR_position_control_link0_collision_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link0_visual_0">
+          <geometry>
+            <sphere>
+              <radius>0.025</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0.5 0.5 1</ambient>
+            <diffuse>0 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+      <link name="RR_position_control_link1">
+        <pose relative_to="RR_position_control_joint1">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link1_collision_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <collision name="RR_position_control_link1_collision_1">
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link1_visual_0">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.5 0 0 1</ambient>
+            <diffuse>0.8 0 0 1</diffuse>
+            <specular>0.8 0 0 1</specular>
+          </material>
+        </visual>
+        <visual name="RR_position_control_link1_visual_1">
+          <pose relative_to="RR_position_control_joint1">0 0 0.2 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.0125</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="RR_position_control_link2">
+        <pose relative_to="RR_position_control_joint2">0 0 0.1 0 0 0</pose>
+        <collision name="RR_position_control_link2_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="RR_position_control_link2_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.01</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.5 0 0 1</ambient>
+            <diffuse>0.8 0 0 1</diffuse>
+            <specular>0.8 0 0 1</specular>
+          </material>
+        </visual>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0003358</ixx>
+            <iyy>0.0003358</iyy>
+            <izz>0.000005</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <!-- Joints -->
+      <joint name="RR_position_control_joint1" type="revolute">
+        <pose relative_to="RR_position_control_link0">0 0 0 0 0 0</pose>
+        <parent>RR_position_control_link0</parent>
+        <child>RR_position_control_link1</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.5</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <joint name="RR_position_control_joint2" type="revolute">
+        <pose relative_to="RR_position_control_link1">0 0 0.1 0 0 0</pose>
+        <parent>RR_position_control_link1</parent>
+        <child>RR_position_control_link2</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.25</damping>
+          </dynamics>
+        </axis>
+      </joint>
+      <!-- Controller -->
+     
+    </model>
+
+  </world>
+</sdf>
 ```
+
+1) Launching gazebo sim 
+
+```xml
+gz sim example2.sdf
+```
+
+This is how the model will look:
+
+<p align="center">
+<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f310fa68-55e1-451f-a58a-90851207d400" width="800" height="400">
+</p>
+
+2) Add JointTrajectoryController plugin and let’s do position control for both joints.
+
+Append following lines before </model> tag in SDF file.
+
+```xml
+ <plugin
+        filename="gz-sim-joint-trajectory-controller-system"
+        name="gz::sim::systems::JointTrajectoryController">
+        <joint_name>RR_position_control_joint1</joint_name>
+        <initial_position>0.7854</initial_position>
+        <position_p_gain>20</position_p_gain>
+        <position_i_gain>0.4</position_i_gain>
+        <position_d_gain>1.0</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
+        <position_cmd_min>-20</position_cmd_min>
+        <position_cmd_max>20</position_cmd_max>
+
+        <joint_name>RR_position_control_joint2</joint_name>
+        <initial_position>-1.5708</initial_position>
+        <position_p_gain>10</position_p_gain>
+        <position_i_gain>0.2</position_i_gain>
+        <position_d_gain>0.5</position_d_gain>
+        <position_i_min>-1</position_i_min>
+        <position_i_max>1</position_i_max>
+        <position_cmd_min>-10</position_cmd_min>
+        <position_cmd_max>10</position_cmd_max>
+      </plugin>
+```
+
+3) Sending trajectory message (Can also change the topic name)
+
+```xml
+gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
+    joint_names: "RR_position_control_joint1"
+    joint_names: "RR_position_control_joint2"
+    points {
+      positions: -0.7854
+      positions: 1.5708
+      time_from_start {
+        sec: 0
+        nsec: 250000000
+      }
+    }
+    points {
+      positions: -1.5708
+      positions: 0
+      time_from_start {
+        sec: 0
+        nsec: 500000000
+      }
+    }
+    points {
+      positions: -1.5708
+      positions: -1.5708
+      time_from_start {
+        sec: 0
+        nsec: 750000000
+      }
+    }
+    points {
+      positions: 0
+      positions: 0
+      time_from_start {
+        sec: 1
+        nsec: 0
+      }
+    }
+```
+
+
+<p align="center">
+<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/5a8b81b2-c96a-44ce-9f15-57e64f2b869b" width="800" height="400">
+</p>
+
+Note: by default velocity and position control are disabled if one want to use these mode, one must specify the PID gains value according to usage.
+
+if PID gains are not specified then by default force mode will work.
+
+4) Checking progress of commanded trajectory 
+
+```xml
+gz topic -e -t "/model/example2/joint_trajectory_progress"
+```
+
+This return the progress of commanded trajectory which is a value between (0,1].
+
+Finally JointTrajectoryController’s can used for hybrid control of manipulator robot were value from position PID, velocity PID and commanded force value are summed up and are applied.
