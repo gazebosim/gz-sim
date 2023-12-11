@@ -1,6 +1,7 @@
 
 \page jointcontrollers Joint Controllers
 
+Gazebo provides basically three joint controller plugins. Let's see a detailed description of each of them and example usage to help users to select right joint controller for their usage.
 # 1) JointController
 
 - Joint controller which can be attached to a model with a reference to a single joint.
