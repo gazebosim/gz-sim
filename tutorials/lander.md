@@ -155,7 +155,7 @@ Let's start with the world. Download the following world:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/buoyant_lander.sdf -o ~/gazebo_maritime/worlds
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/buoyant_lander.sdf -o ~/gazebo_maritime/worlds/buoyant_lander.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 
