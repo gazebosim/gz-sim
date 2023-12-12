@@ -87,7 +87,7 @@ wam-v
     right_engine_propeller_joint└─────── right_propeller_link
 ```
 
-The main chasis with the two rigid pontoons are captured by `base_link`.
+The main chassis with the two rigid pontoons are captured by `base_link`.
 A revolute joint (`left_chasis_engine_joint`) connects the chasis and the
 `left_engine_link`. The purpose of this connection is to allow the engine to
 rotate. This is an additional degree of freedom that we expose to make the
