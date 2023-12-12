@@ -3,7 +3,7 @@
 # Overview
 
 This tutorial explains how to create and load a maritime surface vehicle in
-Gazebo. This type of vehicles usually have multiple thrusters and navigate
+Gazebo. This type of vehicle usually has multiple thrusters and navigate
 with the presence of waves and wind.
 
 ## Related tutorials
