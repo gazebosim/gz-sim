@@ -1,4 +1,3 @@
-
 \page jointcontrollers Joint Controllers
 
 Gazebo provides three joint controller plugins. Let's see a detailed description of each of them and example usage to help users to select right joint controller for their usage.
@@ -22,9 +21,9 @@ A user who wants to control joint velocity using a PID controller can use this m
 
 This mode lets the user explicitly set the values of PID gains and also bounds for velocity.
 
-Note: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
+**Note**: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
 
-Required parameters for both modes can be found [here](https://gazebosim.org/api/gazebo/4.5/classignition_1_1gazebo_1_1systems_1_1JointController.html#:~:text=joint%20is%20actuated.-,System%20Parameters,-%3Cjoint_name%3E%20The).
+Required parameters for both modes can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointController.html#:~:text=joint%20is%20actuated.-,System%20Parameters,-%3Cjoint_name%3E%20The).
 
 In both the modes commanded velocity(cmd_vel) can be published or subscribed at the topic: `/model/<model_name>/joint/<joint_name>/cmd_vel` by default.
 
@@ -34,20 +33,20 @@ Example usage
 
 Let's see an example for both modes using a simple model having only one joint.
 
-For controlling joints one would require adding the Gazebo's joint controller plugin to the existing <model_name>.sdf file.
+For controlling joints one would require adding the Gazebo's joint controller plugin to the existing `<model_name>.sdf` file.
 
 1) Save the SDF file in the desired directory or create one
 
 e.g.
 
-```markdown
+```bash
 mkdir gz_tutorial
 cd gz_turtorial
 ```
 
-2) For this tutorial we will be using the following SDF file (this is just a slight modification of the original joint_controller [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf))
+2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf))
 
-After changing the directory, one can name their SDF file as `example.sdf`
+After changing the directory, name the SDF file as `example.sdf`
 
 - SDF file:
 
@@ -161,8 +160,8 @@ After changing the directory, one can name their SDF file as `example.sdf`
 
 3) Run the following command to launch the gazebo simulation:
 
-```powershell
-gz sim example.sdf
+```bash
+gz sim -v 4 -r example.sdf
 ```
 
 This is how the model will look:
@@ -170,7 +169,7 @@ This is how the model will look:
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f26c726f-0832-479e-95a9-5900a9d02f01" width="800" height="400">
 </p>
 
-4) Now let's add the gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag ```</model>```.
+4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
 
 - Velocity mode
 
@@ -202,13 +201,12 @@ To change the topic name add following line before ```</plugin>``` tag in SDF fi
 
 - Sending velocity commands
 
-```xml
+```bash
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 ```
 <p align="center">
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/260299e9-7295-48a6-8bc5-f943a5abf1d7" width="800" height="400">
 </p>
-
 
 - Force mode
 
@@ -227,12 +225,10 @@ Same as velocity mode add the following line to the SDF file.
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
-Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
+Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
 <p align="center">
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/ab019216-92b8-482f-ad67-5d5f38fa00ad" width="800" height="400">
 </p>
-
-
 
 An example where p_gain was set to 2.0 and the joint controller failed to reach the desired velocity and behaved absurdly due to improper gains is shown below.
 <p align="center">
@@ -243,7 +239,6 @@ An example where p_gain was set to 2.0 and the joint controller failed to reach 
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/e861b4ad-c2bf-4f88-a72f-ee1b958bf572" width="800" height="400">
 </p>
 
-
 ## 2) JointPositionController
 
 - Joint position controller which can be attached to a model with a reference to a single joint.
@@ -251,7 +246,7 @@ An example where p_gain was set to 2.0 and the joint controller failed to reach 
 
 JointPositionController uses a PID controller to reach a desired joint position.
 
-All the parameters related to this controller can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html#:~:text=the%20target%20position.-,System%20Parameters,-%3Cjoint_name%3E%20The).
+All the parameters related to this controller can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html#:~:text=the%20target%20position.-,System%20Parameters,-%3Cjoint_name%3E%20The).
 
 Commanded position(cmd_pos) can be published or subscribed at the topic: `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` by default.
 
@@ -281,7 +276,7 @@ For this let's use the previously discussed SDF file.
 
 2) Sending joint position command.
 
-```xml
+```bash
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: -1.0"
 ```
 <p align="center">
@@ -290,13 +285,13 @@ gz topic -t "/topic_name" -m gz.msgs.Double -p "data: -1.0"
 
 3) Checking joint state.
 
-```jsx
+```bash
 gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 ```
+
 <p align="center">
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/a0591cae-9453-4f4d-989b-f6099888c195" width="800" height="400">
 </p>
-
 
 ## 3) JointTrajectoryController.
 
@@ -304,16 +299,15 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 
 JointTrajectoryController lets’s user specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller.
 
-A detailed description and related parameter of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
+A detailed description and related parameter of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
 
 The trajectory message can be published or subscribed at ```/model/${MODEL_NAME}/joint_trajectory``` by default.
 
 Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
 
-
 Example usage:
 
-let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [joint_trajectory_controller](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Can name it as `example2.sdf`.
+Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [joint_trajectory_controller](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Can name it as `example2.sdf`.
 
 - SDF file:
 
@@ -521,8 +515,8 @@ let’s set up a new model for this example. A two-linked manipulator arm which 
 
 1) Launching gazebo simulation.
 
-```xml
-gz sim example2.sdf
+```bash
+gz sim -v 4 -r example2.sdf
 ```
 
 This is how the model will look:
@@ -563,7 +557,7 @@ Append following lines before ```</model>``` tag in SDF file.
 
 3) Sending trajectory message (Can also change the topic name).
 
-```xml
+```bash
 gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
     joint_names: "RR_position_control_joint1"
     joint_names: "RR_position_control_joint2"
@@ -601,18 +595,17 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
     }
 ```
 
-
 <p align="center">
 <img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/5a8b81b2-c96a-44ce-9f15-57e64f2b869b" width="800" height="400">
 </p>
 
-Note: by default velocity and position control are disabled if one want to use these mode, they must specify the PID gains value according to usage.
+**Note**: by default velocity and position control are disabled if one want to use these mode, they must specify the PID gains value according to usage.
 
 In case, PID gains are not specified then by default force mode will work.
 
 4) Checking progress of commanded trajectory.
 
-```xml
+```bash
 gz topic -e -t "/model/RR_position_control/joint_trajectory_progress"
 ```
 
