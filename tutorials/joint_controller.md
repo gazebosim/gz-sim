@@ -307,7 +307,7 @@ Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classig
 
 Example usage:
 
-Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [joint_trajectory_controller](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Can name it as `example2.sdf`.
+Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [```joint_trajectory_controller.sdf```](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
 
 - SDF file:
 
