@@ -96,7 +96,7 @@ Let's now add nicer-looking visuals to our lander. Download the following
 
 ```bash
 mkdir ~/gazebo_maritime/models/my_lander/meshes
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/inkfish-lander.dae -o ~/gazebo_maritime/models/my_lander/meshes
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/inkfish-lander.dae -o ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
 ```
 
 Replace the `chassis_visual` element in your `model.sdf` with the following
