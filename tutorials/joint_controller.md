@@ -1,27 +1,26 @@
 
 \page jointcontrollers Joint Controllers
 
-Gazebo provides basically three joint controller plugins. Let's see a detailed description of each of them and example usage to help users to select right joint controller for their usage.
+Gazebo provides three joint controller plugins. Let's see a detailed description of each of them and example usage to help users to select right joint controller for their usage.
 # 1) JointController
 
 - Joint controller which can be attached to a model with a reference to a single joint.
 - Currently, only the first axis of a joint can be actuated.
-  
+
 ### Modes of JointController
 
-1) Velocity mode 
+1) Velocity mode.
 
-2) Force mode 
+2) Force mode.
 
 ### Velocity mode:
-
 This mode lets the user control the desired joint velocity directly.
 
 ### Force mode:
 
 A user who wants to control joint velocity using a PID controller can use this mode.
 
-This mode let's the user explicitly set the values of PID gains and also bounds for velocity. 
+This mode lets the user explicitly set the values of PID gains and also bounds for velocity.
 
 Note: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
 
@@ -193,7 +192,7 @@ The initial velocity is set to 1.0 rad/s.
 
 
 
-One can change the joint velocity by publishing a message on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin 
+One can change the joint velocity by publishing a message on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin.
 
 To change the topic name add following line before ```</plugin>``` tag in SDF file.
 
@@ -213,7 +212,7 @@ gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 
 - Force mode
 
-Same as velocity mode add the following line to the SDF file
+Same as velocity mode add the following line to the SDF file.
 
 ```xml
 <plugin
@@ -226,7 +225,7 @@ Same as velocity mode add the following line to the SDF file
  </plugin>
 ```
 
-This would look almost the same as velocity mode if PID gains are tuned properly. 
+This would look almost the same as velocity mode if PID gains are tuned properly.
 
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
 <p align="center">
@@ -303,7 +302,7 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 
 - Joint trajectory controller, which can be attached to a model with reference to one or more 1-axis joints to follow a trajectory.
 
-JointTrajectoryController lets’s user specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller. 
+JointTrajectoryController lets’s user specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller.
 
 A detailed description and related parameter of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/5.1/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
 
@@ -515,9 +514,7 @@ let’s set up a new model for this example. A two-linked manipulator arm which 
         </axis>
       </joint>
       <!-- Controller -->
-     
     </model>
-
   </world>
 </sdf>
 ```
