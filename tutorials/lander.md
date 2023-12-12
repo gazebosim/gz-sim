@@ -37,7 +37,7 @@ mkdir -p ~/gazebo_maritime/models/my_lander && cd ~/gazebo_maritime/models/my_la
 Download the `model.config` file and copy it within that directory:
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/model.config -o ~/gazebo_maritime/models/my_lander
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/model.config -o ~/gazebo_maritime/models/my_lander/model.config
 ```
 
 In its simple version, the lander does not have any moving pieces, so the SDF
