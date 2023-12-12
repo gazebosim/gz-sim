@@ -19,6 +19,7 @@
 
 #include <map>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -51,13 +52,6 @@ class gz::sim::systems::VelocityControlPrivate
   public: void OnLinkCmdVel(const msgs::Twist &_msg,
     const transport::MessageInfo &_info);
 
-  /// \brief Update the linear and angular velocities.
-  /// \param[in] _info System update information.
-  /// \param[in] _ecm The EntityComponentManager of the given simulation
-  /// instance.
-  public: void UpdateVelocity(const UpdateInfo &_info,
-    const EntityComponentManager &_ecm);
-
   /// \brief Update link velocity.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
@@ -71,14 +65,19 @@ class gz::sim::systems::VelocityControlPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Angular velocity of a model
-  public: math::Vector3d angularVelocity{0, 0, 0};
+  /// \brief Model angular velocity command, initialized to zero.
+  public: std::optional<math::Vector3d> angularVelocity = math::Vector3d::Zero;
 
-  /// \brief Linear velocity of a model
-  public: math::Vector3d linearVelocity{0, 0, 0};
+  /// \brief Flag indicating whether the model angular velocity command should
+  /// persist across multiple time steps.
+  public: bool persistentAngularVelocity = true;
 
-  /// \brief Last target velocity requested.
-  public: msgs::Twist targetVel;
+  /// \brief Model linear velocity command, initialized to zero.
+  public: std::optional<math::Vector3d> linearVelocity = math::Vector3d::Zero;
+
+  /// \brief Flag indicating whether the model linear velocity command should
+  /// persist across multiple time steps.
+  public: bool persistentLinearVelocity = true;
 
   /// \brief A mutex to protect the model velocity command.
   public: std::mutex mutex;
@@ -122,21 +121,26 @@ void VelocityControl::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("initial_linear"))
   {
-    this->dataPtr->linearVelocity = _sdf->Get<math::Vector3d>("initial_linear");
-    msgs::Set(this->dataPtr->targetVel.mutable_linear(),
-        this->dataPtr->linearVelocity);
+    auto elem = _sdf->FindElement("initial_linear");
+    this->dataPtr->linearVelocity = elem->Get<math::Vector3d>();
     gzmsg << "Linear velocity initialized to ["
-           << this->dataPtr->linearVelocity << "]" << std::endl;
+           << *this->dataPtr->linearVelocity << "]" << std::endl;
+    if (elem->HasAttribute("persistent"))
+    {
+      this->dataPtr->persistentLinearVelocity = elem->Get<bool>("persistent");
+    }
   }
 
   if (_sdf->HasElement("initial_angular"))
   {
-    this->dataPtr->angularVelocity =
-        _sdf->Get<math::Vector3d>("initial_angular");
-    msgs::Set(this->dataPtr->targetVel.mutable_angular(),
-        this->dataPtr->angularVelocity);
+    auto elem = _sdf->FindElement("initial_angular");
+    this->dataPtr->angularVelocity = elem->Get<math::Vector3d>();
     gzmsg << "Angular velocity initialized to ["
-           << this->dataPtr->angularVelocity << "]" << std::endl;
+           << *this->dataPtr->angularVelocity << "]" << std::endl;
+    if (elem->HasAttribute("persistent"))
+    {
+      this->dataPtr->persistentAngularVelocity = elem->Get<bool>("persistent");
+    }
   }
 
   // Subscribe to model commands
@@ -200,13 +204,31 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  // update angular velocity of model
-  _ecm.SetComponentData<components::AngularVelocityCmd>(
-    this->dataPtr->model.Entity(), {this->dataPtr->angularVelocity});
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  // update linear velocity of model
-  _ecm.SetComponentData<components::LinearVelocityCmd>(
-    this->dataPtr->model.Entity(), {this->dataPtr->linearVelocity});
+    // update angular velocity of model
+    if (this->dataPtr->angularVelocity)
+    {
+      _ecm.SetComponentData<components::AngularVelocityCmd>(
+        this->dataPtr->model.Entity(), {*this->dataPtr->angularVelocity});
+      if (!this->dataPtr->persistentAngularVelocity)
+      {
+        this->dataPtr->angularVelocity.reset();
+      }
+    }
+
+    // update linear velocity of model
+    if (this->dataPtr->linearVelocity)
+    {
+      _ecm.SetComponentData<components::LinearVelocityCmd>(
+        this->dataPtr->model.Entity(), {*this->dataPtr->linearVelocity});
+      if (!this->dataPtr->persistentLinearVelocity)
+      {
+        this->dataPtr->linearVelocity.reset();
+      }
+    }
+  }
 
   // If there are links, create link components
   // If the link hasn't been identified yet, look for it
@@ -275,22 +297,8 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  // update model velocities
-  this->dataPtr->UpdateVelocity(_info, _ecm);
   // update link velocities
   this->dataPtr->UpdateLinkVelocity(_info, _ecm);
-}
-
-//////////////////////////////////////////////////
-void VelocityControlPrivate::UpdateVelocity(
-    const UpdateInfo &/*_info*/,
-    const EntityComponentManager &/*_ecm*/)
-{
-  GZ_PROFILE("VeocityControl::UpdateVelocity");
-
-  std::lock_guard<std::mutex> lock(this->mutex);
-  this->linearVelocity = msgs::Convert(this->targetVel.linear());
-  this->angularVelocity = msgs::Convert(this->targetVel.angular());
 }
 
 //////////////////////////////////////////////////
@@ -315,7 +323,10 @@ void VelocityControlPrivate::UpdateLinkVelocity(
 void VelocityControlPrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  this->targetVel = _msg;
+  this->linearVelocity = msgs::Convert(_msg.linear());
+  this->angularVelocity = msgs::Convert(_msg.angular());
+  this->persistentLinearVelocity = true;
+  this->persistentAngularVelocity = true;
 }
 
 //////////////////////////////////////////////////
