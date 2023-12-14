@@ -35,13 +35,9 @@ gz_msgs_generate_messages_impl(
   DEPENDENCY_DESCRIPTIONS ${msgs_desc_file}
 )
 
-set(network_sources
-  network/NetworkConfig.cc
-  network/NetworkManager.cc
-  network/NetworkManagerPrimary.cc
-  network/NetworkManagerSecondary.cc
-  network/PeerInfo.cc
-  network/PeerTracker.cc
+set(cli_sources
+  gz.cc
+  cmd/ModelCommandAPI.cc
 )
 
 set(comms_sources
@@ -55,9 +51,18 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-set(cli_sources
-  gz.cc
-  cmd/ModelCommandAPI.cc
+set(material_sources
+  rendering/MaterialParser/MaterialParser.cc
+  rendering/MaterialParser/ConfigLoader.cc
+)
+
+set(network_sources
+  network/NetworkConfig.cc
+  network/NetworkManager.cc
+  network/NetworkManagerPrimary.cc
+  network/NetworkManagerSecondary.cc
+  network/PeerInfo.cc
+  network/PeerTracker.cc
 )
 
 set (sources
@@ -89,9 +94,10 @@ set (sources
   Util.cc
   View.cc
   World.cc
-  ${network_sources}
   ${comms_sources}
   ${msgs_sources}
+  ${network_sources}
+  ${material_sources}
 )
 
 set (gtest_sources

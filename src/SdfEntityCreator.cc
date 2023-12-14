@@ -84,6 +84,8 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
+#include "rendering/MaterialParser/MaterialParser.hh"
+
 class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
@@ -788,20 +790,33 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // \todo(louise) Populate with default material if undefined
   if (_visual->Material())
   {
-    sdf::Material mat = *_visual->Material();
+    sdf::Material visualMaterial = *_visual->Material();
+    if (!_visual->Material()->ScriptUri().empty())
+    {
+      std::string scriptUri = visualMaterial.ScriptUri();
+      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+        gzwarn << "Custom material scripts are not supported."
+          << std::endl;
+      }
+    }
     if (!_visual->Material()->ScriptName().empty())
     {
-      std::string scriptElem = mat.ScriptName();
-      gzwarn << "Testing material " << scriptElem
+      std::string scriptName = visualMaterial.ScriptName();
+
+      if((scriptName.find("Gazebo/") != std::string::npos)) {
+        gzwarn << "Using internal gazebo.material to parse " << scriptName
           << std::endl;
-      if((scriptElem == "Gazebo/DarkGrey") | (scriptElem == "Gazebo/DarkGray")) {
-        mat.SetAmbient(gz::math::Color(0.0f, 0.0f, 1.0f));
-        mat.SetDiffuse(gz::math::Color(0.0f, 0.0f, 1.0f));
-        mat.SetSpecular(gz::math::Color(0.1f, 0.1f, 0.1f, 1.0f));
+        MaterialParser* materialParser = new MaterialParser();
+        materialParser->Load();
+        std::vector<std::vector<float>> parsed = materialParser->GetMaterialValues(scriptName);
+
+        visualMaterial.SetAmbient(gz::math::Color(parsed[0][0],parsed[0][1], parsed[0][2]));
+        visualMaterial.SetDiffuse(gz::math::Color(parsed[1][0],parsed[1][1], parsed[1][2]));
+        visualMaterial.SetSpecular(gz::math::Color(parsed[2][0],parsed[2][1], parsed[2][2], parsed[2][3]));
       }
     }
     this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(mat));
+        components::Material(visualMaterial));
   }
 
   // store the plugin in a component
