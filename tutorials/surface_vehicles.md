@@ -120,7 +120,7 @@ enabled yet.
 
 ## Checking frame of reference
 
-Launch your lander in Gazebo as we did before:
+Launch your world in Gazebo as we did before:
 
 ```bash
 gz sim src/gazebo_maritime/worlds/sydney_regatta.sdf
@@ -220,7 +220,8 @@ plugins. We need hydrodynamics!
 
 We will be using Fossen's equations which describe the motion of a craft through
 the water for this. For better understanding of the parameters here, I would
-refer you to [his book](https://www.wiley.com/en-sg/Guidance+and+Control+of+Ocean+Vehicles-p-9780471941132).
+refer you to [his book](https://www.wiley.com/en-sg/Guidance+and+Control+of+Ocean+Vehicles-p-9780471941132)
+(check your library).
 Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 
