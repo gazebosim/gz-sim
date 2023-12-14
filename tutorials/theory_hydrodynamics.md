@@ -138,7 +138,7 @@ the user to import a mesh (.stl), define a set of linear potential flow problems
 and solve these using the included Boundary Element Method (BEM) solver.
 
 Capytaine is typically used to model the interaction between floating bodies and
-waves, however in can be applied to ROVs by setting the wave frequency and free
+waves, however it can be applied to ROVs by setting the wave frequency and free
 surface both to infinity (this assumes that the added mass is approximately
 constant since the ROV does not operate near the wave zone and that it operates
 in infinitely deep water respectively) [1](p.14), [2](p.18).
