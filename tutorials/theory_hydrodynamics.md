@@ -70,6 +70,11 @@ Parameter         | Description
 <nR>              | Linear drag in yaw
 <default_current> | Default ocean current vector
 
+**Note about added mass**: SDFormat also supports added mass natively. Until we
+deprecate the added mass parameters of this plugin, do not set the added mass
+parameters in both places, choose one (either in this plugin or under
+`<inertial>` of your link).
+
 # A simple example
 
 Let's download the provided `buoyant_cylinder.sdf` world and run to see an
@@ -142,7 +147,7 @@ the user to import a mesh (.stl), define a set of linear potential flow problems
 and solve these using the included Boundary Element Method (BEM) solver.
 
 Capytaine is typically used to model the interaction between floating bodies and
-waves, however in can be applied to ROVs by setting the wave frequency and free
+waves, however it can be applied to ROVs by setting the wave frequency and free
 surface both to infinity (this assumes that the added mass is approximately
 constant since the ROV does not operate near the wave zone and that it operates
 in infinitely deep water respectively) [1](p.14), [2](p.18).
