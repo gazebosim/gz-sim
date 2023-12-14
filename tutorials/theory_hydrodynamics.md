@@ -61,6 +61,11 @@ Parameter         | Description
 <nR>              | Linear drag in yaw
 <default_current> | Default ocean current vector
 
+**Note about added mass**: SDFormat also supports added mass natively. Until we
+deprecate the added mass parameters of this plugin, do not set the added mass
+parameters in both places, choose one (either in this plugin or under
+`<inertial>` of your link).
+
 # A simple example
 
 Let's download the provided `buoyant_cylinder.sdf` world and run to see an
