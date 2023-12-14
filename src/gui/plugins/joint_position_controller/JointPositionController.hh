@@ -26,7 +26,8 @@
 #include <gz/sim/Types.hh>
 
 #ifndef _WIN32
-#  define JointPositionController_EXPORTS_API __attribute__ ((visibility ("default")))
+#  define JointPositionController_EXPORTS_API \
+      __attribute__ ((visibility ("default")))
 #else
 #  if (defined(JointPositionController_EXPORTS))
 #    define JointPositionController_EXPORTS_API __declspec(dllexport)
@@ -46,7 +47,8 @@ namespace gui
   class JointPositionControllerPrivate;
 
   /// \brief Model holding information about joints
-  class JointPositionController_EXPORTS_API JointsModel : public QStandardItemModel
+  class JointPositionController_EXPORTS_API JointsModel :
+    public QStandardItemModel
   {
     Q_OBJECT
 
@@ -98,7 +100,8 @@ namespace gui
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
   /// necessary to select it. If a model is given at startup, the plugin starts
   /// in locked mode.
-  class JointPositionController_EXPORTS_API JointPositionController : public sim::GuiSystem
+  class JointPositionController_EXPORTS_API JointPositionController :
+    public sim::GuiSystem
   {
     Q_OBJECT
 
