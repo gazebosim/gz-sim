@@ -47,7 +47,7 @@ namespace gui
   class JointPositionControllerPrivate;
 
   /// \brief Model holding information about joints
-  class JointPositionController_EXPORTS_API JointsModel :
+  class JointsModel :
     public QStandardItemModel
   {
     Q_OBJECT
@@ -100,7 +100,7 @@ namespace gui
   /// `<model_name>`: Load the widget pointed at the given model, so it's not
   /// necessary to select it. If a model is given at startup, the plugin starts
   /// in locked mode.
-  class JointPositionController_EXPORTS_API JointPositionController :
+  class JointPositionController :
     public sim::GuiSystem
   {
     Q_OBJECT

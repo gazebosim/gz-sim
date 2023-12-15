@@ -69,7 +69,7 @@ namespace gui
   /// After this number is reached, the older points start being deleted.
   /// Defaults to 1000.
   ///
-  class Plot3D_EXPORTS_API Plot3D : public gz::sim::GuiSystem
+  class Plot3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
