@@ -618,6 +618,12 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
+  // MaxContacts
+  /// \brief Feature list for setting and getting the solver
+  public: struct MaxContactsFeatureList : gz::physics::FeatureList<
+            gz::physics::MaxContacts>{};
+
+  //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
@@ -642,7 +648,8 @@ class gz::sim::systems::PhysicsPrivate
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
           SolverFeatureList,
-          WorldModelFeatureList
+          WorldModelFeatureList,
+          MaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -1042,6 +1049,32 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           else
           {
             solverFeature->SetSolver(solverComp->Data());
+          }
+        }
+
+        auto physicsComp =
+            _ecm.Component<components::Physics>(_entity);
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<MaxContactsFeatureList>(
+              _entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[MaxContacts]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetMaxContacts(
+              physicsComp->Data().MaxContacts());
           }
         }
 
