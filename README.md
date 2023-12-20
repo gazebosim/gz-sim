@@ -10,9 +10,9 @@
 Build | Status
 -- | --
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/branch/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/branch/main)
-Ubuntu Focal | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-focal-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-focal-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=ignition_gazebo-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/ignition_gazebo-ci-main-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/ign_gazebo-ci-win/badge/icon)](https://build.osrfoundation.org/job/ign_gazebo-ci-win/)
+Ubuntu Jammy  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-jammy-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-jammy-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-main-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-main-win/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
