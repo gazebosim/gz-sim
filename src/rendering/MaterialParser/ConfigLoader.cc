@@ -147,7 +147,7 @@ void ConfigLoader::_nextToken(std::ifstream & stream)
   }
 
   // Text token
-  if (ch < 32 || ch > 122) { // Verify valid char
+  if (ch < 32 || ch > 122) {  // Verify valid char
     throw std::runtime_error("Parse Error: Invalid character, ConfigLoader::load()");
   }
 
@@ -182,7 +182,7 @@ void ConfigLoader::_nextToken(std::ifstream & stream)
     }
 
     // Add valid char to tokVal
-    tokVal += (char)ch;
+    tokVal += static_cast<char>(ch);
 
     // Next char
     ch = stream.get();
@@ -277,7 +277,7 @@ ConfigNode::ConfigNode(ConfigNode * parent, const std::string & name)
 {
   m_name = name;
   m_parent = parent;
-  _removeSelf = true; // For proper destruction
+  _removeSelf = true;  // For proper destruction
   m_lastChildFound = -1;
 
   // Add self to parent's child list (unless this is the root node being created)
@@ -318,7 +318,7 @@ ConfigNode * ConfigNode::addChild(const std::string & name, bool replaceExisting
 ConfigNode * ConfigNode::findChild(const std::string & name, bool recursive)
 {
   int indx, prevC, nextC;
-  int childCount = (int)m_children.size();
+  int childCount = static_cast<int>(m_children.size());
 
   if (m_lastChildFound != -1) {
     // If possible, try checking the nodes neighboring the last successful search

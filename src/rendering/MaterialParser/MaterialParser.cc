@@ -18,13 +18,9 @@
 #include <iostream>
 #include <map>
 #include <cstddef>
-#include <map>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <vector>
 
-#include "ConfigLoader.hh"
 #include "MaterialParser.hh"
 
 using namespace gz;
@@ -32,28 +28,22 @@ using namespace sim;
 
 /////////////////////////////////////////////////
 MaterialParser::MaterialParser()
+  : configLoader(".material")
 {
-  this->configLoader = new ConfigLoader(".material");
-}
-
-/////////////////////////////////////////////////
-MaterialParser::~MaterialParser()
-{
-  delete this->configLoader;
 }
 
 /////////////////////////////////////////////////
 void MaterialParser::Load(const std::string & _path)
 {
-  ConfigLoader::loadAllFiles(this->configLoader, _path);
+  ConfigLoader::loadAllFiles(&this->configLoader, _path);
 }
 
 /////////////////////////////////////////////////
-std::vector < std::vector < float >> MaterialParser::GetMaterialValues(std::string material) const
+MaterialParser::MaterialValues MaterialParser::GetMaterialValues(std::string material)
 {
-  std::vector < std::vector < float >> values;
+  MaterialValues values;
   std::map < std::string, ConfigNode * > scripts =
-    this->configLoader->getAllConfigScripts();
+    this->configLoader.getAllConfigScripts();
 
   std::map < std::string, ConfigNode * > ::iterator it;
 
@@ -76,21 +66,23 @@ std::vector < std::vector < float >> MaterialParser::GetMaterialValues(std::stri
           if (ambientNode) {
             std::vector < float > ambientValues;
             ambientNode->getValuesInFloat(ambientValues);
-            values.push_back(ambientValues);
+            values.ambient = gz::math::Color(ambientValues[0], ambientValues[1], ambientValues[2]);
           }
 
           ConfigNode * diffuseNode = passNode->findChild("diffuse");
           if (diffuseNode) {
             std::vector < float > diffuseValues;
             diffuseNode->getValuesInFloat(diffuseValues);
-            values.push_back(diffuseValues);
+            values.diffuse = gz::math::Color(diffuseValues[0], diffuseValues[1], diffuseValues[2]);
           }
 
           ConfigNode * specularNode = passNode->findChild("specular");
           if (specularNode) {
             std::vector < float > specularValues;
             specularNode->getValuesInFloat(specularValues);
-            values.push_back(specularValues);
+            // Using first four values for specular as Gazebo doesn't support shininess
+            values.specular = gz::math::Color
+              (specularValues[0], specularValues[1], specularValues[2], specularValues[3]);
           }
         }
       }

@@ -20,23 +20,28 @@
 
 #include <string>
 #include <filesystem>
+#include <optional>
 #include <vector>
 
+#include <gz/math/Color.hh>
+
+#include "ConfigLoader.hh"
 
 namespace gz
 {
   namespace sim
   {
-    class ConfigNode;
-    class ConfigLoader;
-
     class MaterialParser
     {
 public:
-      MaterialParser();
-
+      struct MaterialValues
+        {
+          std::optional<math::Color> ambient;
+          std::optional<math::Color> diffuse;
+          std::optional<math::Color> specular;
+        };
 public:
-      ~MaterialParser();
+      MaterialParser();
 
 public:
       void Load(const std::string & _path);
@@ -45,10 +50,10 @@ public:
       void Load() {Load(std::filesystem::current_path().string());}
 
 public:
-      std::vector < std::vector < float >> GetMaterialValues(std::string material) const;
+      MaterialValues GetMaterialValues(std::string material);
 
 private:
-      ConfigLoader * configLoader = nullptr;
+      ConfigLoader configLoader;
     };
   }  // namespace sim
 }  // namespace gz
