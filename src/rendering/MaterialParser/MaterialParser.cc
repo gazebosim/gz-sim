@@ -17,7 +17,11 @@
 
 #include <iostream>
 #include <map>
+#include <cstddef>
+#include <map>
 #include <sstream>
+#include <string>
+#include <vector>
 #include <vector>
 
 #include "ConfigLoader.hh"
