@@ -165,8 +165,9 @@ gz sim -v 4 -r example.sdf
 ```
 
 This is how the model will look:
+
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f26c726f-0832-479e-95a9-5900a9d02f01" width="800" height="400">
+<img src="files/joint_controllers/JointController.png" width="800" height="400">
 </p>
 
 4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
@@ -185,7 +186,7 @@ This is how the model will look:
 The initial velocity is set to 1.0 rad/s.
 
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/91577d81-8726-4ca7-a878-e2796f75bf0b" width="800" height="400">
+<img src="files/joint_controllers/JointController_vel_mode1.gif" width="800" height="400">
 </p>
 
 
@@ -205,7 +206,7 @@ To change the topic name add following line before ```</plugin>``` tag in SDF fi
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 ```
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/260299e9-7295-48a6-8bc5-f943a5abf1d7" width="800" height="400">
+<img src="files/joint_controllers/JointController_vel_mode2.gif" width="800" height="400">
 </p>
 
 - Force mode
@@ -227,16 +228,16 @@ This would look almost the same as velocity mode if PID gains are tuned properly
 
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/ab019216-92b8-482f-ad67-5d5f38fa00ad" width="800" height="400">
+<img src="files/joint_controllers/JointController_force_mode_bash.png" width="800" height="400">
 </p>
 
 An example where p_gain was set to 2.0 and the joint controller failed to reach the desired velocity and behaved absurdly due to improper gains is shown below.
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/49e56746-79cd-4da9-ab56-3e2aaa64c895" width="800" height="400">
+<img src="files/joint_controllers/JointController_force_mode_bash1.png" width="800" height="400">
 </p>
 
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/e861b4ad-c2bf-4f88-a72f-ee1b958bf572" width="800" height="400">
+<img src="files/joint_controllers/JointController_Force_mode.gif" width="800" height="400">
 </p>
 
 ## 2) JointPositionController
@@ -280,7 +281,7 @@ For this let's use the previously discussed SDF file.
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: -1.0"
 ```
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f09464ee-5206-4e41-b026-a6ae7f409171" width="800" height="400">
+<img src="files/joint_controllers/JointPositionController.gif" width="800" height="400">
 </p>
 
 3) Checking joint state.
@@ -290,7 +291,7 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 ```
 
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/a0591cae-9453-4f4d-989b-f6099888c195" width="800" height="400">
+<img src="files/joint_controllers/JointPositionController_bash.png" width="800" height="400">
 </p>
 
 ## 3) JointTrajectoryController.
@@ -522,7 +523,7 @@ gz sim -v 4 -r example2.sdf
 This is how the model will look:
 
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/f310fa68-55e1-451f-a58a-90851207d400" width="800" height="400">
+<img src="files/joint_controllers/JointTrajectoryController.png" width="800" height="400">
 </p>
 
 2) Adding JointTrajectoryController plugin and let’s do position control for both joints.
@@ -596,7 +597,7 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
 ```
 
 <p align="center">
-<img src="https://github.com/yaswanth1701/gz-sim/assets/92177410/5a8b81b2-c96a-44ce-9f15-57e64f2b869b" width="800" height="400">
+<img src="files/joint_controllers/JointTrajectoryController.gif" width="800" height="400">
 </p>
 
 **Note**: by default velocity and position control are disabled if one want to use these mode, they must specify the PID gains value according to usage.
