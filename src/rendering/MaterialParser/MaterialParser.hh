@@ -15,35 +15,42 @@
  *
  */
 
-#ifndef GZ_SIM_MATERIALPARSER_HH_
-#define GZ_SIM_MATERIALPARSER_HH_
+#ifndef RENDERING__MATERIALPARSER__MATERIALPARSER_HH_
+#define RENDERING__MATERIALPARSER__MATERIALPARSER_HH_
 
 #include <string>
 #include <filesystem>
+#include <vector>
 
 
 namespace gz
 {
-namespace sim
-{
-  class ConfigNode;
-  class ConfigLoader;
-
-  class MaterialParser
+  namespace sim
   {
-    public: MaterialParser();
+    class ConfigNode;
+    class ConfigLoader;
 
-    public: virtual ~MaterialParser();
+    class MaterialParser
+    {
+public:
+      MaterialParser();
 
-    public: void Load(const std::string &_path);
+public:
+      ~MaterialParser();
 
-    public: void Load() { Load(std::filesystem::current_path().string()); };
+public:
+      void Load(const std::string & _path);
 
-    public: std::vector<std::vector<float>> GetMaterialValues(std::string material) const;
+public:
+      void Load() {Load(std::filesystem::current_path().string());}
 
-    private: ConfigLoader *configLoader = nullptr;
-  };
-}
-}
+public:
+      std::vector < std::vector < float >> GetMaterialValues(std::string material) const;
 
-#endif
+private:
+      ConfigLoader * configLoader = nullptr;
+    };
+  }  // namespace sim
+}  // namespace gz
+
+#endif  // RENDERING__MATERIALPARSER__MATERIALPARSER_HH_
