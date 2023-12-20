@@ -49,7 +49,6 @@ MaterialParser::MaterialValues MaterialParser::GetMaterialValues(std::string mat
 
   for (it = scripts.begin(); it != scripts.end(); ++it) {
     std::string name = it->first;
-
     if (name.find(material) != std::string::npos) {
       ConfigNode * node = it->second;
 
@@ -86,6 +85,7 @@ MaterialParser::MaterialValues MaterialParser::GetMaterialValues(std::string mat
           }
         }
       }
+      // \todo Handle dependent materials
     }
   }
   return values;

@@ -807,14 +807,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       std::string scriptName = visualMaterial.ScriptName();
 
       if((scriptName.find("Gazebo/") != std::string::npos)) {
+        // \todo Add documentation page with warning
         gzwarn << "Using an internal gazebo.material to parse " << scriptName
           << std::endl;
         this->dataPtr->materialParser.Load();
         MaterialParser::MaterialValues parsed = this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
-        visualMaterial.SetAmbient(parsed.ambient.value());
-        visualMaterial.SetDiffuse(parsed.diffuse.value());
-        visualMaterial.SetSpecular(parsed.specular.value());
+        visualMaterial.SetAmbient(parsed.ambient.value_or(math::Color::Black));
+        visualMaterial.SetDiffuse(parsed.diffuse.value_or(math::Color::Black));
+        visualMaterial.SetSpecular(parsed.specular.value_or(math::Color::Black));
       }
     }
     this->dataPtr->ecm->CreateComponent(visualEntity,
