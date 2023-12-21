@@ -198,6 +198,15 @@ material Gazebo/Grey
 }
 material Gazebo/Gray : Gazebo/Grey
 {
+  technique
+  {
+    pass main
+    {
+      ambient .3 .3 .3  1.0
+      diffuse .7 .7 .7  1.0
+      specular 0.01 0.01 0.01 1.000000 1.500000
+    }
+  }
 }
 
 material Gazebo/DarkGrey
@@ -215,6 +224,15 @@ material Gazebo/DarkGrey
 
 material Gazebo/DarkGray : Gazebo/DarkGrey
 {
+  technique
+  {
+    pass main
+    {
+      ambient .175 .175 .175  1.0
+      diffuse .175 .175 .175  1.0
+      specular .175 .175 .175 1.000000 1.500000
+    }
+  }
 }
 
 material Gazebo/White

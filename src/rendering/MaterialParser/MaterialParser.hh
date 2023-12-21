@@ -44,10 +44,7 @@ public:
       MaterialParser();
 
 public:
-      void Load(const std::string & _path);
-
-public:
-      void Load() {Load(std::filesystem::current_path().string());}
+      void Load();
 
 public:
       MaterialValues GetMaterialValues(std::string material);

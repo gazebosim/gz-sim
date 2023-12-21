@@ -15,8 +15,6 @@
  *
  */
 
-#include "ConfigLoader.hh"
-
 #include <map>
 #include <exception>
 #include <fstream>
@@ -24,24 +22,29 @@
 #include <utility>
 #include <vector>
 
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include "gz/sim/InstallationDirectories.hh"
+
+#include "ConfigLoader.hh"
+
 using namespace gz;
 using namespace sim;
 
-void ConfigLoader::loadAllFiles(ConfigLoader * c, const std::string & path)
+void ConfigLoader::loadMaterialFiles(ConfigLoader * c)
 {
   try
   {
-    for (std::filesystem::recursive_directory_iterator end, dir(path); dir != end; ++dir) {
-      std::filesystem::path p(* dir);
-      if (p.extension() == c->m_fileEnding) {
-        std::ifstream in((*dir).path().string().c_str(), std::ios::binary);
-        c->parseScript(in);
-      }
-    }
+    std::string installedConfig = common::joinPaths(
+        gz::sim::getMediaInstallDir(),
+        "gazebo.material");
+    std::ifstream in(installedConfig, std::ios::binary);
+    c->parseScript(in);
+
   }
   catch(std::filesystem::filesystem_error & e)
   {
-    std::cerr << e.what() << std::endl;
+    gzerr << e.what() << std::endl;
   }
 }
 
@@ -58,25 +61,20 @@ ConfigLoader::~ConfigLoader()
 
 void ConfigLoader::clearScriptList()
 {
-  std::map < std::string, ConfigNode * > ::iterator i;
-  for (i = m_scriptList.begin(); i != m_scriptList.end(); i++) {
-    delete i->second;
+  for (auto i : m_scriptList) {
+    delete i.second;
   }
   m_scriptList.clear();
 }
 
 ConfigNode * ConfigLoader::getConfigScript(const std::string & name)
 {
-  std::map < std::string, ConfigNode * > ::iterator i;
-
-  std::string key = name;
-  i = m_scriptList.find(key);
-
+  auto i = m_scriptList.find(name);
   // If found..
   if (i != m_scriptList.end()) {
     return i->second;
   } else {
-    return NULL;
+    return nullptr;
   }
 }
 

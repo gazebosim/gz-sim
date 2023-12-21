@@ -33,9 +33,9 @@ MaterialParser::MaterialParser()
 }
 
 /////////////////////////////////////////////////
-void MaterialParser::Load(const std::string & _path)
+void MaterialParser::Load()
 {
-  ConfigLoader::loadAllFiles(&this->configLoader, _path);
+  ConfigLoader::loadMaterialFiles(&this->configLoader);
 }
 
 /////////////////////////////////////////////////

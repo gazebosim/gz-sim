@@ -33,7 +33,7 @@ namespace gz
     class ConfigLoader
     {
 public:
-      static void loadAllFiles(ConfigLoader * c, const std::string & path);
+      static void loadMaterialFiles(ConfigLoader * c);
 
       ConfigLoader(const std::string & fileEnding);
 
