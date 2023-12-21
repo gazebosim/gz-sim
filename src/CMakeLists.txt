@@ -208,9 +208,7 @@ set_property(
   GZ_SIM_WORLD_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/worlds"
   GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/media"
 )
-file(GLOB material_files "*.material")
-install(FILES ${material_files}
-  DESTINATION ${GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR})
+install(FILES "rendering/MaterialParser/gazebo.material" DESTINATION ${GZ_DATA_INSTALL_DIR}/media)
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
