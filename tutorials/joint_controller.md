@@ -224,20 +224,76 @@ Same as velocity mode add the following line to the SDF file.
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
+<<<<<<< HEAD
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
 
 <p align="center">
 <img src="files/joint_controllers/JointController_force_mode_bash.png" width="800" height="400">
 </p>
+=======
+Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
+
+```bash
+joint {
+name: "j1"
+id: 12
+parent: "base_link"
+child: "rotor"
+pose {
+position {
+z: -0.5
+}
+orientation {
+w: 1
+}
+}
+axis1 {
+xyz {
+z: 1
+}
+}
+limit_lower: -inf
+limit_upper: inf
+position: 35.115896338490096
+velocity: 1.0000051832309742
+}
+}
+```
+>>>>>>> 37ded82a1696ccef299cc76cad18d94a2779d40c
 
 An example where p_gain was set to 2.0 and the joint controller failed to reach the desired velocity and behaved absurdly due to improper gains is shown below.
-<p align="center">
-<img src="files/joint_controllers/JointController_force_mode_bash1.png" width="800" height="400">
-</p>
 
 <div style="text-align:center;">
   \image html files/joint_controllers/JointController_Force_mode.gif width=50%
 </div>
+
+```bash
+joint {
+name: "j1"
+id: 12
+parent: "base_link"
+child: "rotor"
+pose {
+position {
+z: -0.5
+}
+}
+orientation {
+w: 1
+}
+}
+
+axis1 { xyz {
+}
+z: 1
+linit lower: -inf
+limit_upper: inf
+position: 44282.754868627489
+velocity: -2891.1685359866523
+}
+}
+```
+
 
 ## 2) JointPositionController
 
@@ -291,9 +347,32 @@ gz topic -t "/topic_name" -m gz.msgs.Double -p "data: -1.0"
 gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 ```
 
-<p align="center">
-<img src="files/joint_controllers/JointPositionController_bash.png" width="800" height="400">
-</p>
+```bash
+﻿
+joint {
+name: "j1"
+id: 12
+parent: "base_link"
+child: "rotor"
+pose {
+position {
+z: -0.5
+}
+orientation {
+w: 1
+}
+}
+axis1 {
+xyz {
+z: 1
+}
+limit_lower: -inf
+limit_upper: inf
+position: 0.99999991907580654
+velocity: 8.1005154347602952e-09
+}
+}
+```
 
 ## 3) JointTrajectoryController.
 
