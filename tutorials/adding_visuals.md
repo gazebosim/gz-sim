@@ -9,6 +9,10 @@ mesh to our turtle, making it look much better.
 ## Related tutorials
 
 https://gazebosim.org/api/sim/8/meshtofuel.html
+
+The next tutorials, althouth still relevant, are from an older version of Gazebo
+and some details might be different than the current versions: 
+
 https://classic.gazebosim.org/tutorials?tut=import_mesh&cat=build_robot
 https://classic.gazebosim.org/tutorials?cat=guided_i&tut=guided_i2
 
