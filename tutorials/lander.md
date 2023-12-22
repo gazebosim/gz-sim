@@ -76,7 +76,6 @@ Create a `model.sdf` and paste the following content:
 
   </model>
 </sdf>
-
 ```
 
 We can now test it in Gazebo. Launch it with:
@@ -146,7 +145,6 @@ reference, we won't need to apply changes in the COLLADA mesh or add any
 
 We are going to start extending our model adding buoyancy properties. For that,
 we need to do two things:
-
 
 1. Create a Gazebo world SDF file and load the buoyancy world plugin.
 2. Add `<collision>` elements to our lander model SDF.
