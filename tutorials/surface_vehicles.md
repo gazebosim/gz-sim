@@ -20,7 +20,7 @@ https://gazebosim.org/api/sim/8/theory_hydrodynamics.html
 
 # Adding an environment
 
-We'll start this tutorial creating a workspace with some custom models, worlds, 
+We'll start this tutorial creating a workspace with some custom models, worlds,
 and plugins that are not available yet on Gazebo. You could use this workspace
 as a template when in need of customizing Gazebo for your needs.
 
@@ -67,7 +67,7 @@ Gazebo is loaded with the Sydney Regatta Center!
 
 It's time to create our maritime surface vehicle. We're going to use the
 Wave Adaptive Modular Vehicle (WAM-V) as the surface platform. This is the
-robot that we use in the [VRX project](https://github.com/osrf/vrx) as well. 
+robot that we use in the [VRX project](https://github.com/osrf/vrx) as well.
 
 ## Basic SDF
 
@@ -79,7 +79,7 @@ Notice how the vehicle is composed by multiple links:
 
 ```bash
 wam-v
-└────────────────────────────── base_link               
+└────────────────────────────── base_link
   left_chasis_engine_joint└─────── left_engine_link
      left_engine_propeller_joint└─────── left_propeller_link
  

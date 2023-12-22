@@ -8,7 +8,7 @@
 
       <grid>false</grid>
     </scene>
-       
+
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -27,7 +27,7 @@
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
     </plugin>
-    
+
     <plugin
       filename="gz-sim-buoyancy-system"
       name="gz::sim::systems::Buoyancy">
@@ -44,17 +44,17 @@
       filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
-    
+
     <plugin
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
-    
+
     <plugin
       filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
     </plugin>
-    
+
     <gui fullscreen="0">
       <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">

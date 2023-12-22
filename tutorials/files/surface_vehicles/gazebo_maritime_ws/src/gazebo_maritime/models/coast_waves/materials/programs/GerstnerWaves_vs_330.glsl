@@ -145,4 +145,3 @@ void main()
 
   outVs.eyeVec = P.xyz - camera_position_object_space; // eye position in vertex space
 }
-

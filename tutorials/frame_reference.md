@@ -15,7 +15,7 @@ This page captures some of the reference frames and conventions that we use in
 Gazebo. In general, Gazebo follows [REP 103: Standard Units of Measure and
 Coordinate Conventions](https://www.ros.org/reps/rep-0103.html).
 
-Gazebo's simulation is always performed in Cartesian coordinates (good old XYZ). 
+Gazebo's simulation is always performed in Cartesian coordinates (good old XYZ).
 
 ![world_frame](https://user-images.githubusercontent.com/1440739/156785118-225d5973-9837-49d1-8a5b-be402e3c074c.png)
 
@@ -48,12 +48,12 @@ Which one should I use then? There's no right answer here but here are a few
 recommendations:
 
 1. If your simulation model is based on a real-world model, try to use the same
-reference frame in simulation. This will simplify the process of creating and 
-maintaining your model in simulation, as most of the measurements that you might 
+reference frame in simulation. This will simplify the process of creating and
+maintaining your model in simulation, as most of the measurements that you might
 find from your real-world robot will be transferable to your simulation model.
 
 2. Follow Gazebo's convention making `X` pointing forward, `Y` pointing
-left, and `Z` pointing up. 
+left, and `Z` pointing up.
 
 3. Try to match the `Z` value of your reference frame with the point of your
 model that contacts the ground or the water. That way, when you spawn your model

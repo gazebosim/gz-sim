@@ -14,7 +14,7 @@ parameters of the plugin are configured via SDF in the world file. Check the
 Gazebo header file for a complete description of all the accepted parameters.
 
 The buoyancy plugin uses the `<collision>` elements of each SDF model to compute
-the volume of fluid displaced. 
+the volume of fluid displaced.
 
 A common pattern for the maritime domain is to create very thin collision
 elements surrounding the vehicle (with low volume) and a separate collision
@@ -22,7 +22,7 @@ element within the vehicle itself. The collection of low volume collision
 elements work as a shell to generate contacts when necessary. The extra
 collision element is only used to generate the aggregated desired air volume.
 
-The outer set of collision elements in combination with the buoyancy collision 
+The outer set of collision elements in combination with the buoyancy collision
 element induce forces at the center of each `<collision>` element. If you
 followed the recommendation for creating low-volume outer collisions, the
 predominant force will be applied at the center of the buoyancy collision

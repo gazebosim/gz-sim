@@ -131,7 +131,7 @@ gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
 
 Now, when our simple trajectory controller reaches its target and stops appling
-force, the turtle stops moving acting like the fluid decelerates its motion. 
+force, the turtle stops moving acting like the fluid decelerates its motion.
 Additionally you can notice how the up and down oscillations are also damped by
 the effect of the hydrodynamics.
 
