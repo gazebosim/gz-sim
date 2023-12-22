@@ -23,11 +23,11 @@ This mode lets the user explicitly set the values of PID gains and also bounds f
 
 **Note**: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
 
-All the parameters related to this controller can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointController.html#:~:text=joint%20is%20actuated.-,System%20Parameters,-%3Cjoint_name%3E%20The).
+All the parameters related to this controller can be found \ref gz::sim::systems::JointController "here".
 
 The commanded velocity(cmd_vel) can be published or subscribed at the topic: `/model/<model_name>/joint/<joint_name>/cmd_vel` by default.
 
-Message data type: `Double`
+Message data type: Double
 
 Example usage
 
@@ -44,7 +44,7 @@ mkdir gz_tutorial
 cd gz_turtorial
 ```
 
-2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf))
+2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` \ref https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf "example".)
 
 After changing the directory, name the SDF file as `example.sdf`
 
@@ -166,9 +166,9 @@ gz sim -v 4 -r example.sdf
 
 This is how the model will look:
 
-<p align="center">
-<img src="files/joint_controllers/JointController.png" width="800" height="400">
-</p>
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointController.png width=50%
+</div>
 
 4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
 
@@ -185,12 +185,9 @@ This is how the model will look:
 
 The initial velocity is set to 1.0 rad/s.
 
-<p align="center">
-<img src="files/joint_controllers/JointController_vel_mode1.gif" width="800" height="400">
-</p>
-
-
-
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointController_vel_mode1.gif width=50%
+</div>
 
 One can change the joint velocity by publishing a message on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin.
 
@@ -205,9 +202,10 @@ To change the topic name add following line before ```</plugin>``` tag in SDF fi
 ```bash
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 ```
-<p align="center">
-<img src="files/joint_controllers/JointController_vel_mode2.gif" width="800" height="400">
-</p>
+
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointController_vel_mode2.gif width=50%
+</div>
 
 - Force mode
 
@@ -226,7 +224,8 @@ Same as velocity mode add the following line to the SDF file.
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
-Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
+Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
+
 <p align="center">
 <img src="files/joint_controllers/JointController_force_mode_bash.png" width="800" height="400">
 </p>
@@ -236,9 +235,9 @@ An example where p_gain was set to 2.0 and the joint controller failed to reach 
 <img src="files/joint_controllers/JointController_force_mode_bash1.png" width="800" height="400">
 </p>
 
-<p align="center">
-<img src="files/joint_controllers/JointController_Force_mode.gif" width="800" height="400">
-</p>
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointController_Force_mode.gif width=50%
+</div>
 
 ## 2) JointPositionController
 
@@ -247,7 +246,7 @@ An example where p_gain was set to 2.0 and the joint controller failed to reach 
 
 JointPositionController uses a PID controller to reach a desired joint position.
 
-All the parameters related to this controller can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointPositionController.html#:~:text=the%20target%20position.-,System%20Parameters,-%3Cjoint_name%3E%20The).
+All the parameters related to this controller can be found \ref gz::sim::systems::JointPositionController "here".
 
 Commanded position(cmd_pos) can be published or subscribed at the topic: `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` by default.
 
@@ -280,9 +279,11 @@ For this let's use the previously discussed SDF file.
 ```bash
 gz topic -t "/topic_name" -m gz.msgs.Double -p "data: -1.0"
 ```
-<p align="center">
-<img src="files/joint_controllers/JointPositionController.gif" width="800" height="400">
-</p>
+
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointPositionController.gif width=50%
+</div>
+
 
 3) Checking joint state.
 
@@ -300,7 +301,7 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 
 JointTrajectoryController lets’s user specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller.
 
-A detailed description and related parameter of JointTrajectoryController can be found [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointTrajectoryController.html#:~:text=Detailed%20Description).
+A detailed description and related parameter of JointTrajectoryController can be found \ref gz::sim::systems::JointTrajectoryController "here".
 
 The trajectory message can be published or subscribed at ```/model/${MODEL_NAME}/joint_trajectory``` by default.
 
@@ -522,9 +523,9 @@ gz sim -v 4 -r example2.sdf
 
 This is how the model will look:
 
-<p align="center">
-<img src="files/joint_controllers/JointTrajectoryController.png" width="800" height="400">
-</p>
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointTrajectoryController.png width=50%
+</div>
 
 2) Adding JointTrajectoryController plugin and let’s do position control for both joints.
 
@@ -596,9 +597,9 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
     }
 ```
 
-<p align="center">
-<img src="files/joint_controllers/JointTrajectoryController.gif" width="800" height="400">
-</p>
+<div style="text-align:center;">
+  \image html files/joint_controllers/JointTrajectoryController.gif width=50%
+</div>
 
 **Note**: by default velocity and position control are disabled if one want to use these mode, they must specify the PID gains value according to usage.
 

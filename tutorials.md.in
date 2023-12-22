@@ -43,7 +43,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage light_config "Light config": Configure lights in the scene.
 * \subpage levels "Levels": Load entities on demand in large environments.
 * \subpage python_interfaces Python interfaces
-
+* \subpage jointcontrollers "Joint Controllers": how to use different joint controller.
 ### Specific systems and features
 
 * \subpage detachablejoints "Detachable Joints": Creating models that start off rigidly attached and then get detached during simulation.
