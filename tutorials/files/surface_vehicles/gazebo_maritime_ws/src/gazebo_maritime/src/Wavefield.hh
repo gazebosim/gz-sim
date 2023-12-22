@@ -20,19 +20,19 @@
 
 #include <gz/msgs/param.pb.h>
 
+#include <cstddef>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <gz/sim/config.hh>
 #include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>
 
 namespace maritime
 {
-  /// \brief Class to hold private data for Wavefield.
-  class WavefieldPrivate;
-
   /// \brief A class to generate a wave field.
   /// This is a port from https://github.com/srmainwaring/asv_wave_sim
   /// with some modifications.
@@ -328,9 +328,8 @@ namespace maritime
     /// \return A message with all the parameters.
     public: gz::msgs::Param Parameters() const;
 
-    /// \internal
-    /// \brief Pointer to the class private data.
-    private: std::unique_ptr<WavefieldPrivate> data;
+    /// \brief Private data pointer.
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 

@@ -19,8 +19,11 @@
 #include <gz/msgs/param.pb.h>
 
 #include <cmath>
-#include <iostream>
+#include <cstddef>
+#include <memory>
+#include <ostream>
 #include <string>
+#include <vector>
 
 #include <Eigen/Dense>
 #include <gz/common/Console.hh>
@@ -44,10 +47,10 @@ std::ostream& operator<<(std::ostream &_os, const std::vector<double> &_vec)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Private data for the WavefieldParameters.
-class maritime::WavefieldPrivate
+class Wavefield::Implementation
 {
   /// \brief Constructor.
-  public: WavefieldPrivate():
+  public: Implementation():
     size({6000, 6000}),
     cellCount({300, 300}),
     model("PMS"),
@@ -166,7 +169,7 @@ class maritime::WavefieldPrivate
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-void WavefieldPrivate::RecalculateCwr()
+void Wavefield::Implementation::RecalculateCwr()
 {
   // Derived mean values
   this->angularFrequency = 2.0 * M_PI / this->period;
@@ -213,7 +216,7 @@ void WavefieldPrivate::RecalculateCwr()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-double WavefieldPrivate::Pm(double _omega, double _omegaP) const
+double Wavefield::Implementation::Pm(double _omega, double _omegaP) const
 {
   double alpha = 0.0081;
   double g = 9.81;
@@ -222,7 +225,7 @@ double WavefieldPrivate::Pm(double _omega, double _omegaP) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void WavefieldPrivate::RecalculatePms()
+void Wavefield::Implementation::RecalculatePms()
 {
   // Derived mean values
   this->angularFrequency = 2.0 * M_PI / this->period;
@@ -277,7 +280,7 @@ void WavefieldPrivate::RecalculatePms()
 }
 
 /////////////////////////////////////////////////
-void WavefieldPrivate::Recalculate()
+void Wavefield::Implementation::Recalculate()
 {
   if (!this->model.compare("PMS"))
   {
@@ -296,7 +299,7 @@ void WavefieldPrivate::Recalculate()
 }
 
 /////////////////////////////////////////////////
-double WavefieldPrivate::DeepWaterDispersionToOmega(double _wavenumber)
+double Wavefield::Implementation::DeepWaterDispersionToOmega(double _wavenumber)
   const
 {
   const double g = std::fabs(-9.8);
@@ -304,7 +307,7 @@ double WavefieldPrivate::DeepWaterDispersionToOmega(double _wavenumber)
 }
 
 /////////////////////////////////////////////////
-double WavefieldPrivate::DeepWaterDispersionToWavenumber(double _omega)
+double Wavefield::Implementation::DeepWaterDispersionToWavenumber(double _omega)
    const
 {
   const double g = std::fabs(-9.8);
@@ -312,7 +315,7 @@ double WavefieldPrivate::DeepWaterDispersionToWavenumber(double _omega)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void WavefieldPrivate::FillParameters()
+void Wavefield::Implementation::FillParameters()
 {
   this->params.mutable_params()->clear();
   auto *params = this->params.mutable_params();
@@ -400,9 +403,9 @@ void WavefieldPrivate::FillParameters()
 
 /////////////////////////////////////////////////////////////////////////////
 Wavefield::Wavefield()
-  : data(std::make_unique<WavefieldPrivate>())
+  : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
-  this->data->Recalculate();
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -419,39 +422,39 @@ void Wavefield::Load(const std::shared_ptr<const sdf::Element> &_sdf)
   auto ptr = const_cast<sdf::Element *>(_sdf.get());
   auto sdfWavefield = ptr->GetElement("wavefield");
 
-  this->data->topic = sdfWavefield->Get<std::string>("topic",
-    this->data->topic).first;
-  this->data->size = sdfWavefield->Get<math::Vector2d>("size",
-    this->data->size).first;
-  this->data->cellCount = sdfWavefield->Get<math::Vector2d>("cell_count",
-    this->data->cellCount).first;
+  this->dataPtr->topic = sdfWavefield->Get<std::string>("topic",
+    this->dataPtr->topic).first;
+  this->dataPtr->size = sdfWavefield->Get<math::Vector2d>("size",
+    this->dataPtr->size).first;
+  this->dataPtr->cellCount = sdfWavefield->Get<math::Vector2d>("cell_count",
+    this->dataPtr->cellCount).first;
   if (sdfWavefield->HasElement("wave"))
   {
     auto sdfWave = sdfWavefield->GetElement("wave");
 
-    this->data->model = sdfWave->Get<std::string>("model", "PMS").first;
-    this->data->number =
-      sdfWave->Get<double>("number", this->data->number).first;
-    this->data->amplitude =
-      sdfWave->Get<double>("amplitude", this->data->amplitude).first;
-    this->data->period =
-      sdfWave->Get<double>("period", this->data->period).first;
-    this->data->phase = sdfWave->Get<double>("phase", this->data->phase).first;
-    this->data->direction =
-      sdfWave->Get<double>("direction", this->data->direction).first;
-    this->data->scale = sdfWave->Get<double>("scale", this->data->scale).first;
-    this->data->angle = sdfWave->Get<double>("angle", this->data->angle).first;
-    this->data->steepness =
-      sdfWave->Get<double>("steepness", this->data->steepness).first;
-    this->data->tau = sdfWave->Get<double>("tau", this->data->tau).first;
-    this->data->gain = sdfWave->Get<double>("gain", this->data->gain).first;
+    this->dataPtr->model = sdfWave->Get<std::string>("model", "PMS").first;
+    this->dataPtr->number =
+      sdfWave->Get<double>("number", this->dataPtr->number).first;
+    this->dataPtr->amplitude =
+      sdfWave->Get<double>("amplitude", this->dataPtr->amplitude).first;
+    this->dataPtr->period =
+      sdfWave->Get<double>("period", this->dataPtr->period).first;
+    this->dataPtr->phase = sdfWave->Get<double>("phase", this->dataPtr->phase).first;
+    this->dataPtr->direction =
+      sdfWave->Get<double>("direction", this->dataPtr->direction).first;
+    this->dataPtr->scale = sdfWave->Get<double>("scale", this->dataPtr->scale).first;
+    this->dataPtr->angle = sdfWave->Get<double>("angle", this->dataPtr->angle).first;
+    this->dataPtr->steepness =
+      sdfWave->Get<double>("steepness", this->dataPtr->steepness).first;
+    this->dataPtr->tau = sdfWave->Get<double>("tau", this->dataPtr->tau).first;
+    this->dataPtr->gain = sdfWave->Get<double>("gain", this->dataPtr->gain).first;
 
-    this->data->Recalculate();
+    this->dataPtr->Recalculate();
   }
 
-  this->data->FillParameters();
+  this->dataPtr->FillParameters();
   this->DebugPrint();
-  this->data->active = true;
+  this->dataPtr->active = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -461,286 +464,286 @@ void Wavefield::Load(const msgs::Param &_msg)
 
   if (params.count("size") > 0)
   {
-    this->data->size = {params["size"].vector3d_value().x(),
+    this->dataPtr->size = {params["size"].vector3d_value().x(),
       params["size"].vector3d_value().y()};
   }
   if (params.count("cell_count") > 0)
   {
-    this->data->cellCount = {params["cell_count"].vector3d_value().x(),
+    this->dataPtr->cellCount = {params["cell_count"].vector3d_value().x(),
       params["cell_count"].vector3d_value().y()};
   }
   if (params.count("number") > 0)
   {
-    this->data->number = params["number"].int_value();
+    this->dataPtr->number = params["number"].int_value();
   }
   if (params.count("scale") > 0)
   {
-    this->data->scale = params["scale"].double_value();
+    this->dataPtr->scale = params["scale"].double_value();
   }
   if (params.count("angle") > 0)
   {
-    this->data->angle = params["angle"].double_value();
+    this->dataPtr->angle = params["angle"].double_value();
   }
   if (params.count("steepness") > 0)
   {
-    this->data->steepness = params["steepness"].double_value();
+    this->dataPtr->steepness = params["steepness"].double_value();
   }
   if (params.count("amplitude") > 0)
   {
-    this->data->amplitude = params["amplitude"].double_value();
+    this->dataPtr->amplitude = params["amplitude"].double_value();
   }
   if (params.count("period") > 0)
   {
-    this->data->period = params["period"].double_value();
+    this->dataPtr->period = params["period"].double_value();
   }
   if (params.count("phase") > 0)
   {
-    this->data->phase = params["phase"].double_value();
+    this->dataPtr->phase = params["phase"].double_value();
   }
   if (params.count("direction") > 0)
   {
-    this->data->direction = params["direction"].double_value();
+    this->dataPtr->direction = params["direction"].double_value();
   }
   if (params.count("model") > 0)
   {
-    this->data->model = params["model"].string_value();
+    this->dataPtr->model = params["model"].string_value();
   }
   if (params.count("gain") > 0)
   {
-    this->data->gain = params["gain"].double_value();
+    this->dataPtr->gain = params["gain"].double_value();
   }
   if (params.count("tau") > 0)
   {
-    this->data->tau = params["tau"].double_value();
+    this->dataPtr->tau = params["tau"].double_value();
   }
 
-  this->data->FillParameters();
-  this->data->Recalculate();
-  this->data->active = true;
+  this->dataPtr->FillParameters();
+  this->dataPtr->Recalculate();
+  this->dataPtr->active = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 std::string Wavefield::Topic() const
 {
-  return this->data->topic;
+  return this->dataPtr->topic;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Wavefield::Active() const
 {
-  return this->data->active;
+  return this->dataPtr->active;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 size_t Wavefield::Number() const
 {
-  return this->data->number;
+  return this->dataPtr->number;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Angle() const
 {
-  return this->data->angle;
+  return this->dataPtr->angle;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Scale() const
 {
-  return this->data->scale;
+  return this->dataPtr->scale;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Steepness() const
 {
-  return this->data->steepness;
+  return this->dataPtr->steepness;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::AngularFrequency() const
 {
-  return this->data->angularFrequency;
+  return this->dataPtr->angularFrequency;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Amplitude() const
 {
-  return this->data->amplitude;
+  return this->dataPtr->amplitude;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Period() const
 {
-  return this->data->period;
+  return this->dataPtr->period;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Phase() const
 {
-  return this->data->phase;
+  return this->dataPtr->phase;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Wavelength() const
 {
-  return this->data->wavelength;
+  return this->dataPtr->wavelength;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Wavenumber() const
 {
-  return this->data->wavenumber;
+  return this->dataPtr->wavenumber;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 float Wavefield::Tau() const
 {
-  return this->data->tau;
+  return this->dataPtr->tau;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 float Wavefield::Gain() const
 {
-  return this->data->gain;
+  return this->dataPtr->gain;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 double Wavefield::Direction() const
 {
-  return this->data->direction;
+  return this->dataPtr->direction;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetNumber(size_t _number)
 {
-  this->data->number = _number;
-  this->data->Recalculate();
+  this->dataPtr->number = _number;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetAngle(double _angle)
 {
-  this->data->angle = _angle;
-  this->data->Recalculate();
+  this->dataPtr->angle = _angle;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetScale(double _scale)
 {
-  this->data->scale = _scale;
-  this->data->Recalculate();
+  this->dataPtr->scale = _scale;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetSteepness(double _steepness)
 {
-  this->data->steepness = _steepness;
-  this->data->Recalculate();
+  this->dataPtr->steepness = _steepness;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetAmplitude(double _amplitude)
 {
-  this->data->amplitude = _amplitude;
-  this->data->Recalculate();
+  this->dataPtr->amplitude = _amplitude;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetPeriod(double _period)
 {
-  this->data->period = _period;
-  this->data->Recalculate();
+  this->dataPtr->period = _period;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetPhase(double _phase)
 {
-  this->data->phase = _phase;
-  this->data->Recalculate();
+  this->dataPtr->phase = _phase;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetTau(double _tau)
 {
-  this->data->tau = _tau;
+  this->dataPtr->tau = _tau;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetGain(double _gain)
 {
-  this->data->gain = _gain;
+  this->dataPtr->gain = _gain;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::SetDirection(double _direction)
 {
-  this->data->direction = _direction;
-  this->data->Recalculate();
+  this->dataPtr->direction = _direction;
+  this->dataPtr->Recalculate();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<double> &Wavefield::AngularFrequency_V() const
 {
-  return this->data->angularFrequencies;
+  return this->dataPtr->angularFrequencies;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<double> &Wavefield::Amplitude_V() const
 {
-  return this->data->amplitudes;
+  return this->dataPtr->amplitudes;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<double> &Wavefield::Phase_V() const
 {
-  return this->data->phases;
+  return this->dataPtr->phases;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<double> &Wavefield::Steepness_V() const
 {
-  return this->data->steepnesses;
+  return this->dataPtr->steepnesses;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<double> &Wavefield::Wavenumber_V() const
 {
-  return this->data->wavenumbers;
+  return this->dataPtr->wavenumbers;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<math::Vector2d> &Wavefield::Direction_V() const
 {
-  return this->data->directions;
+  return this->dataPtr->directions;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Wavefield::DebugPrint() const
 {
   gzmsg << "Input Parameters:" << std::endl;
-  gzmsg << "model:     " << this->data->model << std::endl;
-  gzmsg << "number:     " << this->data->number << std::endl;
-  gzmsg << "scale:      " << this->data->scale << std::endl;
-  gzmsg << "angle:      " << this->data->angle << std::endl;
-  gzmsg << "steepness:  " << this->data->steepness << std::endl;
-  gzmsg << "amplitude:  " << this->data->amplitude << std::endl;
-  gzmsg << "period:     " << this->data->period << std::endl;
-  gzmsg << "direction:  " << this->data->direction << std::endl;
-  gzmsg << "tau:  " << this->data->tau << std::endl;
-  gzmsg << "gain:  " << this->data->gain << std::endl;
+  gzmsg << "model:     " << this->dataPtr->model << std::endl;
+  gzmsg << "number:     " << this->dataPtr->number << std::endl;
+  gzmsg << "scale:      " << this->dataPtr->scale << std::endl;
+  gzmsg << "angle:      " << this->dataPtr->angle << std::endl;
+  gzmsg << "steepness:  " << this->dataPtr->steepness << std::endl;
+  gzmsg << "amplitude:  " << this->dataPtr->amplitude << std::endl;
+  gzmsg << "period:     " << this->dataPtr->period << std::endl;
+  gzmsg << "direction:  " << this->dataPtr->direction << std::endl;
+  gzmsg << "tau:  " << this->dataPtr->tau << std::endl;
+  gzmsg << "gain:  " << this->dataPtr->gain << std::endl;
   gzmsg << "Derived Parameters:" << std::endl;
-  gzmsg << "amplitudes:  " << this->data->amplitudes << std::endl;
-  gzmsg << "wavenumbers: " << this->data->wavenumbers << std::endl;
-  gzmsg << "omegas:      " << this->data->angularFrequencies << std::endl;
+  gzmsg << "amplitudes:  " << this->dataPtr->amplitudes << std::endl;
+  gzmsg << "wavenumbers: " << this->dataPtr->wavenumbers << std::endl;
+  gzmsg << "omegas:      " << this->dataPtr->angularFrequencies << std::endl;
   gzmsg << "periods:     ";
-  for (auto&& omega : this->data->angularFrequencies) // NOLINT
+  for (auto&& omega : this->dataPtr->angularFrequencies) // NOLINT
   {
     gzmsg << 2.0 * M_PI / omega <<", ";
   }
   gzmsg << std::endl;
-  gzmsg << "phases:      " << this->data->phases << std::endl;
-  gzmsg << "steepnesses: " << this->data->steepnesses << std::endl;
+  gzmsg << "phases:      " << this->dataPtr->phases << std::endl;
+  gzmsg << "steepnesses: " << this->dataPtr->steepnesses << std::endl;
   gzmsg << "directions:  ";
-  for (auto&& d : this->data->directions) // NOLINT
+  for (auto&& d : this->dataPtr->directions) // NOLINT
   {
     gzmsg << d << "; ";
   }
@@ -884,5 +887,5 @@ double Wavefield::ComputeDepthDirectly(const math::Vector3d &_point,
 ///////////////////////////////////////////////////////////////////////////////
 msgs::Param Wavefield::Parameters() const
 {
-  return this->data->params;
+  return this->dataPtr->params;
 }

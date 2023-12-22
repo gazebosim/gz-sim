@@ -18,6 +18,7 @@
 #ifndef MARITIME_SURFACE_HH_
 #define MARITIME_SURFACE_HH_
 
+#include <memory>
 #include <gz/sim/System.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/utils/ImplPtr.hh>

@@ -16,8 +16,10 @@
  */
 #include <gz/msgs/param.pb.h>
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 #include <gz/common/Profiler.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
@@ -36,7 +38,7 @@ using namespace gz;
 using namespace maritime;
 
 /// \brief Private Surface data class.
-class maritime::Surface::Implementation
+class Surface::Implementation
 {
   /// \brief Parse the points via SDF.
   /// \param[in] _sdf Pointer to the SDF.

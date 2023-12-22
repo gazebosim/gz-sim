@@ -19,14 +19,12 @@
 #define MARITIME_WAVEVISUAL_HH_
 
 #include <memory>
+#include <gz/utils/ImplPtr.hh>
 
 #include "gz/sim/System.hh"
 
 namespace maritime
 {
-  // Forward declaration
-  class WaveVisualPrivate;
-
   /// \brief A plugin for setting shaders to a visual and its params
   ///
   /// Plugin parameters:
@@ -58,8 +56,8 @@ namespace maritime
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
 
-    /// \brief Private data pointer
-    private: std::unique_ptr<WaveVisualPrivate> dataPtr;
+    /// \brief Private data pointer.
+    GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 

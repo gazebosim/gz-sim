@@ -18,6 +18,7 @@
 #ifndef MARITIME_PUBLISHERPLUGIN_HH_
 #define MARITIME_PUBLISHERPLUGIN_HH_
 
+#include <memory>
 #include <gz/sim/System.hh>
 #include <gz/utils/ImplPtr.hh>
 #include <sdf/sdf.hh>

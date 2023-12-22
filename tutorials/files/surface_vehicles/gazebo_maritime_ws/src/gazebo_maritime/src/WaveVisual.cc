@@ -45,7 +45,7 @@
 using namespace gz;
 using namespace maritime;
 
-class maritime::WaveVisualPrivate
+class maritime::WaveVisual::Implementation
 {
   /// \brief Path to vertex shader
   public: std::string vertexShaderUri;
@@ -120,7 +120,7 @@ class maritime::WaveVisualPrivate
 
 /////////////////////////////////////////////////
 WaveVisual::WaveVisual()
-    : System(), dataPtr(std::make_unique<WaveVisualPrivate>())
+    : System(), dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -223,11 +223,11 @@ void WaveVisual::Configure(const sim::Entity &_entity,
   // rendering operations in that thread
   this->dataPtr->connection =
       _eventMgr.Connect<sim::events::SceneUpdate>(
-      std::bind(&WaveVisualPrivate::OnUpdate, this->dataPtr.get()));
+      std::bind(&WaveVisual::Implementation::OnUpdate, this->dataPtr.get()));
 
   // Subscribe to receive the wavefield parameters.
   this->dataPtr->node.Subscribe(this->dataPtr->wavefield.Topic(),
-    &WaveVisualPrivate::OnWavefield, this->dataPtr.get());
+    &WaveVisual::Implementation::OnWavefield, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
@@ -241,7 +241,7 @@ void WaveVisual::PreUpdate(
 }
 
 //////////////////////////////////////////////////
-void WaveVisualPrivate::OnUpdate()
+void WaveVisual::Implementation::OnUpdate()
 {
   if (this->visualName.empty())
     return;
@@ -434,7 +434,7 @@ void WaveVisualPrivate::OnUpdate()
 }
 
 //////////////////////////////////////////////////
-void WaveVisualPrivate::OnWavefield(const msgs::Param &_msg)
+void WaveVisual::Implementation::OnWavefield(const msgs::Param &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->wavefield.Load(_msg);
