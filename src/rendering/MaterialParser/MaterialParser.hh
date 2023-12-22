@@ -47,7 +47,7 @@ public:
       void Load();
 
 public:
-      MaterialValues GetMaterialValues(std::string material);
+      MaterialValues GetMaterialValues(const std::string& material);
 
 private:
       ConfigLoader configLoader;

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+// This code is adapted from https://wiki.ogre3d.org/All-purpose+script+parser
 
 #include <map>
 #include <exception>
@@ -48,10 +49,8 @@ void ConfigLoader::loadMaterialFiles(ConfigLoader * c)
   }
 }
 
-ConfigLoader::ConfigLoader(const std::string & fileEnding)
+ConfigLoader::ConfigLoader()
 {
-  // Register as a ScriptLoader
-  m_fileEnding = fileEnding;
 }
 
 ConfigLoader::~ConfigLoader()

@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+// This code is adapted from https://wiki.ogre3d.org/All-purpose+script+parser
 
 #ifndef RENDERING__MATERIALPARSER__CONFIGLOADER_HH_
 #define RENDERING__MATERIALPARSER__CONFIGLOADER_HH_
@@ -35,7 +36,7 @@ namespace gz
 public:
       static void loadMaterialFiles(ConfigLoader * c);
 
-      ConfigLoader(const std::string & fileEnding);
+      ConfigLoader();
 
       ~ConfigLoader();
 
