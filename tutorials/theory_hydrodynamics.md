@@ -6,6 +6,15 @@ This tutorial describes the theory of operation of the hydrodynamics plugin.
 It's heavily based on [3], and we recommend to read the full paper for a deeper
 understanding of its theory.
 
+# Understanding Hydrodynamic Forces
+
+The behavior of a moving body through water is different from the behavior of
+a ground based vehicle. In particular bodies moving underwater experience much
+more forces derived from drag, buoyancy and lift. The way these forces act on
+a body can be seen in the following diagram:
+
+@image html "files/underwater_vehicles/MBARI forces.png"
+
 # The hydrodynamics plugin
 
 To approximate the motion of the vehicle in the ocean environment, we adapt
