@@ -41,8 +41,8 @@ test through a vessel-specific configuration that includes the hydrodynamic
 derivatives. During each time step of the simulation, the plugin is executed
 with access to the state of the vessel and environment. The hydrodynamic force
 terms are calculated based on this state information and the user-defined vessel
-characteristics. The resulting force and moment values are then applied to the 
-vessel through the Gazebo API for inclusion in the next iteration of the physics 
+characteristics. The resulting force and moment values are then applied to the
+vessel through the Gazebo API for inclusion in the next iteration of the physics
 engine.
 
 The parameters of the plugin are configured via SDF in the model file.

@@ -82,7 +82,7 @@ wam-v
 └────────────────────────────── base_link
   left_chasis_engine_joint└─────── left_engine_link
      left_engine_propeller_joint└─────── left_propeller_link
- 
+
   right_chasis_engine_joint└─────── right_engine_link
     right_engine_propeller_joint└─────── right_propeller_link
 ```
