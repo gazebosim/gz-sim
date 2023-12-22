@@ -224,14 +224,7 @@ Same as velocity mode add the following line to the SDF file.
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
-<<<<<<< HEAD
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
-
-<p align="center">
-<img src="files/joint_controllers/JointController_force_mode_bash.png" width="800" height="400">
-</p>
-=======
-Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit [here](https://gazebosim.org/api/gazebo/7.0/classignition_1_1gazebo_1_1systems_1_1JointStatePublisher.html#:~:text=JointStatePublisher%20Class%20Reference) for more information.
 
 ```bash
 joint {
@@ -259,7 +252,6 @@ velocity: 1.0000051832309742
 }
 }
 ```
->>>>>>> 37ded82a1696ccef299cc76cad18d94a2779d40c
 
 An example where p_gain was set to 2.0 and the joint controller failed to reach the desired velocity and behaved absurdly due to improper gains is shown below.
 
