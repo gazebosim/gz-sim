@@ -64,7 +64,7 @@ gz sim ~/gazebo_maritime/models/my_lrauv/model.sdf
 ```
 
 You should see Gazebo with your LRAUV loaded. If you hit play, your robot will
-sadly sink. The good news is that this is expected as we did not attach any 
+sadly sink. The good news is that this is expected as we did not attach any
 plugins to the LRAUV model. Let's do that!
 
 # Adding buoyancy

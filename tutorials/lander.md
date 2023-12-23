@@ -213,7 +213,7 @@ volume outer collision elements to the `base_link`:
       <size>1.325 1.1503 0.000001</size>
     </box>
   </geometry>
-</collision> 
+</collision>
 ```
 
 You can now launch Gazebo:
@@ -222,14 +222,14 @@ You can now launch Gazebo:
 gz sim ~/gazebo_maritime/worlds/buoyant_lander.sdf
 ```
 
-And visualize collisions by right-clicking on the lander, and the, `View` -> 
+And visualize collisions by right-clicking on the lander, and the, `View` ->
 `Collisions`.
 
 @image html files/lander/lander_collisions.png
 
 If you hit play, your lander will sink as expected. Although the buoyancy plugin
 is loaded, notice that all the collision elements that we added are low-volume.
-This is on purpose to make sure that our model can collide with obstacles. 
+This is on purpose to make sure that our model can collide with obstacles.
 However, it's generating very little buoyancy.
 
 Let's now compute the reference volume that will make the lander neutrally
@@ -269,7 +269,7 @@ gz sim ~/gazebo_maritime/worlds/buoyant_lander.sdf
 
 Hit play, and your lander should now maintain depth!
 
-This an example to illustrate how to calculate this reference value, however a 
+This an example to illustrate how to calculate this reference value, however a
 lander is normally designed to sink.
 
 Change the buoyancy plugin to the following value to be more realistic:
@@ -304,7 +304,7 @@ adjusted its values. Follow the
 for recommendations about how to tune its values.
 
 ```xml
-<!-- Hydrodynamics -->    
+<!-- Hydrodynamics -->
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
