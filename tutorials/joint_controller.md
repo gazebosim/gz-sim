@@ -183,7 +183,7 @@ The initial velocity is set to 1.0 rad/s.
   \image html files/joint_controllers/JointControllerVelMode1.gif width=50%
 </div>
 
-One can change the joint velocity by publishing a message on the topic ```/model/joint_controller_demo/joint/j1/cmd_vel``` or can change the topic name within the plugin.
+One can change the joint velocity by publishing a message on the topic `/model/joint_controller_demo/joint/j1/cmd_vel` or can change the topic name within the plugin.
 
 To change the topic name add following line before ```</plugin>``` tag in SDF file.
 
