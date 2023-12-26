@@ -177,7 +177,7 @@ This is how the model will look:
  name="gz::sim::systems::JointController">
  <joint_name>j1</joint_name>
  <initial_velocity>1.0</initial_velocity>
- </plugin>
+</plugin>
 ```
 
 The initial velocity is set to 1.0 rad/s.
@@ -216,7 +216,7 @@ Same as velocity mode add the following line to the SDF file.
  <use_force_commands>true</use_force_commands>
  <p_gain>0.2</p_gain>
  <i_gain>0.01</i_gain>
- </plugin>
+</plugin>
 ```
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
@@ -307,17 +307,17 @@ For this let's use the previously discussed SDF file.
 
 ```xml
 <plugin
-        filename="gz-sim-joint-position-controller-system"
-        name="gz::sim::systems::JointPositionController">
-        <joint_name>j1</joint_name>
-        <topic>topic_name</topic>
-        <p_gain>1</p_gain>
-        <i_gain>0.1</i_gain>
-        <d_gain>0.01</d_gain>
-        <i_max>1</i_max>
-        <i_min>-1</i_min>
-        <cmd_max>1000</cmd_max>
-        <cmd_min>-1000</cmd_min>
+ filename="gz-sim-joint-position-controller-system"
+ name="gz::sim::systems::JointPositionController">
+ <joint_name>j1</joint_name>
+ <topic>topic_name</topic>
+ <p_gain>1</p_gain>
+ <i_gain>0.1</i_gain>
+ <d_gain>0.01</d_gain>
+ <i_max>1</i_max>
+ <i_min>-1</i_min>
+ <cmd_max>1000</cmd_max>
+ <cmd_min>-1000</cmd_min>
 </plugin>
 ```
 
@@ -602,28 +602,28 @@ Append following lines before ```</model>``` tag in SDF file.
 
 ```xml
  <plugin
-        filename="gz-sim-joint-trajectory-controller-system"
-        name="gz::sim::systems::JointTrajectoryController">
-        <joint_name>RR_position_control_joint1</joint_name>
-        <initial_position>0.7854</initial_position>
-        <position_p_gain>20</position_p_gain>
-        <position_i_gain>0.4</position_i_gain>
-        <position_d_gain>1.0</position_d_gain>
-        <position_i_min>-1</position_i_min>
-        <position_i_max>1</position_i_max>
-        <position_cmd_min>-20</position_cmd_min>
-        <position_cmd_max>20</position_cmd_max>
+ filename="gz-sim-joint-trajectory-controller-system"
+ name="gz::sim::systems::JointTrajectoryController">
+ <joint_name>RR_position_control_joint1</joint_name>
+ <initial_position>0.7854</initial_position>
+ <position_p_gain>20</position_p_gain>
+ <position_i_gain>0.4</position_i_gain>
+ <position_d_gain>1.0</position_d_gain>
+ <position_i_min>-1</position_i_min>
+ <position_i_max>1</position_i_max>
+ <position_cmd_min>-20</position_cmd_min>
+ <position_cmd_max>20</position_cmd_max>
 
-        <joint_name>RR_position_control_joint2</joint_name>
-        <initial_position>-1.5708</initial_position>
-        <position_p_gain>10</position_p_gain>
-        <position_i_gain>0.2</position_i_gain>
-        <position_d_gain>0.5</position_d_gain>
-        <position_i_min>-1</position_i_min>
-        <position_i_max>1</position_i_max>
-        <position_cmd_min>-10</position_cmd_min>
-        <position_cmd_max>10</position_cmd_max>
-      </plugin>
+ <joint_name>RR_position_control_joint2</joint_name>
+ <initial_position>-1.5708</initial_position>
+ <position_p_gain>10</position_p_gain>
+ <position_i_gain>0.2</position_i_gain>
+ <position_d_gain>0.5</position_d_gain>
+ <position_i_min>-1</position_i_min>
+ <position_i_max>1</position_i_max>
+ <position_cmd_min>-10</position_cmd_min>
+ <position_cmd_max>10</position_cmd_max>
+</plugin>
 ```
 
 3) Sending trajectory message (Can also change the topic name).
