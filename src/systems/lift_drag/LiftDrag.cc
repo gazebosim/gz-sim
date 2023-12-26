@@ -328,7 +328,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
       spanwiseI.Dot(velI), minRatio, maxRatio);
 
   // get cos from trig identity
-  double cosSweepAngle = 1.0 - sinSweepAngle * sinSweepAngle;
+  double cosSweepAngle = sqrt(1.0 - sinSweepAngle * sinSweepAngle);
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
