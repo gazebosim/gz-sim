@@ -1,6 +1,9 @@
 \page jointcontrollers Joint Controllers
 
-Gazebo provides three joint controller plugins. Let's see a detailed description of each of them and example usage to help users to select right joint controller for their usage.
+Gazebo provides three joint controller plugins which are `JointController`, `JointPositionController`, and `JointTrajectoryController`. 
+
+Let's see a detailed description of each of them and an example usage to help users select the right joint controller for their usage.
+
 ## 1) JointController
 
 - Joint controller which can be attached to a model with a reference to a single joint.
@@ -12,7 +15,7 @@ Gazebo provides three joint controller plugins. Let's see a detailed description
 This mode lets the user control the desired joint velocity directly.
 
 2) Force mode:
-A user who wants to control joint velocity using a PID controller can use this mode.This mode lets the user explicitly set the values of PID gains and also bounds for velocity.
+A user who wants to control joint velocity using a PID controller can use this mode.
 
 **Note**: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
 
@@ -218,7 +221,7 @@ Same as velocity mode add the following line to the SDF file.
 
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
-5) Cheking Joint states.
+5) Checking Joint states.
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
 
 ```bash 
@@ -227,28 +230,27 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 
 ```bash
 joint {
-name: "j1"
-id: 12
-parent: "base_link"
-child: "rotor"
-pose {
-position {
-z: -0.5
-}
-orientation {
-w: 1
-}
-}
-axis1 {
-xyz {
-z: 1
-}
-}
-limit_lower: -inf
-limit_upper: inf
-position: 35.115896338490096
-velocity: 1.0000051832309742
-}
+  name: "j1"
+  id: 12
+  parent: "base_link"
+  child: "rotor"
+  pose {
+    position {
+      z: -0.5
+    }
+    orientation {
+      w: 1
+    }
+  } 
+  axis1 {
+    xyz {
+      z: 1
+    }
+    limit_lower: -inf
+    limit_upper: inf
+    position: 35.115896338490096
+    velocity: 1.0000051832309742
+  }
 }
 ```
 
@@ -260,31 +262,29 @@ An example where p_gain was set to 2.0 and the joint controller failed to reach 
 
 ```bash
 joint {
-name: "j1"
-id: 12
-parent: "base_link"
-child: "rotor"
-pose {
-position {
-z: -0.5
-}
-}
-orientation {
-w: 1
-}
-}
-
-axis1 { xyz {
-}
-z: 1
-linit lower: -inf
-limit_upper: inf
-position: 44282.754868627489
-velocity: -2891.1685359866523
-}
+  name: "j1"
+  id: 12
+  parent: "base_link"
+  child: "rotor"
+  pose {
+    position {
+      z: -0.5
+    }
+    orientation {
+      w: 1
+    }
+  } 
+  axis1 {
+    xyz {
+      z: 1
+    }
+    limit_lower: -inf
+    limit_upper: inf
+    position: 44282.754868627489
+    velocity: -2891.1685359866523
+  }
 }
 ```
-
 
 ## 2) JointPositionController
 
@@ -340,27 +340,27 @@ gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 
 ```bash
 joint {
-name: "j1"
-id: 12
-parent: "base_link"
-child: "rotor"
-pose {
-position {
-z: -0.5
-}
-orientation {
-w: 1
-}
-}
-axis1 {
-xyz {
-z: 1
-}
-limit_lower: -inf
-limit_upper: inf
-position: 0.99999991907580654
-velocity: 8.1005154347602952e-09
-}
+  name: "j1"
+  id: 12
+  parent: "base_link"
+  child: "rotor"
+  pose {
+    position {
+      z: -0.5
+    }
+    orientation {
+      w: 1
+    }
+  } 
+  axis1 {
+    xyz {
+      z: 1
+    }
+    limit_lower: -inf
+    limit_upper: inf
+    position: 0.99999991907580654
+    velocity: 8.1005154347602952e-09
+  }
 }
 ```
 
@@ -378,7 +378,7 @@ Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classig
 
 ### Example usage:
 
-Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ( [```joint_trajectory_controller.sdf```](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
+Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ([```joint_trajectory_controller.sdf```](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
 
 - SDF file:
 
