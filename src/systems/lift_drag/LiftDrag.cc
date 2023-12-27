@@ -74,7 +74,7 @@ class gz::sim::systems::LiftDragPrivate
   /// \brief Coefficient of Moment / alpha slope.
   /// Moment = C_M * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cma = 0.01;
+  public: double cma = 0.0;
 
   /// \brief angle of attach when airfoil stalls
   public: double alphaStall = GZ_PI_2;
