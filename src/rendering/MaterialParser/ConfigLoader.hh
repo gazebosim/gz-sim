@@ -19,144 +19,153 @@
 #ifndef RENDERING__MATERIALPARSER__CONFIGLOADER_HH_
 #define RENDERING__MATERIALPARSER__CONFIGLOADER_HH_
 
-#include <map>
 #include <cassert>
-#include <string>
 #include <iostream>
+#include <map>
+#include <string>
 #include <vector>
 
 namespace gz
 {
-  namespace sim
-  {
-    class ConfigNode;
+namespace sim
+{
+class ConfigNode;
 
-    class ConfigLoader
-    {
+class ConfigLoader
+{
 public:
-      static void loadMaterialFiles(ConfigLoader * c);
+  static void loadMaterialFiles(ConfigLoader * c);
 
-      ConfigLoader();
+  ConfigLoader();
 
-      ~ConfigLoader();
+  ~ConfigLoader();
 
-      std::string m_fileEnding;
+  std::string m_fileEnding;
 
-      // For a line like
-      // entity animals/dog
-      // {
-      //    ...
-      // }
-      // The type is "entity" and the name is "animals/dog"
-      // Or if animal/dog was not there then name is ""
-      virtual ConfigNode * getConfigScript(const std::string & name);
+  // For a line like
+  // entity animals/dog
+  // {
+  //    ...
+  // }
+  // The type is "entity" and the name is "animals/dog"
+  // Or if animal/dog was not there then name is ""
+  virtual ConfigNode * getConfigScript(const std::string & name);
 
-      virtual std::map < std::string, ConfigNode * > getAllConfigScripts();
+  virtual std::map<std::string, ConfigNode *> getAllConfigScripts();
 
-      virtual void parseScript(std::ifstream & stream);
+  virtual void parseScript(std::ifstream & stream);
 
 protected:
-      float m_LoadOrder;
-      // like "*.object"
+  float m_LoadOrder;
+  // like "*.object"
 
-      std::map < std::string, ConfigNode * > m_scriptList;
+  std::map<std::string, ConfigNode *> m_scriptList;
 
-      enum Token
-      {
-        TOKEN_Text,
-        TOKEN_NewLine,
-        TOKEN_OpenBrace,
-        TOKEN_CloseBrace,
-        TOKEN_EOF,
-      };
+  enum Token
+  {
+    TOKEN_Text,
+    TOKEN_NewLine,
+    TOKEN_OpenBrace,
+    TOKEN_CloseBrace,
+    TOKEN_EOF,
+  };
 
-      Token tok, lastTok;
-      std::string tokVal, lastTokVal;
+  Token tok, lastTok;
+  std::string tokVal, lastTokVal;
 
-      void _parseNodes(std::ifstream & stream, ConfigNode * parent);
-      void _nextToken(std::ifstream & stream);
-      void _skipNewLines(std::ifstream & stream);
+  void _parseNodes(std::ifstream & stream, ConfigNode * parent);
+  void _nextToken(std::ifstream & stream);
+  void _skipNewLines(std::ifstream & stream);
 
-      virtual void clearScriptList();
-    };
+  virtual void clearScriptList();
+};
 
-    class ConfigNode
-    {
+class ConfigNode
+{
 public:
-      ConfigNode(ConfigNode * parent, const std::string & name = "untitled");
-      ~ConfigNode();
+  explicit ConfigNode(ConfigNode * parent,
+    const std::string & name = "untitled");
 
-      inline void setName(const std::string & name)
-      {
-        this->m_name = name;
-      }
+  ~ConfigNode();
 
-      inline std::string & getName()
-      {
-        return m_name;
-      }
+  inline void setName(const std::string & name)
+  {
+  this->m_name = name;
+  }
 
-      inline void addValue(const std::string & value)
-      {
-        m_values.push_back(value);
-      }
+  inline std::string & getName()
+  {
+  return m_name;
+  }
 
-      inline void clearValues()
-      {
-        m_values.clear();
-      }
+  inline void addValue(const std::string & value)
+  {
+  m_values.push_back(value);
+  }
 
-      inline std::vector < std::string > & getValues()
-      {
-        return m_values;
-      }
+  inline void clearValues()
+  {
+  m_values.clear();
+  }
 
-      inline void getValuesInFloat(std::vector < float > & floatValues)
-      {
-        for (const auto & str : m_values) {
-          floatValues.push_back(std::stof(str));
-        }
-      }
+  inline std::vector<std::string> & getValues()
+  {
+  return m_values;
+  }
 
-      inline const std::string & getValue(unsigned int index = 0)
-      {
-        assert(index < m_values.size());
-        return m_values[index];
-      }
+  inline void getValuesInFloat(std::vector<float> & floatValues)
+  {
+  for (const auto & str : m_values) {
+  floatValues.push_back(std::stof(str));
+  }
+  }
 
-      ConfigNode * addChild(const std::string & name = "untitled", bool replaceExisting = false);
-      ConfigNode * findChild(const std::string & name, bool recursive = false);
+  inline const std::string & getValue(unsigned int index = 0)
+  {
+  assert(index < m_values.size());
+  return m_values[index];
+  }
 
-      inline std::vector < ConfigNode * > & getChildren()
-      {
-        return m_children;
-      }
+  ConfigNode * addChild(
+    const std::string & name = "untitled", bool replaceExisting = false);
 
-      inline ConfigNode * getChild(unsigned int index = 0)
-      {
-        assert(index < m_children.size());
-        return m_children[index];
-      }
+  ConfigNode * findChild(const std::string & name, bool recursive = false);
 
-      void setParent(ConfigNode * newParent);
+  inline std::vector<ConfigNode *> & getChildren()
+  {
+  return m_children;
+  }
 
-      inline ConfigNode * getParent()
-      {
-        return m_parent;
-      }
+  inline ConfigNode * getChild(unsigned int index = 0)
+  {
+  assert(index < m_children.size());
+  return m_children[index];
+  }
+
+  void setParent(ConfigNode * newParent);
+
+  inline ConfigNode * getParent()
+  {
+  return m_parent;
+  }
 
 private:
-      std::string m_name;
-      std::vector < std::string > m_values;
-      std::vector < ConfigNode * > m_children;
-      ConfigNode * m_parent;
+  std::string m_name;
 
-      int m_lastChildFound;  // The last child node's index found with a call to findChild()
+  std::vector<std::string> m_values;
 
-      std::vector < ConfigNode * > ::iterator _iter;
-      bool _removeSelf;
-    };
-  }  // namespace sim
+  std::vector<ConfigNode *> m_children;
+
+  ConfigNode * m_parent;
+
+  // The last child node's index found with a call to findChild()
+  int m_lastChildFound;
+
+  std::vector<ConfigNode *> ::iterator _iter;
+
+  bool _removeSelf;
+};
+}  // namespace sim
 }  // namespace gz
 
 #endif  // RENDERING__MATERIALPARSER__CONFIGLOADER_HH_

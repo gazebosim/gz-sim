@@ -18,10 +18,8 @@
 #ifndef RENDERING__MATERIALPARSER__MATERIALPARSER_HH_
 #define RENDERING__MATERIALPARSER__MATERIALPARSER_HH_
 
-#include <string>
-#include <filesystem>
 #include <optional>
-#include <vector>
+#include <string>
 
 #include <gz/math/Color.hh>
 
@@ -29,30 +27,28 @@
 
 namespace gz
 {
-  namespace sim
-  {
-    class MaterialParser
+namespace sim
+{
+class MaterialParser
+{
+  public:
+  struct MaterialValues
     {
-public:
-      struct MaterialValues
-        {
-          std::optional<math::Color> ambient;
-          std::optional<math::Color> diffuse;
-          std::optional<math::Color> specular;
-        };
-public:
-      MaterialParser();
-
-public:
-      void Load();
-
-public:
-      MaterialValues GetMaterialValues(const std::string& material);
-
-private:
-      ConfigLoader configLoader;
+      std::optional<math::Color> ambient;
+      std::optional<math::Color> diffuse;
+      std::optional<math::Color> specular;
     };
-  }  // namespace sim
+
+  MaterialParser();
+
+  void Load();
+
+  MaterialValues GetMaterialValues(const std::string& material);
+
+  private:
+  ConfigLoader configLoader;
+};
+}  // namespace sim
 }  // namespace gz
 
 #endif  // RENDERING__MATERIALPARSER__MATERIALPARSER_HH_

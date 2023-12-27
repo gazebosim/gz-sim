@@ -41,7 +41,6 @@ void ConfigLoader::loadMaterialFiles(ConfigLoader * c)
         "gazebo.material");
     std::ifstream in(installedConfig, std::ios::binary);
     c->parseScript(in);
-
   }
   catch(std::filesystem::filesystem_error & e)
   {
@@ -60,7 +59,7 @@ ConfigLoader::~ConfigLoader()
 
 void ConfigLoader::clearScriptList()
 {
-  for (auto i : m_scriptList) {
+  for (auto & i : m_scriptList) {
     delete i.second;
   }
   m_scriptList.clear();
@@ -77,7 +76,7 @@ ConfigNode * ConfigLoader::getConfigScript(const std::string & name)
   }
 }
 
-std::map < std::string, ConfigNode * > ConfigLoader::getAllConfigScripts()
+std::map<std::string, ConfigNode *> ConfigLoader::getAllConfigScripts()
 {
   return m_scriptList;
 }
@@ -114,7 +113,8 @@ void ConfigLoader::_nextToken(std::ifstream & stream)
     tok = TOKEN_EOF;
     return;
   }
-  while ((ch == ' ' || ch == 9) && !stream.eof()) {  // Skip leading spaces / tabs
+  // Skip leading spaces / tabs
+  while ((ch == ' ' || ch == 9) && !stream.eof()) {
     ch = stream.get();
   }
 
@@ -145,7 +145,8 @@ void ConfigLoader::_nextToken(std::ifstream & stream)
 
   // Text token
   if (ch < 32 || ch > 122) {  // Verify valid char
-    throw std::runtime_error("Parse Error: Invalid character, ConfigLoader::load()");
+    throw std::runtime_error(
+      "Parse Error: Invalid character, ConfigLoader::load()");
   }
 
   tokVal = "";
@@ -277,7 +278,8 @@ ConfigNode::ConfigNode(ConfigNode * parent, const std::string & name)
   _removeSelf = true;  // For proper destruction
   m_lastChildFound = -1;
 
-  // Add self to parent's child list (unless this is the root node being created)
+  // Add self to parent's child list
+  // (unless this is the root node being created)
   if (parent != NULL) {
     m_parent->m_children.push_back(this);
     _iter = --(m_parent->m_children.end());
@@ -301,7 +303,8 @@ ConfigNode::~ConfigNode()
   }
 }
 
-ConfigNode * ConfigNode::addChild(const std::string & name, bool replaceExisting)
+ConfigNode * ConfigNode::addChild(
+  const std::string & name, bool replaceExisting)
 {
   if (replaceExisting) {
     ConfigNode * node = findChild(name, false);
@@ -318,7 +321,7 @@ ConfigNode * ConfigNode::findChild(const std::string & name, bool recursive)
   int childCount = static_cast<int>(m_children.size());
 
   if (m_lastChildFound != -1) {
-    // If possible, try checking the nodes neighboring the last successful search
+    // If possible, try checking nodes neighboring the last successful search
     // (often nodes searched for in sequence, so this will std search speeds).
     prevC = m_lastChildFound - 1;
     if (prevC < 0) {
@@ -340,8 +343,8 @@ ConfigNode * ConfigNode::findChild(const std::string & name, bool recursive)
       }
     }
 
-    // If not found that way, search for the node from start to finish, avoiding the
-    // already searched area above.
+    // If not found that way, search for the node from start to finish,
+    //  avoiding the already searched area above.
     for (indx = nextC + 1; indx < childCount; ++indx) {
       ConfigNode * node = m_children[indx];
       if (node->m_name == name) {
