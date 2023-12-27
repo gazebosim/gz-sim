@@ -1,6 +1,6 @@
 \page jointcontrollers Joint Controllers
 
-Gazebo provides three joint controller plugins which are `JointController`, `JointPositionController`, and `JointTrajectoryController`. 
+Gazebo provides three joint controller plugins which are `JointController`, `JointPositionController`, and `JointTrajectoryController`.
 
 Let's see a detailed description of each of them and an example usage to help users select the right joint controller for their usage.
 
@@ -224,7 +224,7 @@ This would look almost the same as velocity mode if PID gains are tuned properly
 5) Checking Joint states.
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
 
-```bash 
+```bash
 gz topic -e -t /world/default/model/joint_controller_demo/joint_state
 ```
 
@@ -241,7 +241,7 @@ joint {
     orientation {
       w: 1
     }
-  } 
+  }
   axis1 {
     xyz {
       z: 1
@@ -273,7 +273,7 @@ joint {
     orientation {
       w: 1
     }
-  } 
+  }
   axis1 {
     xyz {
       z: 1
@@ -351,7 +351,7 @@ joint {
     orientation {
       w: 1
     }
-  } 
+  }
   axis1 {
     xyz {
       z: 1
