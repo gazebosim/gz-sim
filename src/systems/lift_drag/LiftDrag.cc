@@ -327,7 +327,8 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   double sinSweepAngle = math::clamp(
       spanwiseI.Dot(velI), minRatio, maxRatio);
 
-  // get cos from trig identity
+  // The sweep adjustment depends on the velocity component normal to the wing leading
+  // edge which appears quadratically in the dynamic pressure, so scale by cos^2 .
   double cos2SweepAngle = 1.0 - sinSweepAngle * sinSweepAngle;
   double sweep = std::asin(sinSweepAngle);
 
