@@ -269,8 +269,8 @@ that worked on Gazebo classic may need more plugins on Gazebo.
 ## Materials
 
 Gazebo does not support Ogre material files like Classic does, because Gazebo
-Gazebo can be used with multiple rendering engines. Therefore, materials defined
-within a `<script>` aren't supported on Gazebo, for example:
+Gazebo can be used with multiple rendering engines. For example, materials defined
+within a `<script>` aren't supported on Gazebo:
 
 ```
         <material>
@@ -282,14 +282,12 @@ within a `<script>` aren't supported on Gazebo, for example:
         </material>
 ```
 
+Although, there is limited parsing capabilities available in Gazebo to support pre-defined materials.
 To make your models compatible with both simulators, you can use these alternatives:
 
 ### Plain colors
 
-If the material defines plain colors, use the `<ambient>`, `<specular>`,
-`<emissive>` and `<diffuse>` tags as needed.
-
-For example, this material from
+Plain solid colors are automatically parsed if encountered, for example, this material from
 [gazebo.material](https://github.com/osrf/gazebo/blob/gazebo11/media/materials/scripts/gazebo.material):
 
 ```
@@ -301,7 +299,8 @@ For example, this material from
         </material>
 ```
 
-Can be changed to:
+However, such material defining plain colors should be updated to use the `<ambient>`, `<specular>`,
+`<emissive>` and `<diffuse>` tags as needed:
 
 ```
         <material>

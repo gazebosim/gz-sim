@@ -797,6 +797,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
     sdf::Material visualMaterial = *_visual->Material();
     if (!_visual->Material()->ScriptUri().empty())
     {
+      gzwarn << "Gazebo does not support Ogre material scripts. See " <<
+      "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
+      "for details." << std::endl;
       std::string scriptUri = visualMaterial.ScriptUri();
       if (scriptUri != "file://media/materials/scripts/gazebo.material") {
         gzwarn << "Custom material scripts are not supported."
@@ -809,9 +812,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 
       if ((scriptName.find("Gazebo/") == 0u))
       {
-        // \todo Add documentation page with warning
-        gzwarn << "Using an internal gazebo.material to parse " << scriptName
-          << std::endl;
+        gzwarn << "Using an internal gazebo.material to parse "
+          << scriptName << std::endl;
         MaterialParser::MaterialValues parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
