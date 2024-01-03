@@ -17,7 +17,7 @@
 
 #include "TrackedVehicle.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <map>
@@ -27,21 +27,21 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/DiffDriveOdometry.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/DiffDriveOdometry.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -56,31 +56,31 @@ struct Commands
   Commands() {}
 };
 
-class ignition::gazebo::systems::TrackedVehiclePrivate
+class gz::sim::systems::TrackedVehiclePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for steering efficiency subscription
   /// \param[in] _msg Steering efficiency message
-  public: void OnSteeringEfficiency(const ignition::msgs::Double &_msg);
+  public: void OnSteeringEfficiency(const msgs::Double &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief The link of the vehicle body (should be between left and right
@@ -214,7 +214,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "TrackedVehicle plugin should be attached to a model entity. "
+    gzerr << "TrackedVehicle plugin should be attached to a model entity. "
     << "Failed to initialize." << std::endl;
     return;
   }
@@ -227,17 +227,13 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (!links.empty())
     this->dataPtr->canonicalLink = Link(links[0]);
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  std::unordered_map<std::string, sdf::ElementPtr> tracks;
+  std::unordered_map<std::string, sdf::ElementConstPtr> tracks;
 
   if (_sdf->HasElement("body_link"))
     this->dataPtr->bodyLinkName = _sdf->Get<std::string>("body_link");
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_track");
+  auto sdfElem = _sdf->FindElement("left_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -245,7 +241,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     tracks[linkName] = sdfElem;
     sdfElem = sdfElem->GetNextElement("left_track");
   }
-  sdfElem = ptr->GetElement("right_track");
+  sdfElem = _sdf->FindElement("right_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -288,7 +284,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     if (!_sdf->HasElement(tag))
       continue;
 
-    auto sdf = ptr->GetElement(tag);
+    auto sdf = _sdf->FindElement(tag);
 
     // Parse speed limiter parameters.
     bool hasVelocityLimits     = false;
@@ -404,18 +400,18 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "TrackedVehicle [" << modelName << "] loaded:" << std::endl;
-  ignmsg << "- tracks separation: " << this->dataPtr->tracksSeparation
+  gzmsg << "TrackedVehicle [" << modelName << "] loaded:" << std::endl;
+  gzmsg << "- tracks separation: " << this->dataPtr->tracksSeparation
          << " m" << std::endl;
-  ignmsg << "- track height (for odometry): " << this->dataPtr->trackHeight
+  gzmsg << "- track height (for odometry): " << this->dataPtr->trackHeight
          << " m" << std::endl;
-  ignmsg << "- initial steering efficiency: "
+  gzmsg << "- initial steering efficiency: "
          << this->dataPtr->steeringEfficiency << std::endl;
-  ignmsg << "- subscribing to twist messages on [" << topic << "]" << std::endl;
-  ignmsg << "- subscribing to steering efficiency messages on ["
+  gzmsg << "- subscribing to twist messages on [" << topic << "]" << std::endl;
+  gzmsg << "- subscribing to steering efficiency messages on ["
          << seTopic << "]" << std::endl;
-  ignmsg << "- publishing odometry on [" << odomTopic << "]" << std::endl;
-  ignmsg << "- publishing TF on [" << tfTopic << "]" << std::endl;
+  gzmsg << "- publishing odometry on [" << odomTopic << "]" << std::endl;
+  gzmsg << "- publishing TF on [" << tfTopic << "]" << std::endl;
 
   // Initialize debugging helpers if needed
   this->dataPtr->debug = _sdf->Get<bool>("debug", false).first;
@@ -423,37 +419,37 @@ void TrackedVehicle::Configure(const Entity &_entity,
   {
     this->dataPtr->debugMarker.set_ns(
       this->dataPtr->model.Name(_ecm) + "/cor");
-    this->dataPtr->debugMarker.set_action(ignition::msgs::Marker::ADD_MODIFY);
-    this->dataPtr->debugMarker.set_type(ignition::msgs::Marker::SPHERE);
-    this->dataPtr->debugMarker.set_visibility(ignition::msgs::Marker::GUI);
+    this->dataPtr->debugMarker.set_action(msgs::Marker::ADD_MODIFY);
+    this->dataPtr->debugMarker.set_type(msgs::Marker::SPHERE);
+    this->dataPtr->debugMarker.set_visibility(msgs::Marker::GUI);
     this->dataPtr->debugMarker.mutable_lifetime()->set_sec(0);
     this->dataPtr->debugMarker.mutable_lifetime()->set_nsec(4000000);
     this->dataPtr->debugMarker.set_id(1);
 
     // Set material properties
-    ignition::msgs::Set(
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_ambient(),
-      ignition::math::Color(0, 0, 1, 1));
-    ignition::msgs::Set(
+      math::Color(0, 0, 1, 1));
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_material()->mutable_diffuse(),
-      ignition::math::Color(0, 0, 1, 1));
+      math::Color(0, 0, 1, 1));
 
     // Set marker scale
-    ignition::msgs::Set(
+    msgs::Set(
       this->dataPtr->debugMarker.mutable_scale(),
-      ignition::math::Vector3d(0.1, 0.1, 0.1));
+      math::Vector3d(0.1, 0.1, 0.1));
   }
 }
 
 //////////////////////////////////////////////////
-void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void TrackedVehicle::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::PreUpdate");
+  GZ_PROFILE("TrackedVehicle::PreUpdate");
 
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. Resetting odometry." << std::endl;
     this->dataPtr->odom.Init(
@@ -477,7 +473,7 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
       static bool warned {false};
       if (!warned)
       {
-        ignwarn << "Failed to find body link [" << this->dataPtr->bodyLinkName
+        gzwarn << "Failed to find body link [" << this->dataPtr->bodyLinkName
           << "] for model [" << modelName << "]" << std::endl;
         warned = true;
       }
@@ -496,7 +492,7 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         this->dataPtr->leftTracks.push_back(track);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left track [" << name << "] for model ["
+        gzwarn << "Failed to find left track [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -509,7 +505,7 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         this->dataPtr->rightTracks.push_back(track);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right track [" << name << "] for model ["
+        gzwarn << "Failed to find right track [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -525,7 +521,7 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found tracks for model [" << modelName
+    gzmsg << "Found tracks for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }
@@ -535,7 +531,7 @@ void TrackedVehicle::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void TrackedVehicle::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::PostUpdate");
+  GZ_PROFILE("TrackedVehicle::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -546,10 +542,10 @@ void TrackedVehicle::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void TrackedVehiclePrivate::UpdateOdometry(
-    const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::UpdateOdometry");
+  GZ_PROFILE("TrackedVehicle::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -629,10 +625,10 @@ void TrackedVehiclePrivate::UpdateOdometry(
 
 //////////////////////////////////////////////////
 void TrackedVehiclePrivate::UpdateVelocity(
-  const ignition::gazebo::UpdateInfo &_info,
-  const ignition::gazebo::EntityComponentManager &_ecm)
+  const UpdateInfo &_info,
+  const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("TrackedVehicle::UpdateVelocity");
+  GZ_PROFILE("TrackedVehicle::UpdateVelocity");
 
   // Read values protected by the mutex
   double linVel;
@@ -702,7 +698,7 @@ void TrackedVehiclePrivate::UpdateVelocity(
 
     const auto bodyPose = worldPose(this->bodyLink, _ecm);
     const auto bodyYAxisGlobal =
-      bodyPose.Rot().RotateVector(ignition::math::Vector3d(0, 1, 0));
+      bodyPose.Rot().RotateVector(math::Vector3d(0, 1, 0));
     // centerOfRotation may be +inf
     this->centerOfRotation =
       (bodyYAxisGlobal * desiredRotationRadiusSigned) + bodyPose.Pos();
@@ -735,14 +731,14 @@ void TrackedVehiclePrivate::UpdateVelocity(
 
   if (this->debug)
   {
-    igndbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
-    igndbg << "- cmd vel v=" << linVel << ", w=" << angVel
+    gzdbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
+    gzdbg << "- cmd vel v=" << linVel << ", w=" << angVel
            << (hadNewCommand ? " (new command)" : "") << std::endl;
-    igndbg << "- left v=" << this->leftSpeed
+    gzdbg << "- left v=" << this->leftSpeed
            << ", right v=" << this->rightSpeed
            << (sendCommandsToTracks ? " (sent to tracks)" : "") << std::endl;
 
-    ignition::msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
+    msgs::Set(this->debugMarker.mutable_pose(), math::Pose3d(
       this->centerOfRotation.X(),
       this->centerOfRotation.Y(),
       this->centerOfRotation.Z(),
@@ -761,18 +757,22 @@ void TrackedVehiclePrivate::OnCmdVel(const msgs::Twist &_msg)
 
 //////////////////////////////////////////////////
 void TrackedVehiclePrivate::OnSteeringEfficiency(
-  const ignition::msgs::Double& _msg)
+  const msgs::Double& _msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->steeringEfficiency = _msg.data();
   this->hasNewCommand = true;
 }
 
-IGNITION_ADD_PLUGIN(TrackedVehicle,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(TrackedVehicle,
+                    System,
                     TrackedVehicle::ISystemConfigure,
                     TrackedVehicle::ISystemPreUpdate,
                     TrackedVehicle::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TrackedVehicle,
+GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
+                          "gz::sim::systems::TrackedVehicle")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "ignition::gazebo::systems::TrackedVehicle")

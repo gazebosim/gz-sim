@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="imu_sensor">
+    <gravity>0 0 -5</gravity>
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+
+    <spherical_coordinates>
+      <heading_deg>90</heading_deg>
+    </spherical_coordinates>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="imu_model">
+      <pose>4 0 3.0 0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name='imu_sensor_DEFAULT' type='imu'>
+          <topic>imu_test_DEFAULT</topic>
+          <update_rate>1</update_rate>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_ENU' type='imu'>
+          <topic>imu_test_ENU</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>ENU</localization>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_NED' type='imu'>
+          <topic>imu_test_NED</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>NED</localization>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_NWU' type='imu'>
+          <topic>imu_test_NWU</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>NWU</localization>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+        <sensor name='imu_sensor_CUSTOM' type='imu'>
+          <topic>imu_test_CUSTOM</topic>
+          <update_rate>1</update_rate>
+          <imu>
+            <orientation_reference_frame>
+              <localization>CUSTOM</localization>
+	      <custom_rpy parent_frame='world'>1.570795 0 0</custom_rpy>
+            </orientation_reference_frame>
+          </imu>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>

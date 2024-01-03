@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/particle_emitter.pb.h>
-#include <ignition/msgs/wrench.pb.h>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/wrench.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <chrono>
 
@@ -35,61 +35,62 @@
 #include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/DetachableJoint.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointEffortLimitsCmd.hh"
-#include "ignition/gazebo/components/JointPositionLimitsCmd.hh"
-#include "ignition/gazebo/components/JointTransmittedWrench.hh"
-#include "ignition/gazebo/components/JointVelocityLimitsCmd.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/Level.hh"
-#include "ignition/gazebo/components/LevelBuffer.hh"
-#include "ignition/gazebo/components/LevelEntityNames.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LogicalAudio.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Performer.hh"
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/TemperatureRange.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/DetachableJoint.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointEffortLimitsCmd.hh"
+#include "gz/sim/components/JointPositionLimitsCmd.hh"
+#include "gz/sim/components/JointTransmittedWrench.hh"
+#include "gz/sim/components/JointVelocityLimitsCmd.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/Level.hh"
+#include "gz/sim/components/LevelBuffer.hh"
+#include "gz/sim/components/LevelEntityNames.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalAudio.hh"
+#include "gz/sim/components/Magnetometer.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Performer.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Projector.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/TemperatureRange.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 class ComponentsTest : public InternalFixture<::testing::Test>
 {
@@ -120,7 +121,7 @@ TEST_F(ComponentsTest, Actor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ("def", comp3.Data().SkinFilename());
-  EXPECT_EQ(ignition::math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(3, 2, 1, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -183,7 +184,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   sdf::Sensor data1;
   data1.SetName("abc");
   data1.SetType(sdf::SensorType::AIR_PRESSURE);
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::AirPressure airPressure1;
   data1.SetAirPressureSensor(airPressure1);
@@ -211,7 +212,7 @@ TEST_F(ComponentsTest, AirPressureSensor)
   comp3.Deserialize(istr);
   EXPECT_EQ("abc", comp3.Data().Name());
   EXPECT_EQ(sdf::SensorType::AIR_PRESSURE, comp3.Data().Type());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -474,7 +475,7 @@ TEST_F(ComponentsTest, Imu)
   data1.SetType(sdf::SensorType::IMU);
   data1.SetUpdateRate(100);
   data1.SetTopic("imu_data");
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Imu imu1;
   data1.SetImuSensor(imu1);
@@ -505,7 +506,7 @@ TEST_F(ComponentsTest, Imu)
   EXPECT_EQ(sdf::SensorType::IMU, comp3.Data().Type());
   EXPECT_EQ("imu_data", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(100, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -862,7 +863,7 @@ TEST_F(ComponentsTest, Light)
   auto data1 = sdf::Light();
   data1.SetType(sdf::LightType::POINT);
   data1.SetName("light_test");
-  data1.SetRawPose(math::Pose3d(1, 2, 4, 0, 0, IGN_PI));
+  data1.SetRawPose(math::Pose3d(1, 2, 4, 0, 0, GZ_PI));
   data1.SetDiffuse(math::Color(1, 0, 0, 1));
   data1.SetSpecular(math::Color(0, 1, 0, 1));
   data1.SetCastShadows(true);
@@ -893,7 +894,7 @@ TEST_F(ComponentsTest, Light)
   comp3.Deserialize(istr);
   EXPECT_EQ(sdf::LightType::POINT, comp3.Data().Type());
   EXPECT_EQ("light_test", comp3.Data().Name());
-  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, IGN_PI), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 4, 0, 0, GZ_PI), comp3.Data().RawPose());
   EXPECT_EQ(math::Color(1, 0, 0, 1), comp3.Data().Diffuse());
   EXPECT_EQ(math::Color(0, 1, 0, 1), comp3.Data().Specular());
   EXPECT_TRUE(comp3.Data().CastShadows());
@@ -1100,7 +1101,7 @@ TEST_F(ComponentsTest, Magnetometer)
   data1.SetType(sdf::SensorType::MAGNETOMETER);
   data1.SetUpdateRate(12.4);
   data1.SetTopic("grape");
-  data1.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  data1.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Magnetometer mag1;
   data1.SetMagnetometerSensor(mag1);
@@ -1130,7 +1131,7 @@ TEST_F(ComponentsTest, Magnetometer)
   EXPECT_EQ(sdf::SensorType::MAGNETOMETER, comp3.Data().Type());
   EXPECT_EQ("grape", comp3.Data().Topic());
   EXPECT_DOUBLE_EQ(12.4, comp3.Data().UpdateRate());
-  EXPECT_EQ(ignition::math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
+  EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 0), comp3.Data().RawPose());
 }
 
 /////////////////////////////////////////////////
@@ -1233,8 +1234,8 @@ TEST_F(ComponentsTest, ModelSdf)
     << "      <real_time_factor>1.0</real_time_factor>"
     << "    </physics>"
     << "    <plugin"
-    << "      filename=\"ignition-gazebo-physics-system\""
-    << "      name=\"ignition::gazebo::systems::Physics\">"
+    << "      filename=\"gz-sim-physics-system\""
+    << "      name=\"gz::sim::systems::Physics\">"
     << "    </plugin>"
     << "    <model name='my_model'>"
     << "      <link name='link'>"
@@ -1697,7 +1698,7 @@ TEST_F(ComponentsTest, ParticleEmitter)
   msgs::ParticleEmitter emitter1;
   emitter1.set_name("emitter1");
   emitter1.set_id(0);
-  emitter1.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter1.set_type(gz::msgs::ParticleEmitter_EmitterType_BOX);
   emitter1.mutable_size()->set_x(1);
   emitter1.mutable_size()->set_y(2);
   emitter1.mutable_size()->set_z(3);
@@ -1724,7 +1725,7 @@ TEST_F(ComponentsTest, ParticleEmitter)
   msgs::ParticleEmitter emitter2;
   emitter2.set_name("emitter2");
   emitter2.set_id(1);
-  emitter2.set_type(ignition::msgs::ParticleEmitter_EmitterType_BOX);
+  emitter2.set_type(gz::msgs::ParticleEmitter_EmitterType_BOX);
   emitter2.mutable_size()->set_x(1);
   emitter2.mutable_size()->set_y(2);
   emitter2.mutable_size()->set_z(3);
@@ -1781,6 +1782,35 @@ TEST_F(ComponentsTest, ParticleEmitterCmd)
   comp3.Deserialize(istr);
   EXPECT_EQ(comp1.Data().emitting().data(), comp3.Data().emitting().data());
   EXPECT_EQ(comp1.Data().name(), comp3.Data().name());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ComponentsTest, Projector)
+{
+  // Create components
+  sdf::Projector projector1;
+  projector1.SetName("projector1");
+  projector1.SetRawPose(math::Pose3d(0, 3, 4, GZ_PI, 0, 0));
+  projector1.SetNearClip(1.5);
+  projector1.SetFarClip(10.3);
+  projector1.SetHorizontalFov(math::Angle(3.0));
+  projector1.SetVisibilityFlags(0xFE);
+  projector1.SetTexture("path_to_texture");
+  auto comp1 = components::Projector(projector1);
+
+  // stream operators
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  std::istringstream istr(ostr.str());
+  components::Projector comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("projector1", comp3.Data().Name());
+  EXPECT_EQ(math::Pose3d(0, 3, 4, GZ_PI, 0, 0), comp3.Data().RawPose());
+  EXPECT_DOUBLE_EQ(1.5, comp3.Data().NearClip());
+  EXPECT_DOUBLE_EQ(10.3, comp3.Data().FarClip());
+  EXPECT_EQ(math::Angle(3.0), comp3.Data().HorizontalFov());
+  EXPECT_EQ(0xFE, comp3.Data().VisibilityFlags());
+  EXPECT_EQ("path_to_texture", comp3.Data().Texture());
 }
 
 //////////////////////////////////////////////////

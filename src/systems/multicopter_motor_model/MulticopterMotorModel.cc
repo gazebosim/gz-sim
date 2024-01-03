@@ -6,6 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,29 +27,32 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/msgs/actuators.pb.h>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -97,8 +101,8 @@ class FirstOrderFilter {
   T previousState;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -115,10 +119,10 @@ enum class MotorType {
   kForce
 };
 
-class ignition::gazebo::systems::MulticopterMotorModelPrivate
+class gz::sim::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const ignition::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -153,8 +157,8 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   /// \brief Sampling time (from motor_model.hpp).
   public: double samplingTime = 0.01;
 
-  /// \brief Index of motor on multirotor_base.
-  public: int motorNumber = 0;
+  /// \brief Index of motor in Actuators msg on multirotor_base.
+  public: int actuatorNumber = 0;
 
   /// \brief Turning direction of the motor.
   public: int turningDirection = turning_direction::kCw;
@@ -214,7 +218,7 @@ class ignition::gazebo::systems::MulticopterMotorModelPrivate
   /// \brief Mutex to protect recvdActuatorsMsg.
   public: std::mutex recvdActuatorsMsgMutex;
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 };
 
@@ -234,7 +238,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "MulticopterMotorModel plugin should be attached to a model "
+    gzerr << "MulticopterMotorModel plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -250,7 +254,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify a robotNamespace.\n";
+    gzwarn << "No robotNamespace set using entity name.\n";
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
@@ -261,7 +266,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->jointName.empty())
   {
-    ignerr << "MulticopterMotorModel found an empty jointName parameter. "
+    gzerr << "MulticopterMotorModel found an empty jointName parameter. "
            << "Failed to initialize.";
     return;
   }
@@ -273,16 +278,27 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   if (this->dataPtr->linkName.empty())
   {
-    ignerr << "MulticopterMotorModel found an empty linkName parameter. "
+    gzerr << "MulticopterMotorModel found an empty linkName parameter. "
            << "Failed to initialize.";
     return;
   }
 
-  if (sdfClone->HasElement("motorNumber"))
-    this->dataPtr->motorNumber =
+  if (sdfClone->HasElement("actuator_number"))
+  {
+    this->dataPtr->actuatorNumber =
+      sdfClone->GetElement("actuator_number")->Get<int>();
+  }
+  else if (sdfClone->HasElement("motorNumber"))
+  {
+    this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
+    gzwarn << "<motorNumber> is depricated, "
+           << "please use <actuator_number>.\n";
+  }
   else
-    ignerr << "Please specify a motorNumber.\n";
+  {
+    gzerr << "Please specify a actuator_number.\n";
+  }
 
   if (sdfClone->HasElement("turningDirection"))
   {
@@ -293,11 +309,11 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     else if (turningDirection == "ccw")
       this->dataPtr->turningDirection = turning_direction::kCcw;
     else
-      ignerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
+      gzerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
   }
   else
   {
-    ignerr << "Please specify a turning direction ('cw' or 'ccw').\n";
+    gzerr << "Please specify a turning direction ('cw' or 'ccw').\n";
   }
 
   if (sdfClone->HasElement("motorType"))
@@ -308,22 +324,22 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     else if (motorType == "position")
     {
       this->dataPtr->motorType = MotorType::kPosition;
-      ignerr << "motorType 'position' not supported" << std::endl;
+      gzerr << "motorType 'position' not supported" << std::endl;
     }
     else if (motorType == "force")
     {
       this->dataPtr->motorType = MotorType::kForce;
-      ignerr << "motorType 'force' not supported" << std::endl;
+      gzerr << "motorType 'force' not supported" << std::endl;
     }
     else
     {
-      ignerr << "Please only use 'velocity', 'position' or "
+      gzerr << "Please only use 'velocity', 'position' or "
                "'force' as motorType.\n";
     }
   }
   else
   {
-    ignwarn << "motorType not specified, using velocity.\n";
+    gzwarn << "motorType not specified, using velocity.\n";
     this->dataPtr->motorType = MotorType::kVelocity;
   }
 
@@ -361,24 +377,28 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
   if (topic.empty())
   {
-    ignerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
+    gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
            << "]" << std::endl;
     return;
+  }
+  else
+  {
+    gzdbg << "Listening to topic: " << topic << std::endl;
   }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterMotorModel::PreUpdate");
+  GZ_PROFILE("MulticopterMotorModel::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -469,7 +489,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const ignition::msgs::Actuators &_msg)
+    const msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -479,7 +499,7 @@ void MulticopterMotorModelPrivate::OnActuatorMsg(
 void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
+  GZ_PROFILE("MulticopterMotorModelPrivate::UpdateForcesAndMoments");
 
   std::optional<msgs::Actuators> msg;
   auto actuatorMsgComp =
@@ -503,9 +523,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 
   if (msg.has_value())
   {
-    if (this->motorNumber > msg->velocity_size() - 1)
+    if (this->actuatorNumber > msg->velocity_size() - 1)
     {
-      ignerr << "You tried to access index " << this->motorNumber
+      gzerr << "You tried to access index " << this->actuatorNumber
         << " of the Actuator velocity array which is of size "
         << msg->velocity_size() << std::endl;
       return;
@@ -514,13 +534,13 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     if (this->motorType == MotorType::kVelocity)
     {
       this->refMotorInput = std::min(
-          static_cast<double>(msg->velocity(this->motorNumber)),
+          static_cast<double>(msg->velocity(this->actuatorNumber)),
           static_cast<double>(this->maxRotVelocity));
     }
     //  else if (this->motorType == MotorType::kPosition)
     else  // if (this->motorType == MotorType::kForce) {
     {
-      this->refMotorInput = msg->velocity(this->motorNumber);
+      this->refMotorInput = msg->velocity(this->actuatorNumber);
     }
   }
 
@@ -543,9 +563,9 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       const auto jointVelocity = _ecm.Component<components::JointVelocity>(
           this->jointEntity);
       double motorRotVel = jointVelocity->Data()[0];
-      if (motorRotVel / (2 * IGN_PI) > 1 / (2 * this->samplingTime))
+      if (motorRotVel / (2 * GZ_PI) > 1 / (2 * this->samplingTime))
       {
-        ignerr << "Aliasing on motor [" << this->motorNumber
+        gzerr << "Aliasing on motor [" << this->actuatorNumber
               << "] might occur. Consider making smaller simulation time "
                  "steps or raising the rotorVelocitySlowdownSim param.\n";
       }
@@ -559,8 +579,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = ignition::math::Pose3d;
-      using Vector3 = ignition::math::Vector3d;
+      using Pose = math::Pose3d;
+      using Vector3 = math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -573,7 +593,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointPose)
       {
-        ignerr << "joint " << this->jointName << " has no Pose"
+        gzerr << "joint " << this->jointName << " has no Pose"
                << "component" << std::endl;
         return;
       }
@@ -585,7 +605,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
           this->jointEntity);
       if (!jointAxisComp)
       {
-        ignerr << "joint " << this->jointName << " has no JointAxis"
+        gzerr << "joint " << this->jointName << " has no JointAxis"
                << "component" << std::endl;
         return;
       }
@@ -626,10 +646,11 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       // is equivalent to use WorldPose().Rot().
       Link parentLink(this->parentLinkEntity);
       const auto parentWorldPose = parentLink.WorldPose(_ecm);
-      // The tansformation from the parent_link to the link_.
+      // The transformation from the parent_link to the link_.
       // Pose poseDifference =
-      //  link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
-      Pose poseDifference = *worldPose - *parentWorldPose;
+      //  parent_links.at(0)->GetWorldCoGPose().Inverse()
+      //  * link_->GetWorldCoGPose()
+      Pose poseDifference = (*parentWorldPose).Inverse() * (*worldPose);
       Vector3 dragTorque(
           0, 0, -this->turningDirection * thrust * this->momentConstant);
       // Transforming the drag torque into the parent frame to handle
@@ -670,10 +691,14 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
   }
 }
 
-IGNITION_ADD_PLUGIN(MulticopterMotorModel,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(MulticopterMotorModel,
+                    System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+                          "gz::sim::systems::MulticopterMotorModel")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "ignition::gazebo::systems::MulticopterMotorModel")

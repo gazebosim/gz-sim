@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="thruster">
+
+    <physics name="fast" type="none">
+      <!-- Zero to run as fast as possible -->
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <!-- prevent sinking -->
+    <gravity>0 0 0</gravity>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="sub">
+
+      <link name="body">
+        <pose>0 0 0   0 1.57 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>33.89</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>33.89</iyy>
+            <iyz>0</iyz>
+            <izz>1.125</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>2</length>
+              <radius>0.15</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name="propeller">
+        <pose>-1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000354167</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.000021667</iyy>
+            <iyz>0</iyz>
+            <izz>0.000334167</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.01 0.25 0.05</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <joint name="propeller_joint" type="revolute">
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>1e6</effort>
+            <velocity>1e6</velocity>
+          </limit>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
+        <namespace>lowbattery</namespace>
+        <joint_name>propeller_joint</joint_name>
+        <thrust_coefficient>0.005</thrust_coefficient>
+        <fluid_density>950</fluid_density>
+        <propeller_diameter>0.25</propeller_diameter>
+        <velocity_control>true</velocity_control>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
+        <topic>thrust</topic>
+      </plugin>
+
+      <plugin filename="gz-sim-linearbatteryplugin-system"
+      name="gz::sim::systems::LinearBatteryPlugin">
+      <battery_name>linear_battery</battery_name>
+      <voltage>14.4</voltage>
+      <open_circuit_voltage_constant_coef>14.4</open_circuit_voltage_constant_coef>
+      <fix_issue_225>true</fix_issue_225>
+      <!-- Initial charge in Ah -->
+      <initial_charge>0.00005</initial_charge>
+      <capacity>400</capacity>
+      <!-- 190mOhm / 62 -->
+      <resistance>0.003064</resistance>
+      <!-- Power consumption: 14.4V * 2 A -->
+      <power_load>28.8</power_load>
+      <!-- <power_draining_topic>/battery/discharge</power_draining_topic> -->
+      <!-- Recharging the battery -->
+      <!-- Charging time: 400/( (15 + 4) * 0.5 ) = 42.1 -->
+      <enable_recharge>true</enable_recharge>
+      <recharge_by_topic>true</recharge_by_topic>
+      <charging_time>42.1</charging_time>
+    </plugin>
+    </model>
+
+  </world>
+</sdf>

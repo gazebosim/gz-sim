@@ -16,34 +16,36 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/gazebo/components/Collision.hh>
-#include <ignition/gazebo/components/PoseCmd.hh>
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include <ignition/gazebo/Model.hh>
-#include <ignition/physics/ContactProperties.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/FeaturePolicy.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/PoseCmd.hh>
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include <gz/sim/Model.hh>
+#include <gz/physics/ContactProperties.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/FeaturePolicy.hh>
+#include <gz/physics/InstallationDirectories.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \
@@ -61,6 +63,28 @@ void verifyPose(const math::Pose3d& pose1, const math::Pose3d& pose2)
   EXPECT_ANGLE_NEAR(pose1.Rot().Yaw(), pose2.Rot().Yaw(), 1e-1);
 }
 
+/// \brief Helper function to wait until a predicate is true or a timeout occurs
+/// \tparam Pred Predicate function of type bool()
+/// \param[in] _timeoutMs Timeout in milliseconds
+template <typename Pred>
+bool waitUntil(int _timeoutMs, Pred _pred)
+{
+  using namespace std::chrono;
+  auto tStart = steady_clock::now();
+  auto sleepDur = milliseconds(std::min(100, _timeoutMs));
+  auto waitDuration = milliseconds(_timeoutMs);
+  while (duration_cast<milliseconds>(steady_clock::now() - tStart) <
+         waitDuration)
+  {
+    if (_pred())
+    {
+      return true;
+    }
+    std::this_thread::sleep_for(sleepDur);
+  }
+  return false;
+}
+
 /// \brief Test TrackedVehicle system. This test drives a tracked robot over a
 /// course of obstacles and verifies that it is able to climb on/over them.
 class TrackedVehicleTest : public InternalFixture<::testing::Test>
@@ -69,7 +93,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
                                       bool &_shouldSkip)
   {
 #if __APPLE__
-    // until https://github.com/ignitionrobotics/ign-gazebo/issues/806 is fixed
+    // until https://github.com/gazebosim/gz-sim/issues/806 is fixed
     _shouldSkip = true;
 #else
     _shouldSkip = false;
@@ -81,15 +105,15 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Find physics plugin (copied from the Physics system with some
     // modifications)
     common::SystemPaths systemPaths;
-    systemPaths.SetPluginPathEnv("IGN_GAZEBO_PHYSICS_ENGINE_PATH");
-    systemPaths.AddPluginPaths({IGNITION_PHYSICS_ENGINE_INSTALL_DIR});
+    systemPaths.SetPluginPathEnv("GZ_SIM_PHYSICS_ENGINE_PATH");
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
 
     auto pathToLib = systemPaths.FindSharedLibrary(*pluginLib);
     ASSERT_FALSE(pathToLib.empty())
         << "Failed to find plugin [" << *pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library";
@@ -132,8 +156,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const UpdateInfo &,
+      EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -155,8 +179,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity modelEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         modelEntity = _ecm.EntityByComponents(
           components::Model(),
@@ -252,7 +276,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     poses.clear();
 
-    gazebo::Model model(modelEntity);
+    Model model(modelEntity);
 
     // Move the robot somewhere to free space without obstacles.
     model.SetWorldPoseCmd(*ecm, math::Pose3d(10, 10, 0.1, 0, 0, 0));
@@ -441,7 +465,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
   protected: void TestConveyor(const std::string &_sdfFile,
-                               const std::string &_cmdVelTopic)
+                               const std::string &_cmdVelTopic,
+                               const std::string &_odometryTopic)
   {
     // Start server
     ServerConfig serverConfig;
@@ -451,11 +476,27 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(server.Running());
     EXPECT_FALSE(*server.Running(0));
 
+    // gz::transport node
+    transport::Node node;
+
+    // subscribe to odometry
+    msgs::Odometry odometryMsg;
+    unsigned int odomMsgCounter = 0;
+
+    auto msgCb = std::function<void(const msgs::Odometry &)>(
+    [&odometryMsg, &odomMsgCounter](const auto & msg)
+    {
+      odometryMsg = msg;
+      odomMsgCounter++;
+    });
+
+    node.Subscribe(_odometryTopic, msgCb);
+
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const UpdateInfo &,
+      EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -477,8 +518,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity boxEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         boxEntity = _ecm.EntityByComponents(
           components::Model(),
@@ -494,8 +535,12 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     server.Run(true, 1000, false);
 
+    // Wait for messages
+    waitUntil(5000, [&]{return 50 == odomMsgCounter;});
+
     // Poses for 1s
     ASSERT_EQ(1000u, poses.size());
+    ASSERT_EQ(50u, odomMsgCounter);
 
     // check that the box has not moved in X and Y directions (it will move in
     // Z as it falls down on the conveyor)
@@ -505,10 +550,25 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
+    // check reported odometry pose and twist
+    EXPECT_NEAR(0, odometryMsg.pose().position().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
+
     poses.clear();
+    odomMsgCounter = 0;
 
     // Publish command and check that vehicle moved
-    transport::Node node;
     auto pub = node.Advertise<msgs::Double>(_cmdVelTopic);
 
     // In this test, there is a long conveyor and a small box at its center.
@@ -524,8 +584,12 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     server.Run(true, 1000, false);
 
+    // Wait for messages
+    waitUntil(5000, [&]{return 50 == odomMsgCounter;});
+
     // Poses for 1s
     ASSERT_EQ(1000u, poses.size());
+    ASSERT_EQ(50u, odomMsgCounter);
 
     EXPECT_NEAR(0.125, poses.back().Pos().X(), 1e-1);
     EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
@@ -534,10 +598,29 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
+    // check reported odometry pose and twist
+    EXPECT_NEAR(0.125, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
+
     server.Run(true, 1000, false);
+
+    // Wait for messages
+    waitUntil(5000, [&]{return 100 == odomMsgCounter;});
 
     // Poses for 2s
     ASSERT_EQ(2000u, poses.size());
+    ASSERT_EQ(100u, odomMsgCounter);
 
     EXPECT_NEAR(0.5, poses.back().Pos().X(), 1e-1);
     EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
@@ -546,10 +629,29 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
+    // check reported odometry pose and twist
+    EXPECT_NEAR(0.5, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.5, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
+
     server.Run(true, 1000, false);
+
+    // Wait for messages
+    waitUntil(5000, [&]{return 150 == odomMsgCounter;});
 
     // Poses for 3s
     ASSERT_EQ(3000u, poses.size());
+    ASSERT_EQ(150u, odomMsgCounter);
 
     EXPECT_NEAR(0.875, poses.back().Pos().X(), 1e-1);
     EXPECT_NEAR(poses[0].Pos().Y(), poses.back().Pos().Y(), 1e-2);
@@ -558,12 +660,28 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), 0, 1e-3);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Yaw(), 0, 1e-3);
 
+    // check reported odometry pose and twist
+    EXPECT_NEAR(0.875, odometryMsg.pose().position().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.pose().position().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().position().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.pose().orientation().w(), 1e-6);
+    EXPECT_NEAR(0.25, odometryMsg.twist().linear().x(), 1e-1);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().y(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().linear().z(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().x(), 1e-6);
+    EXPECT_NEAR(0, odometryMsg.twist().angular().z(), 1e-6);
+
     poses.clear();
   }
 };
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, PublishCmd)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
@@ -573,10 +691,11 @@ TEST_F(TrackedVehicleTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, Conveyor)
+TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
 {
   this->TestConveyor(
     std::string(PROJECT_SOURCE_PATH) +
     "/test/worlds/conveyor.sdf",
-    "/model/conveyor/link/base_link/track_cmd_vel");
+    "/model/conveyor/link/base_link/track_cmd_vel",
+    "/model/conveyor/link/base_link/odometry");
 }

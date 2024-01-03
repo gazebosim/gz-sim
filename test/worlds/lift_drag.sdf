@@ -2,10 +2,14 @@
 <!-- Adapted from osrf/gazebo/test/worlds/lift_drag_plugin.world  -->
 <sdf version="1.6">
   <world name="default">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
 
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
 
     <model name="ground_plane">
@@ -167,8 +171,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>
@@ -185,8 +189,8 @@
         <link_name>wing_1</link_name>
       </plugin>
       <plugin
-        filename="ignition-gazebo-lift-drag-system"
-        name="ignition::gazebo::systems::LiftDrag">
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
         <a0>0.1</a0>
         <cla>4.000</cla>
         <cda>20.0</cda>

@@ -15,14 +15,26 @@
  *
 */
 
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.3
 
-// TODO: remove invisible rectangle, see
-// https://github.com/ignitionrobotics/ign-gui/issues/220
-Rectangle {
-  visible: false
-  Layout.minimumWidth: 100
-  Layout.minimumHeight: 100
+ColumnLayout {
+  Layout.minimumWidth: 350
+  Layout.minimumHeight: 90
+  anchors.fill: parent
+  anchors.margins: 10
+
+  property string message: 'Adding selection functionality to the 3D scene.'
+
+  Label {
+    Layout.fillWidth: true
+    wrapMode: Text.WordWrap
+    text: message
+  }
+
+  Item {
+    width: 10
+    Layout.fillHeight: true
+  }
 }

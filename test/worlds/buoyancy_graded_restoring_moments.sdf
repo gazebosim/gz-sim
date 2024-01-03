@@ -1,0 +1,71 @@
+<sdf version="1.6">
+  <world name="buoyancy">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>100</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name='submarine'>
+      <pose>0 0 0 0.1 0 0</pose>
+      <link name='body'>
+
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>86.28907821859966</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.28907821859966</iyy>
+            <iyz>0</iyz>
+            <izz>5.026548245743671</izz>
+          </inertia>
+        </inertial>
+
+        <collision name='body_collision'>
+          <pose>0 0 0.08 0 0 0</pose>
+          <geometry>
+            <box>1 1 1</box>
+          </geometry>
+        </collision>
+
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

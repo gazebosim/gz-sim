@@ -1,25 +1,48 @@
 name: Ubuntu CI
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - 'gz-sim7'
+
+# Every time you make a push to your PR, it cancel immediately the previous checks,
+# and start a new one. The other runner will be available more quickly to your PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
-  bionic-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Bionic CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Compile and test
-        id: ci
-        uses: ignition-tooling/action-ignition-ci@bionic
-        with:
-          codecov-enabled: true
   focal-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Focal CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
       - name: Compile and test
         id: ci
-        uses: ignition-tooling/action-ignition-ci@focal
+        uses: gazebo-tooling/action-gz-ci@focal
+        with:
+          codecov-enabled: true
+          cppcheck-enabled: true
+          cpplint-enabled: true
+  jammy-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Jammy CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@jammy
+        with:
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
+          cmake-args: '-DBUILD_DOCS=OFF'

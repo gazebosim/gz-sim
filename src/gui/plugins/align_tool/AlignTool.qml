@@ -373,7 +373,7 @@ ToolBar {
           id: relativeAlignList
           ListElement { text: "First" }
           ListElement { text: "Last" }
-        } 
+        }
         onCurrentIndexChanged: AlignTool.OnAlignTarget(relativeAlignList.get(currentIndex).text)
       }
     }

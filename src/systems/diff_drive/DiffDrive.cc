@@ -17,7 +17,7 @@
 
 #include "DiffDrive.hh"
 
-#include <ignition/msgs/odometry.pb.h>
+#include <gz/msgs/odometry.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -25,22 +25,22 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/DiffDriveOdometry.hh>
-#include <ignition/math/Quaternion.hh>
-#include <ignition/math/SpeedLimiter.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/DiffDriveOdometry.hh>
+#include <gz/math/Quaternion.hh>
+#include <gz/math/SpeedLimiter.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Velocity command.
@@ -55,31 +55,31 @@ struct Commands
   Commands() : lin(0.0), ang(0.0) {}
 };
 
-class ignition::gazebo::systems::DiffDrivePrivate
+class gz::sim::systems::DiffDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
-  public: void OnCmdVel(const ignition::msgs::Twist &_msg);
+  public: void OnCmdVel(const msgs::Twist &_msg);
 
   /// \brief Callback for enable/disable subscription
   /// \param[in] _msg Boolean message
-  public: void OnEnable(const ignition::msgs::Boolean &_msg);
+  public: void OnEnable(const msgs::Boolean &_msg);
 
   /// \brief Update odometry and publish an odometry message.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
   /// \brief Update the linear and angular velocities.
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-  public: void UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm);
+  public: void UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node.
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Entity of the left joint
@@ -128,10 +128,10 @@ class ignition::gazebo::systems::DiffDrivePrivate
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterLin;
+  public: std::unique_ptr<math::SpeedLimiter> limiterLin;
 
   /// \brief Angular velocity limiter.
-  public: std::unique_ptr<ignition::math::SpeedLimiter> limiterAng;
+  public: std::unique_ptr<math::SpeedLimiter> limiterAng;
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -177,23 +177,19 @@ void DiffDrive::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "DiffDrive plugin should be attached to a model entity. "
+    gzerr << "DiffDrive plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
+  auto sdfElem = _sdf->FindElement("left_joint");
   while (sdfElem)
   {
     this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("left_joint");
   }
-  sdfElem = ptr->GetElement("right_joint");
+  sdfElem = _sdf->FindElement("right_joint");
   while (sdfElem)
   {
     this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
@@ -206,45 +202,117 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius).first;
 
   // Instantiate the speed limiters.
-  this->dataPtr->limiterLin = std::make_unique<ignition::math::SpeedLimiter>();
-  this->dataPtr->limiterAng = std::make_unique<ignition::math::SpeedLimiter>();
+  this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
+  this->dataPtr->limiterAng = std::make_unique<math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
+
+  // Min Velocity
   if (_sdf->HasElement("min_velocity"))
   {
     const double minVel = _sdf->Get<double>("min_velocity");
     this->dataPtr->limiterLin->SetMinVelocity(minVel);
     this->dataPtr->limiterAng->SetMinVelocity(minVel);
   }
+  if (_sdf->HasElement("min_linear_velocity"))
+  {
+    const double minLinVel = _sdf->Get<double>("min_linear_velocity");
+    this->dataPtr->limiterLin->SetMinVelocity(minLinVel);
+  }
+  if (_sdf->HasElement("min_angular_velocity"))
+  {
+    const double minAngVel = _sdf->Get<double>("min_angular_velocity");
+    this->dataPtr->limiterAng->SetMinVelocity(minAngVel);
+  }
+
+  // Max Velocity
   if (_sdf->HasElement("max_velocity"))
   {
     const double maxVel = _sdf->Get<double>("max_velocity");
     this->dataPtr->limiterLin->SetMaxVelocity(maxVel);
     this->dataPtr->limiterAng->SetMaxVelocity(maxVel);
   }
+  if (_sdf->HasElement("max_linear_velocity"))
+  {
+    const double maxLinVel = _sdf->Get<double>("max_linear_velocity");
+    this->dataPtr->limiterLin->SetMaxVelocity(maxLinVel);
+  }
+  if (_sdf->HasElement("max_angular_velocity"))
+  {
+    const double maxAngVel = _sdf->Get<double>("max_angular_velocity");
+    this->dataPtr->limiterAng->SetMaxVelocity(maxAngVel);
+  }
+
+  // Min Acceleration
   if (_sdf->HasElement("min_acceleration"))
   {
     const double minAccel = _sdf->Get<double>("min_acceleration");
     this->dataPtr->limiterLin->SetMinAcceleration(minAccel);
     this->dataPtr->limiterAng->SetMinAcceleration(minAccel);
   }
+  if (_sdf->HasElement("min_linear_acceleration"))
+  {
+    const double minLinAccel = _sdf->Get<double>("min_linear_acceleration");
+    this->dataPtr->limiterLin->SetMinAcceleration(minLinAccel);
+  }
+  if (_sdf->HasElement("min_angular_acceleration"))
+  {
+    const double minAngAccel = _sdf->Get<double>("min_angular_acceleration");
+    this->dataPtr->limiterAng->SetMinAcceleration(minAngAccel);
+  }
+
+  // Max Acceleration
   if (_sdf->HasElement("max_acceleration"))
   {
     const double maxAccel = _sdf->Get<double>("max_acceleration");
     this->dataPtr->limiterLin->SetMaxAcceleration(maxAccel);
     this->dataPtr->limiterAng->SetMaxAcceleration(maxAccel);
   }
+  if (_sdf->HasElement("max_linear_acceleration"))
+  {
+    const double maxLinAccel = _sdf->Get<double>("max_linear_acceleration");
+    this->dataPtr->limiterLin->SetMaxAcceleration(maxLinAccel);
+  }
+  if (_sdf->HasElement("max_angular_acceleration"))
+  {
+    const double maxAngAccel = _sdf->Get<double>("max_angular_acceleration");
+    this->dataPtr->limiterAng->SetMaxAcceleration(maxAngAccel);
+  }
+
+  // Min Jerk
   if (_sdf->HasElement("min_jerk"))
   {
     const double minJerk = _sdf->Get<double>("min_jerk");
     this->dataPtr->limiterLin->SetMinJerk(minJerk);
     this->dataPtr->limiterAng->SetMinJerk(minJerk);
   }
+  if (_sdf->HasElement("min_linear_jerk"))
+  {
+    const double minLinJerk = _sdf->Get<double>("min_linear_jerk");
+    this->dataPtr->limiterLin->SetMinJerk(minLinJerk);
+  }
+  if (_sdf->HasElement("min_angular_jerk"))
+  {
+    const double minAngJerk = _sdf->Get<double>("min_angular_jerk");
+    this->dataPtr->limiterAng->SetMinJerk(minAngJerk);
+  }
+
+  // Max Jerk
   if (_sdf->HasElement("max_jerk"))
   {
     const double maxJerk = _sdf->Get<double>("max_jerk");
     this->dataPtr->limiterLin->SetMaxJerk(maxJerk);
     this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
+  }
+  if (_sdf->HasElement("max_linear_jerk"))
+  {
+    const double maxLinJerk = _sdf->Get<double>("max_linear_jerk");
+    this->dataPtr->limiterLin->SetMaxJerk(maxLinJerk);
+  }
+  if (_sdf->HasElement("max_angular_jerk"))
+  {
+    const double maxAngJerk = _sdf->Get<double>("max_angular_jerk");
+    this->dataPtr->limiterAng->SetMaxJerk(maxAngJerk);
   }
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
@@ -309,20 +377,20 @@ void DiffDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  ignmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
+  gzmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
 
 //////////////////////////////////////////////////
-void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrive::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PreUpdate");
+  GZ_PROFILE("DiffDrive::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -341,7 +409,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         this->dataPtr->leftJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find left joint [" << name << "] for model ["
+        gzwarn << "Failed to find left joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -354,7 +422,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
         this->dataPtr->rightJoints.push_back(joint);
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
-        ignwarn << "Failed to find right joint [" << name << "] for model ["
+        gzwarn << "Failed to find right joint [" << name << "] for model ["
                 << modelName << "]" << std::endl;
         warned = true;
       }
@@ -370,7 +438,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
   if (warnedModels.find(modelName) != warnedModels.end())
   {
-    ignmsg << "Found joints for model [" << modelName
+    gzmsg << "Found joints for model [" << modelName
            << "], plugin will start working." << std::endl;
     warnedModels.erase(modelName);
   }
@@ -442,7 +510,7 @@ void DiffDrive::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 void DiffDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::PostUpdate");
+  GZ_PROFILE("DiffDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -452,10 +520,10 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &_ecm)
+void DiffDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("DiffDrive::UpdateOdometry");
+  GZ_PROFILE("DiffDrive::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -536,7 +604,7 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
-  ignition::msgs::Pose *tfMsgPose = tfMsg.add_pose();
+  msgs::Pose *tfMsgPose = tfMsg.add_pose();
   tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
   tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
   tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
@@ -547,10 +615,10 @@ void DiffDrivePrivate::UpdateOdometry(const ignition::gazebo::UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void DiffDrivePrivate::UpdateVelocity(const ignition::gazebo::UpdateInfo &_info,
-    const ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void DiffDrivePrivate::UpdateVelocity(const UpdateInfo &_info,
+    const EntityComponentManager &/*_ecm*/)
 {
-  IGN_PROFILE("DiffDrive::UpdateVelocity");
+  GZ_PROFILE("DiffDrive::UpdateVelocity");
 
   double linVel;
   double angVel;
@@ -601,10 +669,13 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
   }
 }
 
-IGNITION_ADD_PLUGIN(DiffDrive,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(DiffDrive,
+                    System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate,
                     DiffDrive::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")
+GZ_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

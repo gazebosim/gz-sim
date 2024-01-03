@@ -15,24 +15,24 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_SELECTENTITIES_HH_
-#define IGNITION_GAZEBO_GUI_SELECTENTITIES_HH_
+#ifndef GZ_SIM_GUI_SELECTENTITIES_HH_
+#define GZ_SIM_GUI_SELECTENTITIES_HH_
 
 #include <memory>
 
-#include <ignition/gui/Plugin.hh>
+#include <gz/gui/Plugin.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 namespace gui
 {
   class SelectEntitiesPrivate;
 
   /// \brief This plugin is in charge of selecting and deselecting the entities
-  /// from the Scene3D and emit the corresponding events.
-  class SelectEntities : public ignition::gui::Plugin
+  /// from the 3D scene and emit the corresponding events.
+  class SelectEntities : public gz::gui::Plugin
   {
     Q_OBJECT
 

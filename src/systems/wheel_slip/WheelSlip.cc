@@ -21,26 +21,27 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/SlipComplianceCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/SlipComplianceCmd.hh"
+#include "gz/sim/components/WheelSlipCmd.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
 // https://osrf-migration.github.io/gazebo-gh-pages/#!/osrf/gazebo/pull-requests/2950/
-class ignition::gazebo::systems::WheelSlipPrivate
+class gz::sim::systems::WheelSlipPrivate
 {
   /// \brief Initialize the plugin
   public: bool Load(const EntityComponentManager &_ecm, sdf::ElementPtr _sdf);
@@ -49,7 +50,7 @@ class ignition::gazebo::systems::WheelSlipPrivate
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
   public: void Update(EntityComponentManager &_ecm);
 
-  /// \brief Ignition communication node
+  /// \brief Gazebo communication node
   public: transport::Node node;
 
   /// \brief Joint Entity
@@ -107,7 +108,9 @@ class ignition::gazebo::systems::WheelSlipPrivate
                     {
                       if (_a.size() != _b.size() ||
                           _a.size() < 2 ||_b.size() < 2)
+                      {
                         return false;
+                      }
 
                       for (size_t i = 0; i < _a.size(); i++)
                       {
@@ -129,7 +132,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
   if (!_sdf->HasElement("wheel"))
   {
-    ignerr << "No wheel tags specified, plugin is disabled" << std::endl;
+    gzerr << "No wheel tags specified, plugin is disabled" << std::endl;
     return false;
   }
 
@@ -139,7 +142,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
   {
     if (!wheelElem->HasAttribute("link_name"))
     {
-      ignerr << "wheel element missing link_name attribute" << std::endl;
+      gzerr << "wheel element missing link_name attribute" << std::endl;
       continue;
     }
 
@@ -170,7 +173,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
     auto link = Link(this->model.LinkByName(_ecm, linkName));
     if (!link.Valid(_ecm))
     {
-      ignerr << "Could not find link named [" << linkName
+      gzerr << "Could not find link named [" << linkName
             << "] in model [" << modelName << "]"
             << std::endl;
       continue;
@@ -180,7 +183,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
         _ecm.ChildrenByComponents(link.Entity(), components::Collision());
     if (collisions.empty() || collisions.size() != 1)
     {
-      ignerr << "There should be 1 collision in link named [" << linkName
+      gzerr << "There should be 1 collision in link named [" << linkName
             << "] in model [" << modelName << "]"
             << ", but " << collisions.size() << " were found"
             << std::endl;
@@ -197,7 +200,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
                                   components::ChildLinkName(linkName));
     if (joints.empty() || joints.size() != 1)
     {
-      ignerr << "There should be 1 parent joint for link named [" << linkName
+      gzerr << "There should be 1 parent joint for link named [" << linkName
             << "] in model [" << modelName << "]"
             << ", but " << joints.size() << " were found"
             << std::endl;
@@ -208,7 +211,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     if (params.wheelRadius <= 0)
     {
-      ignerr << "Found wheel radius [" << params.wheelRadius
+      gzerr << "Found wheel radius [" << params.wheelRadius
             << "], which is not positive"
             << " in link named [" << linkName
             << "] in model [" << modelName << "]"
@@ -218,7 +221,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
     if (params.wheelNormalForce <= 0)
     {
-      ignerr << "Found wheel normal force [" << params.wheelNormalForce
+      gzerr << "Found wheel normal force [" << params.wheelNormalForce
             << "], which is not positive"
             << " in link named [" << linkName
             << "] in model [" << modelName << "]"
@@ -231,7 +234,7 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 
   if (this->mapLinkSurfaceParams.empty())
   {
-    ignerr << "No links and surfaces found, plugin is disabled"
+    gzerr << "No links and surfaces found, plugin is disabled"
            << std::endl;
     return false;
   }
@@ -242,9 +245,32 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 {
-  for (const auto &linkSurface : this->mapLinkSurfaceParams)
+  for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
-    const auto &params = linkSurface.second;
+    auto &params = linkSurface.second;
+    const auto * wheelSlipCmdComp =
+      _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
+    if (wheelSlipCmdComp)
+    {
+      const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
+      bool changed = (!math::equal(
+          params.slipComplianceLateral,
+          wheelSlipCmdParams.slip_compliance_lateral(),
+          1e-6)) ||
+        (!math::equal(
+          params.slipComplianceLongitudinal,
+          wheelSlipCmdParams.slip_compliance_longitudinal(),
+          1e-6));
+
+      if (changed)
+      {
+        params.slipComplianceLateral =
+          wheelSlipCmdParams.slip_compliance_lateral();
+        params.slipComplianceLongitudinal =
+          wheelSlipCmdParams.slip_compliance_longitudinal();
+      }
+      _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
+    }
 
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
@@ -311,7 +337,7 @@ void WheelSlip::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "WheelSlip plugin should be attached to a model entity. "
+    gzerr << "WheelSlip plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -323,7 +349,7 @@ void WheelSlip::Configure(const Entity &_entity,
 //////////////////////////////////////////////////
 void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("WheelSlip::PreUpdate");
+  GZ_PROFILE("WheelSlip::PreUpdate");
 
   if (!this->dataPtr->validConfig)
     return;
@@ -359,10 +385,14 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
   }
 }
 
-IGNITION_ADD_PLUGIN(WheelSlip,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(WheelSlip,
+                    System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
+GZ_ADD_PLUGIN_ALIAS(WheelSlip,
+                          "gz::sim::systems::WheelSlip")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(WheelSlip,
                           "ignition::gazebo::systems::WheelSlip")

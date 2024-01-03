@@ -14,28 +14,29 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
-#define IGNITION_GAZEBO_GUI_GUIRUNNER_HH_
+#ifndef GZ_SIM_GUI_GUIRUNNER_HH_
+#define GZ_SIM_GUI_GUIRUNNER_HH_
 
-#include <ignition/msgs/serialized_map.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
 
 #include <QtCore>
 #include <string>
 
-#include <ignition/utils/ImplPtr.hh>
+#include <gz/utils/ImplPtr.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/gui/Export.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/gui/Export.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 /// \brief Responsible for running GUI systems as new states are received from
 /// the backend.
-class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
+class GZ_SIM_GUI_VISIBLE GuiRunner : public QObject
 {
   Q_OBJECT
 
@@ -46,13 +47,11 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   /// \brief Destructor
   public: ~GuiRunner() override;
 
+  /// \brief Get the event manager for the gui
+  public: EventManager &GuiEventManager() const;
+
   // Documentation inherited
   protected: bool eventFilter(QObject *_obj, QEvent *_event) override;
-
-  /// \brief Callback when a plugin has been added.
-  /// This function has no effect and is left here for ABI compatibility.
-  /// \param[in] _objectName Plugin's object name.
-  public slots: void OnPluginAdded(const QString &_objectName);
 
   /// \brief Make a new state request to the server.
   public slots: void RequestState();
@@ -71,11 +70,16 @@ class IGNITION_GAZEBO_GUI_VISIBLE GuiRunner : public QObject
   private: Q_INVOKABLE void OnStateQt(const msgs::SerializedStepMap &_msg);
 
   /// \brief Update the plugins.
-  /// \todo(anyone) Move to GuiRunner::Implementation when porting to v5
   private: Q_INVOKABLE void UpdatePlugins();
 
+  /// \brief Load systems
+  private: void LoadSystems();
+
+  /// \brief Update systems
+  private: void UpdateSystems();
+
   /// \brief Pointer to private data.
-  IGN_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }
 }

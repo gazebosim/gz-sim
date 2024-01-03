@@ -14,18 +14,18 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
-#define IGNITION_GAZEBO_SYSTEMS_BUOYANCY_HH_
+#ifndef GZ_SIM_SYSTEMS_BUOYANCY_HH_
+#define GZ_SIM_SYSTEMS_BUOYANCY_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 #include <memory>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -33,8 +33,8 @@ namespace systems
 
   /// \brief A system that simulates buoyancy of objects immersed in fluid.
   /// All SDF parameters are optional. This system must be attached to the
-  /// world and this system will apply buoyancy to all links that have inertia
-  /// and collision shapes.
+  /// world and this system will apply buoyancy to all links that have collision
+  /// shapes.
   ///
   /// The volume and center of volume will be computed for each link, and
   /// stored as components. During each iteration, Archimedes' principle is
@@ -48,9 +48,9 @@ namespace systems
   /// * `<uniform_fluid_density>` sets the density of the fluid that surrounds
   /// the buoyant object. [Units: kgm^-3]
   /// * `<graded_buoyancy>` allows you to define a world where the buoyancy
-  /// changes with height. An example of such a world could be if we are
+  /// changes along the Z axis. An example of such a world could be if we are
   /// simulating an open ocean with its surface and under water behaviour. This
-  /// mode slices the volume of the collision mesh according to where the water
+  /// mode slices the volume of each collision mesh according to where the water
   /// line is set. When defining a `<graded_buoyancy>` tag, one must also define
   /// `<default_density>` and `<density_change>` tags.
   /// * `<default_density>` is the default fluid which the world should be
@@ -73,7 +73,7 @@ namespace systems
   /// floats. To run:
   ///
   /// ```
-  /// ign gazebo -v 4 buoyancy.sdf
+  /// gz sim -v 4 buoyancy.sdf
   /// ```
   ///
   /// ### `graded_buoyancy` world
@@ -86,7 +86,7 @@ namespace systems
   /// `graded_buoyancy.sdf` world.
   ///
   /// ```
-  /// ign gazebo -v 4 graded_buoyancy.sdf
+  /// gz sim -v 4 graded_buoyancy.sdf
   /// ```
   ///
   /// You should be able to see a sphere bobbing up and down undergoing simple
@@ -113,7 +113,8 @@ namespace systems
   class Buoyancy
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemPostUpdate
   {
     /// \brief Constructor
     public: Buoyancy();
@@ -129,8 +130,13 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const UpdateInfo &_info,
+                EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(
+                const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) override;
 
     /// \brief Check if an entity is enabled or not.
     /// \param[in] _entity Target entity

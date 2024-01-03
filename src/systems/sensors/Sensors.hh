@@ -14,28 +14,28 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
+#ifndef GZ_SIM_SYSTEMS_SENSORS_HH_
+#define GZ_SIM_SYSTEMS_SENSORS_HH_
 
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 #include <sdf/Sensor.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
   class SensorsPrivate;
 
-  /// \class Sensors Sensors.hh ignition/gazebo/systems/Sensors.hh
+  /// \class Sensors Sensors.hh gz/sim/systems/Sensors.hh
   /// \brief A system that manages sensors.
   ///
   /// ## System Parameters
@@ -47,12 +47,16 @@ namespace systems
   /// - `<ambient_light>` Color used for the scene's ambient light. This
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
+  /// - `<disable_on_drained_battery>` Disable sensors if the model's
+  /// battery plugin charge reaches zero. Sensors that are in nested
+  /// models are also affected.
   ///
   /// \TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
   class Sensors:
     public System,
     public ISystemConfigure,
+    public ISystemReset,
     public ISystemUpdate,
     public ISystemPostUpdate
   {
@@ -67,6 +71,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,

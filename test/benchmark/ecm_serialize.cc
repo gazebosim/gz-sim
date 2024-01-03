@@ -19,46 +19,46 @@
 
 #include <memory>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/components/Factory.hh"
+#include "gz/sim/components/Factory.hh"
 
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
 using IntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
     IntComponent)
 
 using UIntComponent = components::Component<int, class IntComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.UIntComponent",
     UIntComponent)
 
 using DoubleComponent = components::Component<double, class DoubleComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.DoubleComponent",
     DoubleComponent)
 
 using StringComponent =
     components::Component<std::string, class StringComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.StringComponent",
     StringComponent)
 
 using BoolComponent = components::Component<bool, class BoolComponentTag>;
-IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
+GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
     BoolComponent)
 }
 }
@@ -66,8 +66,8 @@ IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.BoolComponent",
 }
 
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace components;
 
 // NOLINTNEXTLINE
@@ -93,8 +93,8 @@ void BM_Serialize1Component(benchmark::State &_st)
     serializedSize = stateMsg.ByteSize();
 #endif
   }
-  _st.counters["serialized_size"] = serializedSize;
-  _st.counters["num_entities"] = entityCount;
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
   _st.counters["num_components"] = 1;
 }
 
@@ -125,8 +125,8 @@ void BM_Serialize5Component(benchmark::State &_st)
     serializedSize = stateMsg.ByteSize();
 #endif
   }
-  _st.counters["serialized_size"] = serializedSize;
-  _st.counters["num_entities"] = entityCount;
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
   _st.counters["num_components"] = 5;
 }
 
@@ -149,7 +149,11 @@ BENCHMARK(BM_Serialize5Component)
   ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
 BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
+#endif

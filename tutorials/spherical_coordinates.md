@@ -3,11 +3,13 @@
 Gazebo supports the use of real world latitude and longitude coordinates in its
 simulations using the
 [WGS84](https://en.wikipedia.org/wiki/World_Geodetic_System#1984_version)
-geodetic system.
+geodetic system for the Earth, and
+[MOON_SCS](https://en.wikipedia.org/wiki/Selenographic_coordinate_system)
+for the Moon.
 
-Gazebo's simulation is always performed in Cartesian coordinates (good old XYZ).
+Gazebo Sim's simulation is always performed in Cartesian coordinates (good old XYZ).
 Therefore, in order to use spherical coordinates, it's necessary to project
-coordinates expressed in the `WGS84` frame to Cartesian and back.
+coordinates expressed in the `WGS84` frame (for Earth) to Cartesian and back.
 
 This tutorial will go over how to:
 
@@ -27,7 +29,7 @@ ENU (East-North-Up) convention, as shown on the image below:
 
 Users can define where the origin of the ENU coordinates sits on the surface
 of the planet in three different ways: through the SDF file, the GUI, or through
-an Ignition Transport service call.
+a Gazebo Transport service call.
 
 Changing the world origin will only affect operations performed afterwards. For
 example, models already in the world will not be moved when the world origin's
@@ -53,20 +55,50 @@ For example:
 </spherical_coordinates>
 ```
 
-At the moment, the only surface model supported is WGS84 and the only world
-frame orientation is ENU.
+Currently, the supported surface models are WGS84 for the Earth,
+MOON_SCS for the Moon, and CUSTOM_SURFACE for other celestial bodies.
+CUSTOM_SURFACE requires the equatorial and polar axes to be specified
+in meters.
+
+The only world frame currently supported is ENU.
 
 Try out an example world that ships with Gazebo and has the coordinates above
 as follows:
 
 ```
-ign gazebo spherical_coordinates.sdf
+gz sim spherical_coordinates.sdf
 ```
 
 On the component inspector, expand the `Spherical Coordinates` component to see
 that the coordinates were set correctly:
 
 @image html files/spherical_coordinates/inspector.png
+
+For loading lunar DEMs, use the `MOON_SCS` surface tag:
+
+```.xml
+<spherical_coordinates>
+  <surface_model>MOON_SCS</surface_model>
+</spherical_coordinates>
+```
+
+Try the Gazebo moon example:
+
+```
+gz sim dem_moon.sdf
+```
+
+Similarly, ``CUSTOM_SURFACE`` is also accepted as a surface model.
+So equivalently, one can have the following instead of
+the ``MOON_SCS`` tag :
+
+```.xml
+<spherical_coordinates>
+  <surface_model>CUSTOM_SURFACE</surface_model>
+  <surface_axis_equatorial>1738100.0</surface_axis_equatorial>
+  <surface_axis_polar>1736000.0</surface_axis_polar>
+</spherical_coordinates>
+```
 
 ### GUI
 
@@ -81,10 +113,10 @@ through the `/world/<world_name>/set_spherical_coordinates` service.
 Loading the world above, try calling for example:
 
 ```.bash
-ign service \
+gz service \
 -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 2000 \
 --req "surface_model: EARTH_WGS84, latitude_deg: 35.6, longitude_deg: 140.1, elevation: 10.0"
 ```
@@ -98,16 +130,16 @@ to creating entities.
 
 In order to create an entity at a given spherical coordinate using the
 `/world/<world_name>/create` service, omit the `pose` field from the
-`ignition::msgs::EntityFactory` message and use the `spherical_coordinates`
+`gz::msgs::EntityFactory` message and use the `spherical_coordinates`
 field instead.
 
 For example, you can spawn a sphere into the `spherical_coordinates.sdf` world
 as follows:
 
 ```.bash
-ign service -s /world/spherical_coordinates/create \
---reqtype ignition.msgs.EntityFactory \
---reptype ignition.msgs.Boolean \
+gz service -s /world/spherical_coordinates/create \
+--reqtype gz.msgs.EntityFactory \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'sdf: '\
 '"<?xml version=\"1.0\" ?>'\
@@ -135,9 +167,9 @@ specify the entity to be moved.
 For example, to move the sphere created above:
 
 ```.bash
-ign service -s /world/spherical_coordinates/set_spherical_coordinates \
---reqtype ignition.msgs.SphericalCoordinates \
---reptype ignition.msgs.Boolean \
+gz service -s /world/spherical_coordinates/set_spherical_coordinates \
+--reqtype gz.msgs.SphericalCoordinates \
+--reptype gz.msgs.Boolean \
 --timeout 300 \
 --req 'entity: {name: "spawned_model", type: MODEL}, latitude_deg: 35.59990, longitude_deg: 140.09990'
 ```
@@ -145,6 +177,5 @@ ign service -s /world/spherical_coordinates/set_spherical_coordinates \
 ## Querying entities' coordinates
 
 When writing plugins, developers can use the
-`ignition::gazebo::sphericalCoordinates` helper function to query the current
+`gz::sim::sphericalCoordinates` helper function to query the current
 coordinates for any entity that has a pose.
-

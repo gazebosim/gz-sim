@@ -14,25 +14,25 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
-#define IGNITION_GAZEBO_SYSTEMS_FOLLOWACTOR_HH_
+#ifndef GZ_SIM_SYSTEMS_FOLLOWACTOR_HH_
+#define GZ_SIM_SYSTEMS_FOLLOWACTOR_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declarations.
   class FollowActorPrivate;
 
-  /// \class FollowActor FollowActor.hh ignition/gazebo/systems/FollowActor.hh
+  /// \class FollowActor FollowActor.hh gz/sim/systems/FollowActor.hh
   /// \brief Make an actor follow a target entity in the world.
   ///
   /// ## SDF parameters

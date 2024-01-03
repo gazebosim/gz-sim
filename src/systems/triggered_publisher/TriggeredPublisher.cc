@@ -17,24 +17,33 @@
 
 #include "TriggeredPublisher.hh"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/message_differencer.h>
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <limits>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Util.hh>
+#include <gz/plugin/Register.hh>
 
 // bug https://github.com/protocolbuffers/protobuf/issues/5051
 #ifdef _WIN32
 #undef GetMessage
 #endif
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 /// \brief Base class for input matchers.
@@ -74,7 +83,7 @@ class systems::InputMatcher
                                      const transport::ProtoMsg &_input);
 
   /// \brief Factory function for creating matchers.
-  /// \param[in] _msgType Input message type (eg. ignition.msgs.Boolean)
+  /// \param[in] _msgType Input message type (eg. gz.msgs.Boolean)
   /// \param[in] _matchElem the SDFormat Element that contains the configuration
   /// for the matcher
   /// \return A concrete InputMatcher initialized according to the contents of
@@ -123,7 +132,7 @@ class FullMatcher : public InputMatcher
   /// return false.
   /// \param[in] _matchString String used to construct the protobuf message
   /// against which input messages are matched. This is the human-readable
-  /// representation of a protobuf message as used by `ign topic` for publishing
+  /// representation of a protobuf message as used by `gz topic` for publishing
   /// messages
   public: FullMatcher(const std::string &_msgType, bool _logicType,
                       const std::string &_matchString);
@@ -148,7 +157,7 @@ class FieldMatcher : public InputMatcher
   /// \param[in] _fieldName Name of the field to compare
   /// \param[in] _fieldString String used to construct the protobuf message
   /// against which the specified field in the input messages are matched. This
-  /// is the human-readable representation of a protobuf message as used by `ign
+  /// is the human-readable representation of a protobuf message as used by `gz
   /// topic` for publishing messages
   public: FieldMatcher(const std::string &_msgType, bool _logicType,
                        const std::string &_fieldName,
@@ -217,7 +226,7 @@ bool InputMatcher::CheckTypeMatch(const transport::ProtoMsg &_matcher,
   const auto *inputDesc = _input.GetDescriptor();
   if (matcherDesc != inputDesc)
   {
-    ignerr << "Received message has a different type than configured in "
+    gzerr << "Received message has a different type than configured in "
            << "<input>. Expected [" << matcherDesc->full_name() << "] got ["
            << inputDesc->full_name() << "]\n";
     return false;
@@ -291,7 +300,7 @@ FieldMatcher::FieldMatcher(const std::string &_msgType, bool _logicType,
       _fieldString, this->fieldDescMatcher.back(), matcherSubMsg);
   if (!result)
   {
-    ignerr << "Failed to parse matcher string [" << _fieldString
+    gzerr << "Failed to parse matcher string [" << _fieldString
            << "] for field [" << this->fieldName << "] of input message type ["
            << _msgType << "]\n";
     return;
@@ -312,7 +321,7 @@ bool FieldMatcher::FindFieldSubMessage(
   // shouldn't be using a FieldMatcher
   if (nullptr == fieldMsgType)
   {
-    ignerr << "FieldMatcher with field name [" << _fieldName
+    gzerr << "FieldMatcher with field name [" << _fieldName
            << "] cannot be used because the input message type ["
            << fieldMsgType->full_name() << "] does not have any fields\n";
     return false;
@@ -323,7 +332,7 @@ bool FieldMatcher::FindFieldSubMessage(
   auto fieldNames = common::split(_fieldName, ".");
   if (fieldNames.empty())
   {
-    ignerr << "Empty field attribute for input message type ["
+    gzerr << "Empty field attribute for input message type ["
            << fieldMsgType->full_name() << "]\n";
     return false;
   }
@@ -334,7 +343,7 @@ bool FieldMatcher::FindFieldSubMessage(
 
     if (nullptr == fieldDesc)
     {
-      ignerr << "Field name [" << fieldNames[i]
+      gzerr << "Field name [" << fieldNames[i]
              << "] could not be found in message type ["
              << fieldMsgType->full_name() << "].\n";
       return false;
@@ -347,7 +356,7 @@ bool FieldMatcher::FindFieldSubMessage(
       if (google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE !=
           fieldDesc->cpp_type())
       {
-        ignerr << "Subfield [" << fieldNames[i+1]
+        gzerr << "Subfield [" << fieldNames[i+1]
           << "] could not be found in Submessage type ["
           << fieldDesc->full_name() << "].\n";
         return false;
@@ -356,7 +365,7 @@ bool FieldMatcher::FindFieldSubMessage(
       auto *reflection = (*_subMsg)->GetReflection();
       if (fieldDesc->is_repeated())
       {
-        ignerr
+        gzerr
             << "Field matcher for field name [" << _fieldName
             << "] could not be created because the field [" << fieldDesc->name()
             << "] is a repeated message type. Matching subfields of repeated "
@@ -393,7 +402,7 @@ bool FieldMatcher::DoMatch(
     {
       // This should not happen since the matching subfields of repeated fields
       // is not allowed and this matcher shouldn't have been created.
-      ignerr << "Matching subfields of repeated messages is not supported\n";
+      gzerr << "Matching subfields of repeated messages is not supported\n";
     }
     else
     {
@@ -429,7 +438,7 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
       _matchElem->Get<std::string>("logic_type", "positive").first;
   if (logicTypeStr != "positive" && logicTypeStr != "negative")
   {
-    ignerr << "Unrecognized logic_type attribute [" << logicTypeStr
+    gzerr << "Unrecognized logic_type attribute [" << logicTypeStr
            << "] in matcher for input message type [" << _msgType << "]\n";
     return nullptr;
   }
@@ -452,7 +461,7 @@ std::unique_ptr<InputMatcher> InputMatcher::Create(
     }
     if (matcher == nullptr || !matcher->IsValid())
     {
-      ignerr << "Matcher for input type [" << _msgType
+      gzerr << "Matcher for input type [" << _msgType
              << "] could not be created from:\n"
              << inputMatchString << std::endl;
       return nullptr;
@@ -489,7 +498,7 @@ void TriggeredPublisher::Configure(const Entity &,
     this->inputMsgType = inputElem->Get<std::string>("type");
     if (this->inputMsgType.empty())
     {
-      ignerr << "Input message type cannot be empty\n";
+      gzerr << "Input message type cannot be empty\n";
       return;
     }
 
@@ -497,7 +506,7 @@ void TriggeredPublisher::Configure(const Entity &,
     this->inputTopic = transport::TopicUtils::AsValidTopic(inTopic);
     if (this->inputTopic.empty())
     {
-      ignerr << "Invalid input topic [" << inTopic << "]" << std::endl;
+      gzerr << "Invalid input topic [" << inTopic << "]" << std::endl;
       return;
     }
 
@@ -524,13 +533,13 @@ void TriggeredPublisher::Configure(const Entity &,
   }
   else
   {
-    ignerr << "No input specified" << std::endl;
+    gzerr << "No input specified" << std::endl;
     return;
   }
 
   if (this->matchers.empty())
   {
-    ignerr << "No valid matchers specified\n";
+    gzerr << "No valid matchers specified\n";
     return;
   }
 
@@ -551,14 +560,14 @@ void TriggeredPublisher::Configure(const Entity &,
       info.msgType = outputElem->Get<std::string>("type");
       if (info.msgType.empty())
       {
-        ignerr << "Output message type cannot be empty\n";
+        gzerr << "Output message type cannot be empty\n";
         continue;
       }
       auto topic = outputElem->Get<std::string>("topic");
       info.topic = transport::TopicUtils::AsValidTopic(topic);
       if (info.topic.empty())
       {
-        ignerr << "Invalid topic [" << topic << "]" << std::endl;
+        gzerr << "Invalid topic [" << topic << "]" << std::endl;
         continue;
       }
       const std::string msgStr = outputElem->Get<std::string>();
@@ -573,22 +582,65 @@ void TriggeredPublisher::Configure(const Entity &,
         }
         else
         {
-          ignerr << "Output publisher could not be created for topic ["
+          gzerr << "Output publisher could not be created for topic ["
                  << info.topic << "] with message type [" << info.msgType
                  << "]\n";
         }
       }
       else
       {
-        ignerr << "Unable to create message of type [" << info.msgType
+        gzerr << "Unable to create message of type [" << info.msgType
                << "] with data [" << msgStr << "] when creating output"
                << " publisher on topic " << info.topic << ".\n";
       }
     }
   }
-  else
+
+  if (sdfClone->HasElement("service"))
   {
-    ignerr << "No ouptut specified" << std::endl;
+    for (auto serviceElem = sdfClone->GetElement("service"); serviceElem;
+         serviceElem = serviceElem->GetNextElement("service"))
+    {
+      SrvOutputInfo serviceInfo;
+      serviceInfo.srvName = serviceElem->Get<std::string>("name");
+      if (serviceInfo.srvName.empty())
+      {
+        gzerr << "Service name cannot be empty\n";
+        return;
+      }
+      serviceInfo.reqType = serviceElem->Get<std::string>("reqType");
+      if (serviceInfo.reqType.empty())
+      {
+        gzerr << "Service request type cannot be empty\n";
+        return;
+      }
+      serviceInfo.repType = serviceElem->Get<std::string>("repType");
+      if (serviceInfo.repType.empty())
+      {
+        gzerr << "Service reply type cannot be empty\n";
+        return;
+      }
+      serviceInfo.reqMsg = serviceElem->Get<std::string>("reqMsg");
+      if (serviceInfo.reqMsg.empty())
+      {
+        gzerr << "Service request message cannot be empty\n";
+        return;
+      }
+      std::string timeoutInfo = serviceElem->Get<std::string>("timeout");
+      if (timeoutInfo.empty())
+      {
+        gzerr << "Timeout value cannot be empty\n";
+        return;
+      }
+
+      serviceInfo.timeout = std::stoi(timeoutInfo);
+      this->srvOutputInfo.push_back(std::move(serviceInfo));
+    }
+  }
+  if (!sdfClone->HasElement("service") && !sdfClone->HasElement("output"))
+  {
+    gzerr << "No output and service specified. Make sure to specify at least"
+      "one of them." << std::endl;
     return;
   }
 
@@ -597,26 +649,30 @@ void TriggeredPublisher::Configure(const Entity &,
       {
         if (this->MatchInput(_msg))
         {
+          if (this->delay > 0ms)
           {
-            if (this->delay > 0ms)
+            std::lock_guard<std::mutex> lock(this->publishQueueMutex);
+            this->publishQueue.push_back(this->delay);
+          }
+          else
+          {
             {
-              std::lock_guard<std::mutex> lock(this->publishQueueMutex);
-              this->publishQueue.push_back(this->delay);
+              std::lock_guard<std::mutex> lock(this->publishCountMutex);
+              ++this->publishCount;
             }
-            else
-            {
-              {
-                std::lock_guard<std::mutex> lock(this->publishCountMutex);
-                ++this->publishCount;
-              }
-              this->newMatchSignal.notify_one();
-            }
+            this->newMatchSignal.notify_one();
+          }
+          if (this->srvOutputInfo.size() > 0)
+          {
+            std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+            ++this->serviceCount;
           }
         }
       });
+
   if (!this->node.Subscribe(this->inputTopic, msgCb))
   {
-    ignerr << "Input subscriber could not be created for topic ["
+    gzerr << "Input subscriber could not be created for topic ["
            << this->inputTopic << "] with message type [" << this->inputMsgType
            << "]\n";
     return;
@@ -630,10 +686,67 @@ void TriggeredPublisher::Configure(const Entity &,
   {
     ss << info.topic << ", ";
   }
-  igndbg << ss.str() << "\n";
+  gzdbg << ss.str() << "\n";
 
   this->workerThread =
       std::thread(std::bind(&TriggeredPublisher::DoWork, this));
+}
+
+//////////////////////////////////////////////////
+void TriggeredPublisher::PublishMsg(std::size_t pending)
+{
+  for (auto &info : this->outputInfo)
+  {
+    for (std::size_t i = 0; i < pending; ++i)
+    {
+      info.pub.Publish(*info.msgData);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void TriggeredPublisher::CallService(std::size_t pendingSrv)
+{
+  for (auto &serviceInfo : this->srvOutputInfo)
+  {
+    for (std::size_t i = 0; i < pendingSrv; ++i)
+    {
+      bool result;
+      auto req = msgs::Factory::New(serviceInfo.reqType, serviceInfo.reqMsg);
+      if (!req)
+      {
+        gzerr << "Unable to create request for type ["
+              << serviceInfo.reqType << "].\n";
+        return;
+      }
+
+      auto rep = msgs::Factory::New(serviceInfo.repType);
+      if (!rep)
+      {
+        gzerr << "Unable to create response for type ["
+              << serviceInfo.repType << "].\n";
+        return;
+      }
+
+      bool executed = this->node.Request(serviceInfo.srvName, *req,
+                                         serviceInfo.timeout, *rep, result);
+      if (executed)
+      {
+        if (!result)
+        {
+          gzerr << "Service call [" << serviceInfo.srvName << "] failed\n";
+        }
+        else
+        {
+          gzmsg << "Service call [" << serviceInfo.srvName << "] succeeded\n";
+        }
+      }
+      else
+      {
+        gzerr << "Service call [" << serviceInfo.srvName  << "] timed out\n";
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -641,6 +754,7 @@ void TriggeredPublisher::DoWork()
 {
   while (!this->done)
   {
+    // check whether to publish a msg by checking publishCount
     std::size_t pending{0};
     {
       using namespace std::chrono_literals;
@@ -657,22 +771,28 @@ void TriggeredPublisher::DoWork()
       std::swap(pending, this->publishCount);
     }
 
-    for (auto &info : this->outputInfo)
+    PublishMsg(pending);
+
+    // check whether to call a service by checking serviceCount
+    std::size_t pendingSrv{0};
     {
-      for (std::size_t i = 0; i < pending; ++i)
-      {
-        info.pub.Publish(*info.msgData);
+      std::lock_guard<std::mutex> lock(this->triggerSrvMutex);
+      if (this->serviceCount == 0 || this->done){
+        continue;
       }
+      std::swap(pendingSrv, this->serviceCount);
     }
+
+    CallService(pendingSrv);
   }
 }
 
 //////////////////////////////////////////////////
-void TriggeredPublisher::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &/*_ecm*/)
+void TriggeredPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &/*_ecm*/)
 {
   using namespace std::chrono_literals;
-  IGN_PROFILE("TriggeredPublisher::PreUpdate");
+  GZ_PROFILE("TriggeredPublisher::PreUpdate");
 
   bool notify = false;
   {
@@ -712,21 +832,18 @@ bool TriggeredPublisher::MatchInput(const transport::ProtoMsg &_inputMsg)
   return std::all_of(this->matchers.begin(), this->matchers.end(),
                      [&](const auto &_matcher)
                      {
-                       try
-                       {
-                         return _matcher->Match(_inputMsg);
-                       } catch (const google::protobuf::FatalException &err)
-                       {
-                          ignerr << err.what() << std::endl;
-                          return false;
-                       }
+                       return _matcher->Match(_inputMsg);
                      });
 }
 
-IGNITION_ADD_PLUGIN(TriggeredPublisher,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(TriggeredPublisher,
+                    System,
                     TriggeredPublisher::ISystemConfigure,
                     TriggeredPublisher::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
+                          "gz::sim::systems::TriggeredPublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "ignition::gazebo::systems::TriggeredPublisher")

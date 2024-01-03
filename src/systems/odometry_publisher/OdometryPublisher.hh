@@ -14,19 +14,19 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ODOMETRYPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ODOMETRYPUBLISHER_HH_
+#ifndef GZ_SIM_SYSTEMS_ODOMETRYPUBLISHER_HH_
+#define GZ_SIM_SYSTEMS_ODOMETRYPUBLISHER_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
@@ -34,7 +34,7 @@ namespace systems
 
   /// \brief Odometry Publisher which can be attached to any entity in
   /// order to periodically publish 2D or 3D odometry data in the form of
-  /// ignition::msgs::Odometry messages.
+  /// gz::msgs::Odometry messages.
   ///
   /// # System Parameters
   ///
@@ -53,9 +53,29 @@ namespace systems
   /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
+  /// `<odom_covariance_topic>`: Custom topic on which this system will publish
+  /// odometry with covariance messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/odometry_with_covariance`.
+  ///
+  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// transform from `odom_frame` to `robot_base_frame`. This element is
+  /// optional, and the default value is `/model/{name_of_model}/pose`.
+  ///
   /// `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
   /// default value is 2.
+  ///
+  /// `<xyz_offset>`: Position offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  /// message.
+  ///
+  /// `<rpy_offset>`: Rotation offset relative to the body fixed frame, the
+  /// default value is 0 0 0. This offset will be added to the odometry
+  ///  message.
+  ///
+  /// `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
+  /// to pose and twist messages. This element is optional, and the default
+  /// value is 0.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,
@@ -76,8 +96,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

@@ -1,13 +1,16 @@
 <?xml version='1.0'?>
 <sdf version='1.6'>
   <world name='default'>
-    <plugin filename='ignition-gazebo-scene-broadcaster-system'
-            name='ignition::gazebo::systems::SceneBroadcaster'>
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin filename='gz-sim-scene-broadcaster-system'
+            name='gz::sim::systems::SceneBroadcaster'>
     </plugin>
     <plugin
-      filename='ignition-gazebo-log-system'
-      name='ignition::gazebo::systems::LogPlayback'>
+      filename='gz-sim-log-system'
+      name='gz::sim::systems::LogPlayback'>
     </plugin>
   </world>
 </sdf>
-

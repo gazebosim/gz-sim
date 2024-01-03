@@ -53,30 +53,11 @@ Rectangle {
   }
 
   Component {
-    id: plotIcon
-    Image {
-      property string componentInfo: ""
-      source: "plottable_icon.svg"
-      anchors.top: parent.top
-      anchors.left: parent.left
-
-      Drag.mimeData: { "text/plain" : (model === null) ? "" :
-      "Component," + model.entity + "," + model.typeId + "," +
-                     model.dataType + "," + componentInfo + "," + model.shortName
-      }
-      Drag.dragType: Drag.Automatic
-      Drag.supportedActions : Qt.CopyAction
-      Drag.active: dragMouse.drag.active
-      // a point to drag from
-      Drag.hotSpot.x: 0
-      Drag.hotSpot.y: y
-      MouseArea {
-        id: dragMouse
-        anchors.fill: parent
-        drag.target: (model === null) ? null : parent
-        onPressed: parent.grabToImage(function(result) {parent.Drag.imageSource = result.url })
-        onReleased: parent.Drag.drop();
-        cursorShape: Qt.DragCopyCursor
+    id: gzPlotIcon
+    GzPlotIcon {
+      gzMimeData: { "text/plain" : (model === null) ? "" :
+        "Component," + model.entity + "," + model.typeId + "," +
+        model.dataType + "," + gzComponentInfo + "," + model.shortName
       }
     }
   }
@@ -163,12 +144,9 @@ Rectangle {
           Layout.preferredWidth: latText.width + indentation*3
           Loader {
             id: loaderPlotLat
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            sourceComponent: gzPlotIcon
+            property string gzComponentInfo: "latitude"
           }
-          Component.onCompleted: loaderPlotLat.item.componentInfo = "latitude"
 
           Text {
             id : latText
@@ -179,7 +157,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: latSpin
           Layout.fillWidth: true
           height: 40
@@ -201,12 +179,9 @@ Rectangle {
           Layout.preferredWidth: lonText.width + indentation*3
           Loader {
             id: loaderPlotLon
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            sourceComponent: gzPlotIcon
+            property string gzComponentInfo: "longitude"
           }
-          Component.onCompleted: loaderPlotLon.item.componentInfo = "longitude"
 
           Text {
             id : lonText
@@ -217,7 +192,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: lonSpin
           Layout.fillWidth: true
           height: 40
@@ -239,12 +214,9 @@ Rectangle {
           Layout.preferredWidth: elevationText.width + indentation*3
           Loader {
             id: loaderPlotElevation
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            sourceComponent: gzPlotIcon
+            property string gzComponentInfo: "elevation"
           }
-          Component.onCompleted: loaderPlotElevation.item.componentInfo = "elevation"
 
           Text {
             id : elevationText
@@ -255,7 +227,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: elevationSpin
           Layout.fillWidth: true
           height: 40
@@ -277,12 +249,9 @@ Rectangle {
           Layout.preferredWidth: headingText.width + indentation*3
           Loader {
             id: loaderPlotHeading
-            width: iconWidth
-            height: iconHeight
-            y:10
-            sourceComponent: plotIcon
+            sourceComponent: gzPlotIcon
+            property string gzComponentInfo: "heading"
           }
-          Component.onCompleted: loaderPlotHeading.item.componentInfo = "heading"
 
           Text {
             id : headingText
@@ -293,7 +262,7 @@ Rectangle {
             anchors.centerIn: parent
           }
         }
-        IgnSpinBox {
+        GzSpinBox {
           id: headingSpin
           Layout.fillWidth: true
           height: 40

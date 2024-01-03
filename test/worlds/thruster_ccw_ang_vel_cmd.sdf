@@ -1,0 +1,115 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="thruster">
+
+    <physics name="fast" type="none">
+      <!-- Zero to run as fast as possible -->
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <!-- prevent sinking -->
+    <gravity>0 0 0</gravity>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="sub">
+
+      <link name="body">
+        <pose>0 0 0   0 1.57 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>33.89</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>33.89</iyy>
+            <iyz>0</iyz>
+            <izz>1.125</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <length>2</length>
+              <radius>0.15</radius>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <link name="propeller">
+        <pose>-1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.0000354167</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.0000021667</iyy>
+            <iyz>0</iyz>
+            <izz>0.0000334167</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.01 0.25 0.05</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <joint name="propeller_joint" type="revolute">
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>1e6</effort>
+            <velocity>1e6</velocity>
+          </limit>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
+        <namespace>custom</namespace>
+        <joint_name>propeller_joint</joint_name>
+        <!-- Counter-clockwise thruster -->
+        <thrust_coefficient>-0.005</thrust_coefficient>
+        <fluid_density>950</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+        <velocity_control>true</velocity_control>
+        <use_angvel_cmd>true</use_angvel_cmd>
+        <!-- Max and min also apply to cmd_vel inputs -->
+        <max_thrust_cmd>0</max_thrust_cmd>
+        <min_thrust_cmd>-300</min_thrust_cmd>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>

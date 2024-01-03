@@ -17,46 +17,47 @@
 
 #include "Spawn.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/entity_factory.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 
 #include <algorithm>
 #include <limits>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <QQmlProperty>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/Uuid.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/math/Vector2.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/RayQuery.hh>
-#include <ignition/rendering/Utils.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/Utils.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/Scene.hh>
 
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class SpawnPrivate
   {
@@ -79,20 +80,7 @@ namespace ignition::gazebo
     /// \brief Handle placement requests
     public: void HandlePlacement();
 
-    /// \brief Retrieve the point on a plane at z = 0 in the 3D scene hit by a
-    /// ray cast from the given 2D screen coordinates.
-    /// \param[in] _screenPos 2D coordinates on the screen, in pixels.
-    /// \param[in] _camera User camera
-    /// \param[in] _rayQuery Ray query for mouse clicks
-    /// \param[in] _offset Offset along the plane normal
-    /// \return 3D coordinates of a point in the 3D scene.
-    math::Vector3d ScreenToPlane(
-      const math::Vector2i &_screenPos,
-      const rendering::CameraPtr &_camera,
-      const rendering::RayQueryPtr &_rayQuery,
-      const float offset = 0.0);
-
-    /// \brief Ignition communication node.
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Flag for indicating whether the preview needs to be generated.
@@ -158,15 +146,18 @@ namespace ignition::gazebo
 
     /// \brief Text for popup error message
     public: QString errorPopupText;
+
+    /// \brief Adds new line after each nChar.
+    public: std::string AddNewLine(const std::string &_str, int _nChar);
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 Spawn::Spawn()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<SpawnPrivate>())
 {
 }
@@ -180,41 +171,40 @@ void Spawn::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Spawn";
 
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one Spawn plugin is supported at a time."};
+    gzerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
+
   // World name from window, to construct default topics and services
   auto worldNames = gui::worldNames();
   if (!worldNames.empty())
     this->dataPtr->worldName = worldNames[0].toStdString();
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
-
-// TODO(ahcorde): Replace this when this function is on ign-rendering6
 /////////////////////////////////////////////////
-math::Vector3d SpawnPrivate::ScreenToPlane(
-    const math::Vector2i &_screenPos,
-    const rendering::CameraPtr &_camera,
-    const rendering::RayQueryPtr &_rayQuery,
-    const float offset)
+std::string SpawnPrivate::AddNewLine(const std::string &_str, int _nChar)
 {
-  // Normalize point on the image
-  double width = _camera->ImageWidth();
-  double height = _camera->ImageHeight();
-
-  double nx = 2.0 * _screenPos.X() / width - 1.0;
-  double ny = 1.0 - 2.0 * _screenPos.Y() / height;
-
-  // Make a ray query
-  _rayQuery->SetFromCamera(
-      _camera, math::Vector2d(nx, ny));
-
-  math::Planed plane(math::Vector3d(0, 0, 1), offset);
-
-  math::Vector3d origin = _rayQuery->Origin();
-  math::Vector3d direction = _rayQuery->Direction();
-  double distance = plane.Distance(origin, direction);
-  return origin + direction * distance;
+  std::string out;
+  out.reserve(_str.size() + _str.size() / _nChar);
+  for (std::string::size_type i = 0; i < _str.size(); i++)
+  {
+    if (!(i % _nChar) && i)
+    {
+      out.append("-\n");
+    }
+    out.push_back(_str[i]);
+  }
+  return out;
 }
 
 /////////////////////////////////////////////////
@@ -225,7 +215,7 @@ void SpawnPrivate::HandlePlacement()
 
   if (this->spawnPreview && this->hoverDirty)
   {
-    math::Vector3d pos = this->ScreenToPlane(
+    math::Vector3d pos = gz::rendering::screenToPlane(
       this->mouseHoverPos, this->camera, this->rayQuery);
     pos.Z(this->spawnPreview->WorldPosition().Z());
     this->spawnPreview->SetWorldPosition(pos);
@@ -243,9 +233,9 @@ void SpawnPrivate::HandlePlacement()
         [](const msgs::Boolean &/*_rep*/, const bool _result)
     {
       if (!_result)
-        ignerr << "Error creating entity" << std::endl;
+        gzerr << "Error creating entity" << std::endl;
     };
-    math::Vector3d pos = this->ScreenToPlane(
+    math::Vector3d pos = gz::rendering::screenToPlane(
       this->mouseEvent.Pos(), this->camera, this->rayQuery);
     pos.Z(pose.Pos().Z());
     msgs::EntityFactory req;
@@ -263,7 +253,7 @@ void SpawnPrivate::HandlePlacement()
     }
     else
     {
-      ignwarn << "Failed to find SDF string or file path" << std::endl;
+      gzwarn << "Failed to find SDF string or file path" << std::endl;
     }
     req.set_allow_renaming(true);
     msgs::Set(req.mutable_pose(), math::Pose3d(pos, pose.Rot()));
@@ -277,7 +267,7 @@ void SpawnPrivate::HandlePlacement()
         this->createCmdService);
     if (this->createCmdService.empty())
     {
-      ignerr << "Failed to create valid create command service for world ["
+      gzerr << "Failed to create valid create command service for world ["
              << this->worldName <<"]" << std::endl;
       return;
     }
@@ -315,7 +305,7 @@ void SpawnPrivate::OnRender()
         // Ray Query
         this->rayQuery = this->camera->Scene()->CreateRayQuery();
 
-        igndbg << "Spawn plugin is using camera ["
+        gzdbg << "Spawn plugin is using camera ["
                << this->camera->Name() << "]" << std::endl;
         break;
       }
@@ -323,7 +313,7 @@ void SpawnPrivate::OnRender()
   }
 
   // Spawn
-  IGN_PROFILE("IgnRenderer::Render Spawn");
+  GZ_PROFILE("GzRenderer::Render Spawn");
   if (this->generatePreview)
   {
     bool cloningResource = false;
@@ -346,7 +336,7 @@ void SpawnPrivate::OnRender()
     }
     else
     {
-      ignwarn << "Failed to spawn: no SDF string, path, or name of resource "
+      gzwarn << "Failed to spawn: no SDF string, path, or name of resource "
               << "to clone" << std::endl;
     }
 
@@ -388,7 +378,7 @@ bool SpawnPrivate::GeneratePreview(const sdf::Root &_sdf)
 
   if (nullptr == _sdf.Model() && nullptr == _sdf.Light())
   {
-    ignwarn << "Only model or light entities can be spawned at the moment."
+    gzwarn << "Only model or light entities can be spawned at the moment."
             << std::endl;
     return false;
   }
@@ -482,7 +472,7 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
       this->sceneManager.WorldId());
   if (!visualChildrenPair.first)
   {
-    ignerr << "Copying a visual named " << _name << "failed.\n";
+    gzerr << "Copying a visual named " << _name << "failed.\n";
     return false;
   }
 
@@ -506,63 +496,63 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
 ////////////////////////////////////////////////
 bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
-  else if (_event->type() == ignition::gui::events::LeftClickOnScene::kType)
+  else if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
-    ignition::gui::events::LeftClickOnScene *_e =
-      static_cast<ignition::gui::events::LeftClickOnScene*>(_event);
+    gz::gui::events::LeftClickOnScene *_e =
+      static_cast<gz::gui::events::LeftClickOnScene*>(_event);
     this->dataPtr->mouseEvent = _e->Mouse();
     if (this->dataPtr->generatePreview || this->dataPtr->isPlacing)
       this->dataPtr->mouseDirty = true;
   }
-  else if (_event->type() == ignition::gui::events::HoverOnScene::kType)
+  else if (_event->type() == gz::gui::events::HoverOnScene::kType)
   {
-    ignition::gui::events::HoverOnScene *_e =
-      static_cast<ignition::gui::events::HoverOnScene*>(_event);
+    gz::gui::events::HoverOnScene *_e =
+      static_cast<gz::gui::events::HoverOnScene*>(_event);
     this->dataPtr->mouseHoverPos = _e->Mouse().Pos();
     this->dataPtr->hoverDirty = true;
   }
   else if (_event->type() ==
-    ignition::gui::events::SpawnFromDescription::kType)
+    gz::gui::events::SpawnFromDescription::kType)
   {
-    ignition::gui::events::SpawnFromDescription *_e =
-      static_cast<ignition::gui::events::SpawnFromDescription*>(_event);
+    gz::gui::events::SpawnFromDescription *_e =
+      static_cast<gz::gui::events::SpawnFromDescription*>(_event);
     this->dataPtr->spawnSdfString = _e->Description();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnFromPath::kType)
+  else if (_event->type() == gz::gui::events::SpawnFromPath::kType)
   {
     auto spawnPreviewPathEvent =
-      reinterpret_cast<ignition::gui::events::SpawnFromPath *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnFromPath *>(_event);
     this->dataPtr->spawnSdfPath = spawnPreviewPathEvent->FilePath();
     this->dataPtr->generatePreview = true;
   }
-  else if (_event->type() == ignition::gui::events::SpawnCloneFromName::kType)
+  else if (_event->type() == gz::gui::events::SpawnCloneFromName::kType)
   {
     auto spawnCloneEvent =
-      reinterpret_cast<ignition::gui::events::SpawnCloneFromName *>(_event);
+      reinterpret_cast<gz::gui::events::SpawnCloneFromName *>(_event);
     if (spawnCloneEvent)
     {
       this->dataPtr->spawnCloneName = spawnCloneEvent->Name();
       this->dataPtr->generatePreview = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::KeyReleaseOnScene::kType)
+  else if (_event->type() == gz::gui::events::KeyReleaseOnScene::kType)
   {
-    ignition::gui::events::KeyReleaseOnScene *_e =
-      static_cast<ignition::gui::events::KeyReleaseOnScene*>(_event);
+    gz::gui::events::KeyReleaseOnScene *_e =
+      static_cast<gz::gui::events::KeyReleaseOnScene*>(_event);
     if (_e->Key().Key() == Qt::Key_Escape)
     {
       this->dataPtr->escapeReleased = true;
     }
   }
-  else if (_event->type() == ignition::gui::events::DropOnScene::kType)
+  else if (_event->type() == gz::gui::events::DropOnScene::kType)
   {
     auto dropOnSceneEvent =
-      reinterpret_cast<ignition::gui::events::DropOnScene *>(_event);
+      reinterpret_cast<gz::gui::events::DropOnScene *>(_event);
     if (dropOnSceneEvent)
     {
       this->OnDropped(dropOnSceneEvent);
@@ -573,7 +563,7 @@ bool Spawn::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
-void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
+void Spawn::OnDropped(const gz::gui::events::DropOnScene *_event)
 {
   if (nullptr == _event || nullptr == this->dataPtr->camera ||
       nullptr == this->dataPtr->rayQuery)
@@ -587,14 +577,14 @@ void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
     return;
   }
 
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &_res, const bool _result)
+  std::function<void(const gz::msgs::Boolean &, const bool)> cb =
+      [](const gz::msgs::Boolean &_res, const bool _result)
   {
     if (!_result || !_res.data())
-      ignerr << "Error creating dropped entity." << std::endl;
+      gzerr << "Error creating dropped entity." << std::endl;
   };
 
-  math::Vector3d pos = ignition::rendering::screenToScene(
+  math::Vector3d pos = gz::rendering::screenToScene(
     _event->Mouse(),
     this->dataPtr->camera,
     this->dataPtr->rayQuery);
@@ -610,9 +600,12 @@ void Spawn::OnDropped(const ignition::gui::events::DropOnScene *_event)
 
     if (!common::MeshManager::Instance()->IsValidFilename(dropStr))
     {
-      QString errTxt = QString::fromStdString("Invalid URI: " + dropStr +
-        "\nOnly Fuel URLs or mesh file types DAE, OBJ, and STL are supported.");
-      this->SetErrorPopupText(errTxt);
+      std::string fixedDropStr = this->dataPtr->AddNewLine(dropStr, 55);
+      std::string errTxt = "Invalid URI: " + fixedDropStr +
+        "\nOnly Fuel URLs or mesh file types DAE, FBX, GLTF, OBJ, and STL\n"
+        "are supported.";
+      QString QErrTxt = QString::fromStdString(errTxt);
+      this->SetErrorPopupText(QErrTxt);
       return;
     }
 
@@ -675,5 +668,5 @@ void Spawn::SetErrorPopupText(const QString &_errorTxt)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::Spawn,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::Spawn,
+                    gz::gui::Plugin)

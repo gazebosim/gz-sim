@@ -1,0 +1,136 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="environmental_sensor_test">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <!-- The system is added to the world, so it handles all environmental data in the world-->
+    <plugin
+      filename="gz-sim-environmental-sensor-system"
+      name="gz::sim::systems::EnvironmentalSystem">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-environment-preload-system"
+      name="gz::sim::systems::EnvironmentPreload">
+      <data>@CMAKE_SOURCE_DIR@/test/worlds/environmental_sensor.csv</data>
+      <dimensions>
+        <time>timestamp</time>
+        <space>
+          <x>x</x>
+          <y>y</y>
+          <z>z</z>
+        </space>
+      </dimensions>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="model_with_sensor">
+      <pose>0 0 0.05 0 0 1.57</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <!-- Here's our custom sensor -->
+        <sensor name="custom_sensor" type="custom" gz:type="environmental_sensor/humidity">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+
+        <!-- Here's another sensor for wind speed -->
+        <sensor name="wind_2d" type="custom" gz:type="environmental_sensor/wind_speed2d">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <output_format>vector3</output_format>
+          <topic>wind_speed2d</topic>
+          <environment_variable_x>wind_speed_x</environment_variable_x>
+          <environment_variable_y>wind_speed_y</environment_variable_y>
+        </sensor>
+
+        <!-- Here's another sensor for wind speed -->
+        <sensor name="wind_3d" type="custom" gz:type="environmental_sensor/wind_speed3d">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <output_format>vector3</output_format>
+          <topic>wind_speed3d</topic>
+          <transform_type>LOCAL</transform_type>
+          <environment_variable_x>wind_speed_x</environment_variable_x>
+          <environment_variable_y>wind_speed_y</environment_variable_y>
+          <environment_variable_z>wind_speed_z</environment_variable_z>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>

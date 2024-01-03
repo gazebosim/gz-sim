@@ -14,27 +14,27 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_POSEPUBLISHER_HH_
+#ifndef GZ_SIM_SYSTEMS_POSEPUBLISHER_HH_
+#define GZ_SIM_SYSTEMS_POSEPUBLISHER_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
   class PosePublisherPrivate;
 
   /// \brief Pose publisher system. Attach to an entity to publish the
-  /// transform of its child entities in the form of ignition::msgs::Pose
-  /// messages, or a single ignition::msgs::Pose_V message if
+  /// transform of its child entities in the form of gz::msgs::Pose
+  /// messages, or a single gz::msgs::Pose_V message if
   /// "use_pose_vector_msg" is true.
   ///
   /// The following parameters are used by the system:
@@ -43,12 +43,14 @@ namespace systems
   /// publish_visual_pose       : Set to true to publish visual pose
   /// publish_collision_pose    : Set to true to publish collision pose
   /// publish_sensor_pose       : Set to true to publish sensor pose
+  /// publish_model_pose        : Set to true to publish model pose.
   /// publish_nested_model_pose : Set to true to publish nested model pose. The
   ///                             pose of the model that contains this system is
-  ///                             also published.
+  ///                             also published unless publish_model_pose is
+  ///                             set to false
   /// use_pose_vector_msg       : Set to true to publish an
-  ///                             ignition::msgs::Pose_V message instead of
-  ///                             mulitple ignition::msgs::Pose messages.
+  ///                             gz::msgs::Pose_V message instead of
+  ///                             mulitple gz::msgs::Pose messages.
   /// update_frequency          : Frequency of pose publications in Hz. A
   ///                             negative frequency publishes as fast as
   ///                             possible (i.e, at the rate of the simulation

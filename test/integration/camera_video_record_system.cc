@@ -16,20 +16,24 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/video_record.pb.h>
+
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /// \brief Test CameraVideoRecorder system
 class CameraVideoRecorderTest : public InternalFixture<::testing::Test>
@@ -37,7 +41,7 @@ class CameraVideoRecorderTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
+TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
 {
   // Start server
   ServerConfig serverConfig;
@@ -51,7 +55,7 @@ TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   // Run server
   server.Run(true, 1, false);
 
-  ignition::transport::Node node;
+  transport::Node node;
   std::vector<std::string> services;
   bool hasService = false;
 
@@ -75,8 +79,8 @@ TEST_F(CameraVideoRecorderTest, IGN_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
   }
   EXPECT_TRUE(hasService);
 
-  ignition::msgs::VideoRecord videoRecordMsg;
-  ignition::msgs::Boolean res;
+  msgs::VideoRecord videoRecordMsg;
+  msgs::Boolean res;
   bool result = false;
   unsigned int timeout = 5000;
 

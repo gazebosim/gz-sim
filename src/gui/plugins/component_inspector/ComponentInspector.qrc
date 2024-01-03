@@ -4,6 +4,7 @@
   <file>ComponentInspector.qml</file>
   <file>ExpandingTypeHeader.qml</file>
   <file>Float.qml</file>
+  <file>Inertial.qml</file>
   <file>Integer.qml</file>
   <file>Light.qml</file>
   <file>NoData.qml</file>
@@ -12,6 +13,7 @@
   <file>Pose3d.qml</file>
   <file>SphericalCoordinates.qml</file>
   <file>String.qml</file>
+  <file>SystemPluginInfo.qml</file>
   <file>TypeHeader.qml</file>
   <file>Vector3d.qml</file>
   <file>plottable_icon.svg</file>

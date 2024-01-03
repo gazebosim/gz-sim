@@ -1,14 +1,14 @@
 <?xml version="1.0" ?>
 <!--
-  Ignition Gazebo demo of skid steer with Mecanum wheels using differential drive plugin
+  Gazebo demo of skid steer with Mecanum wheels using differential drive plugin
 
   Try sending commands:
 
-    ign topic -t "/model/vehicle_blue/cmd_vel" -m ignition.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
+    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
 
   Listen to odometry:
 
-    ign topic -e -t /model/vehicle_blue/odometry
+    gz topic -e -t /model/vehicle_blue/odometry
 
 -->
 <sdf version="1.6">
@@ -19,16 +19,16 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
-      filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
-      filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -60,6 +60,11 @@
               <ode>
                 <mu>50</mu>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -157,8 +162,13 @@
               <ode>
                 <mu>1.0</mu>
                 <mu2>0.0</mu2>
-                <fdir1 ignition:expressed_in="chassis">1 -1 0</fdir1>
+                <fdir1 gz:expressed_in="chassis">1 -1 0</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -201,8 +211,13 @@
               <ode>
                 <mu>1.0</mu>
                 <mu2>0.0</mu2>
-                <fdir1 ignition:expressed_in="chassis">1 1 0</fdir1>
+                <fdir1 gz:expressed_in="chassis">1 1 0</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -245,8 +260,13 @@
               <ode>
                 <mu>1.0</mu>
                 <mu2>0.0</mu2>
-                <fdir1 ignition:expressed_in="chassis">1 1 0</fdir1>
+                <fdir1 gz:expressed_in="chassis">1 1 0</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -289,8 +309,13 @@
               <ode>
                 <mu>1.0</mu>
                 <mu2>0.0</mu2>
-                <fdir1 ignition:expressed_in="chassis">1 -1 0</fdir1>
+                <fdir1 gz:expressed_in="chassis">1 -1 0</fdir1>
               </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
             </friction>
           </surface>
         </collision>
@@ -346,8 +371,8 @@
       </joint>
 
       <plugin
-        filename="ignition-gazebo-diff-drive-system"
-        name="ignition::gazebo::systems::DiffDrive">
+        filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
         <left_joint>front_left_wheel_joint</left_joint>
         <left_joint>rear_left_wheel_joint</left_joint>
         <right_joint>front_right_wheel_joint</right_joint>

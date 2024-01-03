@@ -20,38 +20,38 @@
 #include <string>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/VideoEncoder.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/VideoEncoder.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/Util.hh"
 
 #include "CameraVideoRecorder.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 // Private data class.
-class ignition::gazebo::systems::CameraVideoRecorderPrivate
+class gz::sim::systems::CameraVideoRecorderPrivate
 {
   /// \brief Callback for the video recorder service
   public: bool OnRecordVideo(const msgs::VideoRecord &_msg,
@@ -70,7 +70,7 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   public: std::mutex updateMutex;
 
   /// \brief Connection to the post-render event.
-  public: ignition::common::ConnectionPtr postRenderConn;
+  public: common::ConnectionPtr postRenderConn;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventMgr = nullptr;
@@ -168,7 +168,7 @@ bool CameraVideoRecorderPrivate::OnRecordVideo(const msgs::VideoRecord &_msg,
       if (this->recordVideoFormat != "mp4" && this->recordVideoFormat!= "ogv" &&
           this->recordVideoFormat != "avi")
       {
-        ignerr << "Video encoding format: '" << this->recordVideoFormat
+        gzerr << "Video encoding format: '" << this->recordVideoFormat
                << "' not supported. Available formats are: mp4, ogv, and avi."
                << std::endl;
         _res.set_data(false);
@@ -220,7 +220,7 @@ void CameraVideoRecorder::Configure(
       _ecm.Component<components::Camera>(_entity);
   if (!cameraEntComp)
   {
-    ignerr << "The camera video recorder system can only be attached to a "
+    gzerr << "The camera video recorder system can only be attached to a "
            << "camera sensor." << std::endl;
   }
 
@@ -233,7 +233,7 @@ void CameraVideoRecorder::Configure(
         _sdf->Get<std::string>("service"));
     if (this->dataPtr->service.empty())
     {
-      ignerr << "Service [" << _sdf->Get<std::string>("service")
+      gzerr << "Service [" << _sdf->Get<std::string>("service")
              << "] not valid. Ignoring." << std::endl;
     }
   }
@@ -248,7 +248,7 @@ void CameraVideoRecorder::Configure(
     topic = transport::TopicUtils::AsValidTopic(scoped + "/image");
     if (topic.empty())
     {
-      ignerr << "Failed to generate valid topic for entity [" << scoped
+      gzerr << "Failed to generate valid topic for entity [" << scoped
              << "]" << std::endl;
     }
   }
@@ -268,7 +268,7 @@ void CameraVideoRecorder::Configure(
   std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
   this->dataPtr->recorderStatsPub =
     this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
-  ignmsg << "Camera Video recorder stats topic advertised on ["
+  gzmsg << "Camera Video recorder stats topic advertised on ["
     << recorderStatsTopic << "]" << std::endl;
 }
 
@@ -296,14 +296,14 @@ void CameraVideoRecorderPrivate::OnPostRender()
     auto sensor = this->scene->SensorByName(this->cameraName);
     if (!sensor)
     {
-      ignerr << "Unable to find sensor: " << this->cameraName
+      gzerr << "Unable to find sensor: " << this->cameraName
              << std::endl;
       return;
     }
     this->camera = std::dynamic_pointer_cast<rendering::Camera>(sensor);
     if (!this->camera)
     {
-      ignerr << "Sensor: " << this->cameraName << " is not a caemra"
+      gzerr << "Sensor: " << this->cameraName << " is not a caemra"
              << std::endl;
       return;
     }
@@ -333,7 +333,6 @@ void CameraVideoRecorderPrivate::OnPostRender()
     {
       this->camera->Copy(this->cameraImage);
       std::chrono::steady_clock::time_point t;
-        std::chrono::steady_clock::now();
       if (this->recordVideoUseSimTime)
         t = std::chrono::steady_clock::time_point(this->simTime);
       else
@@ -356,7 +355,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         std::chrono::steady_clock::duration dt;
         dt = t - this->recordStartTime;
         int64_t sec, nsec;
-        std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+        std::tie(sec, nsec) = math::durationToSecNsec(dt);
         msgs::Time msg;
         msg.set_sec(sec);
         msg.set_nsec(nsec);
@@ -381,7 +380,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       this->recordStartTime = std::chrono::steady_clock::time_point(
             std::chrono::duration(std::chrono::seconds(0)));
 
-      ignmsg << "Start video recording on [" << this->service << "]. "
+      gzmsg << "Start video recording on [" << this->service << "]. "
              << "Encoding to tmp file: ["
              << this->tmpVideoFilename << "]" << std::endl;
     }
@@ -395,7 +394,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
     // stop encoding
     this->videoEncoder.Stop();
 
-    ignmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+    gzmsg << "Stop video recording on [" << this->service << "]." << std::endl;
 
     if (common::exists(this->tmpVideoFilename))
     {
@@ -405,7 +404,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
       if (parentPath != this->recordVideoSavePath &&
           !common::exists(parentPath) && !common::createDirectory(parentPath))
       {
-        ignerr << "Unable to create directory[" << parentPath
+        gzerr << "Unable to create directory[" << parentPath
           << "]. Video file[" << this->tmpVideoFilename
           << "] will not be moved." << std::endl;
       }
@@ -416,7 +415,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         // Remove old temp file, if it exists.
         std::remove(this->tmpVideoFilename.c_str());
 
-        ignmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
+        gzmsg << "Saving tmp video[" << this->tmpVideoFilename << "] file to ["
                << this->recordVideoSavePath << "]" << std::endl;
       }
     }
@@ -448,7 +447,7 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
         "/record_video");
     if (this->dataPtr->service.empty())
     {
-      ignerr << "Failed to create valid service for [" << scoped << "]"
+      gzerr << "Failed to create valid service for [" << scoped << "]"
              << std::endl;
     }
     return;
@@ -456,16 +455,20 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
 
   this->dataPtr->node.Advertise(this->dataPtr->service,
        &CameraVideoRecorderPrivate::OnRecordVideo, this->dataPtr.get());
-  ignmsg << "Record video service on ["
+  gzmsg << "Record video service on ["
        << this->dataPtr->service << "]" << std::endl;
 }
 
-IGNITION_ADD_PLUGIN(CameraVideoRecorder,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(CameraVideoRecorder,
+                    System,
                     CameraVideoRecorder::ISystemConfigure,
                     CameraVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
-IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+GZ_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+                          "gz::sim::systems::CameraVideoRecorder")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
                           "ignition::gazebo::systems::CameraVideoRecorder")

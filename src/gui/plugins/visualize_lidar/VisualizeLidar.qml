@@ -30,6 +30,9 @@ GridLayout {
   anchors.leftMargin: 10
   anchors.rightMargin: 10
 
+  property int tooltipDelay: 500
+  property int tooltipTimeout: 1000
+
   CheckBox {
     Layout.alignment: Qt.AlignHCenter
     id: displayVisual
@@ -82,7 +85,7 @@ GridLayout {
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
     ToolTip.timeout: tooltipTimeout
-    ToolTip.text: qsTr("Ignition transport topics publishing LaserScan messages")
+    ToolTip.text: qsTr("Gazebo Transport topics publishing LaserScan messages")
   }
 
   Text {
@@ -139,7 +142,7 @@ GridLayout {
     text: "Point Size"
   }
 
-  IgnSpinBox {
+  GzSpinBox {
     Layout.columnSpan: 2
     id: pointSize
     maximumValue: 1000

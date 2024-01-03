@@ -16,4 +16,3 @@ Example program to generate performance data
 
     gnuplot -e "filename='each.data'" ../each.gp
     eog *.png
-

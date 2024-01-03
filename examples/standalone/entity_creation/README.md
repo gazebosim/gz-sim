@@ -14,7 +14,7 @@ make
 This example only works if the world is called `empty`. Start an empty world with:
 
 ```
-ign gazebo empty.sdf
+gz sim empty.sdf
 ```
 
 Then run the create program to spawn entities into the world:

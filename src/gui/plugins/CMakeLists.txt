@@ -4,7 +4,7 @@
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>])
 #
-# Add a gui library to Ignition Gazebo.
+# Add a gui library to Gazebo.
 #
 # <library_name> Required. Name of the gui library
 #
@@ -26,6 +26,16 @@ function(gz_add_gui_library library_name)
   QT5_WRAP_CPP(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
   QT5_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
 
+  if(MSVC)
+    # Warning #4251 is the "dll-interface" warning that tells you when types
+    # used by a class are not being exported. These generated source files have
+    # private members that don't get exported, so they trigger this warning.
+    # However, the warning is not important since those members do not need to
+    # be interfaced with.
+    set_source_files_properties(${${library_name}_headers_MOC} COMPILE_FLAGS "/wd4251")
+    set_source_files_properties(${gz_add_gui_library_SOURCES} COMPILE_FLAGS "/wd4251")
+  endif()
+
   add_library(${library_name} SHARED
     ${gz_add_gui_library_SOURCES}
     ${${library_name}_headers_MOC}
@@ -37,7 +47,7 @@ function(gz_add_gui_library library_name)
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE
-      ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+      gz-sim${PROJECT_VERSION_MAJOR}-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
   )
 endfunction()
@@ -49,7 +59,7 @@ endfunction()
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>])
 #
-# Add a gui plugin to Ignition Gazebo.
+# Add a gui plugin to Gazebo.
 #
 # <plugin_name> Required. Name of the gui plugin.
 #
@@ -89,18 +99,18 @@ function(gz_add_gui_plugin plugin_name)
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
     PUBLIC_LINK_LIBS ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
-    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} ignition-plugin${IGN_PLUGIN_VER}::register
+    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} gz-plugin${GZ_PLUGIN_VER}::register
   )
 
   if(gz_add_gui_plugin_TEST_SOURCES)
     # Plugin symbols failing to resolve on Windows:
     # error LNK2001: unresolved external symbol
     if(NOT WIN32)
-      ign_build_tests(TYPE UNIT
+      gz_build_tests(TYPE UNIT
         SOURCES
           ${gz_add_gui_plugin_TEST_SOURCES}
         LIB_DEPS
-          ignition-gazebo${PROJECT_VERSION_MAJOR}-gui
+          gz-sim${PROJECT_VERSION_MAJOR}-gui
           ${plugin_name}
         INCLUDE_DIRS
           # Used to make internal source file headers visible to the unit tests
@@ -108,29 +118,35 @@ function(gz_add_gui_plugin plugin_name)
           # Used to make test-directory headers visible to the unit tests
           ${PROJECT_SOURCE_DIR}
           # Used to make test_config.h visible to the unit tests
-          ${PROJECT_BINARY_DIR})
+          ${PROJECT_BINARY_DIR}
+        ENVIRONMENT
+          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
     endif()
   endif()
 
-  install (TARGETS ${plugin_name} DESTINATION ${IGNITION_GAZEBO_GUI_PLUGIN_INSTALL_DIR})
+  install (TARGETS ${plugin_name} DESTINATION ${GZ_SIM_GUI_PLUGIN_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(modules)
 
 # Plugins
 add_subdirectory(align_tool)
+add_subdirectory(apply_force_torque)
 add_subdirectory(banana_for_scale)
 add_subdirectory(component_inspector)
+add_subdirectory(component_inspector_editor)
 add_subdirectory(copy_paste)
 add_subdirectory(entity_context_menu)
 add_subdirectory(entity_tree)
+add_subdirectory(environment_loader)
+add_subdirectory(environment_visualization)
 add_subdirectory(joint_position_controller)
 add_subdirectory(lights)
+add_subdirectory(mouse_drag)
 add_subdirectory(playback_scrubber)
 add_subdirectory(plot_3d)
 add_subdirectory(plotting)
 add_subdirectory(resource_spawner)
-add_subdirectory(scene3d)
 add_subdirectory(select_entities)
 add_subdirectory(scene_manager)
 add_subdirectory(shapes)

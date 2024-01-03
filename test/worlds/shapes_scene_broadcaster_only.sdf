@@ -1,0 +1,261 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+      <!-- Publish at high frequency to test periodic changes -->
+      <state_hertz>1000</state_hertz>
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="box">
+      <pose>1 2 3 0 0 1</pose>
+      <link name="box_link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <pose>0.1 0.1 0.1 0 0 0</pose>
+        <collision name="box_collision">
+          <pose>0.11 0.11 0.11 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>3 4 5</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="box_visual">
+          <laser_retro>1150</laser_retro>
+          <pose>0.12 0.12 0.12 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1 2 3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cylinder">
+      <pose>-1 -2 -3 0 0 1</pose>
+      <link name="cylinder_link">
+        <pose>0.2 0.2 0.2 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="cylinder_collision">
+          <pose>0.21 0.21 0.21 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>0.1</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="cylinder_visual">
+          <laser_retro>1654</laser_retro>
+          <pose>0.22 0.22 0.22 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>2.1</radius>
+              <length>10.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="sphere">
+      <pose>0 0 0 0 0 1</pose>
+      <link name="sphere_link">
+        <pose>0.3 0.3 0.3 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="sphere_collision">
+          <pose>0.31 0.31 0.31 0 0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>23.4</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="sphere_visual">
+          <laser_retro>50</laser_retro>
+          <pose>0.32 0.32 0.32 0 0 0</pose>
+          <transparency>0.5</transparency>
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <sphere>
+              <radius>1.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="capsule">
+      <pose>-4 -5 -6 0 0 1</pose>
+      <link name="capsule_link">
+        <pose>0.5 0.5 0.5 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>2</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>2</iyy>
+            <iyz>0</iyz>
+            <izz>2</izz>
+          </inertia>
+          <mass>2.0</mass>
+        </inertial>
+        <collision name="capsule_collision">
+          <pose>0.51 0.51 0.51 0 0 0</pose>
+          <geometry>
+            <capsule>
+              <radius>0.23</radius>
+              <length>0.14</length>
+            </capsule>
+          </geometry>
+        </collision>
+        <visual name="capsule_visual">
+          <laser_retro>6.54</laser_retro>
+          <pose>0.52 0.52 0.52 0 0 0</pose>
+          <geometry>
+            <capsule>
+              <radius>2.12</radius>
+              <length>1.23</length>
+            </capsule>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="ellipsoid">
+      <pose>4 5 6 0 0 1</pose>
+      <link name="ellipsoid_link">
+        <pose>0.8 0.8 0.8 0 0 0</pose>
+        <inertial>
+          <inertia>
+            <ixx>3</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>3</iyy>
+            <iyz>0</iyz>
+            <izz>3</izz>
+          </inertia>
+          <mass>3.0</mass>
+        </inertial>
+        <collision name="ellipsoid_collision">
+          <pose>0.81 0.81 0.81 0 0 0</pose>
+          <geometry>
+            <ellipsoid>
+              <radii>0.4 0.6 1.6</radii>
+            </ellipsoid>
+          </geometry>
+        </collision>
+        <visual name="ellipsoid_visual">
+          <laser_retro>3.21</laser_retro>
+          <pose>0.82 0.82 0.82 0 0 0</pose>
+          <transparency>0.5</transparency>
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <ellipsoid>
+              <radii>0.4 0.6 1.6</radii>
+            </ellipsoid>
+          </geometry>
+          <material>
+            <ambient>1 0 1 1</ambient>
+            <diffuse>1 0 1 1</diffuse>
+            <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

@@ -1,10 +1,8 @@
 \page install Installation
 
-# Install
-
-These instructions are for installing only Ignition Gazebo. If you're interested
-in using all the Ignition libraries, not only Igniton Gazebo, check out this
-[Ignition installation](https://ignitionrobotics.org/docs/latest/install).
+These instructions are for installing only Gazebo. If you're interested
+in using all the Gazebo libraries, not only Igniton Gazebo, check out this
+[Gazebo installation](https://gazebosim.org/docs/latest/install).
 
 We recommend following the binary install instructions to get up and running as
 quickly and painlessly as possible.
@@ -18,14 +16,14 @@ Throughout this tutorial, be sure to replace `<#>` with a number value, such as
 
 ## Binary Install
 
-### Ubuntu 18.04 or above
+### Ubuntu 20.04 or above
 
 The binary install method will use pre-built packages which are typically
 available through a package management utility such as [Apt](https://wiki.debian.org/Apt).
 This approach eliminates the need to download and compile source code, and dependencies
 are handled for you. The downside of a binary install is that you won't be able to modify
 the code. See [Source Install](#source-install) for information on
-installing Ignition Gazebo from source.
+installing Gazebo from source.
 
 1. Configure package repositories.
   ```
@@ -34,9 +32,9 @@ installing Ignition Gazebo from source.
   sudo apt-get update
   ```
 
-2. Install Ignition Gazebo
+2. Install Gazebo
   ```
-  sudo apt-get install libignition-gazebo<#>-dev
+  sudo apt-get install libgz-sim<#>-dev
   ```
 
 ### macOS
@@ -47,9 +45,9 @@ installing Ignition Gazebo from source.
   brew tap osrf/simulation
   ```
 
-2. Install Ignition Gazebo:
+2. Install Gazebo:
   ```
-  brew install ignition-gazebo<#>
+  brew install gz-sim<#>
   ```
 
 ## Source Install
@@ -57,37 +55,34 @@ installing Ignition Gazebo from source.
 Install from source if you're interested in changing the source code or need a
 feature which hasn't been released yet.
 
-### Ubuntu 18.04 or above
+### Ubuntu 20.04 or above
 
-1. Enable the Ignition software repositories:
+1. Install tools
+  ```
+  sudo apt install -y build-essential cmake git gnupg lsb-release wget
+  ```
+
+2. Enable the Gazebo software repositories:
   ```
   sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
   wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
   sudo apt-get update
   ```
 
-2. Install package dependencies:
+3. Clone repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b main
-  export SYSTEM_VERSION=bionic
+  git clone https://github.com/gazebosim/gz-sim -b gz-sim<#>
+  ```
+
+4. Install package dependencies (including other Gazebo libraries):
+  ```
   sudo apt -y install \
-    $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | grep -v '/\.git/') | sed '/ignition\|sdf/d' | tr '\n' ' ')
-  ```
-
-3. (Ubuntu 18.04 only) Configure gcc8
-  ```
-  sudo apt-get install g++-8
-  sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 800 --slave /usr/bin/g++ g++ /usr/bin/g++-8 --slave /usr/bin/gcov gcov /usr/bin/gcov-8
-  ```
-
-4. Clone the repository if you haven't already.
-  ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
+    $(sort -u $(find . -iname 'packages-'`lsb_release -cs`'.apt' -o -iname 'packages.apt' | tr '\n' ' '))
   ```
 
 5. Configure and build.
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ../
@@ -98,7 +93,7 @@ feature which hasn't been released yet.
 
 1. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo -b ign-gazebo<#>
+  git clone https://github.com/gazebosim/gz-sim -b gz-sim<#>
   ```
 
 2. Install dependencies
@@ -108,7 +103,7 @@ feature which hasn't been released yet.
 
 3. Configure and build
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ..
@@ -120,9 +115,9 @@ feature which hasn't been released yet.
   sudo make install
   ```
 
-# Documentation
+## Documentation
 
-API documentation and tutorials can be accessed at [https://ignitionrobotics.org/libs/gazebo](https://ignitionrobotics.org/libs/gazebo)
+API documentation and tutorials can be accessed at [https://gazebosim.org/libs/gazebo](https://gazebosim.org/libs/gazebo)
 
 You can also generate the documentation from a clone of this repository by following these steps.
 
@@ -133,12 +128,12 @@ You can also generate the documentation from a clone of this repository by follo
 
 2. Clone the repository
   ```
-  git clone https://github.com/ignitionrobotics/ign-gazebo
+  git clone https://github.com/gazebosim/gz-sim
   ```
 
 3. Configure and build the documentation.
   ```
-  cd ign-gazebo
+  cd gz-sim
   mkdir build
   cd build
   cmake ../
@@ -150,7 +145,7 @@ You can also generate the documentation from a clone of this repository by follo
   firefox doxygen/html/index.html
   ```
 
-# Testing
+## Testing
 
 Follow these steps to run tests and static code analysis in your clone of this repository.
 

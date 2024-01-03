@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="model_plugin_only">
+
+    <light type="directional" name="sun">
+    </light>
+
+    <model name='box'>
+      <link name='link'>
+        <inertial>
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.126164</ixx>
+            <iyy>0.416519</iyy>
+            <izz>0.481014</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>2.01142 1 0.568726</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0.3 0 0</initial_linear>
+        <initial_angular>0 0 -0.1</initial_angular>
+      </plugin>
+
+    </model>
+
+  </world>
+</sdf>

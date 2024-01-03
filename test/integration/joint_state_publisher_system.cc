@@ -16,16 +16,19 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/model.pb.h>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
+
+#include "gz/sim/Server.hh"
+#include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test JointStatePublisher system
@@ -35,7 +38,9 @@ class JointStatePublisherTest
 };
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, DefaultPublisher)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(JointStatePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -86,7 +91,8 @@ TEST_F(JointStatePublisherTest, DefaultPublisher)
 }
 
 /////////////////////////////////////////////////
-TEST_F(JointStatePublisherTest, LimitedPublisher)
+TEST_F(JointStatePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LimitedPublisher))
 {
   // Start server
   ServerConfig serverConfig;
@@ -134,6 +140,60 @@ TEST_F(JointStatePublisherTest, LimitedPublisher)
 
   transport::Node node;
   node.Subscribe("/world/diff_drive/model/vehicle/joint_state", jointStateCb);
+
+  server.Run(true, 10, false);
+
+  // Make sure the callback was triggered at least once.
+  EXPECT_GT(count, 0);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointStatePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedJointPublisher))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "diff_drive_nested.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  int count = 0;
+  // Check that all of joints are published.
+  std::function<void(const msgs::Model &)> jointStateCb =
+    [&](const msgs::Model &_msg)
+    {
+      bool foundLeftWheelJoint{false},
+           foundRightWheelJoint{false},
+           foundCasterWheel{false},
+           extra{false};
+
+      for (int i = 0; i < _msg.joint_size(); ++i)
+      {
+        if (_msg.joint(i).name() == "left_wheel_joint")
+          foundLeftWheelJoint = true;
+        else if (_msg.joint(i).name() == "right_wheel_joint")
+          foundRightWheelJoint = true;
+        else if (_msg.joint(i).name() == "caster_wheel")
+          foundCasterWheel = true;
+        else
+          extra = true;
+      }
+      EXPECT_TRUE(foundLeftWheelJoint);
+      EXPECT_TRUE(foundRightWheelJoint);
+      EXPECT_TRUE(foundCasterWheel);
+      EXPECT_FALSE(extra);
+      count++;
+    };
+
+  transport::Node node;
+  node.Subscribe(
+      "/world/diff_drive_nested/model/vehicle/model/vehicle_nested/joint_state",
+      jointStateCb);
 
   server.Run(true, 10, false);
 

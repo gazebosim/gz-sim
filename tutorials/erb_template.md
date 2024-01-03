@@ -6,7 +6,7 @@ In this case, since most simulation world used in gazebo is defined with [SDForm
 
 ## Why ERB
 
-There are many use cases and advantages of using ERB in your SDF file. 
+There are many use cases and advantages of using ERB in your SDF file.
 Some of them are listed below and demonstrated in this [example ERB file](https://github.com/osrf/srcsim/blob/master/worlds/unique.world.erb):
 
 1. Embedding logic into the SDF, such as loops and conditionals
@@ -17,8 +17,8 @@ Some of them are listed below and demonstrated in this [example ERB file](https:
 ## Set up Ruby
 
 Firstly, Ruby needs to be installed.
-If you have gone through [Ignition's installation guide](https://ignitionrobotics.org/docs/latest/install), it's most likely you already have Ruby installed.
-To check if Ruby is installed, use 
+If you have gone through [Gazebo Sim's installation guide](https://gazebosim.org/docs/latest/install), it's most likely you already have Ruby installed.
+To check if Ruby is installed, use
 ```{.sh}
 ruby --version
 ```
@@ -102,9 +102,9 @@ Each box model also has a different name and pose to ensure they show up as indi
     %>
 ```
 
-[Here](https://github.com/ignitionrobotics/ign-gazebo/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
+[Here](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/shapes_population.sdf.erb) is a complete shapes simulation world example.
 
-Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world. 
+Instead of simple shapes, you can also use a nested loop to generate 100 actors spaced out evenly in a simulation world.
 
 ```
     <%
@@ -145,7 +145,7 @@ Instead of simple shapes, you can also use a nested loop to generate 100 actors 
       end
     %>
 ```
- 
+
 ## Generate SDF from ERB template
 
 Now that an ERB template file is ready and saved as `my_first_erb.erb`, you can run the following terminal command to generate the corresponding SDF file.
@@ -157,11 +157,11 @@ erb my_first_erb.erb > my_first_erb.sdf
 
 ## Run simulation world
 
-To test if the ERB template works, run the SDF file with the `ign gazebo` command
+To test if the ERB template works, run the SDF file with the `gz sim` command
 
 ```{.sh}
-# run with Ignition Gazebo
-ign gazebo my_first_erb.sdf
+# run with Gazebo
+gz sim my_first_erb.sdf
 ```
 
 If there are any errors or warnings from running the SDF file, you would need to go back to the ERB file and see if any coding mistakes were made.

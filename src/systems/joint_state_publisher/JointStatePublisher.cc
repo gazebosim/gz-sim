@@ -17,24 +17,27 @@
 
 #include "JointStatePublisher.hh"
 
-#include <ignition/msgs/model.pb.h>
+#include <gz/msgs/model.pb.h>
 
 #include <string>
 #include <vector>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointForce.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointForce.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 //////////////////////////////////////////////////
@@ -52,7 +55,7 @@ void JointStatePublisher::Configure(
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
   {
-    ignerr << "The JointStatePublisher system should be attached to a model "
+    gzerr << "The JointStatePublisher system should be attached to a model "
       << "entity. Failed to initialize." << std::endl;
     return;
   }
@@ -61,19 +64,18 @@ void JointStatePublisher::Configure(
   // specified joints. Otherwise, publish all the joints.
   if (_sdf->HasElement("joint_name"))
   {
-    sdf::Element *ptr = const_cast<sdf::Element *>(_sdf.get());
-    sdf::ElementPtr elem = ptr->GetElement("joint_name");
+    auto elem = _sdf->FindElement("joint_name");
     while (elem)
     {
       std::string jointName = elem->Get<std::string>();
-      gazebo::Entity jointEntity = this->model.JointByName(_ecm, jointName);
+      Entity jointEntity = this->model.JointByName(_ecm, jointName);
       if (jointEntity != kNullEntity)
       {
         this->CreateComponents(_ecm, jointEntity);
       }
       else
       {
-        ignerr << "Joint with name[" << jointName << "] not found. "
+        gzerr << "Joint with name[" << jointName << "] not found. "
           << "The JointStatePublisher will not publish this joint.\n";
       }
 
@@ -102,11 +104,11 @@ void JointStatePublisher::Configure(
 
 //////////////////////////////////////////////////
 void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
-    gazebo::Entity _joint)
+    Entity _joint)
 {
   if (this->joints.find(_joint) != this->joints.end())
   {
-    ignwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
+    gzwarn << "Ignoring duplicate joint in a JointSatePublisher plugin.\n";
     return;
   }
 
@@ -158,13 +160,15 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       {
         topics.push_back(this->topic);
       }
-      topics.push_back(std::string("/world/") + worldName + "/model/"
-        + this->model.Name(_ecm) + "/joint_state");
+      std::string topicStr =
+          topicFromScopedName(this->model.Entity(), _ecm, false) +
+          "/joint_state";
+      topics.push_back(topicStr);
 
       this->topic = validTopic(topics);
       if (this->topic.empty())
       {
-        ignerr << "No valid topics for JointStatePublisher could be found."
+        gzerr << "No valid topics for JointStatePublisher could be found."
           << "Make sure World/Model name does'nt contain invalid characters.\n";
         return;
       }
@@ -208,6 +212,18 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
     if (pose)
       msgs::Set(jointMsg->mutable_pose(), pose->Data());
 
+    auto child = _ecm.Component<components::ChildLinkName>(joint);
+    if (child)
+    {
+      jointMsg->set_child(child->Data());
+    }
+
+    auto parent = _ecm.Component<components::ParentLinkName>(joint);
+    if (parent)
+    {
+      jointMsg->set_parent(parent->Data());
+    }
+
     // Set the joint position
     const auto *jointPositions  =
       _ecm.Component<components::JointPosition>(joint);
@@ -218,6 +234,19 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         if (i == 0)
         {
           jointMsg->mutable_axis1()->set_position(jointPositions->Data()[i]);
+          auto jointAxis = _ecm.Component<components::JointAxis>(joint);
+          if (jointAxis)
+          {
+            msgs::Set(
+              jointMsg->mutable_axis1()->mutable_xyz(),
+              jointAxis->Data().Xyz());
+            jointMsg->mutable_axis1()->set_limit_upper(
+              jointAxis->Data().Upper());
+            jointMsg->mutable_axis1()->set_limit_lower(
+              jointAxis->Data().Lower());
+            jointMsg->mutable_axis1()->set_damping(
+              jointAxis->Data().Damping());
+          }
         }
         else if (i == 1)
         {
@@ -225,7 +254,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }
@@ -248,7 +277,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }
@@ -271,7 +300,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
         }
         else if (!hasWarned)
         {
-          ignwarn << "Joint state publisher only supports two joint axis\n";
+          gzwarn << "Joint state publisher only supports two joint axis\n";
           hasWarned = true;
         }
       }
@@ -282,10 +311,14 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   this->modelPub->Publish(msg);
 }
 
-IGNITION_ADD_PLUGIN(JointStatePublisher,
-                    ignition::gazebo::System,
+GZ_ADD_PLUGIN(JointStatePublisher,
+                    System,
                     JointStatePublisher::ISystemConfigure,
                     JointStatePublisher::ISystemPostUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointStatePublisher,
+GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
+    "gz::sim::systems::JointStatePublisher")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
     "ignition::gazebo::systems::JointStatePublisher")

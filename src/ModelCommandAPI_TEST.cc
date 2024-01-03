@@ -20,13 +20,13 @@
 #include <string>
 
 #include <gtest/gtest.h>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/test_config.hh"  // NOLINT(build/include)
+#include "gz/sim/Server.hh"
+#include "test_config.hh"  // NOLINT(build/include)
 
-static const std::string kIgnModelCommand(
-    std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
-
+static const std::string kGzModelCommand(
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
@@ -71,10 +71,11 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// Test `ign model` command when no Gazebo server is running.
-TEST(ModelCommandAPI, NoServerRunning)
+// Test `gz model` command when no Gazebo server is running.
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
-  const std::string cmd = kIgnModelCommand + "--list ";
+  const std::string cmd = kGzModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
         "\nService call to [/gazebo/worlds] timed out\n"
@@ -84,24 +85,24 @@ TEST(ModelCommandAPI, NoServerRunning)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model` command.
-TEST(ModelCommandAPI, Commands)
+// Tests `gz model` command.
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "static_diff_drive_vehicle.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model --list
+  // Tested command: gz model --list
   {
-    const std::string cmd = kIgnModelCommand + "--list";
+    const std::string cmd = kGzModelCommand + "--list";
     const std::string output = customExecStr(cmd);
     const std::string expectedOutput =
       "\nRequesting state for world [diff_drive]..."
@@ -111,9 +112,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue
+  // Tested command: gz model -m vehicle_blue
   {
-    const std::string cmd = kIgnModelCommand + "-m vehicle_blue";
+    const std::string cmd = kGzModelCommand + "-m vehicle_blue";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
@@ -213,9 +214,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --pose
+  // Tested command: gz model -m vehicle_blue --pose
   {
-    const std::string cmd = kIgnModelCommand + "-m vehicle_blue --pose ";
+    const std::string cmd = kGzModelCommand + "-m vehicle_blue --pose ";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
     const std::string expectedOutput =
@@ -228,9 +229,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --link
+  // Tested command: gz model -m vehicle_blue --link
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --link";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -295,9 +296,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --link caster
+  // Tested command: gz model -m vehicle_blue --link caster
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --link caster";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -320,9 +321,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --joint
+  // Tested command: gz model -m vehicle_blue --joint
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --joint";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -362,9 +363,9 @@ TEST(ModelCommandAPI, Commands)
     EXPECT_EQ(expectedOutput, output);
   }
 
-  // Tested command: ign model -m vehicle_blue --joint caster_wheel
+  // Tested command: gz model -m vehicle_blue --joint caster_wheel
   {
-    const std::string cmd = kIgnModelCommand +
+    const std::string cmd = kGzModelCommand +
                             "-m vehicle_blue --joint caster_wheel";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -384,24 +385,67 @@ TEST(ModelCommandAPI, Commands)
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with an altimeter.
-TEST(ModelCommandAPI, AltimeterSensor)
+// Tests `gz model -s` command with an airpressure sensor.
+TEST(ModelCommandAPI, AirPressureSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-        "test", "worlds", "altimeter_with_pose.sdf"));
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "air_pressure.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
+      + "-m air_pressure_model -l link -s air_pressure_sensor";
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [air_pressure_sensor]...\n\n"
+      "- Sensor [8]\n"
+      "  - Name: air_pressure_sensor\n"
+      "  - Parent: air_pressure_model [4]\n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - Reference altitude (m): 123\n"
+      "  - Pressure noise:\n"
+      "    - Mean (Pa): 0\n"
+      "    - Bias mean (Pa): 0\n"
+      "    - Standard deviation (Pa): 0\n"
+      "    - Bias standard deviation (Pa): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (Pa): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n";
+    EXPECT_EQ(expectedOutput, output);
+  }
+}
+
+/////////////////////////////////////////////////
+// Tests `gz model -s` command with an altimeter.
+TEST(ModelCommandAPI, AltimeterSensor)
+{
+  gz::sim::ServerConfig serverConfig;
+  // Using an static model to avoid any movements in the simulation.
+  serverConfig.SetSdfFile(
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "altimeter_with_pose.sdf"));
+
+  gz::sim::Server server(serverConfig);
+  // Run at least one iteration before continuing to guarantee correctly set up.
+  ASSERT_TRUE(server.Run(true, 5, false));
+  // Run without blocking.
+  server.Run(false, 0, false);
+
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
+  {
+    const std::string cmd = kGzModelCommand
       + "-m altimeter_model -l link -s altimeter_sensor";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -414,44 +458,100 @@ TEST(ModelCommandAPI, AltimeterSensor)
       "    [0.100000 0.200000 0.300000]\n"
       "    [0.000000 0.000000 0.000000]\n"
       "  - Vertical position noise:\n"
-      "    - Mean: 0\n"
-      "    - Bias mean: 0\n"
-      "    - Standard deviation: 0\n"
-      "    - Bias standard deviation: 0\n"
+      "    - Mean (m): 0\n"
+      "    - Bias mean (m): 0\n"
+      "    - Standard deviation (m): 0\n"
+      "    - Bias standard deviation (m): 0\n"
       "    - Precision: 0\n"
-      "    - Dynamic bias standard deviation: 0\n"
-      "    - Dynamic bias correlation time: 0\n"
+      "    - Dynamic bias standard deviation (m): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n"
       "  - Vertical velocity noise:\n"
-      "    - Mean: 0\n"
-      "    - Bias mean: 0\n"
-      "    - Standard deviation: 0\n"
-      "    - Bias standard deviation: 0\n"
+      "    - Mean (m/s): 0\n"
+      "    - Bias mean (m/s): 0\n"
+      "    - Standard deviation (m/s): 0\n"
+      "    - Bias standard deviation (m/s): 0\n"
       "    - Precision: 0\n"
-      "    - Dynamic bias standard deviation: 0\n"
-      "    - Dynamic bias correlation time: 0\n";
+      "    - Dynamic bias standard deviation (m/s): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n";
     EXPECT_EQ(expectedOutput, output);
   }
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with a magnetometer.
-TEST(ModelCommandAPI, MagnetometerSensor)
+// Tests `gz model -s` command with a gpu lidar sensor.
+TEST(ModelCommandAPI, GpuLidarSensor)
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-        "test", "worlds", "magnetometer.sdf"));
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "gpu_lidar.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
+      + "-m gpu_lidar -l gpu_lidar_link -s gpu_lidar";
+    std::string output = customExecStr(cmd);
+    ReplaceNegativeZeroValues(output);
+    const std::string expectedOutput =
+      "\nRequesting state for world [gpu_lidar_sensor]...\n\n"
+      "- Sensor [8]\n"
+      "  - Name: gpu_lidar\n"
+      "  - Parent: gpu_lidar [4]\n"
+      "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - Range:\n"
+      "    - Min (m): 0.08\n"
+      "    - Max (m): 10\n"
+      "    - Resolution: 0.01\n"
+      "  - Horizontal scan:\n"
+      "    - Samples: 640\n"
+      "    - Resolution: 1\n"
+      "    - Min angle (rad): -1.39626\n"
+      "    - Max angle (rad): 1.39626\n"
+      "  - Vertical scan:\n"
+      "    - Samples: 1\n"
+      "    - Resolution: 0.01\n"
+      "    - Min angle (rad): 0\n"
+      "    - Max angle (rad): 0\n"
+      "  - Noise:\n"
+      "    - Mean (m): 0\n"
+      "    - Bias mean (m): 0\n"
+      "    - Standard deviation (m): 0\n"
+      "    - Bias standard deviation (m): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (m): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n";
+    EXPECT_EQ(expectedOutput, output);
+  }
+}
+
+/////////////////////////////////////////////////
+// Tests `gz model -s` command with a magnetometer.
+TEST(ModelCommandAPI, MagnetometerSensor)
+{
+  gz::sim::ServerConfig serverConfig;
+  // Using an static model to avoid any movements in the simulation.
+  serverConfig.SetSdfFile(
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "worlds", "magnetometer.sdf"));
+
+  gz::sim::Server server(serverConfig);
+  // Run at least one iteration before continuing to guarantee correctly set up.
+  ASSERT_TRUE(server.Run(true, 5, false));
+  // Run without blocking.
+  server.Run(false, 0, false);
+
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
+  {
+    const std::string cmd = kGzModelCommand
       + "-m magnetometer_model -l link -s magnetometer_sensor";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -462,30 +562,55 @@ TEST(ModelCommandAPI, MagnetometerSensor)
       "  - Parent: magnetometer_model [8]\n"
       "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "    [0.000000 0.000000 0.000000]\n"
-      "    [0.000000 0.000000 0.000000]\n";
+      "    [0.000000 0.000000 0.000000]\n"
+      "  - X-axis noise:\n"
+      "    - Mean (T): 0\n"
+      "    - Bias mean (T): 0\n"
+      "    - Standard deviation (T): 0\n"
+      "    - Bias standard deviation (T): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (T): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n"
+      "  - Y-axis noise:\n"
+      "    - Mean (T): 0\n"
+      "    - Bias mean (T): 0\n"
+      "    - Standard deviation (T): 0\n"
+      "    - Bias standard deviation (T): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (T): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n"
+      "  - Z-axis noise:\n"
+      "    - Mean (T): 0\n"
+      "    - Bias mean (T): 0\n"
+      "    - Standard deviation (T): 0\n"
+      "    - Bias standard deviation (T): 0\n"
+      "    - Precision: 0\n"
+      "    - Dynamic bias standard deviation (T): 0\n"
+      "    - Dynamic bias correlation time (s): 0\n";
+
       EXPECT_EQ(expectedOutput, output);
   }
 }
 
 /////////////////////////////////////////////////
-// Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, RgbdCameraSensor)
+// Tests `gz model -s` command with an rgbd camera.
+TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
-  ignition::gazebo::ServerConfig serverConfig;
+  gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
-      ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "rgbd_camera_sensor.sdf"));
 
-  ignition::gazebo::Server server(serverConfig);
+  gz::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
   server.Run(false, 0, false);
 
-  // Tested command: ign model -m altimeter_mode -l link -s altimeter_sensor
+  // Tested command: gz model -m altimeter_mode -l link -s altimeter_sensor
   {
-    const std::string cmd = kIgnModelCommand
+    const std::string cmd = kGzModelCommand
       + "-m rgbd_camera -l rgbd_camera_link -s rgbd_camera";
     std::string output = customExecStr(cmd);
     ReplaceNegativeZeroValues(output);
@@ -512,7 +637,7 @@ TEST(ModelCommandAPI, RgbdCameraSensor)
       "    - Bias standard deviation: 0\n"
       "    - Precision: 0\n"
       "    - Dynamic bias standard deviation: 0\n"
-      "    - Dynamic bias correlation time: 0\n"
+      "    - Dynamic bias correlation time (s): 0\n"
       "  - Distortion K1: 0\n"
       "  - Distortion K2: 0\n"
       "  - Distortion K3: 0\n"
@@ -536,11 +661,4 @@ TEST(ModelCommandAPI, RgbdCameraSensor)
       "  - Visibility mask: 4294967295\n";
       EXPECT_EQ(expectedOutput, output);
   }
-}
-
-//////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

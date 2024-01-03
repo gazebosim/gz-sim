@@ -34,6 +34,9 @@ Rectangle {
   // Left indentation
   property int indentation: 10
 
+  // Expose TypeHeader's custom tooltip
+  property alias customToolTip: typeHeader.customToolTip
+
   RowLayout {
     anchors.fill: parent
     Item {
@@ -55,7 +58,17 @@ Rectangle {
       Layout.fillWidth: true
     }
   }
+  ToolTip {
+    visible: ma.containsMouse
+    delay: tooltipDelay
+    text: typeHeader.customToolTip.length > 0 ?
+        typeHeader.customToolTip : typeHeader.tooltipText(componentData)
+    y: typeHeader.y - 30
+    enter: null
+    exit: null
+  }
   MouseArea {
+    id: ma
     anchors.fill: parent
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor

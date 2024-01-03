@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<!--
+  This example show cases how to load and unload environmental data.
+  Before opening this file in a seperate terminal run:
+    gz topic -e -t /sensors/humidity
+  Then open this file by running:
+    gz sim environmental_sensor.sdf
+  Play the simulation and you should see a data stream of increasing numbers eventually stop at 90.
+-->
+<sdf version="1.6">
+  <world name="environmental_sensor_example">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <!-- The system is added to the world, so it handles all environmental data in the world-->
+    <plugin
+      filename="gz-sim-environmental-sensor-system"
+      name="gz::sim::systems::EnvironmentalSystem">
+    </plugin>
+
+    <!-- The system specifies where to preload -->
+    <plugin
+      filename="gz-sim-environment-preload-system"
+      name="gz::sim::systems::EnvironmentPreload">
+      <data>environmental_data.csv</data>
+      <dimensions>
+        <time>timestamp</time>
+        <space>
+          <x>x</x>
+          <y>y</y>
+          <z>z</z>
+        </space>
+      </dimensions>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="model_with_sensor">
+      <pose>0 0 0.05 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <!-- Here's our custom sensor -->
+        <sensor name="custom_sensor" type="custom" gz:type="environmental_sensor/humidity">
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <topic>sensors/humidity</topic>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>

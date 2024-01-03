@@ -1,9 +1,17 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="air_pressure_sensor">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin
-      filename="ignition-gazebo-air-pressure-system"
-      name="ignition::gazebo::systems::AirPressure">
+      filename="gz-sim-air-pressure-system"
+      name="gz::sim::systems::AirPressure">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <model name="air_pressure_model">

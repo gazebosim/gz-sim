@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="contact_sensor">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+      <contacts>
+        <include_entity_names>false</include_entity_names>
+      </contacts>
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <model name="contact_model">
+      <pose>0 0 3.0 0 0.0 0</pose>
+      <link name="link">
+        <collision name="collision_sphere1">
+          <pose>0 1 0.0 0 0.0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <collision name="collision_sphere2">
+          <pose>0 -1 0.0 0 0.0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="visual_sphere1">
+          <pose>0 1 0.0 0 0.0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <visual name="visual_sphere2">
+          <pose>0 -1 0.0 0 0.0 0</pose>
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </visual>
+        <sensor name='sensor_contact' type='contact'>
+          <contact>
+            <collision>collision_sphere1</collision>
+            <collision>collision_sphere2</collision>
+            <topic>/test_multiple_collisions</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>1000</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="box1">
+      <static>1</static>
+      <pose>-0.75 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision_box1_box">
+          <geometry>
+            <box>
+              <size>1 4 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 4 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box2">
+      <static>1</static>
+      <pose>0.75 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision_box2_box">
+          <geometry>
+            <box>
+              <size>1 4 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 4 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

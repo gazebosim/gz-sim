@@ -1,0 +1,159 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="center_of_volume">
+
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <model name='no_offset'>
+      <pose>0 0 0 0 0 0</pose>
+      <link name='link'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <inertia>
+            <ixx>166.66</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>166.66</iyy>
+            <iyz>0</iyz>
+            <izz>166.66</izz>
+          </inertia>
+          <mass>1000.0</mass>
+        </inertial>
+        <visual name='visual'>
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name='no_offset_rotated'>
+      <pose>-3 0 0 0.1 0.2 0.3</pose>
+      <link name='link'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>0 0 0 0 0 0</pose>
+          <inertia>
+            <ixx>166.66</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>166.66</iyy>
+            <iyz>0</iyz>
+            <izz>166.66</izz>
+          </inertia>
+          <mass>1000.0</mass>
+        </inertial>
+        <visual name='visual'>
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name='com_cov_offset'>
+      <pose>0 3 0 0 0 0</pose>
+      <link name='link'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>1 1 1 0 0 0</pose>
+          <inertia>
+            <ixx>166.66</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>166.66</iyy>
+            <iyz>0</iyz>
+            <izz>166.66</izz>
+          </inertia>
+          <mass>1000.0</mass>
+        </inertial>
+        <visual name='visual'>
+          <pose>1 1 1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <pose>1 1 1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name='com_cov_offset_rotated'>
+      <pose>-3 3 0 0.1 0.2 0.3</pose>
+      <link name='link'>
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <pose>1 1 1 0 0 0</pose>
+          <inertia>
+            <ixx>166.66</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>166.66</iyy>
+            <iyz>0</iyz>
+            <izz>166.66</izz>
+          </inertia>
+          <mass>1000.0</mass>
+        </inertial>
+        <visual name='visual'>
+          <pose>1 1 1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+        <collision name='collision'>
+          <pose>1 1 1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.0 1.0 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+  </world>
+</sdf>

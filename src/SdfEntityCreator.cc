@@ -15,70 +15,87 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/AirPressureSensor.hh"
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Atmosphere.hh"
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/CustomSensor.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/ForceTorque.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/GpuLidar.hh"
-#include "ignition/gazebo/components/Gravity.hh"
-#include "ignition/gazebo/components/Imu.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/LaserRetro.hh"
-#include "ignition/gazebo/components/Lidar.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/LightType.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/LogicalCamera.hh"
-#include "ignition/gazebo/components/MagneticField.hh"
-#include "ignition/gazebo/components/Magnetometer.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include <ignition/gazebo/components/ParticleEmitter.hh>
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/RgbdCamera.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/SegmentationCamera.hh"
-#include "ignition/gazebo/components/SelfCollide.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SourceFilePath.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/ThermalCamera.hh"
-#include "ignition/gazebo/components/ThreadPitch.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/WindMode.hh"
-#include "ignition/gazebo/components/World.hh"
+#if __APPLE__
+// This is here to avoid segfaults on macOS tests. The segfaults
+// happen when components are registered by plugins and component creation is
+// attempted after the plugin that registered the component has been unloaded.
+// Including this header insures that all components are registered by the core
+// library ahead of any plugin.
+// TODO(azeey) Find a better solution for keeping track of component
+// registrations.
+#include "gz/sim/components/components.hh"
+#else
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/AirSpeedSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Atmosphere.hh"
+#include "gz/sim/components/BoundingBoxCamera.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/CustomSensor.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/ForceTorque.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Gravity.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Lidar.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/LightType.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/MagneticField.hh"
+#include "gz/sim/components/Magnetometer.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/NavSat.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include <gz/sim/components/ParticleEmitter.hh>
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/Pose.hh"
+#include <gz/sim/components/Projector.hh>
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/SegmentationCamera.hh"
+#include "gz/sim/components/SelfCollide.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SourceFilePath.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/ThreadPitch.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visibility.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/WideAngleCamera.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/World.hh"
+#endif
 
-class ignition::gazebo::SdfEntityCreatorPrivate
+class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -88,19 +105,19 @@ class ignition::gazebo::SdfEntityCreatorPrivate
 
   /// \brief Keep track of new sensors being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newSensors;
+  public: std::map<Entity, sdf::Plugins> newSensors;
 
   /// \brief Keep track of new models being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newModels;
+  public: std::map<Entity, sdf::Plugins> newModels;
 
   /// \brief Keep track of new visuals being added, so we load their plugins
   /// only after we have their scoped name.
-  public: std::map<Entity, sdf::ElementPtr> newVisuals;
+  public: std::map<Entity, sdf::Plugins> newVisuals;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to
@@ -125,7 +142,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors resolveAxisErrors = _unresolvedAxis.ResolveXyz(axisXyz);
   if (!resolveAxisErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -134,7 +151,7 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
   const sdf::Errors setXyzErrors = resolvedAxis.SetXyz(axisXyz);
   if (!setXyzErrors.empty())
   {
-    ignerr << "Failed to resolve axis" << std::endl;
+    gzerr << "Failed to resolve axis" << std::endl;
     return std::nullopt;
   }
 
@@ -216,7 +233,7 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
@@ -320,8 +337,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
 
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
-      _world->Element());
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
+      _world->Plugins());
+  for (const sdf::Plugin &p : _world->Plugins())
+  {
+    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(worldEntity,
+        p.ToElement());
+    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+  }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
@@ -333,28 +357,49 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
   auto ent = this->CreateEntities(_model, false);
 
   // Load all model plugins afterwards, so we get scoped name for nested models.
-  for (const auto &[entity, element] : this->dataPtr->newModels)
+  for (const auto &[entity, plugins] : this->dataPtr->newModels)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+    }
   }
   this->dataPtr->newModels.clear();
 
   // Load sensor plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newSensors)
+  for (const auto &[entity, plugins] : this->dataPtr->newSensors)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+    }
   }
   this->dataPtr->newSensors.clear();
 
   // Load visual plugins after model, so we get scoped name.
-  for (const auto &[entity, element] : this->dataPtr->newVisuals)
+  for (const auto &[entity, plugins] : this->dataPtr->newVisuals)
   {
-    this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity, element);
+    this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
+    for (const sdf::Plugin &p : plugins)
+    {
+      GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+      this->dataPtr->eventManager->Emit<events::LoadPlugins>(entity,
+          p.ToElement());
+      GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+    }
   }
   this->dataPtr->newVisuals.clear();
 
@@ -381,8 +426,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       modelEntity, components::WindMode(_model->EnableWind()));
   this->dataPtr->ecm->CreateComponent(
       modelEntity, components::SelfCollide(_model->SelfCollide()));
-  this->dataPtr->ecm->CreateComponent(
-      modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
+  if (_model->Element())
+  {
+    this->dataPtr->ecm->CreateComponent(
+        modelEntity, components::SourceFilePath(_model->Element()->FilePath()));
+  }
 
   // NOTE: Pose components of links, visuals, and collisions are expressed in
   // the parent frame until we get frames working.
@@ -445,13 +493,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     }
     else
     {
-      ignerr << "Could not find the canonical link entity for "
+      gzerr << "Could not find the canonical link entity for "
              << canonicalLinkPair.second << "\n";
     }
   }
-  else if(!isStatic)
+  else if (!isStatic)
   {
-    ignerr << "Could not resolve the canonical link for " << _model->Name()
+    gzerr << "Could not resolve the canonical link for " << _model->Name()
            << "\n";
   }
 
@@ -461,7 +509,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
   // Keep track of models so we can load their plugins after loading the entire
   // model and having its full scoped name.
-  this->dataPtr->newModels[modelEntity] = _model->Element();
+  if (!_model->Plugins().empty())
+    this->dataPtr->newModels[modelEntity] = _model->Plugins();
 
   return modelEntity;
 }
@@ -469,7 +518,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Actor)");
 
   // Entity
   Entity actorEntity = this->dataPtr->ecm->CreateEntity();
@@ -481,9 +530,26 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
   this->dataPtr->ecm->CreateComponent(actorEntity,
       components::Name(_actor->Name()));
 
+  // Links
+  for (uint64_t linkIndex = 0; linkIndex < _actor->LinkCount();
+      ++linkIndex)
+  {
+    auto link = _actor->LinkByIndex(linkIndex);
+    auto linkEntity = this->CreateEntities(link);
+
+    this->SetParent(linkEntity, actorEntity);
+  }
+
   // Actor plugins
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
-      _actor->Element());
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(actorEntity,
+        _actor->Plugins());
+  for (const sdf::Plugin &p : _actor->Plugins())
+  {
+    GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+    this->dataPtr->eventManager->Emit<events::LoadPlugins>(actorEntity,
+        p.ToElement());
+    GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+  }
 
   return actorEntity;
 }
@@ -491,7 +557,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Actor *_actor)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Light)");
 
   // Entity
   Entity lightEntity = this->dataPtr->ecm->CreateEntity();
@@ -506,13 +572,26 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Light *_light)
   this->dataPtr->ecm->CreateComponent(lightEntity,
     components::LightType(convert(_light->Type())));
 
+  // Light Visual
+  Entity lightVisualEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity, components::Visual());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Pose());
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Name(_light->Name() + "Visual"));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::CastShadows(false));
+  this->dataPtr->ecm->CreateComponent(lightVisualEntity,
+      components::Transparency(false));
+  this->SetParent(lightVisualEntity, lightEntity);
+
   return lightEntity;
 }
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Link)");
 
   // Entity
   Entity linkEntity = this->dataPtr->ecm->CreateEntity();
@@ -574,7 +653,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
   }
 
   // Particle emitters
-  for (uint64_t emitterIndex = 0; emitterIndex  < _link->ParticleEmitterCount();
+  for (uint64_t emitterIndex = 0; emitterIndex < _link->ParticleEmitterCount();
        ++emitterIndex)
   {
     auto emitter = _link->ParticleEmitterByIndex(emitterIndex);
@@ -583,13 +662,31 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     this->SetParent(emitterEntity, linkEntity);
   }
 
+  // Projectors
+  for (uint64_t projectorIndex = 0; projectorIndex < _link->ProjectorCount();
+       ++projectorIndex)
+  {
+    auto projector = _link->ProjectorByIndex(projectorIndex);
+    auto projectorEntity = this->CreateEntities(projector);
+
+    this->SetParent(projectorEntity, linkEntity);
+  }
+
+
   return linkEntity;
 }
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
+  return this->CreateEntities(_joint, false);
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint,
+    bool _resolved)
+{
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Joint)");
 
   // Entity
   Entity jointEntity = this->dataPtr->ecm->CreateEntity();
@@ -615,7 +712,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(0));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 0 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -629,7 +726,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
     auto resolvedAxis = ResolveJointAxis(*_joint->Axis(1));
     if (!resolvedAxis)
     {
-      ignerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
+      gzerr << "Failed to resolve joint axis 1 for joint '" << _joint->Name()
              << "'" << std::endl;
       return kNullEntity;
     }
@@ -645,34 +742,54 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
   this->dataPtr->ecm->CreateComponent(jointEntity ,
       components::ThreadPitch(_joint->ThreadPitch()));
 
-  std::string resolvedParentLinkName;
-  const auto resolveParentErrors =
-    _joint->ResolveParentLink(resolvedParentLinkName);
-  if (!resolveParentErrors.empty())
-  {
-    ignerr << "Failed to resolve parent link for joint '" << _joint->Name()
-           << "' with parent name '" << _joint->ParentLinkName() << "'"
-           << std::endl;
 
-    return kNullEntity;
+  std::string resolvedParentLinkName;
+  if (_resolved)
+  {
+    resolvedParentLinkName = _joint->ParentName();
+  }
+  else
+  {
+
+    const auto resolveParentErrors =
+      _joint->ResolveParentLink(resolvedParentLinkName);
+    if (!resolveParentErrors.empty())
+    {
+      gzerr << "Failed to resolve parent link for joint '" << _joint->Name()
+             << "' with parent name '" << _joint->ParentName() << "'"
+             << std::endl;
+      for (const auto &error : resolveParentErrors)
+      {
+        gzerr << error << std::endl;
+      }
+
+      return kNullEntity;
+    }
   }
   this->dataPtr->ecm->CreateComponent(
       jointEntity, components::ParentLinkName(resolvedParentLinkName));
 
   std::string resolvedChildLinkName;
-  const auto resolveChildErrors =
-    _joint->ResolveChildLink(resolvedChildLinkName);
-  if (!resolveChildErrors.empty())
+  if (_resolved)
   {
-    ignerr << "Failed to resolve child link for joint '" << _joint->Name()
-           << "' with child name '" << _joint->ChildLinkName() << "'"
-           << std::endl;
-    for (const auto &error : resolveChildErrors)
+    resolvedChildLinkName = _joint->ChildName();
+  }
+  else
+  {
+    const auto resolveChildErrors =
+      _joint->ResolveChildLink(resolvedChildLinkName);
+    if (!resolveChildErrors.empty())
     {
-      ignerr << error << std::endl;
-    }
+      gzerr << "Failed to resolve child link for joint '" << _joint->Name()
+             << "' with child name '" << _joint->ChildName() << "'"
+             << std::endl;
+      for (const auto &error : resolveChildErrors)
+      {
+        gzerr << error << std::endl;
+      }
 
-    return kNullEntity;
+      return kNullEntity;
+    }
   }
 
   this->dataPtr->ecm->CreateComponent(
@@ -684,7 +801,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Joint *_joint)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Visual)");
 
   // Entity
   Entity visualEntity = this->dataPtr->ecm->CreateEntity();
@@ -721,9 +838,28 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Material(*_visual->Material()));
   }
 
+  // store the plugin in a component
+  if (!_visual->Plugins().empty())
+  {
+    this->dataPtr->ecm->CreateComponent(visualEntity,
+        components::SystemPluginInfo(
+          convert<msgs::Plugin_V>(_visual->Plugins())));
+  }
+  // Deprecate this in Garden
+  if (_visual->Element())
+  {
+    sdf::ElementPtr pluginElem = _visual->Element()->FindElement("plugin");
+    if (pluginElem)
+    {
+      this->dataPtr->ecm->CreateComponent(visualEntity,
+          components::VisualPlugin(pluginElem));
+    }
+  }
+
   // Keep track of visuals so we can load their plugins after loading the
   // entire model and having its full scoped name.
-  this->dataPtr->newVisuals[visualEntity] = _visual->Element();
+  if (!_visual->Plugins().empty())
+    this->dataPtr->newVisuals[visualEntity] = _visual->Plugins();
 
   return visualEntity;
 }
@@ -731,7 +867,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::ParticleEmitter)");
 
   // Entity
   Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
@@ -748,9 +884,28 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
 }
 
 //////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntities(const sdf::Projector *_projector)
+{
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Projector)");
+
+  // Entity
+  Entity projectorEntity = this->dataPtr->ecm->CreateEntity();
+
+  // Components
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Projector(*_projector));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Pose(ResolveSdfPose(_projector->SemanticPose())));
+  this->dataPtr->ecm->CreateComponent(projectorEntity,
+      components::Name(_projector->Name()));
+
+  return projectorEntity;
+}
+
+//////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Collision)");
 
   // Entity
   Entity collisionEntity = this->dataPtr->ecm->CreateEntity();
@@ -778,7 +933,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Collision *_collision)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
 {
-  IGN_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
+  GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Sensor)");
 
   // Entity
   Entity sensorEntity = this->dataPtr->ecm->CreateEntity();
@@ -806,7 +961,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // \todo(anyone) Implement CPU-based lidar
     // this->dataPtr->ecm->CreateComponent(sensorEntity,
     //     components::Lidar(*_sensor));
-    ignwarn << "Sensor type LIDAR not supported yet. Try using"
+    gzwarn << "Sensor type LIDAR not supported yet. Try using"
       << "a GPU LIDAR instead." << std::endl;
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
@@ -829,6 +984,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::SegmentationCamera(*_sensor));
   }
+  else if (_sensor->Type() == sdf::SensorType::BOUNDINGBOX_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::BoundingBoxCamera(*_sensor));
+  }
+  else if (_sensor->Type() == sdf::SensorType::WIDE_ANGLE_CAMERA)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WideAngleCamera(*_sensor));
+  }
   else if (_sensor->Type() == sdf::SensorType::AIR_PRESSURE)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
@@ -838,6 +1003,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
   }
+  else if (_sensor->Type() == sdf::SensorType::AIR_SPEED)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::AirSpeedSensor(*_sensor));
+
+    // create components to be filled by physics
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldAngularVelocity(math::Vector3d::Zero));
+  }
   else if (_sensor->Type() == sdf::SensorType::ALTIMETER)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
@@ -846,6 +1024,16 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
     // create components to be filled by physics
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldPose(math::Pose3d::Zero));
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::GPS ||
+           _sensor->Type() == sdf::SensorType::NAVSAT)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::NavSat(*_sensor));
+
+    // Create components to be filled by physics.
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::WorldLinearVelocity(math::Vector3d::Zero));
   }
@@ -904,13 +1092,14 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else
   {
-    ignwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
+    gzwarn << "Sensor type [" << static_cast<int>(_sensor->Type())
             << "] not supported yet." << std::endl;
   }
 
   // Keep track of sensors so we can load their plugins after loading the entire
   // model and having its full scoped name.
-  this->dataPtr->newSensors[sensorEntity] = _sensor->Element();
+  if (!_sensor->Plugins().empty())
+    this->dataPtr->newSensors[sensorEntity] = _sensor->Plugins();
 
   return sensorEntity;
 }

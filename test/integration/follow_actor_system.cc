@@ -16,25 +16,25 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/utilities/ExtraTestMacros.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test FollowActor system
@@ -46,9 +46,10 @@ class Relay
 {
   public: Relay()
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                "ignition::gazebo::MockSystem",
-                                nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetFilename("libMockSystem.so");
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    auto plugin = loader.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();
@@ -84,7 +85,9 @@ class Relay
 
 
 /////////////////////////////////////////////////
-TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_P(FollowActorTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
   // Start server
   ServerConfig serverConfig;
@@ -102,8 +105,8 @@ TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
   // Create a system that records the actor poses
   Relay testSystem;
   testSystem.OnPreUpdate(
-    [&](const gazebo::UpdateInfo &_info,
-        gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &_info,
+        sim::EntityComponentManager &_ecm)
     {
       auto entity = _ecm.EntityByComponents(
         components::Name("box"));
@@ -127,8 +130,8 @@ TEST_P(FollowActorTest, IGN_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
     });
 
   testSystem.OnPostUpdate(
-    [&](const gazebo::UpdateInfo &_info,
-        const gazebo::EntityComponentManager &_ecm)
+    [&](const sim::UpdateInfo &_info,
+        const sim::EntityComponentManager &_ecm)
     {
       auto actorEntity = _ecm.EntityByComponents(
         components::Name("walker"));

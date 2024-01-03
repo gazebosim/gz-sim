@@ -17,8 +17,8 @@
 
 #include "VisualizationCapabilities.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
 #include <iostream>
@@ -26,33 +26,41 @@
 #include <set>
 #include <stack>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
+#include <QQmlProperty>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/geospatial/Dem.hh>
+#include <gz/common/geospatial/HeightmapData.hh>
+#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include "ignition/rendering/Capsule.hh"
-#include <ignition/rendering/COMVisual.hh>
-#include <ignition/rendering/Heightmap.hh>
-#include <ignition/rendering/InertiaVisual.hh>
-#include <ignition/rendering/JointVisual.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/WireBox.hh>
+#include "gz/rendering/AxisVisual.hh"
+#include "gz/rendering/Capsule.hh"
+#include <gz/rendering/COMVisual.hh>
+#include <gz/rendering/Heightmap.hh>
+#include <gz/rendering/InertiaVisual.hh>
+#include <gz/rendering/JointVisual.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Text.hh>
+#include <gz/rendering/WireBox.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Capsule.hh>
 #include <sdf/Ellipsoid.hh>
@@ -60,33 +68,34 @@
 #include <sdf/Heightmap.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Root.hh>
 
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Inertial.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointType.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Scene.hh"
-#include "ignition/gazebo/components/Transparency.hh"
-#include "ignition/gazebo/components/Visibility.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Transparency.hh"
+#include "gz/sim/components/Visibility.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class VisualizationCapabilitiesPrivate
   {
@@ -96,8 +105,15 @@ namespace ignition::gazebo
     /// \brief Helper function to get all child links of a model entity.
     /// \param[in] _entity Entity to find child links
     /// \return Vector of child links found for the parent entity
-    public: std::vector<ignition::gazebo::Entity>
-      FindChildLinks(const ignition::gazebo::Entity &_entity);
+    public: std::vector<gz::sim::Entity>
+      FindChildLinks(const gz::sim::Entity &_entity);
+
+    /// \brief Helper function to get all children of an entity that have a
+    /// pose.
+    /// \param[in] _entity Entity to find children
+    /// \return Vector of children found for the parent entity
+    public: std::unordered_set<gz::sim::Entity>
+      FindChildFrames(const gz::sim::Entity &_entity);
 
     /// \brief Finds the links (collision parent) that are used to create child
     /// collision visuals in RenderUtil::Update
@@ -108,36 +124,50 @@ namespace ignition::gazebo
     /// \param[in] _ecm The entity-component manager
     /// \param[in] _entity Entity to find child links
     /// \return A vector of child links found for the entity
-    public: std::vector<ignition::gazebo::Entity> FindChildLinksFromECM(
-        const ignition::gazebo::EntityComponentManager &_ecm,
-        const ignition::gazebo::Entity &_entity);
+    public: std::vector<gz::sim::Entity> FindChildLinksFromECM(
+        const gz::sim::EntityComponentManager &_ecm,
+        const gz::sim::Entity &_entity);
 
     /// \brief Finds the links (visual parent) that are used to toggle wireframe
     /// and transparent view for visuals in RenderUtil::Update
     /// \param[in] _ecm The entity-component manager
     public: void PopulateViewModeVisualLinks(
-      const ignition::gazebo::EntityComponentManager &_ecm);
+      const gz::sim::EntityComponentManager &_ecm);
 
     /// \brief Finds the links (inertial parent) that are used to create child
     /// inertia and center of mass visuals in RenderUtil::Update
     /// \param[in] _ecm The entity-component manager
     public: void FindInertialLinks(const EntityComponentManager &_ecm);
 
-    /// \brief Retrieve visual
-    /// \param[in] _id Unique visual (entity) id
-    /// \return Pointer to requested visual
-    public: ignition::rendering::VisualPtr VisualById(unsigned int _id);
+    /// \brief Retrieve visual based on its Gazebo entity. Note that this is
+    /// different from gz-rendering's internal ID for the visual.
+    /// \param[in] _entity Gazebo entity
+    /// \return Pointer to requested visual, null if not found.
+    public: rendering::VisualPtr VisualByEntity(Entity _entity);
 
-    public: rendering::VisualPtr CreateVisual(
-      ignition::gazebo::Entity _id,
-      const sdf::Visual &_visual,
-      rendering::VisualPtr &_parent);
+    /// \brief Create a collision visual from an SDF visual element.
+    /// \param[in] _id Entity which the visual corresponds to
+    /// \param[in] _visual SDF describing the visual.
+    /// \param[in] _parent Parent link's visual
+    /// \return Pointer to created visual
+    public: rendering::VisualPtr CreateCollisionVisual(
+        gz::sim::Entity _id,
+        const sdf::Visual &_visual,
+        rendering::VisualPtr &_parent);
 
-    public: rendering::GeometryPtr LoadGeometry(
+    /// \brief Create a geometry from an SDF element.
+    /// \param[in] _geom SDF describing the geometry.
+    /// \param[out] _scale Geometry's scale
+    /// \param[out] _localPose Geometry's local pose
+    /// \return Pointer to created geometry
+    public: rendering::GeometryPtr CreateGeometry(
         const sdf::Geometry &_geom, math::Vector3d &_scale,
         math::Pose3d &_localPose);
 
-    public: rendering::MaterialPtr LoadMaterial(
+    /// \brief Create a material from an SDF element.
+    /// \param[in] _material SDF describing the material.
+    /// \return Pointer to created material
+    public: rendering::MaterialPtr CreateMaterial(
         const sdf::Material &_material);
 
     /////////////////////////////////////////////////
@@ -145,7 +175,7 @@ namespace ignition::gazebo
     /////////////////////////////////////////////////
     /// \brief View an entity as transparent
     /// \param[in] _entity Entity to view as transparent
-    public: void ViewTransparent(const ignition::gazebo::Entity &_entity);
+    public: void ViewTransparent(const gz::sim::Entity &_entity);
 
     /// \brief Callback for view as transparent request
     /// \param[in] _msg Request message to set the target to view as
@@ -160,7 +190,7 @@ namespace ignition::gazebo
     /////////////////////////////////////////////////
     /// \brief View wireframes of specified entity
     /// \param[in] _entity Entity to view wireframes
-    public: void ViewWireframes(const ignition::gazebo::Entity &_entity);
+    public: void ViewWireframes(const gz::sim::Entity &_entity);
 
     /// \brief Callback for view wireframes request
     /// \param[in] _msg Request message to set the target to view wireframes
@@ -184,11 +214,14 @@ namespace ignition::gazebo
     public: bool OnViewCollisions(const msgs::StringMsg &_msg,
         msgs::Boolean &_res);
 
-    /////////////////////////////////////////////////
+    /// \brief Create the collision visual
+    /// \param[in] _id Collision entity
+    /// \param[in] _collision SDF description of collision
+    /// \param[in] _parent Parent link's visual
     public: rendering::VisualPtr CreateCollision(
-      ignition::gazebo::Entity _id,
+      gz::sim::Entity _id,
       const sdf::Collision &_collision,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     // COM
@@ -210,10 +243,11 @@ namespace ignition::gazebo
     /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parent Visual parent
     /// \return Visual (center of mass) object created from the inertial
-    public: ignition::rendering::VisualPtr createCOMVisual(
-      ignition::gazebo::Entity _id,
+    public: gz::rendering::VisualPtr CreateCOMVisual(
+      gz::sim::Entity _id,
       const math::Inertiald &_inertia,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
+
     /////////////////////////////////////////////////
     // Inertia
     /////////////////////////////////////////////////
@@ -233,10 +267,10 @@ namespace ignition::gazebo
     /// \param[in] _inertial Inertial component of the link
     /// \param[in] _parent Visual parent
     /// \return Visual (center of mass) object created from the inertial
-    public: ignition::rendering::VisualPtr CreateInertiaVisual(
-      ignition::gazebo::Entity _id,
+    public: gz::rendering::VisualPtr CreateInertiaVisual(
+      gz::sim::Entity _id,
       const math::Inertiald &_inertia,
-      ignition::rendering::VisualPtr &_parent);
+      gz::rendering::VisualPtr &_parent);
 
     /////////////////////////////////////////////////
     // Joints
@@ -270,7 +304,30 @@ namespace ignition::gazebo
     public: void UpdateJointParentPose(Entity _jointId);
 
     /////////////////////////////////////////////////
-    /// \brief Ignition communication node.
+    // Frames
+    /////////////////////////////////////////////////
+    /// \brief View frame of specified entity
+    /// \param[in] _entity Entity to view frame
+    public: void ViewFrames(const Entity &_entity);
+
+    /// \brief Callback for view frame request
+    /// \param[in] _msg Request message to set the target to view frame
+    /// \param[in] _res Response data
+    /// \return True if the request is received
+    public: bool OnViewFrames(const msgs::StringMsg &_msg,
+      msgs::Boolean &_res);
+
+    /// \brief Create a frame visual
+    /// \param[in] _id Unique visual id to be used internally by gz-rendering.
+    /// This is NOT a Gazebo Entity ID.
+    /// \param[in] _parent Visual parent
+    /// \return Visual (frame) object created
+    public: rendering::VisualPtr CreateFrameVisual(
+      unsigned int _id,
+      rendering::VisualPtr &_parent);
+
+    /////////////////////////////////////////////////
+    /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Keep track of world ID, which is equivalent to the scene's
@@ -279,10 +336,10 @@ namespace ignition::gazebo
     public: Entity worldId{kNullEntity};
 
     /// \brief Pointer to the rendering scene
-    public: ignition::rendering::ScenePtr scene{nullptr};
+    public: gz::rendering::ScenePtr scene{nullptr};
 
     /// \brief Scene manager
-    public: ignition::gazebo::SceneManager sceneManager;
+    public: gz::sim::SceneManager sceneManager;
 
     /// True if the rendering component is initialized
     public: bool initialized = false;
@@ -294,11 +351,11 @@ namespace ignition::gazebo
     public: std::map<Entity, std::vector<Entity>> modelToModelEntities;
 
     /// \brief New wireframe visuals to be toggled
-    public: std::vector<ignition::gazebo::Entity> newTransparentEntities;
+    public: std::vector<gz::sim::Entity> newTransparentEntities;
 
     /// \brief A map of link entities and their corresponding children visuals
-    public: std::map<ignition::gazebo::Entity,
-      std::vector<ignition::gazebo::Entity>> linkToVisualEntities;
+    public: std::map<gz::sim::Entity,
+      std::vector<gz::sim::Entity>> linkToVisualEntities;
 
     /// \brief Map of visual entity in Gazebo to visual pointers.
     public: std::map<Entity, rendering::VisualPtr> visuals;
@@ -314,7 +371,7 @@ namespace ignition::gazebo
 
     /// \brief A map of created transparent visuals and if they are currently
     /// visible
-    public: std::map<ignition::gazebo::Entity, bool> viewingTransparent;
+    public: std::map<gz::sim::Entity, bool> viewingTransparent;
 
     /// \brief View transparent service
     public: std::string viewTransparentService;
@@ -455,11 +512,36 @@ namespace ignition::gazebo
     public: std::map<Entity, std::map<std::string, Entity>>
                              matchLinksWithEntities;
 
+    /////////////////////////////////////////////////
+    // Frame
+    /////////////////////////////////////////////////
+
+    /// \brief A list of entities that need frame visuals. Once the frame visual
+    /// is created, the entity is removed from the list.
+    public: std::vector<Entity> newFrameEntities;
+
+    /// \brief Entities that have a pose. The key is the entity, the value its
+    /// parent entity. Note that not all entities with pose will have frames
+    /// displayed at the moment.
+    public: std::unordered_map<Entity, Entity> entitiesWithPose;
+
+    /// \brief A map of entities and whether their frame visuals
+    /// are currently visible
+    public: std::map<Entity, bool> viewingFrames;
+
+    /// \brief A map of entities and the gz-rendering ID of their frame visuals
+    public: std::map<Entity, unsigned int> entityToFrameVisuals;
+
+    /// \brief Target to view frame
+    public: std::string viewFramesTarget;
+
+    /// \brief View frame service
+    public: std::string viewFramesService;
   };
 }
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::OnRender()
@@ -484,7 +566,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
     {
       if (!this->viewingWireframes[visEntity])
       {
-        auto wireframeVisual = this->VisualById(visEntity);
+        auto wireframeVisual = this->VisualByEntity(visEntity);
         if (wireframeVisual)
         {
           wireframeVisual->SetWireframe(true);
@@ -514,7 +596,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
     {
       if (!this->viewingTransparent[visEntity])
       {
-        auto transparencyVisual = this->VisualById(visEntity);
+        auto transparencyVisual = this->VisualByEntity(visEntity);
         if (transparencyVisual)
         {
           this->sceneManager.UpdateTransparency(transparencyVisual,
@@ -538,8 +620,8 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
           !this->viewingInertias[link])
       {
-        auto existsVisual = this->VisualById(id);
-        auto parentInertiaVisual = this->VisualById(link);
+        auto existsVisual = this->VisualByEntity(id);
+        auto parentInertiaVisual = this->VisualByEntity(link);
 
         if (existsVisual == nullptr && parentInertiaVisual != nullptr)
         {
@@ -574,12 +656,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
             !this->viewingInertias[jointEntity])
         {
           std::string childLinkName =
-              this->entityJoints[jointEntity].ChildLinkName();
+              this->entityJoints[jointEntity].ChildName();
           Entity childId =
               this->matchLinksWithEntities[model][childLinkName];
 
           std::string parentLinkName =
-              this->entityJoints[jointEntity].ParentLinkName();
+              this->entityJoints[jointEntity].ParentName();
           Entity parentId =
               this->matchLinksWithEntities[model][parentLinkName];
 
@@ -612,12 +694,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasSensorId(id) && !this->scene->HasVisualId(id) &&
           !this->viewingCOM[link])
       {
-        auto existsVisual = this->VisualById(id);
-        auto parentInertiaVisual = this->VisualById(link);
+        auto existsVisual = this->VisualByEntity(id);
+        auto parentInertiaVisual = this->VisualByEntity(link);
 
         if (existsVisual == nullptr && parentInertiaVisual != nullptr)
         {
-          this->createCOMVisual(id, this->entityInertials[link],
+          this->CreateCOMVisual(id, this->entityInertials[link],
             parentInertiaVisual);
         }
         else
@@ -646,7 +728,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
           !this->scene->HasVisualId(colEntity) &&
           !this->viewingCollisions[link])
       {
-        auto parentCollisionVisual = this->VisualById(link);
+        auto parentCollisionVisual = this->VisualByEntity(link);
         if (parentCollisionVisual != nullptr)
         {
           auto vis = this->CreateCollision(
@@ -682,9 +764,41 @@ void VisualizationCapabilitiesPrivate::OnRender()
   }
   this->newCollisionLinks.clear();
 
+  // create new frame visuals
+  for (const auto &entity : this->newFrameEntities)
+  {
+    if (this->viewingFrames[entity])
+      continue;
+
+    auto parentVisual = this->VisualByEntity(entity);
+    if (parentVisual == nullptr)
+    {
+      // Entities without specific visuals, like collisions and sensors,
+      // aren't supported yet.
+      continue;
+    }
+
+    // create a new id for the visual
+    auto attempts = 100000u;
+    for (Entity id = 0u; id < attempts; ++id)
+    {
+      if (this->scene->HasNodeId(id) || this->scene->HasLightId(id) ||
+          this->scene->HasSensorId(id) || this->scene->HasVisualId(id))
+      {
+        continue;
+      }
+
+      this->CreateFrameVisual(id, parentVisual);
+      this->viewingFrames[entity] = true;
+      this->entityToFrameVisuals[entity] = id;
+      break;
+    }
+  }
+  this->newFrameEntities.clear();
+
   // View center of mass
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCOM");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCOM");
     if (!this->viewCOMTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -694,12 +808,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewCOM(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewCOMTarget
                << "] to view center of mass" << std::endl;
       }
@@ -710,7 +824,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View inertia
   {
-    IGN_PROFILE("IgnRenderer::Render ViewInertia");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewInertia");
     if (!this->viewInertiaTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -720,12 +834,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewInertia(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewInertiaTarget
                << "] to view inertia" << std::endl;
       }
@@ -736,7 +850,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // view Transparent
   {
-    IGN_PROFILE("IgnRenderer::Render ViewTransparent");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewTransparent");
     if (!this->viewTransparentTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -746,12 +860,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewTransparent(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewTransparentTarget
                << "] to view as transparent" << std::endl;
       }
@@ -762,7 +876,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View collisions
   {
-    IGN_PROFILE("IgnRenderer::Render ViewCollisions");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewCollisions");
     if (!this->viewCollisionsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -772,12 +886,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewCollisions(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewCollisionsTarget
                << "] to view collisions" << std::endl;
       }
@@ -788,7 +902,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View joints
   {
-    IGN_PROFILE("IgnRenderer::Render ViewJoints");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewJoints");
     if (!this->viewJointsTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -798,12 +912,12 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewJoints(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewJointsTarget
                << "] to view joints" << std::endl;
       }
@@ -814,7 +928,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
 
   // View wireframes
   {
-    IGN_PROFILE("IgnRenderer::Render ViewWireframes");
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewWireframes");
     if (!this->viewWireframesTarget.empty())
     {
       rendering::NodePtr targetNode =
@@ -824,17 +938,42 @@ void VisualizationCapabilitiesPrivate::OnRender()
       if (targetVis && targetVis->HasUserData("gazebo-entity"))
       {
         Entity targetEntity =
-            std::get<int>(targetVis->UserData("gazebo-entity"));
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
         this->ViewWireframes(targetEntity);
       }
       else
       {
-        ignerr << "Unable to find node name ["
+        gzerr << "Unable to find node name ["
                << this->viewWireframesTarget
                << "] to view wireframes" << std::endl;
       }
 
       this->viewWireframesTarget.clear();
+    }
+  }
+
+  // View frames
+  {
+    GZ_PROFILE("VisualizationCapabilitiesPrivate::OnRender ViewFrames");
+    if (!this->viewFramesTarget.empty())
+    {
+      auto targetNode = this->scene->NodeByName(this->viewFramesTarget);
+      auto targetVis = std::dynamic_pointer_cast<rendering::Visual>(targetNode);
+
+      if (targetVis && targetVis->HasUserData("gazebo-entity"))
+      {
+        Entity targetEntity =
+            std::get<uint64_t>(targetVis->UserData("gazebo-entity"));
+        this->ViewFrames(targetEntity);
+      }
+      else
+      {
+        gzerr << "Unable to find node name ["
+               << this->viewFramesTarget
+               << "] to view frame" << std::endl;
+      }
+
+      this->viewFramesTarget.clear();
     }
   }
 }
@@ -857,7 +996,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
   rendering::VisualPtr parent;
   if (_childId != this->worldId)
   {
-    parent = this->VisualById(_childId);
+    parent = this->VisualByEntity(_childId);
   }
 
   // Name.
@@ -943,14 +1082,14 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
     // For fixed joint type, scale joint visual to the joint child link
     double childSize =
         std::max(0.1, parent->BoundingBox().Size().Length());
-    auto scale = ignition::math::Vector3d(childSize * 0.2,
+    auto scale = gz::math::Vector3d(childSize * 0.2,
         childSize * 0.2, childSize * 0.2);
     jointVisual->SetLocalScale(scale);
   }
 
   rendering::VisualPtr jointVis =
     std::dynamic_pointer_cast<rendering::Visual>(jointVisual);
-  jointVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  jointVis->SetUserData("gazebo-entity", _id);
   jointVis->SetUserData("pause-update", static_cast<int>(0));
   jointVis->SetUserData("gui-only", static_cast<bool>(true));
   jointVis->SetLocalPose(_joint.RawPose());
@@ -962,7 +1101,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateJointVisual(
 void VisualizationCapabilitiesPrivate::UpdateJointParentPose(Entity _jointId)
 {
   auto visual =
-      this->VisualById(_jointId);
+      this->VisualByEntity(_jointId);
 
   rendering::JointVisualPtr jointVisual =
       std::dynamic_pointer_cast<rendering::JointVisual>(visual);
@@ -981,9 +1120,9 @@ void VisualizationCapabilitiesPrivate::UpdateJointParentPose(Entity _jointId)
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const math::Inertiald &_inertia,
-  ignition::rendering::VisualPtr &_parent)
+  gz::rendering::VisualPtr &_parent)
 {
   std::string name = "Inertia_" + std::to_string(_id);
   if (_parent)
@@ -995,7 +1134,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
 
   rendering::VisualPtr inertiaVis =
     std::dynamic_pointer_cast<rendering::Visual>(inertiaVisual);
-  inertiaVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  inertiaVis->SetUserData("gazebo-entity", _id);
   inertiaVis->SetUserData("pause-update", static_cast<int>(0));
   inertiaVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = inertiaVis;
@@ -1009,7 +1148,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateInertiaVisual(
 
 /////////////////////////////////////////////////
 rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
-  ignition::gazebo::Entity _id,
+  gz::sim::Entity _id,
   const sdf::Collision &_collision,
   rendering::VisualPtr &_parent)
 {
@@ -1025,12 +1164,12 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollision(
   visual.SetRawPose(_collision.RawPose());
   visual.SetName(_collision.Name());
 
-  rendering::VisualPtr collisionVis = CreateVisual(_id, visual, _parent);
+  auto collisionVis = this->CreateCollisionVisual(_id, visual, _parent);
   return collisionVis;
 }
 
 /////////////////////////////////////////////////
-rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
+rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
   const sdf::Geometry &_geom, math::Vector3d &_scale,
   math::Pose3d &_localPose)
 {
@@ -1078,7 +1217,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
     // The rotation is the angle between the +z(0,0,1) vector and the
     // normal, which are both expressed in the local (Visual) frame.
     math::Vector3d normal = _geom.PlaneShape()->Normal();
-    localPose.Rot().From2Axes(math::Vector3d::UnitZ, normal.Normalized());
+    localPose.Rot().SetFrom2Axes(math::Vector3d::UnitZ, normal.Normalized());
   }
   else if (_geom.Type() == sdf::GeometryType::SPHERE)
   {
@@ -1093,7 +1232,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
         _geom.MeshShape()->FilePath());
     if (fullPath.empty())
     {
-      ignerr << "Mesh geometry missing uri" << std::endl;
+      gzerr << "Mesh geometry missing uri" << std::endl;
       return geom;
     }
     rendering::MeshDescriptor descriptor;
@@ -1103,8 +1242,8 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    gz::common::MeshManager *meshManager =
+        gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
@@ -1115,16 +1254,37 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
         _geom.HeightmapShape()->FilePath());
     if (fullPath.empty())
     {
-      ignerr << "Heightmap geometry missing URI" << std::endl;
+      gzerr << "Heightmap geometry missing URI" << std::endl;
       return geom;
     }
 
-    auto data = std::make_shared<common::ImageHeightmap>();
-    if (data->Load(fullPath) < 0)
+    std::shared_ptr<common::HeightmapData> data;
+    std::string lowerFullPath = common::lowercase(fullPath);
+    // check if heightmap is an image
+    if (common::EndsWith(lowerFullPath, ".png")
+        || common::EndsWith(lowerFullPath, ".jpg")
+        || common::EndsWith(lowerFullPath, ".jpeg"))
     {
-      ignerr << "Failed to load heightmap image data from [" << fullPath << "]"
-             << std::endl;
-      return geom;
+      auto img = std::make_shared<common::ImageHeightmap>();
+      if (img->Load(fullPath) < 0)
+      {
+        gzerr << "Failed to load heightmap image data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = img;
+    }
+    // DEM
+    else
+    {
+      auto dem = std::make_shared<common::Dem>();
+      if (dem->Load(fullPath) < 0)
+      {
+        gzerr << "Failed to load heightmap dem data from ["
+               << fullPath << "]" << std::endl;
+        return geom;
+      }
+      data = dem;
     }
 
     rendering::HeightmapDescriptor descriptor;
@@ -1156,13 +1316,33 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
     geom = this->scene->CreateHeightmap(descriptor);
     if (nullptr == geom)
     {
-      ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
+      gzerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
     scale = _geom.HeightmapShape()->Size();
   }
+  else if (_geom.Type() == sdf::GeometryType::POLYLINE)
+  {
+    std::vector<std::vector<math::Vector2d>> vertices;
+    for (const auto &polyline : _geom.PolylineShape())
+    {
+      vertices.push_back(polyline.Points());
+    }
+
+    std::string name("POLYLINE_" + common::Uuid().String());
+
+    auto meshManager = common::MeshManager::Instance();
+    meshManager->CreateExtrudedPolyline(name, vertices,
+        _geom.PolylineShape()[0].Height());
+
+    rendering::MeshDescriptor descriptor;
+    descriptor.meshName = name;
+    descriptor.mesh = meshManager->MeshByName(name);
+
+    geom = this->scene->CreateMesh(descriptor);
+  }
   else
   {
-    ignerr << "Unsupported geometry type" << std::endl;
+    gzerr << "Unsupported geometry type" << std::endl;
   }
   _scale = scale;
   _localPose = localPose;
@@ -1170,7 +1350,7 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::LoadGeometry(
 }
 
 /////////////////////////////////////////////////
-rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
+rendering::MaterialPtr VisualizationCapabilitiesPrivate::CreateMaterial(
     const sdf::Material &_material)
 {
   if (!this->scene)
@@ -1206,7 +1386,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
         if (!fullPath.empty())
           material->SetRoughnessMap(fullPath);
         else
-          ignerr << "Unable to find file [" << roughnessMap << "]\n";
+          gzerr << "Unable to find file [" << roughnessMap << "]\n";
       }
 
       // metalness map
@@ -1218,13 +1398,13 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
         if (!fullPath.empty())
           material->SetMetalnessMap(fullPath);
         else
-          ignerr << "Unable to find file [" << metalnessMap << "]\n";
+          gzerr << "Unable to find file [" << metalnessMap << "]\n";
       }
       workflow = const_cast<sdf::PbrWorkflow *>(metal);
     }
     else
     {
-      ignerr << "PBR material: currently only metal workflow is supported"
+      gzerr << "PBR material: currently only metal workflow is supported"
              << std::endl;
     }
 
@@ -1241,7 +1421,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
         material->SetAlphaFromTexture(true, 0.5, _material.DoubleSided());
       }
       else
-        ignerr << "Unable to find file [" << albedoMap << "]\n";
+        gzerr << "Unable to find file [" << albedoMap << "]\n";
     }
 
     // normal map
@@ -1253,7 +1433,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
       if (!fullPath.empty())
         material->SetNormalMap(fullPath);
       else
-        ignerr << "Unable to find file [" << normalMap << "]\n";
+        gzerr << "Unable to find file [" << normalMap << "]\n";
     }
 
 
@@ -1266,7 +1446,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
       if (!fullPath.empty())
         material->SetEnvironmentMap(fullPath);
       else
-        ignerr << "Unable to find file [" << environmentMap << "]\n";
+        gzerr << "Unable to find file [" << environmentMap << "]\n";
     }
 
     // emissive map
@@ -1278,7 +1458,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
       if (!fullPath.empty())
         material->SetEmissiveMap(fullPath);
       else
-        ignerr << "Unable to find file [" << emissiveMap << "]\n";
+        gzerr << "Unable to find file [" << emissiveMap << "]\n";
     }
 
     // light map
@@ -1294,7 +1474,7 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
       }
       else
       {
-        ignerr << "Unable to find file [" << lightMap << "]\n";
+        gzerr << "Unable to find file [" << lightMap << "]\n";
       }
     }
   }
@@ -1302,8 +1482,8 @@ rendering::MaterialPtr VisualizationCapabilitiesPrivate::LoadMaterial(
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
-  ignition::gazebo::Entity _id,
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCollisionVisual(
+  gz::sim::Entity _id,
   const sdf::Visual &_visual,
   rendering::VisualPtr &_parent)
 {
@@ -1318,6 +1498,13 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
   if (!_visual.Geom())
     return rendering::VisualPtr();
 
+  if (_visual.Geom()->Type() == sdf::GeometryType::HEIGHTMAP)
+  {
+    gzwarn << "Collision visualization for heightmaps are not supported yet."
+           << std::endl;
+    return rendering::VisualPtr();
+  }
+
   std::string name = _visual.Name().empty() ? std::to_string(_id) :
       _visual.Name();
   if (_parent)
@@ -1329,14 +1516,14 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
     return vis;
   }
   rendering::VisualPtr visualVis = this->scene->CreateVisual(name);
-  visualVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  visualVis->SetUserData("gazebo-entity", _id);
   visualVis->SetUserData("pause-update", static_cast<int>(0));
   visualVis->SetLocalPose(_visual.RawPose());
 
   math::Vector3d scale = math::Vector3d::One;
   math::Pose3d localPose;
   rendering::GeometryPtr geom =
-      this->LoadGeometry(*_visual.Geom(), scale, localPose);
+      this->CreateGeometry(*_visual.Geom(), scale, localPose);
 
   if (geom)
   {
@@ -1366,7 +1553,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
     }
     else if (_visual.Material())
     {
-      material = this->LoadMaterial(*_visual.Material());
+      material = this->CreateMaterial(*_visual.Material());
     }
     // Don't set a default material for meshes because they
     // may have their own
@@ -1374,10 +1561,10 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
     else if (_visual.Geom()->Type() != sdf::GeometryType::MESH)
     {
       // create default material
-      material = this->scene->Material("ign-grey");
+      material = this->scene->Material("gz-grey");
       if (!material)
       {
-        material = this->scene->CreateMaterial("ign-grey");
+        material = this->scene->CreateMaterial("gz-grey");
         material->SetAmbient(0.3, 0.3, 0.3);
         material->SetDiffuse(0.7, 0.7, 0.7);
         material->SetSpecular(1.0, 1.0, 1.0);
@@ -1415,14 +1602,14 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
       geom->SetMaterial(material);
       // todo(anyone) SetMaterial function clones the input material.
       // but does not take ownership of it so we need to destroy it here.
-      // This is not ideal. We should let ign-rendering handle the lifetime
+      // This is not ideal. We should let gz-rendering handle the lifetime
       // of this material
       this->scene->DestroyMaterial(material);
     }
   }
   else
   {
-    ignerr << "Failed to load geometry for visual: " << _visual.Name()
+    gzerr << "Failed to load geometry for visual: " << _visual.Name()
            << std::endl;
   }
 
@@ -1438,8 +1625,8 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateVisual(
 }
 
 /////////////////////////////////////////////////
-rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
-  ignition::gazebo::Entity _id,
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateCOMVisual(
+  gz::sim::Entity _id,
   const math::Inertiald &_inertia,
   rendering::VisualPtr &_parent)
 {
@@ -1453,7 +1640,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
 
   rendering::VisualPtr comVis =
     std::dynamic_pointer_cast<rendering::Visual>(comVisual);
-  comVis->SetUserData("gazebo-entity", static_cast<int>(_id));
+  comVis->SetUserData("gazebo-entity", _id);
   comVis->SetUserData("pause-update", static_cast<int>(0));
   comVis->SetUserData("gui-only", static_cast<bool>(true));
   this->visuals[_id] = comVis;
@@ -1467,18 +1654,67 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::createCOMVisual(
   return comVis;
 }
 
-ignition::rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualById(
-  unsigned int _id)
+/////////////////////////////////////////////////
+rendering::VisualPtr VisualizationCapabilitiesPrivate::CreateFrameVisual(
+  unsigned int _id, rendering::VisualPtr &_parent)
+{
+  std::string name = "Frame_" + std::to_string(_id);
+  if (_parent)
+    name = _parent->Name() + "::" + name;
+
+  auto frameVisual = this->scene->CreateAxisVisual(_id, name);
+
+  auto frameVis = std::dynamic_pointer_cast<rendering::Visual>(frameVisual);
+  frameVis->SetUserData("pause-update", static_cast<int>(0));
+
+  // Scale w.r.t. parent
+  double parentSize = std::max(0.1, _parent->BoundingBox().Size().Length());
+  auto scale = parentSize * 0.2;
+  frameVis->SetInheritScale(false);
+  frameVis->SetLocalScale(scale);
+
+  // Add frame name
+  auto textGeom = this->scene->CreateText();
+  // Ogre 2 doesn't support Text, see
+  // https://github.com/gazebosim/gz-rendering/issues/487
+  if (nullptr != textGeom)
+  {
+    textGeom->SetFontName("Liberation Sans");
+    textGeom->SetTextString(_parent->Name());
+    textGeom->SetShowOnTop(true);
+    textGeom->SetTextAlignment(rendering::TextHorizontalAlign::CENTER,
+                               rendering::TextVerticalAlign::BOTTOM);
+    auto textVis = this->scene->CreateVisual();
+    textVis->AddGeometry(textGeom);
+    textVis->SetLocalPosition(0, 0, scale * 0.5);
+    textVis->SetLocalScale(scale * 0.5);
+
+    frameVis->AddChild(textVis);
+  }
+
+  if (_parent)
+  {
+    frameVis->RemoveParent();
+    _parent->AddChild(frameVis);
+  }
+
+  return frameVis;
+}
+
+/////////////////////////////////////////////////
+rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
+  Entity _entity)
 {
   for (unsigned int i = 0; i < this->scene->VisualCount(); ++i)
   {
     auto visual = this->scene->VisualByIndex(i);
 
-    try {
-      Entity visualEntity =
-          std::get<int>(visual->UserData("gazebo-entity"));
+    try
+    {
+      Entity visualEntity = std::get<uint64_t>(
+        visual->UserData("gazebo-entity"));
 
-      if (visualEntity == _id)
+      if (visualEntity == _entity)
       {
         return visual;
       }
@@ -1552,6 +1788,16 @@ bool VisualizationCapabilitiesPrivate::OnViewCollisions(
 }
 
 /////////////////////////////////////////////////
+bool VisualizationCapabilitiesPrivate::OnViewFrames(
+    const msgs::StringMsg &_msg, msgs::Boolean &_res)
+{
+  this->viewFramesTarget = _msg.data();
+
+  _res.set_data(true);
+  return true;
+}
+
+/////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
 {
   std::vector<Entity> colEntities;
@@ -1563,7 +1809,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -1601,7 +1847,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
       showColInit = true;
     }
 
-    auto colVisual = this->VisualById(colEntity);
+    auto colVisual = this->VisualByEntity(colEntity);
     if (colVisual)
     {
       this->viewingCollisions[colEntity] = showCol;
@@ -1613,7 +1859,7 @@ void VisualizationCapabilitiesPrivate::ViewCollisions(const Entity &_entity)
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewInertia(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->entityInertials.find(_entity) !=
@@ -1650,7 +1896,7 @@ void VisualizationCapabilitiesPrivate::ViewInertia(const Entity &_entity)
 
     Entity inertiaVisualId = this->linkToInertiaVisuals[inertiaLink];
 
-    auto inertiaVisual = this->VisualById(inertiaVisualId);
+    auto inertiaVisual = this->VisualByEntity(inertiaVisualId);
     if (inertiaVisual)
     {
       this->viewingInertias[inertiaLink] = showInertia;
@@ -1725,10 +1971,10 @@ void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
     }
 
     rendering::VisualPtr jointVisual =
-        this->VisualById(jointEntity);
+        this->VisualByEntity(jointEntity);
     if (jointVisual == nullptr)
     {
-      ignerr << "Could not find visual for entity [" << jointEntity
+      gzerr << "Could not find visual for entity [" << jointEntity
              << "]" << std::endl;
       continue;
     }
@@ -1741,7 +1987,7 @@ void VisualizationCapabilitiesPrivate::ViewJoints(const Entity &_entity)
 /////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::ViewCOM(const Entity &_entity)
 {
-  std::vector<Entity> inertiaLinks = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> inertiaLinks = this->FindChildLinks(_entity);
 
   // check if _entity has an inertial component (_entity is a link)
   if (this->entityInertials.find(_entity) !=
@@ -1778,7 +2024,7 @@ void VisualizationCapabilitiesPrivate::ViewCOM(const Entity &_entity)
 
     Entity comVisualId = this->linkToCOMVisuals[inertiaLink];
 
-    auto comVisual = this->VisualById(comVisualId);
+    auto comVisual = this->VisualByEntity(comVisualId);
     if (comVisual)
     {
       this->viewingCOM[inertiaLink] = showCOM;
@@ -1799,7 +2045,7 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -1837,12 +2083,46 @@ void VisualizationCapabilitiesPrivate::ViewWireframes(const Entity &_entity)
       showWireframeInit = true;
     }
 
-    auto wireframesVisual = this->VisualById(visEntity);
+    auto wireframesVisual = this->VisualByEntity(visEntity);
     if (wireframesVisual)
     {
       this->viewingWireframes[visEntity] = showWireframe;
       wireframesVisual->SetWireframe(showWireframe);
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void VisualizationCapabilitiesPrivate::ViewFrames(const Entity &_entity)
+{
+  // Show if currently hidden and vice-versa
+  bool showFrames = (this->viewingFrames.find(_entity) ==
+        this->viewingFrames.end()) || !this->viewingFrames[_entity];
+
+  auto descendants = this->FindChildFrames(_entity);
+
+  for (const auto &descendant : descendants)
+  {
+    // Add new descendants to newFrameEntities so their visuals are created in
+    // the next render callback
+    if (this->viewingFrames.find(descendant) == this->viewingFrames.end())
+    {
+      this->newFrameEntities.push_back(descendant);
+      continue;
+    }
+
+    auto frameVisualId = this->entityToFrameVisuals[descendant];
+
+    auto frameVisual = this->scene->VisualById(frameVisualId);
+    if (frameVisual == nullptr)
+    {
+      gzerr << "Failed to find frame visual with ID [" << frameVisualId
+             << "] for entity [" << descendant << "]" << std::endl;
+      continue;
+    }
+
+    this->viewingFrames[descendant] = showFrames;
+    frameVisual->SetVisible(showFrames);
   }
 }
 
@@ -1858,7 +2138,7 @@ void VisualizationCapabilitiesPrivate::ViewTransparent(const Entity &_entity)
   }
 
   // Find all existing child links for this entity
-  std::vector<Entity> links = std::move(this->FindChildLinks(_entity));
+  std::vector<Entity> links = this->FindChildLinks(_entity);
 
   for (const auto &link : links)
   {
@@ -1896,7 +2176,7 @@ void VisualizationCapabilitiesPrivate::ViewTransparent(const Entity &_entity)
       showTransparentInit = true;
     }
 
-    auto transparentVisual = this->VisualById(visEntity);
+    auto transparentVisual = this->VisualByEntity(visEntity);
     if (transparentVisual)
     {
       this->viewingTransparent[visEntity] = showTransparent;
@@ -1948,6 +2228,34 @@ std::vector<Entity> VisualizationCapabilitiesPrivate::FindChildLinks(
   return links;
 }
 
+/////////////////////////////////////////////////
+std::unordered_set<Entity> VisualizationCapabilitiesPrivate::FindChildFrames(
+  const Entity &_entity)
+{
+  std::unordered_set<Entity> descendants;
+
+  // Display own frame
+  if (this->entitiesWithPose.find(_entity) != this->entitiesWithPose.end())
+  {
+    descendants.insert(_entity);
+  }
+
+  // Recursively add descendants
+  for (auto entityAndParent : this->entitiesWithPose)
+  {
+    // Not my child
+    if (entityAndParent.second != _entity)
+    {
+      continue;
+    }
+
+    auto grandChildren = this->FindChildFrames(entityAndParent.first);
+    descendants.insert(grandChildren.begin(), grandChildren.end());
+  }
+
+  return descendants;
+}
+
 //////////////////////////////////////////////////
 void VisualizationCapabilitiesPrivate::FindJointModels(
   const EntityComponentManager &_ecm)
@@ -1984,7 +2292,7 @@ void VisualizationCapabilitiesPrivate::FindJointModels(
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing joints must be a model"
              << std::endl;
       continue;
@@ -2009,11 +2317,11 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing inertia must be a model or link"
              << std::endl;
       continue;
@@ -2033,11 +2341,11 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing center of mass must be a model or link"
              << std::endl;
       continue;
@@ -2065,11 +2373,11 @@ void VisualizationCapabilitiesPrivate::FindCollisionLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing collision must be a model or link"
              << std::endl;
       continue;
@@ -2095,11 +2403,11 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing wireframe must be a model or link"
              << std::endl;
       continue;
@@ -2120,11 +2428,11 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
         _ecm.EntityMatches(entity,
                 std::set<ComponentTypeId>{components::Link::typeId}))
     {
-      links = std::move(this->FindChildLinksFromECM(_ecm, entity));
+      links = this->FindChildLinksFromECM(_ecm, entity);
     }
     else
     {
-      ignerr << "Entity [" << entity
+      gzerr << "Entity [" << entity
              << "] for viewing as transparent must be a model or link"
              << std::endl;
       continue;
@@ -2246,8 +2554,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           joint.SetType(_jointType->Data());
           joint.SetRawPose(_pose->Data());
 
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
+          joint.SetParentName(_parentLinkName->Data());
+          joint.SetChildName(_childLinkName->Data());
 
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2318,6 +2626,17 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           .push_back(_entity);
         return true;
       });
+
+    // entities with pose
+    _ecm.Each<components::Pose, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Pose *,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->dataPtr->entitiesWithPose[_entity] = _parent->Data();
+        return true;
+      });
+
     this->dataPtr->initialized = true;
   }
   else
@@ -2396,8 +2715,8 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           joint.SetType(_jointType->Data());
           joint.SetRawPose(_pose->Data());
 
-          joint.SetParentLinkName(_parentLinkName->Data());
-          joint.SetChildLinkName(_childLinkName->Data());
+          joint.SetParentName(_parentLinkName->Data());
+          joint.SetChildName(_childLinkName->Data());
 
           auto jointAxis = _ecm.Component<components::JointAxis>(_entity);
           auto jointAxis2 = _ecm.Component<components::JointAxis2>(_entity);
@@ -2446,6 +2765,16 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
           .push_back(_entity);
         return true;
       });
+
+    // entities with pose
+    _ecm.EachNew<components::Pose, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::Pose *,
+          const components::ParentEntity *_parent) -> bool
+      {
+        this->dataPtr->entitiesWithPose[_entity] = _parent->Data();
+        return true;
+      });
   }
 
   _ecm.EachRemoved<components::Model>(
@@ -2472,6 +2801,15 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
       return true;
     });
 
+  // entities with pose
+  _ecm.EachRemoved<components::Pose>(
+    [&](const Entity &_entity,
+        const components::Pose *) -> bool
+    {
+      this->dataPtr->entitiesWithPose.erase(_entity);
+      return true;
+    });
+
   this->dataPtr->PopulateViewModeVisualLinks(_ecm);
   this->dataPtr->FindInertialLinks(_ecm);
   this->dataPtr->FindJointModels(_ecm);
@@ -2482,34 +2820,46 @@ void VisualizationCapabilities::Update(const UpdateInfo &,
 void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
 {
   if (this->title.empty())
-    this->title = "VisualizationCapabilities";
+    this->title = "Visualization capabilities";
+
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{
+        "Only one Visualization capabilities plugin is supported at a time."};
+    gzerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
 
   // view as transparent service
   this->dataPtr->viewTransparentService = "/gui/view/transparent";
   this->dataPtr->node.Advertise(this->dataPtr->viewTransparentService,
     &VisualizationCapabilitiesPrivate::OnViewTransparent, this->dataPtr.get());
-  ignmsg << "View as transparent service on ["
+  gzmsg << "View as transparent service on ["
          << this->dataPtr->viewTransparentService << "]" << std::endl;
 
   // view wireframes service
   this->dataPtr->viewWireframesService = "/gui/view/wireframes";
   this->dataPtr->node.Advertise(this->dataPtr->viewWireframesService,
    &VisualizationCapabilitiesPrivate::OnViewWireframes, this->dataPtr.get());
-  ignmsg << "View as wireframes service on ["
+  gzmsg << "View as wireframes service on ["
         << this->dataPtr->viewWireframesService << "]" << std::endl;
 
   // view center of mass service
   this->dataPtr->viewCOMService = "/gui/view/com";
   this->dataPtr->node.Advertise(this->dataPtr->viewCOMService,
       &VisualizationCapabilitiesPrivate::OnViewCOM, this->dataPtr.get());
-  ignmsg << "View center of mass service on ["
+  gzmsg << "View center of mass service on ["
          << this->dataPtr->viewCOMService << "]" << std::endl;
 
   // view inertia service
   this->dataPtr->viewInertiaService = "/gui/view/inertia";
   this->dataPtr->node.Advertise(this->dataPtr->viewInertiaService,
       &VisualizationCapabilitiesPrivate::OnViewInertia, this->dataPtr.get());
-  ignmsg << "View inertia service on ["
+  gzmsg << "View inertia service on ["
          << this->dataPtr->viewInertiaService << "]" << std::endl;
 
    // view collisions service
@@ -2517,25 +2867,32 @@ void VisualizationCapabilities::LoadConfig(const tinyxml2::XMLElement *)
    this->dataPtr->node.Advertise(this->dataPtr->viewCollisionsService,
        &VisualizationCapabilitiesPrivate::OnViewCollisions,
        this->dataPtr.get());
-   ignmsg << "View collisions service on ["
+   gzmsg << "View collisions service on ["
           << this->dataPtr->viewCollisionsService << "]" << std::endl;
 
-  // view collisions service
+  // view joints service
   this->dataPtr->viewJointsService = "/gui/view/joints";
   this->dataPtr->node.Advertise(this->dataPtr->viewJointsService,
       &VisualizationCapabilitiesPrivate::OnViewJoints,
       this->dataPtr.get());
-  ignmsg << "View joints service on ["
+  gzmsg << "View joints service on ["
          << this->dataPtr->viewJointsService << "]" << std::endl;
 
-  ignition::gui::App()->findChild
-    <ignition::gui::MainWindow *>()->installEventFilter(this);
+  // view frames service
+  this->dataPtr->viewFramesService = "/gui/view/frames";
+  this->dataPtr->node.Advertise(this->dataPtr->viewFramesService,
+      &VisualizationCapabilitiesPrivate::OnViewFrames, this->dataPtr.get());
+  gzmsg << "View frames service on ["
+         << this->dataPtr->viewFramesService << "]" << std::endl;
+
+  gz::gui::App()->findChild
+    <gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 ////////////////////////////////////////////////
 bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
   }
@@ -2544,5 +2901,5 @@ bool VisualizationCapabilities::eventFilter(QObject *_obj, QEvent *_event)
 
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizationCapabilities,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::VisualizationCapabilities,
+                    gz::gui::Plugin)

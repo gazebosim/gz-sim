@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2023 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,51 +18,69 @@
 
 #include "JointPositionController.hh"
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <string>
 #include <unordered_set>
+#include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/PID.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/PID.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
-class ignition::gazebo::systems::JointPositionControllerPrivate
+class gz::sim::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
   /// \param[in] _msg Position message
-  public: void OnCmdPos(const ignition::msgs::Double &_msg);
+  public: void OnCmdPos(const msgs::Double &_msg);
 
-  /// \brief Ignition communication node.
+  /// \brief Callback for actuator position subscription
+  /// \param[in] _msg Position message
+  public: void OnActuatorPos(const msgs::Actuators &_msg);
+
+  /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Joint Entity
-  public: Entity jointEntity;
+  public: std::vector<Entity> jointEntities;
 
   /// \brief Joint name
-  public: std::string jointName;
+  public: std::vector<std::string> jointNames;
 
   /// \brief Commanded joint position
-  public: double jointPosCmd;
+  public: double jointPosCmd{0.0};
+
+  /// \brief Index of position actuator.
+  public: int actuatorNumber = 0;
 
   /// \brief mutex to protect joint commands
   public: std::mutex jointCmdMutex;
 
+  /// \brief Is the maximum PID gain set.
+  public: bool isMaxSet {false};
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief True if using Actuator msg to control joint position.
+  public: bool useActuatorMsg{false};
+
   /// \brief Position PID controller.
-  public: ignition::math::PID posPid;
+  public: math::PID posPid;
 
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
@@ -96,18 +115,28 @@ void JointPositionController::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    ignerr << "JointPositionController plugin should be attached to a model "
+    gzerr << "JointPositionController plugin should be attached to a model "
            << "entity. Failed to initialize." << std::endl;
     return;
   }
 
   // Get params from SDF
-  this->dataPtr->jointName = _sdf->Get<std::string>("joint_name");
-
-  if (this->dataPtr->jointName == "")
+  auto sdfElem = _sdf->FindElement("joint_name");
+  while (sdfElem)
   {
-    ignerr << "JointPositionController found an empty jointName parameter. "
-           << "Failed to initialize.";
+    if (!sdfElem->Get<std::string>().empty())
+    {
+      this->dataPtr->jointNames.push_back(sdfElem->Get<std::string>());
+    }
+    else
+    {
+      gzerr << "<joint_name> provided but is empty." << std::endl;
+    }
+    sdfElem = sdfElem->GetNextElement("joint_name");
+  }
+  if (this->dataPtr->jointNames.empty())
+  {
+    gzerr << "Failed to get any <joint_name>." << std::endl;
     return;
   }
 
@@ -149,6 +178,7 @@ void JointPositionController::Configure(const Entity &_entity,
   if (_sdf->HasElement("cmd_max"))
   {
     cmdMax = _sdf->Get<double>("cmd_max");
+    this->dataPtr->isMaxSet = true;
   }
   if (_sdf->HasElement("cmd_min"))
   {
@@ -170,15 +200,72 @@ void JointPositionController::Configure(const Entity &_entity,
 
   this->dataPtr->posPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
-  // Subscribe to commands
-  std::string topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
-      "/" + std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
-  if (topic.empty())
+
+  if (_sdf->HasElement("initial_position"))
   {
-    ignerr << "Failed to create topic for joint [" << this->dataPtr->jointName
-           << "]" << std::endl;
-    return;
+    this->dataPtr->jointPosCmd = _sdf->Get<double>("initial_position");
+  }
+
+  if (_sdf->HasElement("use_actuator_msg") &&
+    _sdf->Get<bool>("use_actuator_msg"))
+  {
+    if (_sdf->HasElement("actuator_number"))
+    {
+      this->dataPtr->actuatorNumber =
+        _sdf->Get<int>("actuator_number");
+      this->dataPtr->useActuatorMsg = true;
+    }
+    else
+    {
+      gzerr << "Please specify an actuator_number" <<
+        "to use Actuator position message control." << std::endl;
+    }
+  }
+
+  // Subscribe to commands
+  std::string topic;
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (!this->dataPtr->useActuatorMsg))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+        this->dataPtr->model.Name(_ecm) + "/joint/" +
+        this->dataPtr->jointNames[0] + "/" +
+        std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
+    && (this->dataPtr->useActuatorMsg))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/actuators");
+    if (topic.empty())
+    {
+      gzerr << "Failed to create Actuator topic for joint ["
+            << this->dataPtr->jointNames[0]
+            << "]" << std::endl;
+      return;
+    }
+  }
+  if (_sdf->HasElement("sub_topic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic("/model/" +
+      this->dataPtr->model.Name(_ecm) + "/" +
+        _sdf->Get<std::string>("sub_topic"));
+
+    if (topic.empty())
+    {
+      gzerr << "Failed to create topic from sub_topic [/model/"
+             << this->dataPtr->model.Name(_ecm) << "/"
+             << _sdf->Get<std::string>("sub_topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
+             << "]" << std::endl;
+      return;
+    }
   }
   if (_sdf->HasElement("topic"))
   {
@@ -187,50 +274,107 @@ void JointPositionController::Configure(const Entity &_entity,
 
     if (topic.empty())
     {
-      ignerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << this->dataPtr->jointName
+      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
+             << "]" << " for joint [" << this->dataPtr->jointNames[0]
              << "]" << std::endl;
       return;
     }
   }
-  this->dataPtr->node.Subscribe(
-      topic, &JointPositionControllerPrivate::OnCmdPos, this->dataPtr.get());
+  if (this->dataPtr->useActuatorMsg)
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointPositionControllerPrivate::OnActuatorPos,
+      this->dataPtr.get());
 
-  igndbg << "[JointPositionController] system parameters:" << std::endl;
-  igndbg << "p_gain: ["     << p         << "]"            << std::endl;
-  igndbg << "i_gain: ["     << i         << "]"            << std::endl;
-  igndbg << "d_gain: ["     << d         << "]"            << std::endl;
-  igndbg << "i_max: ["      << iMax      << "]"            << std::endl;
-  igndbg << "i_min: ["      << iMin      << "]"            << std::endl;
-  igndbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
-  igndbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
-  igndbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
-  igndbg << "Topic: ["      << topic     << "]"            << std::endl;
+    gzmsg << "JointPositionController subscribing to Actuator messages on ["
+      << topic << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(topic,
+      &JointPositionControllerPrivate::OnCmdPos,
+      this->dataPtr.get());
+
+    gzmsg << "JointPositionController subscribing to Double messages on ["
+      << topic << "]" << std::endl;
+  }
+
+  gzdbg << "[JointPositionController] system parameters:" << std::endl;
+  gzdbg << "p_gain: ["     << p         << "]"            << std::endl;
+  gzdbg << "i_gain: ["     << i         << "]"            << std::endl;
+  gzdbg << "d_gain: ["     << d         << "]"            << std::endl;
+  gzdbg << "i_max: ["      << iMax      << "]"            << std::endl;
+  gzdbg << "i_min: ["      << iMin      << "]"            << std::endl;
+  gzdbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
+  gzdbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
+  gzdbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
+  gzdbg << "Topic: ["      << topic     << "]"            << std::endl;
+  gzdbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
+         << std::endl;
 }
 
 //////////////////////////////////////////////////
 void JointPositionController::PreUpdate(
-    const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("JointPositionController::PreUpdate");
+  GZ_PROFILE("JointPositionController::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
 
-  // If the joint hasn't been identified yet, look for it
-  if (this->dataPtr->jointEntity == kNullEntity)
+  // If the joints haven't been identified yet, look for them
+  if (this->dataPtr->jointEntities.empty())
   {
-    this->dataPtr->jointEntity =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-  }
+    bool warned{false};
+    for (const std::string &name : this->dataPtr->jointNames)
+    {
+      // First try to resolve by scoped name.
+      Entity joint = kNullEntity;
+      auto entities = entitiesFromScopedName(
+          name, _ecm, this->dataPtr->model.Entity());
 
-  if (this->dataPtr->jointEntity == kNullEntity)
+      if (!entities.empty())
+      {
+        if (entities.size() > 1)
+        {
+          gzwarn << "Multiple joint entities with name ["
+                << name << "] found. "
+                << "Using the first one.\n";
+        }
+        joint = *entities.begin();
+
+        // Validate
+        if (!_ecm.EntityHasComponentType(joint, components::Joint::typeId))
+        {
+          gzerr << "Entity with name[" << name
+                << "] is not a joint\n";
+          joint = kNullEntity;
+        }
+        else
+        {
+          gzdbg << "Identified joint [" << name
+                << "] as Entity [" << joint << "]\n";
+        }
+      }
+
+      if (joint != kNullEntity)
+      {
+        this->dataPtr->jointEntities.push_back(joint);
+      }
+      else if (!warned)
+      {
+        gzwarn << "Failed to find joint [" << name << "]\n";
+        warned = true;
+      }
+    }
+  }
+  if (this->dataPtr->jointEntities.empty())
     return;
 
   // Nothing left to do if paused.
@@ -238,13 +382,14 @@ void JointPositionController::PreUpdate(
     return;
 
   // Create joint position component if one doesn't exist
-  auto jointPosComp =
-      _ecm.Component<components::JointPosition>(this->dataPtr->jointEntity);
-  if (jointPosComp == nullptr)
+  auto jointPosComp = _ecm.Component<components::JointPosition>(
+      this->dataPtr->jointEntities[0]);
+  if (!jointPosComp)
   {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity, components::JointPosition());
+    _ecm.CreateComponent(this->dataPtr->jointEntities[0],
+        components::JointPosition());
   }
+
   // We just created the joint position component, give one iteration for the
   // physics system to update its size
   if (jointPosComp == nullptr || jointPosComp->Data().empty())
@@ -254,15 +399,15 @@ void JointPositionController::PreUpdate(
   if (this->dataPtr->jointIndex >= jointPosComp->Data().size())
   {
     static std::unordered_set<Entity> reported;
-    if (reported.find(this->dataPtr->jointEntity) == reported.end())
+    if (reported.find(this->dataPtr->jointEntities[0]) == reported.end())
     {
-      ignerr << "[JointPositionController]: Detected an invalid <joint_index> "
+      gzerr << "[JointPositionController]: Detected an invalid <joint_index> "
              << "parameter. The index specified is ["
              << this->dataPtr->jointIndex << "] but joint ["
-             << this->dataPtr->jointName << "] only has ["
+             << this->dataPtr->jointNames[0] << "] only has ["
              << jointPosComp->Data().size() << "] index[es]. "
              << "This controller will be ignored" << std::endl;
-      reported.insert(this->dataPtr->jointEntity);
+      reported.insert(this->dataPtr->jointEntities[0]);
     }
     return;
   }
@@ -289,46 +434,49 @@ void JointPositionController::PreUpdate(
     auto maxMovement = this->dataPtr->posPid.CmdMax() * dt;
 
     // Limit the maximum change to maxMovement
-    if (abs(error) > maxMovement)
+    if (abs(error) > maxMovement && this->dataPtr->isMaxSet)
     {
       targetVel = (error < 0) ? this->dataPtr->posPid.CmdMax() :
         -this->dataPtr->posPid.CmdMax();
     }
     else
     {
-      targetVel = -error;
+      targetVel = - error / dt;
     }
-
-    // Set velocity and return
-    auto vel =
-      _ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity);
-
-    if (vel == nullptr)
+    for (Entity joint : this->dataPtr->jointEntities)
     {
-      _ecm.CreateComponent(
-          this->dataPtr->jointEntity,
-          components::JointVelocityCmd({targetVel}));
-    }
-    else if (!vel->Data().empty())
-    {
-      vel->Data()[0] = targetVel;
+      // Update velocity command.
+      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
+
+      if (vel == nullptr)
+      {
+        _ecm.CreateComponent(
+            joint, components::JointVelocityCmd({targetVel}));
+      }
+      else
+      {
+        *vel = components::JointVelocityCmd({targetVel});
+      }
     }
     return;
   }
 
-  // Update force command.
-  double force = this->dataPtr->posPid.Update(error, _info.dt);
+  for (Entity joint : this->dataPtr->jointEntities)
+  {
+    // Update force command.
+    double force = this->dataPtr->posPid.Update(error, _info.dt);
 
-  auto forceComp =
-      _ecm.Component<components::JointForceCmd>(this->dataPtr->jointEntity);
-  if (forceComp == nullptr)
-  {
-    _ecm.CreateComponent(this->dataPtr->jointEntity,
-                         components::JointForceCmd({force}));
-  }
-  else
-  {
-    forceComp->Data()[this->dataPtr->jointIndex] = force;
+    auto forceComp =
+        _ecm.Component<components::JointForceCmd>(joint);
+    if (forceComp == nullptr)
+    {
+      _ecm.CreateComponent(joint,
+                          components::JointForceCmd({force}));
+    }
+    else
+    {
+      *forceComp = components::JointForceCmd({force});
+    }
   }
 }
 
@@ -339,10 +487,28 @@ void JointPositionControllerPrivate::OnCmdPos(const msgs::Double &_msg)
   this->jointPosCmd = _msg.data();
 }
 
-IGNITION_ADD_PLUGIN(JointPositionController,
-                    ignition::gazebo::System,
+void JointPositionControllerPrivate::OnActuatorPos(const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->jointCmdMutex);
+  if (this->actuatorNumber > _msg.position_size() - 1)
+  {
+    gzerr << "You tried to access index " << this->actuatorNumber
+      << " of the Actuator position array which is of size "
+      << _msg.position_size() << std::endl;
+    return;
+  }
+
+  this->jointPosCmd = static_cast<double>(_msg.position(this->actuatorNumber));
+}
+
+GZ_ADD_PLUGIN(JointPositionController,
+                    System,
                     JointPositionController::ISystemConfigure,
                     JointPositionController::ISystemPreUpdate)
 
-IGNITION_ADD_PLUGIN_ALIAS(JointPositionController,
+GZ_ADD_PLUGIN_ALIAS(JointPositionController,
+                          "gz::sim::systems::JointPositionController")
+
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(JointPositionController,
                           "ignition::gazebo::systems::JointPositionController")

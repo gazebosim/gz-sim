@@ -18,34 +18,35 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/Interface.hh>
+#include <gz/common/Console.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
@@ -266,7 +267,7 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
       return out;
     };
 
-    // Configure SDF to fetch assets from ignition fuel.
+    // Configure SDF to fetch assets from Gazebo Fuel.
     sdf::setFindCallback(fuelCb);
     creator = std::make_unique<SdfEntityCreator>(this->ecm, this->evm);
   }
@@ -347,7 +348,7 @@ class ModelElementFixture : public ElementUpdateFixture
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelsInline)
 {
-  this->LoadWorld("test/worlds/shapes.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   this->TestModel("box");
   this->TestModel("capsule");
   this->TestModel("cylinder");
@@ -358,7 +359,7 @@ TEST_F(ModelElementFixture, ModelsInline)
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelIncluded)
 {
-  this->LoadWorld("test/worlds/save_world.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   this->TestModel("backpack1");
   this->TestModel("backpack2");
 }
@@ -366,7 +367,7 @@ TEST_F(ModelElementFixture, ModelIncluded)
 /////////////////////////////////////////////////
 TEST_F(ModelElementFixture, ModelComponentUpdate)
 {
-  this->LoadWorld("test/worlds/shapes.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   std::string modelName = "box";
   Entity modelEntity = this->ecm.EntityByComponents(
       components::Model(), components::Name(modelName));
@@ -460,8 +461,7 @@ TEST_F(ElementUpdateFixture, ConfigOverrideCopyOrMerge)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, ConfigOverride)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   {
     this->sdfGenConfig.mutable_global_entity_gen_config()
@@ -514,15 +514,17 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
     auto uri = inclElem->Get<std::string>("uri");
     EXPECT_FALSE(uri.empty());
     const std::string version = common::split(uri, "/").back();
-    EXPECT_NO_THROW(std::stol(version));
+
+    int64_t versionParsed = -1;
+    EXPECT_NO_THROW(versionParsed = std::stol(version));
+    EXPECT_NE(-1, versionParsed);
   }
 }
 
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsInline)
 {
-  const std::string worldFile{"test/worlds/shapes.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "shapes.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
@@ -534,7 +536,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsInline)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedExpanded)
 {
-  this->LoadWorld("test/worlds/save_world.sdf");
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
   sdf::initFile("world.sdf", elem);
@@ -585,7 +587,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
+  const auto worldFile = common::joinPaths("test", "worlds", "save_world.sdf");
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
@@ -643,17 +645,17 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/";
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3/",
       // Thes following two URIs are invalid, and will not be saved
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt/",
   };
 
@@ -708,7 +710,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 {
   const std::vector<std::string> includeUris = {
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack",
+      "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack",
       std::string("file://") + PROJECT_SOURCE_PATH +
           "/test/worlds/models/sphere"};
 
@@ -767,7 +769,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
+  const auto worldFile = common::joinPaths("test", "worlds", "save_world.sdf");
   this->LoadWorld(worldFile);
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   auto elem = std::make_shared<sdf::Element>();
@@ -790,7 +792,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithOneExpanded)
                 common::joinPaths(PROJECT_SOURCE_PATH, worldFile).c_str()));
 
   tinyxml2::XMLDocument genSdfDoc;
-  genSdfDoc.Parse(elem->ToString("").c_str());
+  sdf::PrintConfig config;
+  config.SetOutPrecision(6);
+  genSdfDoc.Parse(elem->ToString("", config).c_str());
 
   // Compare elements from the original sdf xml and the generated xml
   auto origWorld = originalSdfDoc.RootElement()->FirstChildElement("world");
@@ -892,7 +896,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ElementUpdateFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";
@@ -942,8 +948,7 @@ using GenerateWorldFixture = ElementUpdateFixture;
 /////////////////////////////////////////////////
 TEST_F(GenerateWorldFixture, ModelsInline)
 {
-  const std::string worldFile{"test/worlds/save_world.sdf"};
-  this->LoadWorld(worldFile);
+  this->LoadWorld(common::joinPaths("test", "worlds", "save_world.sdf"));
   Entity worldEntity = this->ecm.EntityByComponents(components::World());
   // Check with expandIncludeTags = true
   {
@@ -1013,7 +1018,7 @@ TEST_F(GenerateWorldFixture, PoseWithAttributes)
       auto model = newWorld->ModelByIndex(0);
       ASSERT_NE(nullptr, model);
       // Check that the generated element has the new pose
-      EXPECT_EQ(math::Pose3d(1, 2, 3, IGN_PI_2, 0, 0), model->RawPose());
+      EXPECT_EQ(math::Pose3d(1, 2, 3, GZ_PI_2, 0, 0), model->RawPose());
     }
     {
       auto model = newWorld->ModelByIndex(1);

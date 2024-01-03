@@ -1,0 +1,28 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="ComponentInspectorEditor/">
+  <file>AirPressure.qml</file>
+  <file>Altimeter.qml</file>
+  <file>Boolean.qml</file>
+  <file>ComponentInspectorEditor.qml</file>
+  <file>ExpandingTypeHeader.qml</file>
+  <file>Float.qml</file>
+  <file>Imu.qml</file>
+  <file>Integer.qml</file>
+  <file>JointType.qml</file>
+  <file>Lidar.qml</file>
+  <file>LidarScan.qml</file>
+  <file>Light.qml</file>
+  <file>Magnetometer.qml</file>
+  <file>Material.qml</file>
+  <file>NoData.qml</file>
+  <file>Noise.qml</file>
+  <file>Physics.qml</file>
+  <file>Pose3d.qml</file>
+  <file>SphericalCoordinates.qml</file>
+  <file>String.qml</file>
+  <file>TypeHeader.qml</file>
+  <file>Vector3d.qml</file>
+  <file>StateAwareSpin.qml</file>
+  <file>plottable_icon.svg</file>
+</qresource>
+</RCC>

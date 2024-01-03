@@ -15,28 +15,30 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DETACHABLEJOINT_HH_
+#ifndef GZ_SIM_SYSTEMS_DETACHABLEJOINT_HH_
+#define GZ_SIM_SYSTEMS_DETACHABLEJOINT_HH_
 
-#include <ignition/msgs/empty.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 #include <memory>
 #include <string>
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/System.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 
-namespace ignition
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief A system that initially attaches two models via a fixed joint and
-  /// allows for the models to get detached during simulation via a topic.
+  /// allows for the models to get detached during simulation via a topic. A
+  /// model can be re-attached during simulation via a topic. The status of the
+  /// detached state can be monitored via a topic as well.
   ///
   /// Parameters:
   ///
@@ -48,7 +50,21 @@ namespace systems
   /// - `<child_link>`: Name of the link in the child model to be used in
   /// creating a fixed joint with a link in the parent model.
   ///
-  /// - `<topic>` (optional): Topic name to be used for detaching connections
+  /// - `<topic>` (optional): Topic name to be used for detaching connections.
+  /// Using <detach_topic> is preferred.
+  ///
+  /// - `<detach_topic>` (optional): Topic name to be used for detaching
+  /// connections. If multiple detachable plugin is used in one model,
+  /// `detach_topic` is REQUIRED to detach child models individually.
+  ///
+  /// - `<attach_topic>` (optional): Topic name to be used for attaching
+  /// connections. If multiple detachable plugin is used in one model,
+  /// `attach_topic` is REQUIRED to attach child models individually.
+  ///
+  /// - `<output_topic>` (optional): Topic name to be used for publishing
+  /// the state of the detachment. If multiple detachable plugin is used in
+  /// one model, `output_topic` is REQUIRED to publish child models state
+  /// individually.
   ///
   /// - `<suppress_child_warning>` (optional): If true, the system
   /// will not print a warning message if a child model does not exist yet.
@@ -70,8 +86,17 @@ namespace systems
 
     /// Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) final;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) final;
+
+    /// \brief Gazebo communication node.
+    private: transport::Node node;
+
+    /// \brief A publisher to send state of the detachment
+    private: transport::Node::Publisher outputPub;
+
+    /// \brief Helper function to publish the state of the detachment
+    private: void PublishJointState(bool attached);
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);
@@ -86,7 +111,13 @@ namespace systems
     private: std::string childLinkName;
 
     /// \brief Topic to be used for detaching connections
-    private: std::string topic;
+    private: std::string detachTopic;
+
+    /// \brief Topic to be used for re-attaching connections
+    private: std::string attachTopic;
+
+    /// \brief Topic to be used for publishing detached state
+    private: std::string outputTopic;
 
     /// \brief Whether to suppress warning about missing child model.
     private: bool suppressChildWarning{false};
@@ -103,14 +134,15 @@ namespace systems
     /// \brief Whether detachment has been requested
     private: std::atomic<bool> detachRequested{false};
 
-    /// \brief Ignition communication node.
-    public: transport::Node node;
+    /// \brief Whether attachment has been requested
+    private: std::atomic<bool> attachRequested{true};
+
+    /// \brief Whether child entity is attached
+    private: std::atomic<bool> isAttached{false};
 
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
-    /// \brief Whether the system has been initialized
-    private: bool initialized{false};
   };
   }
 }

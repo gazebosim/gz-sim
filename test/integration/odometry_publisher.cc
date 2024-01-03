@@ -16,29 +16,30 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/AngularVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocityCmd.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 0.005
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test OdometryPublisher system
@@ -62,8 +63,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -117,8 +118,8 @@ class OdometryPublisherTest
     math::Vector3d linVelCmd(1, 0.5, 0.0);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &_ecm)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &_ecm)
         {
           auto en = _ecm.EntityByComponents(
             components::Model(),
@@ -207,8 +208,16 @@ class OdometryPublisherTest
 
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
+  /// \param[in] _tfTopic TF / Pose_V topic.
+  /// \param[in] _frameId Name of the world-fixed coordinate frame
+  /// for the odometry message.
+  /// \param[in] _childFrameId Name of the coordinate frame rigidly
+  /// attached to the mobile robot base.
   protected: void TestMovement3d(const std::string &_sdfFile,
-                                 const std::string &_odomTopic)
+                                 const std::string &_odomTopic,
+                                 const std::string &_tfTopic,
+                                 const std::string &_frameId,
+                                 const std::string &_childFrameId)
   {
     // Start server
     ServerConfig serverConfig;
@@ -222,8 +231,8 @@ class OdometryPublisherTest
     test::Relay testSystem;
 
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&poses](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
       {
         auto id = _ecm.EntityByComponents(
           components::Model(),
@@ -252,6 +261,7 @@ class OdometryPublisherTest
     std::vector<math::Pose3d> odomPoses;
     std::vector<math::Vector3d> odomLinVels;
     std::vector<math::Vector3d> odomAngVels;
+    std::vector<math::Pose3d> tfPoses;
     // Create function to store data from odometry messages
     std::function<void(const msgs::Odometry &)> odomCb =
       [&](const msgs::Odometry &_msg)
@@ -270,17 +280,37 @@ class OdometryPublisherTest
         odomLinVels.push_back(msgs::Convert(_msg.twist().linear()));
         odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
       };
+    // Create function to store data from Pose_V messages
+    std::function<void(const msgs::Pose_V &)> tfCb =
+      [&](const msgs::Pose_V &_msg)
+      {
+        ASSERT_EQ(_msg.pose_size(), 1);
+        EXPECT_TRUE(_msg.pose(0).has_header());
+        EXPECT_TRUE(_msg.pose(0).has_position());
+        EXPECT_TRUE(_msg.pose(0).has_orientation());
+
+        ASSERT_EQ(_msg.pose(0).header().data_size(), 2);
+
+        EXPECT_EQ(_msg.pose(0).header().data(0).key(), "frame_id");
+        EXPECT_EQ(_msg.pose(0).header().data(0).value().Get(0), _frameId);
+
+        EXPECT_EQ(_msg.pose(0).header().data(1).key(), "child_frame_id");
+        EXPECT_EQ(_msg.pose(0).header().data(1).value().Get(0), _childFrameId);
+
+        tfPoses.push_back(msgs::Convert(_msg.pose(0)));
+      };
     // Create node for publishing twist messages
     transport::Node node;
     auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
     node.Subscribe(_odomTopic, odomCb);
+    node.Subscribe(_tfTopic, tfCb);
 
     test::Relay velocityRamp;
     math::Vector3d linVelCmd(0.5, 0.3, 1.5);
     math::Vector3d angVelCmd(0.0, 0.0, 0.2);
     velocityRamp.OnPreUpdate(
-        [&](const gazebo::UpdateInfo &/*_info*/,
-            gazebo::EntityComponentManager &/*_ecm*/)
+        [&](const sim::UpdateInfo &/*_info*/,
+            sim::EntityComponentManager &/*_ecm*/)
         {
           msgs::Twist msg;
           msgs::Set(msg.mutable_linear(), linVelCmd);
@@ -298,17 +328,19 @@ class OdometryPublisherTest
 
     int sleep = 0;
     int maxSleep = 30;
-    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    for (; (odomPoses.size() < 150 || tfPoses.size() < 150) &&
+        sleep < maxSleep; ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-    ASSERT_NE(maxSleep, sleep);
+    EXPECT_NE(maxSleep, sleep);
 
     // Odom for 3s
     ASSERT_FALSE(odomPoses.empty());
     EXPECT_EQ(150u, odomPoses.size());
     EXPECT_EQ(150u, odomLinVels.size());
     EXPECT_EQ(150u, odomAngVels.size());
+    EXPECT_EQ(150u, tfPoses.size());
 
     // Check accuracy of poses published in the odometry message
     auto finalModelFramePose = odomPoses.back();
@@ -332,6 +364,14 @@ class OdometryPublisherTest
     EXPECT_NEAR(odomAngVels.back().X(), 0.0, 1e-1);
     EXPECT_NEAR(odomAngVels.back().Y(), 0.0, 1e-1);
     EXPECT_NEAR(odomAngVels.back().Z(), angVelCmd[2], 1e-1);
+
+    // Check TF
+    EXPECT_NEAR(poses.back().Pos().X(), tfPoses.back().Pos().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Y(), tfPoses.back().Pos().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Pos().Z(), tfPoses.back().Pos().Z(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().X(), tfPoses.back().Rot().X(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Y(), tfPoses.back().Rot().Y(), 1e-2);
+    EXPECT_NEAR(poses.back().Rot().Z(), tfPoses.back().Rot().Z(), 1e-2);
   }
 
   /// \param[in] _sdfFile SDF file to load.
@@ -393,10 +433,166 @@ class OdometryPublisherTest
 
     EXPECT_EQ(5u, odomPosesCount);
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestOffsetTags(const std::string &_sdfFile,
+                               const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::vector<math::Pose3d> odomPoses;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        odomPoses.push_back(msgs::Convert(_msg.pose()));
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    // Run for 3s and check the pose in the last message
+    ASSERT_FALSE(odomPoses.empty());
+    auto lastPose = odomPoses[odomPoses.size() - 1];
+    EXPECT_NEAR(lastPose.Pos().X(), 11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Y(), -11, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Z(), 0, 1e-2);
+
+    EXPECT_NEAR(lastPose.Rot().Roll(), 1.57, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Pitch(), 0, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Yaw(), 0, 1e-2);
+  }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestGaussianNoise(const std::string &_sdfFile,
+                               const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::vector<math::Vector3d> odomLinVels;
+    std::vector<math::Vector3d> odomAngVels;
+    std::vector<math::Quaterniond> odomAngs;
+    google::protobuf::RepeatedField<float> odomTwistCovariance;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::OdometryWithCovariance &)> odomCb =
+      [&](const msgs::OdometryWithCovariance &_msg)
+      {
+        odomAngs.push_back(msgs::Convert(_msg.pose_with_covariance().
+          pose().orientation()));
+        odomLinVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().linear()));
+        odomAngVels.push_back(msgs::Convert(_msg.twist_with_covariance().
+          twist().angular()));
+        odomTwistCovariance = _msg.twist_with_covariance().covariance().data();
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 3000, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; odomLinVels.size() < 500 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    // Verify the Gaussian noise.
+    ASSERT_FALSE(odomLinVels.empty());
+    ASSERT_FALSE(odomAngs.empty());
+    ASSERT_FALSE(odomAngVels.empty());
+    int n = odomLinVels.size();
+
+    // Calculate the means.
+    double linVelSumX = 0, linVelSumY = 0, linVelSumZ = 0;
+    double angVelSumX = 0, angVelSumY = 0, angVelSumZ = 0;
+    for (int i = 0; i < n; i++)
+    {
+      linVelSumX += odomLinVels[i].X();
+      linVelSumY += odomLinVels[i].Y();
+      linVelSumZ += odomLinVels[i].Z();
+
+      angVelSumX += odomAngVels[i].X();
+      angVelSumY += odomAngVels[i].Y();
+      angVelSumZ += odomAngVels[i].Z();
+    }
+
+    // Check that the mean values are close to zero.
+    EXPECT_NEAR(linVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(linVelSumZ/n, 0, 0.5);
+
+    EXPECT_NEAR(angVelSumX/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumY/n, 0, 0.5);
+    EXPECT_NEAR(angVelSumZ/n, 0, 0.5);
+
+    // Calculate the variation (sigma^2).
+    double linVelSqSumX = 0, linVelSqSumY = 0, linVelSqSumZ = 0;
+    double angVelSqSumX = 0, angVelSqSumY = 0, angVelSqSumZ = 0;
+    for (int i = 0; i < n; i++)
+    {
+      linVelSqSumX += std::pow(odomLinVels[i].X() - linVelSumX/n, 2);
+      linVelSqSumY += std::pow(odomLinVels[i].Y() - linVelSumY/n, 2);
+      linVelSqSumZ += std::pow(odomLinVels[i].Z() - linVelSumZ/n, 2);
+
+      angVelSqSumX += std::pow(odomAngVels[i].X() - angVelSumX/n, 2);
+      angVelSqSumY += std::pow(odomAngVels[i].Y() - angVelSumY/n, 2);
+      angVelSqSumZ += std::pow(odomAngVels[i].Z() - angVelSumZ/n, 2);
+    }
+
+    // Verify the variance values.
+    EXPECT_NEAR(linVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(linVelSqSumZ/n, 1, 0.5);
+
+    EXPECT_NEAR(angVelSqSumX/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumY/n, 1, 0.5);
+    EXPECT_NEAR(angVelSqSumZ/n, 1, 0.5);
+
+    // Check the covariance matrix.
+    EXPECT_EQ(odomTwistCovariance.size(), 36);
+    for (int i = 0; i < 36; i++)
+    {
+      if (i % 7 == 0)
+      {
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 1, 1e-2);
+      }
+      else
+      {
+        EXPECT_NEAR(odomTwistCovariance.Get(i), 0, 1e-2);
+      }
+    }
+  }
 };
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -404,7 +600,8 @@ TEST_P(OdometryPublisherTest, Movement)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, MovementCustomTopic)
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(MovementCustomTopic))
 {
   TestMovement(
       std::string(PROJECT_SOURCE_PATH) +
@@ -413,16 +610,16 @@ TEST_P(OdometryPublisherTest, MovementCustomTopic)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, Movement3d)
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
 {
   TestMovement3d(
-      ignition::common::joinPaths(PROJECT_SOURCE_PATH,
+      gz::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
-      "/model/X3/odometry");
+      "/model/X3/odometry", "/model/X3/pose", "X3/odom", "X3/base_footprint");
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomFrameId)
+TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/odometry_publisher.sdf",
@@ -432,7 +629,8 @@ TEST_P(OdometryPublisherTest, OdomFrameId)
 }
 
 /////////////////////////////////////////////////
-TEST_P(OdometryPublisherTest, OdomCustomFrameId)
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   TestPublishCmd(
       std::string(PROJECT_SOURCE_PATH) +
@@ -440,6 +638,26 @@ TEST_P(OdometryPublisherTest, OdomCustomFrameId)
       "/model/bar/odom",
       "odomCustom",
       "baseCustom");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetTagTest))
+{
+  TestOffsetTags(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_offset.sdf",
+      "/model/vehicle/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GaussianNoiseTest))
+{
+  TestGaussianNoise(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_noise.sdf",
+      "/model/vehicle/odometry_with_covariance");
 }
 
 // Run multiple times

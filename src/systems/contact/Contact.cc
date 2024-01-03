@@ -17,33 +17,33 @@
 
 #include "Contact.hh"
 
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/msgs/contacts.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/msgs/contacts.pb.h>
 
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 using namespace systems;
 
 class ContactSensor
@@ -62,7 +62,7 @@ class ContactSensor
   public: void AddContacts(const std::chrono::steady_clock::duration &_stamp,
                            const msgs::Contacts &_contacts);
 
-  /// \brief Publish sensor data over ign transport
+  /// \brief Publish sensor data over gz transport
   public: void Publish();
 
   /// \brief Topic to publish data to
@@ -71,17 +71,17 @@ class ContactSensor
   /// \brief Message to publish
   public: msgs::Contacts contactsMsg;
 
-  /// \brief Ign transport node
+  /// \brief Gazebo transport node
   public: transport::Node node;
 
-  /// \brief Ign transport publisher
+  /// \brief Gazebo transport publisher
   public: transport::Node::Publisher pub;
 
   /// \brief Entities for which this sensor publishes data
   public: std::vector<Entity> collisionEntities;
 };
 
-class ignition::gazebo::systems::ContactPrivate
+class gz::sim::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.
@@ -122,8 +122,8 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
     this->topic = tmpTopic;
   }
 
-  ignmsg << "Contact system publishing on " << this->topic << std::endl;
-  this->pub = this->node.Advertise<ignition::msgs::Contacts>(this->topic);
+  gzmsg << "Contact system publishing on " << this->topic << std::endl;
+  this->pub = this->node.Advertise<msgs::Contacts>(this->topic);
 }
 
 //////////////////////////////////////////////////
@@ -156,7 +156,7 @@ void ContactSensor::Publish()
 //////////////////////////////////////////////////
 void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::CreateSensors");
+  GZ_PROFILE("ContactPrivate::CreateSensors");
   _ecm.EachNew<components::ContactSensor>(
       [&](const Entity &_entity,
           const components::ContactSensor *_contact) -> bool
@@ -215,7 +215,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
 void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
                                    const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::UpdateSensors");
+  GZ_PROFILE("ContactPrivate::UpdateSensors");
   for (const auto &item : this->entitySensorMap)
   {
     for (const Entity &entity : item.second->collisionEntities)
@@ -236,7 +236,7 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
 void ContactPrivate::RemoveSensors(
     const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("ContactPrivate::RemoveSensors");
+  GZ_PROFILE("ContactPrivate::RemoveSensors");
   _ecm.EachRemoved<components::ContactSensor>(
     [&](const Entity &_entity,
         const components::ContactSensor *)->bool
@@ -244,7 +244,7 @@ void ContactPrivate::RemoveSensors(
         auto sensorId = this->entitySensorMap.find(_entity);
         if (sensorId == this->entitySensorMap.end())
         {
-          ignerr << "Internal error, missing Contact sensor for entity ["
+          gzerr << "Internal error, missing Contact sensor for entity ["
                  << _entity << "]" << std::endl;
           return true;
         }
@@ -262,7 +262,7 @@ Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 //////////////////////////////////////////////////
 void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Contact::PreUpdate");
+  GZ_PROFILE("Contact::PreUpdate");
   this->dataPtr->CreateSensors(_ecm);
 }
 
@@ -270,12 +270,12 @@ void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 void Contact::PostUpdate(const UpdateInfo &_info,
                          const EntityComponentManager &_ecm)
 {
-  IGN_PROFILE("Contact::PostUpdate");
+  GZ_PROFILE("Contact::PostUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    ignwarn << "Detected jump back in time ["
+    gzwarn << "Detected jump back in time ["
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
@@ -294,10 +294,12 @@ void Contact::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->RemoveSensors(_ecm);
 }
 
-IGNITION_ADD_PLUGIN(Contact, System,
+GZ_ADD_PLUGIN(Contact, System,
   Contact::ISystemPreUpdate,
   Contact::ISystemPostUpdate
 )
 
-IGNITION_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")
+GZ_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")
 
+// TODO(CH3): Deprecated, remove on version 8
+GZ_ADD_PLUGIN_ALIAS(Contact, "ignition::gazebo::systems::Contact")

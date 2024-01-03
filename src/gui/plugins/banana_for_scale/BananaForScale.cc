@@ -21,23 +21,23 @@
 #include <iostream>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/fuel_tools/FuelClient.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
-namespace ignition::gazebo
+namespace gz::sim
 {
   class BananaPrivate
   {
     /// \brief Fuel client
-    public:  std::unique_ptr<ignition::fuel_tools::FuelClient>
+    public:  std::unique_ptr<gz::fuel_tools::FuelClient>
              fuelClient {nullptr};
 
   };
@@ -49,16 +49,16 @@ const char kBanana[] =
 const char kBigBanana[] =
   "https://fuel.ignitionrobotics.org/1.0/mjcarroll/models/big banana for scale";
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 BananaForScale::BananaForScale()
-  : ignition::gui::Plugin(),
+  : gz::gui::Plugin(),
   dataPtr(std::make_unique<BananaPrivate>())
 {
   this->dataPtr->fuelClient =
-    std::make_unique<ignition::fuel_tools::FuelClient>();
+    std::make_unique<gz::fuel_tools::FuelClient>();
 }
 
 /////////////////////////////////////////////////
@@ -78,35 +78,35 @@ void BananaForScale::OnMode(const QString &_mode)
   std::transform(modelSdfString.begin(), modelSdfString.end(),
                  modelSdfString.begin(), ::tolower);
 
-  ignition::common::URI modelUri;
+  gz::common::URI modelUri;
   if (_mode == "banana")
   {
-    modelUri = ignition::common::URI(kBanana);
+    modelUri = gz::common::URI(kBanana);
   }
   else if (_mode == "bigbanana")
   {
-    modelUri = ignition::common::URI(kBigBanana);
+    modelUri = gz::common::URI(kBigBanana);
   }
 
   std::string path;
   std::string sdfPath;
   if (this->dataPtr->fuelClient->CachedModel(modelUri, path))
   {
-    sdfPath = ignition::common::joinPaths(path, "model.sdf");
+    sdfPath = gz::common::joinPaths(path, "model.sdf");
   }
   else
   {
     std::string localPath;
     auto result = this->dataPtr->fuelClient->DownloadModel(modelUri, localPath);
-    sdfPath = ignition::common::joinPaths(localPath, "model.sdf");
+    sdfPath = gz::common::joinPaths(localPath, "model.sdf");
   }
 
-  ignition::gui::events::SpawnFromPath event(sdfPath);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  gz::gui::events::SpawnFromPath event(sdfPath);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::BananaForScale,
-                    ignition::gui::Plugin)
+GZ_ADD_PLUGIN(gz::sim::BananaForScale,
+                    gz::gui::Plugin)

@@ -1,0 +1,25 @@
+gz_add_gui_plugin(ComponentInspectorEditor
+  SOURCES
+    AirPressure.cc
+    Altimeter.cc
+    ComponentInspectorEditor.cc
+    Imu.cc
+    JointType.cc
+    Lidar.cc
+    Magnetometer.cc
+    ModelEditor.cc
+    Pose3d.cc
+    Types.cc
+  QT_HEADERS
+    AirPressure.hh
+    Altimeter.hh
+    ComponentInspectorEditor.hh
+    Imu.hh
+    JointType.hh
+    Lidar.hh
+    Magnetometer.hh
+    ModelEditor.hh
+    Pose3d.hh
+  PRIVATE_LINK_LIBS
+    gz-common${GZ_COMMON_VER}::graphics
+)

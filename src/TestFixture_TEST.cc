@@ -17,17 +17,17 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "test_config.hh"
 #include "../test/helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/TestFixture.hh"
+#include "gz/sim/TestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace sim;
 
 /////////////////////////////////////////////////
 class TestFixtureTest : public InternalFixture<::testing::Test>
@@ -42,7 +42,7 @@ class TestFixtureTest : public InternalFixture<::testing::Test>
     EXPECT_EQ(worldEntity, _entity);
 
     ASSERT_NE(nullptr, _sdf);
-    EXPECT_EQ("world", _sdf->GetName());
+    EXPECT_EQ("plugin", _sdf->GetName());
 
     EXPECT_NE(kNullEntity, _ecm.EntityByComponents(components::Name("box")));
     EXPECT_NE(kNullEntity, _ecm.EntityByComponents(components::Name("sphere")));

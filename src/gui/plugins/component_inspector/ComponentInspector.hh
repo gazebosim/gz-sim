@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
-#define IGNITION_GAZEBO_GUI_COMPONENTINSPECTOR_HH_
+#ifndef GZ_SIM_GUI_COMPONENTINSPECTOR_HH_
+#define GZ_SIM_GUI_COMPONENTINSPECTOR_HH_
 
 #include <map>
 #include <memory>
@@ -25,20 +25,23 @@
 #include <sdf/Material.hh>
 #include <sdf/Physics.hh>
 
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
+#include <gz/math/SphericalCoordinates.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
-#include <ignition/gazebo/Types.hh>
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/gui/GuiSystem.hh>
+#include <gz/sim/Types.hh>
 
-#include <ignition/msgs/light.pb.h>
+#include "Types.hh"
 
-Q_DECLARE_METATYPE(ignition::gazebo::ComponentTypeId)
+#include <gz/msgs/light.pb.h>
 
-namespace ignition
+Q_DECLARE_METATYPE(gz::sim::ComponentTypeId)
+
+namespace gz
 {
-namespace gazebo
+namespace sim
 {
   class ComponentInspectorPrivate;
 
@@ -58,7 +61,7 @@ namespace gazebo
     }
     else
     {
-      ignwarn << "Attempting to set unsupported data type to item ["
+      gzwarn << "Attempting to set unsupported data type to item ["
               << _item->text().toStdString() << "]" << std::endl;
     }
   }
@@ -68,12 +71,6 @@ namespace gazebo
   /// \param[in] _data Data to set.
   template<>
   void setData(QStandardItem *_item, const std::string &_data);
-
-  /// \brief Specialized to set pose data.
-  /// \param[in] _item Item whose data will be set.
-  /// \param[in] _data Data to set.
-  template<>
-  void setData(QStandardItem *_item, const math::Pose3d &_data);
 
   /// \brief Specialized to set light data.
   /// \param[in] _item Item whose data will be set.
@@ -158,12 +155,12 @@ namespace gazebo
     /// \param[in] _typeId Type of component to be added.
     /// \return Newly created item.
     public slots: QStandardItem *AddComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Remove a component type from the inspector.
     /// \param[in] _typeId Type of component to be removed.
     public slots: void RemoveComponentType(
-        ignition::gazebo::ComponentTypeId _typeId);
+        gz::sim::ComponentTypeId _typeId);
 
     /// \brief Keep track of items in the tree, according to type ID.
     public: std::map<ComponentTypeId, QStandardItem *> items;
@@ -173,7 +170,7 @@ namespace gazebo
   ///
   /// ## Configuration
   /// None
-  class ComponentInspector : public gazebo::GuiSystem
+  class ComponentInspector : public sim::GuiSystem
   {
     Q_OBJECT
 
@@ -216,6 +213,14 @@ namespace gazebo
       NOTIFY NestedModelChanged
     )
 
+    /// \brief System display name list
+    Q_PROPERTY(
+      QStringList systemNameList
+      READ SystemNameList
+      WRITE SetSystemNameList
+      NOTIFY SystemNameListChanged
+    )
+
     /// \brief Constructor
     public: ComponentInspector();
 
@@ -228,15 +233,12 @@ namespace gazebo
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when pose changes.
-    /// \param[in] _x X
-    /// \param[in] _y Y
-    /// \param[in] _z Z
-    /// \param[in] _roll Roll
-    /// \param[in] _pitch Pitch
-    /// \param[in] _yaw Yaw
-    public: Q_INVOKABLE void OnPose(double _x, double _y, double _z,
-        double _roll, double _pitch, double _yaw);
+    /// \brief Add a callback that's called whenever there are updates from the
+    /// ECM to the view, for a given component type.
+    /// \param[in] _id The component type id
+    /// \param[in] _cb Function that's called when there are updates.
+    public: void AddUpdateViewCb(ComponentTypeId _id,
+                inspector::UpdateViewCb _cb);
 
     /// \brief Callback in Qt thread when specular changes.
     /// \param[in] _rSpecular specular red
@@ -260,6 +262,8 @@ namespace gazebo
     /// \param[in] _falloff Falloff of the spotlight
     /// \param[in] _intensity Intensity of the light
     /// \param[in] _type light type
+    /// \param[in] _isLightOn is light on
+    /// \param[in] _visualizeVisual is visual enabled
     public: Q_INVOKABLE void OnLight(
       double _rSpecular, double _gSpecular, double _bSpecular,
       double _aSpecular, double _rDiffuse, double _gDiffuse,
@@ -267,7 +271,8 @@ namespace gazebo
       double _attLinear, double _attConstant, double _attQuadratic,
       bool _castShadows, double _directionX, double _directionY,
       double _directionZ, double _innerAngle, double _outerAngle,
-      double _falloff, double _intensity, int _type);
+      double _falloff, double _intensity, int _type, bool _isLightOn,
+      bool _visualizeVisual);
 
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
@@ -367,6 +372,36 @@ namespace gazebo
 
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
+
+    /// \brief Name of world entity
+    /// \return World name
+    public: const std::string &WorldName() const;
+
+    /// \brief Node for communication
+    /// \return Transport node
+    public: transport::Node &TransportNode();
+
+    /// \brief Query system plugin info.
+    public: Q_INVOKABLE void QuerySystems();
+
+    /// \brief Get the system plugin display name list
+    /// \return A list of names that are potentially system plugins
+    public: Q_INVOKABLE QStringList SystemNameList() const;
+
+    /// \brief Set the system plugin display name list
+    /// \param[in] _systempFilenameList A list of system plugin display names
+    public: Q_INVOKABLE void SetSystemNameList(
+        const QStringList &_systemNameList);
+
+    /// \brief Notify that system plugin display name list has changed
+    signals: void SystemNameListChanged();
+
+    /// \brief Callback when a new system is to be added to an entity
+    /// \param[in] _name Name of system
+    /// \param[in] _filename Filename of system
+    /// \param[in] _innerxml Inner XML content of the system
+    public: Q_INVOKABLE void OnAddSystem(const QString &_name,
+        const QString &_filename, const QString &_innerxml);
 
     /// \internal
     /// \brief Pointer to private data.
