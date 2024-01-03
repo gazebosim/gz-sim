@@ -4,19 +4,19 @@
 
 Simulation worlds and models are defined using [SDF](https://sdformat.org),
 which is an XML based file format. Your favorite text editor can be used to
-construct worlds and models, and then run using Ignition Gazebo. While XML
+construct worlds and models which can then be run in Gazebo. While XML
 files are human readable, they are not easy to manually parse or create.
 
-Graphical tools for creating world and models was introduced in the Fortress
-distribution of Ignition. The graphical tools, provided as plugins to
-Ignition Gazebo's GUI, support adding models, links, joints, and sensors.
-Entity properties can also be visualized and modified.
+Graphical tools for creating worlds and models have been introduced into
+Gazebo. These tools, available as GUI plugins, support adding models, links,
+joints, and sensors.  Entity properties can also be visualized and
+modified.
 
 ## Component inspector editor
 
-Graphical editing capabilities currently (as of Fortress) are available in the
+Graphical model editing capabilities are available in the
 `Component inspector editor` GUI plugin, rather the more commonly used
-`Component inspector`. This is done while edit features are under development, and not yet polished for prime-time use.
+`Component inspector`. This is done while edit features are under development.
 
 Make sure to load the `Component inspector editor` plugin in order to
 access the capabilities discussed in the remainder of this tutorial.
@@ -26,7 +26,7 @@ access the capabilities discussed in the remainder of this tutorial.
 The ability to add and edit certain items via the GUI depends on whether
 simulation is running or paused. This distinction is important due to the
 interplay of physics with edits made via the GUI. For example, adding or
-removing a link to/from model would require a major change to physics that
+removing a link to/from a model would require a major change to physics that
 typically can't happen while simulation is running.
 
 Creating new models and changing the pose of a model can be accomplished
@@ -37,10 +37,9 @@ available while running will be disabled.
 ## Adding a model or light
 
 A model or light can be inserted into a world using the `+` button on the
-`Entity Tree`. The following images highlights the plus button with a red
-square.
+`Entity Tree`.
 
-![Entity Tree Plus](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/model_editor/entity_tree_plus.png)
+![Entity Tree Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/model_editor/entity_tree_plus.png)
 
 A menu listing different types of models and lights opens when the `+`
 button is selected. Selecting an item from the menu will insert the
@@ -54,15 +53,12 @@ creating and modifying simulation content.
 
 ## Adding a link, joint, or light to a model
 
-Make sure the `Component inspector editor` GUI plugin is loaded. Simulation
-must also be paused in order to add entities to a model.
+Simulation must be paused in order to add entities to a model. Select
+a model in the `Entity Tree`, then select the `+` button on the `Component
+inspector editor` plugin. In the following example, we would be adding
+an entity to the selected `box` entity.
 
-Select a model in the `Entity Tree`, then select the `+` button on the
-`Component inspector editor` plugin. The following image highlights the
-component inspector plus button with a red square. In this example, we would
-be adding an entity to the selected `box` entity.
-
-![Inspector Plus](https://raw.githubusercontent.com/ignitionrobotics/ign-gazebo/main/tutorials/files/model_editor/inspector_plus.png)
+![Inspector Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/model_editor/inspector_plus.png)
 
 A menu listing different types of links, joints, and lights will appear.
 Select the entity type you would like to add to the model. The menu will close
