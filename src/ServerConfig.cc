@@ -966,7 +966,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  // Process the gz-sim environment variable the same way. If the IGN variable 
+  // Process the gz-sim environment variable the same way. If the IGN variable
   // is set, it will have precedence.
   {
     std::string envConfig;

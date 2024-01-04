@@ -290,7 +290,7 @@ namespace ignition
     /// \brief Environment variable holding resource paths. Prefer using
     /// GZ_SIM_RESOURCE_PATH for compatibility with newer versions of Gazebo.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
-    /// \brief Environment variable holding resource paths. 
+    /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnvGzSim{"GZ_SIM_RESOURCE_PATH"};
 
     /// \brief Environment variable used by SDFormat to find URIs inside

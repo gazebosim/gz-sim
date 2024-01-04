@@ -401,19 +401,34 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   return common::joinPaths(path,  uri);
 }
 
+namespace
+{
+//////////////////////////////////////////////////
+/// \brief Helper function to extract paths form an environment variable
+/// refactored from `resourcePaths` below.
+/// common::SystemPaths::PathsFromEnv is available, but it's behavior is
+/// slightly different from this in that it adds trailing `/` to the end of a
+/// path if it doesn't have it already.
+std::vector<std::string> extractPathsFromEnv(const std::string &_envVar)
+{
+  std::vector<std::string> pathsFromEnv;
+  char *pathFromEnvCStr = std::getenv(_envVar.c_str());
+  if (pathFromEnvCStr && *pathFromEnvCStr != '\0')
+  {
+    pathsFromEnv =
+        common::Split(pathFromEnvCStr, common::SystemPaths::Delimiter());
+  }
+  return pathsFromEnv;
+}
+}  // namespace
+
 //////////////////////////////////////////////////
 std::vector<std::string> resourcePaths()
 {
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
-  {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+  const auto gzSimResourcePaths = extractPathsFromEnv(kResourcePathEnvGzSim);
 
-  const auto gzSimResourcePaths =
-      common::SystemPaths::PathsFromEnv(kResourcePathEnvGzSim);
-  gzPaths.insert(gzPaths.begin(), gzSimResourcePaths.begin(),
+  gzPaths.insert(gzPaths.end(), gzSimResourcePaths.begin(),
                  gzSimResourcePaths.end());
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
@@ -446,16 +461,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   }
 
   // Gazebo resource paths
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
-  {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
-  const auto gzSimResourcePaths =
-      common::SystemPaths::PathsFromEnv(kResourcePathEnvGzSim);
-  gzPaths.insert(gzPaths.begin(), gzSimResourcePaths.begin(),
-                 gzSimResourcePaths.end());
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
 
   // Add new paths to gzPaths
   for (const auto &path : _paths)

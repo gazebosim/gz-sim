@@ -1000,14 +1000,12 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
   EXPECT_TRUE(server.HasEntity("the_visual"));
 }
 
-/////////////////////////////////////////////////
-TEST_P(ServerFixture, GetResourcePaths)
+void testGetResourcePaths(const std::string &_envVariable)
 {
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv(_envVariable,
       std::string("/tmp/some/path") +
       common::SystemPaths::Delimiter() +
       std::string("/home/user/another_path"));
-
   ServerConfig serverConfig;
   gz::sim::Server server(serverConfig);
 
@@ -1030,6 +1028,22 @@ TEST_P(ServerFixture, GetResourcePaths)
   EXPECT_EQ(2, res.data_size());
   EXPECT_EQ("/tmp/some/path", res.data(0));
   EXPECT_EQ("/home/user/another_path", res.data(1));
+  common::unsetenv(_envVariable);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, GetResourcePaths)
+{
+  SCOPED_TRACE("GetResourcePaths");
+  testGetResourcePaths("IGN_GAZEBO_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, GetResourcePathsGzSimCompatibility)
+{
+  common::unsetenv("IGN_GAZEBO_RESOURCE_PATH");
+  SCOPED_TRACE("GetResourcePathsGzSimCompatibility");
+  testGetResourcePaths("GZ_SIM_RESOURCE_PATH");
 }
 
 /////////////////////////////////////////////////

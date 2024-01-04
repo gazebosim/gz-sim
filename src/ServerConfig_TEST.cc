@@ -198,14 +198,8 @@ TEST(LoadPluginInfo, FromEmptyEnv)
   EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
-//////////////////////////////////////////////////
-TEST(LoadPluginInfo, FromValidEnv)
+void testFromValidEnvPlugins()
 {
-  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
-    "test", "worlds", "server_valid2.config");
-
-  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
-
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
 
@@ -226,7 +220,34 @@ TEST(LoadPluginInfo, FromValidEnv)
   EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
   EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
+}
+//////////////////////////////////////////////////
+TEST(LoadPluginInfo, FromValidEnv)
+{
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
+
+  SCOPED_TRACE("FromValidEnv");
+  testFromValidEnvPlugins();
+
   EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
+}
+
+//////////////////////////////////////////////////
+TEST(LoadPluginInfo, FromValidEnvGzSimCompatibility)
+{
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+
+  ASSERT_TRUE(common::unsetenv(kServerConfigPathEnv));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnvGzSim, validPath));
+
+  SCOPED_TRACE("FromValidEnvGzSimCompatibility");
+  testFromValidEnvPlugins();
+
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnvGzSim));
 }
 
 //////////////////////////////////////////////////

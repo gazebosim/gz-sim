@@ -73,7 +73,7 @@ class ignition::gazebo::SystemLoaderPrivate
     const std::string gzSimPrefix{"gz-sim"};
     auto filename = _sdfPlugin.Filename();
     auto pos = filename.find(gzSimPrefix);
-    if (pos == 0u)
+    if (pos != std::string::npos)
     {
       filename.replace(pos, gzSimPrefix.size(), "ignition-gazebo");
     }
