@@ -90,40 +90,40 @@ public:
 
   inline void setName(const std::string & name)
   {
-  this->m_name = name;
+    this->m_name = name;
   }
 
   inline std::string & getName()
   {
-  return m_name;
+    return m_name;
   }
 
   inline void addValue(const std::string & value)
   {
-  m_values.push_back(value);
+    m_values.push_back(value);
   }
 
   inline void clearValues()
   {
-  m_values.clear();
+    m_values.clear();
   }
 
   inline std::vector<std::string> & getValues()
   {
-  return m_values;
+    return m_values;
   }
 
   inline void getValuesInFloat(std::vector<float> & floatValues)
   {
-  for (const auto & str : m_values) {
-  floatValues.push_back(std::stof(str));
-  }
+    for (const auto & str : m_values) {
+      floatValues.push_back(std::stof(str));
+    }
   }
 
   inline const std::string & getValue(unsigned int index = 0)
   {
-  assert(index < m_values.size());
-  return m_values[index];
+    assert(index < m_values.size());
+    return m_values[index];
   }
 
   ConfigNode * addChild(
@@ -133,20 +133,20 @@ public:
 
   inline std::vector<ConfigNode *> & getChildren()
   {
-  return m_children;
+    return m_children;
   }
 
   inline ConfigNode * getChild(unsigned int index = 0)
   {
-  assert(index < m_children.size());
-  return m_children[index];
+    assert(index < m_children.size());
+    return m_children[index];
   }
 
   void setParent(ConfigNode * newParent);
 
   inline ConfigNode * getParent()
   {
-  return m_parent;
+    return m_parent;
   }
 
 private:

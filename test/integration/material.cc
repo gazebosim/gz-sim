@@ -106,6 +106,7 @@ class MaterialTest : public InternalFixture<::testing::Test>
   public: std::unique_ptr<SdfEntityCreator> creator;
 };
 
+// Check for blue color parsed
 TEST_F(MaterialTest, SolidColor)
 {
   const std::string modelSdf = R"sdf(
@@ -152,6 +153,7 @@ TEST_F(MaterialTest, SolidColor)
             boxVisualComp->Data().Specular());
 }
 
+// Other than solid colors parsed black by default
 TEST_F(MaterialTest, OtherColor)
 {
   const std::string modelSdf = R"sdf(
@@ -199,6 +201,7 @@ TEST_F(MaterialTest, OtherColor)
             boxVisualComp->Data().Specular());
 }
 
+// Warning for custom scripts not supported, default to black
 TEST_F(MaterialTest, CustomScript)
 {
   const std::string modelSdf = R"sdf(
@@ -217,6 +220,54 @@ TEST_F(MaterialTest, CustomScript)
             <script>
                 <uri>file://media/materials/scripts/custom.material</uri>
                 <name>Blue</name>
+            </script>
+            </material>
+        </visual>
+        </link>
+    </model>
+  </sdf>
+  )sdf";
+
+  ASSERT_TRUE(this->StartServer());
+  this->SpawnModelSDF(modelSdf);
+
+  auto model = this->GetModel("material_shapes");
+  ASSERT_TRUE(model.Valid(*this->ecm));
+
+  auto boxVisualEntity =
+    this->ecm->EntityByComponents(components::Name("box_visual"));
+  ASSERT_NE(kNullEntity, boxVisualEntity);
+
+  // Default to black color
+  auto boxVisualComp =
+    this->ecm->Component<components::Material>(boxVisualEntity);
+  EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
+            boxVisualComp->Data().Ambient());
+  EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
+            boxVisualComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
+            boxVisualComp->Data().Specular());
+}
+
+// Warning for invalid name, default to black
+TEST_F(MaterialTest, InvalidColor)
+{
+  const std::string modelSdf = R"sdf(
+  <sdf version="1.11">
+      <model name="material_shapes">
+        <pose>0 0 0.5 0 0 0</pose>
+        <link name="box">
+        <pose>0 -1.5 0 0 0 0</pose>
+        <visual name="box_visual">
+            <geometry>
+            <box>
+                <size>1 1 1</size>
+            </box>
+            </geometry>
+            <material>
+            <script>
+                <uri>file://media/materials/scripts/gazebo.material</uri>
+                <name>Gazebo/Invalid</name>
             </script>
             </material>
         </visual>

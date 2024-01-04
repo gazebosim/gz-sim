@@ -267,6 +267,9 @@ void ConfigLoader::_parseNodes(std::ifstream & stream, ConfigNode * parent)
       case TOKEN_NewLine:
         _nextToken(stream);
         break;
+
+      default:
+        break;
     }
   }
 }

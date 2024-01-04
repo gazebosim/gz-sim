@@ -817,6 +817,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         MaterialParser::MaterialValues parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
+        if(!parsed.ambient.has_value()) {
+          gzwarn << "Material " << scriptName <<
+            " not recognized, using default."<< std::endl;
+        }
+
         visualMaterial.SetAmbient
           (parsed.ambient.value_or(visualMaterial.Ambient()));
         visualMaterial.SetDiffuse
