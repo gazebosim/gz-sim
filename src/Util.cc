@@ -411,6 +411,11 @@ std::vector<std::string> resourcePaths()
     gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
 
+  const auto gzSimResourcePaths =
+      common::SystemPaths::PathsFromEnv(kResourcePathEnvGzSim);
+  gzPaths.insert(gzPaths.begin(), gzSimResourcePaths.begin(),
+                 gzSimResourcePaths.end());
+
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
       {
@@ -447,6 +452,10 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   {
     gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
   }
+  const auto gzSimResourcePaths =
+      common::SystemPaths::PathsFromEnv(kResourcePathEnvGzSim);
+  gzPaths.insert(gzPaths.begin(), gzSimResourcePaths.begin(),
+                 gzSimResourcePaths.end());
 
   // Add new paths to gzPaths
   for (const auto &path : _paths)

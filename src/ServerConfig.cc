@@ -922,30 +922,26 @@ ignition::gazebo::parsePluginsFromString(const std::string &_str)
 std::list<ServerConfig::PluginInfo>
 ignition::gazebo::loadPluginInfo(bool _isPlayback)
 {
-  std::list<ServerConfig::PluginInfo> ret;
 
   // 1. Check contents of environment variable
-  std::string envConfig;
-  bool configSet = common::env(kServerConfigPathEnv,
-                                         envConfig,
-                                         true);
-
-  if (configSet)
+  auto parsePlugins = [](const std::string &_serverConfigPathEnv,
+                         const std::string &_envConfig)
   {
-    if (common::exists(envConfig))
+    std::list<ServerConfig::PluginInfo> ret;
+    if (common::exists(_envConfig))
     {
       // Parse configuration stored in environment variable
-      ret = gz::sim::parsePluginsFromFile(envConfig);
+      ret = gz::sim::parsePluginsFromFile(_envConfig);
       if (ret.empty())
       {
         // This may be desired behavior, but warn just in case.
         // Some users may want to defer all loading until later
         // during runtime.
-        ignwarn << kServerConfigPathEnv
-                << " set but no plugins found\n";
+        ignwarn << _serverConfigPathEnv
+          << " set but no plugins found\n";
       }
       igndbg << "Loaded (" << ret.size() << ") plugins from file " <<
-        "[" << envConfig << "]\n";
+        "[" << _envConfig << "]\n";
 
       return ret;
     }
@@ -954,10 +950,30 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
       // This may be desired behavior, but warn just in case.
       // Some users may want to defer all loading until late
       // during runtime.
-      ignwarn << kServerConfigPathEnv
-              << " set but no file found,"
-              << " no plugins loaded\n";
+      ignwarn << _serverConfigPathEnv
+        << " set but no file found,"
+        << " no plugins loaded\n";
       return ret;
+    }
+  };
+
+  {
+    std::string envConfig;
+    bool configSet = common::env(kServerConfigPathEnv, envConfig, true);
+    if (configSet)
+    {
+      return parsePlugins(kServerConfigPathEnv, envConfig);
+    }
+  }
+
+  // Process the gz-sim environment variable the same way. If the IGN variable 
+  // is set, it will have precedence.
+  {
+    std::string envConfig;
+    bool configSet = common::env(kServerConfigPathEnvGzSim, envConfig, true);
+    if (configSet)
+    {
+      return parsePlugins(kServerConfigPathEnvGzSim, envConfig);
     }
   }
 
@@ -989,7 +1005,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     {
       ignerr << "Failed to create directory [" << defaultConfigDir
              << "]." << std::endl;
-      return ret;
+      return {};
     }
 
     if (!common::exists(installedConfig))
@@ -998,14 +1014,14 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
              << "] to default config [" << defaultConfig << "]."
              << "(file " << installedConfig << " doesn't exist)"
              << std::endl;
-      return ret;
+      return {};
     }
     else if (!common::copyFile(installedConfig, defaultConfig))
     {
       ignerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
-      return ret;
+      return {};
     }
     else
     {
@@ -1015,7 +1031,7 @@ ignition::gazebo::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = gz::sim::parsePluginsFromFile(defaultConfig);
+  const auto ret = gz::sim::parsePluginsFromFile(defaultConfig);
 
   if (ret.empty())
   {

@@ -122,7 +122,7 @@ namespace ignition
       /// string and return value of false will be used if the resource could
       /// not be found.
       ///
-      /// Fuel will be checked and then the GZ_GAZEBO_RESOURCE_PATH environment
+      /// Fuel will be checked and then the IGN_GAZEBO_RESOURCE_PATH environment
       /// variable paths. This service will not check for files relative to
       /// working directory of the Gazebo server.
       ///

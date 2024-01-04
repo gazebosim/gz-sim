@@ -2555,6 +2555,9 @@ void RenderUtil::InitRenderEnginePluginPaths()
   common::SystemPaths pluginPath;
   pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
+
+  rendering::setPluginPaths(
+      common::SystemPaths::PathsFromEnv(kRenderPluginPathEnvGzSim));
 }
 
 /////////////////////////////////////////////////

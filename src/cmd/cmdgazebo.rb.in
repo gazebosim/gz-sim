@@ -160,9 +160,14 @@ COMMANDS = { 'gazebo' =>
   "Environment variables:                                                  \n"\
   "  IGN_GAZEBO_RESOURCE_PATH    Colon separated paths used to locate      \n"\
   " resources such as worlds and models.                                 \n\n"\
+  "  GZ_SIM_RESOURCE_PATH    Colon separated paths used to locate        \n"\
+  " resources such as worlds and models.                                 \n\n"\
   "  IGN_GAZEBO_SYSTEM_PLUGIN_PATH    Colon separated paths used to        \n"\
   " locate system plugins.                                               \n\n"\
+  "  GZ_SIM_SYSTEM_PLUGIN_PATH    Colon separated paths used to          \n"\
+  " locate system plugins.                                               \n\n"\
   "  IGN_GAZEBO_SERVER_CONFIG_PATH    Path to server configuration file. \n\n"\
+  "  GZ_SIM_SERVER_CONFIG_PATH    Path to server configuration file.     \n\n"\
   "  IGN_GUI_PLUGIN_PATH    Colon separated paths used to locate GUI       \n"\
   " plugins.                                                             \n\n"\
   "  GZ_GUI_RESOURCE_PATH    Colon separated paths used to locate GUI      \n"\
@@ -412,7 +417,7 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
         # If not, then first check the IGN_GAZEBO_RESOURCE_PATH environment
         # variable, then the configuration path from the launch library.
         else
-          resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
+          resourcePathEnv = "#{ENV['IGN_GAZEBO_RESOURCE_PATH']}:#{ENV['GZ_SIM_RESOURCE_PATH']}"
           if !resourcePathEnv.nil?
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths
