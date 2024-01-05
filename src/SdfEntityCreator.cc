@@ -817,17 +817,20 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         std::optional<MaterialParser::MaterialValues> parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
-        if(!parsed.has_value()) {
-          gzwarn << "Material " << scriptName <<
-            " not recognized, using default." << std::endl;
+        if(parsed.has_value())
+        {
+          visualMaterial.SetAmbient
+            (parsed->ambient.value_or(visualMaterial.Ambient()));
+          visualMaterial.SetDiffuse
+            (parsed->diffuse.value_or(visualMaterial.Diffuse()));
+          visualMaterial.SetSpecular
+            (parsed->specular.value_or(visualMaterial.Specular()));
         }
-
-        visualMaterial.SetAmbient
-          (parsed->ambient.value_or(visualMaterial.Ambient()));
-        visualMaterial.SetDiffuse
-          (parsed->diffuse.value_or(visualMaterial.Diffuse()));
-        visualMaterial.SetSpecular
-          (parsed->specular.value_or(visualMaterial.Specular()));
+        else
+        {
+          gzwarn << "Material " << scriptName <<
+            " not recognized or supported, using default." << std::endl;
+        }
       }
     }
     this->dataPtr->ecm->CreateComponent(visualEntity,
