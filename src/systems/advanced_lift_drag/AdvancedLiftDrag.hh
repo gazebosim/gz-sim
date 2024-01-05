@@ -44,6 +44,8 @@ namespace systems
   /// https://github.com/PX4/PX4-Autopilot/blob/main/Tools/simulation/
   /// gz/tools/avl_automation/
   ///
+  /// Note: Wind calculations can be enabled by setting the wind parameter
+  ///       in the world file.
   ///
   /// ## System Parameters
   ///

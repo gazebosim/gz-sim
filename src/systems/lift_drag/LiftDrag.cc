@@ -280,7 +280,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (!worldLinVel || !worldAngVel || !worldPose)
+  {
     return;
+  }
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
@@ -292,7 +294,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (vel.Length() <= 0.01)
+  {
     return;
+  }
 
   const auto velI = vel.Normalized();
 
