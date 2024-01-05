@@ -1,6 +1,6 @@
 ## Gazebo Sim 3.x
 
-### Gazebo Sim 3.16.0 (2024-01-05)
+### Gazebo Sim 3.15.1 (2024-01-05)
 
 1. Update github action workflows
     * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
