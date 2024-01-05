@@ -4,6 +4,7 @@
 
 1. Update github action workflows
     * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
+    * [Pull request #1988](https://github.com/gazebosim/gz-sim/pull/1988)
 
 1. Fix macOS test failures by registering components in the core library
     * [Pull request #2220](https://github.com/gazebosim/gz-sim/pull/2220)
@@ -28,9 +29,6 @@
 
 1.  Enable GzWeb visualization of markers by republishing service requests on a topic
     * [Pull request #1994](https://github.com/gazebosim/gz-sim/pull/1994)
-
-1. Update workflow triggers to avoid duplicates
-    * [Pull request #1988](https://github.com/gazebosim/gz-sim/pull/1988)
 
 ### Gazebo Sim 3.15.0 (2023-05-08)
 
