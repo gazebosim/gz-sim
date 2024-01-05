@@ -269,7 +269,7 @@ that worked on Gazebo classic may need more plugins on Gazebo.
 ## Materials
 
 Gazebo does not support Ogre material files like Classic does, because Gazebo
-Gazebo can be used with multiple rendering engines. For example, materials defined
+can be used with multiple rendering engines. For example, materials defined
 within a `<script>` aren't supported on Gazebo:
 
 ```

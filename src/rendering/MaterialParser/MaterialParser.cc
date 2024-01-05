@@ -39,7 +39,7 @@ void MaterialParser::Load()
 }
 
 /////////////////////////////////////////////////
-MaterialParser::MaterialValues MaterialParser::GetMaterialValues(
+std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
   const std::string& material)
 {
   MaterialValues values;

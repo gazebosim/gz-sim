@@ -814,20 +814,20 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       {
         gzwarn << "Using an internal gazebo.material to parse "
           << scriptName << std::endl;
-        MaterialParser::MaterialValues parsed =
+        std::optional<MaterialParser::MaterialValues> parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
-        if(!parsed.ambient.has_value()) {
+        if(!parsed.has_value()) {
           gzwarn << "Material " << scriptName <<
-            " not recognized, using default."<< std::endl;
+            " not recognized, using default." << std::endl;
         }
 
         visualMaterial.SetAmbient
-          (parsed.ambient.value_or(visualMaterial.Ambient()));
+          (parsed->ambient.value_or(visualMaterial.Ambient()));
         visualMaterial.SetDiffuse
-          (parsed.diffuse.value_or(visualMaterial.Diffuse()));
+          (parsed->diffuse.value_or(visualMaterial.Diffuse()));
         visualMaterial.SetSpecular
-          (parsed.specular.value_or(visualMaterial.Specular()));
+          (parsed->specular.value_or(visualMaterial.Specular()));
       }
     }
     this->dataPtr->ecm->CreateComponent(visualEntity,
