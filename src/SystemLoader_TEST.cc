@@ -77,7 +77,6 @@ TEST(SystemLoader, Constructor)
 /////////////////////////////////////////////////
 TEST(SystemLoader, FromPluginPathEnv)
 {
-
   sdf::Root root;
   root.LoadSdfString(R"(<?xml version='1.0'?>
     <sdf version='1.6'>

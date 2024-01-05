@@ -912,13 +912,12 @@ TEST_P(ServerFixture, Seed)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
+void testResourcePaths(const std::string &_envVariable)
 {
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv(_envVariable,
       (common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds:") +
        common::joinPaths(PROJECT_SOURCE_PATH,
            "test", "worlds", "models")).c_str());
-
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
   gz::sim::Server server(serverConfig);
@@ -998,8 +997,25 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
   EXPECT_TRUE(server.HasEntity("scheme_resource_uri"));
   EXPECT_TRUE(server.HasEntity("the_link"));
   EXPECT_TRUE(server.HasEntity("the_visual"));
+  common::unsetenv(_envVariable);
 }
 
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ResourcePath)
+{
+  SCOPED_TRACE("ResourcePaths");
+  testResourcePaths("IGN_GAZEBO_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, ResourcePathGzSimCompatibility)
+{
+  common::unsetenv("IGN_GAZEBO_RESOURCE_PATH");
+  SCOPED_TRACE("ResourcePathGzSimCompatibility");
+  testResourcePaths("GZ_SIM_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
 void testGetResourcePaths(const std::string &_envVariable)
 {
   common::setenv(_envVariable,
