@@ -221,7 +221,7 @@ Here the state of the joint is obtained using the Gazebo’s JointStatepublisher
 <plugin
  filename="gz-sim-joint-state-publisher-system"
  name="gz::sim::systems::JointStatePublisher">
- <joint_name>j1</joint_name/>
+ <joint_name>j1</joint_name>
 </plugin>
 ```
 - To check joint state.
