@@ -160,7 +160,7 @@ This is how the model will look:
 
 4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
 
-**Note**: All the joint controller plugins discussed here should be between `<model>` and `</model>` tags. Ideally just before the `</model>` tag for better readability. 
+**Note**: All the plugins discussed here should be between `<model>` and `</model>` tags. Ideally just before the `</model>` tag for better readability. 
 
 - Velocity mode
 
@@ -216,6 +216,15 @@ This would look almost the same as velocity mode if PID gains are tuned properly
 
 5) Checking Joint states.
 Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
+- Add the following lines to the SDF file before `</model>` tag:
+```xml
+<plugin
+ filename="gz-sim-joint-state-publisher-system"
+ name="gz::sim::systems::JointStatePublisher">
+ <joint_name>j1</joint_name/>
+</plugin>
+```
+- To check joint state.
 
 ```bash
 gz topic -e -t /world/default/model/joint_controller_demo/joint_state
