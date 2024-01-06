@@ -1,0 +1,199 @@
+<?xml version="1.0" ?>
+<!--
+  Example usage:
+
+  gz topic -t "conveyor_belt/cmd" -m gz.msgs.Double -p "data: 2.0"
+
+-->
+<sdf version="1.6">
+  <world name="conveyor">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <grid>true</grid>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+      <model name="box">
+        <static>false</static>
+        <link name="link">
+          <pose>0 0 1.0 0 0 0</pose>
+          <inertial>
+            <inertia>
+              <ixx>0.000016</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.000016</iyy>
+              <iyz>0</iyz>
+              <izz>0.000016</izz>
+            </inertia>
+            <mass>1</mass>
+          </inertial>
+
+         <collision name="collision">
+            <geometry>
+              <box>
+                <size>0.2 0.2 .2</size>
+              </box>
+            </geometry>
+          </collision>
+          <visual name="visual">
+            <geometry>
+              <box>
+                <size>0.2 0.2 .2</size>
+              </box>
+            </geometry>
+            <material>
+              <diffuse>1 0 0</diffuse>
+            </material>
+          </visual>
+        </link>
+      </model>
+
+      <model name="conveyor_belt">
+        <static>false</static>
+
+        <link name="fixed_base">
+          <pose>0 0 0.25 0 0 -1.57079</pose>
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>9 0.42 .5</size>
+              </box>
+            </geometry>
+          </collision>
+          <visual name="visual">
+            <geometry>
+              <box>
+                <size>9 0.42 .5</size>
+              </box>
+            </geometry>
+            <material>
+              <diffuse>0 0 1</diffuse>
+            </material>
+          </visual>
+	      </link>
+
+        <link name="belt">
+          <pose>0 0 0.625 0 0 -1.57079</pose>
+          <inertial>
+            <inertia>
+              <ixx>3.8185</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>1781.5</iyy>
+              <iyz>0</iyz>
+              <izz>1784.72</izz>
+            </inertia>
+            <mass>100</mass>
+          </inertial>
+
+          <!-- Visual for debugging -->
+          <visual name="belt_visual">
+            <geometry>
+              <box>
+                <size>9 0.42 .25</size>
+              </box>
+            </geometry>
+          </visual>
+
+          <collision name="belt_collision">
+            <geometry>
+              <box>
+                <size>9 0.42 .25</size>
+              </box>
+            </geometry>
+            <surface>
+              <friction>
+                <ode>
+                  <mu>1.0</mu>
+                  <mu2>1.0</mu2>
+                </ode>
+                <torsional>
+                  <coefficient>1000.0</coefficient>
+                  <patch_radius>0.1</patch_radius>
+                </torsional>
+              </friction>
+            </surface>
+          </collision>
+        </link>
+
+        <joint name="belt_joint" type="prismatic">
+          <parent>fixed_base</parent>
+          <child>belt</child>
+          <axis>
+            <xyz>1 0 0</xyz>
+            <limit>
+              <lower>0</lower>
+              <upper>0.4</upper>
+              <effort>1</effort>
+              <velocity>5</velocity>
+            </limit>
+          </axis>
+        </joint>
+        <plugin
+          filename="gz-sim-conveyor-belt-system"
+          name="gz::sim::systems::ConveyorBelt">
+          <joint_name>belt_joint</joint_name>
+          <topic>conveyor_belt/cmd</topic>
+        </plugin>
+      </model>
+  </world>
+</sdf>
