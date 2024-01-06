@@ -17,7 +17,7 @@ This mode lets the user control the desired joint velocity directly.
 2) Force mode:
 A user who wants to control joint velocity using a PID controller can use this mode.
 
-**Note**: This force mode is for the user who looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
+**Note**: This force mode is for the user who is looking to manually tune PID gains for velocity control according to a specific use case (e.g. Custom models). For general testing purposes, velocity mode will give the best results.
 
 All the parameters related to this controller can be found \ref gz::sim::systems::JointController "here".
 
@@ -50,15 +50,6 @@ After changing the directory, name the SDF file as `example.sdf`
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
-    <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
-    </plugin>
-    <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
-    </plugin>
-
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -150,8 +141,8 @@ After changing the directory, name the SDF file as `example.sdf`
           <xyz>0 0 1</xyz>
         </axis>
       </joint>
-</model>
-</world>
+    </model>
+  </world>
 </sdf>
 ```
 
@@ -168,6 +159,8 @@ This is how the model will look:
 </div>
 
 4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
+
+**Note**: All the joint controller plugins discussed here should be between `<model>` and `</model>` tags. Ideally just before the `</model>` tag for better readability. 
 
 - Velocity mode
 
@@ -188,7 +181,7 @@ The initial velocity is set to 1.0 rad/s.
 
 One can change the joint velocity by publishing a message on the topic `/model/joint_controller_demo/joint/j1/cmd_vel` or can change the topic name within the plugin.
 
-To change the topic name add following line before ```</plugin>``` tag in SDF file.
+To change the topic name add the following line before `</plugin>` tag in the SDF file.
 
 ```xml
 <topic>topic_name</topic>
@@ -206,13 +199,13 @@ gz topic -t "/topic_name" -m gz.msgs.Double -p "data: 10.0"
 
 - Force mode
 
-Same as velocity mode add the following line to the SDF file.
+Replace the velocity mode plugin mentioned above with the following lines in the SDF file for force mode.
 
 ```xml
 <plugin
  filename="gz-sim-joint-controller-system"
  name="gz::sim::systems::JointController">
- <joint_name>joint_thename</joint_name>
+ <joint_name>j1</joint_name>
  <use_force_commands>true</use_force_commands>
  <p_gain>0.2</p_gain>
  <i_gain>0.01</i_gain>
@@ -303,7 +296,7 @@ Message data type: `Double`.
 
 For this let's use the previously discussed SDF file.
 
-1) Adding the JointPositionController plugin to SDF.
+1) Replace the JointController plugin with the JointPositionController plugin in  SDF file.
 
 ```xml
 <plugin
@@ -372,13 +365,13 @@ JointTrajectoryController lets’s user specify the required position, velocity,
 
 A detailed description and related parameter of JointTrajectoryController can be found \ref gz::sim::systems::JointTrajectoryController "here".
 
-The trajectory message can be published or subscribed at ```/model/${MODEL_NAME}/joint_trajectory``` by default.
+The trajectory message can be published or subscribed at `/model/${MODEL_NAME}/joint_trajectory` by default.
 
-Message type: [```JointTrajectory```](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
+Message type: [`JointTrajectory`](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
 
 ### Example usage:
 
-Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ([```joint_trajectory_controller.sdf```](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
+Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ([`joint_trajectory_controller.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
 
 - SDF file:
 
@@ -386,22 +379,10 @@ Let’s set up a new model for this example. A two-linked manipulator arm which 
 <?xml version="1.0"
 <sdf version="1.6">
   <world name="default">
-    <!-- Physics -->
-    <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
-    </plugin>
-
-    <!-- Scene -->
-    <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
-    </plugin>
     <scene>
       <ambient>0.4 0.4 0.4</ambient>
       <grid>false</grid>
     </scene>
-
     <!--              -->
     <!-- Illumination -->
     <!--              -->
@@ -596,9 +577,9 @@ This is how the model will look:
   \image html files/joint_controllers/JointTrajectoryController.png width=50%
 </div>
 
-2) Adding JointTrajectoryController plugin and let’s do position control for both joints.
+2) Adding the JointTrajectoryController plugin and let’s do position control for both joints.
 
-Append following lines before ```</model>``` tag in SDF file.
+Append the following lines before `</model>` tag in the SDF file.
 
 ```xml
  <plugin
@@ -670,16 +651,16 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
   \image html files/joint_controllers/JointTrajectoryController.gif width=50%
 </div>
 
-**Note**: by default velocity and position control are disabled if one want to use these mode, they must specify the PID gains value according to usage.
+**Note**: by default velocity and position control are disabled if one wants to use this mode, they must specify the PID gains value according to usage.
 
 In case, PID gains are not specified then by default force mode will work.
 
-4) Checking progress of commanded trajectory.
+4) Checking the progress of the commanded trajectory.
 
 ```bash
 gz topic -e -t "/model/RR_position_control/joint_trajectory_progress"
 ```
 
-This return the progress of commanded trajectory which is a value between (0,1].
+This returns the progress of the commanded trajectory which is a value between (0,1].
 
-Finally JointTrajectoryController can used for hybrid control (e.g In manipulator robots) were value from position PID, velocity PID and commanded force value are summed up and are applied.
+Finally, JointTrajectoryController can be used for hybrid control (e.g. In manipulator robots) where value from position PID, velocity PID, and commanded force value are summed up and applied.
