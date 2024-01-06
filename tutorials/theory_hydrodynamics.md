@@ -88,7 +88,7 @@ in the positive `X` direction.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -o ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 
@@ -150,7 +150,7 @@ Capytaine is typically used to model the interaction between floating bodies and
 waves, however it can be applied to ROVs by setting the wave frequency and free
 surface both to infinity (this assumes that the added mass is approximately
 constant since the ROV does not operate near the wave zone and that it operates
-in infinitely deep water respectively) [1](p.14), [2](p.18).
+in infinitely deep water respectively) [1] (p.14), [2] (p.18).
 
 Furthermore, it is recommended to use a simplified mesh when computing the added
 mass with Capytaine, since a complex mesh is computationally prohibitive.
@@ -159,9 +159,9 @@ mass with Capytaine, since a complex mesh is computationally prohibitive.
 
 Computing the linear and quadratic damping coefficients is generally not
 possible using computational analysis and is usually done experimentally
-[1](p.28). If determining the damping coefficients experimentally is not
+[1] (p.28). If determining the damping coefficients experimentally is not
 feasible, the same method described by Berg2012 can be used to estimate these
-values from a similar ROV [1](p.28-31).
+values from a similar ROV [1] (p.28-31).
 
 # References
 
