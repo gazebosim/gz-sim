@@ -160,7 +160,7 @@ This is how the model will look:
 
 4) Now let's add the Gazebo JointController plugin to the SDF file. Add the following line to your file just before the tag `</model>`.
 
-**Note**: All the plugins discussed here should be between `<model>` and `</model>` tags. Ideally just before the `</model>` tag for better readability. 
+**Note**: All the plugins discussed here should be between `<model>` and `</model>` tags. Ideally just before the `</model>` tag for better readability.
 
 - Velocity mode
 
