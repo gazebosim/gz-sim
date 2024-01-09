@@ -85,8 +85,8 @@ Implement the system class as usual, for example:
 In your `CMakeLists.txt` add the following
 
 ```
-gz_find_package(gz-plugin2 REQUIRED COMPONENTS register)
-set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
+gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
+set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 # Add sources for each plugin to be registered.
 add_library(SampleSystem SampleSystem.cc SampleSystem2.cc)

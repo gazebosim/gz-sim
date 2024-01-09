@@ -648,7 +648,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Pose vector service
   std::string poseVectorService{
-    "/world/" + worldName + "/set_pose_vector"};
+    "/world/" + validWorldName + "/set_pose_vector"};
   this->dataPtr->node.Advertise(poseVectorService,
       &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
 
@@ -702,7 +702,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Visual service
   std::string visualService
-      {"/world/" + worldName + "/visual_config"};
+      {"/world/" + validWorldName + "/visual_config"};
   this->dataPtr->node.Advertise(visualService,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 

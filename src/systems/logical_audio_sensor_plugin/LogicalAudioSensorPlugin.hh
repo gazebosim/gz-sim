@@ -42,6 +42,8 @@ namespace systems
   /// such as speakers. This plugin is meant to check if audio
   /// could theoretically be heard at a certain location or not.
   ///
+  /// ## System Parameters
+  ///
   /// Secifying an audio source via SDF is done as follows:
   ///
   /// - `<source>` A new audio source in the environment, which has the

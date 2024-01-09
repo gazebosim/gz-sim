@@ -33,8 +33,9 @@ namespace systems
   // Forward declarations.
   class LogPlaybackPrivate;
 
-  /// \class LogPlayback LogPlayback.hh
-  ///   gz/sim/systems/log/LogPlayback.hh
+  /** \class LogPlayback LogPlayback.hh \
+   *    gz/sim/systems/log/LogPlayback.hh
+  **/
   /// \brief Log state playback
   class LogPlayback:
     public System,

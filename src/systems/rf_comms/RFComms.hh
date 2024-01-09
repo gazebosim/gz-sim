@@ -38,31 +38,37 @@ namespace systems
   /// This communication model has been ported from:
   /// https://github.com/osrf/subt .
   ///
+  /// ## System Parameters
+  ///
   /// This system can be configured with the following SDF parameters:
   ///
-  /// * Optional parameters:
-  /// <range_config> Element used to capture the range configuration based on a
-  ///                log-normal distribution. This block can contain any of the
-  ///                next parameters:
-  ///    * <max_range>: Hard limit on range (meters). No communication will
-  ///                   happen beyond this range. Default is 50.
-  ///    * <fading_exponent>: Fading exponent used in the normal distribution.
-  ///                         Default is 2.5.
-  ///    * <l0>: Path loss at the reference distance (1 meter) in dBm.
-  ///            Default is 40.
-  ///    * <sigma>: Standard deviation of the normal distribution.
-  ///               Default is 10.
+  /// Optional parameters:
   ///
-  /// <radio_config> Element used to capture the radio configuration.
-  ///                This block can contain any of the
-  ///                next parameters:
-  ///    * <capacity>: Capacity of radio in bits-per-second.
-  ///                  Default is 54000000 (54 Mbps).
-  ///    * <tx_power>: Transmitter power in dBm. Default is 27dBm (500mW).
-  ///    * <noise_floor>: Noise floor in dBm.  Default is -90dBm.
-  ///    * <modulation>: Supported modulations: ["QPSK"]. Default is "QPSK".
+  /// - `<range_config>`: Element used to capture the range configuration based
+  ///   on a log-normal distribution. This block can contain any of the
+  ///   next parameters:
+  ///   - `<max_range>`: Hard limit on range (meters). No communication will
+  ///                    happen beyond this range. Default is 50.
+  ///   - `<fading_exponent>`: Fading exponent used in the normal distribution.
+  ///                          Default is 2.5.
+  ///   - `<l0>`: Path loss at the reference distance (1 meter) in dBm.
+  ///             Default is 40.
+  ///   - `<sigma>`: Standard deviation of the normal distribution.
+  ///                Default is 10.
+  ///
+  /// - `<radio_config>`: Element used to capture the radio configuration.
+  ///                     This block can contain any of the
+  ///                     next parameters:
+  ///   - `<capacity>`: Capacity of radio in bits-per-second.
+  ///                   Default is 54000000 (54 Mbps).
+  ///   - `<tx_power>`: Transmitter power in dBm. Default is 27dBm (500mW).
+  ///   - `<noise_floor>`: Noise floor in dBm.  Default is -90dBm.
+  ///   - `<modulation>`: Supported modulations: ["QPSK"]. Default is "QPSK".
+  ///
+  /// ## Example
   ///
   /// Here's an example:
+  /// ```
   /// <plugin
   ///   filename="gz-sim-rf-comms-system"
   ///   name="gz::sim::systems::RFComms">
@@ -79,6 +85,7 @@ namespace systems
   ///     <modulation>QPSK</modulation>
   ///   </radio_config>
   /// </plugin>
+  /// ```
   class RFComms
     : public comms::ICommsModel
   {

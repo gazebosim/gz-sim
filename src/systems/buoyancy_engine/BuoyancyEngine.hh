@@ -38,32 +38,35 @@ namespace systems
   /// `/model/{namespace}/buoyancy_engine` topic for the volume of the bladder
   /// in *cubicmeters*.
   ///
-  /// ## Parameters
-  /// <link_name> - The link which the plugin is attached to [required, string]
-  /// <namespace> - The namespace for the topic. If empty the plugin will listen
-  ///   on `buoyancy_engine` otherwise it listens on
+  /// ## System Parameters
+  /// - `<link_name>`: The link which the plugin is attached to [required,
+  ///   string]
+  /// - `<namespace>`: The namespace for the topic. If empty the plugin will
+  ///   listen on `buoyancy_engine` otherwise it listens on
   ///   `/model/{namespace}/buoyancy_engine` [optional, string]
-  /// <min_volume> - Minimum volume of the engine [optional, float,
+  /// - `<min_volume>`: Minimum volume of the engine [optional, float,
   ///   default=0.00003m^3]
-  /// <neutral_volume> - At this volume the engine has neutral buoyancy. Used to
-  ///   estimate the weight of the engine [optional, float, default=0.0003m^3]
-  /// <default_volume> - The volume which the engine starts at [optional, float,
+  /// - `<neutral_volume>`: At this volume the engine has neutral buoyancy. Used
+  ///   to estimate the weight of the engine [optional, float,
   ///   default=0.0003m^3]
-  /// <max_volume> - Maximum volume of the engine [optional, float,
+  /// - `<default_volume>`: The volume which the engine starts at [optional,
+  ///   float, default=0.0003m^3]
+  /// - `<max_volume>`: Maximum volume of the engine [optional, float,
   ///   default=0.00099m^3]
-  /// <max_inflation_rate> - Maximum inflation rate for bladder [optional,
+  /// - `<max_inflation_rate>`: Maximum inflation rate for bladder [optional,
   ///   float, default=0.000003m^3/s]
-  /// <fluid_density> - The fluid density of the liquid its suspended in kgm^-3.
-  ///   [optional, float, default=1000kgm^-3]
-  /// <surface> - The Z height in metres at which the surface of the water is.
-  /// If not defined then there is no surface [optional, float]
+  /// - `<fluid_density>`: The fluid density of the liquid its suspended in
+  ///   kgm^-3. [optional, float, default=1000kgm^-3]
+  /// - `<surface>`: The Z height in metres at which the surface of the water
+  ///   is. If not defined then there is no surface [optional, float]
   ///
   /// ## Topics
-  /// * Subscribes to a gz::msgs::Double on `buoyancy_engine` or
-  ///  `/model/{namespace}/buoyancy_engine`. This is the set point for the
-  ///  engine.
-  /// * Publishes a gz::msgs::Double on `buoyancy_engine` or
-  ///  `/model/{namespace}/buoyancy_engine/current_volume` on the current volume
+  /// - Subscribes to a gz::msgs::Double on `buoyancy_engine` or
+  ///   `/model/{namespace}/buoyancy_engine`. This is the set point for the
+  ///   engine.
+  /// - Publishes a gz::msgs::Double on `buoyancy_engine` or
+  ///   `/model/{namespace}/buoyancy_engine/current_volume` on the current
+  ///   volume
   ///
   /// ## Examples
   /// To get started run:
@@ -71,19 +74,22 @@ namespace systems
   /// gz sim buoyancy_engine.sdf
   /// ```
   /// Enter the following in a separate terminal:
-  /// ```
-  /// gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
-  ///    -p "data: 0.003"
-  /// ```
-  /// To see the box float up.
-  /// ```
-  /// gz topic -t  /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double
-  ///    -p "data: 0.001"
-  /// ```
-  /// To see the box go down.
+  /** ```
+      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
+         -p "data: 0.003"
+      ```
+  **/
+  /// to see the box float up.
+  /** ```
+      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
+         -p "data: 0.001"
+      ```
+  **/
+  /// to see the box go down.
+  ///
   /// To see the current volume enter:
   /// ```
-  /// gz topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e
+  /// gz topic -t /model/buoyant_box/buoyancy_engine/current_volume -e
   /// ```
   class BuoyancyEnginePlugin:
     public gz::sim::System,

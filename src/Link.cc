@@ -15,7 +15,6 @@
  *
  */
 
-#include <gz/math/Inertial.hh>
 #include <gz/math/Matrix3.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
@@ -188,6 +187,23 @@ std::optional<math::Pose3d> Link::WorldPose(
 {
   return _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+}
+
+//////////////////////////////////////////////////
+std::optional<math::Inertiald> Link::WorldInertial(
+    const EntityComponentManager &_ecm) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  if (!inertial)
+    return std::nullopt;
+
+  const math::Pose3d &comWorldPose =
+      worldPose * inertial->Data().Pose();
+  return std::make_optional(
+    math::Inertiald(inertial->Data().MassMatrix(), comWorldPose));
 }
 
 //////////////////////////////////////////////////

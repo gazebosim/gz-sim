@@ -26,8 +26,8 @@
 # before for other python examples. You can use then following:
 # $ export PYTHONPATH=$PYTHONPATH:<path_to_gazebo_ws>/install/lib/python
 
-from gz.msgs10.double_pb2 import Double
-from gz.transport13 import Node
+from gz.msgs11.double_pb2 import Double
+from gz.transport14 import Node
 
 import random
 import time

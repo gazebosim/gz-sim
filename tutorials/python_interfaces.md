@@ -43,7 +43,7 @@ server.run(True, 1000, False)
 ## Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/main/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
 If you compiled Gazebo from source you should modify your `PYTHONPATH`:
@@ -68,15 +68,15 @@ $ python3 examples/scripts/python_api/testFixture.py
 [Msg] Resource path add service on [/gazebo/resource_paths/add].
 [Msg] Resource path get service on [/gazebo/resource_paths/get].
 [Msg] Resource paths published on [/gazebo/resource_paths].
+[Msg] Found no publishers on /stats, adding root stats topic
+[Msg] Found no publishers on /clock, adding root clock topic
+[Dbg] [SimulationRunner.cc:524] Creating PostUpdate worker threads: 2
+[Dbg] [SimulationRunner.cc:537] Creating postupdate worker thread (0)
 AddSystem1
 World entity is  1
 Gravity  0 0 -9.8
 Entity for falling model is:  4
 AddSystem2
-[Msg] Found no publishers on /stats, adding root stats topic
-[Msg] Found no publishers on /clock, adding root clock topic
-[Dbg] [SimulationRunner.cc:524] Creating PostUpdate worker threads: 2
-[Dbg] [SimulationRunner.cc:537] Creating postupdate worker thread (0)
 iterations  1000
 post_iterations  1000
 pre_iterations  1000
@@ -96,8 +96,8 @@ Example python system:
 <!-- TODO(azeey) Allow including python files in doxygen -->
 <!-- \include examples/scripts/python_api/systems/test_system.py -->
 ```python
-from gz.math7 import Vector3d
-from gz.sim8 import Model, Link
+from gz.math8 import Vector3d
+from gz.sim9 import Model, Link
 import random
 
 
@@ -118,8 +118,6 @@ class TestSystem(object):
             return
 
         if info.iterations % 3000 == 0:
-            print(f"{self.id} {info.real_time} pre_update")
-
             self.link.add_world_force(
                 ecm, Vector3d(0, 0, self.force),
                 Vector3d(random.random(), random.random(), 0))

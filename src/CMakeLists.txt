@@ -11,11 +11,11 @@ get_target_property(msgs_desc_file
 
 gz_msgs_generate_messages_impl(
   MSGS_GEN_SCRIPT
-    ${gz-msgs10_PROTO_GENERATOR_SCRIPT}
+    ${gz-msgs11_PROTO_GENERATOR_SCRIPT}
   FACTORY_GEN_SCRIPT
-    ${gz-msgs10_FACTORY_GENERATOR_SCRIPT}
+    ${gz-msgs11_FACTORY_GENERATOR_SCRIPT}
   GZ_PROTOC_PLUGIN
-    ${gz-msgs10_PROTO_GENERATOR_PLUGIN}
+    ${gz-msgs11_PROTO_GENERATOR_PLUGIN}
   INPUT_PROTOS
     ${gz_msgs_proto_files}
   PROTO_PACKAGE
@@ -73,6 +73,7 @@ set (sources
   LevelManager.cc
   Light.cc
   Link.cc
+  MeshInertiaCalculator.cc
   Model.cc
   Primitives.cc
   SdfEntityCreator.cc
@@ -206,6 +207,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-math${GZ_MATH_VER}
   gz-plugin${GZ_PLUGIN_VER}::core
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
   gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}

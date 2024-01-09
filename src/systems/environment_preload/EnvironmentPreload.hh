@@ -32,8 +32,9 @@ namespace systems
 {
   class EnvironmentPreloadPrivate;
 
-  /// \class EnvironmentPreload EnvironmentPreload.hh
-  ///     gz/sim/systems/EnvironmentPreload.hh
+  /** \class EnvironmentPreload EnvironmentPreload.hh \
+   * gz/sim/systems/EnvironmentPreload.hh
+  **/
   /// \brief A plugin to preload an Environment component
   /// into the ECM upon simulation start-up.
   class EnvironmentPreload :

@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 # Usage
 
@@ -115,7 +115,7 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.gz/tools/configs -p
 cd ~/.gz/tools/configs/
 ln -s /usr/local/share/gz/fuel8.yaml .
-ln -s /usr/local/share/gz/transport13.yaml .
+ln -s /usr/local/share/gz/transport14.yaml .
 ln -s /usr/local/share/gz/transportlog13.yaml .
 ...
 export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
@@ -125,11 +125,11 @@ This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
 # Documentation
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 # Testing
 
-See the [installation tutorial](https://gazebosim.org/api/gazebo/6.1/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
@@ -145,6 +145,7 @@ gz-sim
 │   └── worlds                   Example SDF world files.
 ├── include/gz/sim               Header files that downstream users are expected to use.
 │   └── detail                   Header files that are not intended for downstream use, mainly template implementations.
+├── python                       Python wrappers
 ├── src                          Source files and unit tests.
 │   ├── gui                      Graphical interface source code.
 │   └── systems                  System source code.

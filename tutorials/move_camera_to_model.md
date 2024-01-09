@@ -10,7 +10,7 @@ This tutorial gives an introduction to Gazebo's service `/gui/move_to/model`. Th
 For example, Let's move the camera to the `box` model looking down from 5 meters away.
 
 ```bash
-ign service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msgs.Boolean -r 'name: "box", pose: {position: {z:5}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
+gz service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msgs.Boolean -r 'name: "box", pose: {position: {z:5}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
 ```
 
 @image html files/move_camera_to_model/box_5.gif
@@ -18,7 +18,7 @@ ign service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msg
 The camera can also be placed far away, for example 20 meters:
 
 ```bash
-ign service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msgs.Boolean -r 'name: "box", pose: {position: {z:20}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
+gz service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msgs.Boolean -r 'name: "box", pose: {position: {z:20}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
 ```
 
 @image html files/move_camera_to_model/box_20.gif

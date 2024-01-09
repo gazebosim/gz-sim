@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim8 VERSION 8.0.0)
-set (GZ_DISTRIBUTION "Harmonic")
+project(gz-sim9 VERSION 9.0.0)
+set (GZ_DISTRIBUTION "Ionic")
 
 #============================================================================
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake3 REQUIRED)
+find_package(gz-cmake4 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -18,7 +18,7 @@ find_package(gz-cmake3 REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -74,28 +74,28 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat14 REQUIRED)
-set(SDF_VER ${sdformat14_VERSION_MAJOR})
+gz_find_package(sdformat15 REQUIRED)
+set(SDF_VER ${sdformat15_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin2 REQUIRED COMPONENTS loader register)
-set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
+gz_find_package(gz-plugin3 REQUIRED COMPONENTS loader register)
+set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport13 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
+gz_find_package(gz-transport14 REQUIRED COMPONENTS log parameters)
+set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs10 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
+gz_find_package(gz-msgs11 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common5
+gz_find_package(gz-common6
   COMPONENTS
     av
     events
@@ -104,17 +104,17 @@ gz_find_package(gz-common5
     profiler
   REQUIRED
 )
-set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
+set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools9 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools10 REQUIRED)
+set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui8 REQUIRED)
-set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
+gz_find_package(gz-gui9 REQUIRED)
+set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -125,18 +125,18 @@ gz_find_package (Qt5
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics7
+gz_find_package(gz-physics8
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics7_VERSION_MAJOR})
+set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors8 REQUIRED
+gz_find_package(gz-sensors9 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -164,17 +164,17 @@ gz_find_package(gz-sensors8 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering8 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering8_VERSION_MAJOR})
+gz_find_package(gz-rendering9 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math7 REQUIRED COMPONENTS eigen3)
-set(GZ_MATH_VER ${gz-math7_VERSION_MAJOR})
+gz_find_package(gz-math8 REQUIRED COMPONENTS eigen3)
+set(GZ_MATH_VER ${gz-math8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find if gz command is available
@@ -190,8 +190,8 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
-set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
+gz_find_package(gz-utils3 REQUIRED COMPONENTS cli)
+set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find protobuf
@@ -199,7 +199,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs10_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs11_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
@@ -235,7 +235,8 @@ set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
 #============================================================================
 # Configure the build
 #============================================================================
-gz_configure_build(QUIT_IF_BUILD_ERRORS)
+gz_configure_build(QUIT_IF_BUILD_ERRORS
+  HIDE_SYMBOLS_BY_DEFAULT)
 
 add_subdirectory(examples)
 
@@ -272,6 +273,7 @@ if (NOT APPLE)
      "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
      "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
      "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
   )
 endif()
 

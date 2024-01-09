@@ -49,8 +49,9 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage detachablejoints "Detachable Joints": Create models that start off rigidly attached and then get detached during simulation.
 * \subpage triggeredpublisher "Triggered Publisher": Use the TriggeredPublisher system to orchestrate actions in simulation.
 * \subpage spherical_coordinates "Spherical coordinates": Work with latitude and longitude
-* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles.
-* \subpage logicalaudiosensor "Logical Audio Sensor": Use the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
+* \subpage underwater_vehicles "Underwater Vehicles": Understand how to simulate underwater vehicles
+* \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
+* \subpage auto_inertia_calculation "Automatic Inertia Calculation": Automatically compute inertia values(mass, mass matrix, center of mass) for SDFormat links.
 
 ### Advanced
 

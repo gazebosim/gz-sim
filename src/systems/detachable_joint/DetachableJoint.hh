@@ -40,7 +40,7 @@ namespace systems
   /// model can be re-attached during simulation via a topic. The status of the
   /// detached state can be monitored via a topic as well.
   ///
-  /// Parameters:
+  /// ## System Parameters
   ///
   /// - `<parent_link>`: Name of the link in the parent model to be used in
   /// creating a fixed joint with a link in the child model.

@@ -32,10 +32,10 @@ namespace systems
   class ParticleEmitterPrivate;
 
   /// \brief A system for running and managing particle emitters. A particle
-  /// emitter is defined using the <particle_emitter> SDF element.
+  /// emitter is defined using the `<particle_emitter>` SDF element.
   ///
   /// This system will create a transport subscriber for each
-  /// <particle_emitter> using the child <topic> name. If a <topic> is not
+  /// `<particle_emitter>` using the child `<topic>` name. If a `<topic>` is not
   /// specified, the following topic naming scheme will be used:
   /// `/model/{model_name}/link/{link_name}/particle_emitter/{emitter_name}/cmd`
   class ParticleEmitter

@@ -39,20 +39,20 @@ namespace systems
   /// that surpasses a specific threshold.
   /// This system can be used to detect when a model could be damaged.
   ///
-  /// # System Parameters
+  /// ## System Parameters
   ///
-  /// `<link_name>`: Name of the link to monitor. This name must match
+  /// - `<link_name>`: Name of the link to monitor. This name must match
   /// a name of link within the model.
   ///
-  /// `<kinetic_energy_threshold>`: Threshold, in Joule (J), after which
+  /// - `<kinetic_energy_threshold>`: Threshold, in Joule (J), after which
   /// a message is generated on `<topic>` with the kinetic energy value that
   /// surpassed the threshold.
   ///
-  /// `<topic>`: Custom topic that this system will publish to when kinetic
+  /// - `<topic>`: Custom topic that this system will publish to when kinetic
   /// energy surpasses the threshold. This element if optional, and the
   /// default value is `/model/{name_of_model}/kinetic_energy`.
   ///
-  /// # Example Usage
+  /// ## Example Usage
   ///
   /** \verbatim
    <model name="sphere">

@@ -50,13 +50,13 @@ const double kRate = 1000;
 const double kForceVec[3] = {2000, 2000, 0};
 
 // Force excitation angular velocity [rad / s].
-const double kForceAngVel = 3 * M_PI;
+const double kForceAngVel = 3 * GZ_PI;
 
 // Torque excitation amplitude and direction.
 const double kTorqueVec[3] = {200, 200, 0};
 
 // Torque excitation angular velocity [rad / s].
-const double kTorqueAngVel = 2 * M_PI;
+const double kTorqueAngVel = 2 * GZ_PI;
 
 // Total duration of the motion in iterations.
 const uint64_t kIter = 1000;

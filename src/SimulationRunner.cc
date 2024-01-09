@@ -47,7 +47,7 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
-
+#include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -80,6 +80,9 @@ struct MaybeGilScopedRelease
 #else
   struct MaybeGilScopedRelease
   {
+    // The empty constructor is needed to avoid an "unused variable" warning
+    // when an instance of this class is used.
+    MaybeGilScopedRelease(){}
   };
 #endif
 }
@@ -100,7 +103,15 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   }
 
   // Keep world name
-  this->worldName = _world->Name();
+  this->worldName = transport::TopicUtils::AsValidTopic(_world->Name());
+
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (this->worldName.empty())
+  {
+    gzerr << "Can't start simulation runner with this world name ["
+          << worldName << "]." << std::endl;
+    return;
+  }
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(

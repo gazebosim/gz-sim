@@ -42,7 +42,7 @@ namespace systems
   /// The plugin requires that a contact sensors is placed in at least one
   /// link on the model on which this plugin is attached.
   ///
-  /// Parameters:
+  /// ## System Parameters
   ///
   /// - `<target>` Name, or substring of a name, that identifies the target
   ///              collision entity/entities.
@@ -50,15 +50,15 @@ namespace systems
   ///              entities, so it can possibly match more than one collision.
   ///              For example, using the name of a model will match all of its
   ///              collisions (scoped name
-  ///              /model_name/link_name/collision_name).
+  ///              `/model_name/link_name/collision_name`).
   ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<namespace>` Namespace for transport topics/services:
-  ///             + `/<namespace>/enable` : Service used to enable and disable
-  ///                                       the plugin.
-  ///             + `/<namespace>/touched` : Topic where a message is published
-  ///                                        once the touch event occurs.
+  ///   - `/<namespace>/enable` : Service used to enable and disable
+  ///                             the plugin.
+  ///   - `/<namespace>/touched` : Topic where a message is published
+  ///                              once the touch event occurs.
   ///
   /// - `<enabled>` Set this to true so the plugin works from the start and
   ///               doesn't need to be enabled.
@@ -66,7 +66,8 @@ namespace systems
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
-        public ISystemPostUpdate
+        public ISystemPostUpdate,
+        public ISystemReset
   {
     /// \brief Constructor
     public: TouchPlugin();
@@ -83,6 +84,10 @@ namespace systems
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void Reset(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm) final;
 
     // Documentation inherited
     public: void PostUpdate(
