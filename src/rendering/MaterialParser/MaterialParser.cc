@@ -51,7 +51,7 @@ std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
   for (it = scripts.begin(); it != scripts.end(); ++it) {
     std::string name = it->first;
     if (name.find(material) != std::string::npos) {
-      if(!values) {
+      if (!values) {
         values = MaterialValues();
       }
       ConfigNode * node = it->second;
@@ -63,7 +63,7 @@ std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
           ConfigNode * ambientNode = passNode->findChild("ambient");
           if (ambientNode) {
             std::vector<float> ambientValues;
-            ambientNode->getValuesInFloat(ambientValues);
+            ambientNode->getColorValues(ambientValues, 3);
             values->ambient.emplace(gz::math::Color(ambientValues[0],
               ambientValues[1], ambientValues[2]));
           }
@@ -71,7 +71,7 @@ std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
           ConfigNode * diffuseNode = passNode->findChild("diffuse");
           if (diffuseNode) {
             std::vector<float> diffuseValues;
-            diffuseNode->getValuesInFloat(diffuseValues);
+            diffuseNode->getColorValues(diffuseValues, 3);
             values->diffuse.emplace(gz::math::Color(diffuseValues[0],
               diffuseValues[1], diffuseValues[2]));
           }
@@ -79,7 +79,7 @@ std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
           ConfigNode * specularNode = passNode->findChild("specular");
           if (specularNode) {
             std::vector<float> specularValues;
-            specularNode->getValuesInFloat(specularValues);
+            specularNode->getColorValues(specularValues, 4);
             // Using first four values for specular as
             // Gazebo doesn't support shininess
             values->specular.emplace(gz::math::Color(specularValues[0],

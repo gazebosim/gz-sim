@@ -23,7 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include "gz/sim/InstallationDirectories.hh"
 

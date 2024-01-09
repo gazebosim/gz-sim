@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <gz/common/Console.hh>
+
 namespace gz
 {
 namespace sim
@@ -117,6 +119,16 @@ public:
   {
     for (const auto & str : m_values) {
       floatValues.push_back(std::stof(str));
+    }
+  }
+
+  inline void getColorValues(std::vector<float> & colorValues,
+                             unsigned int size)
+  {
+    getValuesInFloat(colorValues);
+    if (colorValues.size() < size) {
+      gzerr << "Bad material file." << std::endl;
+      colorValues.resize(size);
     }
   }
 
