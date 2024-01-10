@@ -84,7 +84,7 @@ Select a link in the `Entity Tree`, then select the `+` button on the
 
 A menu listing different types of sensors will appear.  Select the sensor
 type you would like to add to the link. The menu will close and you'll see
-the new sensor as a child of the selected link in the `Entity Tree`. 
+the new sensor as a child of the selected link in the `Entity Tree`.
 
 Change sensor properties through the `Component inspector editor` by
 selecting the new new sensor in the `Entity Tree`. Step simulation to inform
