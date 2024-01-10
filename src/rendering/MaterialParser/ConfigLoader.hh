@@ -25,8 +25,6 @@
 #include <string>
 #include <vector>
 
-#include <gz/common/Console.hh>
-
 namespace gz
 {
 namespace sim
@@ -115,6 +113,12 @@ public:
     return m_values;
   }
 
+  inline const std::string & getValue(unsigned int index = 0)
+  {
+    assert(index < m_values.size());
+    return m_values[index];
+  }
+
   inline void getValuesInFloat(std::vector<float> & floatValues)
   {
     for (const auto & str : m_values) {
@@ -122,21 +126,7 @@ public:
     }
   }
 
-  inline void getColorValues(std::vector<float> & colorValues,
-                             unsigned int size)
-  {
-    getValuesInFloat(colorValues);
-    if (colorValues.size() < size) {
-      gzerr << "Bad material file." << std::endl;
-      colorValues.resize(size);
-    }
-  }
-
-  inline const std::string & getValue(unsigned int index = 0)
-  {
-    assert(index < m_values.size());
-    return m_values[index];
-  }
+  void getColorValues(math::Color & colorValues, unsigned int size);
 
   ConfigNode * addChild(
     const std::string & name = "untitled", bool replaceExisting = false);

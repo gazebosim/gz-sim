@@ -23,7 +23,9 @@
 #include <utility>
 #include <vector>
 
+#include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
+#include <gz/math/Color.hh>
 #include "gz/sim/InstallationDirectories.hh"
 
 #include "ConfigLoader.hh"
@@ -302,6 +304,25 @@ ConfigNode::~ConfigNode()
   // Remove self from parent's child list
   if (_removeSelf && m_parent != NULL) {
     m_parent->m_children.erase(_iter);
+  }
+}
+
+void ConfigNode::getColorValues(gz::math::Color & colorValues,
+  unsigned int size)
+{
+  std::vector<float> floatValues;
+  ConfigNode::getValuesInFloat(floatValues);
+  if (floatValues.size() < size) {
+    gzerr << "Bad material file." << std::endl;
+    floatValues.resize(size);
+  }
+  if (size == 3) {
+    colorValues = gz::math::Color(floatValues[0], floatValues[1],
+                  floatValues[2]);
+  }
+  if (size == 4) {
+    colorValues = gz::math::Color(floatValues[0], floatValues[1],
+                  floatValues[2], floatValues[3]);
   }
 }
 
