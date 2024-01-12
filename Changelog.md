@@ -23,9 +23,6 @@
 1. Backport component inspector Vector3d width fix
     * [Pull request #2195](https://github.com/gazebosim/gz-sim/pull/2195)
 
-1. Fix INTEGRATION_save_world's SdfGeneratorFixture.ModelWithNestedIncludes test
-    * [Pull request #fix INTEGRATION_save_world's SdfGeneratorFixture.ModelWithNestedIncludes test](https://github.com/gazebosim/gz-sim/pull/fix INTEGRATION_save_world's SdfGeneratorFixture.ModelWithNestedIncludes test)
-
 1. Bump Fuel model version in test
     * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
 
