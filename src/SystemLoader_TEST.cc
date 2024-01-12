@@ -30,20 +30,22 @@
 using namespace gz;
 using namespace sim;
 
+#ifdef _WIN32
+  constexpr char *kPluginDir = "bin";
+#else
+  constexpr char *kPluginDir = "lib";
+#endif
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
-  gz::sim::SystemLoader sm;
-
   // Add test plugin to path (referenced in config)
   auto testBuildPath = common::joinPaths(
-      std::string(PROJECT_BINARY_PATH), "lib");
-  sm.AddSystemPluginPath(testBuildPath);
+      std::string(PROJECT_BINARY_PATH), kPluginDir);
 
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
-      "<world name='default'>"
-      "<plugin filename='libignition-gazebo") +
+      "<world name='default'>") +
+      "<plugin filename='libignition-gazebo" +
       IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' "
       "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='ignition-gazebo" +
@@ -60,12 +62,14 @@ TEST(SystemLoader, Constructor)
       "<plugin filename='gz-sim-user-commands-system' "
       "name='gz::sim::systems::UserCommands'></plugin>"
       "</world></sdf>");
-
+  ASSERT_NE(root.WorldByIndex(0), nullptr);
   auto worldElem = root.WorldByIndex(0)->Element();
   if (worldElem->HasElement("plugin")) {
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
+      gz::sim::SystemLoader sm;
+      sm.AddSystemPluginPath(testBuildPath);
       sdf::Plugin plugin;
       plugin.Load(pluginElem);
       auto system = sm.LoadPlugin(plugin);
@@ -81,7 +85,7 @@ TEST(SystemLoader, FromPluginPathEnv)
   root.LoadSdfString(R"(<?xml version='1.0'?>
     <sdf version='1.6'>
       <world name='default'>
-        <plugin filename='libMockSystem.so' name='gz::sim::MockSystem'/>
+        <plugin filename='MockSystem' name='gz::sim::MockSystem'/>
       </world>
     </sdf>)");
 
@@ -97,7 +101,7 @@ TEST(SystemLoader, FromPluginPathEnv)
     EXPECT_FALSE(system.has_value());
   }
 
-  const auto libPath = common::joinPaths(PROJECT_BINARY_PATH, "lib");
+  const auto libPath = common::joinPaths(PROJECT_BINARY_PATH, kPluginDir);
 
   {
     common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", libPath.c_str());
