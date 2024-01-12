@@ -31,9 +31,9 @@ using namespace gz;
 using namespace sim;
 
 #ifdef _WIN32
-  constexpr char *kPluginDir = "bin";
+  constexpr const char *kPluginDir = "bin";
 #else
-  constexpr char *kPluginDir = "lib";
+  constexpr const char *kPluginDir = "lib";
 #endif
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
