@@ -48,6 +48,7 @@ set(tests
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
+  material.cc
   model.cc
   model_photo_shoot_default_joints.cc
   model_photo_shoot_random_joints.cc

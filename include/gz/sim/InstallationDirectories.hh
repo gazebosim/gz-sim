@@ -50,6 +50,9 @@ namespace gz
 
     /// \brief getWorldInstallDir return the world install dir
     GZ_SIM_VISIBLE std::string getWorldInstallDir();
+
+    /// \brief getMediaInstallDir return the media install dir
+    GZ_SIM_VISIBLE std::string getMediaInstallDir();
     }
   }
 }
