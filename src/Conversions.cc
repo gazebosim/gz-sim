@@ -1713,9 +1713,8 @@ msgs::ParticleEmitter ignition::gazebo::convert(const sdf::ParticleEmitter &_in)
   {
     std::string path = asFullPath(_in.ColorRangeImage(), _in.FilePath());
 
-    common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(kResourcePathEnv);
-    std::string absolutePath = systemPaths.FindFile(path);
+    const std::string absolutePath =
+        common::SystemPaths::LocateLocalFile(path, gazebo::resourcePaths());
 
     if (!absolutePath.empty())
       out.mutable_color_range_image()->set_data(absolutePath);

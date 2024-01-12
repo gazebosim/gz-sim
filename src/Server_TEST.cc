@@ -40,6 +40,7 @@
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"
 #include "../test/helpers/EnvTestFixture.hh"
+#include "../test/helpers/Util.hh"
 
 using namespace gz;
 using namespace gz::sim;
@@ -263,14 +264,10 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   msgs::StringMsg rep;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    igndbg << "Requesting /test/service" << std::endl;
-    executed = node.Request("/test/service", 100, rep, result);
-    sleep++;
-  }
+  const std::string service = "/test/service";
+  ASSERT_TRUE(test::waitForService(node, service));
+  igndbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, rep, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestModelSystem", rep.data());
@@ -315,14 +312,10 @@ TEST_P(ServerFixture,
   msgs::StringMsg rep;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    igndbg << "Requesting /test/service/sensor" << std::endl;
-    executed = node.Request("/test/service/sensor", 100, rep, result);
-    sleep++;
-  }
+  const std::string service ="/test/service/sensor";
+  ASSERT_TRUE(test::waitForService(node, service));
+  igndbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, rep, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
@@ -754,16 +747,12 @@ TEST_P(ServerFixture, ServerControlStop)
   msgs::Boolean res;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
 
+  const std::string service = "/server_control";
+  ASSERT_TRUE(test::waitForService(node, service));
   // first, call with stop = false; the server should keep running
-  while (!executed && sleep < maxSleep)
-  {
-    igndbg << "Requesting /server_control" << std::endl;
-    executed = node.Request("/server_control", req, 100, res, result);
-    sleep++;
-  }
+  igndbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, req, 1000, res, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_FALSE(res.data());
@@ -776,8 +765,8 @@ TEST_P(ServerFixture, ServerControlStop)
   // now call with stop = true; the server should stop
   req.set_stop(true);
 
-  igndbg << "Requesting /server_control" << std::endl;
-  executed = node.Request("/server_control", req, 100, res, result);
+  igndbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, req, 1000, res, result);
 
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
@@ -912,13 +901,12 @@ TEST_P(ServerFixture, Seed)
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
+void testResourcePaths(const std::string &_envVariable)
 {
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  common::setenv(_envVariable,
       (common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds:") +
        common::joinPaths(PROJECT_SOURCE_PATH,
            "test", "worlds", "models")).c_str());
-
   ServerConfig serverConfig;
   serverConfig.SetSdfFile("resource_paths.sdf");
   gz::sim::Server server(serverConfig);
@@ -998,16 +986,32 @@ TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
   EXPECT_TRUE(server.HasEntity("scheme_resource_uri"));
   EXPECT_TRUE(server.HasEntity("the_link"));
   EXPECT_TRUE(server.HasEntity("the_visual"));
+  common::unsetenv(_envVariable);
 }
 
 /////////////////////////////////////////////////
-TEST_P(ServerFixture, GetResourcePaths)
+TEST_P(ServerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 {
-  common::setenv("IGN_GAZEBO_RESOURCE_PATH",
+  SCOPED_TRACE("ResourcePaths");
+  testResourcePaths("IGN_GAZEBO_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ResourcePathGzSimCompatibility))
+{
+  common::unsetenv("IGN_GAZEBO_RESOURCE_PATH");
+  SCOPED_TRACE("ResourcePathGzSimCompatibility");
+  testResourcePaths("GZ_SIM_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
+void testGetResourcePaths(const std::string &_envVariable)
+{
+  common::setenv(_envVariable,
       std::string("/tmp/some/path") +
       common::SystemPaths::Delimiter() +
       std::string("/home/user/another_path"));
-
   ServerConfig serverConfig;
   gz::sim::Server server(serverConfig);
 
@@ -1017,19 +1021,31 @@ TEST_P(ServerFixture, GetResourcePaths)
   msgs::StringMsg_V res;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    igndbg << "Requesting /gazebo/resource_paths/get" << std::endl;
-    executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
-    sleep++;
-  }
+  const std::string service = "/gazebo/resource_paths/get";
+  ASSERT_TRUE(test::waitForService(node, service));
+  igndbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, res, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ(2, res.data_size());
   EXPECT_EQ("/tmp/some/path", res.data(0));
   EXPECT_EQ("/home/user/another_path", res.data(1));
+  common::unsetenv(_envVariable);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, GetResourcePaths)
+{
+  SCOPED_TRACE("GetResourcePaths");
+  testGetResourcePaths("IGN_GAZEBO_RESOURCE_PATH");
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, GetResourcePathsGzSimCompatibility)
+{
+  common::unsetenv("IGN_GAZEBO_RESOURCE_PATH");
+  SCOPED_TRACE("GetResourcePathsGzSimCompatibility");
+  testGetResourcePaths("GZ_SIM_RESOURCE_PATH");
 }
 
 /////////////////////////////////////////////////
@@ -1071,7 +1087,9 @@ TEST_P(ServerFixture, AddResourcePaths)
                common::SystemPaths::Delimiter() +
                std::string("/tmp/even_more"));
   req.add_data("/tmp/some/path");
-  bool executed = node.Request("/gazebo/resource_paths/add", req);
+  const std::string service = "/gazebo/resource_paths/add";
+  ASSERT_TRUE(test::waitForService(node, service));
+  bool executed = node.Request(service, req);
   EXPECT_TRUE(executed);
 
   int sleep{0};
@@ -1125,17 +1143,12 @@ TEST_P(ServerFixture, ResolveResourcePaths)
           msgs::StringMsg req, res;
           bool result{false};
           bool executed{false};
-          int sleep{0};
-          int maxSleep{30};
 
           req.set_data(_uri);
-          while (!executed && sleep < maxSleep)
-          {
-            igndbg << "Requesting /gazebo/resource_paths/resolve" << std::endl;
-            executed = node.Request("/gazebo/resource_paths/resolve", req, 100,
-                res, result);
-            sleep++;
-          }
+          const std::string service ="/gazebo/resource_paths/resolve";
+          ASSERT_TRUE(test::waitForService(node, service));
+          igndbg << "Requesting " << service << std::endl;
+          executed = node.Request(service, req, 1000, res, result);
           EXPECT_TRUE(executed);
           EXPECT_EQ(_found, result);
           EXPECT_EQ(_expected, res.data()) << "Expected[" << _expected

@@ -13,13 +13,13 @@ a simulation.
 There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
-2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
+2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` or `GZ_SIM_SERVER_CONFIG_PATH` environment variables.
 3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
    where `<#>` is Gazebo's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
-`IGN_GAZEBO_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
+`IGN_GAZEBO_SERVER_CONFIG_PATH` and `GZ_SIM_SERVER_CONFIG_PATH` variables are ignored. And the default configuration
 file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 

@@ -401,15 +401,35 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   return common::joinPaths(path,  uri);
 }
 
+namespace
+{
+//////////////////////////////////////////////////
+/// \brief Helper function to extract paths form an environment variable
+/// refactored from `resourcePaths` below.
+/// common::SystemPaths::PathsFromEnv is available, but it's behavior is
+/// slightly different from this in that it adds trailing `/` to the end of a
+/// path if it doesn't have it already.
+std::vector<std::string> extractPathsFromEnv(const std::string &_envVar)
+{
+  std::vector<std::string> pathsFromEnv;
+  char *pathFromEnvCStr = std::getenv(_envVar.c_str());
+  if (pathFromEnvCStr && *pathFromEnvCStr != '\0')
+  {
+    pathsFromEnv =
+        common::Split(pathFromEnvCStr, common::SystemPaths::Delimiter());
+  }
+  return pathsFromEnv;
+}
+}  // namespace
+
 //////////////////////////////////////////////////
 std::vector<std::string> resourcePaths()
 {
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
-  {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+  const auto gzSimResourcePaths = extractPathsFromEnv(kResourcePathEnvGzSim);
+
+  gzPaths.insert(gzPaths.end(), gzSimResourcePaths.begin(),
+                 gzSimResourcePaths.end());
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -441,35 +461,31 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   }
 
   // Gazebo resource paths
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+
+  auto addUniquePaths = [](std::vector<std::string> &_container,
+                           const std::vector<std::string> _pathsToAdd)
   {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
+    for (const auto &path : _pathsToAdd)
+    {
+      if (std::find(_container.begin(), _container.end(), path) ==
+          _container.end())
+      {
+        _container.push_back(path);
+      }
+    }
+  };
 
   // Add new paths to gzPaths
-  for (const auto &path : _paths)
-  {
-    if (std::find(gzPaths.begin(), gzPaths.end(), path) == gzPaths.end())
-    {
-      gzPaths.push_back(path);
-    }
-  }
-
+  addUniquePaths(gzPaths, _paths);
   // Append Gz paths to SDF / Ign paths
-  for (const auto &path : gzPaths)
-  {
-    if (std::find(sdfPaths.begin(), sdfPaths.end(), path) == sdfPaths.end())
-    {
-      sdfPaths.push_back(path);
-    }
+  addUniquePaths(sdfPaths, gzPaths);
+  addUniquePaths(ignPaths, gzPaths);
 
-    if (std::find(ignPaths.begin(), ignPaths.end(), path) == ignPaths.end())
-    {
-      ignPaths.push_back(path);
-    }
-  }
+  // Also append paths from GZ_SIM_RESOURCE_PATH
+  const auto gzSimResourcePaths = extractPathsFromEnv(kResourcePathEnvGzSim);
+  addUniquePaths(sdfPaths, gzSimResourcePaths);
+  addUniquePaths(ignPaths, gzSimResourcePaths);
 
   // Update the vars
   std::string sdfPathsStr;
@@ -727,6 +743,11 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
 
     // Worlds from environment variable
     systemPaths.SetFilePathEnv(kResourcePathEnv);
+    // Also add paths from GZ_SIM_RESOURCE_PATH
+    for (const auto &path : extractPathsFromEnv(kResourcePathEnvGzSim))
+    {
+      systemPaths.AddFilePaths(path);
+    }
 
     // Worlds installed with ign-gazebo
     systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);

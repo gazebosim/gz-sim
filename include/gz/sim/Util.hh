@@ -287,19 +287,31 @@ namespace ignition
     std::optional<math::Vector3d> IGNITION_GAZEBO_VISIBLE sphericalCoordinates(
         Entity _entity, const EntityComponentManager &_ecm);
 
-    /// \brief Environment variable holding resource paths.
+    /// \brief Environment variable holding resource paths. Prefer using
+    /// GZ_SIM_RESOURCE_PATH for compatibility with newer versions of Gazebo.
     const std::string kResourcePathEnv{"IGN_GAZEBO_RESOURCE_PATH"};
+    /// \brief Environment variable holding resource paths.
+    const std::string kResourcePathEnvGzSim{"GZ_SIM_RESOURCE_PATH"};
 
     /// \brief Environment variable used by SDFormat to find URIs inside
     /// `<include>`
     const std::string kSdfPathEnv{"SDF_PATH"};
 
-    /// \brief Environment variable holding server config paths.
+    /// \brief Environment variable holding server config paths. Prefer using
+    /// GZ_SIM_SERVER_CONFIG_PATH for compatibility with newer versions of
+    /// Gazebo.
     const std::string kServerConfigPathEnv{"IGN_GAZEBO_SERVER_CONFIG_PATH"};
+    /// \brief Environment variable holding server config paths.
+    const std::string kServerConfigPathEnvGzSim{"GZ_SIM_SERVER_CONFIG_PATH"};
 
     /// \brief Environment variable holding paths to custom rendering engine
-    /// plugins.
+    /// plugins. Prefer using GZ_SIM_RENDER_ENGINE_PATH for compatibility with
+    /// newer versions of Gazebo
     const std::string kRenderPluginPathEnv{"IGN_GAZEBO_RENDER_ENGINE_PATH"};
+    /// \brief Environment variable holding paths to custom rendering engine
+    /// plugins.
+    const std::string kRenderPluginPathEnvGzSim{"GZ_SIM_RENDER_ENGINE_PATH"};
+
     }
   }
 }

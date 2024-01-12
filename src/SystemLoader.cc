@@ -46,6 +46,14 @@ class ignition::gazebo::SystemLoaderPrivate
     gz::common::SystemPaths systemPaths;
     systemPaths.SetPluginPathEnv(pluginPathEnv);
 
+    // Also add GZ_SYSTEM_SIM_PLUGIN_PATH for compatibility with Garden and
+    // later.
+    for (const auto &path :
+         common::SystemPaths::PathsFromEnv(this->pluginPathEnvGzSim))
+    {
+      systemPaths.AddPluginPaths(path);
+    }
+
     for (const auto &path : this->systemPluginPaths)
       systemPaths.AddPluginPaths(path);
 
@@ -62,6 +70,14 @@ class ignition::gazebo::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
               ignition::plugin::PluginPtr &_gzPlugin)
   {
+    const std::string gzSimPrefix{"gz-sim"};
+    auto filename = _sdfPlugin.Filename();
+    auto pos = filename.find(gzSimPrefix);
+    if (pos != std::string::npos)
+    {
+      filename.replace(pos, gzSimPrefix.size(), "ignition-gazebo");
+    }
+
     std::list<std::string> paths = this->PluginPaths();
     common::SystemPaths systemPaths;
     for (const auto &p : paths)
@@ -69,7 +85,7 @@ class ignition::gazebo::SystemLoaderPrivate
       systemPaths.AddPluginPaths(p);
     }
 
-    auto pathToLib = systemPaths.FindSharedLibrary(_sdfPlugin.Filename());
+    auto pathToLib = systemPaths.FindSharedLibrary(filename);
     if (pathToLib.empty())
     {
       // We assume gz::sim corresponds to the levels feature
@@ -125,8 +141,11 @@ class ignition::gazebo::SystemLoaderPrivate
     return true;
   }
 
-  // Default plugin search path environment variable
+  // Default plugin search path environment variable. Prefer
+  // GZ_SYSTEM_SIM_PLUGIN_PATH for compatibility with future versions of Gazebo.
   public: std::string pluginPathEnv{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
+  // Default plugin search path environment variable
+  public: std::string pluginPathEnvGzSim{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
   public: gz::plugin::Loader loader;

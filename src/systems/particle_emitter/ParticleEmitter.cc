@@ -250,9 +250,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     auto colorRangeImagePath = _sdf->Get<std::string>("color_range_image");
     auto path = asFullPath(colorRangeImagePath, modelPath.value());
 
-    common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(kResourcePathEnv);
-    auto absolutePath = systemPaths.FindFile(path);
+    const std::string absolutePath =
+        common::SystemPaths::LocateLocalFile(path, gazebo::resourcePaths());
 
     this->dataPtr->emitter.mutable_color_range_image()->set_data(
         absolutePath);
