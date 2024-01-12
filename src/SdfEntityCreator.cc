@@ -95,6 +95,8 @@
 #include "gz/sim/components/World.hh"
 #endif
 
+#include "rendering/MaterialParser/MaterialParser.hh"
+
 class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
@@ -114,6 +116,9 @@ class gz::sim::SdfEntityCreatorPrivate
   /// \brief Keep track of new visuals being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::Plugins> newVisuals;
+
+  /// \brief Parse Gazebo defined materials for visuals
+  public: MaterialParser materialParser;
 };
 
 using namespace gz;
@@ -204,6 +209,7 @@ SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
+  this->dataPtr->materialParser.Load();
 }
 
 /////////////////////////////////////////////////
@@ -834,8 +840,47 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // \todo(louise) Populate with default material if undefined
   if (_visual->Material())
   {
+    sdf::Material visualMaterial = *_visual->Material();
+    if (!_visual->Material()->ScriptUri().empty())
+    {
+      gzwarn << "Gazebo does not support Ogre material scripts. See " <<
+      "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
+      "for details." << std::endl;
+      std::string scriptUri = visualMaterial.ScriptUri();
+      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+        gzwarn << "Custom material scripts are not supported."
+          << std::endl;
+      }
+    }
+    if (!_visual->Material()->ScriptName().empty())
+    {
+      std::string scriptName = visualMaterial.ScriptName();
+
+      if ((scriptName.find("Gazebo/") == 0u))
+      {
+        gzwarn << "Using an internal gazebo.material to parse "
+          << scriptName << std::endl;
+        std::optional<MaterialParser::MaterialValues> parsed =
+          this->dataPtr->materialParser.GetMaterialValues(scriptName);
+
+        if(parsed.has_value())
+        {
+          visualMaterial.SetAmbient
+            (parsed->ambient.value_or(visualMaterial.Ambient()));
+          visualMaterial.SetDiffuse
+            (parsed->diffuse.value_or(visualMaterial.Diffuse()));
+          visualMaterial.SetSpecular
+            (parsed->specular.value_or(visualMaterial.Specular()));
+        }
+        else
+        {
+          gzwarn << "Material " << scriptName <<
+            " not recognized or supported, using default." << std::endl;
+        }
+      }
+    }
     this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(*_visual->Material()));
+        components::Material(visualMaterial));
   }
 
   // store the plugin in a component
