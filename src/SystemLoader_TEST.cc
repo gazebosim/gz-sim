@@ -44,21 +44,21 @@ TEST(SystemLoader, Constructor)
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
       "<plugin filename='libignition-gazebo") +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='gz::sim::systems::Physics'></plugin>"
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='ignition-gazebo" +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system' "
-      "name='gz::sim::systems::Physics'></plugin>"
-      "<plugin filename='ignition-gazebo-physics-system' "
-      "name='gz::sim::systems::Physics'></plugin>"
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
+      "<plugin filename='ignition-gazebo-user-commands-system' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='libgz-sim" +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system.so' "
-      "name='gz::sim::systems::Physics'></plugin>"
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system.so' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='gz-sim" +
-      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-physics-system' "
-      "name='gz::sim::systems::Physics'></plugin>"
-      "<plugin filename='gz-sim-physics-system' "
-      "name='gz::sim::systems::Physics'></plugin>"
+      IGNITION_GAZEBO_MAJOR_VERSION_STR + "-user-commands-system' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
+      "<plugin filename='gz-sim-user-commands-system' "
+      "name='gz::sim::systems::UserCommands'></plugin>"
       "</world></sdf>");
 
   auto worldElem = root.WorldByIndex(0)->Element();
