@@ -1,5 +1,34 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.16.0 (2024-01-12)
+
+1. Allow using plugin file names and environment variables compatible with Garden and later
+    * [Pull request #2275](https://github.com/gazebosim/gz-sim/pull/2275)
+
+1. Update friction parameters for skid steer example
+    * [Pull request #2235](https://github.com/gazebosim/gz-sim/pull/2235)
+
+1. Relax pose check in actor no mesh test
+    * [Pull request #2196](https://github.com/gazebosim/gz-sim/pull/2196)
+
+1. Fix macOS test failures by registering components in the core library
+    * [Pull request #2220](https://github.com/gazebosim/gz-sim/pull/2220)
+
+1. Fix for sensor pointer null when navsat plugin in included in sdf
+    * [Pull request #2176](https://github.com/gazebosim/gz-sim/pull/2176)
+
+1. Fix another deadlock in sensors system
+    * [Pull request #2200](https://github.com/gazebosim/gz-sim/pull/2200)
+
+1. Backport component inspector Vector3d width fix
+    * [Pull request #2195](https://github.com/gazebosim/gz-sim/pull/2195)
+
+1. Bump Fuel model version in test
+    * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
+
+1. Infrastructure
+    * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
+    * [Pull request #2222](https://github.com/gazebosim/gz-sim/pull/2222)
 
 ### Gazebo Sim 6.15.0 (2023-08-16)
 
