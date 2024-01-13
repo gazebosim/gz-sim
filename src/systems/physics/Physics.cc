@@ -618,12 +618,12 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
-  // CollisionPairMaxTotalContacts
+  // CollisionPairMaxContacts
   /// \brief Feature list for setting and getting the max total contacts for
   /// collision pairs
-  public: struct CollisionPairMaxTotalContactsFeatureList :
+  public: struct CollisionPairMaxContactsFeatureList :
             gz::physics::FeatureList<
-            gz::physics::CollisionPairMaxTotalContacts>{};
+            gz::physics::CollisionPairMaxContacts>{};
 
   //////////////////////////////////////////////////
   // Nested Models
@@ -651,7 +651,7 @@ class gz::sim::systems::PhysicsPrivate
           CollisionDetectorFeatureList,
           SolverFeatureList,
           WorldModelFeatureList,
-          CollisionPairMaxTotalContactsFeatureList
+          CollisionPairMaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -1060,7 +1060,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
         {
           auto maxContactsFeature =
               this->entityWorldMap.EntityCast<
-              CollisionPairMaxTotalContactsFeatureList>(_entity);
+              CollisionPairMaxContactsFeatureList>(_entity);
           if (!maxContactsFeature)
           {
             static bool informed{false};
@@ -1068,7 +1068,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             {
               gzdbg << "Attempting to set physics options, but the "
                      << "phyiscs engine doesn't support feature "
-                     << "[CollisionPairMaxTotalContacts]. "
+                     << "[CollisionPairMaxContacts]. "
                      << "Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1076,7 +1076,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           }
           else
           {
-            maxContactsFeature->SetCollisionPairMaxTotalContacts(
+            maxContactsFeature->SetCollisionPairMaxContacts(
               physicsComp->Data().MaxContacts());
           }
         }
