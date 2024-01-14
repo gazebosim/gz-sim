@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2024 CogniPilot Foundation
+ * Copyright (C) 2024 Rudis Laboratories LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +35,7 @@
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -45,6 +48,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/msgs/Utility.hh>
 
@@ -458,6 +462,10 @@ class gz::sim::systems::UserCommandsPrivate
   /// \param[in] _msg Light message
   public: void OnCmdLight(const msgs::Light &_msg);
 
+  /// \brief Callback for MaterialColor subscription
+  /// \param[in] _msg MaterialColor message
+  public: void OnCmdMaterialColor(const msgs::MaterialColor &_msg);
+
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
   /// \param[out] _res True if message successfully received and queued.
@@ -665,6 +673,10 @@ void UserCommands::Configure(const Entity &_entity,
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
                                 this->dataPtr.get());
+
+  std::string materialColorTopic{"/world/" + validWorldName +"/material_color"};
+  this->dataPtr->node.Subscribe(materialColorTopic,
+      &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 
   // Physics service
   std::string physicsService{"/world/" + validWorldName + "/set_physics"};
@@ -951,6 +963,39 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 
   _res.set_data(true);
   return true;
+}
+
+//////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
+{
+  msgs::Visual _req;
+  auto msg = _req.New();
+  msg->set_name(_msg.name());
+  msg->set_parent_name(_msg.parent_name());
+  msg->mutable_material()->mutable_ambient()->set_r(_msg.ambient().r());
+  msg->mutable_material()->mutable_ambient()->set_g(_msg.ambient().g());
+  msg->mutable_material()->mutable_ambient()->set_b(_msg.ambient().b());
+  msg->mutable_material()->mutable_ambient()->set_a(_msg.ambient().a());
+  msg->mutable_material()->mutable_diffuse()->set_r(_msg.diffuse().r());
+  msg->mutable_material()->mutable_diffuse()->set_g(_msg.diffuse().g());
+  msg->mutable_material()->mutable_diffuse()->set_b(_msg.diffuse().b());
+  msg->mutable_material()->mutable_diffuse()->set_a(_msg.diffuse().a());
+  msg->mutable_material()->mutable_specular()->set_r(_msg.specular().r());
+  msg->mutable_material()->mutable_specular()->set_g(_msg.specular().g());
+  msg->mutable_material()->mutable_specular()->set_b(_msg.specular().b());
+  msg->mutable_material()->mutable_specular()->set_a(_msg.specular().a());
+  msg->mutable_material()->mutable_emissive()->set_r(_msg.emissive().r());
+  msg->mutable_material()->mutable_emissive()->set_g(_msg.emissive().g());
+  msg->mutable_material()->mutable_emissive()->set_b(_msg.emissive().b());
+  msg->mutable_material()->mutable_emissive()->set_a(_msg.emissive().a());
+
+  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1748,7 +1793,19 @@ bool VisualCommand::Execute()
     // When size > 1, we don't know which entity to modify
     if (entities.size() == 1)
     {
-      visualEntity = entities[0];
+      auto subentities =
+      this->iface->ecm->ChildrenByComponents(entities[0],
+        components::Name(visualMsg->name()));
+      if (subentities.size() == 1)
+      {
+        visualEntity = subentities[0];
+        gzmsg << "Using visual entity id: " << visualEntity << std::endl;
+      }
+      else
+      {
+        visualEntity = entities[0];
+        gzmsg << "Using visual entity id: " << visualEntity << std::endl;
+      }
     }
   }
 
