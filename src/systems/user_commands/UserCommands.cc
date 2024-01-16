@@ -1799,13 +1799,12 @@ bool VisualCommand::Execute()
       if (subentities.size() == 1)
       {
         visualEntity = subentities[0];
-        gzmsg << "Using visual entity id: " << visualEntity << std::endl;
       }
       else
       {
         visualEntity = entities[0];
-        gzmsg << "Using visual entity id: " << visualEntity << std::endl;
       }
+      gzmsg << "Using visual entity id: " << visualEntity << std::endl;
     }
   }
 
