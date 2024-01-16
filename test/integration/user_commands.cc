@@ -21,6 +21,7 @@
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -1044,6 +1045,73 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
     spotLightComp->Data().Diffuse());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  transport::Node node;
+
+  // Camera Ball
+  auto boxVisualEntity =
+    ecm->EntityByComponents(components::Name("box_visual"));
+  ASSERT_NE(kNullEntity, boxVisualEntity);
+
+  // check box visual's initial values
+  auto boxVisualComp = ecm->Component<components::Material>(boxVisualEntity);
+  ASSERT_NE(nullptr, boxVisualComp);
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            boxVisualComp->Data().Diffuse());
+
+  // Test material_color topic
+  const std::string materialColorTopic = "/world/material_color/material_color";
+
+  msgs::MaterialColor materialColorMsg;
+  materialColorMsg.set_name("box_visual");
+  materialColorMsg.set_parent_name("box_link");
+  gz::msgs::Set(materialColorMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+  // Publish material color
+  auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
+  pub.Publish(materialColorMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  auto boxVisCmdComp = ecm->Component<components::VisualCmd>(boxVisualEntity);
+  ASSERT_NE(nullptr, boxVisualComp);
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().r());
+  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().g());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().b());
+  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().a());
 }
 
 /////////////////////////////////////////////////
