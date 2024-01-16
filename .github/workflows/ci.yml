@@ -4,9 +4,9 @@ on:
   pull_request:
   push:
     branches:
-      - 'gz-sim7'
-
-# Every time you make a push to your PR, it cancel immediately the previous checks,
+      - 'ign-gazebo[0-9]'
+      - 'gz-sim[0-9]?'
+      - 'main'
 # and start a new one. The other runner will be available more quickly to your PR.
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -18,7 +18,7 @@ jobs:
     name: Ubuntu Focal CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
         with:
@@ -35,7 +35,7 @@ jobs:
     name: Ubuntu Jammy CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
         with:
