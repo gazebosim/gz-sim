@@ -1093,8 +1093,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
   const std::string materialColorTopic = "/world/material_color/material_color";
 
   msgs::MaterialColor materialColorMsg;
-  materialColorMsg.set_name("box_visual");
-  materialColorMsg.set_parent_name("box_link");
+  materialColorMsg.mutable_entity()->set_name("box::box_link::box_visual");
   gz::msgs::Set(materialColorMsg.mutable_diffuse(),
     gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 

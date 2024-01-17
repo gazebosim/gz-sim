@@ -969,32 +969,49 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 {
   msgs::Visual _req;
-  auto msg = _req.New();
-  msg->set_name(_msg.name());
-  msg->set_parent_name(_msg.parent_name());
-  msg->mutable_material()->mutable_ambient()->set_r(_msg.ambient().r());
-  msg->mutable_material()->mutable_ambient()->set_g(_msg.ambient().g());
-  msg->mutable_material()->mutable_ambient()->set_b(_msg.ambient().b());
-  msg->mutable_material()->mutable_ambient()->set_a(_msg.ambient().a());
-  msg->mutable_material()->mutable_diffuse()->set_r(_msg.diffuse().r());
-  msg->mutable_material()->mutable_diffuse()->set_g(_msg.diffuse().g());
-  msg->mutable_material()->mutable_diffuse()->set_b(_msg.diffuse().b());
-  msg->mutable_material()->mutable_diffuse()->set_a(_msg.diffuse().a());
-  msg->mutable_material()->mutable_specular()->set_r(_msg.specular().r());
-  msg->mutable_material()->mutable_specular()->set_g(_msg.specular().g());
-  msg->mutable_material()->mutable_specular()->set_b(_msg.specular().b());
-  msg->mutable_material()->mutable_specular()->set_a(_msg.specular().a());
-  msg->mutable_material()->mutable_emissive()->set_r(_msg.emissive().r());
-  msg->mutable_material()->mutable_emissive()->set_g(_msg.emissive().g());
-  msg->mutable_material()->mutable_emissive()->set_b(_msg.emissive().b());
-  msg->mutable_material()->mutable_emissive()->set_a(_msg.emissive().a());
-
-  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
-
-  // Push to pending
+  int numberOfEntities = 0;
+  auto entities = entitiesFromScopedName(_msg.entity().name(),
+      *this->iface->ecm);
+  if (entities.empty())
   {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
+    gzwarn << "Entity name: " << _msg.entity().name() << ", is not found."
+           << std::endl;
+    return;
+  }
+  for (const Entity &id: entities)
+  {
+    if ((numberOfEntities > 0) && (_msg.apply() !=
+      gz::msgs::MaterialColor::Apply::MaterialColor_Apply_ALL))
+    {
+      break;
+    }
+    numberOfEntities++;
+    auto msg = _req.New();
+    msg->set_id(id);
+    msg->mutable_material()->mutable_ambient()->set_r(_msg.ambient().r());
+    msg->mutable_material()->mutable_ambient()->set_g(_msg.ambient().g());
+    msg->mutable_material()->mutable_ambient()->set_b(_msg.ambient().b());
+    msg->mutable_material()->mutable_ambient()->set_a(_msg.ambient().a());
+    msg->mutable_material()->mutable_diffuse()->set_r(_msg.diffuse().r());
+    msg->mutable_material()->mutable_diffuse()->set_g(_msg.diffuse().g());
+    msg->mutable_material()->mutable_diffuse()->set_b(_msg.diffuse().b());
+    msg->mutable_material()->mutable_diffuse()->set_a(_msg.diffuse().a());
+    msg->mutable_material()->mutable_specular()->set_r(_msg.specular().r());
+    msg->mutable_material()->mutable_specular()->set_g(_msg.specular().g());
+    msg->mutable_material()->mutable_specular()->set_b(_msg.specular().b());
+    msg->mutable_material()->mutable_specular()->set_a(_msg.specular().a());
+    msg->mutable_material()->mutable_emissive()->set_r(_msg.emissive().r());
+    msg->mutable_material()->mutable_emissive()->set_g(_msg.emissive().g());
+    msg->mutable_material()->mutable_emissive()->set_b(_msg.emissive().b());
+    msg->mutable_material()->mutable_emissive()->set_a(_msg.emissive().a());
+
+    auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+
+    // Push to pending
+    {
+      std::lock_guard<std::mutex> lock(this->pendingMutex);
+      this->pendingCmds.push_back(std::move(cmd));
+    }
   }
 }
 
@@ -1793,18 +1810,7 @@ bool VisualCommand::Execute()
     // When size > 1, we don't know which entity to modify
     if (entities.size() == 1)
     {
-      auto subentities =
-      this->iface->ecm->ChildrenByComponents(entities[0],
-        components::Name(visualMsg->name()));
-      if (subentities.size() == 1)
-      {
-        visualEntity = subentities[0];
-      }
-      else
-      {
-        visualEntity = entities[0];
-      }
-      gzmsg << "Using visual entity id: " << visualEntity << std::endl;
+      visualEntity = entities[0];
     }
   }
 
