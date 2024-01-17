@@ -978,10 +978,10 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
            << std::endl;
     return;
   }
-  for (const Entity &id: entities)
+  for (const Entity &id : entities)
   {
-    if ((numberOfEntities > 0) && (_msg.apply() !=
-      gz::msgs::MaterialColor::Apply::MaterialColor_Apply_ALL))
+    if ((numberOfEntities > 0) && (_msg.entity_match() !=
+      gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL))
     {
       break;
     }
