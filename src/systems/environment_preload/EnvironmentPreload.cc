@@ -71,7 +71,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
   public: bool visualize{false};
 
   /// \brief Sample resolutions
-  public: math::Vector3d samples;
+  public: math::Vector3<unsigned int> samples;
 
   /// \brief Is the file loaded
   public: bool fileLoaded{false};
@@ -106,8 +106,13 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       // Only visualize if a file exists
       return;
     }
-    auto converted = msgs::Convert(_resChanged);
-    if (this->samples == converted)
+    math::Vector3<unsigned int> converted{
+      static_cast<unsigned int>(ceil(_resChanged.x())),
+      static_cast<unsigned int>(ceil(_resChanged.y())),
+      static_cast<unsigned int>(ceil(_resChanged.z()))};
+    if (this->samples.X() == converted.X() &&
+        this->samples.Y() == converted.Y() &&
+        this->samples.Z() == converted.Z())
     {
       // If the sample has not changed return.
       // This is because resampling is expensive.
@@ -184,7 +189,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
               }
               else if (unitName != "radians")
               {
-                ignerr << "Unrecognized unit " << unitName << "\n";
+                gzerr << "Unrecognized unit " << unitName << "\n";
               }
             }
           }
