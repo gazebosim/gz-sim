@@ -17,6 +17,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 
 ### GUI and rendering features
 
+* \subpage model_editor Add and edit models thorugh the GUI.
 * \subpage move_camera_to_model Move camera to model
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
