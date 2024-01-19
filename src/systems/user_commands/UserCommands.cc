@@ -674,7 +674,8 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
                                 this->dataPtr.get());
 
-  std::string materialColorTopic{"/world/" + validWorldName +"/material_color"};
+  std::string materialColorTopic{
+    "/world/" + validWorldName + "/material_color"};
   this->dataPtr->node.Subscribe(materialColorTopic,
       &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 

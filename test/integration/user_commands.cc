@@ -1053,7 +1053,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
   // Start server
   ServerConfig serverConfig;
   const auto sdfFile = gz::common::joinPaths(
-    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "shapes.sdf");
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "material_color.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -1078,39 +1078,43 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
 
   transport::Node node;
 
-  // Camera Ball
-  auto boxVisualEntity =
-    ecm->EntityByComponents(components::Name("box_visual"));
-  ASSERT_NE(kNullEntity, boxVisualEntity);
+  // box
+  auto sphereVisualEntity =
+    ecm->EntityByComponents(components::Name("sphere_visual"));
+  ASSERT_NE(kNullEntity, sphereVisualEntity);
 
   // check box visual's initial values
-  auto boxVisualComp = ecm->Component<components::Material>(boxVisualEntity);
-  ASSERT_NE(nullptr, boxVisualComp);
-  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
-            boxVisualComp->Data().Diffuse());
+  auto sphereVisualComp =
+    ecm->Component<components::Material>(sphereVisualEntity);
+  ASSERT_NE(nullptr, sphereVisualComp);
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 1.0f),
+            sphereVisualComp->Data().Diffuse());
 
   // Test material_color topic
-  const std::string materialColorTopic = "/world/material_color/material_color";
+  const std::string materialColorTopic =
+    "/world/material_color/material_color";
 
   msgs::MaterialColor materialColorMsg;
-  materialColorMsg.mutable_entity()->set_name("box::box_link::box_visual");
+  materialColorMsg.mutable_entity()->set_name("sphere_visual");
+  materialColorMsg.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL);
   gz::msgs::Set(materialColorMsg.mutable_diffuse(),
     gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
   // Publish material color
   auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
   pub.Publish(materialColorMsg);
+  GZ_SLEEP_MS(100);
+  pub.Publish(materialColorMsg);
 
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
-  GZ_SLEEP_MS(10);
+  GZ_SLEEP_MS(100);
 
-  auto boxVisCmdComp = ecm->Component<components::VisualCmd>(boxVisualEntity);
-  ASSERT_NE(nullptr, boxVisualComp);
-  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().r());
-  EXPECT_FLOAT_EQ(0.0f, boxVisCmdComp->Data().material().diffuse().g());
-  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().b());
-  EXPECT_FLOAT_EQ(1.0f, boxVisCmdComp->Data().material().diffuse().a());
+  auto updatedVisual =
+    ecm->Component<components::Material>(sphereVisualEntity);
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            updatedVisual->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////
