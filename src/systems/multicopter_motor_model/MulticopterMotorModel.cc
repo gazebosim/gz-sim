@@ -447,14 +447,6 @@ void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
     doUpdateForcesAndMoments = false;
   }
 
-  if (!_ecm.Component<components::JointVelocityCmd>(
-      this->dataPtr->jointEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->jointEntity,
-        components::JointVelocityCmd({0}));
-    doUpdateForcesAndMoments = false;
-  }
-
   if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
   {
     _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
@@ -682,11 +674,10 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       refMotorRotVel = this->rotorVelocityFilter->UpdateFilter(
           this->refMotorInput, this->samplingTime);
 
-      const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
-          this->jointEntity);
-      *jointVelCmd = components::JointVelocityCmd(
-          {this->turningDirection * refMotorRotVel
-                              / this->rotorVelocitySlowdownSim});
+      _ecm.SetComponentData<components::JointVelocityCmd>(
+        this->jointEntity,
+        {this->turningDirection * refMotorRotVel
+                                / this->rotorVelocitySlowdownSim});
     }
   }
 }

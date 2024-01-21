@@ -526,23 +526,14 @@ TEST_F(WheelSlipTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TricyclesUphill))
   testSlipSystem.OnPreUpdate([&](const UpdateInfo &,
         EntityComponentManager &)
       {
-      auto wheelRearLeftVelocity0Cmd =
-        ecm->Component<components::JointVelocityCmd>(wheelRearLeftSpin0Entity);
-      auto wheelRearRightVelocity0Cmd =
-        ecm->Component<components::JointVelocityCmd>(wheelRearRightSpin0Entity);
-      auto wheelRearLeftVelocity1Cmd =
-        ecm->Component<components::JointVelocityCmd>(wheelRearLeftSpin1Entity);
-      auto wheelRearRightVelocity1Cmd =
-        ecm->Component<components::JointVelocityCmd>(wheelRearRightSpin1Entity);
-
-      *wheelRearLeftVelocity0Cmd =
-        components::JointVelocityCmd({angularSpeed});
-      *wheelRearRightVelocity0Cmd =
-        components::JointVelocityCmd({angularSpeed});
-      *wheelRearLeftVelocity1Cmd =
-        components::JointVelocityCmd({angularSpeed});
-      *wheelRearRightVelocity1Cmd =
-        components::JointVelocityCmd({angularSpeed});
+        ecm->SetComponentData<components::JointVelocityCmd>(
+          wheelRearLeftSpin0Entity, {angularSpeed});
+        ecm->SetComponentData<components::JointVelocityCmd>(
+          wheelRearLeftSpin1Entity, {angularSpeed});
+        ecm->SetComponentData<components::JointVelocityCmd>(
+          wheelRearRightSpin0Entity, {angularSpeed});
+        ecm->SetComponentData<components::JointVelocityCmd>(
+          wheelRearRightSpin1Entity, {angularSpeed});
       });
   server.AddSystem(testSlipSystem.systemPtr);
   server.Run(true, 2000, false);

@@ -91,7 +91,7 @@
           </geometry>
         </collision>
         <visual name="rotor_0_visual">
-          <pose>0 0 0 1.57 0 0 0</pose>
+          <pose>0 0 0 1.57 0 0</pose>
           <geometry>
             <cylinder>
               <length>0.2</length>
@@ -136,7 +136,7 @@
           </geometry>
         </collision>
         <visual name="rotor_1_visual">
-          <pose>0 0 0 1.57 0 0 0</pose>
+          <pose>0 0 0 1.57 0 0</pose>
           <geometry>
             <cylinder>
               <length>0.2</length>
@@ -181,7 +181,7 @@
           </geometry>
         </collision>
         <visual name="rotor_2_visual">
-          <pose>0 0 0 1.57 0 0 0</pose>
+          <pose>0 0 0 1.57 0 0</pose>
           <geometry>
             <cylinder>
               <length>0.2</length>
@@ -226,7 +226,7 @@
           </geometry>
         </collision>
         <visual name="rotor_3_visual">
-          <pose>0 0 0 1.57 0 0 0</pose>
+          <pose>0 0 0 1.57 0 0</pose>
           <geometry>
             <cylinder>
               <length>0.2</length>

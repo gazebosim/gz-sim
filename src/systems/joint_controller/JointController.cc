@@ -344,17 +344,7 @@ void JointController::PreUpdate(const UpdateInfo &_info,
     // Update joint velocity
     for (Entity joint : this->dataPtr->jointEntities)
     {
-      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-      if (vel == nullptr)
-      {
-        _ecm.CreateComponent(
-            joint, components::JointVelocityCmd({targetVel}));
-      }
-      else
-      {
-        *vel = components::JointVelocityCmd({targetVel});
-      }
+      _ecm.SetComponentData<components::JointVelocityCmd>(joint, {targetVel});
     }
   }
 }

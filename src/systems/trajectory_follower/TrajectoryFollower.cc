@@ -111,9 +111,6 @@ class gz::sim::systems::TrajectoryFollowerPrivate
   /// \brief Whether the trajectory follower behavior should be paused or not.
   public: bool paused = false;
 
-  /// \brief Angular velocity set to zero
-  public: bool zeroAngVelSet = false;
-
   /// \brief Force angular velocity to be zero when bearing is reached
   public: bool forceZeroAngVel = false;
 };
@@ -390,37 +387,22 @@ void TrajectoryFollower::PreUpdate(
   // Transform the force and torque to the world frame.
   // Move commands. The vehicle always move forward (X direction).
   gz::math::Vector3d forceWorld;
+  gz::math::Vector3d torqueWorld;
   if (std::abs(bearing.Degree()) <= this->dataPtr->bearingTolerance)
   {
     forceWorld = (*comPose).Rot().RotateVector(
       gz::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
 
     // force angular velocity to be zero when bearing is reached
-    if (this->dataPtr->forceZeroAngVel && !this->dataPtr->zeroAngVelSet &&
+    if (this->dataPtr->forceZeroAngVel &&
         math::equal (std::abs(bearing.Degree()), 0.0,
         this->dataPtr->bearingTolerance * 0.5))
     {
       this->dataPtr->link.SetAngularVelocity(_ecm, math::Vector3d::Zero);
-      this->dataPtr->zeroAngVelSet = true;
     }
   }
-  gz::math::Vector3d torqueWorld;
-  if (std::abs(bearing.Degree()) > this->dataPtr->bearingTolerance)
+  else
   {
-    // remove angular velocity component otherwise the physics system will set
-    // the zero ang vel command every iteration
-    if (this->dataPtr->forceZeroAngVel && this->dataPtr->zeroAngVelSet)
-    {
-      auto angVelCmdComp = _ecm.Component<components::AngularVelocityCmd>(
-          this->dataPtr->link.Entity());
-      if (angVelCmdComp)
-      {
-        _ecm.RemoveComponent<components::AngularVelocityCmd>(
-          this->dataPtr->link.Entity());
-        this->dataPtr->zeroAngVelSet = false;
-      }
-    }
-
     int sign = static_cast<int>(std::abs(bearing.Degree()) / bearing.Degree());
     torqueWorld = (*comPose).Rot().RotateVector(
        gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));

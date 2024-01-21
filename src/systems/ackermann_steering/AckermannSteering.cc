@@ -608,70 +608,29 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
     for (Entity joint : this->dataPtr->leftJoints)
     {
       // Update wheel velocity
-      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-      if (vel == nullptr)
-      {
-        _ecm.CreateComponent(
-            joint, components::JointVelocityCmd(
-              {this->dataPtr->leftJointSpeed}));
-      }
-      else
-      {
-        *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-      }
+      _ecm.SetComponentData<components::JointVelocityCmd>(
+        joint, {this->dataPtr->leftJointSpeed});
     }
 
     for (Entity joint : this->dataPtr->rightJoints)
     {
       // Update wheel velocity
-      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-      if (vel == nullptr)
-      {
-        _ecm.CreateComponent(joint,
-            components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-      }
-      else
-      {
-        *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-      }
+      _ecm.SetComponentData<components::JointVelocityCmd>(
+        joint, {this->dataPtr->rightJointSpeed});
     }
   }
 
   // Update steering
   for (Entity joint : this->dataPtr->leftSteeringJoints)
   {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd(
-                             {this->dataPtr->leftSteeringJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                         {this->dataPtr->leftSteeringJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(
+      joint, {this->dataPtr->leftSteeringJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->rightSteeringJoints)
   {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd(
-                  {this->dataPtr->rightSteeringJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                     {this->dataPtr->rightSteeringJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(
+      joint, {this->dataPtr->rightSteeringJointSpeed});
   }
   if (!this->dataPtr->steeringOnly)
   {

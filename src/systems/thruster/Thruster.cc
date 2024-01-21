@@ -740,18 +740,8 @@ void Thruster::PreUpdate(
   // Velocity control
   else
   {
-    auto velocityComp =
-    _ecm.Component<gz::sim::components::JointVelocityCmd>(
-      this->dataPtr->jointEntity);
-    if (velocityComp == nullptr)
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity,
-        components::JointVelocityCmd({desiredPropellerAngVel}));
-    }
-    else
-    {
-      velocityComp->Data()[0] = desiredPropellerAngVel;
-    }
+    _ecm.SetComponentData<gz::sim::components::JointVelocityCmd>(
+      this->dataPtr->jointEntity, {desiredPropellerAngVel});
     angvel.set_data(desiredPropellerAngVel);
   }
 

@@ -3628,12 +3628,20 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  _ecm.Each<components::JointVelocityCmd>(
-      [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
-      {
-        std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
-        return true;
-      });
+  {
+    std::vector<Entity> entitiesJointVelocityCmd;
+    _ecm.Each<components::JointVelocityCmd>(
+        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
+        {
+          entitiesJointVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesJointVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
+    }
+  }
 
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
@@ -3641,21 +3649,37 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
+
+  {
+    std::vector<Entity> entitiesAngularVelocityCmd;
+    _ecm.Each<components::AngularVelocityCmd>(
+        [&](const Entity &_entity, components::AngularVelocityCmd *) -> bool
+        {
+          entitiesAngularVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesAngularVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::AngularVelocityCmd>(entity);
+    }
+  }
+
+  {
+    std::vector<Entity> entitiesLinearVelocityCmd;
+    _ecm.Each<components::LinearVelocityCmd>(
+        [&](const Entity &_entity, components::LinearVelocityCmd *) -> bool
+        {
+          entitiesLinearVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesLinearVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::LinearVelocityCmd>(entity);
+    }
+  }
   GZ_PROFILE_END();
-
-  _ecm.Each<components::AngularVelocityCmd>(
-      [&](const Entity &, components::AngularVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
-
-  _ecm.Each<components::LinearVelocityCmd>(
-      [&](const Entity &, components::LinearVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
 
   // Update joint positions
   GZ_PROFILE_BEGIN("Joints");
