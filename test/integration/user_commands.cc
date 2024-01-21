@@ -1094,6 +1094,21 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
   const std::string materialColorTopic =
     "/world/material_color/material_color";
 
+  // Test first return logic (no direct compare as returns unordered set)
+  msgs::MaterialColor materialColorMsgFirst;
+  materialColorMsgFirst.mutable_entity()->set_name("sphere_visual");
+  materialColorMsgFirst.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_FIRST);
+  gz::msgs::Set(materialColorMsgFirst.mutable_diffuse(),
+    gz::math::Color(0.0f, 0.0f, 0.0f, 1.0f));
+
+  // Publish material color
+  auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
+  pub.Publish(materialColorMsgFirst);
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(100);
+
   msgs::MaterialColor materialColorMsg;
   materialColorMsg.mutable_entity()->set_name("sphere_visual");
   materialColorMsg.set_entity_match(
@@ -1102,11 +1117,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
     gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
 
   // Publish material color
-  auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
   pub.Publish(materialColorMsg);
-  GZ_SLEEP_MS(100);
-  pub.Publish(materialColorMsg);
-
   server.Run(true, 100, false);
   // Sleep for a small duration to allow Run thread to start
   GZ_SLEEP_MS(100);
