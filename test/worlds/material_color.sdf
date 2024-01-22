@@ -19,9 +19,9 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
-    <model name="sphere">
+    <model name="sphere_0">
       <pose>0 0.0 0.0 0 0 0</pose>
-      <link name="sphere_link">
+      <link name="sphere_link_0">
         <!-- Added a render sensor to trigger RenderUtil:Update -->
         <sensor name="camera" type="camera">
           <pose>1 0 1.3 0 0 0</pose>
@@ -57,7 +57,7 @@
     </model>
     <model name="sphere_1">
       <pose>0.5 1.0 0.0 0 0 0</pose>
-      <link name="sphere_link">
+      <link name="sphere_link_1">
         <visual name="sphere_visual">
           <geometry>
             <sphere>
