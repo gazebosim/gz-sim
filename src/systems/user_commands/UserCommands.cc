@@ -989,22 +989,10 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
     numberOfEntities++;
     auto msg = _req.New();
     msg->set_id(id);
-    msg->mutable_material()->mutable_ambient()->set_r(_msg.ambient().r());
-    msg->mutable_material()->mutable_ambient()->set_g(_msg.ambient().g());
-    msg->mutable_material()->mutable_ambient()->set_b(_msg.ambient().b());
-    msg->mutable_material()->mutable_ambient()->set_a(_msg.ambient().a());
-    msg->mutable_material()->mutable_diffuse()->set_r(_msg.diffuse().r());
-    msg->mutable_material()->mutable_diffuse()->set_g(_msg.diffuse().g());
-    msg->mutable_material()->mutable_diffuse()->set_b(_msg.diffuse().b());
-    msg->mutable_material()->mutable_diffuse()->set_a(_msg.diffuse().a());
-    msg->mutable_material()->mutable_specular()->set_r(_msg.specular().r());
-    msg->mutable_material()->mutable_specular()->set_g(_msg.specular().g());
-    msg->mutable_material()->mutable_specular()->set_b(_msg.specular().b());
-    msg->mutable_material()->mutable_specular()->set_a(_msg.specular().a());
-    msg->mutable_material()->mutable_emissive()->set_r(_msg.emissive().r());
-    msg->mutable_material()->mutable_emissive()->set_g(_msg.emissive().g());
-    msg->mutable_material()->mutable_emissive()->set_b(_msg.emissive().b());
-    msg->mutable_material()->mutable_emissive()->set_a(_msg.emissive().a());
+    msg->mutable_material()->mutable_ambient()->CopyFrom(_msg.ambient());
+    msg->mutable_material()->mutable_diffuse()->CopyFrom(_msg.diffuse());
+    msg->mutable_material()->mutable_specular()->CopyFrom(_msg.specular());
+    msg->mutable_material()->mutable_emissive()->CopyFrom(_msg.emissive());
 
     auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
 
