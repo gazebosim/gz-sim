@@ -32,7 +32,7 @@ disabled.
 
 To insert a model or light into a world, use the `+` button on the `Entity Tree`.
 
-![Entity Tree Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/model_editor/entity_tree_plus.png)
+@image html files/model_editor/entity_tree_plus.png "Entity tree plus" width=60%
 
 Selecting the `+` button opens a menu listing different types of models and
 lights. Choose an item from the menu, move your mouse cursor in the 3D scene
@@ -47,7 +47,7 @@ the Entity Tree, then click the + button on the Component Inspector Editor
 plugin. In the example below, we are adding an entity to the selected box
 entity.
 
-@image html files/model_editor/add_link.png "Inspector Plus" width=60%
+@image html files/model_editor/add_link.png "Add Link" width=60%
 
 A menu displaying different types of links, joints, and lights will appear.
 Select the desired entity type to add to the model. The new entity will
@@ -66,6 +66,8 @@ Adding a sensor is similar to adding a link, joint, or light to a model.
 Ensure the `Component Inspector Editor` GUI plugin is loaded, and the
 simulation is paused. Select a link in the `Entity Tree`, then click the
 `+` button on the `Component Inspector Editor` plugin.
+
+@image html files/model_editor/add_sensor.png "Add Sensor" width=60%
 
 A menu listing different types of sensors will appear. Select the desired
 sensor type to add to the link. The new sensor will appear as a child of the
