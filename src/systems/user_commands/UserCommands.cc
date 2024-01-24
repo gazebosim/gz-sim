@@ -330,6 +330,12 @@ class VisualCommand : public UserCommandBase
   public: VisualCommand(msgs::Visual *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the material color parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: VisualCommand(msgs::MaterialColor *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
   // Documentation inherited
   public: bool Execute() final;
 
@@ -969,39 +975,16 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 //////////////////////////////////////////////////
 void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 {
-  msgs::Visual _req;
-  int numberOfEntities = 0;
-  auto entities = entitiesFromScopedName(_msg.entity().name(),
-      *this->iface->ecm);
-  if (entities.empty())
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
   {
-    gzwarn << "Entity name: " << _msg.entity().name() << ", is not found."
-           << std::endl;
-    return;
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
   }
-  for (const Entity &id : entities)
-  {
-    if ((numberOfEntities > 0) && (_msg.entity_match() !=
-      gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL))
-    {
-      break;
-    }
-    numberOfEntities++;
-    auto msg = _req.New();
-    msg->set_id(id);
-    msg->mutable_material()->mutable_ambient()->CopyFrom(_msg.ambient());
-    msg->mutable_material()->mutable_diffuse()->CopyFrom(_msg.diffuse());
-    msg->mutable_material()->mutable_specular()->CopyFrom(_msg.specular());
-    msg->mutable_material()->mutable_emissive()->CopyFrom(_msg.emissive());
 
-    auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
-
-    // Push to pending
-    {
-      std::lock_guard<std::mutex> lock(this->pendingMutex);
-      this->pendingCmds.push_back(std::move(cmd));
-    }
-  }
+  return;
 }
 
 //////////////////////////////////////////////////
@@ -1772,56 +1755,123 @@ VisualCommand::VisualCommand(msgs::Visual *_msg,
 }
 
 //////////////////////////////////////////////////
+VisualCommand::VisualCommand(msgs::MaterialColor *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
 bool VisualCommand::Execute()
 {
   auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
-  if (nullptr == visualMsg)
+  auto materialColorMsg = dynamic_cast<const msgs::MaterialColor *>(this->msg);
+  if (visualMsg != nullptr)
   {
-    gzerr << "Internal error, null visual message" << std::endl;
-    return false;
-  }
-
-  Entity visualEntity = kNullEntity;
-  if (visualMsg->id() != kNullEntity)
-  {
-    visualEntity = visualMsg->id();
-  }
-  else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
-  {
-    Entity parentEntity =
-      this->iface->ecm->EntityByComponents(
-        components::Name(visualMsg->parent_name()));
-
-    auto entities =
-      this->iface->ecm->ChildrenByComponents(parentEntity,
-        components::Name(visualMsg->name()));
-
-    // When size > 1, we don't know which entity to modify
-    if (entities.size() == 1)
+    Entity visualEntity = kNullEntity;
+    if (visualMsg->id() != kNullEntity)
     {
-      visualEntity = entities[0];
+      visualEntity = visualMsg->id();
+    }
+    else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
+    {
+      Entity parentEntity =
+        this->iface->ecm->EntityByComponents(
+          components::Name(visualMsg->parent_name()));
+
+      auto entities =
+        this->iface->ecm->ChildrenByComponents(parentEntity,
+          components::Name(visualMsg->name()));
+
+      // When size > 1, we don't know which entity to modify
+      if (entities.size() == 1)
+      {
+        visualEntity = entities[0];
+      }
+    }
+
+    if (visualEntity == kNullEntity)
+    {
+      gzerr << "Failed to find visual entity" << std::endl;
+      return false;
+    }
+
+    auto visualCmdComp =
+        this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+    if (!visualCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          visualEntity, components::VisualCmd(*visualMsg));
+    }
+    else
+    {
+      auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
+          ComponentState::OneTimeChange : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          visualEntity, components::VisualCmd::typeId, state);
     }
   }
-
-  if (visualEntity == kNullEntity)
+  else if (materialColorMsg != nullptr)
   {
-    gzerr << "Failed to find visual entity" << std::endl;
-    return false;
-  }
+    
+    Entity visualEntity = kNullEntity;
+    int numberOfEntities = 0;
+    auto entities = entitiesFromScopedName(materialColorMsg->entity().name(),
+      *this->iface->ecm);
+    if (entities.empty())
+    {
+      gzwarn << "Entity name: " << materialColorMsg->entity().name() << ", is not found."
+             << std::endl;
+      return false;
+    }
+    for (const Entity &id : entities)
+    {
+      if ((numberOfEntities > 0) && (materialColorMsg->entity_match() !=
+        gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL))
+      {
+        return true;
+      }
+      numberOfEntities++;
+      msgs::Visual visualMCMsg;
+      visualMCMsg.set_id(id);
+      visualMCMsg.mutable_material()->mutable_ambient()->CopyFrom(materialColorMsg->ambient());
+      visualMCMsg.mutable_material()->mutable_diffuse()->CopyFrom(materialColorMsg->diffuse());
+      visualMCMsg.mutable_material()->mutable_specular()->CopyFrom(materialColorMsg->specular());
+      visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(materialColorMsg->emissive());
 
-  auto visualCmdComp =
-      this->iface->ecm->Component<components::VisualCmd>(visualEntity);
-  if (!visualCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        visualEntity, components::VisualCmd(*visualMsg));
+      visualEntity = kNullEntity;
+      if (visualMCMsg.id() != kNullEntity)
+      {
+        visualEntity = visualMCMsg.id();
+      }
+      if (visualEntity == kNullEntity)
+      {
+        gzerr << "Failed to find visual entity" << std::endl;
+        return false;
+      }
+
+      auto visualCmdComp =
+          this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+      if (!visualCmdComp)
+      {
+        this->iface->ecm->CreateComponent(
+            visualEntity, components::VisualCmd(visualMCMsg));
+      }
+      else
+      {
+        auto state = visualCmdComp->SetData(visualMCMsg, this->visualEql) ?
+            ComponentState::OneTimeChange : ComponentState::NoChange;
+        this->iface->ecm->SetChanged(
+            visualEntity, components::VisualCmd::typeId, state);
+      }
+    }
   }
   else
   {
-    auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
-        ComponentState::OneTimeChange : ComponentState::NoChange;
-    this->iface->ecm->SetChanged(
-        visualEntity, components::VisualCmd::typeId, state);
+    gzerr <<
+      "VisualCommand _msg does not match MaterialColor or Visual msg type."
+      << std::endl;
+    return false;
   }
   return true;
 }
