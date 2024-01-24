@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simulation worlds and models in Gazebo are defined using [SDF](https://sdformat.org), an XML-based file format. While these files are
+Simulation worlds and models in Gazebo are defined using [SDF](http://sdformat.org), an XML-based file format. While these files are
 human-readable, they can be challenging to manually parse or create. Gazebo
 has introduced graphical tools to ease the process, allowing users to
 construct worlds and models with greater ease.
