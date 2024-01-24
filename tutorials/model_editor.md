@@ -47,7 +47,7 @@ the Entity Tree, then click the + button on the Component Inspector Editor
 plugin. In the example below, we are adding an entity to the selected box
 entity.
 
-![Inspector Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/model_editor/inspector_plus.png)
+@image html files/model_editor/add_link.png "Inspector Plus" width=60%
 
 A menu displaying different types of links, joints, and lights will appear.
 Select the desired entity type to add to the model. The new entity will
