@@ -32,7 +32,7 @@ disabled.
 
 To insert a model or light into a world, use the `+` button on the `Entity Tree`.
 
-![Entity Tree Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/model_editor/entity_tree_plus.png)
+![Entity Tree Plus](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim7/tutorials/files/model_editor/entity_tree_plus.png)
 
 Selecting the `+` button opens a menu listing different types of models and
 lights. Choose an item from the menu, move your mouse cursor in the 3D scene
