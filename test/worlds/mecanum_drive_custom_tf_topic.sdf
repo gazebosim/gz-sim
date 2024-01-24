@@ -349,6 +349,9 @@
         <wheel_radius>0.3</wheel_radius>
         <min_acceleration>-5</min_acceleration>
         <max_acceleration>5</max_acceleration>
+        <topic>/model/foo/cmdvel</topic>
+        <odom_topic>/model/bar/odom</odom_topic>
+        <tf_topic>tf_foo</tf_topic>
       </plugin>
 
     </model>

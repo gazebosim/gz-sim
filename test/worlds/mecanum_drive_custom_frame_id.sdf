@@ -349,6 +349,8 @@
         <wheel_radius>0.3</wheel_radius>
         <min_acceleration>-5</min_acceleration>
         <max_acceleration>5</max_acceleration>
+        <frame_id>odom</frame_id>
+        <child_frame_id>base_footprint</child_frame_id>
       </plugin>
 
     </model>

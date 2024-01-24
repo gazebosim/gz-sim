@@ -326,6 +326,9 @@ void MecanumDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
+  gzmsg << "MecanumDrive publishing odom messages on [" << odomTopic << "]"
+         << std::endl;
+
   gzmsg << "MecanumDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
@@ -493,6 +496,39 @@ void MecanumDrive::PreUpdate(const UpdateInfo &_info,
     {
       *vel = components::JointVelocityCmd({this->dataPtr->backRightJointSpeed});
     }
+  }
+
+  // Create the joint position components if they don't exist.
+  auto frontLeftPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->frontLeftJoints[0]);
+  if (!frontLeftPos && _ecm.HasEntity(this->dataPtr->frontLeftJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->frontLeftJoints[0],
+        components::JointPosition());
+  }
+
+  auto frontRightPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->frontRightJoints[0]);
+  if (!frontRightPos && _ecm.HasEntity(this->dataPtr->frontRightJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->frontRightJoints[0],
+        components::JointPosition());
+  }
+
+  auto backLeftPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->backLeftJoints[0]);
+  if (!backLeftPos && _ecm.HasEntity(this->dataPtr->backLeftJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->backLeftJoints[0],
+        components::JointPosition());
+  }
+
+  auto backRightPos = _ecm.Component<components::JointPosition>(
+      this->dataPtr->backRightJoints[0]);
+  if (!backRightPos && _ecm.HasEntity(this->dataPtr->backRightJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->backRightJoints[0],
+        components::JointPosition());
   }
 
 }

@@ -130,16 +130,17 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // <max_jerk> parameters in "/test/worlds/diff_drive.sdf".
       test::Relay velocityRamp;
       const int movementDirection = (forward ? 1 : -1);
-      double desiredLinVel = movementDirection * 10.5;
+      double desiredLinVelX = movementDirection * 0.15;
+      double desiredLinVelY = movementDirection * 0.15;
       double desiredAngVel = 0.2;
       velocityRamp.OnPreUpdate(
           [&](const UpdateInfo &/*_info*/,
               const EntityComponentManager &)
           {
             msgs::Set(msg.mutable_linear(),
-                      math::Vector3d(desiredLinVel, 0, 0));
-            msgs::Set(msg.mutable_angular(),
-                      math::Vector3d(0.0, 0, desiredAngVel));
+                      math::Vector3d(desiredLinVelX, desiredLinVelY, 0));
+            // msgs::Set(msg.mutable_angular(),
+            //           math::Vector3d(0.0, 0, desiredAngVel));
             pub.Publish(msg);
           });
 
@@ -150,13 +151,13 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // Poses for 4s
       ASSERT_EQ(4000u, poses.size());
 
-      // int sleep = 0;
-      // int maxSleep = 30;
-      // for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
-      // {
-      //   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      // }
-      // ASSERT_NE(maxSleep, sleep);
+      int sleep = 0;
+      int maxSleep = 30;
+      for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+      ASSERT_NE(maxSleep, sleep);
 
       // Odometry calculates the pose of a point that is located half way
       // between the two wheels, not the origin of the model. For example,
@@ -167,9 +168,9 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // change. To find the final pose of the model, we have to do the
       // following similarity transformation
       
-      // math::Pose3d tOdomModel(0.554283, 0, -0.325, 0, 0, 0);
-      // auto finalModelFramePose =
-      //     tOdomModel * odomPoses.back() * tOdomModel.Inverse();
+      math::Pose3d tOdomModel(0.554283, 0, -0.325, 0, 0, 0);
+      auto finalModelFramePose =
+          tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
       // Odom for 3s
       ASSERT_FALSE(odomPoses.empty());
@@ -185,14 +186,14 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       EXPECT_NEAR(expectedLowerPosition.Z(), expectedGreaterPosition.Z(), tol);
       EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
       EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
-      EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
+      EXPECT_NEAR(poses[0].Rot().Z(), poses[3999].Rot().Z(), tol);
 
       // The value from odometry will be close, but not exactly the ground truth
       // pose of the robot model. This is partially due to throttling the
       // odometry publisher, partially due to a frame difference between the
       // odom frame and the model frame, and partially due to wheel slip.
-      EXPECT_NEAR(poses[1020].Pos().X(), odomPoses[0].Pos().X(), 1e-2);
-      EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
+      EXPECT_NEAR(poses.back().Pos().X(), odomPoses.back().Pos().X(), 1e-2);
+      EXPECT_NEAR(poses.back().Pos().Y(), odomPoses.back().Pos().Y(), 1e-2);
       // EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
       // EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
 
@@ -226,538 +227,313 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
       "/model/vehicle_blue/cmd_vel", "/model/vehicle_blue/odometry");
 }
 
-// /////////////////////////////////////////////////
-// // See: https://github.com/gazebosim/gz-sim/issues/630
-// TEST_P(MecanumDriveTest,
-//        GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomTopics))
-// {
-//   TestPublishCmd(
-//       std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_custom_topics.sdf",
-//       "/model/foo/cmdvel", "/model/bar/odom");
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SkidPublishCmd))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_skid.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   // Create a system that records the vehicle poses
-//   test::Relay testSystem;
-
-//   std::vector<math::Pose3d> poses;
-//   testSystem.OnPostUpdate([&poses](const UpdateInfo &,
-//     const EntityComponentManager &_ecm)
-//     {
-//       auto id = _ecm.EntityByComponents(
-//         components::Model(),
-//         components::Name("vehicle"));
-//       EXPECT_NE(kNullEntity, id);
-
-//       auto poseComp = _ecm.Component<components::Pose>(id);
-//       ASSERT_NE(nullptr, poseComp);
-
-//       poses.push_back(poseComp->Data());
-//     });
-//   server.AddSystem(testSystem.systemPtr);
-
-//   // Run server and check that vehicle didn't move
-//   server.Run(true, 1000, false);
-
-//   EXPECT_EQ(1000u, poses.size());
-
-//   for (const auto &pose : poses)
-//   {
-//     EXPECT_EQ(poses[0], pose);
-//   }
-
-//   // Publish command and check that vehicle moved
-//   double period{1.0};
-//   double lastMsgTime{1.0};
-//   std::vector<math::Pose3d> odomPoses;
-//   std::function<void(const msgs::Odometry &)> odomCb =
-//     [&](const msgs::Odometry &_msg)
-//     {
-//       ASSERT_TRUE(_msg.has_header());
-//       ASSERT_TRUE(_msg.header().has_stamp());
-
-//       double msgTime =
-//           static_cast<double>(_msg.header().stamp().sec()) +
-//           static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
-
-//       EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
-//       lastMsgTime = msgTime;
-
-//       odomPoses.push_back(msgs::Convert(_msg.pose()));
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/odometry", odomCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 3000, false);
-
-//   // Poses for 4s
-//   EXPECT_EQ(4000u, poses.size());
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   for (; odomPoses.size() < 3 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-//   }
-//   EXPECT_NE(maxSleep, sleep);
-
-//   // Odom for 3s
-//   ASSERT_FALSE(odomPoses.empty());
-//   EXPECT_EQ(3u, odomPoses.size());
-
-//   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
-//   EXPECT_NEAR(poses[0].Pos().Z(), poses[3999].Pos().Z(), tol);
-//   EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
-//   EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
-
-//   // Slip works on DART>=6.10, which isn't available on Ubuntu Focal
-// #ifndef __linux__
-//   EXPECT_LT(poses[0].Pos().Y(), poses[3999].Pos().Y());
-//   EXPECT_LT(poses[0].Rot().Z(), poses[3999].Rot().Z());
-// #endif
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_skid.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   // Create a system that records the vehicle poses
-//   test::Relay testSystem;
-
-//   std::vector<math::Pose3d> poses;
-//   testSystem.OnPostUpdate([&poses](const UpdateInfo &,
-//     const EntityComponentManager &_ecm)
-//     {
-//       auto id = _ecm.EntityByComponents(
-//         components::Model(),
-//         components::Name("vehicle"));
-//       EXPECT_NE(kNullEntity, id);
-
-//       auto poseComp = _ecm.Component<components::Pose>(id);
-//       ASSERT_NE(nullptr, poseComp);
-
-//       poses.push_back(poseComp->Data());
-//     });
-//   server.AddSystem(testSystem.systemPtr);
-
-//   // Run server and check that vehicle didn't move
-//   server.Run(true, 1000, false);
-
-//   EXPECT_EQ(1000u, poses.size());
-
-//   for (const auto &pose : poses)
-//   {
-//     EXPECT_EQ(poses[0], pose);
-//   }
-
-//   // Publish command and check that vehicle moved
-//   double period{1.0};
-//   double lastMsgTime{1.0};
-//   std::vector<math::Pose3d> odomPoses;
-//   std::function<void(const msgs::Odometry &)> odomCb =
-//     [&](const msgs::Odometry &_msg)
-//     {
-//       ASSERT_TRUE(_msg.has_header());
-//       ASSERT_TRUE(_msg.header().has_stamp());
-
-//       double msgTime =
-//           static_cast<double>(_msg.header().stamp().sec()) +
-//           static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
-
-//       EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
-//       lastMsgTime = msgTime;
-
-//       odomPoses.push_back(msgs::Convert(_msg.pose()));
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/odometry", odomCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.0));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 3000, false);
-
-//   // Poses for 4s
-//   EXPECT_EQ(4000u, poses.size());
-
-//   // Disable controller
-//   auto pub_enable = node.Advertise<msgs::Boolean>("/model/vehicle/enable");
-
-//   msgs::Boolean msg_enable;
-//   msg_enable.set_data(false);
-
-//   pub_enable.Publish(msg_enable);
-
-//   // Run for 2s and expect no movement
-//   server.Run(true, 2000, false);
-
-//   EXPECT_EQ(6000u, poses.size());
-
-//   // Re-enable controller
-//   msg_enable.set_data(true);
-
-//   pub_enable.Publish(msg_enable);
-
-//   pub.Publish(msg);
-
-//   // Run for 2s and expect movement again
-//   server.Run(true, 2000, false);
-
-//   EXPECT_EQ(8000u, poses.size());
-
-//   int sleep = 0;
-//   int maxSleep = 70;
-//   for (; odomPoses.size() < 7 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   EXPECT_NE(maxSleep, sleep);
-
-//   // Odom for 7s
-//   ASSERT_FALSE(odomPoses.empty());
-//   EXPECT_EQ(7u, odomPoses.size());
-
-//   EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
-
-//   // Should no be moving from 5s to 6s (stopped at 3s and time to slow down)
-//   EXPECT_NEAR(poses[4999].Pos().X(), poses[5999].Pos().X(), tol);
-
-//   // Should be moving from 6s to 8s
-//   EXPECT_LT(poses[5999].Pos().X(), poses[7999].Pos().X());
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   unsigned int odomPosesCount = 0;
-//   std::function<void(const msgs::Odometry &)> odomCb =
-//     [&odomPosesCount](const msgs::Odometry &_msg)
-//     {
-//       ASSERT_TRUE(_msg.has_header());
-//       ASSERT_TRUE(_msg.header().has_stamp());
-
-//       ASSERT_GT(_msg.header().data_size(), 1);
-
-//       EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-//       EXPECT_STREQ(
-//             _msg.header().data(0).value().Get(0).c_str(), "vehicle/odom");
-
-//       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-//       EXPECT_STREQ(
-//             _msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
-
-//       odomPosesCount++;
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/odometry", odomCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 100, false);
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   // cppcheck-suppress knownConditionTrueFalse
-//   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   ASSERT_NE(maxSleep, sleep);
-
-//   EXPECT_EQ(5u, odomPosesCount);
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_custom_frame_id.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   unsigned int odomPosesCount = 0;
-//   std::function<void(const msgs::Odometry &)> odomCb =
-//     [&odomPosesCount](const msgs::Odometry &_msg)
-//     {
-//       ASSERT_TRUE(_msg.has_header());
-//       ASSERT_TRUE(_msg.header().has_stamp());
-
-//       ASSERT_GT(_msg.header().data_size(), 1);
-
-//       EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-//       EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "odom");
-
-//       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-//       EXPECT_STREQ(
-//             _msg.header().data(1).value().Get(0).c_str(), "base_footprint");
-
-//       odomPosesCount++;
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/odometry", odomCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 100, false);
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   // cppcheck-suppress knownConditionTrueFalse
-//   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   ASSERT_NE(maxSleep, sleep);
-
-//   EXPECT_EQ(5u, odomPosesCount);
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   unsigned int odomPosesCount = 0;
-//   std::function<void(const msgs::Pose_V &)> pose_VCb =
-//     [&odomPosesCount](const msgs::Pose_V &_msg)
-//     {
-//       ASSERT_TRUE(_msg.pose(0).has_header());
-//       ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-//       ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-//       EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
-//                    "frame_id");
-//       EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
-//                    "vehicle/odom");
-
-//       EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
-//                    "child_frame_id");
-//       EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
-//                    "vehicle/chassis");
-
-//       odomPosesCount++;
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/tf", pose_VCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 100, false);
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   // cppcheck-suppress knownConditionTrueFalse
-//   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   ASSERT_NE(maxSleep, sleep);
-
-//   EXPECT_EQ(5u, odomPosesCount);
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_custom_frame_id.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   unsigned int odomPosesCount = 0;
-//   std::function<void(const msgs::Pose_V &)> Pose_VCb =
-//     [&odomPosesCount](const msgs::Pose_V &_msg)
-//     {
-//       ASSERT_TRUE(_msg.pose(0).has_header());
-//       ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-//       ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-//       EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
-//                    "frame_id");
-//       EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
-//                    "odom");
-
-//       EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
-//                    "child_frame_id");
-//       EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
-//             "base_footprint");
-
-//       odomPosesCount++;
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/model/vehicle/tf", Pose_VCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 100, false);
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   // cppcheck-suppress knownConditionTrueFalse
-//   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   ASSERT_NE(maxSleep, sleep);
-
-//   EXPECT_EQ(5u, odomPosesCount);
-// }
-
-// /////////////////////////////////////////////////
-// TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
-// {
-//   // Start server
-//   ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-//       "/test/worlds/diff_drive_custom_tf_topic.sdf");
-
-//   Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
-
-//   server.SetUpdatePeriod(0ns);
-
-//   unsigned int odomPosesCount = 0;
-//   std::function<void(const msgs::Pose_V &)> pose_VCb =
-//     [&odomPosesCount](const msgs::Pose_V &_msg)
-//     {
-//       ASSERT_TRUE(_msg.pose(0).has_header());
-//       ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-//       ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-//       EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
-//       EXPECT_STREQ(
-//             _msg.pose(0).header().data(0).value().Get(0).c_str(),
-//             "vehicle/odom");
-
-//       EXPECT_STREQ(
-//             _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
-//       EXPECT_STREQ(
-//             _msg.pose(0).header().data(1).value().Get(0).c_str(),
-//             "vehicle/chassis");
-
-//       odomPosesCount++;
-//     };
-
-//   transport::Node node;
-//   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-//   node.Subscribe("/tf_foo", pose_VCb);
-
-//   msgs::Twist msg;
-//   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-//   msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-//   pub.Publish(msg);
-
-//   server.Run(true, 100, false);
-
-//   int sleep = 0;
-//   int maxSleep = 30;
-//   // cppcheck-suppress knownConditionTrueFalse
-//   for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   ASSERT_NE(maxSleep, sleep);
-
-//   EXPECT_EQ(5u, odomPosesCount);
-// }
+/////////////////////////////////////////////////
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_P(MecanumDriveTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomTopics))
+{
+  TestPublishCmd(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_topics.sdf",
+      "/model/foo/cmdvel", "/model/bar/odom");
+}
+
+
+/////////////////////////////////////////////////
+TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&odomPosesCount](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      ASSERT_GT(_msg.header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(
+            _msg.header().data(0).value().Get(0).c_str(), "vehicle_blue/odom");
+
+      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.header().data(1).value().Get(0).c_str(), "vehicle_blue/chassis");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  node.Subscribe("/model/vehicle_blue/odometry", odomCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_frame_id.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&odomPosesCount](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      ASSERT_GT(_msg.header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "odom");
+
+      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.header().data(1).value().Get(0).c_str(), "base_footprint");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  node.Subscribe("/model/vehicle_blue/odometry", odomCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
+                   "frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
+                   "vehicle_blue/odom");
+
+      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
+                   "child_frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
+                   "vehicle_blue/chassis");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  node.Subscribe("/model/vehicle_blue/tf", pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_frame_id.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> Pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
+                   "frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
+                   "odom");
+
+      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
+                   "child_frame_id");
+      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "base_footprint");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  node.Subscribe("/model/vehicle_blue/tf", Pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_tf_topic.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  unsigned int odomPosesCount = 0;
+  std::function<void(const msgs::Pose_V &)> pose_VCb =
+    [&odomPosesCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(0).value().Get(0).c_str(),
+            "vehicle_blue/odom");
+
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "vehicle_blue/chassis");
+
+      odomPosesCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  node.Subscribe("/tf_foo", pose_VCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+  pub.Publish(msg);
+
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  // cppcheck-suppress knownConditionTrueFalse
+  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomPosesCount);
+}
 
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, MecanumDriveTest,
