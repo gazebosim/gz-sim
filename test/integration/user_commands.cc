@@ -1121,13 +1121,17 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
   Entity sphereEntity1 =
     ecm->EntityByComponents(components::Name("sphere_1"));
   auto sphereLinkEntity0 =
-    ecm->ChildrenByComponents(sphereEntity0, components::Name("sphere_link_0"))[0];
+    ecm->ChildrenByComponents(sphereEntity0,
+      components::Name("sphere_link_0"))[0];
   auto sphereLinkEntity1 =
-    ecm->ChildrenByComponents(sphereEntity1, components::Name("sphere_link_1"))[0];
+    ecm->ChildrenByComponents(sphereEntity1,
+      components::Name("sphere_link_1"))[0];
   auto sphereVisualEntity0 =
-    ecm->ChildrenByComponents(sphereLinkEntity0, components::Name("sphere_visual"))[0];
+    ecm->ChildrenByComponents(sphereLinkEntity0,
+      components::Name("sphere_visual"))[0];
   auto sphereVisualEntity1 =
-    ecm->ChildrenByComponents(sphereLinkEntity1, components::Name("sphere_visual"))[0];
+    ecm->ChildrenByComponents(sphereLinkEntity1,
+      components::Name("sphere_visual"))[0];
   auto updatedVisual0 =
     ecm->Component<components::Material>(sphereVisualEntity0);
   auto updatedVisual1 =

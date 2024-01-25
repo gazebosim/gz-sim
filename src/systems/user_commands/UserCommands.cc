@@ -1813,14 +1813,14 @@ bool VisualCommand::Execute()
   }
   else if (materialColorMsg != nullptr)
   {
-    
     Entity visualEntity = kNullEntity;
     int numberOfEntities = 0;
     auto entities = entitiesFromScopedName(materialColorMsg->entity().name(),
       *this->iface->ecm);
     if (entities.empty())
     {
-      gzwarn << "Entity name: " << materialColorMsg->entity().name() << ", is not found."
+      gzwarn << "Entity name: " << materialColorMsg->entity().name()
+             << ", is not found."
              << std::endl;
       return false;
     }
@@ -1834,10 +1834,14 @@ bool VisualCommand::Execute()
       numberOfEntities++;
       msgs::Visual visualMCMsg;
       visualMCMsg.set_id(id);
-      visualMCMsg.mutable_material()->mutable_ambient()->CopyFrom(materialColorMsg->ambient());
-      visualMCMsg.mutable_material()->mutable_diffuse()->CopyFrom(materialColorMsg->diffuse());
-      visualMCMsg.mutable_material()->mutable_specular()->CopyFrom(materialColorMsg->specular());
-      visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(materialColorMsg->emissive());
+      visualMCMsg.mutable_material()->mutable_ambient()->CopyFrom(
+        materialColorMsg->ambient());
+      visualMCMsg.mutable_material()->mutable_diffuse()->CopyFrom(
+        materialColorMsg->diffuse());
+      visualMCMsg.mutable_material()->mutable_specular()->CopyFrom(
+        materialColorMsg->specular());
+      visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(
+        materialColorMsg->emissive());
 
       visualEntity = kNullEntity;
       if (visualMCMsg.id() != kNullEntity)
