@@ -21,6 +21,7 @@
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -1044,6 +1045,112 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
     spotLightComp->Data().Diffuse());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "material_color.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  transport::Node node;
+
+  // box
+  auto sphereVisualEntity =
+    ecm->EntityByComponents(components::Name("sphere_visual"));
+  ASSERT_NE(kNullEntity, sphereVisualEntity);
+
+  // check box visual's initial values
+  auto sphereVisualComp =
+    ecm->Component<components::Material>(sphereVisualEntity);
+  ASSERT_NE(nullptr, sphereVisualComp);
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 1.0f),
+            sphereVisualComp->Data().Diffuse());
+
+  // Test material_color topic
+  const std::string materialColorTopic =
+    "/world/material_color/material_color";
+
+  // Test first return logic (no direct compare as returns unordered set)
+  msgs::MaterialColor materialColorMsgFirst;
+  materialColorMsgFirst.mutable_entity()->set_name("sphere_visual");
+  materialColorMsgFirst.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_FIRST);
+  gz::msgs::Set(materialColorMsgFirst.mutable_diffuse(),
+    gz::math::Color(0.0f, 0.0f, 0.0f, 1.0f));
+
+  // Publish material color
+  auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
+  pub.Publish(materialColorMsgFirst);
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(100);
+
+  msgs::MaterialColor materialColorMsg;
+  materialColorMsg.mutable_entity()->set_name("sphere_visual");
+  materialColorMsg.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL);
+  gz::msgs::Set(materialColorMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+  Entity sphereEntity0 =
+    ecm->EntityByComponents(components::Name("sphere_0"));
+  Entity sphereEntity1 =
+    ecm->EntityByComponents(components::Name("sphere_1"));
+  auto sphereLinkEntity0 =
+    ecm->ChildrenByComponents(sphereEntity0,
+      components::Name("sphere_link_0"))[0];
+  auto sphereLinkEntity1 =
+    ecm->ChildrenByComponents(sphereEntity1,
+      components::Name("sphere_link_1"))[0];
+  auto sphereVisualEntity0 =
+    ecm->ChildrenByComponents(sphereLinkEntity0,
+      components::Name("sphere_visual"))[0];
+  auto sphereVisualEntity1 =
+    ecm->ChildrenByComponents(sphereLinkEntity1,
+      components::Name("sphere_visual"))[0];
+  auto updatedVisual0 =
+    ecm->Component<components::Material>(sphereVisualEntity0);
+  auto updatedVisual1 =
+    ecm->Component<components::Material>(sphereVisualEntity1);
+  EXPECT_TRUE((math::Color(0.0f, 0.0f, 0.0f, 1.0f) ==
+              updatedVisual0->Data().Diffuse()) ||
+              (math::Color(0.0f, 0.0f, 0.0f, 1.0f) ==
+              updatedVisual1->Data().Diffuse()));
+
+  // Publish material color
+  pub.Publish(materialColorMsg);
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(100);
+
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            updatedVisual0->Data().Diffuse());
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            updatedVisual1->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////

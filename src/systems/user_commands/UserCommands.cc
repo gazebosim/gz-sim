@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2024 CogniPilot Foundation
+ * Copyright (C) 2024 Rudis Laboratories LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +35,7 @@
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -45,6 +48,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/msgs/Utility.hh>
 
@@ -326,6 +330,12 @@ class VisualCommand : public UserCommandBase
   public: VisualCommand(msgs::Visual *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the material color parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: VisualCommand(msgs::MaterialColor *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
   // Documentation inherited
   public: bool Execute() final;
 
@@ -457,6 +467,10 @@ class gz::sim::systems::UserCommandsPrivate
   /// \brief Callback for light subscription
   /// \param[in] _msg Light message
   public: void OnCmdLight(const msgs::Light &_msg);
+
+  /// \brief Callback for MaterialColor subscription
+  /// \param[in] _msg MaterialColor message
+  public: void OnCmdMaterialColor(const msgs::MaterialColor &_msg);
 
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
@@ -665,6 +679,11 @@ void UserCommands::Configure(const Entity &_entity,
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
                                 this->dataPtr.get());
+
+  std::string materialColorTopic{
+    "/world/" + validWorldName + "/material_color"};
+  this->dataPtr->node.Subscribe(materialColorTopic,
+      &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 
   // Physics service
   std::string physicsService{"/world/" + validWorldName + "/set_physics"};
@@ -951,6 +970,21 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 
   _res.set_data(true);
   return true;
+}
+
+//////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
+{
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  return;
 }
 
 //////////////////////////////////////////////////
@@ -1721,56 +1755,127 @@ VisualCommand::VisualCommand(msgs::Visual *_msg,
 }
 
 //////////////////////////////////////////////////
+VisualCommand::VisualCommand(msgs::MaterialColor *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
 bool VisualCommand::Execute()
 {
   auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
-  if (nullptr == visualMsg)
+  auto materialColorMsg = dynamic_cast<const msgs::MaterialColor *>(this->msg);
+  if (visualMsg != nullptr)
   {
-    gzerr << "Internal error, null visual message" << std::endl;
-    return false;
-  }
-
-  Entity visualEntity = kNullEntity;
-  if (visualMsg->id() != kNullEntity)
-  {
-    visualEntity = visualMsg->id();
-  }
-  else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
-  {
-    Entity parentEntity =
-      this->iface->ecm->EntityByComponents(
-        components::Name(visualMsg->parent_name()));
-
-    auto entities =
-      this->iface->ecm->ChildrenByComponents(parentEntity,
-        components::Name(visualMsg->name()));
-
-    // When size > 1, we don't know which entity to modify
-    if (entities.size() == 1)
+    Entity visualEntity = kNullEntity;
+    if (visualMsg->id() != kNullEntity)
     {
-      visualEntity = entities[0];
+      visualEntity = visualMsg->id();
+    }
+    else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
+    {
+      Entity parentEntity =
+        this->iface->ecm->EntityByComponents(
+          components::Name(visualMsg->parent_name()));
+
+      auto entities =
+        this->iface->ecm->ChildrenByComponents(parentEntity,
+          components::Name(visualMsg->name()));
+
+      // When size > 1, we don't know which entity to modify
+      if (entities.size() == 1)
+      {
+        visualEntity = entities[0];
+      }
+    }
+
+    if (visualEntity == kNullEntity)
+    {
+      gzerr << "Failed to find visual entity" << std::endl;
+      return false;
+    }
+
+    auto visualCmdComp =
+        this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+    if (!visualCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          visualEntity, components::VisualCmd(*visualMsg));
+    }
+    else
+    {
+      auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
+          ComponentState::OneTimeChange : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          visualEntity, components::VisualCmd::typeId, state);
     }
   }
-
-  if (visualEntity == kNullEntity)
+  else if (materialColorMsg != nullptr)
   {
-    gzerr << "Failed to find visual entity" << std::endl;
-    return false;
-  }
+    Entity visualEntity = kNullEntity;
+    int numberOfEntities = 0;
+    auto entities = entitiesFromScopedName(materialColorMsg->entity().name(),
+      *this->iface->ecm);
+    if (entities.empty())
+    {
+      gzwarn << "Entity name: " << materialColorMsg->entity().name()
+             << ", is not found."
+             << std::endl;
+      return false;
+    }
+    for (const Entity &id : entities)
+    {
+      if ((numberOfEntities > 0) && (materialColorMsg->entity_match() !=
+        gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL))
+      {
+        return true;
+      }
+      numberOfEntities++;
+      msgs::Visual visualMCMsg;
+      visualMCMsg.set_id(id);
+      visualMCMsg.mutable_material()->mutable_ambient()->CopyFrom(
+        materialColorMsg->ambient());
+      visualMCMsg.mutable_material()->mutable_diffuse()->CopyFrom(
+        materialColorMsg->diffuse());
+      visualMCMsg.mutable_material()->mutable_specular()->CopyFrom(
+        materialColorMsg->specular());
+      visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(
+        materialColorMsg->emissive());
+      // TODO(anyone) Enable setting shininess
+      visualEntity = kNullEntity;
+      if (visualMCMsg.id() != kNullEntity)
+      {
+        visualEntity = visualMCMsg.id();
+      }
+      if (visualEntity == kNullEntity)
+      {
+        gzerr << "Failed to find visual entity" << std::endl;
+        return false;
+      }
 
-  auto visualCmdComp =
-      this->iface->ecm->Component<components::VisualCmd>(visualEntity);
-  if (!visualCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        visualEntity, components::VisualCmd(*visualMsg));
+      auto visualCmdComp =
+          this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+      if (!visualCmdComp)
+      {
+        this->iface->ecm->CreateComponent(
+            visualEntity, components::VisualCmd(visualMCMsg));
+      }
+      else
+      {
+        auto state = visualCmdComp->SetData(visualMCMsg, this->visualEql) ?
+            ComponentState::OneTimeChange : ComponentState::NoChange;
+        this->iface->ecm->SetChanged(
+            visualEntity, components::VisualCmd::typeId, state);
+      }
+    }
   }
   else
   {
-    auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
-        ComponentState::OneTimeChange : ComponentState::NoChange;
-    this->iface->ecm->SetChanged(
-        visualEntity, components::VisualCmd::typeId, state);
+    gzerr <<
+      "VisualCommand _msg does not match MaterialColor or Visual msg type."
+      << std::endl;
+    return false;
   }
   return true;
 }
