@@ -287,7 +287,7 @@ void MecanumDrive::Configure(const Entity &_entity,
 
   // Setup odometry.
   this->dataPtr->odom.SetWheelParams(this->dataPtr->wheelSeparation,
-      this->dataPtr->wheelRadius, this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
+      this->dataPtr->wheelbase, this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
   // Subscribe to commands
   std::vector<std::string> topics;
