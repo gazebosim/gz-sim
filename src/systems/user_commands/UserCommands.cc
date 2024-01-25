@@ -1842,7 +1842,7 @@ bool VisualCommand::Execute()
         materialColorMsg->specular());
       visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(
         materialColorMsg->emissive());
-
+      // TODO(anyone) Enable setting shininess
       visualEntity = kNullEntity;
       if (visualMCMsg.id() != kNullEntity)
       {
