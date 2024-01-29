@@ -1399,14 +1399,6 @@ bool LightCommand::Execute()
       {
         lightEntity = lightMsg->id();
       }
-      if (kNullEntity == lightEntity)
-      {
-        gzerr << "Failed to find light with name [" << lightMsg->name()
-               << "] and parent ID ["
-               << lightMsg->parent_id() << "]." << std::endl;
-        return false;
-      }
-
       if (!lightEntity)
       {
         gzmsg << "Failed to find light entity named [" << lightMsg->name()
