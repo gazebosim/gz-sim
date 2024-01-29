@@ -1048,6 +1048,93 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 }
 
 /////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LightAll))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "lights_render_all.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  transport::Node node;
+
+  // sphere
+  auto sphereLightEntity =
+    ecm->EntityByComponents(components::Name("sphere_light"));
+  ASSERT_NE(kNullEntity, sphereLightEntity);
+
+  // check sphere light initial values
+  auto sphereLightComp =
+    ecm->Component<components::Light>(sphereLightEntity);
+  ASSERT_NE(nullptr, sphereLightComp);
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            sphereLightComp->Data().Diffuse());
+
+  // Test light_config topic
+  const std::string lightTopic = "/world/lights_command/light_config";
+
+  msgs::Light lightMsg;
+  lightMsg.set_name("sphere_light");
+  gz::msgs::Set(lightMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 0.0f, 0.0f, 1.0f));
+
+  // Publish light config
+  auto pub = node.Advertise<msgs::Light>(lightTopic);
+  pub.Publish(lightMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  Entity sphereEntity0 =
+    ecm->EntityByComponents(components::Name("sphere_0"));
+  Entity sphereEntity1 =
+    ecm->EntityByComponents(components::Name("sphere_1"));
+  auto sphereLinkEntity0 =
+    ecm->ChildrenByComponents(sphereEntity0,
+      components::Name("sphere_link_0"))[0];
+  auto sphereLinkEntity1 =
+    ecm->ChildrenByComponents(sphereEntity1,
+      components::Name("sphere_link_1"))[0];
+  auto sphereLightEntity0 =
+    ecm->ChildrenByComponents(sphereLinkEntity0,
+      components::Name("sphere_light"))[0];
+  auto sphereLightEntity1 =
+    ecm->ChildrenByComponents(sphereLinkEntity1,
+      components::Name("sphere_light"))[0];
+  auto updatedLight0 =
+    ecm->Component<components::Light>(sphereLightEntity0);
+  auto updatedLight1 =
+    ecm->Component<components::Light>(sphereLightEntity1);
+
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            updatedLight0->Data().Diffuse());
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            updatedLight1->Data().Diffuse());
+}
+
+/////////////////////////////////////////////////
 TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
 {
   // Start server
