@@ -548,7 +548,6 @@ class gz::sim::systems::UserCommandsPrivate
 
   /// \brief Mutex to protect pending queue.
   public: std::mutex pendingMutex;
-
 };
 
 /// \brief Pose3d equality comparison function.

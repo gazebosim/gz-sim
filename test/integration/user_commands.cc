@@ -15,6 +15,8 @@
  *
  */
 
+#include <string>
+
 #include <gtest/gtest.h>
 
 #include <gz/msgs/boolean.pb.h>
