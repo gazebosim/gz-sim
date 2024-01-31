@@ -119,6 +119,9 @@ class UserCommandsInterface
   /// \return True if a contact sensor is connected to the collision entity,
   /// false otherwise
   public: bool HasContactSensor(const Entity _collision);
+
+  /// \brief Bool to set all matching light entities.
+  public: bool setAllLightEntities = false;
 };
 
 /// \brief All user commands should inherit from this class so they can be
@@ -610,7 +613,7 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 
 //////////////////////////////////////////////////
 void UserCommands::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &,
+    const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &_eventManager)
 {
@@ -679,6 +682,15 @@ void UserCommands::Configure(const Entity &_entity,
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
                                 this->dataPtr.get());
+
+  if (_sdf->HasElement("set_all_light_entities"))
+  {
+    this->dataPtr->iface->setAllLightEntities =
+      _sdf->Get<bool>("set_all_light_entities");
+    gzdbg << "Set all light entities: "
+          << this->dataPtr->iface->setAllLightEntities
+          << std::endl;
+  }
 
   std::string materialColorTopic{
     "/world/" + validWorldName + "/material_color"};
@@ -858,7 +870,6 @@ void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
     this->pendingCmds.push_back(std::move(cmd));
   }
 }
-
 
 //////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
@@ -1362,79 +1373,142 @@ LightCommand::LightCommand(msgs::Light *_msg,
 //////////////////////////////////////////////////
 bool LightCommand::Execute()
 {
-  auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  auto lightMsg = dynamic_cast<msgs::Light *>(this->msg);
   if (nullptr == lightMsg)
   {
     gzerr << "Internal error, null light message" << std::endl;
     return false;
   }
-
-  Entity lightEntity{kNullEntity};
-
-  if (lightMsg->id() != kNullEntity)
+  Entity lightEntity = kNullEntity;
+  if (this->iface->setAllLightEntities)
   {
-    lightEntity = lightMsg->id();
-  }
-  else if (!lightMsg->name().empty())
-  {
-    if (lightMsg->parent_id() != kNullEntity)
+    auto entities = entitiesFromScopedName(lightMsg->name(),
+        *this->iface->ecm);
+    if (entities.empty())
     {
-      lightEntity = this->iface->ecm->EntityByComponents(
-        components::Name(lightMsg->name()),
-        components::ParentEntity(lightMsg->parent_id()));
+      gzwarn << "Entity name: " << lightMsg->name() << ", is not found."
+             << std::endl;
+      return false;
     }
-    else
+    for (const Entity &id : entities)
     {
-      lightEntity = this->iface->ecm->EntityByComponents(
-        components::Name(lightMsg->name()));
+      lightEntity = kNullEntity;
+      lightMsg->set_id(id);
+      if (lightMsg->id() != kNullEntity)
+      {
+        lightEntity = lightMsg->id();
+      }
+      if (!lightEntity)
+      {
+        gzmsg << "Failed to find light entity named [" << lightMsg->name()
+          << "]." << std::endl;
+        return false;
+      }
+
+      auto lightPose =
+        this->iface->ecm->Component<components::Pose>(lightEntity);
+      if (nullptr == lightPose)
+      {
+        lightEntity = kNullEntity;
+      }
+
+      if (!lightEntity)
+      {
+        gzmsg << "Pose component not available" << std::endl;
+        return false;
+      }
+
+      if (lightMsg->has_pose())
+      {
+        lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+      }
+
+      auto lightCmdComp =
+        this->iface->ecm->Component<components::LightCmd>(lightEntity);
+      if (!lightCmdComp)
+      {
+        this->iface->ecm->CreateComponent(
+            lightEntity, components::LightCmd(*lightMsg));
+      }
+      else
+      {
+        auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+            ComponentState::OneTimeChange :
+            ComponentState::NoChange;
+        this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+          state);
+      }
     }
-  }
-  if (kNullEntity == lightEntity)
-  {
-    gzerr << "Failed to find light with name [" << lightMsg->name()
-           << "], ID [" << lightMsg->id() << "] and parent ID ["
-           << lightMsg->parent_id() << "]." << std::endl;
-    return false;
-  }
-
-  if (!lightEntity)
-  {
-    gzmsg << "Failed to find light entity named [" << lightMsg->name()
-      << "]." << std::endl;
-    return false;
-  }
-
-  auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
-  if (nullptr == lightPose)
-    lightEntity = kNullEntity;
-
-  if (!lightEntity)
-  {
-    gzmsg << "Pose component not available" << std::endl;
-    return false;
-  }
-
-  if (lightMsg->has_pose())
-  {
-    lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
-  }
-
-  auto lightCmdComp =
-    this->iface->ecm->Component<components::LightCmd>(lightEntity);
-  if (!lightCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        lightEntity, components::LightCmd(*lightMsg));
   }
   else
   {
-    auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-    this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
-      state);
-  }
+    lightEntity = kNullEntity;
+    if (lightMsg->id() != kNullEntity)
+    {
+      lightEntity = lightMsg->id();
+    }
+    else if (!lightMsg->name().empty())
+    {
+      if (lightMsg->parent_id() != kNullEntity)
+      {
+        lightEntity = this->iface->ecm->EntityByComponents(
+          components::Name(lightMsg->name()),
+          components::ParentEntity(lightMsg->parent_id()));
+      }
+      else
+      {
+        lightEntity = this->iface->ecm->EntityByComponents(
+          components::Name(lightMsg->name()));
+      }
+    }
+    if (kNullEntity == lightEntity)
+    {
+      gzerr << "Failed to find light with name [" << lightMsg->name()
+             << "], ID [" << lightMsg->id() << "] and parent ID ["
+             << lightMsg->parent_id() << "]." << std::endl;
+      return false;
+    }
 
+    if (!lightEntity)
+    {
+      gzmsg << "Failed to find light entity named [" << lightMsg->name()
+        << "]." << std::endl;
+      return false;
+    }
+
+    auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
+    if (nullptr == lightPose)
+    {
+      lightEntity = kNullEntity;
+    }
+
+    if (!lightEntity)
+    {
+      gzmsg << "Pose component not available" << std::endl;
+      return false;
+    }
+
+    if (lightMsg->has_pose())
+    {
+      lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+    }
+
+    auto lightCmdComp =
+      this->iface->ecm->Component<components::LightCmd>(lightEntity);
+    if (!lightCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          lightEntity, components::LightCmd(*lightMsg));
+    }
+    else
+    {
+      auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+          ComponentState::OneTimeChange :
+          ComponentState::NoChange;
+      this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+        state);
+    }
+  }
   return true;
 }
 
