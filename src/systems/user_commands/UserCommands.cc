@@ -687,7 +687,7 @@ void UserCommands::Configure(const Entity &_entity,
   {
     this->dataPtr->iface->setAllLightEntities =
       _sdf->Get<bool>("set_all_light_entities");
-    gzmsg << "Set all light entities: "
+    gzdbg << "Set all light entities: "
           << this->dataPtr->iface->setAllLightEntities
           << std::endl;
   }
