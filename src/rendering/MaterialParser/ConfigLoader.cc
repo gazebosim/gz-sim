@@ -316,6 +316,20 @@ void ConfigNode::getColorValues(gz::math::Color & colorValues,
     gzerr << "Bad material file." << std::endl;
     floatValues.resize(size);
   }
+
+   // clamp the color values to valid ranges
+  for (int i = 0; i < floatValues.size(); i++)
+  {
+    if (!(floatValues[i] >= 0))
+    {
+      floatValues[i] = 0;
+    }
+    if (floatValues[i] > 1)
+    {
+      floatValues[i] = floatValues[i]/255.0f;
+    }
+  }
+
   if (size == 3) {
     colorValues = gz::math::Color(floatValues[0], floatValues[1],
                   floatValues[2]);
