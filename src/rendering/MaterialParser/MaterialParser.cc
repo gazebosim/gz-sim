@@ -35,49 +35,57 @@ MaterialParser::MaterialParser()
 /////////////////////////////////////////////////
 void MaterialParser::Load()
 {
-  ConfigLoader::loadMaterialFiles(&this->configLoader);
+  ConfigLoader::LoadMaterialFiles(&this->configLoader);
 }
 
 /////////////////////////////////////////////////
 std::optional<MaterialParser::MaterialValues> MaterialParser::GetMaterialValues(
-  const std::string& material)
+  const std::string& _material)
 {
   std::optional<MaterialValues> values = std::nullopt;
   std::map<std::string, ConfigNode *> scripts =
-    this->configLoader.getAllConfigScripts();
+    this->configLoader.GetAllConfigScripts();
 
   std::map<std::string, ConfigNode *> ::iterator it;
 
-  for (it = scripts.begin(); it != scripts.end(); ++it) {
+  for (it = scripts.begin(); it != scripts.end(); ++it)
+  {
     std::string name = it->first;
-    if (name.find(material) != std::string::npos) {
-      if (!values) {
+    if (name.find(_material) != std::string::npos)
+    {
+      if (!values)
+      {
         values = MaterialValues();
       }
       ConfigNode * node = it->second;
 
-      ConfigNode * techniqueNode = node->findChild("technique");
-      if (techniqueNode) {
-        ConfigNode * passNode = techniqueNode->findChild("pass");
-        if (passNode) {
-          ConfigNode * ambientNode = passNode->findChild("ambient");
-          if (ambientNode) {
+      ConfigNode * techniqueNode = node->FindChild("technique");
+      if (techniqueNode)
+      {
+        ConfigNode * passNode = techniqueNode->FindChild("pass");
+        if (passNode)
+        {
+          ConfigNode * ambientNode = passNode->FindChild("ambient");
+          if (ambientNode)
+          {
             gz::math::Color ambientValues;
-            ambientNode->getColorValues(ambientValues, 3);
+            ambientNode->GetColorValues(ambientValues, 3);
             values->ambient.emplace(ambientValues);
           }
 
-          ConfigNode * diffuseNode = passNode->findChild("diffuse");
-          if (diffuseNode) {
+          ConfigNode * diffuseNode = passNode->FindChild("diffuse");
+          if (diffuseNode)
+          {
             gz::math::Color diffuseValues;
-            diffuseNode->getColorValues(diffuseValues, 3);
+            diffuseNode->GetColorValues(diffuseValues, 3);
             values->diffuse.emplace(diffuseValues);
           }
 
-          ConfigNode * specularNode = passNode->findChild("specular");
-          if (specularNode) {
+          ConfigNode * specularNode = passNode->FindChild("specular");
+          if (specularNode)
+          {
             gz::math::Color specularValues;
-            specularNode->getColorValues(specularValues, 4);
+            specularNode->GetColorValues(specularValues, 4);
             // Using first four values for specular as
             // Gazebo doesn't support shininess
             values->specular.emplace(specularValues);
