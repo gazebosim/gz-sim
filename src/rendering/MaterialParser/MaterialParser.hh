@@ -43,7 +43,7 @@ class MaterialParser
 
   void Load();
 
-  std::optional<MaterialValues> GetMaterialValues(const std::string& material);
+  std::optional<MaterialValues> GetMaterialValues(const std::string& _material);
 
   private:
   ConfigLoader configLoader;

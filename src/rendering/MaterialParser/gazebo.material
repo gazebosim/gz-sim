@@ -242,10 +242,6 @@ material Gazebo/White
     pass ambient
     {
       ambient 1 1 1 1
-    }
-
-    pass light
-    {
       diffuse 1 1 1 1
       specular .1 .1 .1 128
     }
