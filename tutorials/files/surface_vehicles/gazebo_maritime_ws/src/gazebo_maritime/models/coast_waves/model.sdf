@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="waves">
+    <static>true</static>
+    <link name="link">
+      <visual name= "wave_visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/waterlow.dae</uri>
+          </mesh>
+        </geometry>
+        <plugin filename="libWaveVisual.so" name="maritime::WaveVisual">
+          <shader>
+            <vertex>materials/programs/GerstnerWaves_vs_330.glsl</vertex>
+            <fragment>materials/programs/GerstnerWaves_fs_330.glsl</fragment>
+            <parameters>
+              <rescale>0.125</rescale>
+              <bumpScale>75 75</bumpScale>
+              <bumpSpeed>0.01 0.0</bumpSpeed>
+              <hdrMultiplier>0.4</hdrMultiplier>
+              <fresnelPower>5.0</fresnelPower>
+              <shallowColor>0 0.1 0.2 1.0</shallowColor>
+              <deepColor>0 0.05 0.2 1.0</deepColor>
+            </parameters>
+          </shader>
+          <wavefield>
+            <topic>/gazebo/wavefield/parameters</topic>
+          </wavefield>
+        </plugin>
+        <visibility_flags>8</visibility_flags>
+      </visual>
+    </link>
+  </model>
+</sdf>
