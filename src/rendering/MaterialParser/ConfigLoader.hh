@@ -34,13 +34,11 @@ class ConfigNode;
 class ConfigLoader
 {
 public:
-  static void loadMaterialFiles(ConfigLoader * c);
+  static void LoadMaterialFiles(ConfigLoader * _c);
 
   ConfigLoader();
 
   ~ConfigLoader();
-
-  std::string m_fileEnding;
 
   // For a line like
   // entity animals/dog
@@ -49,17 +47,14 @@ public:
   // }
   // The type is "entity" and the name is "animals/dog"
   // Or if animal/dog was not there then name is ""
-  virtual ConfigNode * getConfigScript(const std::string & name);
+  virtual ConfigNode * GetConfigScript(const std::string & _name);
 
-  virtual std::map<std::string, ConfigNode *> getAllConfigScripts();
+  virtual std::map<std::string, ConfigNode *> GetAllConfigScripts();
 
-  virtual void parseScript(std::ifstream & stream);
+  virtual void ParseScript(std::ifstream & _stream);
 
 protected:
-  float m_LoadOrder;
-  // like "*.object"
-
-  std::map<std::string, ConfigNode *> m_scriptList;
+  std::map<std::string, ConfigNode *> mScriptList;
 
   enum Token
   {
@@ -73,9 +68,9 @@ protected:
   Token tok, lastTok;
   std::string tokVal, lastTokVal;
 
-  void _parseNodes(std::ifstream & stream, ConfigNode * parent);
-  void _nextToken(std::ifstream & stream);
-  void _skipNewLines(std::ifstream & stream);
+  void parseNodes(std::ifstream & stream, ConfigNode * parent);
+  void nextToken(std::ifstream & stream);
+  void skipNewLines(std::ifstream & stream);
 
   virtual void clearScriptList();
 };
@@ -83,89 +78,90 @@ protected:
 class ConfigNode
 {
 public:
-  explicit ConfigNode(ConfigNode * parent,
-    const std::string & name = "untitled");
+  explicit ConfigNode(ConfigNode * _parent,
+    const std::string & _name = "untitled");
 
   ~ConfigNode();
 
-  inline void setName(const std::string & name)
+  inline void SetName(const std::string & _name)
   {
-    this->m_name = name;
+    this->mName = _name;
   }
 
-  inline std::string & getName()
+  inline std::string & GetName()
   {
-    return m_name;
+    return mName;
   }
 
-  inline void addValue(const std::string & value)
+  inline void AddValue(const std::string & _value)
   {
-    m_values.push_back(value);
+    mValues.push_back(_value);
   }
 
-  inline void clearValues()
+  inline void ClearValues()
   {
-    m_values.clear();
+    mValues.clear();
   }
 
-  inline std::vector<std::string> & getValues()
+  inline std::vector<std::string> & GetValues()
   {
-    return m_values;
+    return mValues;
   }
 
-  inline const std::string & getValue(unsigned int index = 0)
+  inline const std::string & GetValue(unsigned int index = 0)
   {
-    assert(index < m_values.size());
-    return m_values[index];
+    assert(index < mValues.size());
+    return mValues[index];
   }
 
-  inline void getValuesInFloat(std::vector<float> & floatValues)
+  inline void GetValuesInFloat(std::vector<float> & floatValues)
   {
-    for (const auto & str : m_values) {
+    for (const auto & str : mValues)
+    {
       floatValues.push_back(std::stof(str));
     }
   }
 
-  void getColorValues(math::Color & colorValues, unsigned int size);
+  void GetColorValues(math::Color & _colorValues, unsigned int _size);
 
-  ConfigNode * addChild(
-    const std::string & name = "untitled", bool replaceExisting = false);
+  ConfigNode * AddChild(
+    const std::string & _name = "untitled", bool _replaceExisting = false);
 
-  ConfigNode * findChild(const std::string & name, bool recursive = false);
+  ConfigNode * FindChild(const std::string & _name, bool _recursive = false);
 
-  inline std::vector<ConfigNode *> & getChildren()
+  inline std::vector<ConfigNode *> & GetChildren()
   {
-    return m_children;
+    return mChildren;
   }
 
-  inline ConfigNode * getChild(unsigned int index = 0)
+  inline ConfigNode * GetChild(unsigned int index = 0)
   {
-    assert(index < m_children.size());
-    return m_children[index];
+    assert(index < mChildren.size());
+    return mChildren[index];
   }
 
-  void setParent(ConfigNode * newParent);
+  void SetParent(ConfigNode * newParent);
 
-  inline ConfigNode * getParent()
+  inline ConfigNode * GetParent()
   {
-    return m_parent;
+    return mParent;
   }
 
 private:
-  std::string m_name;
+  std::string mName;
 
-  std::vector<std::string> m_values;
+  std::vector<std::string> mValues;
 
-  std::vector<ConfigNode *> m_children;
+  std::vector<ConfigNode *> mChildren;
 
-  ConfigNode * m_parent;
+  ConfigNode * mParent;
 
   // The last child node's index found with a call to findChild()
-  int m_lastChildFound;
+  int mLastChildFound;
 
-  std::vector<ConfigNode *> ::iterator _iter;
+  std::vector<ConfigNode *> ::iterator iter;
 
-  bool _removeSelf;
+  bool removeSelf;
 };
 }  // namespace sim
 }  // namespace gz
