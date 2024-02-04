@@ -115,6 +115,9 @@ class gz::sim::systems::TouchPluginPrivate
   /// \brief Mutex for variables mutated by the service callback.
   /// The variables are: touchPub, touchStart, enabled
   public: std::mutex serviceMutex;
+
+  /// \brief Flag if the first simulation step has already passed
+  public: bool ranOnce{false};
 };
 
 //////////////////////////////////////////////////
@@ -384,7 +387,8 @@ void TouchPlugin::Configure(const Entity &_entity,
 void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("TouchPlugin::PreUpdate");
-  if ((!this->dataPtr->initialized) && this->dataPtr->sdfConfig)
+
+  if ((!this->dataPtr->initialized) && this->dataPtr->sdfConfig && this->dataPtr->ranOnce)
   {
     // We call Load here instead of Configure because we can't be guaranteed
     // that all entities have been created when Configure is called
@@ -405,6 +409,7 @@ void TouchPlugin::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
         });
     this->dataPtr->AddTargetEntities(_ecm, potentialEntities);
   }
+  this->dataPtr->ranOnce = true;
 }
 
 //////////////////////////////////////////////////
