@@ -23,8 +23,8 @@ function(gz_add_gui_library library_name)
 
   cmake_parse_arguments(gz_add_gui_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  QT5_WRAP_CPP(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
-  QT5_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
+  qt_wrap_cpp(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
+  qt_add_resources(${library_name}_RCC ${library_name}.qrc)
 
   if(MSVC)
     # Warning #4251 is the "dll-interface" warning that tells you when types

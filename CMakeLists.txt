@@ -115,13 +115,17 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 # Find gz-gui
 gz_find_package(gz-gui9 REQUIRED)
 set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
-gz_find_package (Qt5
+
+set(QT_MAJOR_VERSION 6)
+set(QT_MINOR_VERSION 0)
+gz_find_package (Qt${QT_MAJOR_VERSION}
+  VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
   COMPONENTS
     Core
     Quick
     QuickControls2
   REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+  PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
 
 #--------------------------------------
 # Find gz-physics
