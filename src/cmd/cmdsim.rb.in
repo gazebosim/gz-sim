@@ -28,6 +28,7 @@ end
 require 'optparse'
 require 'erb'
 require 'pathname'
+require 'rbconfig'
 
 # Constants.
 LIBRARY_NAME = '@library_location@'
@@ -379,8 +380,41 @@ class Cmd
     options
   end # parse()
 
+  def run_server_and_gui(args)
+    # Start server process
+    serverPid = Process.spawn('gz', *args, '-s')
+
+    # Start GUI process
+    guiPid = Process.spawn('gz', *args, '-g')
+
+    Signal.trap("INT") {
+      # Use a method to kill processes, passing PID and timeout
+      killProcess(guiPid, "Gazebo Sim GUI", 5.0)
+      killProcess(serverPid, "Gazebo Sim Server", 5.0)
+      exit(1)
+    }
+
+    # Wait for a child process to end
+    pid, status = Process.wait2
+
+    if pid == serverPid
+      self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
+    else
+      self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
+    end
+
+    exit(0)
+  end # run_server_and_gui()
+
   def execute(args)
+    orig_args = args.dup
     options = parse(args)
+
+    # Neither the -s nor -g options were used, so re-run with both the server
+    # and gui.
+    if options['server'] == 0 && options['gui'] == 0
+      return run_server_and_gui(orig_args)
+    end
 
     library_name_path = Pathname.new(LIBRARY_NAME)
     if library_name_path.absolute?
@@ -516,71 +550,8 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
         options['gui_config'] = "_playback_"
       end
 
-      # Neither the -s nor -g options were used, so run both the server
-      # and gui.
-      if options['server'] == 0 && options['gui'] == 0
-
-        if plugin.end_with? ".dylib"
-          puts "On macOS `gz sim` currently only works with either the -s argument
-or the -g argument, you cannot run both server and gui in one terminal.
-See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-          exit(-1)
-        end
-
-        if plugin.end_with? ".dll"
-          puts "`ign gazebo` currently only works with the -s argument on Windows.
-See https://github.com/gazebosim/gz-sim/issues/168 for more info."
-          exit(-1)
-        end
-
-        serverPid = Process.fork do
-          ENV['RMT_PORT'] = '1500'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim server')
-          Importer.runServer(parsed,
-            options['iterations'], options['run'], options['hz'],
-            options['initial_sim_time'], options['levels'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['record-path'],
-            options['record-resources'], options['log-overwrite'],
-            options['log-compress'], options['playback'],
-            options['physics_engine'],
-            options['render_engine_server'],
-            options['render_engine_server_api_backend'],
-            options['render_engine_gui'],
-            options['render_engine_gui_api_backend'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'],
-            options['headless-rendering'], options['record-period'],
-            options['seed'])
-        end
-
-        guiPid = Process.fork do
-          ENV['RMT_PORT'] = '1501'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim gui')
-          Importer.runGui(options['gui_config'], options['file'],
-                          options['wait_gui'], options['render_engine_gui'],
-                          options['render_engine_gui_api_backend'])
-        end
-
-        Signal.trap("INT") {
-          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
-          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
-          return 1
-        }
-
-        # Wait for a child process to end
-        pid, status = Process.wait2
-
-        if pid == serverPid
-          self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
-        else
-          self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
-        end
-
       # If the -s option was specified, then run only the server
-      elsif options['server'] == 1
+      if options['server'] == 1
         ENV['RMT_PORT'] = '1500'
         Importer.runServer(parsed, options['iterations'], options['run'],
             options['hz'], options['initial_sim_time'], options['levels'],
