@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include <gz/math/Inertial.hh>
 #include <gz/math/Matrix3.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
@@ -171,6 +172,13 @@ namespace gz
       /// \return Absolute Pose of the link or nullopt if the entity does not
       /// have a components::WorldPose component.
       public: std::optional<math::Pose3d> WorldPose(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the world inertia of the link.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Inertia of the link pose in world frame or nullopt
+      /// if the link does not have the component components::Inertial.
+      public: std::optional<math::Inertiald> WorldInertial(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the world pose of the link inertia.

@@ -79,6 +79,9 @@ void defineSimLink(py::object module)
   .def("world_pose", &gz::sim::Link::WorldPose,
       py::arg("ecm"),
       "Get the pose of the link frame in the world coordinate frame.")
+  .def("world_inertial", &gz::sim::Link::WorldInertial,
+      py::arg("ecm"),
+      "Get the inertia of the link in the world frame.")
   .def("world_inertial_pose", &gz::sim::Link::WorldInertialPose,
       py::arg("ecm"),
       "Get the world pose of the link inertia.")

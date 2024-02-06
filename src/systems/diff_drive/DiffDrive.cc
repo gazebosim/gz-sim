@@ -187,18 +187,14 @@ void DiffDrive::Configure(const Entity &_entity,
     return;
   }
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
+  auto sdfElem = _sdf->FindElement("left_joint");
   while (sdfElem)
   {
     this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("left_joint");
   }
-  sdfElem = ptr->GetElement("right_joint");
+  sdfElem = _sdf->FindElement("right_joint");
   while (sdfElem)
   {
     this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
