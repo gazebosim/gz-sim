@@ -337,7 +337,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
   propellerLinVels.clear();
   // Make sure that when the deadband is disabled
   // commands below the deadband should create a movement
-  auto latest_pose = modelPoses.back();
   msgs::Boolean db_msg;
   if (_namespace == "deadband")
   {

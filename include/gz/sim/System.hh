@@ -88,6 +88,10 @@ namespace gz
     /// and components are loaded from the corresponding SDF world, and before
     /// simulation begins exectution.
     class ISystemConfigure {
+
+      /// \brief Destructor
+      public: virtual ~ISystemConfigure() = default;
+
       /// \brief Configure the system
       /// \param[in] _entity The entity this plugin is attached to.
       /// \param[in] _sdf The SDF Element associated with this system plugin.
@@ -108,6 +112,10 @@ namespace gz
     /// ISystemConfigureParameters::ConfigureParameters is called after
     /// ISystemConfigure::Configure.
     class ISystemConfigureParameters {
+
+      /// \brief Destructor
+      public: virtual ~ISystemConfigureParameters() = default;
+
       /// \brief Configure the parameters of the system.
       /// \param[in] _registry The parameter registry.
       public: virtual void ConfigureParameters(
@@ -117,6 +125,9 @@ namespace gz
 
 
     class ISystemReset {
+      /// \brief Destructor
+      public: virtual ~ISystemReset () = default;
+
       public: virtual void Reset(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm) = 0;
     };
@@ -124,6 +135,9 @@ namespace gz
     /// \class ISystemPreUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class ISystemPreUpdate {
+      /// \brief Destructor
+      public: virtual ~ISystemPreUpdate() = default;
+
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
@@ -131,6 +145,9 @@ namespace gz
     /// \class ISystemUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the Update phase
     class ISystemUpdate {
+      /// \brief Destructor
+      public: virtual ~ISystemUpdate() = default;
+
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
@@ -138,6 +155,9 @@ namespace gz
     /// \class ISystemPostUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class ISystemPostUpdate{
+      /// \brief Destructor
+      public: virtual ~ISystemPostUpdate() = default;
+
       public: virtual void PostUpdate(const UpdateInfo &_info,
                                       const EntityComponentManager &_ecm) = 0;
     };

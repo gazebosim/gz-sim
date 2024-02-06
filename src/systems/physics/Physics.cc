@@ -48,7 +48,6 @@
 #include <gz/physics/FeatureList.hh>
 #include <gz/physics/FeaturePolicy.hh>
 #include <gz/physics/heightmap/HeightmapShape.hh>
-#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/RelativeQuantity.hh>
 #include <gz/physics/RequestEngine.hh>
 
@@ -62,6 +61,7 @@
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
 #include <gz/physics/GetEntities.hh>
+#include <gz/physics/InstallationDirectories.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>

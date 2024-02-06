@@ -66,27 +66,6 @@ namespace gz
       public: explicit SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager);
 
-      /// \brief Copy constructor
-      /// \param[in] _creator SdfEntityCreator to copy.
-      public: SdfEntityCreator(const SdfEntityCreator &_creator);
-
-      /// \brief Move constructor
-      /// \param[in] _creator SdfEntityCreator to move.
-      public: SdfEntityCreator(SdfEntityCreator &&_creator) noexcept;
-
-      /// \brief Move assignment operator.
-      /// \param[in] _creator SdfEntityCreator component to move.
-      /// \return Reference to this.
-      public: SdfEntityCreator &operator=(SdfEntityCreator &&_creator) noexcept;
-
-      /// \brief Copy assignment operator.
-      /// \param[in] _creator SdfEntityCreator to copy.
-      /// \return Reference to this.
-      public: SdfEntityCreator &operator=(const SdfEntityCreator &_creator);
-
-      /// \brief Destructor.
-      public: ~SdfEntityCreator();
-
       /// \brief Create all entities that exist in the sdf::World object and
       /// load their plugins.
       /// \param[in] _world SDF world object.
@@ -187,7 +166,7 @@ namespace gz
                                      bool _staticParent);
 
       /// \brief Pointer to private data.
-      private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

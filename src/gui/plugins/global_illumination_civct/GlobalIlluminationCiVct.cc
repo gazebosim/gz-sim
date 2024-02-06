@@ -796,7 +796,7 @@ void GlobalIlluminationCiVct::PopCascade()
 QObject *GlobalIlluminationCiVct::GetCascade(int _idx) const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  return this->dataPtr->cascades[(size_t)_idx].get();
+  return this->dataPtr->cascades[static_cast<size_t>(_idx)].get();
 }
 
 //////////////////////////////////////////////////

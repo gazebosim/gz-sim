@@ -694,9 +694,6 @@ void Thruster::PreUpdate(
 
   gz::sim::Link link(this->dataPtr->linkEntity);
 
-
-  auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
-
   // TODO(arjo129): add logic for custom coordinate frame
   // Convert joint axis to the world frame
   const auto linkWorldPose = worldPose(this->dataPtr->linkEntity, _ecm);
@@ -704,8 +701,8 @@ void Thruster::PreUpdate(
   auto unitVector =
       jointWorldPose.Rot().RotateVector(this->dataPtr->jointAxis).Normalize();
 
-  double desiredThrust;
-  double desiredPropellerAngVel;
+  double desiredThrust {0.0};
+  double desiredPropellerAngVel {0.0};
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
     desiredThrust = this->dataPtr->thrust;

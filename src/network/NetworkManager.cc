@@ -81,6 +81,7 @@ std::unique_ptr<NetworkManager> NetworkManager::Create(
     case NetworkRole::ReadOnly:
       // \todo(mjcarroll): Enable ReadOnly
       gzwarn << "ReadOnly role not currently supported" << std::endl;
+      break;
     case NetworkRole::None:
       break;
     default:

@@ -97,53 +97,11 @@ LevelManager::LevelManager(SimulationRunner *_runner, const bool _useLevels)
 /////////////////////////////////////////////////
 void LevelManager::ReadLevelPerformerInfo()
 {
-  // \todo(anyone) Use SdfEntityCreator to avoid duplication
-  this->worldEntity = this->runner->entityCompMgr.CreateEntity();
+  this->worldEntity =
+    this->entityCreator->CreateEntities(this->runner->sdfWorld);
 
-  // World components
-  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-                                               components::World());
-  this->runner->entityCompMgr.CreateComponent(
-      this->worldEntity, components::Name(this->runner->sdfWorld->Name()));
-
-  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-      components::Gravity(this->runner->sdfWorld->Gravity()));
-
-  auto physics = this->runner->sdfWorld->PhysicsByIndex(0);
-  if (!physics)
-  {
-    physics = this->runner->sdfWorld->PhysicsDefault();
-  }
-  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-      components::Physics(*physics));
-
-  // Populate physics options that aren't accessible outside the Element()
-  // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
-  {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
-    {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
-
-      this->runner->entityCompMgr.CreateComponent(worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
-    }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
-    {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->runner->entityCompMgr.CreateComponent(worldEntity,
-          components::PhysicsSolver(solver));
-    }
-  }
-
-  this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-      components::MagneticField(this->runner->sdfWorld->MagneticField()));
+  // These elements are populated here rather than in the SdfEntityCreator,
+  // because the serverConfig is available in this context
 
   this->runner->entityCompMgr.CreateComponent(this->worldEntity,
       components::PhysicsEnginePlugin(
@@ -166,41 +124,6 @@ void LevelManager::ReadLevelPerformerInfo()
       this->runner->serverConfig.RenderEngineGui()));
 
   auto worldElem = this->runner->sdfWorld->Element();
-
-  // Create Wind
-  auto windEntity = this->runner->entityCompMgr.CreateEntity();
-  this->runner->entityCompMgr.CreateComponent(windEntity, components::Wind());
-  this->runner->entityCompMgr.CreateComponent(
-      windEntity, components::WorldLinearVelocity(
-                      this->runner->sdfWorld->WindLinearVelocity()));
-  // Initially the wind linear velocity is used as the seed velocity
-  this->runner->entityCompMgr.CreateComponent(
-      windEntity, components::WorldLinearVelocitySeed(
-                      this->runner->sdfWorld->WindLinearVelocity()));
-
-  this->entityCreator->SetParent(windEntity, this->worldEntity);
-
-  // scene
-  if (this->runner->sdfWorld->Scene())
-  {
-    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-        components::Scene(*this->runner->sdfWorld->Scene()));
-  }
-
-  // atmosphere
-  if (this->runner->sdfWorld->Atmosphere())
-  {
-    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-        components::Atmosphere(*this->runner->sdfWorld->Atmosphere()));
-  }
-
-  // spherical coordinates
-  if (this->runner->sdfWorld->SphericalCoordinates())
-  {
-    this->runner->entityCompMgr.CreateComponent(this->worldEntity,
-        components::SphericalCoordinates(
-        *this->runner->sdfWorld->SphericalCoordinates()));
-  }
 
   // TODO(anyone) This should probably go somewhere else as it is a global
   // constant.
@@ -238,10 +161,6 @@ void LevelManager::ReadLevelPerformerInfo()
   // Load world plugins.
   this->runner->EventMgr().Emit<events::LoadSdfPlugins>(this->worldEntity,
       this->runner->sdfWorld->Plugins());
-
-  // Store the world's SDF DOM to be used when saving the world to file
-  this->runner->entityCompMgr.CreateComponent(
-      worldEntity, components::WorldSdf(*this->runner->sdfWorld));
 }
 
 /////////////////////////////////////////////////

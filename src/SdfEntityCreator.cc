@@ -47,11 +47,11 @@
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointType.hh"
 #include "gz/sim/components/LaserRetro.hh"
-#include "gz/sim/components/Lidar.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/LightType.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/LogicalCamera.hh"
 #include "gz/sim/components/MagneticField.hh"
@@ -81,10 +81,15 @@
 #include "gz/sim/components/Visibility.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WideAngleCamera.hh"
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
-class gz::sim::SdfEntityCreatorPrivate
+
+namespace gz::sim
+{
+
+class SdfEntityCreator::Implementation
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
   public: EntityComponentManager *ecm{nullptr};
@@ -105,13 +110,11 @@ class gz::sim::SdfEntityCreatorPrivate
   public: std::map<Entity, sdf::Plugins> newVisuals;
 };
 
-using namespace gz;
-using namespace sim;
-
+namespace {
 /////////////////////////////////////////////////
 /// \brief Resolve the pose of an SDF DOM object with respect to its relative_to
 /// frame. If that fails, return the raw pose
-static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
+math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
 {
   math::Pose3d pose;
   ::sdf::Errors errors = _semPose.Resolve(pose);
@@ -124,7 +127,7 @@ static math::Pose3d ResolveSdfPose(const sdf::SemanticPose &_semPose)
 }
 
 /////////////////////////////////////////////////
-static std::optional<sdf::JointAxis> ResolveJointAxis(
+std::optional<sdf::JointAxis> ResolveJointAxis(
     const sdf::JointAxis &_unresolvedAxis)
 {
   math::Vector3d axisXyz;
@@ -156,9 +159,9 @@ static std::optional<sdf::JointAxis> ResolveJointAxis(
 /// \param[in] _ecm Entity component manager
 /// \return The Entity of the descendent link or kNullEntity if link was not
 /// found
-static Entity FindDescendentLinkEntityByName(const std::string &_name,
-                                             const Entity &_model,
-                                             const EntityComponentManager &_ecm)
+Entity FindDescendentLinkEntityByName(const std::string &_name,
+                                      const Entity &_model,
+                                      const EntityComponentManager &_ecm)
 {
   auto ind = _name.find(sdf::kScopeDelimiter);
   std::vector<Entity> candidates;
@@ -185,39 +188,16 @@ static Entity FindDescendentLinkEntityByName(const std::string &_name,
     return candidates.front();
   }
 }
+}  // namespace
 
 //////////////////////////////////////////////////
 SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
           EventManager &_eventManager)
-  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>())
+  : dataPtr(gz::utils::MakeImpl<Implementation>())
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
 }
-
-/////////////////////////////////////////////////
-SdfEntityCreator::SdfEntityCreator(const SdfEntityCreator &_creator)
-  : dataPtr(std::make_unique<SdfEntityCreatorPrivate>(*_creator.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-SdfEntityCreator::SdfEntityCreator(SdfEntityCreator &&_creator) noexcept
-    = default;
-
-//////////////////////////////////////////////////
-SdfEntityCreator::~SdfEntityCreator() = default;
-
-/////////////////////////////////////////////////
-SdfEntityCreator &SdfEntityCreator::operator=(const SdfEntityCreator &_creator)
-{
-  *this->dataPtr = (*_creator.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
-    noexcept = default;
 
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
@@ -325,6 +305,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
   // MagneticField
   this->dataPtr->ecm->CreateComponent(worldEntity,
       components::MagneticField(_world->MagneticField()));
+
+  // Wind
+  auto windEntity = this->dataPtr->ecm->CreateEntity();
+  this->dataPtr->ecm->CreateComponent(windEntity, components::Wind());
+  this->dataPtr->ecm->CreateComponent(
+      windEntity, components::WorldLinearVelocity(
+                      _world->WindLinearVelocity()));
+  // Initially the wind linear velocity is used as the seed velocity
+  this->dataPtr->ecm->CreateComponent(
+      windEntity, components::WorldLinearVelocitySeed(
+                      _world->WindLinearVelocity()));
+  this->SetParent(windEntity, worldEntity);
 
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(worldEntity,
       _world->Plugins());
@@ -1085,3 +1077,5 @@ void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
   this->dataPtr->ecm->CreateComponent(_child,
       components::ParentEntity(_parent));
 }
+
+}  // namespace gz::sim
