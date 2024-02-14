@@ -1377,6 +1377,41 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
     out.SetCameraSensor(sensor);
   }
+  else if (out.Type() == sdf::SensorType::GPS ||
+           out.Type() == sdf::SensorType::NAVSAT)
+  {
+    sdf::NavSat sensor;
+    if (_in.has_gps())
+    {
+      if (_in.gps().position().has_horizontal_noise())
+      {
+        sensor.SetHorizontalPositionNoise(sim::convert<sdf::Noise>(
+              _in.gps().position().horizontal_noise()));
+      }
+      if (_in.gps().position().has_vertical_noise())
+      {
+        sensor.SetVerticalPositionNoise(sim::convert<sdf::Noise>(
+              _in.gps().position().vertical_noise()));
+      }
+      if (_in.gps().velocity().has_horizontal_noise())
+      {
+        sensor.SetHorizontalVelocityNoise(sim::convert<sdf::Noise>(
+              _in.gps().velocity().horizontal_noise()));
+      }
+      if (_in.gps().velocity().has_vertical_noise())
+      {
+        sensor.SetVerticalVelocityNoise(sim::convert<sdf::Noise>(
+              _in.gps().velocity().vertical_noise()));
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert a navsat sensor message, but the "
+             << "message does not have a navsat nested message.\n";
+    }
+
+    out.SetNavSatSensor(sensor);
+  }
   else if (out.Type() == sdf::SensorType::ALTIMETER)
   {
     sdf::Altimeter sensor;
@@ -1653,8 +1688,8 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     std::string path = asFullPath(_in.ColorRangeImage(), _in.FilePath());
 
     common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(kResourcePathEnv);
-    std::string absolutePath = systemPaths.FindFile(path);
+    std::string absolutePath =
+        common::SystemPaths::LocateLocalFile(path, sim::resourcePaths());
 
     if (!absolutePath.empty())
     {

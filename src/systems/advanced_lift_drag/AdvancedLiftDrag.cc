@@ -59,6 +59,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
 
 using namespace gz;
 using namespace sim;
@@ -481,6 +482,13 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   const auto worldPose =
       _ecm.Component<components::WorldPose>(this->linkEntity);
 
+  // get wind as a component from the _ecm
+  components::WorldLinearVelocity *windLinearVel = nullptr;
+  if(_ecm.EntityByComponents(components::Wind()) != kNullEntity){
+    Entity windEntity = _ecm.EntityByComponents(components::Wind());
+    windLinearVel =
+        _ecm.Component<components::WorldLinearVelocity>(windEntity);
+  }
 
   std::vector<components::JointPosition*> controlJointPosition_vec(
     this->num_ctrl_surfaces);
@@ -499,8 +507,12 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
-  const auto air_velocity = worldLinVel->Data() + worldAngVel->Data().Cross(
+  auto air_velocity = worldLinVel->Data() + worldAngVel->Data().Cross(
     cpWorld);
+  if (windLinearVel != nullptr){
+    air_velocity = worldLinVel->Data() + worldAngVel->Data().Cross(
+    cpWorld) - windLinearVel->Data();
+  }
 
   // Define body frame: X forward, Z downward, Y out the right wing
   gz::math::Vector3d body_x_axis = pose.Rot().RotateVector(this->forward);
@@ -615,7 +627,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     {
       components::JointPosition *tmp_controlJointPosition =
       controlJointPosition_vec[i];
-      controlAngle = tmp_controlJointPosition->Data()[0] * 180/M_PI;
+      controlAngle = tmp_controlJointPosition->Data()[0] * 180 / GZ_PI;
     }
 
     // AVL's and Gazebo's direction of "positive" deflection may be different.
@@ -671,7 +683,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
 
   double CD_fp = 2 / (1 + exp(this->CD_fp_k1 + this->CD_fp_k2 * (
     std::max(this->AR, 1 / this->AR))));
-  CD = (1 - sigma) * (this->CD0 + (CL*CL) / (M_PI * this->AR *
+  CD = (1 - sigma) * (this->CD0 + (CL*CL) / (GZ_PI * this->AR *
     this->eff)) + sigma * abs(
       CD_fp * (0.5 - 0.5 * cos(2 * this->alpha)));
 
