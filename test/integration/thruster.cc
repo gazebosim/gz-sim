@@ -331,13 +331,12 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
-
+  auto latest_pose = modelPoses.back();
   modelPoses.clear();
   propellerAngVels.clear();
   propellerLinVels.clear();
   // Make sure that when the deadband is disabled
   // commands below the deadband should create a movement
-  auto latest_pose = modelPoses.back();
   msgs::Boolean db_msg;
   if (_namespace == "deadband")
   {
@@ -359,7 +358,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     // the model should have moved. Note that the distance moved is small
     // This is because we are sending small forces (deadband/2)
-    EXPECT_LT(0.1, modelPoses.back().Pos().X());
+    EXPECT_LT(0.1, latest_pose.Pos().X());
 
     // Check that the propeller are rotating
     omega = sqrt(abs(force / (_density * _thrustCoefficient *
