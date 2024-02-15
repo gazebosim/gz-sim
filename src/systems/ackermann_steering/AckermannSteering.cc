@@ -952,14 +952,17 @@ void AckermannSteeringPrivate::UpdateVelocity(
     return;
   }
 
-  double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
-  double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
+  double leftDelta = leftSteeringPos->Data()[0] - leftSteeringJointAngle;
+  double rightDelta = rightSteeringPos->Data()[0] - rightSteeringJointAngle;
 
-  // Simple proportional control with a gain of 1
-  // Adding programmable PID values might be a future feature.
-  // Works as is for tested cases
-  this->leftSteeringJointSpeed = leftDelta;
-  this->rightSteeringJointSpeed = rightDelta;
+  // Simple PID control with settable gains.
+  this->leftSteeringJointSpeed = this->steerPosPid.Update(
+    leftDelta, _info.dt);
+  this->steerPosPid.Reset();
+
+  this->rightSteeringJointSpeed = this->steerPosPid.Update(
+    rightDelta, _info.dt);
+  this->steerPosPid.Reset();
 }
 
 //////////////////////////////////////////////////
