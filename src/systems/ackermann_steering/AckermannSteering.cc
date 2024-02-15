@@ -34,7 +34,7 @@
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Angle.hh>
 #include <gz/math/SpeedLimiter.hh>
-
+#include <gz/math/PID.hh>
 
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
@@ -215,8 +215,8 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief Last target angle requested.
   public: double targetAng{0.0};
 
-  /// \brief P gain for angular position.
-  public: double gainPAng{1.0};
+  /// \brief Steer joint angular position PID.
+  public: math::PID steerPosPid;
 
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
@@ -331,11 +331,40 @@ void AckermannSteering::Configure(const Entity &_entity,
   this->dataPtr->steeringLimit = _sdf->Get<double>("steering_limit",
       this->dataPtr->steeringLimit).first;
 
-  // Get proportional gain for steering angle.
-  if (_sdf->HasElement("steer_p_gain"))
-  {
-    this->dataPtr->gainPAng = _sdf->Get<double>("steer_p_gain");
-  }
+  // Create PID for steering joint anglular position
+  double steerPosPGain = 1.0;
+  double steerPosIGain = 0.0;
+  double steerPosDGain = 0.0;
+  double steerPosIMax = 0.0;
+  double steerPosIMin = 0.0;
+  double steerPosCmdMax = 1000.0;
+  double steerPosCmdMin = -1000.0;
+  double steerPosCmdOffset = 0.0;
+  if(_sdf->HasElement("steer_p_gain"))
+    steerPosPGain = _sdf->Get<double>("steer_p_gain");
+  if(_sdf->HasElement("steer_i_gain"))
+    steerPosIGain = _sdf->Get<double>("steer_i_gain");
+  if(_sdf->HasElement("steer_d_gain"))
+    steerPosDGain = _sdf->Get<double>("steer_d_gain");
+  if(_sdf->HasElement("steer_i_max"))
+    steerPosIMax = _sdf->Get<double>("steer_i_max");
+  if(_sdf->HasElement("steer_i_min"))
+    steerPosIMin = _sdf->Get<double>("steer_i_min");
+  if(_sdf->HasElement("steer_cmd_max"))
+    steerPosCmdMax = _sdf->Get<double>("steer_cmd_max");
+  if(_sdf->HasElement("steer_cmd_min"))
+    steerPosCmdMin = _sdf->Get<double>("steer_cmd_min");
+  if(_sdf->HasElement("steer_cmd_offset"))
+    steerPosCmdOffset = _sdf->Get<double>("steer_cmd_offset");
+  this->dataPtr->steerPosPid.Init(
+    steerPosPGain, 
+    steerPosIGain,
+    steerPosDGain,
+    steerPosIMax,
+    steerPosIMin,
+    steerPosCmdMax,
+    steerPosCmdMin,
+    steerPosCmdOffset);
 
   // Instantiate the speed limiters.
   this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
@@ -968,11 +997,11 @@ void AckermannSteeringPrivate::UpdateAngle(
 
   double leftSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) + \
+      ((2.0 * this->wheelBase * cos(ang)) - \
       (1.0 * this->wheelSeparation * sin(ang))));
   double rightSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) - \
+      ((2.0 * this->wheelBase * cos(ang)) + \
       (1.0 * this->wheelSeparation * sin(ang))));
 
   auto leftSteeringPos = _ecm.Component<components::JointPosition>(
@@ -988,13 +1017,17 @@ void AckermannSteeringPrivate::UpdateAngle(
     return;
   }
 
-  double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
-  double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
+  double leftDelta = leftSteeringPos->Data()[0] - leftSteeringJointAngle;
+  double rightDelta = rightSteeringPos->Data()[0] - rightSteeringJointAngle;
 
-  // Simple proportional control with settable gain.
-  // Adding programmable PID values might be a future feature.
-  this->leftSteeringJointSpeed = this->gainPAng * leftDelta;
-  this->rightSteeringJointSpeed = this->gainPAng * rightDelta;
+  // Simple PID control with settable gains.
+  this->leftSteeringJointSpeed = this->steerPosPid.Update(
+    leftDelta, _info.dt);
+  this->steerPosPid.Reset();
+
+  this->rightSteeringJointSpeed = this->steerPosPid.Update(
+    rightDelta, _info.dt);
+  this->steerPosPid.Reset();
 }
 
 //////////////////////////////////////////////////
