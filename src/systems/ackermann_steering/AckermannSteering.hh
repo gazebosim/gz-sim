@@ -52,7 +52,28 @@ namespace systems
   /// the index of the steering angle position actuator.
   ///
   /// - `<steer_p_gain>`: Float used to control the steering angle P gain.
-  /// Only used for when in steering_only mode.
+  /// Only used for when in steering_only mode. Default: 1.0
+  ///
+  /// - `<steer_i_gain>`: Float used to control the steering angle I gain.
+  /// Only used for when in steering_only mode. Default: 0.0
+  ///
+  /// - `<steer_d_gain>`: Float used to control the steering angle D gain.
+  /// Only used for when in steering_only mode. Default: 0.0
+  ///
+  /// - `<steer_i_max>`: Float used to set integral upper limit PID output.
+  /// Only used for when in steering_only mode. Default: 0.0
+  ///
+  /// - `<steer_i_min>`: Float used to set integral lower limit PID output.
+  /// Only used for when in steering_only mode. Default: 0.0
+  ///
+  /// - `<steer_cmd_max>`: Float used to set max value of PID output.
+  /// Only used for when in steering_only mode. Default: 1000
+  ///
+  /// - `<steer_cmd_min>`: Float used to set min value of PID output.
+  /// Only used for when in steering_only mode. Default: -1000
+  ///
+  /// - `<steer_cmd_offset>`: Float used to set command offset value of PID.
+  /// Only used for when in steering_only mode. Default: 0.0
   ///
   /// - `<left_joint>`: Name of a joint that controls a left wheel. This
   /// element can appear multiple times, and must appear at least once.
