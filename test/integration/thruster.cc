@@ -338,10 +338,10 @@ void ThrusterTest::TestWorld(const std::string &_world,
     propellerAngVels.clear();
     propellerLinVels.clear();
   }
-  else 
+  else
   {
     throw std::runtime_error("modelPoses is empty");
-  } 
+  }
   // Make sure that when the deadband is disabled
   // commands below the deadband should create a movement
   msgs::Boolean db_msg;
