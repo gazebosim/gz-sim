@@ -711,9 +711,6 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
          common::basename(_geom.MeshShape()->Uri()) :
          asFullPath(_geom.MeshShape()->Uri(),
                     _geom.MeshShape()->FilePath());
-    auto a =     asFullPath(_geom.MeshShape()->Uri(),
-                    _geom.MeshShape()->FilePath());
-
     descriptor.meshName = meshUri;
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
