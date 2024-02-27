@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui>
+      <plugin filename="MinimalScene" name="3D View">
+      </plugin>
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+      </plugin>
+      <plugin filename="MarkerManager" name="Marker manager">
+      </plugin>
+      <plugin filename="SelectEntities" name="Select Entities">
+      </plugin>
+      <plugin filename="Spawn" name="Spawn Entities">
+      </plugin>
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+      </plugin>
+      <plugin filename="Shapes" name="Shapes">
+      </plugin>
+      <plugin filename="Lights" name="Lights">
+      </plugin>
+      <plugin filename="TransformControl" name="Transform control">
+      </plugin>
+      <plugin filename="Screenshot" name="Screenshot">
+      </plugin>
+      <plugin filename="CopyPaste" name="CopyPaste">
+      </plugin>
+      <plugin filename="ComponentInspector" name="Component inspector">
+      </plugin>
+      <plugin filename="EntityTree" name="Entity tree">
+      </plugin>
+
+      <plugin filename="MouseDrag">
+        <rotation_stiffness>50</rotation_stiffness>
+        <position_stiffness>200</position_stiffness>
+      </plugin>
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+            <specular>1 0 0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>
