@@ -239,7 +239,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   if (!this->dataPtr->model.Valid(_ecm))
   {
     gzerr << "MulticopterMotorModel plugin should be attached to a model "
-           << "entity. Failed to initialize." << std::endl;
+          << "entity. Failed to initialize." << std::endl;
     return;
   }
 
@@ -247,39 +247,64 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   this->dataPtr->robotNamespace.clear();
 
-  if (sdfClone->HasElement("robotNamespace"))
+  if (sdfClone->HasElement("robot_namespace"))
+  {
+    this->dataPtr->robotNamespace =
+        sdfClone->Get<std::string>("robot_namespace");
+  }
+  else if (sdfClone->HasElement("robotNamespace"))
   {
     this->dataPtr->robotNamespace =
         sdfClone->Get<std::string>("robotNamespace");
+    gzwarn << "<robotNamespace> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <robot_namespace>." << std::endl;
   }
   else
   {
-    gzwarn << "No robotNamespace set using entity name.\n";
+    gzwarn << "No robot_namespace set using entity name."
+           << std::endl;
     this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
-  if (sdfClone->HasElement("jointName"))
+  if (sdfClone->HasElement("joint_name"))
+  {
+    this->dataPtr->jointName = sdfClone->Get<std::string>("joint_name");
+  }
+  else if (sdfClone->HasElement("jointName"))
   {
     this->dataPtr->jointName = sdfClone->Get<std::string>("jointName");
+    gzwarn << "<jointName> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <joint_name>." << std::endl;
   }
 
   if (this->dataPtr->jointName.empty())
   {
-    gzerr << "MulticopterMotorModel found an empty jointName parameter. "
-           << "Failed to initialize.";
+    gzerr << "MulticopterMotorModel found an empty "
+          << "joint_name parameter. "
+          << "Failed to initialize." << std::endl;
     return;
   }
 
-  if (sdfClone->HasElement("linkName"))
+  if (sdfClone->HasElement("link_name"))
   {
-    this->dataPtr->linkName = sdfClone->Get<std::string>("linkName");
+    this->dataPtr->linkName = sdfClone->Get<std::string>("link_name");
+  }
+  else if (sdfClone->HasElement("linkName"))
+  {
+    this->dataPtr->jointName = sdfClone->Get<std::string>("linkName");
+    gzwarn << "<linkName> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <link_name>." << std::endl;
   }
 
   if (this->dataPtr->linkName.empty())
   {
-    gzerr << "MulticopterMotorModel found an empty linkName parameter. "
-           << "Failed to initialize.";
+    gzerr << "MulticopterMotorModel found an empty "
+          << "link_name parameter. "
+          << "Failed to initialize." << std::endl;
     return;
   }
 
@@ -292,16 +317,32 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
-    gzwarn << "<motorNumber> is depricated, "
-           << "please use <actuator_number>.\n";
+    gzwarn << "<motorNumber> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <actuator_number>." << std::endl;
   }
   else
   {
-    gzerr << "Please specify a actuator_number.\n";
+    gzerr << "Please specify a actuator_number." << std::endl;
   }
 
-  if (sdfClone->HasElement("turningDirection"))
+  if (sdfClone->HasElement("turning_direction"))
   {
+    auto turningDirection =
+        sdfClone->GetElement("turning_direction")->Get<std::string>();
+    if (turningDirection == "cw")
+      this->dataPtr->turningDirection = turning_direction::kCw;
+    else if (turningDirection == "ccw")
+      this->dataPtr->turningDirection = turning_direction::kCcw;
+    else
+      gzerr << "Please only use 'cw' or 'ccw' as turning_direction."
+            << std::endl;
+  }
+  else if (sdfClone->HasElement("turningDirection"))
+  {
+    gzwarn << "<turningDirection> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <turning_direction>." << std::endl;
     auto turningDirection =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
     if (turningDirection == "cw")
@@ -309,62 +350,201 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     else if (turningDirection == "ccw")
       this->dataPtr->turningDirection = turning_direction::kCcw;
     else
-      gzerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
+      gzerr << "Please only use 'cw' or 'ccw' as turning_direction."
+            << std::endl;
   }
   else
   {
-    gzerr << "Please specify a turning direction ('cw' or 'ccw').\n";
+    gzerr << "Please specify a turning_direction ('cw' or 'ccw')."
+          << std::endl;
   }
 
-  if (sdfClone->HasElement("motorType"))
+  if (sdfClone->HasElement("motor_type"))
   {
+    auto motorType = sdfClone->GetElement("motor_type")->Get<std::string>();
+    if (motorType == "velocity")
+      this->dataPtr->motorType = MotorType::kVelocity;
+    else if (motorType == "position")
+    {
+      this->dataPtr->motorType = MotorType::kPosition;
+      gzerr << "motor_type 'position' not supported." << std::endl;
+    }
+    else if (motorType == "force")
+    {
+      this->dataPtr->motorType = MotorType::kForce;
+      gzerr << "motor_type 'force' not supported." << std::endl;
+    }
+    else
+    {
+      gzerr << "Please only use 'velocity', 'position' or "
+               "'force' as motor_type." << std::endl;
+    }
+  }
+  else if (sdfClone->HasElement("motorType"))
+  {
+    gzwarn << "<motorType> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <motor_type>."
+           << std::endl;
     auto motorType = sdfClone->GetElement("motorType")->Get<std::string>();
     if (motorType == "velocity")
       this->dataPtr->motorType = MotorType::kVelocity;
     else if (motorType == "position")
     {
       this->dataPtr->motorType = MotorType::kPosition;
-      gzerr << "motorType 'position' not supported" << std::endl;
+      gzerr << "motor_type 'position' not supported." << std::endl;
     }
     else if (motorType == "force")
     {
       this->dataPtr->motorType = MotorType::kForce;
-      gzerr << "motorType 'force' not supported" << std::endl;
+      gzerr << "motor_type 'force' not supported." << std::endl;
     }
     else
     {
       gzerr << "Please only use 'velocity', 'position' or "
-               "'force' as motorType.\n";
+               "'force' as motor_type." << std::endl;
     }
   }
   else
   {
-    gzwarn << "motorType not specified, using velocity.\n";
+    gzwarn << "motor_type not specified, using velocity."
+           << std::endl;
     this->dataPtr->motorType = MotorType::kVelocity;
   }
 
-  sdfClone->Get<std::string>("commandSubTopic",
-      this->dataPtr->commandSubTopic, this->dataPtr->commandSubTopic);
+  if (sdfClone->HasElement("sub_topic"))
+  {
+    this->dataPtr->commandSubTopic =
+      sdfClone->Get<std::string>("sub_topic");
+  }
+  else if (sdfClone->HasElement("commandSubTopic"))
+  {
+    this->dataPtr->commandSubTopic =
+      sdfClone->Get<std::string>("commandSubTopic");
+    gzwarn << "<commandSubTopic> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <sub_topic>." << std::endl;
+  }
 
-  sdfClone->Get<double>("rotorDragCoefficient",
-      this->dataPtr->rotorDragCoefficient,
-      this->dataPtr->rotorDragCoefficient);
-  sdfClone->Get<double>("rollingMomentCoefficient",
-      this->dataPtr->rollingMomentCoefficient,
-      this->dataPtr->rollingMomentCoefficient);
-  sdfClone->Get<double>("maxRotVelocity",
-      this->dataPtr->maxRotVelocity, this->dataPtr->maxRotVelocity);
-  sdfClone->Get<double>("motorConstant",
-      this->dataPtr->motorConstant, this->dataPtr->motorConstant);
-  sdfClone->Get<double>("momentConstant",
-      this->dataPtr->momentConstant, this->dataPtr->momentConstant);
+  if (sdfClone->HasElement("rotor_drag_coefficient"))
+  {
+    this->dataPtr->rotorDragCoefficient =
+      sdfClone->Get<double>("rotor_drag_coefficient");
+  }
+  else if (sdfClone->HasElement("rotorDragCoefficient"))
+  {
+    this->dataPtr->rotorDragCoefficient =
+      sdfClone->Get<double>("rotorDragCoefficient");
+    gzwarn << "<rotorDragCoefficientc> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <rotor_drag_coefficient>."
+           << std::endl;
+  }
 
-  sdfClone->Get<double>("timeConstantUp",
-      this->dataPtr->timeConstantUp, this->dataPtr->timeConstantUp);
-  sdfClone->Get<double>("timeConstantDown",
-      this->dataPtr->timeConstantDown, this->dataPtr->timeConstantDown);
-  sdfClone->Get<double>("rotorVelocitySlowdownSim",
-      this->dataPtr->rotorVelocitySlowdownSim, 10);
+  if (sdfClone->HasElement("rolling_moment_coefficient"))
+  {
+    this->dataPtr->rollingMomentCoefficient =
+      sdfClone->Get<double>("rolling_moment_coefficient");
+  }
+  else if (sdfClone->HasElement("rollingMomentCoefficient"))
+  {
+    this->dataPtr->rollingMomentCoefficient =
+      sdfClone->Get<double>("rollingMomentCoefficient");
+    gzwarn << "<rollingMomentCoefficient> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <rolling_moment_coefficient>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("max_rot_velocity"))
+  {
+    this->dataPtr->maxRotVelocity =
+      sdfClone->Get<double>("max_rot_velocity");
+  }
+  else if (sdfClone->HasElement("maxRotVelocity"))
+  {
+    this->dataPtr->maxRotVelocity =
+      sdfClone->Get<double>("maxRotVelocity");
+    gzwarn << "<maxRotVelocity> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <max_rot_velocity>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("motor_constant"))
+  {
+    this->dataPtr->motorConstant =
+      sdfClone->Get<double>("motor_constant");
+  }
+  else if (sdfClone->HasElement("motorConstant"))
+  {
+    this->dataPtr->motorConstant =
+      sdfClone->Get<double>("motorConstant");
+    gzwarn << "<motorConstant> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <motor_constant>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("moment_constant"))
+  {
+    this->dataPtr->momentConstant =
+      sdfClone->Get<double>("moment_constant");
+  }
+  else if (sdfClone->HasElement("momentConstant"))
+  {
+    this->dataPtr->momentConstant =
+      sdfClone->Get<double>("momentConstant");
+    gzwarn << "<momentConstant> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <moment_constant>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("time_constant_up"))
+  {
+    this->dataPtr->timeConstantUp =
+      sdfClone->Get<double>("time_constant_up");
+  }
+  else if (sdfClone->HasElement("timeConstantUp"))
+  {
+    this->dataPtr->timeConstantUp =
+      sdfClone->Get<double>("timeConstantUp");
+    gzwarn << "<timeConstantUp> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <time_constant_up>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("time_constant_down"))
+  {
+    this->dataPtr->timeConstantDown =
+      sdfClone->Get<double>("time_constant_down");
+  }
+  else if (sdfClone->HasElement("timeConstantDown"))
+  {
+    this->dataPtr->timeConstantDown =
+      sdfClone->Get<double>("timeConstantDown");
+    gzwarn << "<timeConstantDown> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <time_constant_down>."
+           << std::endl;
+  }
+
+  if (sdfClone->HasElement("rotor_velocity_slowdown_sim"))
+  {
+    this->dataPtr->rotorVelocitySlowdownSim =
+      sdfClone->Get<double>("rotor_velocity_slowdown_sim");
+  }
+  else if (sdfClone->HasElement("rotorVelocitySlowdownSim"))
+  {
+    this->dataPtr->rotorVelocitySlowdownSim =
+      sdfClone->Get<double>("rotorVelocitySlowdownSim");
+    gzwarn << "<rotorVelocitySlowdownSim> is deprecated "
+           << "and will be removed in Harmonic, "
+           << "please use <rotor_velocity_slowdown_sim>."
+           << std::endl;
+  }
 
   // Create the first order filter.
   this->dataPtr->rotorVelocityFilter =
@@ -567,7 +747,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       {
         gzerr << "Aliasing on motor [" << this->actuatorNumber
               << "] might occur. Consider making smaller simulation time "
-                 "steps or raising the rotorVelocitySlowdownSim param.\n";
+              << "steps or raising the rotor_velocity_slowdown_sim param."
+              << std::endl;
       }
       double realMotorVelocity =
           motorRotVel * this->rotorVelocitySlowdownSim;
@@ -594,7 +775,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       if (!jointPose)
       {
         gzerr << "joint " << this->jointName << " has no Pose"
-               << "component" << std::endl;
+               << "component." << std::endl;
         return;
       }
       // computer joint world pose by multiplying child link WorldPose
@@ -606,7 +787,7 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       if (!jointAxisComp)
       {
         gzerr << "joint " << this->jointName << " has no JointAxis"
-               << "component" << std::endl;
+               << "component." << std::endl;
         return;
       }
 
