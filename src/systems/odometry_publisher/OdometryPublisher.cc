@@ -316,7 +316,6 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::PostUpdate");
-  gzwarn << "HElllo Anton" << std::endl;
 
   // \TODO(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
