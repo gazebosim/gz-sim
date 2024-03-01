@@ -119,7 +119,7 @@ Server::Server(const ServerConfig &_config)
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      sdf::ParserConfig parserConfig;
+      auto &parserConfig = sdf::ParserConfig::GlobalConfig();
       parserConfig.SetStoreResolvedURIs(true);
       errors = sdfRoot.Load(filePath, parserConfig);
       if (errors.empty()) {
