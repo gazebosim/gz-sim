@@ -278,6 +278,10 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
 {
   GZ_PROFILE("OdometryPublisher::PreUpdate");
 
+  if (!this->dataPtr->model.Valid(_ecm)) {
+    return;
+  }
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -304,6 +308,10 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
+
+  if (!this->dataPtr->model.Valid(_ecm)) {
+    return;
+  }
 
   this->dataPtr->UpdateOdometry(_info, _ecm);
 }
