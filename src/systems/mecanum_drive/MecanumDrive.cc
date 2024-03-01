@@ -566,7 +566,7 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
   auto frontRightPos = _ecm.Component<components::JointPosition>(this->frontRightJoints[0]);
   auto backLeftPos = _ecm.Component<components::JointPosition>(this->backLeftJoints[0]);
   auto backRightPos = _ecm.Component<components::JointPosition>(this->backRightJoints[0]);
-  
+ 
   // Abort if the joints were not found or just created.
   if (!frontLeftPos || !frontRightPos || !backLeftPos || !backRightPos ||
    frontLeftPos->Data().empty() || frontRightPos->Data().empty() || backLeftPos->Data().empty() || backRightPos->Data().empty())
@@ -574,8 +574,7 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     return;
   }
 
-  this->odom.Update(frontLeftPos->Data()[0], frontRightPos->Data()[0], backLeftPos->Data()[0], backRightPos->Data()[0],
-      std::chrono::steady_clock::time_point(_info.simTime));  
+  this->odom.Update(frontLeftPos->Data()[0], frontRightPos->Data()[0], backLeftPos->Data()[0], backRightPos->Data()[0],std::chrono::steady_clock::time_point(_info.simTime));  
 
   // Throttle publishing
   auto diff = _info.simTime - this->lastOdomPubTime;
