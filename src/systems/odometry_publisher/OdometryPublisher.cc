@@ -324,13 +324,6 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     return;
   }
 
-  if (!this->dataPtr->model.Valid(_ecm))
-  {
-    gzwarn << "OdometryPublisher model no longer valid. "
-           << "Disabling plugin." << std::endl;
-    this->dataPtr->model = Model(kNullEntity);
-    return;
-  }
 
   // Nothing left to do if paused.
   if (_info.paused)
