@@ -168,7 +168,7 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // change. To find the final pose of the model, we have to do the
       // following similarity transformation
       
-      math::Pose3d tOdomModel(0.554283, 0, -0.325, 0, 0, 0);
+      math::Pose3d tOdomModel(0.554283,0,-0.325,0,0,0);
       auto finalModelFramePose =
           tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
