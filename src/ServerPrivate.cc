@@ -599,24 +599,22 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       for (auto &err : localErrors)
         gzerr << err << "\n";
     }
-    else
+ 
+    // Add the models back into the worlds.
+    for (auto &runner : this->simRunners)
     {
-      // Add the models back into the worlds.
-      for (auto &runner : this->simRunners)
+      // Get a pointer to the SDF world
+      sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
+      if (!world)
       {
-        // Get a pointer to the SDF world
-        sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
-        if (!world)
-        {
-          gzerr << "Unable to find world with name["
-            << runner->WorldSdf().Name() << "]. "
-            << "Downloaded models may not appear.\n";
-          return;
-        }
-
-        // Create the entities for the simulation runner.
-        runner->CreateEntities(*world);
+        gzerr << "Unable to find world with name["
+          << runner->WorldSdf().Name() << "]. "
+          << "Downloaded models may not appear.\n";
+        return;
       }
+
+      // Create the entities for the simulation runner.
+      runner->CreateEntities(*world);
     }
     if (_config.WaitForAssets())
       assetCv.notify_one();
