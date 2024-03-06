@@ -28,8 +28,8 @@ To compile all the custom libraries in the right order `colcon` is recommended.
 The `colcon` tool is available on all platforms using `pip3`.
 
 ```bash
-mkdir ~/gazebo_maritime_ws
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/surface_vehicles/gazebo_maritime_ws -o ~/gazebo_maritime_ws -r
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/gz_maritime_ws.zip -O ~/gz_maritime_ws.zip
+unzip ~/gz_maritime_ws.zip
 ```
 
 ## Generic tools
