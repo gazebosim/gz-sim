@@ -599,7 +599,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       for (auto &err : localErrors)
         gzerr << err << "\n";
     }
- 
+
     // Add the models back into the worlds.
     for (auto &runner : this->simRunners)
     {
