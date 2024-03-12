@@ -357,7 +357,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   if(_sdf->HasElement("steer_cmd_offset"))
     steerPosCmdOffset = _sdf->Get<double>("steer_cmd_offset");
   this->dataPtr->steerPosPid.Init(
-    steerPosPGain, 
+    steerPosPGain,
     steerPosIGain,
     steerPosDGain,
     steerPosIMax,
