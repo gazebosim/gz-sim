@@ -365,6 +365,13 @@
         <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
         <steering_only>true</steering_only>
         <steer_p_gain>10.0</steer_p_gain>
+        <steer_i_gain>0.0</steer_i_gain>
+        <steer_d_gain>0.0</steer_d_gain>
+        <steer_i_max>0.0</steer_i_max>
+        <steer_i_min>0.0</steer_i_min>
+        <steer_cmd_max>1000.0</steer_cmd_max>
+        <steer_cmd_min>-1000.0</steer_cmd_min>
+        <steer_cmd_offset>0.0</steer_cmd_offset>
         <steering_limit>0.5</steering_limit>
         <wheel_base>1.0</wheel_base>
         <wheel_separation>1.25</wheel_separation>

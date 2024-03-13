@@ -332,39 +332,42 @@ void AckermannSteering::Configure(const Entity &_entity,
       this->dataPtr->steeringLimit).first;
 
   // Create PID for steering joint anglular position
-  double steerPosPGain = 1.0;
-  double steerPosIGain = 0.0;
-  double steerPosDGain = 0.0;
-  double steerPosIMax = 0.0;
-  double steerPosIMin = 0.0;
-  double steerPosCmdMax = 1000.0;
-  double steerPosCmdMin = -1000.0;
-  double steerPosCmdOffset = 0.0;
-  if(_sdf->HasElement("steer_p_gain"))
-    steerPosPGain = _sdf->Get<double>("steer_p_gain");
-  if(_sdf->HasElement("steer_i_gain"))
-    steerPosIGain = _sdf->Get<double>("steer_i_gain");
-  if(_sdf->HasElement("steer_d_gain"))
-    steerPosDGain = _sdf->Get<double>("steer_d_gain");
-  if(_sdf->HasElement("steer_i_max"))
-    steerPosIMax = _sdf->Get<double>("steer_i_max");
-  if(_sdf->HasElement("steer_i_min"))
-    steerPosIMin = _sdf->Get<double>("steer_i_min");
-  if(_sdf->HasElement("steer_cmd_max"))
-    steerPosCmdMax = _sdf->Get<double>("steer_cmd_max");
-  if(_sdf->HasElement("steer_cmd_min"))
-    steerPosCmdMin = _sdf->Get<double>("steer_cmd_min");
-  if(_sdf->HasElement("steer_cmd_offset"))
-    steerPosCmdOffset = _sdf->Get<double>("steer_cmd_offset");
-  this->dataPtr->steerPosPid.Init(
-    steerPosPGain,
-    steerPosIGain,
-    steerPosDGain,
-    steerPosIMax,
-    steerPosIMin,
-    steerPosCmdMax,
-    steerPosCmdMin,
-    steerPosCmdOffset);
+  if (this->dataPtr->steeringOnly)
+  {
+    double steerPosPGain = 1.0;
+    double steerPosIGain = 0.0;
+    double steerPosDGain = 0.0;
+    double steerPosIMax = 0.0;
+    double steerPosIMin = 0.0;
+    double steerPosCmdMax = 1000.0;
+    double steerPosCmdMin = -1000.0;
+    double steerPosCmdOffset = 0.0;
+    if(_sdf->HasElement("steer_p_gain"))
+      steerPosPGain = _sdf->Get<double>("steer_p_gain");
+    if(_sdf->HasElement("steer_i_gain"))
+      steerPosIGain = _sdf->Get<double>("steer_i_gain");
+    if(_sdf->HasElement("steer_d_gain"))
+      steerPosDGain = _sdf->Get<double>("steer_d_gain");
+    if(_sdf->HasElement("steer_i_max"))
+      steerPosIMax = _sdf->Get<double>("steer_i_max");
+    if(_sdf->HasElement("steer_i_min"))
+      steerPosIMin = _sdf->Get<double>("steer_i_min");
+    if(_sdf->HasElement("steer_cmd_max"))
+      steerPosCmdMax = _sdf->Get<double>("steer_cmd_max");
+    if(_sdf->HasElement("steer_cmd_min"))
+      steerPosCmdMin = _sdf->Get<double>("steer_cmd_min");
+    if(_sdf->HasElement("steer_cmd_offset"))
+      steerPosCmdOffset = _sdf->Get<double>("steer_cmd_offset");
+    this->dataPtr->steerPosPid.Init(
+      steerPosPGain,
+      steerPosIGain,
+      steerPosDGain,
+      steerPosIMax,
+      steerPosIMin,
+      steerPosCmdMax,
+      steerPosCmdMin,
+      steerPosCmdOffset);
+  }
 
   // Instantiate the speed limiters.
   this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
