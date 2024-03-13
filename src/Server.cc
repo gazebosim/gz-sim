@@ -145,7 +145,6 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
 
