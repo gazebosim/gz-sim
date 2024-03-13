@@ -280,7 +280,7 @@ TEST_F(JointIntegrationTest, SetForce)
   std::vector<double> forceCmd{10};
   joint.SetForce(ecm, forceCmd);
 
-  // velocity cmd should exist
+  // force cmd should exist
   EXPECT_NE(nullptr, ecm.Component<components::JointForceCmd>(eJoint));
   EXPECT_EQ(forceCmd,
     ecm.Component<components::JointForceCmd>(eJoint)->Data());

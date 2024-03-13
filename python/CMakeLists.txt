@@ -22,6 +22,9 @@ if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
 
   if(USE_DIST_PACKAGES_FOR_PYTHON)
     string(REPLACE "site-packages" "dist-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
+  else()
+    # custom cmake command is returning dist-packages
+    string(REPLACE "dist-packages" "site-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
   endif()
 else()
   # If not a system installation, respect local paths
