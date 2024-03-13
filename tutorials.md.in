@@ -53,6 +53,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage spherical_coordinates "Spherical coordinates": Working with latitude and longitude
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage auto_inertia_calculation "Automatic Inertia Calculation": Automatically compute inertia values(mass, mass matrix, center of mass) for SDFormat links.
+* \subpage jointcontrollers "Joint Controllers": Using available joint controller plugins to control joints.
 
 ## Advanced users
 
