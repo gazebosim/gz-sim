@@ -212,6 +212,13 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
+
+    if (!meshSdf->Simplification().empty())
+    {
+      auto header = out.mutable_header()->add_data();
+      header->set_key("simplification");
+      header->add_value(meshSdf->Simplification());
+    }
   }
   else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
   {
@@ -341,6 +348,14 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     meshShape.SetSubmesh(_in.mesh().submesh());
     meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
 
+    for (int i = 0; i < _in.header().data_size(); ++i)
+    {
+      auto data = _in.header().data(i);
+      if (data.key() == "simplification" && data.value_size() > 0)
+      {
+        meshShape.SetSimplification(data.value(0));
+      }
+    }
     out.SetMeshShape(meshShape);
   }
   else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
