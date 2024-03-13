@@ -67,7 +67,7 @@ void imageCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 // The test checks the Distortion Camera readings
 TEST_F(DistortionCameraTest,
-    GZ_UTILS_TEST_DISABLED_ON_MAC(DistortionCameraBox))
+    DISABLED_DistortionCameraBox)
 {
   // Start server
   ServerConfig serverConfig;

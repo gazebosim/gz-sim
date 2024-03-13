@@ -62,6 +62,12 @@ std::string getWorldInstallDir()
       getInstallPrefix(), GZ_SIM_WORLD_RELATIVE_INSTALL_DIR);
 }
 
+std::string getMediaInstallDir()
+{
+  return gz::common::joinPaths(
+      getInstallPrefix(), GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR);
+}
+
 }
 }
 }

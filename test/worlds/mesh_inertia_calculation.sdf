@@ -12,5 +12,11 @@
       <name>cylinder_dae</name>
       <pose>0 0 0 0 0 0</pose>
     </include>
+
+    <include>
+      <uri>cylinder_dae_bottom_origin</uri>
+      <name>cylinder_dae_bottom_origin</name>
+      <pose>4 0 0 0 0 0</pose>
+    </include>
   </world>
 </sdf>

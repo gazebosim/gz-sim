@@ -32,6 +32,14 @@ namespace systems
   class ApplyJointForcePrivate;
 
   /// \brief This system applies a force to the first axis of a specified joint.
+  ///
+  /// ## Components
+  ///
+  /// This system uses the following components:
+  ///
+  /// - gz::sim::components::JointForceCmd: A std::vector of force commands
+  ///   of type `double`. Only element `[0]` is used, for applying force to
+  ///   the specified joint.
   class ApplyJointForce
       : public System,
         public ISystemConfigure,

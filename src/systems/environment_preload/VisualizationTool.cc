@@ -61,7 +61,7 @@ void EnvironmentVisualizationTool::Step(
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm,
     const std::shared_ptr<components::EnvironmentalData> &_data,
-    double _xSamples, double _ySamples, double _zSamples)
+    unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples)
 {
   if (this->finishedTime)
   {
@@ -114,7 +114,7 @@ void EnvironmentVisualizationTool::Step(
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::Visualize(
     const std::shared_ptr<components::EnvironmentalData> &_data,
-    double _xSamples, double _ySamples, double _zSamples)
+    unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples)
 {
   for (auto key : _data->frame.Keys())
   {
@@ -126,13 +126,13 @@ void EnvironmentVisualizationTool::Visualize(
     auto dy = step.Y() / _ySamples;
     auto dz = step.Z() / _zSamples;
     std::size_t idx = 0;
-    for (std::size_t x_steps = 0; x_steps < ceil(_xSamples); x_steps++)
+    for (std::size_t x_steps = 0; x_steps < _xSamples; x_steps++)
     {
       auto x = lower_bound.X() + x_steps * dx;
-      for (std::size_t y_steps = 0; y_steps < ceil(_ySamples); y_steps++)
+      for (std::size_t y_steps = 0; y_steps < _ySamples; y_steps++)
       {
         auto y = lower_bound.Y() + y_steps * dy;
-        for (std::size_t z_steps = 0; z_steps < ceil(_zSamples); z_steps++)
+        for (std::size_t z_steps = 0; z_steps < _zSamples; z_steps++)
         {
           auto z = lower_bound.Z() + z_steps * dz;
           auto res = frame.LookUp(session, math::Vector3d(x, y, z));

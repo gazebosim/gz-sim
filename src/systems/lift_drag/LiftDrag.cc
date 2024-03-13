@@ -74,7 +74,7 @@ class gz::sim::systems::LiftDragPrivate
   /// \brief Coefficient of Moment / alpha slope.
   /// Moment = C_M * q * S
   /// where q (dynamic pressure) = 0.5 * rho * v^2
-  public: double cma = 0.01;
+  public: double cma = 0.0;
 
   /// \brief angle of attach when airfoil stalls
   public: double alphaStall = GZ_PI_2;
@@ -280,7 +280,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (!worldLinVel || !worldAngVel || !worldPose)
+  {
     return;
+  }
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
@@ -292,7 +294,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (vel.Length() <= 0.01)
+  {
     return;
+  }
 
   const auto velI = vel.Normalized();
 
@@ -327,8 +331,10 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   double sinSweepAngle = math::clamp(
       spanwiseI.Dot(velI), minRatio, maxRatio);
 
-  // get cos from trig identity
-  double cosSweepAngle = sqrt(1.0 - sinSweepAngle * sinSweepAngle);
+  // The sweep adjustment depends on the velocity component normal to
+  // the wing leading edge which appears quadratically in the
+  // dynamic pressure, so scale by cos^2 .
+  double cos2SweepAngle = 1.0 - sinSweepAngle * sinSweepAngle;
   double sweep = std::asin(sinSweepAngle);
 
   // truncate sweep to within +/-90 deg
@@ -390,7 +396,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   {
     cl = (this->cla * this->alphaStall +
           this->claStall * (alpha - this->alphaStall)) *
-         cosSweepAngle;
+         cos2SweepAngle;
     // make sure cl is still great than 0
     cl = std::max(0.0, cl);
   }
@@ -398,12 +404,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   {
     cl = (-this->cla * this->alphaStall +
           this->claStall * (alpha + this->alphaStall))
-         * cosSweepAngle;
+         * cos2SweepAngle;
     // make sure cl is still less than 0
     cl = std::min(0.0, cl);
   }
   else
-    cl = this->cla * alpha * cosSweepAngle;
+    cl = this->cla * alpha * cos2SweepAngle;
 
   // modify cl per control joint value
   if (controlJointPosition && !controlJointPosition->Data().empty())
@@ -421,16 +427,16 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   {
     cd = (this->cda * this->alphaStall +
           this->cdaStall * (alpha - this->alphaStall))
-         * cosSweepAngle;
+         * cos2SweepAngle;
   }
   else if (alpha < -this->alphaStall)
   {
     cd = (-this->cda * this->alphaStall +
           this->cdaStall * (alpha + this->alphaStall))
-         * cosSweepAngle;
+         * cos2SweepAngle;
   }
   else
-    cd = (this->cda * alpha) * cosSweepAngle;
+    cd = (this->cda * alpha) * cos2SweepAngle;
 
   // make sure drag is positive
   cd = std::fabs(cd);
@@ -444,7 +450,7 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   {
     cm = (this->cma * this->alphaStall +
           this->cmaStall * (alpha - this->alphaStall))
-         * cosSweepAngle;
+         * cos2SweepAngle;
     // make sure cm is still great than 0
     cm = std::max(0.0, cm);
   }
@@ -452,12 +458,12 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   {
     cm = (-this->cma * this->alphaStall +
           this->cmaStall * (alpha + this->alphaStall))
-         * cosSweepAngle;
+         * cos2SweepAngle;
     // make sure cm is still less than 0
     cm = std::min(0.0, cm);
   }
   else
-    cm = this->cma * alpha * cosSweepAngle;
+    cm = this->cma * alpha * cos2SweepAngle;
 
   // Take into account the effect of control surface deflection angle to cm
   if (controlJointPosition && !controlJointPosition->Data().empty())

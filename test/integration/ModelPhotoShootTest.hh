@@ -230,7 +230,6 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
     // First run of the server generating images through the plugin.
     TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         _sdfWorld));
-    fixture.Server()->SetUpdatePeriod(1ns);
 
     common::ConnectionPtr postRenderConn;
     fixture.OnConfigure([&](
@@ -243,7 +242,12 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
             std::bind(&ModelPhotoShootTest::OnPostRender, this));
     }).Finalize();
 
-    fixture.Server()->Run(true, 50, false);
+    fixture.Server()->SetUpdatePeriod(1ns);
+
+    for (int i = 0; i < 50; ++i)
+    {
+      fixture.Server()->RunOnce(true);
+    }
     this->LoadPoseValues();
 
     fixture.OnPreUpdate([&](const sim::UpdateInfo &,
@@ -285,7 +289,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
         }
         this->checkRandomJoints = false;
       }
-    }).Finalize();
+    });
 
     this->takeTestPics = true;
 
@@ -293,7 +297,7 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
         std::chrono::milliseconds(3000);
     while (takeTestPics && end_time > std::chrono::steady_clock::now())
     {
-      fixture.Server()->Run(true, 1, false);
+      fixture.Server()->RunOnce(true);
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     testImages("1.png", "1_test.png");

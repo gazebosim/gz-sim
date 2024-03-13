@@ -26,6 +26,8 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/SystemPluginPtr.hh>
+#include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 namespace gz
 {
@@ -227,12 +229,58 @@ namespace gz
 
       /// \brief Add a System to the server. The server must not be running when
       /// calling this.
+      /// \param[in] _system system to be added
+      /// \param[in] _entity Entity of system to be added.
+      /// If _entity is std::nullopt, it will be added to the world entity.
+      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// configuration options for the system being added.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const SystemPluginPtr &_system,
+                  std::optional<Entity> _entity,
+                  std::optional<std::shared_ptr<const sdf::Element>> _sdf,
+                  const unsigned int _worldIndex = 0);
+
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this.
+      /// \param[in] _plugin system plugin to be added with any additional XML
+      /// contents.
+      /// \param[in] _entity Entity of system to be added.
+      /// If _entity is std::nullopt, it will be added to the world entity.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const sdf::Plugin &_plugin,
+                  std::optional<Entity> _entity,
+                  const unsigned int _worldIndex = 0);
+
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this.
       /// \param[in] _system System to be added
       /// \param[in] _worldIndex Index of the world to add to.
       /// \return Whether the system was added successfully, or std::nullopt
       /// if _worldIndex is invalid.
       public: std::optional<bool> AddSystem(
                   const std::shared_ptr<System> &_system,
+                  const unsigned int _worldIndex = 0);
+
+      /// \brief Add a System to the server. The server must not be running when
+      /// calling this.
+      /// \param[in] _system System to be added
+      /// \param[in] _entity Entity of system to be added.
+      /// If _entity is std::nullopt, it will be added to the world entity.
+      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// configuration options for the system being added
+      /// \param[in] _worldIndex Index of the world to add to.
+      /// \return Whether the system was added successfully, or std::nullopt
+      /// if _worldIndex is invalid.
+      public: std::optional<bool> AddSystem(
+                  const std::shared_ptr<System> &_system,
+                  std::optional<Entity> _entity,
+                  std::optional<std::shared_ptr<const sdf::Element>> _sdf,
                   const unsigned int _worldIndex = 0);
 
       /// \brief Get an Entity based on a name.

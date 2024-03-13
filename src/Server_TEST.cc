@@ -46,6 +46,7 @@
 #include "plugins/MockSystem.hh"
 #include "../test/helpers/Relay.hh"
 #include "../test/helpers/EnvTestFixture.hh"
+#include "../test/helpers/Util.hh"
 
 using namespace gz;
 using namespace gz::sim;
@@ -278,14 +279,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigRealPlugin))
   msgs::StringMsg rep;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    gzdbg << "Requesting /test/service" << std::endl;
-    executed = node.Request("/test/service", 100, rep, result);
-    sleep++;
-  }
+  const std::string service = "/test/service";
+  ASSERT_TRUE(test::waitForService(node, service));
+  gzdbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, rep, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestModelSystem", rep.data());
@@ -337,14 +334,10 @@ TEST_P(ServerFixture,
   msgs::StringMsg rep;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    gzdbg << "Requesting /test/service/sensor" << std::endl;
-    executed = node.Request("/test/service/sensor", 100, rep, result);
-    sleep++;
-  }
+  const std::string service ="/test/service/sensor";
+  ASSERT_TRUE(test::waitForService(node, service));
+  gzdbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, rep, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
@@ -632,16 +625,47 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  // Check that it was loaded
-  const size_t systemCount = *server.SystemCount();
-  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-  EXPECT_EQ(systemCount + 1, *server.SystemCount());
-
   // Query the interface from the plugin
   auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
   EXPECT_NE(system, nullptr);
   auto mockSystem = dynamic_cast<sim::MockSystem*>(system);
   EXPECT_NE(mockSystem, nullptr);
+
+  Entity entity = server.EntityByName("default").value();
+  size_t configureCallCount = 0;
+  auto configureCallback = [&sdfPlugin, &entity, &configureCallCount](
+    const Entity &_entity,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &,
+    EventManager &)
+  {
+    configureCallCount++;
+    EXPECT_EQ(entity, _entity);
+    EXPECT_EQ(sdfPlugin.ToElement()->ToString(""), _sdf->ToString(""));
+  };
+
+  mockSystem->configureCallback = configureCallback;
+  const size_t systemCount = *server.SystemCount();
+  EXPECT_TRUE(
+    *server.AddSystem(
+      mockSystemPlugin.value(), entity, sdfPlugin.ToElement()
+  ));
+
+  // Add pointer
+  auto mockSystemPtr = std::make_shared<MockSystem>();
+  mockSystemPtr->configureCallback = configureCallback;
+  EXPECT_TRUE(*server.AddSystem(mockSystemPtr, entity, sdfPlugin.ToElement()));
+
+  // Add an sdf::Plugin
+  EXPECT_TRUE(*server.AddSystem(sdfPlugin, entity));
+
+  // Fail if plugin is invalid
+  sdf::Plugin invalidPlugin("foo_plugin", "foo::systems::FooPlugin");
+  EXPECT_FALSE(*server.AddSystem(invalidPlugin, entity));
+
+  // Check that it was loaded
+  EXPECT_EQ(systemCount + 3, *server.SystemCount());
+  EXPECT_EQ(2u, configureCallCount);
 
   // No steps should have been executed
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
@@ -780,16 +804,12 @@ TEST_P(ServerFixture, ServerControlStop)
   msgs::Boolean res;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
 
+  const std::string service = "/server_control";
+  ASSERT_TRUE(test::waitForService(node, service));
   // first, call with stop = false; the server should keep running
-  while (!executed && sleep < maxSleep)
-  {
-    gzdbg << "Requesting /server_control" << std::endl;
-    executed = node.Request("/server_control", req, 100, res, result);
-    sleep++;
-  }
+  gzdbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, req, 1000, res, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_FALSE(res.data());
@@ -802,8 +822,8 @@ TEST_P(ServerFixture, ServerControlStop)
   // now call with stop = true; the server should stop
   req.set_stop(true);
 
-  gzdbg << "Requesting /server_control" << std::endl;
-  executed = node.Request("/server_control", req, 100, res, result);
+  gzdbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, req, 1000, res, result);
 
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
@@ -1047,14 +1067,10 @@ TEST_P(ServerFixture, GetResourcePaths)
   msgs::StringMsg_V res;
   bool result{false};
   bool executed{false};
-  int sleep{0};
-  int maxSleep{30};
-  while (!executed && sleep < maxSleep)
-  {
-    gzdbg << "Requesting /gazebo/resource_paths/get" << std::endl;
-    executed = node.Request("/gazebo/resource_paths/get", 100, res, result);
-    sleep++;
-  }
+  const std::string service = "/gazebo/resource_paths/get";
+  ASSERT_TRUE(test::waitForService(node, service));
+  gzdbg << "Requesting " << service << std::endl;
+  executed = node.Request(service, 1000, res, result);
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ(2, res.data_size());
@@ -1101,7 +1117,9 @@ TEST_P(ServerFixture, AddResourcePaths)
                common::SystemPaths::Delimiter() +
                std::string("/tmp/even_more"));
   req.add_data("/tmp/some/path");
-  bool executed = node.Request("/gazebo/resource_paths/add", req);
+  const std::string service = "/gazebo/resource_paths/add";
+  ASSERT_TRUE(test::waitForService(node, service));
+  bool executed = node.Request(service, req);
   EXPECT_TRUE(executed);
 
   int sleep{0};
@@ -1155,17 +1173,12 @@ TEST_P(ServerFixture, ResolveResourcePaths)
           msgs::StringMsg req, res;
           bool result{false};
           bool executed{false};
-          int sleep{0};
-          int maxSleep{30};
 
           req.set_data(_uri);
-          while (!executed && sleep < maxSleep)
-          {
-            gzdbg << "Requesting /gazebo/resource_paths/resolve" << std::endl;
-            executed = node.Request("/gazebo/resource_paths/resolve", req, 100,
-                res, result);
-            sleep++;
-          }
+          const std::string service ="/gazebo/resource_paths/resolve";
+          ASSERT_TRUE(test::waitForService(node, service));
+          gzdbg << "Requesting " << service << std::endl;
+          executed = node.Request(service, req, 1000, res, result);
           EXPECT_TRUE(executed);
           EXPECT_EQ(_found, result);
           EXPECT_EQ(_expected, res.data()) << "Expected[" << _expected

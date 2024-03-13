@@ -17,7 +17,7 @@
       filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
-      <background_color>1, 1, 1</background_color>
+      <background_color>1.0 1.0 1.0</background_color>
     </plugin>
     <include>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Robonaut</uri>

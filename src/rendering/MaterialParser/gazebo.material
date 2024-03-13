@@ -1,0 +1,1721 @@
+vertex_program grid_vp_glsl glsl
+{
+  source grid_vp.glsl
+}
+
+fragment_program grid_fp_glsl glsl
+{
+  source grid_fp.glsl
+}
+
+material grid
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref grid_vp_glsl {}
+      fragment_program_ref grid_fp_glsl {}
+    }
+  }
+}
+
+vertex_program Gazebo/DepthMapVS glsl
+{
+  source depth_map.vert
+
+  default_params
+  {
+    param_named_auto texelOffsets texel_offsets
+  }
+}
+
+fragment_program Gazebo/DepthMapFS glsl
+{
+  source depth_map.frag
+
+  default_params
+  {
+    param_named_auto pNear near_clip_distance
+    param_named_auto pFar far_clip_distance
+  }
+}
+
+material Gazebo/DepthMap
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Gazebo/DepthMapVS { }
+      fragment_program_ref Gazebo/DepthMapFS { }
+    }
+  }
+}
+
+vertex_program Gazebo/XYZPointsVS glsl
+{
+  source depth_points_map.vert
+}
+
+fragment_program Gazebo/XYZPointsFS glsl
+{
+  source depth_points_map.frag
+
+  default_params
+  {
+    param_named_auto width viewport_width
+    param_named_auto height viewport_height
+  }
+}
+
+material Gazebo/XYZPoints
+{
+  technique
+  {
+    pass pcd_tex
+    {
+      separate_scene_blend one zero one zero
+
+      vertex_program_ref Gazebo/XYZPointsVS { }
+      fragment_program_ref Gazebo/XYZPointsFS { }
+    }
+  }
+}
+
+material Gazebo/Reflectance
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+      texture_unit
+      {
+      }
+    }
+  }
+}
+
+vertex_program Gazebo/XYZNormalsVS glsl
+{
+  source depth_normals_map.vert
+}
+
+fragment_program Gazebo/XYZNormalsFS glsl
+{
+  source depth_normals_map.frag
+}
+
+material Gazebo/XYZNormals
+{
+  technique
+  {
+    pass normals_tex
+    {
+      separate_scene_blend one zero one zero
+
+      vertex_program_ref Gazebo/XYZNormalsVS { }
+      fragment_program_ref Gazebo/XYZNormalsFS { }
+    }
+  }
+}
+
+vertex_program Gazebo/LaserScan1stVS glsl
+{
+  source laser_1st_pass.vert
+}
+
+fragment_program Gazebo/LaserScan1stFS glsl
+{
+  source laser_1st_pass.frag
+
+  default_params
+  {
+    param_named retro float 0.0
+    param_named_auto near near_clip_distance
+    param_named_auto far far_clip_distance
+  }
+}
+
+material Gazebo/LaserScan1st
+{
+  technique
+  {
+    pass laser_tex
+    {
+      separate_scene_blend one zero one zero
+
+      vertex_program_ref Gazebo/LaserScan1stVS { }
+      fragment_program_ref Gazebo/LaserScan1stFS { }
+    }
+  }
+}
+
+vertex_program Gazebo/LaserScan2ndVS glsl
+{
+  source laser_2nd_pass.vert
+}
+
+fragment_program Gazebo/LaserScan2ndFS glsl
+{
+  source laser_2nd_pass.frag
+
+  default_params
+  {
+    param_named tex1 int 0
+    param_named tex2 int 1
+    param_named tex3 int 2
+    param_named_auto texSize texture_size 0
+  }
+}
+
+material Gazebo/LaserScan2nd
+{
+  technique
+  {
+    pass laser_tex_2nd
+    {
+      separate_scene_blend one zero one zero
+
+      vertex_program_ref Gazebo/LaserScan2ndVS { }
+      fragment_program_ref Gazebo/LaserScan2ndFS { }
+    }
+  }
+}
+
+material Gazebo/Grey
+{
+  technique
+  {
+    pass main
+    {
+      ambient .3 .3 .3  1.0
+      diffuse .7 .7 .7  1.0
+      specular 0.01 0.01 0.01 1.000000 1.500000
+    }
+  }
+}
+material Gazebo/Gray : Gazebo/Grey
+{
+  technique
+  {
+    pass main
+    {
+      ambient .3 .3 .3  1.0
+      diffuse .7 .7 .7  1.0
+      specular 0.01 0.01 0.01 1.000000 1.500000
+    }
+  }
+}
+
+material Gazebo/DarkGrey
+{
+  technique
+  {
+    pass main
+    {
+      ambient .175 .175 .175  1.0
+      diffuse .175 .175 .175  1.0
+      specular .175 .175 .175 1.000000 1.500000
+    }
+  }
+}
+
+material Gazebo/DarkGray : Gazebo/DarkGrey
+{
+  technique
+  {
+    pass main
+    {
+      ambient .175 .175 .175  1.0
+      diffuse .175 .175 .175  1.0
+      specular .175 .175 .175 1.000000 1.500000
+    }
+  }
+}
+
+material Gazebo/White
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1 1 1 1
+      diffuse 1 1 1 1
+      specular .1 .1 .1 128
+    }
+  }
+}
+
+material Gazebo/FlatBlack
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1
+      diffuse 0.1 0.1 0.1
+      specular 0.01 0.01 0.01 1.0 1.0
+    }
+  }
+}
+
+material Gazebo/Black
+{
+  technique
+  {
+    pass
+    {
+      ambient 0 0 0 1
+      diffuse 0 0 0 1
+      specular 0.1 0.1 0.1 1 5.0
+    }
+  }
+}
+
+
+material Gazebo/Red
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1 0 0
+      diffuse 1 0 0
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/RedBright
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0.87 0.26 0.07
+      diffuse 0.87 0.26 0.07
+      specular 0.87 0.26 0.07 1 1
+    }
+  }
+}
+
+material Gazebo/Green
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0 1 0
+      diffuse 0 1 0
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/Blue
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0 0 1
+      diffuse 0 0 1
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/SkyBlue
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0.13 0.44 0.70
+      diffuse 0 0 1
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/Yellow
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1 1 0 1
+      diffuse 1 1 0 1
+      specular 0 0 0 0 0
+    }
+  }
+}
+
+material Gazebo/ZincYellow
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0.9725 0.9529 0.2078 1
+      diffuse 0.9725 0.9529 0.2078 1
+      specular 0.9725 0.9529 0.2078 1 1
+    }
+  }
+}
+
+material Gazebo/DarkYellow
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0.7 0.7 0 1
+      diffuse 0.7 0.7 0 1
+      specular 0 0 0 0 0
+    }
+  }
+}
+
+
+material Gazebo/Purple
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1 0 1
+      diffuse 1 0 1
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/Turquoise
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0 1 1
+      diffuse 0 1 1
+      specular 0.1 0.1 0.1 1 1
+    }
+  }
+}
+
+material Gazebo/Orange
+{
+  technique
+  {
+    pass ambient
+    {
+      lighting on
+
+      ambient 1 0.5088 0.0468 1
+      diffuse 1 0.5088 0.0468 1
+      specular 0.5 0.5 0.5 128
+    }
+  }
+}
+
+material Gazebo/Indigo
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 0.33 0.0 0.5
+      diffuse 0.33 0.0 0.5
+      specular 0.1 0.1 0.1 1
+    }
+  }
+}
+
+material Gazebo/WhiteGlow : Gazebo/White
+{
+  technique
+  {
+    pass light
+    {
+      emissive 1 1 1
+    }
+  }
+}
+
+material Gazebo/RedGlow
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1 0 0
+      diffuse 1 0 0
+      emissive 1 0 0
+      specular 0 0 0 128
+    }
+
+    pass light
+    {
+      ambient 1 0 0
+      diffuse 1 0 0
+      emissive 1 0 0
+      specular 1 0 0 128
+    }
+  }
+}
+
+
+
+material Gazebo/GreenGlow : Gazebo/Green
+{
+  technique
+  {
+    pass ambient
+    {
+      emissive 0 1 0
+    }
+
+    pass light
+    {
+      emissive 0 1 0
+    }
+  }
+}
+
+material Gazebo/BlueGlow : Gazebo/Blue
+{
+  technique
+  {
+    pass light
+    {
+      emissive 0 0 1
+    }
+  }
+}
+
+material Gazebo/YellowGlow : Gazebo/Yellow
+{
+  technique
+  {
+    pass light
+    {
+      emissive 1 1 0
+    }
+  }
+}
+
+material Gazebo/PurpleGlow : Gazebo/Purple
+{
+  technique
+  {
+    pass light
+    {
+      emissive 1 0 1
+    }
+  }
+}
+
+material Gazebo/TurquoiseGlow : Gazebo/Turquoise
+{
+  technique
+  {
+    pass light
+    {
+      emissive 0 1 1
+    }
+  }
+}
+
+material Gazebo/TurquoiseGlowOutline
+{
+  technique
+  {
+    pass ambient
+    {
+      scene_blend alpha_blend
+      //lighting off
+
+      diffuse 0 1 1 1
+      specular .1 .1 .1 128
+    }
+
+    pass ambient2
+    {
+      scene_blend alpha_blend
+
+      diffuse 0 1 1
+      specular .1 .1 .1 128
+      emissive 0 1 1
+
+      polygon_mode wireframe
+    }
+  }
+}
+
+material Gazebo/RedTransparentOverlay
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+      depth_check off
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 1 0 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/BlueTransparentOverlay
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+      depth_check off
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 0 0 1
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/GreenTransparentOverlay
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+      depth_check off
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/OrangeTransparentOverlay
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+      depth_check off
+      ambient 1 0.5088 0.0468
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 1 0.5088 0.0468
+        alpha_op_ex source1 src_manual src_current 0.8
+      }
+    }
+  }
+}
+
+material Gazebo/DarkOrangeTransparentOverlay
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+      depth_check off
+      ambient 0.6 0.305 0.028
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 0.6 0.305 0.028
+        alpha_op_ex source1 src_manual src_current 0.8
+      }
+    }
+  }
+}
+
+material Gazebo/RedTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      lighting off
+
+      texture_unit
+      {
+        colour_op_ex source1 src_manual src_current 1 0 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/GreenTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 0.0 1.0 0.0 1
+      diffuse 0.0 1.0 0.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/BlueTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 0.0 0.0 1.0 1
+      diffuse 0.0 0.0 1.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/DarkMagentaTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 0.6 0.0 0.6 1
+      diffuse 0.6 0.0 0.6 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0.6 0 0.6
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/GreyTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 0.5 0.5 0.5 1
+      diffuse 0.5 0.5 0.5 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/BlackTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 0.0 0.0 0.0 1
+      diffuse 0.0 0.0 0.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/YellowTransparent
+{
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 1.0 1.0 0.0 1
+      diffuse 1.0 1.0 0.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.5
+      }
+    }
+  }
+}
+
+material Gazebo/LightOn
+{
+  technique
+  {
+    pass ambient
+    {
+      diffuse 0 1 0
+      ambient 0 1 0
+      emissive 0 1 0
+    }
+  }
+}
+
+material Gazebo/LightOff
+{
+  technique
+  {
+    pass ambient
+    {
+      diffuse 1 0 0
+      ambient 1 0 0
+      emissive 1 0 0
+    }
+  }
+}
+
+material Gazebo/LightBlueLaser
+{
+  receive_shadows off
+
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      cull_hardware none
+
+      ambient 0.5 0.5 1.0 1
+      diffuse 0.5 0.5 1.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.4
+      }
+
+    }
+  }
+}
+
+material Gazebo/BlueLaser
+{
+  receive_shadows off
+
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+      cull_hardware none
+
+      ambient 0.0 0.0 1.0 1
+      diffuse 0.0 0.0 1.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.4
+      }
+
+    }
+  }
+}
+
+material Gazebo/OrangeTransparent
+{
+  receive_shadows off
+
+  technique
+  {
+    pass
+    {
+      scene_blend alpha_blend
+      depth_write off
+
+      ambient 1.0 0.44 0.0 1
+      diffuse 1.0 0.44 0.0 1
+
+      texture_unit
+      {
+        colour_op_ex source1 src_current src_current 0 1 0
+        alpha_op_ex source1 src_manual src_current 0.4
+      }
+
+    }
+  }
+}
+
+
+material Gazebo/JointAnchor
+{
+  receive_shadows off
+
+  technique
+  {
+    pass
+    {
+      ambient 1.000000 1.000000 1.000000 1.000000
+      diffuse 1.000000 1.000000 1.000000 1.000000
+      specular 1.000000 1.000000 1.000000 1.000000
+      emissive 1.000000 1.000000 1.000000 1.000000
+      lighting off
+    }
+  }
+}
+
+material Gazebo/CoM
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.000000
+
+      texture_unit
+      {
+        texture com.png
+      }
+    }
+  }
+}
+
+material Gazebo/WoodFloor
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.000000
+
+      texture_unit
+      {
+        texture hardwood_floor.jpg
+      }
+    }
+  }
+}
+
+material Gazebo/CeilingTiled
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.000000
+
+      texture_unit
+      {
+        texture ceiling_tiled.jpg
+      }
+    }
+  }
+}
+
+material Gazebo/PaintedWall
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.000000
+
+      texture_unit
+      {
+        texture paintedWall.jpg
+      }
+    }
+  }
+}
+
+material Gazebo/PioneerBody
+{
+  receive_shadows on
+  technique
+  {
+    pass Ambient
+    {
+      ambient 0.5 0 0
+
+      texture_unit
+      {
+        texture pioneerBody.jpg
+        filtering trilinear
+      }
+    }
+    pass DirectionalLight
+    {
+      ambient 0 0 0
+      diffuse 1 0 0 1
+      specular 0.5 0 0 1 10
+
+      texture_unit
+      {
+        texture pioneerBody.jpg
+        filtering trilinear
+      }
+    }
+    pass PointLight
+    {
+      ambient 0 0 0
+      diffuse 1 0 0 1
+      specular 0.5 0 0 1 10
+
+      texture_unit
+      {
+        texture pioneerBody.jpg
+        filtering trilinear
+      }
+    }
+
+  }
+}
+
+material Gazebo/Pioneer2Body
+{
+  receive_shadows on
+  technique
+  {
+    pass
+    {
+      //ambient 0.500000 0.500000 0.500000 1.000000
+      ambient 0.481193 0.000123 0.000123 1.000000
+      diffuse 0.681193 0.000923 0.000923 1.000000
+      specular 0.500000 0.500000 0.500000 1.000000 12.500000
+      emissive 0.000000 0.000000 0.000000 1.000000
+    }
+  }
+}
+
+material Gazebo/Gold
+{
+  receive_shadows on
+  technique
+  {
+    pass
+    {
+      ambient 0.400000 0.248690 0.020759 1.000000
+      diffuse 0.800000 0.648690 0.120759 1.000000
+      specular 0.400000 0.400000 0.400000 1.000000 12.500000
+    }
+  }
+}
+
+material Gazebo/GreyGradientSky
+{
+  technique
+  {
+    pass
+    {
+      depth_write off
+      lighting off
+
+      texture_unit
+      {
+        texture grey_gradient.jpg
+      }
+    }
+  }
+}
+
+material Gazebo/CloudySky
+{
+  technique
+  {
+    pass
+    {
+      depth_write off
+      lighting off
+
+      texture_unit
+      {
+        texture clouds.jpg
+        scroll_anim 0.15 0
+      }
+    }
+  }
+}
+
+material Gazebo/WoodPallet
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.0 0.0 0.0 1.0 0.5
+
+      texture_unit
+      {
+        texture WoodPallet.png
+        filtering trilinear
+      }
+    }
+  }
+
+  /*
+  technique
+  {
+    scheme GBuffer
+    pass DeferredShading/GBuffer/Pass_16
+    {
+      lighting off
+
+      vertex_program_ref Gazebo/NateVS
+      {
+      }
+
+      fragment_program_ref Gazebo/NateFS
+      {
+      }
+    }
+  }*/
+}
+
+material Gazebo/Wood
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.2 0.2 0.2 1.0 12.5
+
+      texture_unit
+      {
+        texture wood.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Bricks
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.2 0.2 0.2 1.0 12.5
+
+      texture_unit
+      {
+        texture bricks.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Road
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture road1.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Residential
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture residential.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Tertiary
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture residential.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Pedestrian
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture sidewalk.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Footway
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture sidewalk.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Motorway
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture motorway.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Lanes_6
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture motorway.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Trunk
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture trunk.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Lanes_4
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture trunk.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Primary
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture primary.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Lanes_2
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture primary.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Secondary
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture secondary.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Lane_1
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture secondary.jpg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Steps
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture steps.jpeg
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material drc/san_fauxcity_sign
+{
+  receive_shadows off
+  technique
+  {
+    pass
+    {
+      ambient 0.8 0.8 0.8 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.1 0.1 0.1 1.0 2.0
+
+      texture_unit
+      {
+        texture san_fauxcity.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+vertex_program Gazebo/GaussianCameraNoiseVS glsl
+{
+  source camera_noise_gaussian_vs.glsl
+}
+
+fragment_program Gazebo/GaussianCameraNoiseFS glsl
+{
+  source camera_noise_gaussian_fs.glsl
+  default_params
+  {
+    param_named RT int 0
+    param_named mean float 0.0
+    param_named stddev float 1.0
+    param_named offsets float3 0.0 0.0 0.0
+  }
+}
+
+material Gazebo/GaussianCameraNoise
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Gazebo/GaussianCameraNoiseVS { }
+      fragment_program_ref Gazebo/GaussianCameraNoiseFS { }
+
+      texture_unit RT
+      {
+        tex_coord_set 0
+        tex_address_mode clamp
+        filtering linear linear linear
+      }
+    }
+  }
+}
+
+vertex_program Gazebo/CameraDistortionMapVS glsl
+{
+  source camera_distortion_map_vs.glsl
+}
+
+fragment_program Gazebo/CameraDistortionMapFS glsl
+{
+  source camera_distortion_map_fs.glsl
+  default_params
+  {
+    param_named RT int 0
+    param_named distortionMap int 1
+    param_named scale float3 1.0 1.0 1.0
+  }
+}
+
+material Gazebo/CameraDistortionMap
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Gazebo/CameraDistortionMapVS { }
+      fragment_program_ref Gazebo/CameraDistortionMapFS { }
+
+      texture_unit RT
+      {
+        tex_coord_set 0
+        tex_address_mode border
+        filtering linear linear linear
+      }
+    }
+  }
+}
+
+vertex_program Gazebo/WideLensMapVS glsl
+{
+  source wide_lens_map_vs.glsl
+  default_params
+  {
+    param_named ratio float 1
+  }
+}
+
+fragment_program Gazebo/WideLensMapFS glsl
+{
+  source wide_lens_map_fp.glsl
+  default_params
+  {
+    param_named envMap int 0
+    param_named c1 float 1
+    param_named c2 float 1
+    param_named c3 float 0
+    param_named f float 1
+    param_named fun float3 0 0 1
+    param_named cutOffAngle float 3.14
+  }
+}
+
+material Gazebo/WideLensMap
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Gazebo/WideLensMapVS { }
+      fragment_program_ref Gazebo/WideLensMapFS { }
+    }
+  }
+}
+
+
+vertex_program Gazebo/CameraLensFlareVS glsl
+{
+  source camera_lens_flare_vs.glsl
+}
+
+fragment_program Gazebo/CameraLensFlareFS glsl
+{
+  source camera_lens_flare_fs.glsl
+
+  default_params
+  {
+    param_named RT int 0
+    param_named viewport float3 0.0 0.0 0.0
+    param_named lightPos float3 0 0 0
+    param_named scale float 1.0
+    param_named color float3 1.4 1.2 1.0
+  }
+}
+
+material Gazebo/CameraLensFlare
+{
+  technique
+  {
+    pass
+    {
+      vertex_program_ref Gazebo/CameraLensFlareVS { }
+      fragment_program_ref Gazebo/CameraLensFlareFS { }
+
+      texture_unit RT
+      {
+        tex_coord_set 0
+        tex_address_mode border
+        filtering linear linear linear
+      }
+    }
+  }
+}
+
+material Gazebo/PointCloud
+{
+   technique
+   {
+      pass
+      {
+         diffuse vertexcolour
+         specular vertexcolour
+         ambient vertexcolour
+         point_size 3
+         point_sprites off
+         point_size_attenuation off
+      }
+   }
+}
+
+material Gazebo/PointHandle
+{
+   technique
+   {
+      pass
+      {
+        lighting off
+        scene_blend alpha_blend
+        depth_write off
+      }
+   }
+}
+
+material Gazebo/BuildingFrame
+{
+  technique
+  {
+    pass
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1.0
+      specular 0.2 0.2 0.2 1.0 12.5
+
+      texture_unit
+      {
+        texture building_frame.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Gazebo/Runway
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.000000
+
+      texture_unit
+      {
+        texture runway.png
+      }
+    }
+  }
+}
+
+material Gazebo/Grass
+{
+  receive_shadows on
+
+  technique
+  {
+    pass
+    {
+      ambient 0.5 0.5 0.5 1.000000
+
+      texture_unit
+      {
+        scale .02 .02
+        texture grass.jpg
+        filtering anisotropic
+        max_anisotropy 16
+      }
+    }
+  }
+}
+
+material Gazebo/Editor
+{
+  technique
+  {
+    pass ambient
+    {
+      ambient 1.0 1.0 1.0 1.0
+      diffuse 1.0 1.0 1.0 1
+      specular .1 .1 .1 128
+    }
+  }
+}
+
+material Gazebo/EditorPlane
+{
+  technique
+  {
+    pass
+    {
+      scene_blend colour_blend
+
+      ambient .3 .3 .3  1.0
+      diffuse .7 .7 .7  1.0
+      specular 0.01 0.01 0.01 1.000000 1.500000
+    }
+  }
+}

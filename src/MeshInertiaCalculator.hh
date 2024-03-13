@@ -90,19 +90,6 @@ namespace gz
           const gz::math::Vector3d &_meshScale,
           const gz::common::Mesh* _mesh);
 
-        /// \brief Function to calculate the centroid of the mesh. Since
-        /// uniform density is considered for the mesh, the centroid value
-        /// is used as the centre of mass.
-        /// The mesh centroid is calculated by the average of the
-        /// centroid of mesh triangle weighted by the area of the
-        /// respective triangle
-        /// \param[out] _centreOfMass A gz::math::Pose3d object to hold
-        /// calculated centroid (centre of mass) of the mesh
-        /// \param[in] _triangles A vector with all the triangles of the
-        /// mesh represented as instances of the Triangle struct
-        public: void CalculateMeshCentroid(gz::math::Pose3d &_centreOfMass,
-          std::vector<Triangle> &_triangles);
-
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
         /// \param[in] _triangles A vector of all the Triangles of the mesh

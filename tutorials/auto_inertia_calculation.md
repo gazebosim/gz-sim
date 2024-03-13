@@ -153,11 +153,6 @@ the center of mass in this case).
 
 Here are some key points to consider when using automatic inertia calculation with 3D Meshes:
  * Water-tight triangle meshes are required for the Mesh Inertia Calculator.
- * Currently, the mesh inertia is calculated about the mesh origin. Since the link
- inertia value needs to be about the Center of Mass, the mesh origin needs to be set
- at the Center of Mass (Centroid). Functions to transform the inertia matrix to the mesh
- centroid in case the mesh origin is set elsewhere are under development. Therefore, this
- should hopefully be fixed in the future.
  * Since the vertex data is used for inertia calculations, high vertex count would be
  needed for near ideal values. However, it is recommended to use basic shapes with the
  geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries get

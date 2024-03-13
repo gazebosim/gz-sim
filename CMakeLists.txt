@@ -244,7 +244,7 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (pybind11_FOUND)
+if (pybind11_FOUND AND NOT SKIP_PYBIND11)
 	add_subdirectory(python)
 endif()
 #============================================================================
