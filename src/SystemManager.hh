@@ -33,6 +33,7 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
+#include "SystemCointainer.hpp"
 #include "SystemInternal.hh"
 
 namespace gz
@@ -203,7 +204,7 @@ namespace gz
                                             msgs::EntityPlugin_V &_res);
 
       /// \brief All the systems.
-      private: std::vector<SystemInternal> systems;
+      private: SystemContainer<SystemInternal> systems;
 
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemInternal> pendingSystems;

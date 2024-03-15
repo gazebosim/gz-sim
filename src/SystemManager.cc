@@ -21,6 +21,7 @@
 
 #include <gz/common/StringUtils.hh>
 
+#include "SystemCointainer.hpp"
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
@@ -87,7 +88,7 @@ size_t SystemManager::TotalCount() const
 //////////////////////////////////////////////////
 size_t SystemManager::ActiveCount() const
 {
-  return this->systems.size();
+  return this->systems.Size();
 }
 
 //////////////////////////////////////////////////
@@ -106,7 +107,7 @@ size_t SystemManager::ActivatePendingSystems()
 
   for (const auto& system : this->pendingSystems)
   {
-    this->systems.push_back(system);
+    this->systems.Push(system);
 
     if (system.configure)
       this->systemsConfigure.emplace_back(
@@ -202,7 +203,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
     }
   }
 
-  this->systems.clear();
+  this->systems.Clear();
 
   // Load plugins which do not implement reset after clearing this->systems
   // to ensure the previous instance is destroyed before the new one is created
@@ -429,6 +430,7 @@ struct identity
 {
     using type = T;
 };
+
 //////////////////////////////////////////////////
 /// TODO(arjo) - When we move to C++20 we can just use erase_if
 /// Removes all items that match the given predicate.
@@ -504,11 +506,10 @@ void SystemManager::ProcessRemovedEntities(
       return _ecm.IsMarkedForRemoval(system.parent);
     });
 
-  /// NOTE: We can't do this because the pointers get messed up.
-  /*RemoveFromVectorIf(this->systems,
-    [&](const SystemInternal& system) {
+  this->systems.RemoveIf([&](const SystemInternal& system) {
       return _ecm.IsMarkedForRemoval(system.parentEntity);
-    });*/
+    });
+  
   std::lock_guard lock(this->pendingSystemsMutex);
   RemoveFromVectorIf(this->pendingSystems,
     [&](const SystemInternal& system) {
