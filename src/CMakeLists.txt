@@ -102,6 +102,7 @@ set (gtest_sources
   ServerConfig_TEST.cc
   Server_TEST.cc
   SimulationRunner_TEST.cc
+  SystemContainer_TEST.cc
   SystemLoader_TEST.cc
   SystemManager_TEST.cc
   System_TEST.cc
