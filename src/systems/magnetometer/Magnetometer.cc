@@ -134,6 +134,10 @@ class gz::sim::systems::MagnetometerPrivate
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
+  /// True if the magnetic field should be reported in teslas
+  /// See: https://github.com/gazebosim/gz-sim/issues/2312
+  public: bool useTeslaForMagneticField = false;
+
   /// \brief Create sensor
   /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
@@ -231,6 +235,12 @@ class gz::sim::systems::MagnetometerPrivate
   {
     return get_table_data(lat, lon, strength_table);
   }
+
+  // convert magnetic field strength from gauss to tesla
+  float gauss_to_tesla(const float gauss)
+  {
+    return gauss / 10'000;
+  }
 };
 
 //////////////////////////////////////////////////
@@ -241,6 +251,20 @@ Magnetometer::Magnetometer() : System(), dataPtr(
 
 //////////////////////////////////////////////////
 Magnetometer::~Magnetometer() = default;
+
+//////////////////////////////////////////////////
+void Magnetometer::Configure(const Entity &/*_entity*/,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &/*_ecm*/,
+                           EventManager &/*_eventMgr*/)
+{
+    // If the SDF specifies it, convert the gauss measurements to tesla
+    if (_sdf->HasElement("use_tesla_for_magnetic_field"))
+    {
+        this->dataPtr->useTeslaForMagneticField =
+          _sdf->Get<bool>("use_tesla_for_magnetic_field");
+    }
+}
 
 //////////////////////////////////////////////////
 void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
@@ -430,7 +454,7 @@ void MagnetometerPrivate::Update(
           auto latLonEle = sphericalCoordinates(_entity, _ecm);
           if (!latLonEle)
           {
-            gzwarn << "Failed to update NavSat sensor enity [" << _entity
+            gzwarn << "Failed to update NavSat sensor entity [" << _entity
                     << "]. Spherical coordinates not set." << std::endl;
             return true;
           }
@@ -450,6 +474,11 @@ void MagnetometerPrivate::Update(
           float strength_ga =
             0.01f *
             get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
+
+          if (useTeslaForMagneticField)
+          {
+            strength_ga = gauss_to_tesla(strength_ga);
+          }
 
           // Magnetic filed components are calculated by http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
           float H = strength_ga * cosf(inclination_rad);
@@ -494,6 +523,7 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
 }
 
 GZ_ADD_PLUGIN(Magnetometer, System,
+  Magnetometer::ISystemConfigure,
   Magnetometer::ISystemPreUpdate,
   Magnetometer::ISystemPostUpdate
 )

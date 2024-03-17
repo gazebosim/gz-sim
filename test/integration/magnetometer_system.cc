@@ -141,3 +141,152 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
       field.Z(), TOL);
   mutex.unlock();
 }
+
+
+/////////////////////////////////////////////////
+// Test to check to ensure that the fix for using tesla units works correctly
+// Note(gilbert): It seems the above test (RotatedMagnetometer)
+// does not actually run because the spherical coordinates are not set.
+// In order to not break the above tests, we create a new world and run
+// two simulations, one with gauss and the other with tesla units.
+// See https://github.com/gazebosim/gz-sim/issues/2312
+
+class MagnetometerMessageBuffer {
+public:
+  void add(const msgs::Magnetometer &_msg)
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    magnetometerMsgs.push_back(_msg);
+  }
+
+  msgs::Magnetometer at(const size_t index) const
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    return magnetometerMsgs.at(index);
+  }
+
+  msgs::Magnetometer latest() const
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    return magnetometerMsgs.back();
+  }
+
+  size_t size() const
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    return magnetometerMsgs.size();
+  }
+
+private:
+  mutable std::mutex mutex;
+  std::vector<msgs::Magnetometer> magnetometerMsgs;
+};
+
+MagnetometerMessageBuffer gaussMessages;
+MagnetometerMessageBuffer teslaMessages;
+
+/////////////////////////////////////////////////
+void gaussMagnetometerCb(const msgs::Magnetometer &_msg)
+{
+  gaussMessages.add(_msg);
+}
+
+/////////////////////////////////////////////////
+void teslaMagnetometerCb(const msgs::Magnetometer &_msg)
+{
+  teslaMessages.add(_msg);
+}
+
+TEST_F(MagnetometerTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(GaussToTeslaCorrection))
+{
+  // First, run the world without the fix enabled and record the magnetic field.
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/magnetometer_with_tesla.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server gaussServer(serverConfig);
+  EXPECT_FALSE(gaussServer.Running());
+  EXPECT_FALSE(*gaussServer.Running(0));
+
+  const auto topic = "world/magnetometer_sensor/model/magnetometer_model/"
+      "link/link/sensor/magnetometer_sensor/magnetometer";
+
+  // subscribe to magnetometer topic
+  std::unique_ptr<transport::Node> gaussNode =
+    std::make_unique<transport::Node>();
+  gaussNode->Subscribe(topic, &gaussMagnetometerCb);
+
+  // step world and verify magnetometer's detected field
+  // Run the gauss server
+  const size_t iters = 100u;
+  gaussServer.Run(true, iters, false);
+
+  // Now, we need to create a new server where the magnetometer
+  // is correctly publishing using tesla.
+  // Flip the use_tesla_for_magnetic_field field to true
+  sdf::SDFPtr teslaWorldSdf(new sdf::SDF());
+  sdf::init(teslaWorldSdf);
+  ASSERT_TRUE(sdf::readFile(sdfFile, teslaWorldSdf));
+  sdf::ElementPtr root = teslaWorldSdf->Root();
+  EXPECT_TRUE(root->HasElement("world"));
+
+  sdf::ElementPtr world = root->GetElement("world");
+  const std::string pluginName = "gz::sim::systems::Magnetometer";
+  const std::string useTeslaElementName = "use_tesla_for_magnetic_field";
+  bool elementSet = false;
+  for (sdf::ElementPtr plugin = world->GetElement("plugin");
+       plugin;
+       plugin = plugin->GetNextElement("plugin")) {
+        if (plugin->Get<std::string>("name") == pluginName) {
+            // Found the magnetometer plugin, now force the field to true
+            if (plugin->HasElement(useTeslaElementName)) {
+                sdf::ElementPtr teslaElement =
+                  plugin->GetElement(useTeslaElementName);
+                teslaElement->Set(true);
+                elementSet = true;
+                break;
+            }
+        }
+    }
+  EXPECT_TRUE(elementSet);
+
+  // Now, re-run the world but with the tesla units being published
+  EXPECT_TRUE(serverConfig.SetSdfString(teslaWorldSdf->ToString()));
+
+  Server teslaServer(serverConfig);
+  EXPECT_FALSE(teslaServer.Running());
+  EXPECT_FALSE(*teslaServer.Running(0));
+
+  // subscribe to tesla magnetometer topic and unsubscribe from the gauss topic
+  gaussNode = nullptr;
+  std::unique_ptr<transport::Node> teslaNode =
+    std::make_unique<transport::Node>();
+  teslaNode->Subscribe(topic, &teslaMagnetometerCb);
+
+  // step world and verify magnetometer's detected field
+  // Run the tesla server
+  teslaServer.Run(true, iters, false);
+
+  // Now compare the two sets of magnetic data
+  ASSERT_EQ(gaussMessages.size(), teslaMessages.size());
+
+  for (size_t index = 0; index < teslaMessages.size(); ++index)
+  {
+    const auto& gaussMessage = gaussMessages.at(index);
+    const auto& teslaMessage = teslaMessages.at(index);
+
+    // 1 gauss is 10^-4 teslas
+    auto gauss_to_tesla = [&](const float gauss) -> float {
+        return gauss / 10'000;
+    };
+
+    EXPECT_FLOAT_EQ(gauss_to_tesla(gaussMessage.field_tesla().x()),
+                    teslaMessage.field_tesla().x());
+    EXPECT_FLOAT_EQ(gauss_to_tesla(gaussMessage.field_tesla().y()),
+                    teslaMessage.field_tesla().y());
+    EXPECT_FLOAT_EQ(gauss_to_tesla(gaussMessage.field_tesla().z()),
+                    teslaMessage.field_tesla().z());
+  }
+}
