@@ -165,12 +165,6 @@ public:
     return magnetometerMsgs.at(index);
   }
 
-  msgs::Magnetometer latest() const
-  {
-    std::lock_guard<std::mutex> lock(mutex);
-    return magnetometerMsgs.back();
-  }
-
   size_t size() const
   {
     std::lock_guard<std::mutex> lock(mutex);
