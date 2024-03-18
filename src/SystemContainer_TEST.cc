@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2024 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 #include <gtest/gtest.h>
 #include <unordered_set>
 #include "SystemCointainer.hpp"
@@ -14,7 +30,7 @@ TEST(SystemContainer, InsertionAndIteration)
   cont.Push(3);
 
   int idx = 0;
-  for (auto &i: cont)
+  for (auto &i : cont)
   {
     idx++;
     ASSERT_EQ(i, idx);
@@ -26,7 +42,7 @@ TEST(SystemContainer, InsertionAndIteration)
 
   auto newCount = 0;
   std::unordered_set<int> vals;
-  for (auto &i: cont)
+  for (auto &i : cont)
   {
     newCount++;
     ASSERT_NE(i, 2);
@@ -37,7 +53,7 @@ TEST(SystemContainer, InsertionAndIteration)
 
   std::unordered_set<int> finalVals;
   cont.Push(2);
-  for (auto &i: cont)
+  for (auto &i : cont)
   {
     finalVals.insert(i);
   }
@@ -80,7 +96,7 @@ TEST(SystemContainer, CheckEmptyProperties)
   SystemContainer<int> cont;
   ASSERT_EQ(cont.Size(), 0);
   int idx = 0;
-  for (auto &i: cont)
+  for (auto &i : cont)
   {
     idx++;
     ASSERT_EQ(i, idx);
