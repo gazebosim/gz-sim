@@ -82,7 +82,7 @@ TEST(SystemContainer, RemoveAtEnd)
   ASSERT_EQ(cont.Size(), 2);
 
   int idx = 0;
-  for (auto &i: cont)
+  for (auto &i : cont)
   {
     idx++;
     ASSERT_EQ(i, idx);
