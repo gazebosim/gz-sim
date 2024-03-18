@@ -14,6 +14,10 @@
  * limitations under the License.
  *
  */
+#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -66,8 +70,8 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 {
   // Start server
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/magnetometer.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "/test/worlds/magnetometer.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server server(serverConfig);
@@ -196,8 +200,8 @@ TEST_F(MagnetometerTest,
 {
   // First, run the world without the fix enabled and record the magnetic field.
   ServerConfig serverConfig;
-  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/magnetometer_with_tesla.sdf";
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "/test/worlds/magnetometer_with_tesla.sdf");
   serverConfig.SetSdfFile(sdfFile);
 
   Server gaussServer(serverConfig);
@@ -232,18 +236,20 @@ TEST_F(MagnetometerTest,
   bool elementSet = false;
   for (sdf::ElementPtr plugin = world->GetElement("plugin");
        plugin;
-       plugin = plugin->GetNextElement("plugin")) {
-        if (plugin->Get<std::string>("name") == pluginName) {
-            // Found the magnetometer plugin, now force the field to true
-            if (plugin->HasElement(useTeslaElementName)) {
-                sdf::ElementPtr teslaElement =
-                  plugin->GetElement(useTeslaElementName);
-                teslaElement->Set(true);
-                elementSet = true;
-                break;
-            }
-        }
+       plugin = plugin->GetNextElement("plugin"))
+  {
+    if (plugin->Get<std::string>("name") == pluginName)
+    {
+      // Found the magnetometer plugin, now force the field to true
+      if (plugin->HasElement(useTeslaElementName))
+      {
+        sdf::ElementPtr teslaElement = plugin->GetElement(useTeslaElementName);
+        teslaElement->Set(true);
+        elementSet = true;
+        break;
+      }
     }
+  }
   EXPECT_TRUE(elementSet);
 
   // Now, re-run the world but with the tesla units being published
