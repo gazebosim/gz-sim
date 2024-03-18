@@ -44,10 +44,10 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<input>` The tag contains the input message type, topic and matcher
+  /// - `<input>`: The tag contains the input message type, topic and matcher
   /// information.
   ///   * Attributes:
-  ///     * `type`: Input message type (eg. `gz.msgs.Boolean`)
+  ///     * `type`: Input message type (e.g. `gz.msgs.Boolean`)
   ///     * `topic`: Input message topic name
   ///
   /// - `<input><match>`: Contains configuration for matchers. Multiple
@@ -71,7 +71,7 @@ namespace systems
   /// `<output>` tags are possible. A message will be published on each output
   /// topic for each input that matches.
   ///   * Attributes:
-  ///     * `type`: Output message type (eg. `gz.msgs.Boolean`)
+  ///     * `type`: Output message type (e.g. `gz.msgs.Boolean`)
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
@@ -84,13 +84,14 @@ namespace systems
   /// `<service>` tags are possible. A service will be called for each input
   /// that matches.
   ///   * Attributes:
-  ///     * `name`: Service name (eg. `/world/triggered_publisher/set_pose`)
+  ///     * `name`: Service name (e.g. `/world/triggered_publisher/set_pose`)
   ///     * `timeout`: Service timeout
-  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
-  ///     * `repType`: Service response message type (eg. ignition.msgs.Empty)
+  ///     * `reqType`: Service request message type (e.g. gz.msgs.Pose)
+  ///     * `repType`: Service response message type (e.g. gz.msgs.Empty)
   ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
-  /// Examples:
+  /// ## Examples
+  ///
   /// 1. Any receipt of a Boolean messages on the input topic triggers an output
   /// \code{.xml}
   ///    <plugin>
@@ -166,7 +167,7 @@ namespace systems
   /// </plugin>
   /// \endcode
   ///
-  /// ### Limitations
+  /// ## Limitations
   /// The current implementation of this system does not support specifying a
   /// subfield of a repeated field in the "field" attribute. i.e, if
   /// `field="f1.f2"`, `f1` cannot be a repeated field.

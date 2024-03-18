@@ -28,8 +28,7 @@
 #pragma warning(pop)
 #endif
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/wind.pb.h>
 
 #include <string>
 #include <utility>
@@ -756,6 +755,3 @@ GZ_ADD_PLUGIN(WindEffects, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(WindEffects, "gz::sim::systems::WindEffects")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(WindEffects, "ignition::gazebo::systems::WindEffects")

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/GlobalIlluminationCiVct">
+        <file>CiVctCascadePrivate.qml</file>
+        <file>GlobalIlluminationCiVct.qml</file>
+    </qresource>
+</RCC>

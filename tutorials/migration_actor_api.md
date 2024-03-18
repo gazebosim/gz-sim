@@ -1,6 +1,4 @@
-\page migrationactorapi
-
-# Migration from Gazebo-classic: Actor API
+\page migrationactorapi Migration from Gazebo-classic: Actor API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -34,16 +32,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/Actor.hh](https://gazebosim.org/api/gazebo/7/Actor_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Actor.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
-
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Actor::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
@@ -75,15 +70,15 @@ CustomTrajectory | see `SetCustomTrajectory`
 DirtyPose | Not supported
 FillMsg | TODO
 GetAutoDisable | TODO
-GetId | `ignition::gazebo::Model::Entity`
-GetName | `ignition::gazebo::Actor::Name`
+GetId | `gz::sim::Model::Entity`
+GetName | `gz::sim::Actor::Name`
 GetPluginCount | TODO
 GetSaveable | Not supported
-GetScopedName | `ignition::gazebo::scopedName`
+GetScopedName | `gz::sim::scopedName`
 GetSDF | TODO
 GetSDFDom | TODO
 GetSelfCollide | TODO
-GetType | `ignition::gazebo::entityType`
+GetType | `gz::sim::entityType`
 GetWorldEnergy | TODO
 GetWorldEnergyKinetic | TODO
 GetWorldEnergyPotential | TODO
@@ -102,17 +97,17 @@ RelativeAngularAccel | TODO
 RelativeAngularVel | TODO
 RelativeLinearAccel | TODO
 RelativeLinearVel | TODO
-RelativePose | `ignition::gazebo::Actor::Pose`
+RelativePose | `gz::sim::Actor::Pose`
 Scale | TODO
-ScriptTime | `ignition::gazebo::Actor::AnimationTime`
-SDFPoseRelativeToParent | `ignition::gazebo::Actor::Pose`
-SDFSemanticPose | `ignition::gazebo::Actor::Pose`
+ScriptTime | `gz::sim::Actor::AnimationTime`
+SDFPoseRelativeToParent | `gz::sim::Actor::Pose`
+SDFSemanticPose | `gz::sim::Actor::Pose`
 SensorScopedName | TODO
 SetAngularVel | TODO
-SetAnimation | use `ignition::gazebo::Actor::SetTrajectoryPose`
+SetAnimation | use `gz::sim::Actor::SetTrajectoryPose`
 SetAutoDisable | TODO
 SetCollideMode | TODO
-SetCustomTrajectory | use `ignition::gazebo::Actor::SetTrajectoryPose`, `SetAnimationTime`, and `SetAnimationName` to achieve similar result.
+SetCustomTrajectory | use `gz::sim::Actor::SetTrajectoryPose`, `SetAnimationTime`, and `SetAnimationName` to achieve similar result.
 SetEnabled | TODO
 SetGravityMode | TODO
 SetInitialRelativePose | TODO
@@ -126,7 +121,7 @@ SetName | TODO
 SetRelativePose | TODO
 SetSaveable | Not supported
 SetScale | TODO
-SetScriptTime | `ignition::gazebo::Actor::SetAnimationTime`
+SetScriptTime | `gz::sim::Actor::SetAnimationTime`
 SetSelected |  Selection is client-specific, not porting
 SetSelfCollide | TODO
 SetState | TODO
@@ -136,8 +131,8 @@ SetWorldPose | TODO
 SetWorldTwist | TODO
 SkeletonAnimations | TODO
 Stop | TODO
-StopAnimation | use `ignition::gazebo::Actor::SetTrajectoryPose`
-TypeStr | `ignition::gazebo::entityTypeStr`
+StopAnimation | use `gz::sim::Actor::SetTrajectoryPose`
+TypeStr | `gz::sim::entityTypeStr`
 UnscaledSDF | TODO
 UpdateParamenters | TODO
 URI | TODO
@@ -146,7 +141,7 @@ WorldAngularAccel | TODO
 WorldAngularVel | TODO
 WorldLinearAccel | TODO
 WorldLinearVel | TODO
-WorldPose | `ignition::gazebo::Actor::WorldPose`
+WorldPose | `gz::sim::Actor::WorldPose`
 
 ---
 
@@ -175,11 +170,11 @@ GetJointCount | Not supported
 GetJoints | Not supported
 GetLink | TODO
 GetLinks | TODO
-GetParent | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetParentId | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetParentModel | `ignition::gazebo::EntiyComponentManager::ParentEntity`
+GetParent | `gz::sim::EntiyComponentManager::ParentEntity`
+GetParentId | `gz::sim::EntiyComponentManager::ParentEntity`
+GetParentModel | `gz::sim::EntiyComponentManager::ParentEntity`
 GetSensorCount | TODO
-GetWorld | const `ignition::gazebo::worldEntity`
+GetWorld | const `gz::sim::worldEntity`
 NestedModel | TODO
 NestedModels | TODO
 
@@ -219,8 +214,8 @@ Classic | Gazebo
 -- | --
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadJoints | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadJoints | `gz::sim::SdfEntityCreator::CreateEntities`
 LoadPlugins | TODO
 Reset | TODO
 ResetCustomTrajectory | TODO
@@ -239,7 +234,7 @@ logic that should be performed from within a system.
 
 Classic | Gazebo
 -- | --
-GetJointController | Use this system: `ignition::gazebo::systems::JointController`
+GetJointController | Use this system: `gz::sim::systems::JointController`
 GetNearestEntityBelow | Requires a system
 PlaceOnEntity | Requires a system
 PlaceOnNearestEntityBelow | Requires a system

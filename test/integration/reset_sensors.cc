@@ -17,7 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/image.pb.h>
 #include <gz/msgs/fluid_pressure.pb.h>
+#include <gz/msgs/world_control.pb.h>
+
 #include <string>
 #include <vector>
 

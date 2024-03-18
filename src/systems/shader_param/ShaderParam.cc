@@ -89,6 +89,9 @@ class gz::sim::systems::ShaderParamPrivate
   /// \brief Connection to pre-render event callback
   public: gz::common::ConnectionPtr connection{nullptr};
 
+  /// \brief Connection to render tear down event callback
+  public: gz::common::ConnectionPtr teardownConnection{nullptr};
+
   /// \brief Name of visual this plugin is attached to
   public: std::string visualName;
 
@@ -118,6 +121,9 @@ class gz::sim::systems::ShaderParamPrivate
 
   /// \brief All rendering operations must happen within this call
   public: void OnUpdate();
+
+  /// \brief Callback to rendering engine tear down
+  public: void OnRenderTeardown();
 };
 
 /////////////////////////////////////////////////
@@ -138,14 +144,11 @@ void ShaderParam::Configure(const Entity &_entity,
                EventManager &_eventMgr)
 {
   GZ_PROFILE("ShaderParam::Configure");
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto sdf = const_cast<sdf::Element *>(_sdf.get());
 
-  if (sdf->HasElement("param"))
+  if (_sdf->HasElement("param"))
   {
     // loop and parse all shader params
-    sdf::ElementPtr paramElem = sdf->GetElement("param");
+    auto paramElem = _sdf->FindElement("param");
     while (paramElem)
     {
       if (!paramElem->HasElement("shader") ||
@@ -170,7 +173,7 @@ void ShaderParam::Configure(const Entity &_entity,
 
       if (paramElem->HasElement("arg"))
       {
-        sdf::ElementPtr argElem = paramElem->GetElement("arg");
+        auto argElem = paramElem->FindElement("arg");
         while (argElem)
         {
           spv.args.push_back(argElem->Get<std::string>());
@@ -191,14 +194,14 @@ void ShaderParam::Configure(const Entity &_entity,
   }
 
   // parse path to shaders
-  if (!sdf->HasElement("shader"))
+  if (!_sdf->HasElement("shader"))
   {
     gzerr << "Unable to load shader param system. "
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
   // allow mulitple shader SDF element for different shader languages
-  sdf::ElementPtr shaderElem = sdf->GetElement("shader");
+  auto shaderElem = _sdf->FindElement("shader");
   while (shaderElem)
   {
     if (!shaderElem->HasElement("vertex") ||
@@ -217,11 +220,11 @@ void ShaderParam::Configure(const Entity &_entity,
       ShaderParamPrivate::ShaderUri shader;
       shader.language = api;
 
-      sdf::ElementPtr vertexElem = shaderElem->GetElement("vertex");
+      auto vertexElem = shaderElem->FindElement("vertex");
       shader.vertexShaderUri = common::findFile(
           asFullPath(vertexElem->Get<std::string>(),
           this->dataPtr->modelPath));
-      sdf::ElementPtr fragmentElem = shaderElem->GetElement("fragment");
+      auto fragmentElem = shaderElem->FindElement("fragment");
       shader.fragmentShaderUri = common::findFile(
           asFullPath(fragmentElem->Get<std::string>(),
           this->dataPtr->modelPath));
@@ -246,6 +249,10 @@ void ShaderParam::Configure(const Entity &_entity,
   this->dataPtr->connection =
       _eventMgr.Connect<gz::sim::events::SceneUpdate>(
       std::bind(&ShaderParamPrivate::OnUpdate, this->dataPtr.get()));
+
+  this->dataPtr->teardownConnection =
+      _eventMgr.Connect<gz::sim::events::RenderTeardown>(
+      std::bind(&ShaderParamPrivate::OnRenderTeardown, this->dataPtr.get()));
 }
 
 //////////////////////////////////////////////////
@@ -496,6 +503,14 @@ void ShaderParamPrivate::OnUpdate()
   }
 }
 
+//////////////////////////////////////////////////
+void ShaderParamPrivate::OnRenderTeardown()
+{
+  this->visual.reset();
+  this->scene.reset();
+  this->material.reset();
+}
+
 GZ_ADD_PLUGIN(ShaderParam,
                     gz::sim::System,
                     ShaderParam::ISystemConfigure,
@@ -503,7 +518,3 @@ GZ_ADD_PLUGIN(ShaderParam,
 
 GZ_ADD_PLUGIN_ALIAS(ShaderParam,
   "gz::sim::systems::ShaderParam")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ShaderParam,
-  "ignition::gazebo::systems::ShaderParam")

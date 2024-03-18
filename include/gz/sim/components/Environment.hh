@@ -20,6 +20,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <gz/common/DataFrame.hh>
 #include <gz/math/SphericalCoordinates.hh>
@@ -27,7 +28,6 @@
 
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
-#include <gz/sim/Export.hh>
 
 namespace gz
 {
@@ -61,7 +61,15 @@ namespace components
     static std::shared_ptr<EnvironmentalData>
     MakeShared(FrameT _frame, ReferenceT _reference,
       ReferenceUnits _units = ReferenceUnits::RADIANS,
-      bool _ignoreTimeStep = false);
+      bool _ignoreTimeStep = false)
+    {
+      auto data = std::make_shared<EnvironmentalData>();
+      data->frame = std::move(_frame);
+      data->reference = _reference;
+      data->units = _units;
+      data->staticTime = _ignoreTimeStep;
+      return data;
+    }
 
     /// \brief Environmental data frame.
     FrameT frame;

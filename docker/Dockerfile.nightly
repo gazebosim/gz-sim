@@ -11,19 +11,19 @@ RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
-    libgz-cmake3-dev \
-    libgz-common5-dev \
-    libgz-fuel-tools8-dev \
-    libgz-math7-eigen3-dev \
-    libgz-plugin2-dev \
-    libgz-physics6-dev \
-    libgz-rendering7-dev \
+    libgz-cmake4-dev \
+    libgz-common6-dev \
+    libgz-fuel-tools10-dev \
+    libgz-math8-eigen3-dev \
+    libgz-plugin3-dev \
+    libgz-physics8-dev \
+    libgz-rendering9-dev \
     libgz-tools2-dev \
-    libgz-transport12-dev \
-    libgz-gui7-dev \
-    libgz-msgs9-dev \
-    libgz-sensors7-dev \
-    libsdformat13-dev
+    libgz-transport14-dev \
+    libgz-gui9-dev \
+    libgz-msgs11-dev \
+    libgz-sensors9-dev \
+    libsdformat15-dev
 
 COPY . gz-sim
 RUN cd gz-sim \

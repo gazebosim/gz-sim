@@ -106,14 +106,14 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-class gz::sim::TestFixturePrivate
+class gz::sim::TestFixture::Implementation
 {
   /// \brief Initialize fixture
   /// \param[in] _config Server config
   public: void Init(const ServerConfig &_config);
 
   /// \brief Pointer to underlying server
-  public: std::shared_ptr<Server> server{nullptr};
+  public: std::shared_ptr<sim::Server> server{nullptr};
 
   /// \brief Pointer to underlying Helper interface
   public: std::shared_ptr<HelperSystem> helperSystem{nullptr};
@@ -124,7 +124,7 @@ class gz::sim::TestFixturePrivate
 
 //////////////////////////////////////////////////
 TestFixture::TestFixture(const std::string &_path)
-  : dataPtr(new TestFixturePrivate())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   ServerConfig config;
   config.SetSdfFile(_path);
@@ -133,23 +133,16 @@ TestFixture::TestFixture(const std::string &_path)
 
 //////////////////////////////////////////////////
 TestFixture::TestFixture(const ServerConfig &_config)
-  : dataPtr(new TestFixturePrivate())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   this->dataPtr->Init(_config);
 }
 
 //////////////////////////////////////////////////
-TestFixture::~TestFixture()
-{
-  delete dataPtr;
-  dataPtr = nullptr;
-}
-
-//////////////////////////////////////////////////
-void TestFixturePrivate::Init(const ServerConfig &_config)
+void TestFixture::Implementation::Init(const ServerConfig &_config)
 {
   this->helperSystem = std::make_shared<HelperSystem>();
-  this->server = std::make_shared<Server>(_config);
+  this->server = std::make_shared<sim::Server>(_config);
 }
 
 //////////////////////////////////////////////////

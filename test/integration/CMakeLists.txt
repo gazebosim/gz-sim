@@ -48,6 +48,7 @@ set(tests
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
+  mesh_inertia_calculation.cc
   model.cc
   model_photo_shoot_default_joints.cc
   model_photo_shoot_random_joints.cc
@@ -95,11 +96,15 @@ endif()
 # Tests that require a valid display
 set(tests_needing_display
   actor_trajectory.cc
+  camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc
+  dvl_system.cc
+  dvl_system_bottom_tracking.cc
+  dvl_system_water_mass_tracking.cc
   gpu_lidar.cc
   markers.cc
   mesh_uri.cc
@@ -132,6 +137,11 @@ else()
   foreach(test ${tests_needing_display})
     message(STATUS " ${test}")
   endforeach(test)
+endif()
+
+# Add tests that need pybind11
+if (${pybind11_FOUND})
+  list(APPEND tests python_system_loader.cc)
 endif()
 
 if (MSVC)
@@ -229,4 +239,9 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
+endif()
+
+if (TARGET INTEGRATION_python_system_loader)
+  set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
+    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
 endif()

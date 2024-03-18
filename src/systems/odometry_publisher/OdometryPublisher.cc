@@ -17,8 +17,10 @@
 
 #include "OdometryPublisher.hh"
 
+#include <gz/msgs/header.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <limits>
 #include <string>
@@ -530,7 +532,3 @@ GZ_ADD_PLUGIN(OdometryPublisher,
 
 GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "gz::sim::systems::OdometryPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
-                          "ignition::gazebo::systems::OdometryPublisher")

@@ -17,7 +17,13 @@
 
 #include "TrackedVehicle.hh"
 
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/marker.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/twist.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <limits>
 #include <map>
@@ -227,17 +233,13 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (!links.empty())
     this->dataPtr->canonicalLink = Link(links[0]);
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  std::unordered_map<std::string, sdf::ElementPtr> tracks;
+  std::unordered_map<std::string, sdf::ElementConstPtr> tracks;
 
   if (_sdf->HasElement("body_link"))
     this->dataPtr->bodyLinkName = _sdf->Get<std::string>("body_link");
 
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_track");
+  auto sdfElem = _sdf->FindElement("left_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -245,7 +247,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     tracks[linkName] = sdfElem;
     sdfElem = sdfElem->GetNextElement("left_track");
   }
-  sdfElem = ptr->GetElement("right_track");
+  sdfElem = _sdf->FindElement("right_track");
   while (sdfElem)
   {
     const auto& linkName = sdfElem->Get<std::string>("link");
@@ -288,7 +290,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
     if (!_sdf->HasElement(tag))
       continue;
 
-    auto sdf = ptr->GetElement(tag);
+    auto sdf = _sdf->FindElement(tag);
 
     // Parse speed limiter parameters.
     bool hasVelocityLimits     = false;
@@ -776,7 +778,3 @@ GZ_ADD_PLUGIN(TrackedVehicle,
 
 GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "gz::sim::systems::TrackedVehicle")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "ignition::gazebo::systems::TrackedVehicle")

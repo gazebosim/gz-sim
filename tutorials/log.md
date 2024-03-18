@@ -8,7 +8,7 @@ Gazebo records two types of information to files:
     * Always recorded
 * Simulation state
     * Entity poses, insertion and deletion
-    * Logged to an [Gazebo Transport `state.tlog` file](https://gazebosim.org/api/transport/7.0/logging.html)
+    * Logged to an [Gazebo Transport `state.tlog` file](https://gazebosim.org/api/transport/13/logging.html)
     * Recording must be enabled from the command line or the C++ API
     * Can be played back using the command line or the C++ API
 
@@ -42,7 +42,7 @@ Other options for recording:
 ### From C++ API
 
 All features available through the command line are also available through
-[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1ServerConfig.html).
+\ref gz::sim::ServerConfig.
 When instantiating a server programmatically, logging options can be passed
 to the constructor, for example:
 
@@ -102,11 +102,6 @@ Playing back via the SDF tag `<path>` has been removed.
 Please use the command line argument.
 
 ## Known issues
-
-* When using command-line playback there is currently a small caveat.
-In the case that the recorded file uses `ogre2`, the playback appears
-brighter, because the default SDF that is loaded by Server.cc for playback
-uses `ogre`.
 
 * Currently, specifying record and playback at the same time is not allowed.
 We may support this in the future, to support cropping a recording or

@@ -17,7 +17,7 @@
 
 #include "AirSpeed.hh"
 
-#include <gz/msgs/fluid_pressure.pb.h>
+#include <gz/msgs/air_speed.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -305,6 +305,3 @@ GZ_ADD_PLUGIN(AirSpeed, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(AirSpeed, "gz::sim::systems::AirSpeed")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AirSpeed, "ignition::gazebo::systems::AirSpeed")

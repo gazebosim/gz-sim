@@ -834,7 +834,7 @@ TEST_F(UtilTest, EntityFromMsg)
   ecm.CreateComponent(actorDEntity, components::ParentEntity(worldEntity));
 
   // Check entities
-  auto createMsg = [&](Entity _id, const std::string &_name = "",
+  auto createMsg = [](Entity _id, const std::string &_name = "",
       msgs::Entity::Type _type = msgs::Entity::NONE) -> msgs::Entity
   {
     msgs::Entity msg;
@@ -974,11 +974,11 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
 
   // URI to a Fuel world.
   std::string fuelUri =
-    "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/test world";
+    "https://fuel.gazebosim.org/1.0/openrobotics/worlds/test world";
 
   // The expect path for the local Fuel world.
   std::string expectedPath = common::joinPaths(
-      config.CacheLocation(), "fuel.ignitionrobotics.org",
+      config.CacheLocation(), "fuel.gazebosim.org",
       "openrobotics", "worlds", "test world");
 
   // Get the Fuel world.

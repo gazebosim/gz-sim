@@ -107,5 +107,5 @@ generated video. The default bitrate is 2Mbps.
 
 Since Gazebo Common 3.10.2, there is support for utilizing the power of GPUs
 to speed up the video encoding process. See the
-[Hardware-accelerated Video Encoding tutorial](https://gazebosim.org/api/common/3.10/hw-encoding.html)
+[Hardware-accelerated Video Encoding tutorial](https://gazebosim.org/api/common/5/hw-encoding.html)
 for more details.

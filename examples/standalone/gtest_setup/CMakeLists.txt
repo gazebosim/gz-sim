@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
 project(GTestSetup)
 
 # Find Gazebo
-find_package(gz-sim7 REQUIRED)
-set(GZ_SIM_VER ${gz-sim7_VERSION_MAJOR})
+find_package(gz-sim9 REQUIRED)
+set(GZ_SIM_VER ${gz-sim9_VERSION_MAJOR})
 
 # Fetch and configure GTest
 include(FetchContent)

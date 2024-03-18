@@ -19,7 +19,11 @@
 #include "AckermannSteering.hh"
 
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <mutex>
 #include <set>
@@ -30,6 +34,8 @@
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Angle.hh>
 #include <gz/math/SpeedLimiter.hh>
+
+
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
@@ -1020,7 +1026,3 @@ GZ_ADD_PLUGIN(AckermannSteering,
 
 GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
                     "gz::sim::systems::AckermannSteering")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AckermannSteering,
-                          "ignition::gazebo::systems::AckermannSteering")

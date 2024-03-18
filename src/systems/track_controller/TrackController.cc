@@ -722,7 +722,3 @@ GZ_ADD_PLUGIN(TrackController,
 
 GZ_ADD_PLUGIN_ALIAS(TrackController,
                           "gz::sim::systems::TrackController")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrackController,
-                          "ignition::gazebo::systems::TrackController")

@@ -109,10 +109,20 @@ class gz::sim::systems::TouchPluginPrivate
   /// \brief Whether the plugin is enabled.
   public: bool enabled{false};
 
+  /// Value used to reset the world with the initial value
+  public: bool enableInitialValue{false};
+
   /// \brief Mutex for variables mutated by the service callback.
   /// The variables are: touchPub, touchStart, enabled
   public: std::mutex serviceMutex;
 };
+
+//////////////////////////////////////////////////
+void TouchPlugin::Reset(const gz::sim::UpdateInfo &/*_info*/,
+  gz::sim::EntityComponentManager &/*_ecm*/)
+{
+  this->dataPtr->Enable(this->dataPtr->enableInitialValue);
+}
 
 //////////////////////////////////////////////////
 void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
@@ -195,6 +205,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   // Start enabled or not
   if (_sdf->Get<bool>("enabled", false).first)
   {
+    this->enableInitialValue = true;
     this->Enable(true);
   }
 }
@@ -206,9 +217,10 @@ void TouchPluginPrivate::Enable(const bool _value)
 
   if (_value)
   {
-    this->touchedPub.reset();
-    this->touchedPub = this->node.Advertise<msgs::Boolean>(
-        "/" + this->ns + "/touched");
+    if (!this->touchedPub.has_value()){
+      this->touchedPub = this->node.Advertise<msgs::Boolean>(
+          "/" + this->ns + "/touched");
+    }
 
     this->touchStart = DurationType::zero();
     this->enabled = true;
@@ -217,7 +229,6 @@ void TouchPluginPrivate::Enable(const bool _value)
   }
   else
   {
-    this->touchedPub.reset();
     this->enabled = false;
 
     gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
@@ -319,7 +330,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
 
     {
       std::lock_guard<std::mutex> lock(this->serviceMutex);
-      if (this->touchedPub.has_value())
+      if (this->enabled)
       {
         msgs::Boolean msg;
         msg.set_data(true);
@@ -408,12 +419,10 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
 }
 
 GZ_ADD_PLUGIN(TouchPlugin,
-                    System,
-                    TouchPlugin::ISystemConfigure,
-                    TouchPlugin::ISystemPreUpdate,
-                    TouchPlugin::ISystemPostUpdate)
+              System,
+              TouchPlugin::ISystemConfigure,
+              TouchPlugin::ISystemPreUpdate,
+              TouchPlugin::ISystemPostUpdate,
+              TouchPlugin::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

@@ -70,8 +70,11 @@ TEST_F(ComponentTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
   // Create a custom component with shared_ptr data
   using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
-  factory->Register<CustomComponent>("gz_sim_components.MyCustom",
-     new components::ComponentDescriptor<CustomComponent>());
+
+  factory->Register<CustomComponent>(
+      "gz_sim_components.MyCustom",
+      new components::ComponentDescriptor<CustomComponent>(),
+      components::RegistrationObjectId(this));
 
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();

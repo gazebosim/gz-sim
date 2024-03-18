@@ -299,6 +299,3 @@ GZ_ADD_PLUGIN(AirPressure, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(AirPressure, "gz::sim::systems::AirPressure")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(AirPressure, "ignition::gazebo::systems::AirPressure")

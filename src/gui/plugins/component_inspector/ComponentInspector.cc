@@ -15,6 +15,16 @@
  *
 */
 
+#include "ComponentInspector.hh"
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/visual.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
+#include <gz/msgs/empty.pb.h>
+
 #include <iostream>
 #include <list>
 #include <regex>
@@ -27,6 +37,7 @@
 #include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/math/Vector3.hh>
+
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/Actor.hh"
@@ -60,6 +71,7 @@
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/SelfCollide.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -77,7 +89,6 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
 
-#include "ComponentInspector.hh"
 #include "Inertial.hh"
 #include "Pose3d.hh"
 #include "SystemPluginInfo.hh"
@@ -792,6 +803,13 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (comp)
         setData(item, comp->Data());
     }
+    else if (typeId == components::RenderEngineServerApiBackend::typeId)
+    {
+      auto comp = _ecm.Component<components::RenderEngineServerApiBackend>(
+          this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
+    }
     else if (typeId == components::Static::typeId)
     {
       auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
@@ -1239,8 +1257,8 @@ void ComponentInspector::QuerySystems()
 
     // Remove common prefixes and suffixes
     auto humanReadable = plugin.filename();
-    removePrefix("ignition-gazebo-", humanReadable);
-    removePrefix("ignition-gazebo" +
+    removePrefix("gz-sim-", humanReadable);
+    removePrefix("gz-sim" +
         std::string(GZ_SIM_MAJOR_VERSION_STR) + "-", humanReadable);
     removeSuffix("-system", humanReadable);
     removeSuffix("system", humanReadable);

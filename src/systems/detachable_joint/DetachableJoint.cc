@@ -320,7 +320,3 @@ GZ_ADD_PLUGIN(DetachableJoint,
 
 GZ_ADD_PLUGIN_ALIAS(DetachableJoint,
   "gz::sim::systems::DetachableJoint")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(DetachableJoint,
-  "ignition::gazebo::systems::DetachableJoint")

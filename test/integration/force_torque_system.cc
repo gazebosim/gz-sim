@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/wrench.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>

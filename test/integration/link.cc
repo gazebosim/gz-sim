@@ -229,7 +229,6 @@ TEST_F(LinkIntegrationTest, LinkPoses)
 
   // Before we add components, pose functions should return nullopt
 
-  EXPECT_EQ(std::nullopt, link.WorldPose(ecm));
   EXPECT_EQ(std::nullopt, link.WorldInertialPose(ecm));
 
   math::Pose3d linkWorldPose;
@@ -350,6 +349,41 @@ TEST_F(LinkIntegrationTest, LinkAccelerations)
   EXPECT_EQ(nullptr, ecm.Component<components::WorldLinearAcceleration>(eLink));
   EXPECT_EQ(nullptr,
       ecm.Component<components::WorldAngularAcceleration>(eLink));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, LinkInertia)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // Before we add components, pose functions should return nullopt
+  EXPECT_EQ(std::nullopt, link.WorldInertial(ecm));
+
+  math::MassMatrix3d linkMassMatrix(10.0, {0.4, 0.4, 0.4}, {0.02, 0.02, 0.02});
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
+  // This is the pose of the inertia frame relative to its parent link frame
+  math::Pose3d inertiaPose;
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
+  math::Inertiald linkInertial{linkMassMatrix, inertiaPose};
+
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+
+  ASSERT_TRUE(link.WorldInertial(ecm));
+  EXPECT_EQ(10.0, link.WorldInertial(ecm).value().MassMatrix().Mass());
+  EXPECT_EQ(linkWorldPose * inertiaPose,
+    link.WorldInertial(ecm).value().Pose());
 }
 
 //////////////////////////////////////////////////

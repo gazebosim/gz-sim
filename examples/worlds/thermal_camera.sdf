@@ -89,7 +89,6 @@
           <property type="bool" key="resizable">false</property>
           <property type="double" key="height">72</property>
           <property type="double" key="z">1</property>
-
           <property type="string" key="state">floating</property>
           <anchors target="3D View">
             <line own="left" target="left"/>
@@ -138,6 +137,24 @@
       <plugin filename="EntityTree" name="Entity tree">
         <gz-gui>
           <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Translate / rotate -->
+      <plugin filename="TransformControl" name="Transform control"/>
+
+      <!-- Select Entities -->
+      <plugin filename="SelectEntities" name="Select Entities">
+        <gz-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
         </gz-gui>
       </plugin>
 

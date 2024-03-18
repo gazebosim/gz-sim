@@ -1,6 +1,4 @@
-\page migrationjointapi
-
-# Migration from Gazebo-classic: Joint API
+\page migrationjointapi Migration from Gazebo-classic: Joint API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -32,15 +30,13 @@ can be divided in these categories:
 
 You'll find the Gazebo APIs below on the following headers:
 
-* [ignition/gazebo/Joint.hh](https://gazebosim.org/api/gazebo/7/Joint_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Joint.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Join::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
@@ -76,24 +72,24 @@ DOF | TODO
 FillMsg | TODO
 GetDamping | TODO
 GetEffortLimit | TODO
-GetForce | `ignition::gazebo::Joint::TransmittedWrench`
-GetForceTorque |  `ignition::gazebo::Joint::TransmittedWrench`
-GetId | `ignition::gazebo::Joint::Entity`
+GetForce | `gz::sim::Joint::TransmittedWrench`
+GetForceTorque |  `gz::sim::Joint::TransmittedWrench`
+GetId | `gz::sim::Joint::Entity`
 GetInertiaRatio | TODO
-GetJointLink | use `ignition::gazebo::Joint::*LinkName`
+GetJointLink | use `gz::sim::Joint::*LinkName`
 GetMsgType | TODO
-GetName | `ignition::gazebo::Joint::Name`
+GetName | `gz::sim::Joint::Name`
 GetParam | TODO
 GetSaveable | Not supported
-GetScopedName | `ignition::gazebo::scopedName`
+GetScopedName | `gz::sim::scopedName`
 GetSDF | TODO
 GetSDFDom | TODO
 GetSpringReferencePosition | TODO
 GetStiffness | TODO
 GetStopDissipation | TODO
 GetStopStiffness | TODO
-GetType | `ignition::gazebo::Joint::Type`
-GetVelocity | `ignition::gazebo::Joint::Velocity`
+GetType | `gz::sim::Joint::Type`
+GetVelocity | `gz::sim::Joint::Velocity`
 GetVelocityLimit | TODO
 GetWorldEnergyPotentialSpring | TODO
 GlobalAxis | TODO
@@ -103,24 +99,24 @@ InitialAnchorPose | TODO
 IsSelected | Selection is client-specific, not porting
 LinkForce | TODO
 LinkTorque | TODO
-LocalAxis | `ignition::gazebo::Joint::Axis`
+LocalAxis | `gz::sim::Joint::Axis`
 LowerLimit | TODO
 ParentWorldPose | TODO
-Position | `ignition::gazebo::Joint::Position`
+Position | `gz::sim::Joint::Position`
 Print | TODO
 ResolveAxisXyz | TODO
-SDFPoseRelativeToParent | `ignition::gazebo::Joint::Pose`
-SDFSemanticPose | `ignition::gazebo::Joint::Pose`
+SDFPoseRelativeToParent | `gz::sim::Joint::Pose`
+SDFSemanticPose | `gz::sim::Joint::Pose`
 SetAnchor | TODO
 SetAxis | TODO
 SetDamping | TODO
-SetEffortLimit | `ignition::gazebo::Joint::SetEffortLimits`
-SetForce | `ignition::gazebo::Joint::SetForce`
-SetLowerLimit | `ignition::gazebo::Joint::SetPositionLimits`
+SetEffortLimit | `gz::sim::Joint::SetEffortLimits`
+SetForce | `gz::sim::Joint::SetForce`
+SetLowerLimit | `gz::sim::Joint::SetPositionLimits`
 SetName | TODO
 SeParam | TODO
-SetPosition | `ignition::gazebo::Joint::ResetPosition`
-SetProvideFeedback | `ignition::gazebo::Joint::EnableTransmittedWrenchCheck`
+SetPosition | `gz::sim::Joint::ResetPosition`
+SetProvideFeedback | `gz::sim::Joint::EnableTransmittedWrenchCheck`
 SetSaveable | Not supported
 SetSelected |  Selection is client-specific, not porting
 SetState | TODO
@@ -128,10 +124,10 @@ SetStiffness | TODO
 SetStiffnessDamping | TODO
 SetStopDissipation | TODO
 SetStopStiffness | TODO
-SetUpperLimit | `ignition::gazebo::Joint::SetPositionLimits`
-SetVelocity | `ignition::gazebo::Joint::SetVelocity`
-SetVelocityLimit | `ignition::gazebo::Joint::SetVelocityLimits`
-TypeStr | `ignition::gazebo::Joint::Type`
+SetUpperLimit | `gz::sim::Joint::SetPositionLimits`
+SetVelocity | `gz::sim::Joint::SetVelocity`
+SetVelocityLimit | `gz::sim::Joint::SetVelocityLimits`
+TypeStr | `gz::sim::Joint::Type`
 UpdateParameters | TODO
 UpperLimit | TODO
 URI | TODO
@@ -152,14 +148,14 @@ they deal with entity IDs.
 
 Classic | Gazebo
 -- | --
-GetByName | Use type-specific `ignition::gazebo::Joint::*ByName`
-GetChild | Use type-specific `ignition::gazebo::Joint::*ByName`
-GetChild (Child link) | `ignition::gazebo::Joint::ChildLinkName`
-GetChildCount | Use type-specific `ignition::gazebo::Joint::*Count`
-GetParent | `ignition::gazebo::Joint::ParentModel`
-GetParent (Parent link) | `ignition::gazebo::Joint::ParentLinkName`
-GetParentId | `ignition::gazebo::EntiyComponentManager::ParentEntity`
-GetWorld |  `ignition::gazebo::worldEntity`
+GetByName | Use type-specific `gz::sim::Joint::*ByName`
+GetChild | Use type-specific `gz::sim::Joint::*ByName`
+GetChild (Child link) | `gz::sim::Joint::ChildLinkName`
+GetChildCount | Use type-specific `gz::sim::Joint::*Count`
+GetParent | `gz::sim::Joint::ParentModel`
+GetParent (Parent link) | `gz::sim::Joint::ParentLinkName`
+GetParentId | `gz::sim::EntiyComponentManager::ParentEntity`
+GetWorld |  `gz::sim::worldEntity`
 
 ---
 
@@ -196,8 +192,8 @@ Classic | Gazebo
 ConnectJointUpdate | TODO
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-Reset | `ignition::gazebo::Joint::ResetPosition` / `ignition::gazebo::Joint::ResetVelocity`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+Reset | `gz::sim::Joint::ResetPosition` / `gz::sim::Joint::ResetVelocity`
 Update | Entities are updated by systems
 
 ---

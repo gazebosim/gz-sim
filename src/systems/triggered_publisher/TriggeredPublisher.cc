@@ -843,7 +843,3 @@ GZ_ADD_PLUGIN(TriggeredPublisher,
 
 GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
                           "gz::sim::systems::TriggeredPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TriggeredPublisher,
-                          "ignition::gazebo::systems::TriggeredPublisher")

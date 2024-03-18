@@ -29,11 +29,14 @@
 #endif
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
-#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
 #include <gz/msgs/visual.pb.h>
 #include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
@@ -645,7 +648,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Pose vector service
   std::string poseVectorService{
-    "/world/" + worldName + "/set_pose_vector"};
+    "/world/" + validWorldName + "/set_pose_vector"};
   this->dataPtr->node.Advertise(poseVectorService,
       &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
 
@@ -699,7 +702,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Visual service
   std::string visualService
-      {"/world/" + worldName + "/visual_config"};
+      {"/world/" + validWorldName + "/visual_config"};
   this->dataPtr->node.Advertise(visualService,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
@@ -1840,7 +1843,3 @@ GZ_ADD_PLUGIN(UserCommands, System,
 
 GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "gz::sim::systems::UserCommands")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(UserCommands,
-                          "ignition::gazebo::systems::UserCommands")

@@ -329,7 +329,3 @@ GZ_ADD_PLUGIN(ColladaWorldExporter,
 
 GZ_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
                           "gz::sim::systems::ColladaWorldExporter")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ColladaWorldExporter,
-                          "ignition::gazebo::systems::ColladaWorldExporter")

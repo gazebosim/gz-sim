@@ -46,10 +46,12 @@
 
 #include <gz/msgs/Utility.hh>
 
-#include <gz/rendering.hh>
+#include <gz/rendering/Grid.hh>
 #include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
+#include <gz/rendering/ThermalCamera.hh>
+#include <gz/rendering/WireBox.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/BoundingBoxCamera.hh"
@@ -95,9 +97,9 @@
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/rendering/SceneManager.hh"
-#include "gz/sim/rendering/MarkerManager.hh"
 
 #include "gz/sim/Util.hh"
 
@@ -208,6 +210,9 @@ class gz::sim::RenderUtilPrivate
 
   /// \brief Name of rendering engine
   public: std::string engineName = "ogre2";
+
+  /// \brief Name of API backend
+  public: std::string apiBackend = "";
 
   /// \brief Name of scene
   public: std::string sceneName = "scene";
@@ -2656,27 +2661,7 @@ bool RenderUtil::HeadlessRendering() const
 void RenderUtil::InitRenderEnginePluginPaths()
 {
   common::SystemPaths pluginPath;
-
-  // TODO(CH3): Deprecated. Remove on tock.
-  std::string result;
-  if (!gz::common::env(kRenderPluginPathEnv, result))
-  {
-    // Try deprecated env var if proper env var not populated
-    if (gz::common::env(kRenderPluginPathEnvDeprecated, result))
-    {
-      gzwarn << "Finding plugins using deprecated IGN_ prefixed environment "
-             << "variable [" << kRenderPluginPathEnvDeprecated
-             << "]. Please use [" << kRenderPluginPathEnv
-             << "] instead." << std::endl;
-      pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
-    }
-  }
-  else
-  {
-    // Preserve this one.
-    pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
-  }
-
+  pluginPath.SetPluginPathEnv(kRenderPluginPathEnv);
   rendering::setPluginPaths(pluginPath.PluginPaths());
 }
 
@@ -2690,15 +2675,20 @@ void RenderUtil::Init()
   this->InitRenderEnginePluginPaths();
 
   std::map<std::string, std::string> params;
-#ifdef __APPLE__
-  // TODO(srmainwaring): implement facility for overriding the default
-  //    graphics API in macOS, in which case there are restrictions on
-  //    the version of OpenGL used.
-  params["metal"] = "1";
-#else
-  if (this->dataPtr->useCurrentGLContext)
+  if (this->dataPtr->useCurrentGLContext &&
+      this->dataPtr->apiBackend != "vulkan" &&
+      this->dataPtr->apiBackend != "metal")
+  {
     params["useCurrentGLContext"] = "1";
-#endif
+  }
+  if (this->dataPtr->apiBackend == "vulkan")
+  {
+    params["vulkan"] = "1";
+  }
+  else if (this->dataPtr->apiBackend == "metal")
+  {
+    params["metal"] = "1";
+  }
 
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
@@ -2807,23 +2797,25 @@ void RenderUtil::ShowGrid()
 /////////////////////////////////////////////////
 void RenderUtil::SetEngineName(const std::string &_name)
 {
-  // Deprecated: accept ignition-prefixed engines
-  std::string deprecatedPrefix{"ignition"};
-  auto name = _name;
-  auto pos = name.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    name.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _name
-           << "] for the server. Use [" << name << "] instead." << std::endl;
-  }
-  this->dataPtr->engineName = name;
+  this->dataPtr->engineName = _name;
 }
 
 /////////////////////////////////////////////////
 std::string RenderUtil::EngineName() const
 {
   return this->dataPtr->engineName;
+}
+
+/////////////////////////////////////////////////
+void RenderUtil::SetApiBackend(const std::string &_apiBackend)
+{
+  this->dataPtr->apiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+std::string RenderUtil::ApiBackend() const
+{
+  return this->dataPtr->apiBackend;
 }
 
 /////////////////////////////////////////////////

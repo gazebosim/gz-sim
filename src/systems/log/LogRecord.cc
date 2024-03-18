@@ -338,8 +338,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   // Get the topics to record, if any.
   if (this->sdf->HasElement("record_topic"))
   {
-    auto ptr = const_cast<sdf::Element *>(this->sdf.get());
-    sdf::ElementPtr recordTopicElem = ptr->GetElement("record_topic");
+    auto recordTopicElem = this->sdf->FindElement("record_topic");
 
     // This is used to determine if a topic is a regular expression.
     std::regex regexMatch(".*[\\*\\?\\[\\]\\(\\)\\.]+.*");
@@ -743,7 +742,3 @@ GZ_ADD_PLUGIN(LogRecord,
 
 GZ_ADD_PLUGIN_ALIAS(LogRecord,
                           "gz::sim::systems::LogRecord")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogRecord,
-                          "ignition::gazebo::systems::LogRecord")

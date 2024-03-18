@@ -811,8 +811,7 @@ std::vector<T> JointParameters::Parse(
 
   if (_sdf->HasElement(_parameterName))
   {
-    sdf::ElementPtr param = const_cast<sdf::Element *>(
-                                _sdf.get())->GetElement(_parameterName);
+    auto param = _sdf->FindElement(_parameterName);
     while (param)
     {
       output.push_back(param->Get<T>());
@@ -1065,8 +1064,3 @@ GZ_ADD_PLUGIN(JointTrajectoryController,
 GZ_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
     "gz::sim::systems::JointTrajectoryController")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(
-    JointTrajectoryController,
-    "ignition::gazebo::systems::JointTrajectoryController")

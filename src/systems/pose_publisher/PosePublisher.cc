@@ -18,6 +18,8 @@
 #include "PosePublisher.hh"
 
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/time.pb.h>
 
 #include <stack>
 #include <string>
@@ -578,7 +580,3 @@ GZ_ADD_PLUGIN(PosePublisher,
 
 GZ_ADD_PLUGIN_ALIAS(PosePublisher,
                           "gz::sim::systems::PosePublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "ignition::gazebo::systems::PosePublisher")

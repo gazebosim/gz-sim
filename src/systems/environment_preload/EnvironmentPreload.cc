@@ -184,7 +184,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
               }
               else if (unitName != "radians")
               {
-                ignerr << "Unrecognized unit " << unitName << "\n";
+                gzerr << "Unrecognized unit " << unitName << "\n";
               }
             }
           }

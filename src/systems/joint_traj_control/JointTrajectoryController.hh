@@ -65,68 +65,68 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// `<topic>` The name of the topic that this plugin subscribes to.
+  /// - `<topic>` The name of the topic that this plugin subscribes to.
   ///  Optional parameter.
   ///  Defaults to "/model/${MODEL_NAME}/joint_trajectory".
   ///
-  /// `<use_header_start_time>` If enabled, trajectory execution begins at the
+  /// - `<use_header_start_time>` If enabled, trajectory execution begins at the
   ///  timestamp contained in the header of received trajectory messages.
   ///  Optional parameter.
   ///  Defaults to false.
   ///
-  /// `<joint_name>` Name of a joint to control.
+  /// - `<joint_name>` Name of a joint to control.
   ///  This parameter can be specified multiple times, i.e. once for each joint.
   ///  Optional parameter.
   ///  Defaults to all 1-axis joints contained in the model SDF (order is kept).
   ///
-  /// `<initial_position>` Initial position of a joint (for position control).
+  /// - `<initial_position>` Initial position of a joint (for position control).
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  Defaults to 0 for all joints.
   ///
-  /// `<%s_p_gain>` The proportional gain of the PID.
+  /// - `<%s_p_gain>` The proportional gain of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
-  /// `<%s_i_gain>` The integral gain of the PID. Optional parameter.
+  /// - `<%s_i_gain>` The integral gain of the PID. Optional parameter.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
-  /// `<%s_d_gain>` The derivative gain of the PID.
+  /// - `<%s_d_gain>` The derivative gain of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (disabled).
   ///
-  /// `<%s_i_min>` The integral lower limit of the PID.
+  /// - `<%s_i_min>` The integral lower limit of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (no limit if higher than `%s_i_max`).
   ///
-  /// `<%s_i_max>` The integral upper limit of the PID.
+  /// - `<%s_i_max>` The integral upper limit of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is -1 (no limit if lower than `%s_i_min`).
   ///
-  /// `<%s_cmd_min>` Output min value of the PID.
+  /// - `<%s_cmd_min>` Output min value of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is 0 (no limit if higher than `%s_i_max`).
   ///
-  /// `<%s_cmd_max>` Output max value of the PID.
+  /// - `<%s_cmd_max>` Output max value of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.
   ///  The default value is -1 (no limit if lower than `%s_i_min`).
   ///
-  /// `<%s_cmd_offset>` Command offset (feed-forward) of the PID.
+  /// - `<%s_cmd_offset>` Command offset (feed-forward) of the PID.
   ///  Substitute '%s' for "position" or "velocity" (e.g. "position_p_gain").
   ///  This parameter can be specified multiple times. Follows joint_name order.
   ///  Optional parameter.

@@ -500,7 +500,3 @@ GZ_ADD_PLUGIN(Magnetometer, System,
 
 GZ_ADD_PLUGIN_ALIAS(Magnetometer,
                           "gz::sim::systems::Magnetometer")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Magnetometer,
-                          "ignition::gazebo::systems::Magnetometer")

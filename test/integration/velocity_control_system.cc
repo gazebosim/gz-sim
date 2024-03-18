@@ -16,6 +16,9 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/twist.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>

@@ -69,84 +69,85 @@ namespace systems
   ///  * Maximum acceleration limit
   ///  * Can be enabled/disabled at runtime.
   ///
-  /// # Parameters
-  /// The following parameters are used by the system
+  /// ## System Parameters
   ///
-  /// robotNamespace: All gz-transport topics subscribed to and published by
-  ///  the system will be prefixed by this string. This is a required parameter.
+  /// - `robotNamespace`: All gz-transport topics subscribed to and published by
+  /// the system will be prefixed by this string. This is a required parameter.
   ///
-  /// commandSubTopic: The system subscribes to this topic to receive twist
+  /// - `commandSubTopic`: The system subscribes to this topic to receive twist
   /// commands. The default value is "cmd_vel".
   ///
-  /// enableSubTopic: Topic to enable or disable the system. If false, the
+  /// - `enableSubTopic`: Topic to enable or disable the system. If false, the
   /// controller sends a zero rotor velocity command once and gets disabled. If
   /// the vehicle is in the air, disabling the controller will cause it to fall.
   /// If true, the controller becomes enabled and waits for a twist message. The
   /// default value is "enable".
   ///
-  /// comLinkName: The link associated with the center of mass of the vehicle.
-  /// That is, the origin of the center of mass may not be on this link, but
-  /// this link and the center of mass frame have a fixed transform. Almost
-  /// always this should be the base_link of the vehicle. This is a required
-  /// parameter.
+  /// - `comLinkName`: The link associated with the center of mass of the
+  /// vehicle. That is, the origin of the center of mass may not be on this
+  /// link, but this link and the center of mass frame have a fixed transform.
+  /// Almost always this should be the base_link of the vehicle. This is a
+  /// required parameter.
   ///
-  /// velocityGain (x, y, z): Proportional gain on linear velocity.
+  /// - `velocityGain` (x, y, z): Proportional gain on linear velocity.
   /// attitudeGain (roll, pitch, yaw): Proportional gain on attitude. This
   /// parameter is scaled by the inverse of the inertia matrix so two vehicles
   /// with different inertial characteristics may have the same gain if other
   /// parameters, such as the forceConstant, are kept the same. This is a
   /// required parameter.
   ///
-  /// angularRateGain (roll, pitch, yaw): Proportional gain on angular velocity.
-  /// Even though only the yaw angle velocity is controlled, proper gain values
-  /// for roll and pitch velocities must be specified. This parameter is scaled
-  /// by the inverse of the inertia matrix so two vehicles with different
-  /// inertial characteristics may have the same gain if other parameters, such
-  /// as the forceConstant, are kept the same. This is a required parameter.
+  /// - `angularRateGain` (roll, pitch, yaw): Proportional gain on angular
+  /// velocity. Even though only the yaw angle velocity is controlled, proper
+  /// gain values for roll and pitch velocities must be specified. This
+  /// parameter is scaled by the inverse of the inertia matrix so two vehicles
+  /// with different inertial characteristics may have the same gain if other
+  /// parameters, such as the forceConstant, are kept the same. This is a
+  /// required parameter.
   ///
-  /// maxLinearAcceleration (x, y, z): Maximum limit on linear acceleration.
+  /// - `maxLinearAcceleration` (x, y, z): Maximum limit on linear acceleration.
   /// The default value is DBL_MAX.
   ///
-  /// maximumLinearVelocity (x, y, z): Maximum commanded linear velocity. The
-  /// default value is DBL_MAX.
-
-  /// maximumAngularVelocity (roll, pitch, yaw): Maximum commanded angular
+  /// - `maximumLinearVelocity` (x, y, z): Maximum commanded linear velocity.
+  /// The default value is DBL_MAX.
+  ///
+  /// - `maximumAngularVelocity` (roll, pitch, yaw): Maximum commanded angular
   /// velocity. The default value is DBL_MAX.
   ///
-  /// linearVelocityNoiseMean (x, y, z): Mean of Gaussian noise on linear
+  /// - `linearVelocityNoiseMean` (x, y, z): Mean of Gaussian noise on linear
   /// velocity values obtained from simulation. The default value is (0, 0, 0).
   ///
-  /// linearVelocityNoiseStdDev (x, y, z): Standard deviation of Gaussian noise
-  /// on linear values obtained from simulation. A value of 0 implies noise is
-  /// NOT applied to the component. The default value is (0, 0, 0).
+  /// - `linearVelocityNoiseStdDev` (x, y, z): Standard deviation of Gaussian
+  /// noise on linear values obtained from simulation. A value of 0 implies
+  /// noise is NOT applied to the component. The default value is (0, 0, 0).
   ///
-  /// angularVelocityNoiseMean (roll, pitch, yaw): Mean of Gaussian noise on
+  /// - `angularVelocityNoiseMean` (roll, pitch, yaw): Mean of Gaussian noise on
   /// angular velocity values obtained from simulation. The default value is (0,
   /// 0, 0).
   ///
-  /// angularVelocityNoiseStdDev (roll, pitch, yaw): Standard deviation of
+  /// - `angularVelocityNoiseStdDev` (roll, pitch, yaw): Standard deviation of
   /// gaussian noise on angular velocity values obtained from simulation. A
   /// value of 0 implies noise is NOT applied to the component. The default
   /// value is (0, 0, 0).
   ///
-  /// rotorConfiguration: This contains a list of `<rotor>` elements for each
-  /// rotor in the vehicle. This is a required parameter.
+  /// - `rotorConfiguration`: This contains a list of `<rotor>` elements for
+  /// each rotor in the vehicle. This is a required parameter.
   ///
-  ///    rotor: Contains information about a rotor in the vehicle. All the
+  ///    - `rotor`: Contains information about a rotor in the vehicle. All the
   ///    elements of `<rotor>` are required parameters.
   ///
-  ///      jointName: The name of the joint associated with this rotor.
+  ///      - `jointName`: The name of the joint associated with this rotor.
   ///
-  ///      forceConstant: A constant that multiplies with the square of the
+  ///      - `forceConstant`: A constant that multiplies with the square of the
   ///      rotor's velocity to compute its thrust.
   ///
-  ///      momentConstant: A constant the multiplies with the rotor's thrust to
-  ///      compute its moment.
+  ///      - `momentConstant`: A constant the multiplies with the rotor's
+  ///      thrust to compute its moment.
   ///
-  ///      direction: Direction of rotation of the rotor. +1 is counterclockwise
-  ///      and -1 is clockwise.
+  ///      - `direction`: Direction of rotation of the rotor. +1 is
+  ///      counterclockwise and -1 is clockwise.
   ///
-  /// # Examples
+  /// ## Examples
+  ///
   /// See examples/worlds/quadcopter.sdf for a demonstration.
   ///
   class MulticopterVelocityControl

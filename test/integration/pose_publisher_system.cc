@@ -18,6 +18,9 @@
 #include <gtest/gtest.h>
 #include <mutex>
 
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>

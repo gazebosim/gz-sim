@@ -587,6 +587,3 @@ GZ_ADD_PLUGIN(LiftDrag,
                     LiftDrag::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")

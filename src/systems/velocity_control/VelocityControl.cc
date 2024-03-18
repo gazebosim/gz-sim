@@ -15,13 +15,13 @@
  *
  */
 
+#include <gz/msgs/twist.pb.h>
+
 #include <map>
 #include <mutex>
 #include <string>
 #include <vector>
 #include <unordered_map>
-
-#include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/Vector3.hh>
@@ -154,14 +154,10 @@ void VelocityControl::Configure(const Entity &_entity,
          << modelTopic << "]"
          << std::endl;
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  if (!ptr->HasElement("link_name"))
+  if (!_sdf->HasElement("link_name"))
     return;
 
-  sdf::ElementPtr sdfElem = ptr->GetElement("link_name");
+  auto sdfElem = _sdf->FindElement("link_name");
   while (sdfElem)
   {
     this->dataPtr->linkNames.push_back(sdfElem->Get<std::string>());
@@ -385,7 +381,3 @@ GZ_ADD_PLUGIN(VelocityControl,
 
 GZ_ADD_PLUGIN_ALIAS(VelocityControl,
                           "gz::sim::systems::VelocityControl")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(VelocityControl,
-                          "ignition::gazebo::systems::VelocityControl")

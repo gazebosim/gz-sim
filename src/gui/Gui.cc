@@ -14,11 +14,12 @@
  * limitations under the License.
  *
  */
-#include <QScreen>
 
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
+
+#include <QScreen>
 
 #include <gz/common/Console.hh>
 #include <gz/common/SignalHandler.hh>
@@ -194,14 +195,15 @@ std::unique_ptr<gz::gui::Application> createGui(
     const char *_renderEngine)
 {
   return createGui(_argc, _argv, _guiConfig, _defaultGuiConfig,
-    _loadPluginsFromSdf, nullptr, 0, _renderEngine);
+    _loadPluginsFromSdf, nullptr, 0, _renderEngine, nullptr);
 }
 
 //////////////////////////////////////////////////
 std::unique_ptr<gz::gui::Application> createGui(
-    int &_argc, char **_argv, const char *_guiConfig,
-    const char *_defaultGuiConfig, bool _loadPluginsFromSdf,
-    const char *_sdfFile, int _waitGui, const char *_renderEngine)
+  int &_argc, char **_argv, const char *_guiConfig,
+  const char *_defaultGuiConfig, bool _loadPluginsFromSdf, const char *_sdfFile,
+  int _waitGui, const char *_renderEngine,
+  const char *_renderEngineGuiApiBackend)
 {
   gz::common::SignalHandler sigHandler;
   bool sigKilled = false;
@@ -274,7 +276,7 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   // Launch main window
   auto app = std::make_unique<gz::gui::Application>(
-    _argc, _argv, gz::gui::WindowType::kMainWindow);
+    _argc, _argv, gz::gui::WindowType::kMainWindow, _renderEngineGuiApiBackend);
 
   app->AddPluginPath(gz::sim::getGUIPluginInstallDir());
 
@@ -509,10 +511,10 @@ int runGui(int &_argc, char **_argv, const char *_guiConfig,
 //////////////////////////////////////////////////
 int runGui(int &_argc, char **_argv,
   const char *_guiConfig, const char *_sdfFile, int _waitGui,
-  const char *_renderEngine)
+  const char *_renderEngine, const char *_renderEngineGuiApiBackend)
 {
   auto app = sim::gui::createGui(_argc, _argv, _guiConfig, nullptr, true,
-      _sdfFile, _waitGui, _renderEngine);
+      _sdfFile, _waitGui, _renderEngine, _renderEngineGuiApiBackend);
   if (nullptr != app)
   {
     // Run main window.
