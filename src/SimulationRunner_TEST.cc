@@ -1557,7 +1557,7 @@ TEST_P(SimulationRunnerTest,
   runner.SetPaused(false);
   runner.Run(1);
 
-  //Remove the model. Only 1 world plugin should remain.
+  // Remove the model. Only 1 world plugin should remain.
   EXPECT_TRUE(runner.RequestRemoveEntity("box"));
   runner.Run(2);
   EXPECT_EQ(1u, runner.SystemCount());
