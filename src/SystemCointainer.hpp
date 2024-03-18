@@ -41,7 +41,10 @@ namespace gz
     ///  to make each iterator increment have O(1) time.
     ///  For now worst case iterator increment is O(n).
     ///  That being said for most cases the increment
-    ///  should be O(1)
+    ///  should be O(1). Eitherways, run does not iterate
+    ///  through systems but rather ISystem* interfaces.
+    ///  The only two places we iterate over this is during
+    ///  reset and TotalByEntity in the tests.
     template<typename T>
     class SystemContainer
     {
@@ -116,7 +119,7 @@ namespace gz
         explicit iterator(SystemContainer<T>* parent, std::size_t _num = 0) :
           num(_num), parent(parent)
         {
-        
+
         }
         iterator& operator++() {
           // O(n) for now
@@ -145,9 +148,8 @@ namespace gz
 
         if (lastIdx == 0)
         {
-          return iterator(this); 
+          return iterator(this);
         }
-        
 
         while(!this->occupied[lastIdx-1] && lastIdx != 0)
         {
