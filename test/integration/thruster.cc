@@ -211,6 +211,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   // Check no movement because of invalid commands
   fixture.Server()->Run(true, 100, false);
+  ASSERT_FALSE(modelPoses.Pos().X().empty())
   EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
