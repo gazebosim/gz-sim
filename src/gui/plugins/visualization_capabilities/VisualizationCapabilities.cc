@@ -39,6 +39,7 @@
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/SubMesh.hh>
 #include <gz/common/Uuid.hh>
 
 #include <gz/gui/Application.hh>
@@ -1245,6 +1246,49 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     gz::common::MeshManager *meshManager =
         gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
+
+    common::Mesh newMesh;
+    if (_geom.MeshShape()->Simplification() == "convex_decomposition")
+    {
+      gzdbg << "Simplifying mesh: " << descriptor.mesh->Name() << std::endl;
+      for (unsigned int submeshIdx = 0;
+           submeshIdx < descriptor.mesh->SubMeshCount();
+           ++submeshIdx)
+      {
+        auto s = descriptor.mesh->SubMeshByIndex(submeshIdx).lock();
+
+        // check if a particular submesh is requested
+        if (!descriptor.subMeshName.empty() &&
+            s->Name() != descriptor.subMeshName)
+        {
+          continue;
+        }
+
+        // center the submesh if needed
+        if (descriptor.centerSubMesh)
+          s->Center(math::Vector3d::Zero);
+
+        // convex decomposition
+        auto decomposed = meshManager->ConvexDecomposition(s.get());
+        if (!decomposed.empty())
+        {
+          for (std::size_t n = 0; n < decomposed.size(); ++n)
+          {
+            newMesh.AddSubMesh(decomposed[n]);
+          }
+        }
+      }
+      if (newMesh.SubMeshCount() > 0u)
+      {
+        descriptor.mesh = &newMesh;
+        // if submesh is requested, we handled this above before mesh
+        // decomposition so we do not need need to pass these flags to
+        // gz-rendering
+        descriptor.subMeshName = "";
+        descriptor.centerSubMesh = false;
+      }
+    }
+
     geom = this->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
