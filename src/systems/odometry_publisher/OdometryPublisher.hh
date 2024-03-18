@@ -76,6 +76,13 @@ namespace systems
   /// - `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
   /// to pose and twist messages. This element is optional, and the default
   /// value is 0.
+  ///
+  /// ## Components
+  ///
+  /// This system uses the following components:
+  ///
+  /// - gz::sim::components::Pose: Pose represented by gz::math::Pose3d. Used
+  ///   to calculate the odometry to publish.
   class OdometryPublisher
       : public System,
         public ISystemConfigure,
