@@ -243,7 +243,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   // Check movement
   if (_namespace != "lowbattery")
-  {
+  { 
+    ASSERT_FALSE(modelPoses.Pos().X().empty())
     for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
         ++sleep)
     {
