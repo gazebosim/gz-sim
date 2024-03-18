@@ -12,7 +12,7 @@ TEST(SystemContainer, InsertionAndIteration)
   cont.Push(1);
   cont.Push(2);
   cont.Push(3);
-  
+
   int idx = 0;
   for (auto &i: cont)
   {
@@ -25,7 +25,7 @@ TEST(SystemContainer, InsertionAndIteration)
   });
 
   auto newCount = 0;
-  std::unordered_set<int> vals; 
+  std::unordered_set<int> vals;
   for (auto &i: cont)
   {
     newCount++;
@@ -35,7 +35,7 @@ TEST(SystemContainer, InsertionAndIteration)
   ASSERT_TRUE(vals.count(1) && vals.count(3));
   ASSERT_EQ(vals.size(), 2);
 
-  std::unordered_set<int> finalVals; 
+  std::unordered_set<int> finalVals;
   cont.Push(2);
   for (auto &i: cont)
   {
