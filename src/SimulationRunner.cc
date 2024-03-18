@@ -575,7 +575,7 @@ void SimulationRunner::ProcessSystemQueue()
             if (terminate->second == 0) {
               this->threadsToTerminate.erase(terminate);
             }
-            gzerr << "Terminating thread " << id << ", " << parentEntity <<"\n";
+            gzdbg << "Terminating thread " << id << ", " << parentEntity <<"\n";
             this->postUpdateStartBarrier->Drop();
             this->postUpdateStopBarrier->Wait();
             this->postUpdateStopBarrier->Drop();
@@ -586,7 +586,7 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStopBarrier->Wait();
       }
 
-      gzerr << "Exiting postupdate worker thread ("
+      gzdbg << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
     id++;

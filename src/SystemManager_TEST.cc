@@ -215,6 +215,72 @@ TEST(SystemManager, AddSystemEcm)
 }
 
 /////////////////////////////////////////////////
+TEST(SystemManager, AddAndRemoveSystemEcm)
+{
+  auto loader = std::make_shared<SystemLoader>();
+
+  auto ecm = EntityComponentManager();
+  auto eventManager = EventManager();
+
+  auto paramRegistry = std::make_unique<
+    gz::transport::parameters::ParametersRegistry>("SystemManager_TEST");
+  SystemManager systemMgr(
+    loader, &ecm, &eventManager, std::string(), paramRegistry.get());
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(0u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  auto configSystem = std::make_shared<SystemWithConfigure>();
+  systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+
+  auto entity = ecm.CreateEntity();
+
+  auto updateSystemWithChild = std::make_shared<SystemWithUpdates>();
+  systemMgr.AddSystem(updateSystemWithChild, entity, nullptr);
+
+  // Configure called during AddSystem
+  EXPECT_EQ(1, configSystem->configured);
+  EXPECT_EQ(1, configSystem->configuredParameters);
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(2u, systemMgr.PendingCount());
+  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  systemMgr.ActivatePendingSystems();
+  EXPECT_EQ(2u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
+
+  // Remove the entity
+  ecm.RequestRemoveEntity(entity);
+  std::unordered_map<Entity, std::size_t> entities_to_remove;
+  systemMgr.ProcessRemovedEntities(ecm, entities_to_remove);
+
+  EXPECT_EQ(entities_to_remove.size(), 1);
+  EXPECT_EQ(entities_to_remove[entity], 1);
+  EXPECT_EQ(1u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(1u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+}
+
+/////////////////////////////////////////////////
 TEST(SystemManager, AddSystemWithInfo)
 {
   auto loader = std::make_shared<SystemLoader>();

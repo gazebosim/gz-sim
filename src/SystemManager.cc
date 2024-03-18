@@ -465,6 +465,10 @@ void SystemManager::ProcessRemovedEntities(
   const EntityComponentManager &_ecm,
   std::unordered_map<Entity, std::size_t> &_threadsToTerminate)
 {
+  // Note: This function has  O(n) time when an entity is removed
+  // where n is number of systems. Ideally we would only iterate
+  // over entities marked for removal but that would involve having
+  // a key value map. This can be marked as a future improvement.
   if (!_ecm.HasEntitiesMarkedForRemoval())
   {
     return;
@@ -492,7 +496,6 @@ void SystemManager::ProcessRemovedEntities(
         } else {
           threads->second++;
         }
-        gzerr << "Terminating system for" << system.parent <<"\n";
         return true;
       }
       return false;
@@ -509,7 +512,7 @@ void SystemManager::ProcessRemovedEntities(
   this->systems.RemoveIf([&](const SystemInternal& system) {
       return _ecm.IsMarkedForRemoval(system.parentEntity);
     });
-  
+
   std::lock_guard lock(this->pendingSystemsMutex);
   RemoveFromVectorIf(this->pendingSystems,
     [&](const SystemInternal& system) {

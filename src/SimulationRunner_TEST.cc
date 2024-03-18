@@ -16,7 +16,6 @@
 */
 
 #include <gtest/gtest.h>
-
 #include <tinyxml2.h>
 
 #include <gz/msgs/clock.pb.h>
@@ -110,7 +109,6 @@ void rootClockCb(const msgs::Clock &_msg)
 {
   rootClockMsgs.push_back(_msg);
 }
-
 
 /////////////////////////////////////////////////
 TEST_P(SimulationRunnerTest, CreateEntities)
@@ -1532,8 +1530,16 @@ TEST_P(SimulationRunnerTest,
   SimulationRunner runner(rootWithout.WorldByIndex(0), systemLoader,
       serverConfig);
 
-  // 1 model plugin from SDF and 2 world plugins from config
-  ASSERT_EQ(3u, runner.SystemCount());
+  // 1 model plugin from SDF and 1 world plugin from config
+  // and 1 model plugin from theconfig
+  EXPECT_EQ(3u, runner.SystemCount());
+  runner.SetPaused(false);
+  runner.Run(1);
+
+  //Remove the model. Only 1 world plugin should remain.
+  EXPECT_TRUE(runner.RequestRemoveEntity("box"));
+  runner.Run(2);
+  EXPECT_EQ(1u, runner.SystemCount());
 }
 
 /////////////////////////////////////////////////
