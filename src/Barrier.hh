@@ -81,6 +81,10 @@ namespace gz
       /// reflect that.
       public: ExitStatus Wait();
 
+      /// \brief Similar to C++20's std::barrier::await_and_drop
+      /// decrements both the initial expected count for subsequent phases and
+      /// the expected count for current phase by one. Unlike C++20, this
+      /// does not wait.
       public: void Drop();
 
       /// \brief Cancel the barrier, causing all threads to unblock and
