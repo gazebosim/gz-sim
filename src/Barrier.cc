@@ -16,6 +16,9 @@
  */
 
 #include "Barrier.hh"
+#include <cinttypes>
+#include <thread>
+#include <iostream>
 
 class gz::sim::BarrierPrivate
 {
@@ -102,6 +105,11 @@ void Barrier::Drop()
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->threadCount--;
-  this->dataPtr->count--;
-  this->dataPtr->cv.notify_all();
+  if (--this->dataPtr->count == 0)
+  {
+    // All threads have reached the wait, so reset the barrier.
+    this->dataPtr->generation++;
+    this->dataPtr->count = this->dataPtr->threadCount;
+    this->dataPtr->cv.notify_all();
+  }
 }
