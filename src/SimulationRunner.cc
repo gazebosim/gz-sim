@@ -577,7 +577,6 @@ void SimulationRunner::ProcessSystemQueue()
             }
             gzdbg << "Terminating thread " << id << ", " << parentEntity <<"\n";
             this->postUpdateStartBarrier->Drop();
-            this->postUpdateStopBarrier->Wait();
             this->postUpdateStopBarrier->Drop();
             break;
           }
