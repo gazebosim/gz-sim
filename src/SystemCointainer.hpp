@@ -101,10 +101,6 @@ namespace gz
 
       private: std::vector<std::size_t> freeSpots;
 
-      /// Simulates a linked list.
-      /// TODO(arjoc) use this to build a cache.
-      //private: std::vector<std::optional<std::size_t>> nextPtr, prevPtr;
-
       //////////////////////////////////////////
       class iterator : public std::iterator<
                                 std::input_iterator_tag, // iterator_category
@@ -116,8 +112,8 @@ namespace gz
         std::size_t num;
         SystemContainer<T>* parent;
       public:
-        explicit iterator(SystemContainer<T>* parent, std::size_t _num = 0) :
-          num(_num), parent(parent)
+        explicit iterator(SystemContainer<T>* _parent, std::size_t _num = 0) :
+          num(_num), parent(_parent)
         {
 
         }
