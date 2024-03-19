@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <mutex>
 #include <thread>
 
 #include "Barrier.hh"
@@ -173,4 +174,78 @@ TEST(Barrier, Cancel)
   }
 
   t.join();
+}
+
+
+//////////////////////////////////////////////////
+TEST(Barrier, Drop)
+{
+  auto barrier = std::make_unique<sim::Barrier>(3);
+
+  unsigned int preBarrier { 0 };
+  unsigned int postBarrier { 0 };
+
+
+  std::mutex mutex;
+  std::condition_variable cv;
+
+  auto t1 = std::thread([&]()
+  {
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      preBarrier++;
+      cv.notify_one();
+    }
+
+    barrier->Wait();
+
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      postBarrier++;
+      cv.notify_one();
+    }
+    barrier->Wait();
+
+  });
+
+  auto t2 = std::thread([&]()
+  {
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      preBarrier++;
+      cv.notify_one();
+    }
+
+    barrier->Drop();
+
+  });
+
+
+  barrier->Wait();
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(1000),
+      [&]()
+      {
+        return preBarrier == 2;
+      });
+    ASSERT_TRUE(ret);
+  }
+  EXPECT_EQ(preBarrier, 2);
+  // t2 should terminate.
+  t2.join();
+
+
+  barrier->Wait();
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto ret = cv.wait_for(lock, std::chrono::milliseconds(1000),
+      [&]()
+      {
+        return postBarrier == 1;
+      });
+    ASSERT_TRUE(ret);
+  }
+  EXPECT_EQ(postBarrier, 1);
+  t1.join();
 }

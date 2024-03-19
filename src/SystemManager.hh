@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <sdf/Plugin.hh>
@@ -32,6 +33,7 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
+#include "SystemCointainer.hpp"
 #include "SystemInternal.hh"
 
 namespace gz
@@ -40,6 +42,21 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
+
+    /// \brief Helper container to keep track of
+    /// system interfaces and their parents
+    template<typename IFace>
+    struct SystemHolder {
+      /// Parent entity of system
+      Entity parent;
+
+      /// Interface pointer
+      IFace* system;
+
+      /// \brief constructor
+      SystemHolder(Entity _parent, IFace* _iface):
+        parent(_parent), system(_iface) {}
+    };
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
@@ -114,29 +131,32 @@ namespace gz
 
       /// \brief Get a vector of all systems implementing "Configure"
       /// \return Vector of systems' configure interfaces.
-      public: const std::vector<ISystemConfigure *>& SystemsConfigure();
+      public: const std::vector<SystemHolder<ISystemConfigure>>&
+        SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing
       ///   "ConfigureParameters"
       /// \return Vector of systems's configure interfaces.
-      public: const std::vector<ISystemConfigureParameters *>&
-      SystemsConfigureParameters();
+      public: const std::vector<SystemHolder<ISystemConfigureParameters>>&
+        SystemsConfigureParameters();
 
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
-      public: const std::vector<ISystemReset *>& SystemsReset();
+      public: const std::vector<SystemHolder<ISystemReset>>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
-      public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
+      public: const std::vector<SystemHolder<ISystemPreUpdate>>&
+        SystemsPreUpdate();
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
-      public: const std::vector<ISystemUpdate *>& SystemsUpdate();
+      public: const std::vector<SystemHolder<ISystemUpdate>>& SystemsUpdate();
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
-      public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
+      public: const std::vector<SystemHolder<ISystemPostUpdate>>&
+        SystemsPostUpdate();
 
       /// \brief Get an vector of all systems attached to a given entity.
       /// \return Vector of systems.
@@ -144,6 +164,12 @@ namespace gz
 
       /// \brief Process system messages and add systems to entities
       public: void ProcessPendingEntitySystems();
+
+      /// \brief Remove systems that are attached to removed entities
+      /// \param[in] _entityCompMgr - ECM with entities marked for removal
+      public: void ProcessRemovedEntities(
+        const EntityComponentManager &_entityCompMgr,
+        std::unordered_map<Entity, std::size_t> &_threadsToTerminate);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
@@ -178,7 +204,7 @@ namespace gz
                                             msgs::EntityPlugin_V &_res);
 
       /// \brief All the systems.
-      private: std::vector<SystemInternal> systems;
+      private: SystemContainer<SystemInternal> systems;
 
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemInternal> pendingSystems;
@@ -187,23 +213,23 @@ namespace gz
       private: mutable std::mutex pendingSystemsMutex;
 
       /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure *> systemsConfigure;
+      private: std::vector<SystemHolder<ISystemConfigure>> systemsConfigure;
 
       /// \brief Systems implementing ConfigureParameters
-      private: std::vector<ISystemConfigureParameters *>
+      private: std::vector<SystemHolder<ISystemConfigureParameters>>
         systemsConfigureParameters;
 
       /// \brief Systems implementing Reset
-      private: std::vector<ISystemReset *> systemsReset;
+      private: std::vector<SystemHolder<ISystemReset>> systemsReset;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
+      private: std::vector<SystemHolder<ISystemPreUpdate>> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
+      private: std::vector<SystemHolder<ISystemUpdate>> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+      private: std::vector<SystemHolder<ISystemPostUpdate>> systemsPostupdate;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;

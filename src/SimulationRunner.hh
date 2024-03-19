@@ -543,6 +543,9 @@ namespace gz
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+
+      private: std::unordered_map<Entity, std::size_t> threadsToTerminate;
+
       private: bool resetInitiated{false};
       friend class LevelManager;
     };
