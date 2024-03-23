@@ -1245,7 +1245,14 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     gz::common::MeshManager *meshManager =
         gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
-    geom = this->scene->CreateMesh(descriptor);
+    if (descriptor.mesh)
+    {
+      geom = this->scene->CreateMesh(descriptor);
+    }
+    else
+    {
+      gzerr << "Failed to load mesh: " << descriptor.meshName << std::endl;
+    }
     scale = _geom.MeshShape()->Scale();
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
