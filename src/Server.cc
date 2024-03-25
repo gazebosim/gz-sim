@@ -182,6 +182,14 @@ Server::Server(const ServerConfig &_config)
     return;
   }
 
+  if (this->dataPtr->sdfRoot.WorldCount() == 0)
+  {
+    ignerr << "SDF file doesn't contain a world. " <<
+      "If you wish to spawn a model, use the ResourceSpawner GUI plugin " <<
+      "or the 'world/<world_name>/create' service.\n";
+    return;
+  }
+
   // Add record plugin
   if (_config.UseLogRecord())
   {

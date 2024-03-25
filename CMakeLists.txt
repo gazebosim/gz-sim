@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(ignition-gazebo3 VERSION 3.15.0)
+project(ignition-gazebo3 VERSION 3.15.1)
 set (GZ_DISTRIBUTION "Citadel")
 
 #============================================================================
@@ -146,9 +146,7 @@ set(IGN_TOOLS_VER 1)
 
 #--------------------------------------
 # Find protobuf
-set(REQ_PROTOBUF_VER 3)
 ign_find_package(IgnProtobuf
-                 VERSION ${REQ_PROTOBUF_VER}
                  REQUIRED
                  COMPONENTS all
                  PRETTY Protobuf)
