@@ -75,12 +75,8 @@ namespace gz
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
-      /// \brief Add logging record plugin.
-      /// \param[in] _config Server configuration parameters.
-      public: void AddRecordPlugin(const ServerConfig &_config);
-
-      /// \brief Create all entities that exist in the sdf::Root object.
-      public: void CreateEntities();
+      /// \brief Create the simulation runners, one for each world.
+      public: void CreateSimulationRunners();
 
       /// \brief Stop server.
       public: void Stop();
@@ -99,6 +95,21 @@ namespace gz
       /// \param[in] _uri The resource URI to fetch.
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
+
+
+      /// \brief Helper function that loads an SDF root object based on
+      /// values in a ServerConfig object.
+      /// \param[in] _config Server config to read from.
+      /// \param[out] _root SDF root object.
+      /// \param[out] _outputMsgs Informational output strings.
+      /// \return Set of SDF errors.
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config,
+                  sdf::Root &_root, std::string &_outputMsgs);
+
+      /// \brief Download simulation assets.
+      /// \param[in] _config Server configuration parameters. This function
+      /// will block if _config.WaitForAssets() is true.
+      public: void DownloadAssets(const ServerConfig &_config);
 
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
@@ -187,6 +198,12 @@ namespace gz
       /// \brief Map from file paths to fuel URIs. This is set and updated by
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
+
+      /// \brief Used to set whether models should be downloaded from Fuel.
+      public: bool enableDownload = false;
+
+      /// \brief Thread used to download models in the background.
+      public: std::thread downloadThread;
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
