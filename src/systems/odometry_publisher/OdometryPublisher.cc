@@ -115,12 +115,6 @@ public:
   std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
   linearMean;
 
-  /// \brief Rolling mean accumulators for the angular velocity
-
-public:
-  std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
-  angularMean;
-
   /// \brief Initialized flag.
 
 public:
@@ -153,18 +147,12 @@ OdometryPublisher::OdometryPublisher()
 {
   std::get<0>(this->dataPtr->linearMean).SetWindowSize(10);
   std::get<1>(this->dataPtr->linearMean).SetWindowSize(10);
-  std::get<2>(this->dataPtr->angularMean).SetWindowSize(10);
   std::get<0>(this->dataPtr->linearMean).Clear();
   std::get<1>(this->dataPtr->linearMean).Clear();
-  std::get<2>(this->dataPtr->angularMean).Clear();
 
   if (this->dataPtr->dimensions == 3) {
     std::get<2>(this->dataPtr->linearMean).SetWindowSize(10);
-    std::get<0>(this->dataPtr->angularMean).SetWindowSize(10);
-    std::get<1>(this->dataPtr->angularMean).SetWindowSize(10);
     std::get<2>(this->dataPtr->linearMean).Clear();
-    std::get<0>(this->dataPtr->angularMean).Clear();
-    std::get<1>(this->dataPtr->angularMean).Clear();
   }
 }
 
