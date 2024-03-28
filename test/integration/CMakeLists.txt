@@ -49,6 +49,7 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   material.cc
+  mecanum_drive_system.cc
   mesh_inertia_calculation.cc
   model.cc
   model_photo_shoot_default_joints.cc
