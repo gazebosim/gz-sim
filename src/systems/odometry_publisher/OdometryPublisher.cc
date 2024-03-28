@@ -374,8 +374,11 @@ void OdometryPublisherPrivate::UpdateOdometry(
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
   double currentYaw = pose.Rot().Yaw();
-
-  const math::Quaterniond rotationDiff = pose.Rot() * this->lastUpdatePose.Rot().Inverse();
+  // calculate rotation difference using the rotation as quaternion between
+  // the current and previous timestep
+  const math::Quaterniond rotationDiff = pose.Rot() *
+    this->lastUpdatePose.Rot().Inverse();
+  // calculate the angular velocity from the euler vector (radians) and dt
   const math::Vector3d angularVelocity = rotationDiff.Euler() / dt.count();
 
   // Get velocities assuming 2D
@@ -403,7 +406,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
   // Get velocities and roll/pitch rates assuming 3D
-  else if (this->dimensions == 3) {
+  if (this->dimensions == 3) {
 
     double linearDisplacementZ =
       pose.Pos().Z() - this->lastUpdatePose.Pos().Z();
