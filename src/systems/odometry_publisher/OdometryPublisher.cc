@@ -414,8 +414,6 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->linearMean).Push(linearVelocity.X());
     std::get<1>(this->linearMean).Push(linearVelocity.Y());
     std::get<2>(this->linearMean).Push(linearVelocity.Z());
-    // std::get<0>(this->angularMean).Push(rollDiff / dt.count());
-    // std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
@@ -434,7 +432,6 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 
   // Set yaw rate
-  // std::get<2>(this->angularMean).Push(yawDiff / dt.count());
   msg.mutable_twist()->mutable_angular()->set_z(
     angularVelocity.Z() +
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
