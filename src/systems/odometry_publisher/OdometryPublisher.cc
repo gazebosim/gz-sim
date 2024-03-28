@@ -40,6 +40,7 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/AngularVelocity.hh"
 
 using namespace gz;
 using namespace sim;
@@ -373,11 +374,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
   double currentYaw = pose.Rot().Yaw();
-  const double lastYaw = this->lastUpdatePose.Rot().Yaw();
-  const double yawDiff =
-    atan2(
-    sin(currentYaw - lastYaw),
-    cos(currentYaw - lastYaw));
+
+  const math::Quaterniond rotationDiff = pose.Rot() * this->lastUpdatePose.Rot().Inverse();
+  const math::Vector3d angularVelocity = rotationDiff.Euler() / dt.count();
 
   // Get velocities assuming 2D
   if (this->dimensions == 2) {
@@ -405,15 +404,6 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
   // Get velocities and roll/pitch rates assuming 3D
   else if (this->dimensions == 3) {
-    const double rollDiff =
-      atan2(
-      sin(pose.Rot().Roll() - this->lastUpdatePose.Rot().Roll()),
-      cos(pose.Rot().Roll() - this->lastUpdatePose.Rot().Roll()));
-
-    const double pitchDiff =
-      atan2(
-      sin(pose.Rot().Pitch() - this->lastUpdatePose.Rot().Pitch()),
-      cos(pose.Rot().Pitch() - this->lastUpdatePose.Rot().Pitch()));
 
     double linearDisplacementZ =
       pose.Pos().Z() - this->lastUpdatePose.Pos().Z();
@@ -424,8 +414,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->linearMean).Push(linearVelocity.X());
     std::get<1>(this->linearMean).Push(linearVelocity.Y());
     std::get<2>(this->linearMean).Push(linearVelocity.Z());
-    std::get<0>(this->angularMean).Push(rollDiff / dt.count());
-    std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
+    // std::get<0>(this->angularMean).Push(rollDiff / dt.count());
+    // std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
@@ -436,17 +426,17 @@ void OdometryPublisherPrivate::UpdateOdometry(
       std::get<2>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_x(
-      std::get<0>(this->angularMean).Mean() +
+      angularVelocity.X() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
-      std::get<1>(this->angularMean).Mean() +
+      angularVelocity.Y() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
 
   // Set yaw rate
-  std::get<2>(this->angularMean).Push(yawDiff / dt.count());
+  // std::get<2>(this->angularMean).Push(yawDiff / dt.count());
   msg.mutable_twist()->mutable_angular()->set_z(
-    std::get<2>(this->angularMean).Mean() +
+    angularVelocity.Z() +
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
