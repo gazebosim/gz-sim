@@ -22,6 +22,12 @@
 #include <gz/msgs/odometry_with_covariance.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 
+#include <limits>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
 #include <gz/common/Profiler.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
@@ -30,17 +36,11 @@
 #include <gz/math/RollingMean.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
-#include <limits>
-#include <string>
-#include <tuple>
-#include <utility>
-#include <vector>
 
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
-#include "gz/sim/components/JointPosition.hh"
-#include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/AngularVelocity.hh"
 
 using namespace gz;
 using namespace sim;
@@ -52,170 +52,153 @@ class gz::sim::systems::OdometryPublisherPrivate
   /// \param[in] _info System update information.
   /// \param[in] _ecm The EntityComponentManager of the given simulation
   /// instance.
-
-public:
-  void UpdateOdometry(
-    const gz::sim::UpdateInfo & _info,
-    const gz::sim::EntityComponentManager & _ecm);
+  public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Gazebo communication node.
-
-public:
-  transport::Node node;
+  public: transport::Node node;
 
   /// \brief Model interface
-
-public:
-  Model model{kNullEntity};
+  public: Model model{kNullEntity};
 
   /// \brief Name of the world-fixed coordinate frame for the odometry message.
-
-public:
-  std::string odomFrame;
+  public: std::string odomFrame;
 
   /// \brief Name of the coordinate frame rigidly attached to the mobile
   /// robot base.
-
-public:
-  std::string robotBaseFrame;
+  public: std::string robotBaseFrame;
 
   /// \brief Number of dimensions to represent odometry.
-
-public:
-  int dimensions;
+  public: int dimensions;
 
   /// \brief Update period calculated from <odom__publish_frequency>.
-
-public:
-  std::chrono::steady_clock::duration odomPubPeriod{0};
+  public: std::chrono::steady_clock::duration odomPubPeriod{0};
 
   /// \brief Last sim time odom was published.
-
-public:
-  std::chrono::steady_clock::duration lastOdomPubTime{0};
+  public: std::chrono::steady_clock::duration lastOdomPubTime{0};
 
   /// \brief Odometry message publisher.
-
-public:
-  transport::Node::Publisher odomPub;
+  public: transport::Node::Publisher odomPub;
 
   /// \brief Odometry with covariance message publisher.
-
-public:
-  transport::Node::Publisher odomCovPub;
+  public: transport::Node::Publisher odomCovPub;
 
   /// \brief Pose vector (TF) message publisher.
-
-public:
-  transport::Node::Publisher tfPub;
+  public: transport::Node::Publisher tfPub;
 
   /// \brief Rolling mean accumulators for the linear velocity
-
-public:
-  std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
-  linearMean;
+  public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
+    linearMean;
 
   /// \brief Initialized flag.
-
-public:
-  bool initialized{false};
+  public: bool initialized{false};
 
   /// \brief Current pose of the model in the odom frame.
-
-public:
-  math::Pose3d lastUpdatePose{0, 0, 0, 0, 0, 0};
+  public: math::Pose3d lastUpdatePose{0, 0, 0, 0, 0, 0};
 
   /// \brief Current timestamp.
-
-public:
-  std::chrono::steady_clock::time_point lastUpdateTime;
+  public: std::chrono::steady_clock::time_point lastUpdateTime;
 
   /// \brief Allow specifying constant xyz and rpy offsets
-
-public:
-  gz::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
+  public: gz::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 
   /// \brief Gaussian noise
-
-public:
-  double gaussianNoise = 0.0;
+  public: double gaussianNoise = 0.0;
 };
 
 //////////////////////////////////////////////////
 OdometryPublisher::OdometryPublisher()
-: dataPtr(std::make_unique<OdometryPublisherPrivate>())
+  : dataPtr(std::make_unique<OdometryPublisherPrivate>())
 {
   std::get<0>(this->dataPtr->linearMean).SetWindowSize(10);
   std::get<1>(this->dataPtr->linearMean).SetWindowSize(10);
   std::get<0>(this->dataPtr->linearMean).Clear();
   std::get<1>(this->dataPtr->linearMean).Clear();
 
-  if (this->dataPtr->dimensions == 3) {
+  if (this->dataPtr->dimensions == 3)
+  {
     std::get<2>(this->dataPtr->linearMean).SetWindowSize(10);
     std::get<2>(this->dataPtr->linearMean).Clear();
   }
 }
 
 //////////////////////////////////////////////////
-void OdometryPublisher::Configure(
-  const Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
-  EntityComponentManager & _ecm, EventManager & /*_eventMgr*/)
+void OdometryPublisher::Configure(const Entity &_entity,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &_ecm,
+    EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
 
-  if (!this->dataPtr->model.Valid(_ecm)) {
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
     gzerr << "OdometryPublisher system plugin should be attached to a model"
-          << " entity. Failed to initialize." << std::endl;
+           << " entity. Failed to initialize." << std::endl;
     return;
   }
 
   this->dataPtr->odomFrame = this->dataPtr->model.Name(_ecm) + "/" + "odom";
-  if (!_sdf->HasElement("odom_frame")) {
+  if (!_sdf->HasElement("odom_frame"))
+  {
     gzdbg << "OdometryPublisher system plugin missing <odom_frame>, "
-          << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
-  } else {
+      << "defaults to \"" << this->dataPtr->odomFrame << "\"" << std::endl;
+  }
+  else
+  {
     this->dataPtr->odomFrame = _sdf->Get<std::string>("odom_frame");
   }
 
-  if (_sdf->HasElement("xyz_offset")) {
-    this->dataPtr->offset.Pos() = _sdf->Get<gz::math::Vector3d>("xyz_offset");
+  if (_sdf->HasElement("xyz_offset"))
+  {
+    this->dataPtr->offset.Pos() = _sdf->Get<gz::math::Vector3d>(
+      "xyz_offset");
   }
 
-  if (_sdf->HasElement("rpy_offset")) {
+  if (_sdf->HasElement("rpy_offset"))
+  {
     this->dataPtr->offset.Rot() =
-      gz::math::Quaterniond(_sdf->Get<gz::math::Vector3d>("rpy_offset"));
+      gz::math::Quaterniond(_sdf->Get<gz::math::Vector3d>(
+        "rpy_offset"));
   }
 
-  if (_sdf->HasElement("gaussian_noise")) {
+  if (_sdf->HasElement("gaussian_noise"))
+  {
     this->dataPtr->gaussianNoise = _sdf->Get<double>("gaussian_noise");
   }
 
-  this->dataPtr->robotBaseFrame =
-    this->dataPtr->model.Name(_ecm) + "/" + "base_footprint";
-  if (!_sdf->HasElement("robot_base_frame")) {
+  this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
+    + "/" + "base_footprint";
+  if (!_sdf->HasElement("robot_base_frame"))
+  {
     gzdbg << "OdometryPublisher system plugin missing <robot_base_frame>, "
-          << "defaults to \"" << this->dataPtr->robotBaseFrame << "\""
-          << std::endl;
-  } else {
+      << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
+  }
+  else
+  {
     this->dataPtr->robotBaseFrame = _sdf->Get<std::string>("robot_base_frame");
   }
 
   this->dataPtr->dimensions = 2;
-  if (!_sdf->HasElement("dimensions")) {
+  if (!_sdf->HasElement("dimensions"))
+  {
     gzdbg << "OdometryPublisher system plugin missing <dimensions>, "
-          << "defaults to \"" << this->dataPtr->dimensions << "\"" << std::endl;
-  } else {
+      << "defaults to \"" << this->dataPtr->dimensions << "\"" << std::endl;
+  }
+  else
+  {
     this->dataPtr->dimensions = _sdf->Get<int>("dimensions");
-    if (this->dataPtr->dimensions != 2 && this->dataPtr->dimensions != 3) {
+    if (this->dataPtr->dimensions != 2 && this->dataPtr->dimensions != 3)
+    {
       gzerr << "OdometryPublisher system plugin <dimensions> must be 2D or 3D "
-            << "not " << this->dataPtr->dimensions << "D. Failed to initialize."
-            << std::endl;
+             << "not " << this->dataPtr->dimensions
+             << "D. Failed to initialize." << std::endl;
       return;
     }
   }
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
-  if (odomFreq > 0) {
+  if (odomFreq > 0)
+  {
     std::chrono::duration<double> period{1 / odomFreq};
     this->dataPtr->odomPubPeriod =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
@@ -227,66 +210,73 @@ void OdometryPublisher::Configure(
   std::string odomCovTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/odometry_with_covariance"};
 
-  if (_sdf->HasElement("odom_topic")) {
+  if (_sdf->HasElement("odom_topic"))
     odomTopic = _sdf->Get<std::string>("odom_topic");
-  }
-  if (_sdf->HasElement("odom_covariance_topic")) {
+  if (_sdf->HasElement("odom_covariance_topic"))
     odomCovTopic = _sdf->Get<std::string>("odom_covariance_topic");
-  }
 
-  std::string odomTopicValid{transport::TopicUtils::AsValidTopic(odomTopic)};
-  if (odomTopicValid.empty()) {
-    gzerr << "Failed to generate odom topic [" << odomTopic << "]" << std::endl;
-  } else {
-    this->dataPtr->odomPub =
-      this->dataPtr->node.Advertise<msgs::Odometry>(odomTopicValid);
+  std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
+  if (odomTopicValid.empty())
+  {
+    gzerr << "Failed to generate odom topic ["
+           << odomTopic << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+        odomTopicValid);
     gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
-          << "]" << std::endl;
+           << "]" << std::endl;
   }
 
-  std::string odomCovTopicValid{
+  std::string odomCovTopicValid {
     transport::TopicUtils::AsValidTopic(odomCovTopic)};
-  if (odomCovTopicValid.empty()) {
-    gzerr << "Failed to generate odom topic [" << odomCovTopic << "]"
-          << std::endl;
-  } else {
-    this->dataPtr->odomCovPub =
-      this->dataPtr->node.Advertise<msgs::OdometryWithCovariance>(
-      odomCovTopicValid);
+  if (odomCovTopicValid.empty())
+  {
+    gzerr << "Failed to generate odom topic ["
+           << odomCovTopic << "]" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
+        msgs::OdometryWithCovariance>(odomCovTopicValid);
     gzmsg << "OdometryPublisher publishing odometry with covariance on ["
-          << odomCovTopicValid << "]" << std::endl;
+           << odomCovTopicValid << "]" << std::endl;
   }
 
   std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/pose"};
-  if (_sdf->HasElement("tf_topic")) {
+  if (_sdf->HasElement("tf_topic"))
     tfTopic = _sdf->Get<std::string>("tf_topic");
-  }
-  std::string tfTopicValid{transport::TopicUtils::AsValidTopic(tfTopic)};
-  if (tfTopicValid.empty()) {
+  std::string tfTopicValid {transport::TopicUtils::AsValidTopic(tfTopic)};
+  if (tfTopicValid.empty())
+  {
     gzerr << "Failed to generate valid TF topic from [" << tfTopic << "]"
-          << std::endl;
-  } else {
-    this->dataPtr->tfPub =
-      this->dataPtr->node.Advertise<msgs::Pose_V>(tfTopicValid);
-    gzmsg << "OdometryPublisher publishing Pose_V (TF) on [" << tfTopicValid
-          << "]" << std::endl;
+           << std::endl;
+  }
+  else
+  {
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+        tfTopicValid);
+    gzmsg << "OdometryPublisher publishing Pose_V (TF) on ["
+           << tfTopicValid << "]" << std::endl;
   }
 }
 
 //////////////////////////////////////////////////
-void OdometryPublisher::PreUpdate(
-  const gz::sim::UpdateInfo & _info,
-  gz::sim::EntityComponentManager & _ecm)
+void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::PreUpdate");
 
   // \TODO(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
-  if (kNullEntity == this->dataPtr->model.Entity()) {
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
     return;
   }
 
-  if (!this->dataPtr->model.Valid(_ecm)) {
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
     gzwarn << "OdometryPublisher model no longer valid. "
            << "Disabling plugin." << std::endl;
     this->dataPtr->model = Model(kNullEntity);
@@ -294,46 +284,53 @@ void OdometryPublisher::PreUpdate(
   }
 
   // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero()) {
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
     gzwarn << "Detected jump back in time ["
-           << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-           << "s]. System may not work properly." << std::endl;
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
   }
 
   // Create the pose component if it does not exist.
-  auto pos = _ecm.Component<components::Pose>(this->dataPtr->model.Entity());
-  if (!pos) {
-    _ecm.CreateComponent(this->dataPtr->model.Entity(), components::Pose());
+  auto pos = _ecm.Component<components::Pose>(
+      this->dataPtr->model.Entity());
+  if (!pos)
+  {
+    _ecm.CreateComponent(this->dataPtr->model.Entity(),
+        components::Pose());
   }
 }
 
 //////////////////////////////////////////////////
-void OdometryPublisher::PostUpdate(
-  const UpdateInfo & _info,
-  const EntityComponentManager & _ecm)
+void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
+    const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::PostUpdate");
 
   // \TODO(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
-  if (kNullEntity == this->dataPtr->model.Entity()) {
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
     return;
   }
 
+
   // Nothing left to do if paused.
-  if (_info.paused) {return;}
+  if (_info.paused)
+    return;
 
   this->dataPtr->UpdateOdometry(_info, _ecm);
 }
 
 //////////////////////////////////////////////////
 void OdometryPublisherPrivate::UpdateOdometry(
-  const gz::sim::UpdateInfo & _info,
-  const gz::sim::EntityComponentManager & _ecm)
+    const gz::sim::UpdateInfo &_info,
+    const gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::UpdateOdometry");
   // Record start time.
-  if (!this->initialized) {
+  if (!this->initialized)
+  {
     this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
     this->initialized = true;
     return;
@@ -346,7 +343,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
   // We cannot estimate the speed if the time interval is zero (or near
   // zero).
-  if (math::equal(0.0, dt.count())) {return;}
+  if (math::equal(0.0, dt.count()))
+    return;
 
   // Get and set robotBaseFrame to odom transformation.
   const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
@@ -354,13 +352,15 @@ void OdometryPublisherPrivate::UpdateOdometry(
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
   msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());
-  if (this->dimensions == 3) {
+  if (this->dimensions == 3)
+  {
     msg.mutable_pose()->mutable_position()->set_z(pose.Pos().Z());
   }
 
   // Get linear and angular displacements from last updated pose.
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
+
   double currentYaw = pose.Rot().Yaw();
   // calculate rotation difference using the rotation as quaternion between
   // the current and previous timestep
@@ -370,13 +370,12 @@ void OdometryPublisherPrivate::UpdateOdometry(
   const math::Vector3d angularVelocity = rotationDiff.Euler() / dt.count();
 
   // Get velocities assuming 2D
-  if (this->dimensions == 2) {
-    double linearVelocityX = (cosf(currentYaw) * linearDisplacementX +
-      sinf(currentYaw) * linearDisplacementY) /
-      dt.count();
-    double linearVelocityY = (cosf(currentYaw) * linearDisplacementY -
-      sinf(currentYaw) * linearDisplacementX) /
-      dt.count();
+  if (this->dimensions == 2)
+  {
+    double linearVelocityX = (cosf(currentYaw) * linearDisplacementX
+      + sinf(currentYaw) * linearDisplacementY) / dt.count();
+    double linearVelocityY = (cosf(currentYaw) * linearDisplacementY
+      - sinf(currentYaw) * linearDisplacementX) / dt.count();
     std::get<0>(this->linearMean).Push(linearVelocityX);
     std::get<1>(this->linearMean).Push(linearVelocityY);
     msg.mutable_twist()->mutable_linear()->set_x(
@@ -394,8 +393,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
   // Get velocities and roll/pitch rates assuming 3D
-  if (this->dimensions == 3) {
-
+  else if (this->dimensions == 3)
+  {
     double linearDisplacementZ =
       pose.Pos().Z() - this->lastUpdatePose.Pos().Z();
     math::Vector3 linearDisplacement(linearDisplacementX, linearDisplacementY,
@@ -447,12 +446,13 @@ void OdometryPublisherPrivate::UpdateOdometry(
   // Throttle publishing.
   auto diff = _info.simTime - this->lastOdomPubTime;
   if (diff > std::chrono::steady_clock::duration::zero() &&
-    diff < this->odomPubPeriod)
+      diff < this->odomPubPeriod)
   {
     return;
   }
   this->lastOdomPubTime = _info.simTime;
-  if (this->odomPub.Valid()) {
+  if (this->odomPub.Valid())
+  {
     this->odomPub.Publish(msg);
   }
 
@@ -463,78 +463,59 @@ void OdometryPublisherPrivate::UpdateOdometry(
   msgCovariance.mutable_header()->CopyFrom(header);
 
   // Copy position from odometry msg.
-  msgCovariance.mutable_pose_with_covariance()
-  ->mutable_pose()
-  ->mutable_position()
-  ->set_x(msg.pose().position().x());
-  msgCovariance.mutable_pose_with_covariance()
-  ->mutable_pose()
-  ->mutable_position()
-  ->set_y(msg.pose().position().y());
-  msgCovariance.mutable_pose_with_covariance()
-  ->mutable_pose()
-  ->mutable_position()
-  ->set_z(msg.pose().position().z());
+  msgCovariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_x(msg.pose().position().x());
+  msgCovariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_y(msg.pose().position().y());
+  msgCovariance.mutable_pose_with_covariance()->
+    mutable_pose()->mutable_position()->set_z(msg.pose().position().z());
 
   // Copy orientation from odometry msg.
-  msgs::Set(
-    msgCovariance.mutable_pose_with_covariance()
-    ->mutable_pose()
-    ->mutable_orientation(),
-    pose.Rot());
+  msgs::Set(msgCovariance.mutable_pose_with_covariance()->mutable_pose()->
+    mutable_orientation(), pose.Rot());
 
   // Copy twist from odometry msg.
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_angular()
-  ->set_x(msg.twist().angular().x());
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_angular()
-  ->set_y(msg.twist().angular().y());
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_angular()
-  ->set_z(msg.twist().angular().z());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_x(msg.twist().angular().x());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_y(msg.twist().angular().y());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_angular()->set_z(msg.twist().angular().z());
 
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_linear()
-  ->set_x(msg.twist().linear().x());
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_linear()
-  ->set_y(msg.twist().linear().y());
-  msgCovariance.mutable_twist_with_covariance()
-  ->mutable_twist()
-  ->mutable_linear()
-  ->set_z(msg.twist().linear().z());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_x(msg.twist().linear().x());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_y(msg.twist().linear().y());
+  msgCovariance.mutable_twist_with_covariance()->
+    mutable_twist()->mutable_linear()->set_z(msg.twist().linear().z());
 
   // Populate the covariance matrix.
   // Should the matrix me populated for pose as well ?
   auto gn2 = this->gaussianNoise * this->gaussianNoise;
-  for (int i = 0; i < 36; i++) {
-    if (i % 7 == 0) {
-      msgCovariance.mutable_pose_with_covariance()
-      ->mutable_covariance()
-      ->add_data(gn2);
-      msgCovariance.mutable_twist_with_covariance()
-      ->mutable_covariance()
-      ->add_data(gn2);
-    } else {
-      msgCovariance.mutable_pose_with_covariance()
-      ->mutable_covariance()
-      ->add_data(0);
-      msgCovariance.mutable_twist_with_covariance()
-      ->mutable_covariance()
-      ->add_data(0);
+  for (int i = 0; i < 36; i++)
+  {
+    if (i % 7 == 0)
+    {
+      msgCovariance.mutable_pose_with_covariance()->
+        mutable_covariance()->add_data(gn2);
+      msgCovariance.mutable_twist_with_covariance()->
+        mutable_covariance()->add_data(gn2);
+    }
+    else
+    {
+      msgCovariance.mutable_pose_with_covariance()->
+        mutable_covariance()->add_data(0);
+      msgCovariance.mutable_twist_with_covariance()->
+        mutable_covariance()->add_data(0);
     }
   }
-  if (this->odomCovPub.Valid()) {
+  if (this->odomCovPub.Valid())
+  {
     this->odomCovPub.Publish(msgCovariance);
   }
 
-  if (this->tfPub.Valid()) {
+  if (this->tfPub.Valid())
+  {
     msgs::Pose_V tfMsg;
     auto tfMsgPose = tfMsg.add_pose();
     tfMsgPose->CopyFrom(msg.pose());
@@ -544,10 +525,11 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 }
 
-GZ_ADD_PLUGIN(
-  OdometryPublisher, gz::sim::System,
-  OdometryPublisher::ISystemConfigure,
-  OdometryPublisher::ISystemPreUpdate,
-  OdometryPublisher::ISystemPostUpdate)
+GZ_ADD_PLUGIN(OdometryPublisher,
+                    gz::sim::System,
+                    OdometryPublisher::ISystemConfigure,
+                    OdometryPublisher::ISystemPreUpdate,
+                    OdometryPublisher::ISystemPostUpdate)
 
-GZ_ADD_PLUGIN_ALIAS(OdometryPublisher, "gz::sim::systems::OdometryPublisher")
+GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
+                          "gz::sim::systems::OdometryPublisher")
