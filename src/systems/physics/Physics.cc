@@ -623,7 +623,6 @@ class gz::sim::systems::PhysicsPrivate
 
   //////////////////////////////////////////////////
   // Nested Models
-
   /// \brief Feature list to construct nested models
   public: struct NestedModelFeatureList : physics::FeatureList<
             MinimumFeatureList,
@@ -1022,6 +1021,30 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           else
           {
             solverFeature->SetSolver(solverComp->Data());
+          }
+        }
+        auto solverItersComp =
+            _ecm.Component<components::PhysicsSolverIterations>(_entity);
+        if (solverItersComp)
+        {
+          auto solverFeature =
+              this->entityWorldMap.EntityCast<SolverFeatureList>(
+              _entity);
+          if (!solverFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[SolverFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            solverFeature->SetSolverIterations(solverItersComp->Data());
           }
         }
 

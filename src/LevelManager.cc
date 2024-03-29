@@ -119,26 +119,39 @@ void LevelManager::ReadLevelPerformerInfo()
 
   // Populate physics options that aren't accessible outside the Element()
   // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
+  if (physics->Element())
   {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
+    if (auto dartElem = physics->Element()->FindElement("dart"))
     {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
+      if (dartElem->HasElement("collision_detector"))
+      {
+        auto collisionDetector =
+            dartElem->Get<std::string>("collision_detector");
 
-      this->runner->entityCompMgr.CreateComponent(worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
+        this->runner->entityCompMgr.CreateComponent(worldEntity,
+            components::PhysicsCollisionDetector(collisionDetector));
+      }
+      if (auto solverElem = dartElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("solver_type"))
+        {
+          auto solver = solverElem->Get<std::string>("solver_type");
+          this->runner->entityCompMgr.CreateComponent(worldEntity,
+              components::PhysicsSolver(solver));
+        }
+      }
     }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
+    if (auto bulletElem = physics->Element()->FindElement("bullet"))
     {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->runner->entityCompMgr.CreateComponent(worldEntity,
-          components::PhysicsSolver(solver));
+      if (auto solverElem = bulletElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("iters"))
+        {
+          uint32_t solverIterations = solverElem->Get<uint32_t>("iters");
+          this->runner->entityCompMgr.CreateComponent(worldEntity,
+              components::PhysicsSolverIterations(solverIterations));
+        }
+      }
     }
   }
 

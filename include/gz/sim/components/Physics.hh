@@ -65,6 +65,12 @@ namespace components
       class PhysicsSolverTag, serializers::StringSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsSolver",
        PhysicsSolver)
+
+  /// \brief The number of solver iterations for each step.
+  using PhysicsSolverIterations = Component<uint32_t,
+      class PhysicsSolverIterationsTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsSolverIterations",
+       PhysicsSolverIterations)
 }
 }
 }
