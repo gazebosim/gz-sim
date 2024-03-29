@@ -121,6 +121,7 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->dataPtr->sdfRoot.LoadSdfString(
@@ -145,6 +146,7 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
 
