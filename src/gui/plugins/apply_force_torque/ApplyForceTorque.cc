@@ -19,7 +19,6 @@
 #include <mutex>
 #include <string>
 
-#include <gz/common/MeshManager.hh>
 #include <gz/common/MouseEvent.hh>
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>

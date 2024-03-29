@@ -33,6 +33,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/MassMatrix3.hh>
 #include <gz/math/Inertial.hh>
+#include <gz/math/Quaternion.hh>
 
 using namespace gz;
 using namespace sim;
@@ -73,40 +74,11 @@ void MeshInertiaCalculator::GetMeshTriangles(
 }
 
 //////////////////////////////////////////////////
-void MeshInertiaCalculator::CalculateMeshCentroid(
-  gz::math::Pose3d &_centreOfMass,
-  std::vector<Triangle> &_triangles)
-{
-  gz::math::Vector3d centroid = gz::math::Vector3d::Zero;
-  gz::math::Vector3d triangleCross = gz::math::Vector3d::Zero;
-  double totalMeshArea = 0.0;
-  double triangleArea = 0.0;
-
-  for (Triangle &triangle : _triangles)
-  {
-    // Calculate the area of the triangle using half of
-    // cross product magnitude
-    triangleCross =
-      (triangle.v1 - triangle.v0).Cross(triangle.v2 - triangle.v0);
-    triangleArea = triangleCross.Length() / 2;
-
-    centroid = centroid + (triangle.centroid * triangleArea);
-    totalMeshArea = totalMeshArea + triangleArea;
-  }
-
-  centroid = centroid / totalMeshArea;
-
-  _centreOfMass.SetX(centroid.X());
-  _centreOfMass.SetY(centroid.Y());
-  _centreOfMass.SetZ(centroid.Z());
-}
-
-//////////////////////////////////////////////////
 void MeshInertiaCalculator::CalculateMassProperties(
   const std::vector<Triangle>& _triangles,
   double _density,
   gz::math::MassMatrix3d& _massMatrix,
-  gz::math::Pose3d& _inertiaOrigin)
+  gz::math::Pose3d& _centreOfMass)
 {
   // Some coefficients for the calculation of integral terms
   const double coefficients[10] = {1.0 / 6,   1.0 / 24, 1.0 / 24, 1.0 / 24,
@@ -185,27 +157,27 @@ void MeshInertiaCalculator::CalculateMassProperties(
   // Accumulate the result and add it to MassMatrix object of gz::math
   double volume = integral[0];
   double mass = volume * _density;
-  _inertiaOrigin.SetX(integral[1] / mass);
-  _inertiaOrigin.SetY(integral[2] / mass);
-  _inertiaOrigin.SetZ(integral[3] / mass);
+  _centreOfMass.SetX(integral[1] / volume);
+  _centreOfMass.SetY(integral[2] / volume);
+  _centreOfMass.SetZ(integral[3] / volume);
   gz::math::Vector3d ixxyyzz = gz::math::Vector3d();
   gz::math::Vector3d ixyxzyz = gz::math::Vector3d();
 
   // Diagonal Elements of the Mass Matrix
-  ixxyyzz.X() = (integral[5] + integral[6] - mass *
-                (_inertiaOrigin.Y() * _inertiaOrigin.Y() +
-                _inertiaOrigin.Z() * _inertiaOrigin.Z()));
-  ixxyyzz.Y() = (integral[4] + integral[6] - mass *
-                (_inertiaOrigin.Z() * _inertiaOrigin.Z() +
-                _inertiaOrigin.X() * _inertiaOrigin.X()));
-  ixxyyzz.Z() = integral[4] + integral[5] - mass *
-                (_inertiaOrigin.X() * _inertiaOrigin.X() +
-                _inertiaOrigin.Y() * _inertiaOrigin.Y());
+  ixxyyzz.X() = (integral[5] + integral[6] - volume *
+                (_centreOfMass.Y() * _centreOfMass.Y() +
+                _centreOfMass.Z() * _centreOfMass.Z()));
+  ixxyyzz.Y() = (integral[4] + integral[6] - volume *
+                (_centreOfMass.Z() * _centreOfMass.Z() +
+                _centreOfMass.X() * _centreOfMass.X()));
+  ixxyyzz.Z() = integral[4] + integral[5] - volume *
+                (_centreOfMass.X() * _centreOfMass.X() +
+                _centreOfMass.Y() * _centreOfMass.Y());
 
   // Off Diagonal Elements of the Mass Matrix
-  ixyxzyz.X() = -(integral[7] - mass * _inertiaOrigin.X() * _inertiaOrigin.Y());
-  ixyxzyz.Y() = -(integral[8] - mass * _inertiaOrigin.Y() * _inertiaOrigin.Z());
-  ixyxzyz.Z() = -(integral[9] - mass * _inertiaOrigin.X() * _inertiaOrigin.Z());
+  ixyxzyz.X() = -(integral[7] - volume * _centreOfMass.X() * _centreOfMass.Y());
+  ixyxzyz.Y() = -(integral[9] - volume * _centreOfMass.X() * _centreOfMass.Z());
+  ixyxzyz.Z() = -(integral[8] - volume * _centreOfMass.Y() * _centreOfMass.Z());
 
   // Set the values in the MassMatrix object
   _massMatrix.SetMass(mass);
@@ -246,29 +218,21 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   // Load the Mesh
   gz::common::MeshManager *meshManager = gz::common::MeshManager::Instance();
   mesh = meshManager->Load(fullPath);
+  if (!mesh)
+  {
+    gzerr << "Failed to load mesh: " << fullPath << std::endl;
+    return std::nullopt;
+  }
   std::vector<Triangle> meshTriangles;
   gz::math::MassMatrix3d meshMassMatrix;
   gz::math::Pose3d centreOfMass;
-  gz::math::Pose3d inertiaOrigin;
 
   // Create a list of Triangle objects from the mesh vertices and indices
   this->GetMeshTriangles(meshTriangles, sdfMesh->Scale(), mesh);
 
-  // Calculate the mesh centroid and set is as centre of mass
-  this->CalculateMeshCentroid(centreOfMass, meshTriangles);
-
   // Calculate mesh mass properties
   this->CalculateMassProperties(meshTriangles, density,
-    meshMassMatrix, inertiaOrigin);
-
-  if (inertiaOrigin != centreOfMass)
-  {
-    // TODO(jasmeet0915): tranform the calculated inertia matrix
-    // from inertia origin to centre of mass
-    gzwarn << "Calculated centroid does not match the mesh origin. "
-    "Inertia Tensor values won't be correct. Use mesh with origin at "
-    "geometric center." << std::endl;
-  }
+    meshMassMatrix, centreOfMass);
 
   gz::math::Inertiald meshInertial;
 

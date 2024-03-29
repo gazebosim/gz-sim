@@ -1,0 +1,302 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.9">
+  <world name="buoyant_lrauv">
+    <scene>
+      <ambient>0.0 1.0 1.0</ambient>
+      <background>0.0 0.7 0.8</background>
+    </scene>
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-particle-emitter-system"
+      name="gz::sim::systems::ParticleEmitter">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <gui>
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>5 -1.5 3 0 0.37 2.8</camera_pose>
+      </plugin>
+
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+
+      </plugin>
+
+      <!-- World statistics -->
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+
+      <plugin filename="MarkerManager" name="Marker manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="SelectEntities" name="Select Entities">
+        <gz-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities">
+        <gz-gui>
+          <anchors target="Select entities">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+      </plugin>
+
+    </gui>
+
+    <model name="my_lrauv">
+      <include merge="true" >
+        <!-- align with NED (face North) -->
+        <pose degrees="true">0 0 0 0 0 -180</pose>
+        <uri>my_lrauv</uri>
+
+        <plugin
+          filename="gz-sim-odometry-publisher-system"
+          name="gz::sim::systems::OdometryPublisher">
+        </plugin>
+
+        <!-- Joint controllers -->
+        <plugin
+          filename="gz-sim-joint-position-controller-system"
+          name="gz::sim::systems::JointPositionController">
+          <joint_name>horizontal_fins_joint</joint_name>
+          <p_gain>0.1</p_gain>
+        </plugin>
+
+        <plugin
+          filename="gz-sim-joint-position-controller-system"
+          name="gz::sim::systems::JointPositionController">
+          <joint_name>vertical_fins_joint</joint_name>
+          <p_gain>0.1</p_gain>
+        </plugin>
+
+        <!-- Uncomment to add a thruster -->
+        <!-- <plugin
+          filename="gz-sim-thruster-system"
+          name="gz::sim::systems::Thruster">
+          <namespace>my_lrauv</namespace>
+          <use_angvel_cmd>0</use_angvel_cmd>
+          <joint_name>propeller_joint</joint_name>
+          <thrust_coefficient>0.004422</thrust_coefficient>
+          <fluid_density>1000</fluid_density>
+          <propeller_diameter>0.2</propeller_diameter>
+        </plugin> -->
+
+        <!-- Lift and drag -->
+
+        <!-- Vertical fin -->
+        <plugin
+          filename="gz-sim-lift-drag-system"
+          name="gz::sim::systems::LiftDrag">
+          <air_density>1000</air_density>
+          <cla>4.13</cla>
+          <cla_stall>-1.1</cla_stall>
+          <cda>0.2</cda>
+          <cda_stall>0.03</cda_stall>
+          <alpha_stall>0.17</alpha_stall>
+          <a0>0</a0>
+          <area>0.0244</area>
+          <upward>0 1 0</upward>
+          <forward>-1 0 0</forward>
+          <link_name>vertical_fins</link_name>
+          <cp>0 0 0</cp>
+        </plugin>
+
+        <!-- Horizontal fin -->
+        <plugin
+          filename="gz-sim-lift-drag-system"
+          name="gz::sim::systems::LiftDrag">
+          <air_density>1000</air_density>
+          <cla>4.13</cla>
+          <cla_stall>-1.1</cla_stall>
+          <cda>0.2</cda>
+          <cda_stall>0.03</cda_stall>
+          <alpha_stall>0.17</alpha_stall>
+          <a0>0</a0>
+          <area>0.0244</area>
+          <upward>0 0 1</upward>
+          <forward>1 0 0</forward>
+          <link_name>horizontal_fins</link_name>
+          <cp>0 0 0</cp>
+        </plugin>
+
+        <!-- Uncomment to add hydrodynamics -->
+        <!-- <plugin
+          filename="gz-sim-hydrodynamics-system"
+          name="gz::sim::systems::Hydrodynamics">
+          <link_name>base_link</link_name>
+          <xDotU>-4.876161</xDotU>
+          <yDotV>-126.324739</yDotV>
+          <zDotW>-126.324739</zDotW>
+          <kDotP>0</kDotP>
+          <mDotQ>-33.46</mDotQ>
+          <nDotR>-33.46</nDotR>
+          <xUabsU>-6.2282</xUabsU>
+          <xU>0</xU>
+          <yVabsV>-601.27</yVabsV>
+          <yV>0</yV>
+          <zWabsW>-601.27</zWabsW>
+          <zW>0</zW>
+          <kPabsP>-0.1916</kPabsP>
+          <kP>0</kP>
+          <mQabsQ>-632.698957</mQabsQ>
+          <mQ>0</mQ>
+          <nRabsR>-632.698957</nRabsR>
+          <nR>0</nR>
+        </plugin> -->
+
+      </include>
+    </model>
+
+  </world>
+</sdf>

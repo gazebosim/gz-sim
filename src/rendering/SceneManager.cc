@@ -813,8 +813,14 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::MeshDescriptor descriptor;
     descriptor.meshName = name;
     descriptor.mesh = meshManager->MeshByName(name);
-
-    geom = this->dataPtr->scene->CreateMesh(descriptor);
+    if (descriptor.mesh)
+    {
+      geom = this->dataPtr->scene->CreateMesh(descriptor);
+    }
+    else
+    {
+      gzerr << "Unable to find the polyline mesh: " << name << std::endl;
+    }
   }
   else
   {

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim8 VERSION 8.0.0)
+project(gz-sim8 VERSION 8.2.0)
 set (GZ_DISTRIBUTION "Harmonic")
 
 #============================================================================
@@ -244,7 +244,7 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (pybind11_FOUND)
+if (pybind11_FOUND AND NOT SKIP_PYBIND11)
 	add_subdirectory(python)
 endif()
 #============================================================================

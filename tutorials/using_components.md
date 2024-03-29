@@ -56,10 +56,15 @@ The signatures of those interfaces are specified in
 We will assume that these interfaces are implemented in functions called
 `Configure()` and `*Update()` in a system.
 
-Note that because entities are created when the world is loaded, at the time
-`Configure()` is called, it may be that not all entities have finished loading.
-At the time `*Update()` is called, you are more likely to have all the
-entities.
+Note that when `Configure()` is called, all the elements in the parent element
+of the plugin have been loaded.
+For example, if the plugin is attached to a `<model>`, all the elements in that
+`<model>` would have been loaded.
+Similarly for `<world>`.
+However, if you need to access entities outside the plugin's parent element,
+they may not have finished loading at the time the plugin's `Configure()` is
+called.
+Then you may need to access those entities later, in `*Update()`.
 
 ## Case studies
 

@@ -320,6 +320,21 @@ void JointPositionController::PreUpdate(
 {
   GZ_PROFILE("JointPositionController::PreUpdate");
 
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzwarn << "JointPositionController model no longer valid. "
+           << "Disabling plugin." << std::endl;
+    this->dataPtr->model = Model(kNullEntity);
+    return;
+  }
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {

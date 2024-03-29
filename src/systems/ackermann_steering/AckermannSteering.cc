@@ -968,11 +968,11 @@ void AckermannSteeringPrivate::UpdateAngle(
 
   double leftSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) + \
+      ((2.0 * this->wheelBase * cos(ang)) - \
       (1.0 * this->wheelSeparation * sin(ang))));
   double rightSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) - \
+      ((2.0 * this->wheelBase * cos(ang)) + \
       (1.0 * this->wheelSeparation * sin(ang))));
 
   auto leftSteeringPos = _ecm.Component<components::JointPosition>(

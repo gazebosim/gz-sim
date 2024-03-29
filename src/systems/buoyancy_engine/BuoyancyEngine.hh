@@ -74,16 +74,19 @@ namespace systems
   /// gz sim buoyancy_engine.sdf
   /// ```
   /// Enter the following in a separate terminal:
-  /// ```
-  /// gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
-  ///    -p "data: 0.003"
-  /// ```
+  /** ```
+      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
+         -p "data: 0.003"
+      ```
+  **/
   /// to see the box float up.
-  /// ```
-  /// gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
-  ///    -p "data: 0.001"
-  /// ```
+  /** ```
+      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
+         -p "data: 0.001"
+      ```
+  **/
   /// to see the box go down.
+  ///
   /// To see the current volume enter:
   /// ```
   /// gz topic -t /model/buoyant_box/buoyancy_engine/current_volume -e
