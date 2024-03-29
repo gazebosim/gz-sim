@@ -38,6 +38,7 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
@@ -305,17 +306,6 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
         << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
         << "s]. System may not work properly." << std::endl;
   }
-
-  // Create the pose component if it does not exist.
-  //! [createComponent]
-  auto pos = _ecm.Component<components::Pose>(
-      this->dataPtr->model.Entity());
-  if (!pos)
-  {
-    _ecm.CreateComponent(this->dataPtr->model.Entity(),
-        components::Pose());
-  }
-  //! [createComponent]
 }
 
 //////////////////////////////////////////////////

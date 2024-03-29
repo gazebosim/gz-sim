@@ -39,12 +39,8 @@ it.
 A component may have been created at the time the world is loaded, or you may
 create a component at runtime if it does not exist yet.
 
-In this case, we use the model entity found above to access its pose component
-and create the component if it does not exist.
-
-This happens in `PreUpdate()`, before the physics step runs:
-
-\snippet src/systems/odometry_publisher/OdometryPublisher.cc createComponent
+In this case, we use the model entity found above to access its pose component,
+which is created by default on every model entity.
 
 In `PostUpdate()`, which happens after physics has updated, we can get the
 world pose of a model through gz::sim::worldPose, by passing in the model
