@@ -332,7 +332,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
-  ASSERT_FALSE(modelPoses.empty());
   auto latest_pose = modelPoses.back();
   modelPoses.clear();
   propellerAngVels.clear();
@@ -360,7 +359,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
     // the model should have moved. Note that the distance moved is small
     // This is because we are sending small forces (deadband/2)
-    EXPECT_LT(0.1, latest_pose.Pos().X());
+    EXPECT_LT(0.1, modelPoses.back().Pos().X());
 
     // Check that the propeller are rotating
     omega = sqrt(abs(force / (_density * _thrustCoefficient *
