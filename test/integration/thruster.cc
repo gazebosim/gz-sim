@@ -332,7 +332,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
-  auto latest_pose = modelPoses.back();
   modelPoses.clear();
   propellerAngVels.clear();
   propellerLinVels.clear();
