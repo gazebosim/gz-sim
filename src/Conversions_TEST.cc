@@ -463,7 +463,7 @@ TEST(Conversions, GeometryMesh)
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
-  meshShape.SetSimplification("convex_decomposition");
+  meshShape.SetOptimization("convex_decomposition");
   geometry.SetMeshShape(meshShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -475,7 +475,7 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("grape", geometryMsg.mesh().submesh());
   EXPECT_TRUE(geometryMsg.mesh().center_submesh());
   auto header = geometryMsg.header().data(0);
-  EXPECT_EQ("simplification", header.key());
+  EXPECT_EQ("optimization", header.key());
   EXPECT_EQ("convex_decomposition", header.value(0));
 
   auto newGeometry = convert<sdf::Geometry>(geometryMsg);
@@ -485,7 +485,7 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("file://watermelon", newGeometry.MeshShape()->Uri());
   EXPECT_EQ("grape", newGeometry.MeshShape()->Submesh());
   EXPECT_TRUE(newGeometry.MeshShape()->CenterSubmesh());
-  EXPECT_EQ("convex_decomposition", newGeometry.MeshShape()->Simplification());
+  EXPECT_EQ("convex_decomposition", newGeometry.MeshShape()->OptimizationStr());
 }
 
 /////////////////////////////////////////////////

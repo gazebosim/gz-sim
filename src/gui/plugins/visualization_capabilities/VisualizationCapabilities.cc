@@ -21,6 +21,7 @@
 #include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 #include <map>
 #include <set>
@@ -1248,28 +1249,56 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     descriptor.mesh = meshManager->Load(descriptor.meshName);
 
     common::Mesh newMesh;
-    if (_geom.MeshShape()->Simplification() == "convex_decomposition")
+    if (_geom.MeshShape()->Optimization() ==
+        sdf::MeshOptimization::CONVEX_HULL ||
+        _geom.MeshShape()->Optimization() ==
+        sdf::MeshOptimization::CONVEX_DECOMPOSITION)
     {
-      gzdbg << "Simplifying mesh: " << descriptor.mesh->Name() << std::endl;
-      for (unsigned int submeshIdx = 0;
-           submeshIdx < descriptor.mesh->SubMeshCount();
-           ++submeshIdx)
+      std::unique_ptr<common::Mesh> meshToDecompose =
+          std::make_unique<common::Mesh>();
+      // check if a particular submesh is requested
+      if (!descriptor.subMeshName.empty())
       {
-        auto s = descriptor.mesh->SubMeshByIndex(submeshIdx).lock();
-
-        // check if a particular submesh is requested
-        if (!descriptor.subMeshName.empty() &&
-            s->Name() != descriptor.subMeshName)
+        for (unsigned int submeshIdx = 0;
+             submeshIdx < descriptor.mesh->SubMeshCount();
+             ++submeshIdx)
         {
-          continue;
+          auto submesh = descriptor.mesh->SubMeshByIndex(submeshIdx).lock();
+          if (submesh->Name() == descriptor.subMeshName)
+          {
+            if (descriptor.centerSubMesh)
+              submesh->Center(math::Vector3d::Zero);
+            meshToDecompose->AddSubMesh(*submesh.get());
+            break;
+          }
         }
-
-        // center the submesh if needed
-        if (descriptor.centerSubMesh)
-          s->Center(math::Vector3d::Zero);
-
-        // convex decomposition
-        auto decomposed = meshManager->ConvexDecomposition(s.get());
+      }
+      else
+      {
+        meshToDecompose =
+            gz::common::MeshManager::MergeSubMeshes(*descriptor.mesh);
+      }
+      if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
+      {
+        std::size_t maxConvexHulls = 16u;
+        if (_geom.MeshShape()->Optimization() ==
+            sdf::MeshOptimization::CONVEX_HULL)
+        {
+          /// create 1 convex hull for the whole submesh
+          maxConvexHulls = 1u;
+        }
+        else if (_geom.MeshShape()->ConvexDecomposition())
+        {
+          // limit max number of convex hulls to generate
+          maxConvexHulls =
+              _geom.MeshShape()->ConvexDecomposition()->MaxConvexHulls();
+        }
+        auto submesh = meshToDecompose->SubMeshByIndex(0u).lock();
+        std::vector<common::SubMesh> decomposed =
+            gz::common::MeshManager::ConvexDecomposition(
+            *submesh.get(), maxConvexHulls);
+        gzdbg << "Optimizing mesh (" << _geom.MeshShape()->OptimizationStr()
+              << "): " <<  descriptor.mesh->Name() << std::endl;
         if (!decomposed.empty())
         {
           for (std::size_t n = 0; n < decomposed.size(); ++n)
@@ -1277,18 +1306,17 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
             newMesh.AddSubMesh(decomposed[n]);
           }
         }
-      }
-      if (newMesh.SubMeshCount() > 0u)
-      {
-        descriptor.mesh = &newMesh;
-        // if submesh is requested, we handled this above before mesh
-        // decomposition so we do not need need to pass these flags to
-        // gz-rendering
-        descriptor.subMeshName = "";
-        descriptor.centerSubMesh = false;
+        if (newMesh.SubMeshCount() > 0u)
+        {
+          descriptor.mesh = &newMesh;
+          // if submesh is requested, we handled this above before mesh
+          // decomposition so we do not need need to pass these flags to
+          // gz-rendering
+          descriptor.subMeshName = "";
+          descriptor.centerSubMesh = false;
+        }
       }
     }
-
     geom = this->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }

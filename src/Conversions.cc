@@ -213,11 +213,18 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
 
-    if (!meshSdf->Simplification().empty())
+    if (!meshSdf->OptimizationStr().empty())
     {
       auto header = out.mutable_header()->add_data();
-      header->set_key("simplification");
-      header->add_value(meshSdf->Simplification());
+      header->set_key("optimization");
+      header->add_value(meshSdf->OptimizationStr());
+    }
+    if (meshSdf->ConvexDecomposition())
+    {
+      auto header = out.mutable_header()->add_data();
+      header->set_key("max_convex_hulls");
+      header->add_value(std::to_string(
+          meshSdf->ConvexDecomposition()->MaxConvexHulls()));
     }
   }
   else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
@@ -351,9 +358,15 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     for (int i = 0; i < _in.header().data_size(); ++i)
     {
       auto data = _in.header().data(i);
-      if (data.key() == "simplification" && data.value_size() > 0)
+      if (data.key() == "optimization" && data.value_size() > 0)
       {
-        meshShape.SetSimplification(data.value(0));
+        meshShape.SetOptimization(data.value(0));
+      }
+      if (data.key() == "max_convex_hulls" && data.value_size() > 0)
+      {
+        sdf::ConvexDecomposition convexDecomp;
+        convexDecomp.SetMaxConvexHulls(std::stoul(data.value(0)));
+        meshShape.SetConvexDecomposition(convexDecomp);
       }
     }
     out.SetMeshShape(meshShape);
