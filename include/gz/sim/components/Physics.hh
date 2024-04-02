@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_PHYSICS_HH_
 #define GZ_SIM_COMPONENTS_PHYSICS_HH_
 
+#include <cstdint>
 #include <string>
 
 #include <gz/msgs/physics.pb.h>

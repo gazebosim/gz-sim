@@ -15,6 +15,8 @@
  *
 */
 
+#include <cstdint>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
