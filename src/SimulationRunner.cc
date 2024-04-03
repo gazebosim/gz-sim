@@ -1545,3 +1545,9 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
 }
+
+//////////////////////////////////////////////////
+EntityComponentManager* Ecm()
+{
+  return &this->entityCompMgr;
+}

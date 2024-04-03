@@ -373,6 +373,10 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Retrieves the ECM of the SimulationRunner
+      /// WARNING: Do not use the ECM while the SimulationRunner is using it.
+      public: EntityComponentManager* Ecm();
+
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();

@@ -290,6 +290,16 @@ namespace gz
       /// \brief Stop the server. This will stop all running simulations.
       public: void Stop();
 
+      /// \brief Retrieves a pointer of the ECM of the SimulationRunner.
+      /// The lifetime of the ECM is mannaged by the simulation runner.
+      /// \param[in] _worldIndex Index of the world.
+      /// \return Pointer to the ecm of the world if the world exists.
+      ///   otherwise return a nullptr.
+      /// WARNING: This method is NOT thread safe. Do not modify the ecm
+      /// while the server is running.
+      public: EntityComponentManager* Ecm(
+        const unsigned int _worldIndex = 0);
+
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };

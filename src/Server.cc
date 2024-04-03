@@ -442,3 +442,14 @@ void Server::Stop()
 {
   this->dataPtr->Stop();
 }
+
+//////////////////////////////////////////////////
+EntityComponentManager* Server::Ecm(
+        const unsigned int _worldIndex)
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+  {
+    return this->dataPtr->simRunners[_worldIndex]->Ecm();
+  }
+  return nullptr;
+}
