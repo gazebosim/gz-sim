@@ -141,7 +141,7 @@
       <plugin
         filename="gz-sim-set-model-state-system"
         name="gz::sim::systems::SetModelState">
-        <model_state name="__model__">
+        <model_state>
           <joint_state name="j1">
             <axis_state>
               <position degrees="true">60</position>
@@ -238,7 +238,7 @@
       <plugin
         filename="gz-sim-set-model-state-system"
         name="gz::sim::systems::SetModelState">
-        <model_state name="__model__">
+        <model_state>
           <joint_state name="j1">
             <axis_state>
               <position>1.047</position>
