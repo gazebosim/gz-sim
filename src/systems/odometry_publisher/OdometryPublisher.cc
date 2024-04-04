@@ -368,6 +368,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     this->lastUpdatePose.Rot().Inverse();
   // calculate the angular velocity from the euler vector (radians) and dt
   const math::Vector3d angularVelocity = rotationDiff.Euler() / dt.count();
+  const math::Vector3d angularVelocityBody =
+    pose.Rot().RotateVectorReverse(angularVelocity);
 
   // Get velocities assuming 2D
   if (this->dimensions == 2)
@@ -414,16 +416,16 @@ void OdometryPublisherPrivate::UpdateOdometry(
       std::get<2>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_x(
-      angularVelocity.X() +
+      angularVelocityBody.X() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
-      angularVelocity.Y() +
+      angularVelocityBody.Y() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
 
   // Set yaw rate
   msg.mutable_twist()->mutable_angular()->set_z(
-    angularVelocity.Z() +
+    angularVelocityBody.Z() +
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
