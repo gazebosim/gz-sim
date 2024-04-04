@@ -19,6 +19,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/Angle.hh>
