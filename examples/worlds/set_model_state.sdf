@@ -134,7 +134,7 @@
         <axis>
           <xyz>0 0 1</xyz>
           <dynamics>
-            <damping>0.0001</damping>
+            <damping>0.0</damping>
           </dynamics>
         </axis>
       </joint>
@@ -231,7 +231,7 @@
         <axis>
           <xyz>0 0 1</xyz>
           <dynamics>
-            <damping>0.0001</damping>
+            <damping>0.0</damping>
           </dynamics>
         </axis>
       </joint>

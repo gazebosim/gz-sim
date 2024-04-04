@@ -111,6 +111,31 @@ void SetModelState::Configure(const Entity &_entity,
     std::vector<double> jointPosition;
     std::vector<double> jointVelocity;
 
+    auto parseScalarWithDegrees =
+        [](math::Angle &_scalar, sdf::ElementPtr _elem) -> bool
+    {
+      if (_elem)
+      {
+        // parse degrees attribute, default false
+        std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
+        // parse element scalar value, default 0.0
+        std::pair<double, bool> scalarPair = _elem->Get<double>("", 0.0);
+        if (scalarPair.second)
+        {
+          if (degreesPair.first)
+          {
+            _scalar.SetDegree(scalarPair.first);
+          }
+          else
+          {
+            _scalar.SetRadian(scalarPair.first);
+          }
+          return true;
+        }
+      }
+      return false;
+    };
+
     {
       auto axisElem = jointStateElem->FindElement("axis_state");
       if (axisElem)
@@ -119,50 +144,17 @@ void SetModelState::Configure(const Entity &_entity,
         if (positionElem)
         {
           math::Angle position;
-          // parse //position/@degrees attribute, default false
-          std::pair<bool, bool> parseAsDegreesPair =
-              positionElem->Get<bool>("degrees", false);
-          // parse //position/text(), default 0.0
-          std::pair<double, bool> positionPair =
-              positionElem->Get<double>("", 0.0);
-          if (positionPair.second)
-          {
-            if (parseAsDegreesPair.first)
-            {
-              position.SetDegree(positionPair.first);
-            }
-            else
-            {
-              position.SetRadian(positionPair.first);
-            }
-            jointPositionSet = true;
-          }
+          bool scalarParsed = parseScalarWithDegrees(position, positionElem);
+          jointPositionSet = scalarParsed || jointPositionSet;
           jointPosition.push_back(position.Radian());
         }
 
-        // velocity
         auto velocityElem = axisElem ->FindElement("velocity");
         if (velocityElem)
         {
           math::Angle velocity;
-          // parse //velocity/@degrees attribute, default false
-          std::pair<bool, bool> parseAsDegreesPair =
-              velocityElem->Get<bool>("degrees", false);
-          // parse //velocity/text(), default 0.0
-          std::pair<double, bool> velocityPair =
-              velocityElem->Get<double>("", 0.0);
-          if (velocityPair.second)
-          {
-            if (parseAsDegreesPair.first)
-            {
-              velocity.SetDegree(velocityPair.first);
-            }
-            else
-            {
-              velocity.SetRadian(velocityPair.first);
-            }
-            jointVelocitySet = true;
-          }
+          bool scalarParsed = parseScalarWithDegrees(velocity, velocityElem);
+          jointVelocitySet = scalarParsed || jointVelocitySet;
           jointVelocity.push_back(velocity.Radian());
         }
       }
@@ -184,24 +176,8 @@ void SetModelState::Configure(const Entity &_entity,
         if (positionElem)
         {
           math::Angle position;
-          // parse //position/@degrees attribute, default false
-          std::pair<bool, bool> parseAsDegreesPair =
-              positionElem->Get<bool>("degrees", false);
-          // parse //position/text(), default 0.0
-          std::pair<double, bool> positionPair =
-              positionElem->Get<double>("", 0.0);
-          if (positionPair.second)
-          {
-            if (parseAsDegreesPair.first)
-            {
-              position.SetDegree(positionPair.first);
-            }
-            else
-            {
-              position.SetRadian(positionPair.first);
-            }
-            jointPositionSet = true;
-          }
+          bool scalarParsed = parseScalarWithDegrees(position, positionElem);
+          jointPositionSet = scalarParsed || jointPositionSet;
           // check if //axis_state/position was set; if not,
           // push 0.0 for first axis before pushing //axis2_state/position
           if (jointPosition.empty())
@@ -211,29 +187,13 @@ void SetModelState::Configure(const Entity &_entity,
           jointPosition.push_back(position.Radian());
         }
 
-        // velocity
         auto velocityElem = axisElem ->FindElement("velocity");
         if (velocityElem)
         {
           math::Angle velocity;
-          // parse //velocity/@degrees attribute, default false
-          std::pair<bool, bool> parseAsDegreesPair =
-              velocityElem->Get<bool>("degrees", false);
-          // parse //velocity/text(), default 0.0
-          std::pair<double, bool> velocityPair =
-              velocityElem->Get<double>("", 0.0);
-          if (velocityPair.second)
-          {
-            if (parseAsDegreesPair.first)
-            {
-              velocity.SetDegree(velocityPair.first);
-            }
-            else
-            {
-              velocity.SetRadian(velocityPair.first);
-            }
-            jointVelocitySet = true;
-          }
+          bool scalarParsed = parseScalarWithDegrees(velocity, velocityElem);
+          jointVelocitySet = scalarParsed || jointVelocitySet;
+          jointVelocity.push_back(velocity.Radian());
           // check if //axis_state/velocity was set; if not,
           // push 0.0 for first axis before pushing //axis2_state/velocity
           if (jointVelocity.empty())
