@@ -143,10 +143,10 @@
         name="gz::sim::systems::SetModelState">
         <model_state name="__model__">
           <joint_state name="j1">
-            <axis>
+            <axis_state>
               <position degrees="true">60</position>
               <velocity degrees="true">-30</velocity>
-            </axis>
+            </axis_state>
           </joint_state>
         </model_state>
       </plugin>
@@ -240,10 +240,10 @@
         name="gz::sim::systems::SetModelState">
         <model_state name="__model__">
           <joint_state name="j1">
-            <axis>
+            <axis_state>
               <position>1.047</position>
               <velocity>-0.523</velocity>
-            </axis>
+            </axis_state>
           </joint_state>
         </model_state>
       </plugin>

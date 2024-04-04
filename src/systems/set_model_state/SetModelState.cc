@@ -112,7 +112,7 @@ void SetModelState::Configure(const Entity &_entity,
     std::vector<double> jointVelocity;
 
     {
-      auto axisElem = jointStateElem->FindElement("axis");
+      auto axisElem = jointStateElem->FindElement("axis_state");
       if (axisElem)
       {
         auto positionElem = axisElem ->FindElement("position");
@@ -168,15 +168,16 @@ void SetModelState::Configure(const Entity &_entity,
       }
       // else
       // {
-      //   // <axis> not found
+      //   // <axis_state> not found
       // }
     }
 
-    // If joint entity has a JointAxis2 component, then try to parse <axis2>
+    // If joint entity has a JointAxis2 component,
+    // then try to parse <axis2_state>
     if (_ecm.EntityHasComponentType(jointEntity,
                                     components::JointAxis2::typeId))
     {
-      auto axisElem = jointStateElem->FindElement("axis2");
+      auto axisElem = jointStateElem->FindElement("axis2_state");
       if (axisElem)
       {
         auto positionElem = axisElem ->FindElement("position");
@@ -201,8 +202,8 @@ void SetModelState::Configure(const Entity &_entity,
             }
             jointPositionSet = true;
           }
-          // check if //axis/position was set; if not, push 0.0 for first axis
-          // before pushing //axis2/position value
+          // check if //axis_state/position was set; if not,
+          // push 0.0 for first axis before pushing //axis2_state/position
           if (jointPosition.empty())
           {
             jointPosition.push_back(0.0);
@@ -233,8 +234,8 @@ void SetModelState::Configure(const Entity &_entity,
             }
             jointVelocitySet = true;
           }
-          // check if //axis/velocity was set; if not, push 0.0 for first axis
-          // before pushing //axis2/velocity value
+          // check if //axis_state/velocity was set; if not,
+          // push 0.0 for first axis before pushing //axis2_state/velocity
           if (jointVelocity.empty())
           {
             jointVelocity.push_back(0.0);
@@ -244,7 +245,7 @@ void SetModelState::Configure(const Entity &_entity,
       }
       // else
       // {
-      //   // <axis2> not found
+      //   // <axis2_state> not found
       // }
     }
 
