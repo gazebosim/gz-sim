@@ -728,7 +728,7 @@ TEST_F(TriggeredPublisherTest,
     // test are discarded properly.
     // TODO(azeey) Remove once
     // https://github.com/gazebosim/gz-transport/issues/491 is resolved.
-    GZ_SLEEP_MS(100);
+    GZ_SLEEP_MS(2000);
     recvCount = 0;
   }
 
