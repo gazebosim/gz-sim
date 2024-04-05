@@ -19,10 +19,11 @@
 
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
-#include <gz/sim/components/Environment.hh>
 #include <gz/sim/Util.hh>
+#include <gz/sim/components/Name.hh>
 
 #include <gz/plugin/Register.hh>
+#include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <atomic>
 #include <mutex>
@@ -33,6 +34,11 @@
 #include <gz/common/CSVStreams.hh>
 #include <gz/common/DataFrame.hh>
 
+#include <gz/transport/Node.hh>
+
+#include <gz/msgs/data_load_options.pb.h>
+#include <gz/msgs/Utility.hh>
+
 using namespace gz;
 using namespace sim;
 
@@ -42,6 +48,11 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+const char* preload_plugin_name{
+  "gz::sim::systems::EnvironmentPreload"};
+const char* preload_plugin_filename{
+  "gz-sim-environment-preload-system"};
+using Units = msgs::DataLoadPathOptions_DataAngularUnits;
 /// \brief Private data class for EnvironmentLoader
 class EnvironmentLoaderPrivate
 {
@@ -65,7 +76,7 @@ class EnvironmentLoaderPrivate
   public: int zIndex{-1};
 
   /// \brief Index of data dimension to be used as units.
-  public: QString unit;
+  public: QString unit{"radians"};
 
   public: using ReferenceT = math::SphericalCoordinates::CoordinateType;
 
@@ -76,12 +87,12 @@ class EnvironmentLoaderPrivate
     {QString("ecef"), math::SphericalCoordinates::ECEF}};
 
   /// \brief Map of supported spatial units.
-  public: const QMap<QString, components::EnvironmentalData::ReferenceUnits>
+  public: const QMap<QString, Units>
     unitMap{
       {QString("degree"),
-        components::EnvironmentalData::ReferenceUnits::DEGREES},
+        Units::DataLoadPathOptions_DataAngularUnits_DEGREES},
       {QString("radians"),
-        components::EnvironmentalData::ReferenceUnits::RADIANS}
+        Units::DataLoadPathOptions_DataAngularUnits_RADIANS}
     };
 
   /// \brief Spatial reference.
@@ -92,6 +103,12 @@ class EnvironmentLoaderPrivate
 
   /// \brief Whether to attempt an environmental data load.
   public: std::atomic<bool> needsLoad{false};
+
+  /// \brief Gz transport node
+  public: transport::Node node;
+
+  /// \brief publisher
+  public: std::optional<transport::Node::Publisher> pub{std::nullopt};
 };
 }
 }
@@ -123,38 +140,54 @@ void EnvironmentLoader::LoadConfig(const tinyxml2::XMLElement *)
 void EnvironmentLoader::Update(const UpdateInfo &,
                                EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->needsLoad)
+  auto world = worldEntity(_ecm);
+
+  if (!this->dataPtr->pub.has_value())
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
-    this->dataPtr->needsLoad = false;
+    auto topic = transport::TopicUtils::AsValidTopic(
+      scopedName(world, _ecm) + "/" + "environment");
+    this->dataPtr->pub =
+      {this->dataPtr->node.Advertise<msgs::DataLoadPathOptions>(topic)};
+  }
 
-    /// TODO(arjo): Handle the case where we are loading a file in windows.
-    /// Should SDFormat files support going from windows <=> unix paths?
-    std::ifstream dataFile(this->dataPtr->dataPath.toStdString());
-    gzmsg << "Loading environmental data from "
-          << this->dataPtr->dataPath.toStdString()
-          << std::endl;
-    try
-    {
-      using ComponentDataT = components::EnvironmentalData;
-      auto data = ComponentDataT::MakeShared(
-          common::IO<ComponentDataT::FrameT>::ReadFrom(
-              common::CSVIStreamIterator(dataFile),
-              common::CSVIStreamIterator(),
-              this->dataPtr->timeIndex, {
-                static_cast<size_t>(this->dataPtr->xIndex),
-                static_cast<size_t>(this->dataPtr->yIndex),
-                static_cast<size_t>(this->dataPtr->zIndex)}),
-          this->dataPtr->referenceMap[this->dataPtr->reference],
-          this->dataPtr->unitMap[this->dataPtr->unit]);
+  static bool warned = false;
+  if (!this->dataPtr->pub->HasConnections() && !warned)
+  {
+    warned = true;
+    gzwarn << "Could not find a subscriber for the environment. "
+      << "Attempting to load environmental preload plugin."
+      << std::endl;
 
-      using ComponentT = components::Environment;
-      _ecm.CreateComponent(worldEntity(_ecm), ComponentT{std::move(data)});
+    auto nameComp = _ecm.Component<components::Name>(world);
+    if (nullptr == nameComp) {
+      gzerr << "Failed to get world name" << std::endl;
+      return;
     }
-    catch (const std::invalid_argument &exc)
+    auto worldName = nameComp->Data();
+    msgs::EntityPlugin_V req;
+    req.mutable_entity()->set_id(world);
+    auto plugin = req.add_plugins();
+    plugin->set_name(preload_plugin_name);
+    plugin->set_filename(preload_plugin_filename);
+    plugin->set_innerxml("");
+    msgs::Boolean res;
+    bool result;
+    const unsigned int timeout = 5000;
+    const auto service = transport::TopicUtils::AsValidTopic(
+      "/world/" + worldName + "/entity/system/add");
+    if (service.empty())
     {
-      gzerr << "Failed to load environmental data" << std::endl
-            << exc.what() << std::endl;
+      gzerr << "Unable to request " << service << std::endl;
+      return;
+    }
+
+    if (this->dataPtr->node.Request(service, req, timeout, res, result))
+    {
+      gzdbg << "Added plugin successfully" << std::endl;
+    }
+    else
+    {
+      gzerr << "Failed to load plugin" << std::endl;
     }
   }
 }
@@ -162,7 +195,25 @@ void EnvironmentLoader::Update(const UpdateInfo &,
 /////////////////////////////////////////////////
 void EnvironmentLoader::ScheduleLoad()
 {
-  this->dataPtr->needsLoad = this->IsConfigured();
+  if(this->IsConfigured() && this->dataPtr->pub.has_value())
+  {
+    msgs::DataLoadPathOptions data;
+    data.set_path(this->dataPtr->dataPath.toStdString());
+    data.set_time(
+      this->dataPtr->dimensionList[this->dataPtr->timeIndex].toStdString());
+    data.set_x(
+      this->dataPtr->dimensionList[this->dataPtr->xIndex].toStdString());
+    data.set_y(
+      this->dataPtr->dimensionList[this->dataPtr->yIndex].toStdString());
+    data.set_z(
+      this->dataPtr->dimensionList[this->dataPtr->zIndex].toStdString());
+    auto referenceFrame = this->dataPtr->referenceMap[this->dataPtr->reference];
+
+    data.set_coordinate_type(msgs::ConvertCoord(referenceFrame));
+    data.set_units(this->dataPtr->unitMap[this->dataPtr->unit]);
+
+    this->dataPtr->pub->Publish(data);
+  }
 }
 
 /////////////////////////////////////////////////

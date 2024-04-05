@@ -82,7 +82,7 @@ post_iterations  1000
 pre_iterations  1000
 ```
 
-# Gazebo Systems written in Python
+## Gazebo Systems written in Python
 
 Gazebo also provides a way to write systems in Python. This is done using the
 `gz::sim::systems::PythonSystemLoader` system which loads a given python module

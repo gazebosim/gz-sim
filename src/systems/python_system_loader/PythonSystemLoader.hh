@@ -55,14 +55,14 @@ namespace systems
 /// check if the corresponding method is implemented in the Python system and
 /// skip it if it's not found.
 ///
-/// See examples/scripts/python_api/systems/test_system.py for an example
+/// See `examples/scripts/python_api/systems/test_system.py` for an example
 ///
-/// ## Parameters
-/// * <module_name> : Name of python module to be loaded. The search path
+/// ## System Parameters
+/// * `<module_name>` : Name of python module to be loaded. The search path
 ///                   includes `GZ_SIM_SYSTEM_PLUGIN_PATH` as well as
 ///                   `PYTHONPATH`.
 ///
-/// The contents of the <plugin> tag will be available in the configure method
+/// The contents of the `<plugin>` tag will be available in the configure method
 /// of the Python system
 // TODO(azeey) Add ParameterConfigure
 class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader final

@@ -56,46 +56,48 @@ namespace systems
   /// attenuated on a per location basis by specifying a piecewise scalar
   /// field for a scaling factor.
   ///
+  /// ## System Parameters
+  ///
   /// The following parameters are used by the system:
   ///
-  /// - `<horizontal><magnitude><time_for_rise>`
+  /// - `<horizontal><magnitude><time_for_rise>`:
   /// Analogous to the time constant of the low pass filter.
   ///
-  /// - `<horizontal><magnitude><sin><amplitude_percent>`
+  /// - `<horizontal><magnitude><sin><amplitude_percent>`:
   /// Fraction of the filtered wind velocity magnitude that is set to be the
   /// amplitude of the sinusoid.
   ///
-  /// - `<horizontal><magnitude><sin><period>`
+  /// - `<horizontal><magnitude><sin><period>`:
   /// Period of the sinusoid that is added to the wind velocity magnitude.
   ///
-  /// - `<horizontal><magnitude><noise>`
+  /// - `<horizontal><magnitude><noise>`:
   /// Parameters for the noise that is added to the wind velocity magnitude.
   ///
-  /// - `<horizontal><direction><time_for_rise>`
+  /// - `<horizontal><direction><time_for_rise>`:
   /// Analogous to the time constant of the low pass filter.
   ///
-  /// - `<horizontal><direction><sin><amplitude>`
+  /// - `<horizontal><direction><sin><amplitude>`:
   /// Amplitude of the sinusoidal that is added on the direction of the wind
   /// velocity.
   ///
-  /// - `<horizontal><direction><sin><period>`
+  /// - `<horizontal><direction><sin><period>`:
   /// Period of the sinusoid that is added to the wind velocity direction.
   ///
-  /// - `<horizontal><direction><noise>`
+  /// - `<horizontal><direction><noise>`:
   /// Parameters for the noise that is added to the wind velocity direction.
   ///
-  /// - `<vertical><time_for_rise>`
+  /// - `<vertical><time_for_rise>`:
   /// Analogous to the time constant of the low pass filter for the vertical
   /// wind velocity magnitude.
   ///
-  /// - `<vertical><noise>`
+  /// - `<vertical><noise>`:
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
   ///
-  /// - `<force_approximation_scaling_factor>`
+  /// - `<force_approximation_scaling_factor>`:
   /// Proportionality constant used for wind force approximations as a
   /// piecewise, separable scalar field:
-  /// \verbatim
+  /// ```
   ///   <force_approximation_scaling_factor>
   ///     <when xlt="0"> <!-- Half space where x < 0 -->
   ///       <k>1</k>
@@ -104,25 +106,25 @@ namespace systems
   ///       <rz>0 1 0 1</rz>  <!-- r(z) = z^2 -->
   ///     </when>
   ///   </force_approximation_scaling_factor>
-  /// \endverbatim
+  /// ```
   /// When the scaling factor is to be constant in a region, a numerical
   /// constant may be used in place for the scalar field definition:
-  /// \verbatim
+  /// ```
   ///   <force_approximation_scaling_factor>
   ///     <!-- First octant -->
   ///     <when xge="0" yge="0" zge="0">1</when>
   ///   </force_approximation_scaling_factor>
-  /// \endverbatim
+  /// ```
   /// To use the same constant or scalar field in all space, region
   /// definition may be dropped:
-  /// \verbatim
+  /// ```
   ///   <force_approximation_scaling_factor>
   ///     <k>2</k>
   ///     <px>1 0 1 0</px>  <!-- p(x) = x^3 + x -->
   ///     <qy>0 1 0 1</qy>  <!-- q(y) = x^2 + 1 -->
   ///     <rz>1 0 1 0</rz>  <!-- r(z) = z^3 + z -->
   ///   </force_approximation_scaling_factor>
-  /// \endverbatim
+  /// ```
   /// Regions may not overlap.
   ///
   class WindEffects final:

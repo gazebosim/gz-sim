@@ -1165,7 +1165,7 @@
                     <outer_angle>1.1</outer_angle>
                     <falloff>1</falloff>
                 </spot>
-                <direction>0 -1 0</direction>
+                <direction>0 0 -1</direction>
                 <cast_shadows>1</cast_shadows>
             </light>
         <sensor name="camera" type="camera">

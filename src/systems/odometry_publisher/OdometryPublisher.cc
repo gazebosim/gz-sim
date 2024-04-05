@@ -278,6 +278,21 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
 {
   GZ_PROFILE("OdometryPublisher::PreUpdate");
 
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzwarn << "OdometryPublisher model no longer valid. "
+           << "Disabling plugin." << std::endl;
+    this->dataPtr->model = Model(kNullEntity);
+    return;
+  }
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -301,6 +316,15 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::PostUpdate");
+
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;
