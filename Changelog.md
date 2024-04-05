@@ -4,6 +4,23 @@
 
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.2.0 (2024-03-14)
+
+1. Add reference to joint_controller.md tutorial.
+    * [Pull request #2333](https://github.com/gazebosim/gz-sim/pull/2333)
+
+1. Fix wget in maritime tutorials
+    * [Pull request #2330](https://github.com/gazebosim/gz-sim/pull/2330)
+
+1. Add entity and sdf parameters to Server's AddSystem interface
+    * [Pull request #2324](https://github.com/gazebosim/gz-sim/pull/2324)
+
+1. Add entity validation to OdometryPublisher
+    * [Pull request #2326](https://github.com/gazebosim/gz-sim/pull/2326)
+
+1. Fix typo in Joint.hh
+    * [Pull request #2310](https://github.com/gazebosim/gz-sim/pull/2310)
+
 ### Gazebo Sim 8.1.0 (2024-02-06)
 
 1. Add tutorial for using components in systems

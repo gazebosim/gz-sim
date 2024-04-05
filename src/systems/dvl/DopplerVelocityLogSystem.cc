@@ -220,6 +220,9 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   /// \brief Current simulation time.
   public: std::chrono::steady_clock::duration nextUpdateTime{
     std::chrono::steady_clock::duration::max()};
+
+  /// \brief Mutex to protect current simulation times
+  public: std::mutex timeMutex;
 };
 
 using namespace gz;
@@ -350,6 +353,8 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
       }
       return true;
     });
+
+  std::lock_guard<std::mutex> timeLock(this->timeMutex);
 
   if (!this->perStepRequests.empty() || (
         !_info.paused && this->nextUpdateTime <= _info.simTime))
@@ -611,6 +616,9 @@ void DopplerVelocityLogSystem::Implementation::OnRender()
     }
 
     auto closestUpdateTime = std::chrono::steady_clock::duration::max();
+
+    std::lock_guard<std::mutex> timeLock(this->timeMutex);
+
     for (const auto & [_, sensorId] : this->sensorIdPerEntity)
     {
       gz::sensors::Sensor *sensor =
@@ -635,6 +643,9 @@ void DopplerVelocityLogSystem::Implementation::OnRender()
 void DopplerVelocityLogSystem::Implementation::OnPostRender()
 {
   GZ_PROFILE("DopplerVelocityLogSystem::Implementation::OnPostRender");
+
+  std::lock_guard<std::mutex> timeLock(this->timeMutex);
+
   for (const auto & sensorId : this->updatedSensorIds)
   {
     auto *sensor =

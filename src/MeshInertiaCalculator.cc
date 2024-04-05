@@ -218,6 +218,11 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   // Load the Mesh
   gz::common::MeshManager *meshManager = gz::common::MeshManager::Instance();
   mesh = meshManager->Load(fullPath);
+  if (!mesh)
+  {
+    gzerr << "Failed to load mesh: " << fullPath << std::endl;
+    return std::nullopt;
+  }
   std::vector<Triangle> meshTriangles;
   gz::math::MassMatrix3d meshMassMatrix;
   gz::math::Pose3d centreOfMass;
