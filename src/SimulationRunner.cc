@@ -463,6 +463,8 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
+  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
+
   if (this->Stepping())
   {
     // (deprecated) Remove this header in Gazebo H
