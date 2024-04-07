@@ -8,8 +8,9 @@ release will remove the deprecated code.
 ## Gazebo Sim 8.x to 9.0
 
  * **Modified**:
-   + In the Physics system, all `*VelocityCmd` components are deleted after
-     each time step. Persistent velocity commands should be reapplied at
+   + In the Physics system, all `*VelocityCmd` components are now deleted after
+     each time step, whereas previously the component values were set to `0`
+     after each time step. Persistent velocity commands should be reapplied at
      each time step.
 
 ## Gazebo Sim 7.x to 8.0
