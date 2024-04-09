@@ -1249,75 +1249,98 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     if (descriptor.mesh)
     {
-      common::Mesh newMesh;
       if (_geom.MeshShape()->Optimization() ==
           sdf::MeshOptimization::CONVEX_HULL ||
           _geom.MeshShape()->Optimization() ==
           sdf::MeshOptimization::CONVEX_DECOMPOSITION)
       {
-        std::unique_ptr<common::Mesh> meshToDecompose =
-            std::make_unique<common::Mesh>();
-        // check if a particular submesh is requested
-        if (!descriptor.subMeshName.empty())
+        std::size_t maxConvexHulls = 16u;
+        if (_geom.MeshShape()->Optimization() ==
+            sdf::MeshOptimization::CONVEX_HULL)
         {
-          for (unsigned int submeshIdx = 0;
-               submeshIdx < descriptor.mesh->SubMeshCount();
-               ++submeshIdx)
+          /// create 1 convex hull for the whole submesh
+          maxConvexHulls = 1u;
+        }
+        else if (_geom.MeshShape()->ConvexDecomposition())
+        {
+          // limit max number of convex hulls to generate
+          maxConvexHulls =
+              _geom.MeshShape()->ConvexDecomposition()->MaxConvexHulls();
+        }
+
+        // Check if MeshManager contains the decomposed mesh already. If not
+        // add it to the MeshManager so we do not need to decompose it again.
+        const std::string convexMeshName =
+            descriptor.mesh->Name() + "_" + descriptor.subMeshName +
+            "_CONVEX_" + std::to_string(maxConvexHulls);
+        auto *decomposedMesh = meshManager->MeshByName(convexMeshName);
+        if (!decomposedMesh)
+        {
+          std::unique_ptr<common::Mesh> meshToDecompose =
+              std::make_unique<common::Mesh>();
+          // check if a particular submesh is requested
+          if (!descriptor.subMeshName.empty())
           {
-            auto submesh = descriptor.mesh->SubMeshByIndex(submeshIdx).lock();
-            if (submesh->Name() == descriptor.subMeshName)
+            for (unsigned int submeshIdx = 0;
+                 submeshIdx < descriptor.mesh->SubMeshCount();
+                 ++submeshIdx)
             {
-              if (descriptor.centerSubMesh)
-                submesh->Center(math::Vector3d::Zero);
-              meshToDecompose->AddSubMesh(*submesh.get());
-              break;
+              auto submesh = descriptor.mesh->SubMeshByIndex(submeshIdx).lock();
+              if (submesh->Name() == descriptor.subMeshName)
+              {
+                if (descriptor.centerSubMesh)
+                  submesh->Center(math::Vector3d::Zero);
+                meshToDecompose->AddSubMesh(*submesh.get());
+                break;
+              }
             }
           }
-        }
-        else
-        {
-          meshToDecompose =
-              gz::common::MeshManager::MergeSubMeshes(*descriptor.mesh);
-        }
-        if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
-        {
-          std::size_t maxConvexHulls = 16u;
-          if (_geom.MeshShape()->Optimization() ==
-              sdf::MeshOptimization::CONVEX_HULL)
+          else
           {
-            /// create 1 convex hull for the whole submesh
-            maxConvexHulls = 1u;
+            meshToDecompose =
+                gz::common::MeshManager::MergeSubMeshes(*descriptor.mesh);
           }
-          else if (_geom.MeshShape()->ConvexDecomposition())
+          if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
           {
-            // limit max number of convex hulls to generate
-            maxConvexHulls =
-                _geom.MeshShape()->ConvexDecomposition()->MaxConvexHulls();
-          }
-          auto submesh = meshToDecompose->SubMeshByIndex(0u).lock();
-          std::vector<common::SubMesh> decomposed =
-              gz::common::MeshManager::ConvexDecomposition(
-              *submesh.get(), maxConvexHulls);
-          gzdbg << "Optimizing mesh (" << _geom.MeshShape()->OptimizationStr()
-                << "): " <<  descriptor.mesh->Name() << std::endl;
-          if (!decomposed.empty())
-          {
-            for (std::size_t n = 0; n < decomposed.size(); ++n)
+            // Decompose and add mesh to MeshManager
+            auto s = meshToDecompose->SubMeshByIndex(0u).lock();
+            std::vector<common::SubMesh> decomposed =
+                gz::common::MeshManager::ConvexDecomposition(
+                *s.get(), maxConvexHulls);
+            gzdbg << "Optimizing mesh (" << _geom.MeshShape()->OptimizationStr()
+                  << "): " <<  descriptor.mesh->Name() << std::endl;
+
+            // Create decomposed mesh and add it to MeshManager
+            // Note: MeshManager will call delete on this mesh in its destructor
+            // \todo(iche033) Consider updating MeshManager to accept
+            // unique pointers instead
+            common::Mesh *convexMesh = new common::Mesh;
+            convexMesh->SetName(convexMeshName);
+            for (const auto & submesh : decomposed)
+              convexMesh->AddSubMesh(submesh);
+            meshManager->AddMesh(convexMesh);
+            if (decomposed.empty())
             {
-              newMesh.AddSubMesh(decomposed[n]);
+              // Print an error if convex decomposition returned empty submeshes
+              // but still add it to MeshManager to avoid going through the
+              // expensive convex decomposition process for the same mesh again
+              gzerr << "Convex decomposition generated zero meshes: "
+                     << descriptor.mesh->Name() << std::endl;
             }
+            decomposedMesh = meshManager->MeshByName(convexMeshName);
           }
-          if (newMesh.SubMeshCount() > 0u)
-          {
-            descriptor.mesh = &newMesh;
-            // if submesh is requested, we handled this above before mesh
-            // decomposition so we do not need need to pass these flags to
-            // gz-rendering
-            descriptor.subMeshName = "";
-            descriptor.centerSubMesh = false;
-          }
+        }
+        if (decomposedMesh)
+        {
+          descriptor.mesh = decomposedMesh;
+          // if submesh is requested, we handled this above before mesh
+          // decomposition so we do not need need to pass these flags to
+          // gz-rendering
+          descriptor.subMeshName = "";
+          descriptor.centerSubMesh = false;
         }
       }
+      geom = this->scene->CreateMesh(descriptor);
     }
     else
     {
