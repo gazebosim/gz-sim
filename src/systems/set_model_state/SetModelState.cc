@@ -67,9 +67,7 @@ void SetModelState::Configure(const Entity &_entity,
     return;
   }
 
-  auto sdfClone = _sdf->Clone();
-
-  auto modelStateElem = sdfClone->FindElement("model_state");
+  auto modelStateElem = _sdf->FindElement("model_state");
   if (!modelStateElem)
   {
     gzerr << "No <model_state> specified; the model state is unchanged.\n";
@@ -113,7 +111,7 @@ void SetModelState::Configure(const Entity &_entity,
     std::vector<double> jointVelocity;
 
     auto parseScalarWithDegrees =
-        [](math::Angle &_scalar, sdf::ElementPtr _elem) -> bool
+        [](math::Angle &_scalar, sdf::ElementConstPtr _elem) -> bool
     {
       if (_elem)
       {
