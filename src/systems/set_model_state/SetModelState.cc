@@ -228,50 +228,7 @@ void SetModelState::Reset(const UpdateInfo &_info,
 {
   GZ_PROFILE("SetModelState::Reset");
 
-  // // \TODO(anyone) Support rewind
-  // if (_info.dt < std::chrono::steady_clock::duration::zero())
-  // {
-  //   gzwarn << "Detected jump back in time ["
-  //       << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-  //       << "s]. System may not work properly." << std::endl;
-  // }
-
-  // // If the joint hasn't been identified yet, look for it
-  // //! [findJoint]
-  // if (this->dataPtr->jointEntity == kNullEntity)
-  // {
-  //   this->dataPtr->jointEntity =
-  //       this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-  // }
-  // //! [findJoint]
-
-  // if (this->dataPtr->jointEntity == kNullEntity)
-  //   return;
-
-  // // Nothing left to do if paused.
-  // if (_info.paused)
-  //   return;
-
-  // // Update joint force
-  // //! [jointForceComponent]
-  // auto force = _ecm.Component<components::JointForceCmd>(
-  //     this->dataPtr->jointEntity);
-  // //! [jointForceComponent]
-
-  // std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
-
-  // //! [modifyComponent]
-  // if (force == nullptr)
-  // {
-  //   _ecm.CreateComponent(
-  //       this->dataPtr->jointEntity,
-  //       components::JointForceCmd({this->dataPtr->jointForceCmd}));
-  // }
-  // else
-  // {
-  //   force->Data()[0] += this->dataPtr->jointForceCmd;
-  // }
-  // //! [modifyComponent]
+  // \TODO(scpeters) Set the same state as in Configure
 }
 
 GZ_ADD_PLUGIN(SetModelState,
