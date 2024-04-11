@@ -51,9 +51,19 @@ namespace systems
       </joint_state>
       <joint_state name="joint_1">
         <axis_state>
-          <position degrees="true">1.0471975512</position>
-          <velocity degrees="true">-0.5235987756</velocity>
+          <position>1.0471975512</position>
+          <velocity>-0.5235987756</velocity>
         </axis_state>
+      </joint_state>
+      <joint_state name="multi_axis_joint">
+        <axis_state>
+          <position degrees="true">60</position>
+          <velocity degrees="true">-30</velocity>
+        </axis_state>
+        <axis2_state>
+          <position degrees="true">-30</position>
+          <velocity degrees="true">15</velocity>
+        </axis2_state>
       </joint_state>
     </model_state>
   \endcode */
