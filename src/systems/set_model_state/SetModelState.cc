@@ -35,6 +35,33 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
+namespace
+{
+  bool parseScalarWithDegrees(math::Angle &_scalar, sdf::ElementConstPtr _elem)
+  {
+    if (_elem)
+    {
+      // parse degrees attribute, default false
+      std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
+      // parse element scalar value, default 0.0
+      std::pair<double, bool> scalarPair = _elem->Get<double>("", 0.0);
+      if (scalarPair.second)
+      {
+        if (degreesPair.first)
+        {
+          _scalar.SetDegree(scalarPair.first);
+        }
+        else
+        {
+          _scalar.SetRadian(scalarPair.first);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
 class gz::sim::systems::SetModelStatePrivate
 {
   /// \brief Model interface
@@ -109,31 +136,6 @@ void SetModelState::Configure(const Entity &_entity,
     bool jointVelocitySet = false;
     std::vector<double> jointPosition;
     std::vector<double> jointVelocity;
-
-    auto parseScalarWithDegrees =
-        [](math::Angle &_scalar, sdf::ElementConstPtr _elem) -> bool
-    {
-      if (_elem)
-      {
-        // parse degrees attribute, default false
-        std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
-        // parse element scalar value, default 0.0
-        std::pair<double, bool> scalarPair = _elem->Get<double>("", 0.0);
-        if (scalarPair.second)
-        {
-          if (degreesPair.first)
-          {
-            _scalar.SetDegree(scalarPair.first);
-          }
-          else
-          {
-            _scalar.SetRadian(scalarPair.first);
-          }
-          return true;
-        }
-      }
-      return false;
-    };
 
     {
       auto axisElem = jointStateElem->FindElement("axis_state");
