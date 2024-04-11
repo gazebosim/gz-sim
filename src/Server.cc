@@ -16,7 +16,6 @@
 */
 
 #include <numeric>
-#include <unordered_set>
 
 #ifdef HAVE_PYBIND11
 #include <pybind11/embed.h>
@@ -97,17 +96,6 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  auto hasBlockingErrors = [](const sdf::Errors &_errors) {
-    std::unordered_set<sdf::ErrorCode> nonBlockingErrors =
-        {sdf::ErrorCode::URI_LOOKUP};
-    for (auto &err : _errors)
-    {
-      if (nonBlockingErrors.find(err.Code()) == nonBlockingErrors.end())
-        return true;
-    }
-    return false;
-  };
-
   sdf::Errors errors;
 
   switch (_config.Source())
@@ -170,7 +158,7 @@ Server::Server(const ServerConfig &_config)
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (!hasBlockingErrors(errors)) {
+      if (errors.empty()) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -185,7 +173,7 @@ Server::Server(const ServerConfig &_config)
             return;
           }
           world->AddModel(*sdfRoot.Model());
-          if (!hasBlockingErrors(errors)) {
+          if (errors.empty()) {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
         }
@@ -210,8 +198,7 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       gzerr << err << "\n";
-    if (hasBlockingErrors(errors))
-      return;
+    return;
   }
 
   // Add record plugin
