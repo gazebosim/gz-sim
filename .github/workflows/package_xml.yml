@@ -6,15 +6,6 @@ on:
 jobs:
   package-xml:
     runs-on: ubuntu-latest
-    name: package.xml and CMake versions match
+    name: Validate package.xml
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Check versions
-        run: |
-          echo "Extract version numbers and compare"
-          package_xml_version=$(sed -nE 's/\s*<version>([0-9.]*)<\/version>\s*/\1/p' package.xml)
-          echo "Version in package.xml: ${package_xml_version}"
-          cmake_version=$(sed -nE 's/^project.*VERSION\s*([0-9.]*).*/\1/p' CMakeLists.txt)
-          echo "Version in CMake: ${cmake_version}"
-          [ $package_xml_version = $cmake_version ]
+      - uses: gazebo-tooling/action-gz-ci/validate_package_xml@jammy
