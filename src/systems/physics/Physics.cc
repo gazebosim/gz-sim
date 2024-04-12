@@ -120,6 +120,8 @@
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/JointForce.hh"
+#include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
@@ -130,7 +132,6 @@
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointTransmittedWrench.hh"
-#include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
@@ -3692,6 +3693,26 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
+
+  // Update joint Forces
+  _ecm.Each<components::Joint, components::JointForce>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointForce *_jointForce) -> bool
+      {
+        if (auto jointPhys = this->entityJointMap.Get(_entity))
+        {
+          _jointForce->Data().resize(jointPhys->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
+               ++i)
+          {
+            _jointForce->Data()[i] = jointPhys->GetForce(i);
+            gzmsg << "JointForce: " << _jointForce->Data()[i]
+              << std::endl;
+          }
+        }
+        return true;
+      });
+
   GZ_PROFILE_END();
 
   // Update joint transmitteds
