@@ -3706,8 +3706,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
                ++i)
           {
             _jointForce->Data()[i] = jointPhys->GetForce(i);
-            gzmsg << "JointForce: " << _jointForce->Data()[i]
-              << std::endl;
           }
         }
         return true;
