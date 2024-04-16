@@ -63,7 +63,7 @@ namespace gz
       /// \brief SDF error behavior
       public: enum class SdfErrorBehavior
       {
-        /// \brief Exit the server immmediately
+        /// \brief Exit the server immediately
         EXIT_IMMEDIATELY,
         /// \brief Continue loading the server if possible
         CONTINUE_LOADING
