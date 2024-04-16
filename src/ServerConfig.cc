@@ -208,7 +208,8 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
-            source(_cfg->source){ }
+            source(_cfg->source),
+            blockOnSdfErrors(_cfg->blockOnSdfErrors){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -292,6 +293,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
+
+  /// \brief Stop loading the server in presence of SDF errors.
+  public: bool blockOnSdfErrors{true};
 };
 
 //////////////////////////////////////////////////
@@ -596,6 +600,18 @@ void ServerConfig::SetRenderEngineGuiApiBackend(const std::string &_apiBackend)
 const std::string &ServerConfig::RenderEngineGuiApiBackend() const
 {
   return this->dataPtr->renderEngineGuiApiBackend;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetBlockOnSdfErrors(bool _blockOnSdfErrors)
+{
+  this->dataPtr->blockOnSdfErrors = _blockOnSdfErrors;
+}
+
+//////////////////////////////////////////////////
+bool ServerConfig::BlockOnSdfErrors() const
+{
+  return this->dataPtr->blockOnSdfErrors;
 }
 
 /////////////////////////////////////////////////

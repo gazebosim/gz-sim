@@ -140,7 +140,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, const char *_recordTopics, int _waitGui,
-    int _headless, float _recordPeriod, int _seed)
+    int _headless, float _recordPeriod, int _seed, int _blockOnSdfErrors)
 {
   std::string startingWorldPath{""};
   sim::ServerConfig serverConfig;
@@ -424,6 +424,8 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetSeed(_seed);
     gzmsg << "Setting seed value: " << _seed << "\n";
   }
+
+  serverConfig.SetBlockOnSdfErrors(_blockOnSdfErrors);
 
   // Create the Gazebo server
   sim::Server server(serverConfig);

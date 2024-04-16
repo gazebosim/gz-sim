@@ -158,7 +158,7 @@ Server::Server(const ServerConfig &_config)
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (errors.empty()) {
+      if (errors.empty() || !_config.BlockOnSdfErrors()) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -173,7 +173,7 @@ Server::Server(const ServerConfig &_config)
             return;
           }
           world->AddModel(*sdfRoot.Model());
-          if (errors.empty()) {
+          if (errors.empty() || !_config.BlockOnSdfErrors()) {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
         }
@@ -198,7 +198,10 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       gzerr << err << "\n";
-    return;
+    if (_config.BlockOnSdfErrors())
+    {
+      return;
+    }
   }
 
   // Add record plugin

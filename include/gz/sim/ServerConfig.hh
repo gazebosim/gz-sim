@@ -386,7 +386,19 @@ namespace gz
                   const std::string &_apiBackend);
 
       /// \return Api backend for gui. See SetRenderEngineGuiApiBackend()
-      const std::string &RenderEngineGuiApiBackend() const;
+      public: const std::string &RenderEngineGuiApiBackend() const;
+
+      /// \brief Set whether the server to should stop loading in presence
+      /// of SDF errors.
+      /// \param[in] _blockOnSdfErrors True to stop loading the server in
+      /// presence of SDF errors, false to continue loading if SDF errors exist.
+      public: void SetBlockOnSdfErrors(bool _blockOnSdfErrors);
+
+      /// \brief Get whether the server to should stop loading in presence
+      /// of SDF errors.
+      /// \return True if the server will stop loading in presence of SDF
+      /// errors, false otherwise.
+      public: bool BlockOnSdfErrors() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.
