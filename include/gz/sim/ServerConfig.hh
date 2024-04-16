@@ -60,6 +60,14 @@ namespace gz
         kSdfString,
       };
 
+      /// \brief SDF error behavior
+      public: enum class SdfErrorBehavior
+      {
+        /// \brief Exit the server immmediately
+        EXIT_IMMEDIATELY,
+        /// \brief Continue loading the server if possible
+        CONTINUE_LOADING
+      };
 
       class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
@@ -388,17 +396,15 @@ namespace gz
       /// \return Api backend for gui. See SetRenderEngineGuiApiBackend()
       public: const std::string &RenderEngineGuiApiBackend() const;
 
-      /// \brief Set whether the server to should stop loading in presence
-      /// of SDF errors.
-      /// \param[in] _blockOnSdfErrors True to stop loading the server in
-      /// presence of SDF errors, false to continue loading if SDF errors exist.
-      public: void SetBlockOnSdfErrors(bool _blockOnSdfErrors);
+      /// \brief Set the server behavior when SDF errors are encountered while
+      //// loading the server.
+      /// \param[in] _behavior Server behavior when SDF errors are encounted.
+      public: void SetBehaviorOnSdfErrors(SdfErrorBehavior _behavior);
 
-      /// \brief Get whether the server to should stop loading in presence
-      /// of SDF errors.
-      /// \return True if the server will stop loading in presence of SDF
-      /// errors, false otherwise.
-      public: bool BlockOnSdfErrors() const;
+      /// \brief Get the behavior when SDF errors are encountered while
+      //// loading the server.
+      /// \return Server behavior when SDF errors are encounted.
+      public: SdfErrorBehavior BehaviorOnSdfErrors() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

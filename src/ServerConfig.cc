@@ -209,7 +209,7 @@ class gz::sim::ServerConfigPrivate
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
             source(_cfg->source),
-            blockOnSdfErrors(_cfg->blockOnSdfErrors){ }
+            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -294,8 +294,9 @@ class gz::sim::ServerConfigPrivate
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
 
-  /// \brief Stop loading the server in presence of SDF errors.
-  public: bool blockOnSdfErrors{true};
+  /// \brief Server loading behavior in presence of SDF errors.
+  public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
 };
 
 //////////////////////////////////////////////////
@@ -603,15 +604,16 @@ const std::string &ServerConfig::RenderEngineGuiApiBackend() const
 }
 
 //////////////////////////////////////////////////
-void ServerConfig::SetBlockOnSdfErrors(bool _blockOnSdfErrors)
+void ServerConfig::SetBehaviorOnSdfErrors(
+    ServerConfig::SdfErrorBehavior _behavior)
 {
-  this->dataPtr->blockOnSdfErrors = _blockOnSdfErrors;
+  this->dataPtr->behaviorOnSdfErrors = _behavior;
 }
 
 //////////////////////////////////////////////////
-bool ServerConfig::BlockOnSdfErrors() const
+ServerConfig::SdfErrorBehavior ServerConfig::BehaviorOnSdfErrors() const
 {
-  return this->dataPtr->blockOnSdfErrors;
+  return this->dataPtr->behaviorOnSdfErrors;
 }
 
 /////////////////////////////////////////////////

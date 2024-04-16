@@ -130,8 +130,10 @@ TEST_F(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
   };
 
   gz::sim::ServerConfig serverConfig;
-  serverConfig.SetBlockOnSdfErrors(false);
-  EXPECT_FALSE(serverConfig.BlockOnSdfErrors());
+  serverConfig.SetBehaviorOnSdfErrors(
+      ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
+  EXPECT_EQ(ServerConfig::SdfErrorBehavior::CONTINUE_LOADING,
+      serverConfig.BehaviorOnSdfErrors());
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "models", "relative_resource_uri", "model2.sdf"));
 
@@ -166,8 +168,10 @@ TEST_F(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
 
   // Tell server to stop loading if there are SDF errors
   // Server should not load because V2's visual mesh URI can not be resolved
-  serverConfig.SetBlockOnSdfErrors(true);
-  EXPECT_TRUE(serverConfig.BlockOnSdfErrors());
+  serverConfig.SetBehaviorOnSdfErrors(
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY);
+  EXPECT_EQ(ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY,
+      serverConfig.BehaviorOnSdfErrors());
   sim::Server server2 = Server(serverConfig);
   EXPECT_FALSE(server2.HasEntity("relative_resource_uri"));
   EXPECT_FALSE(server2.HasEntity("L1"));
