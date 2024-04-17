@@ -178,7 +178,6 @@ COMMANDS = { 'sim' =>
   "  --version                    Print Gazebo version information.                \n"\
   "\n"\
   "  -z [arg]                     Update rate in Hertz.                            \n"\
-  "\n"\
   "\n"+
   COMMON_OPTIONS + "\n\n" +
   "Environment variables:                                                          \n"\
