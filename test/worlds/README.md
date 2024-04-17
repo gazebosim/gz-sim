@@ -7,4 +7,3 @@ This folder contains world files specifically designed for purpose of integratio
 ## Running system plugin examples
 
 The world files are present in the `examples/worlds` directory of this repository.
-
