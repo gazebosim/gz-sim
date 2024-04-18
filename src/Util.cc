@@ -15,8 +15,6 @@
  *
 */
 
-#include <filesystem>
-
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
@@ -399,9 +397,15 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   {
     return _uri;
   }
+#elif defined(_WIN32)
+  if (_uri.find("://") != std::string::npos ||
+      common::isFile(_uri))
+  {
+    return _uri;
+  }
 #else
   if (_uri.find("://") != std::string::npos ||
-      std::filesystem::path(_uri).is_absolute())
+      !common::isRelativePath(_uri))
   {
     return _uri;
   }
