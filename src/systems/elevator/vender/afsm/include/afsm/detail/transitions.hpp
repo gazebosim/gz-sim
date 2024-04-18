@@ -526,7 +526,7 @@ public:
     check_default_transition()
     {
         auto st = state_indexes{};
-        auto const& ttable = transition_table<none>( st );
+        auto const& ttable = transition_table<none>(st);
         ttable[current_state()](*this, none{});
     }
 
