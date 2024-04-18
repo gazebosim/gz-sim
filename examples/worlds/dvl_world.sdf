@@ -31,7 +31,7 @@
 
 -->
 <sdf version="1.6">
-  <world name="flat_seabed">
+  <world name="dvl_world">
     <scene>
       <!-- For turquoise ambient to match particle effect -->
       <ambient>0.0 1.0 1.0</ambient>
