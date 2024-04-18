@@ -546,7 +546,7 @@ public:
     exit(Event&& event)
     {
         auto st = state_indexes{};
-        auto const& table = exit_table<Event>( st );
+        auto const& table = exit_table<Event>(st);
         table[current_state()](states_, ::std::forward<Event>(event), *fsm_);
     }
 
