@@ -555,7 +555,7 @@ public:
     process_transition_event(Event&& event)
     {
         auto st = state_indexes{};
-        auto const& inv_table = transition_table<Event>( st );
+        auto const& inv_table = transition_table<Event>(st);
         return inv_table[current_state()](*this, ::std::forward<Event>(event));
     }
 
