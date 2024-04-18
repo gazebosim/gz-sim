@@ -15,6 +15,8 @@
  *
 */
 
+#include <filesystem>
+
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
@@ -399,10 +401,11 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   }
 #else
   if (_uri.find("://") != std::string::npos ||
-      !common::isRelativePath(_uri))
+      std::filesystem::path(_uri).is_absolute())
   {
     return _uri;
   }
+
 #endif
 
   // When SDF is loaded from a string instead of a file
