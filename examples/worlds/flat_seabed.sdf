@@ -1,7 +1,34 @@
 <?xml version="1.0" ?>
 <!--
-  Development of this module has been funded by the Monterey Bay Aquarium
-  Research Institute (MBARI) and the David and Lucile Packard Foundation
+  Example showing the usage of the Doppler Velocity Log (DVL) sensor
+  on an Autonomous Underwater Vehicle (AUV).
+
+  The world contains the MBARI Tethys LRAUV model along with
+  the following plugins:
+
+  * Buoyancy: applies buoyancy forces
+  * DopplerVelocityLogSystem: sensor to measure doppler velocity
+  * JointPositionController: controls the vertical and horizontal fins
+  * LiftDrag: generates forces on the vertical and horizontal fins
+  * Thruster: propels the vehicle
+  * Hydrodynamics: applies forces such as added mass, drag and coriolis
+
+  The AUV can be controlled using the following commands (to move in a circle):
+
+  1. Move the rudder:
+
+      gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
+      -m gz.msgs.Double -p 'data: -0.17'
+
+  2. Propel the vehicle:
+
+      gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
+      -m gz.msgs.Double -p 'data: -31'
+
+  To see the DVL output run the following command:
+
+  3. gz topic -t /dvl/velocity -e
+
 -->
 <sdf version="1.6">
   <world name="flat_seabed">
@@ -14,9 +41,9 @@
       <grid>false</grid>
     </scene>
 
-    <physics name="1ms" type="dart">
-      <max_step_size>0.02</max_step_size>
-      <real_time_factor>0</real_time_factor>
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
       filename="gz-sim-physics-system"
@@ -38,6 +65,14 @@
     <plugin
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
     </plugin>
 
     <light type="directional" name="sun">
@@ -156,6 +191,101 @@
           </gz:dvl>
         </sensor>
       </experimental:params>
+
+      <!-- Odometry publisher -->
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+      </plugin>
+
+      <!-- Joint controllers -->
+      <plugin
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
+        <joint_name>horizontal_fins_joint</joint_name>
+        <p_gain>0.1</p_gain>
+      </plugin>
+
+      <plugin
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
+        <joint_name>vertical_fins_joint</joint_name>
+        <p_gain>0.1</p_gain>
+      </plugin>
+
+      <plugin
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
+        <namespace>tethys</namespace>
+        <use_angvel_cmd>0</use_angvel_cmd>
+        <joint_name>propeller_joint</joint_name>
+        <thrust_coefficient>0.004422</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+      </plugin>
+
+      <!-- Lift and drag -->
+
+      <!-- Vertical fin -->
+      <plugin
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>4.13</cla>
+        <cla_stall>-1.1</cla_stall>
+        <cda>0.2</cda>
+        <cda_stall>0.03</cda_stall>
+        <alpha_stall>0.17</alpha_stall>
+        <a0>0</a0>
+        <area>0.0244</area>
+        <upward>0 1 0</upward>
+        <forward>1 0 0</forward>
+        <link_name>vertical_fins</link_name>
+        <cp>0 0 0</cp>
+      </plugin>
+
+      <!-- Horizontal fin -->
+      <plugin
+        filename="gz-sim-lift-drag-system"
+        name="gz::sim::systems::LiftDrag">
+        <air_density>1000</air_density>
+        <cla>4.13</cla>
+        <cla_stall>-1.1</cla_stall>
+        <cda>0.2</cda>
+        <cda_stall>0.03</cda_stall>
+        <alpha_stall>0.17</alpha_stall>
+        <a0>0</a0>
+        <area>0.0244</area>
+        <upward>0 0 1</upward>
+        <forward>1 0 0</forward>
+        <link_name>horizontal_fins</link_name>
+        <cp>0 0 0</cp>
+      </plugin>
+
+      <!-- Hydrodynamics plugin-->
+      <plugin
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+        <link_name>base_link</link_name>
+        <xDotU>-4.876161</xDotU>
+        <yDotV>-126.324739</yDotV>
+        <zDotW>-126.324739</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>-33.46</mDotQ>
+        <nDotR>-33.46</nDotR>
+        <xUabsU>-6.2282</xUabsU>
+        <xU>0</xU>
+        <yVabsV>-601.27</yVabsV>
+        <yV>0</yV>
+        <zWabsW>-601.27</zWabsW>
+        <zW>0</zW>
+        <kPabsP>-0.1916</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>-632.698957</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>-632.698957</nRabsR>
+        <nR>0</nR>
+      </plugin>
     </include>
   </world>
 </sdf>
