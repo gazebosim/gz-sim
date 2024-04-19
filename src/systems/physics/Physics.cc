@@ -116,6 +116,7 @@
 #include "gz/sim/components/JointPositionLimitsCmd.hh"
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/JointForce.hh"
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
@@ -2792,6 +2793,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
         {
           jointPhys->SetVelocity(i, 0.0);
           jointPhys->SetPosition(i, 0.0);
+          jointPhys->SetForce(i, 0.0);
         }
 
         return true;
@@ -3693,7 +3695,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
-
   // Update joint Forces
   _ecm.Each<components::Joint, components::JointForce>(
       [&](const Entity &_entity, components::Joint *,
@@ -3710,7 +3711,6 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         }
         return true;
       });
-
   GZ_PROFILE_END();
 
   // Update joint transmitteds

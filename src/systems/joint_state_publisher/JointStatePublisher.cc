@@ -129,7 +129,8 @@ void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
   }
 
   // Create joint force component if one doesn't exist
-  if (!_ecm.EntityHasComponentType(_joint, components::JointForce().TypeId()))
+  if (!_ecm.EntityHasComponentType(_joint,
+        components::JointForce().TypeId()))
   {
     _ecm.CreateComponent(_joint, components::JointForce());
   }
