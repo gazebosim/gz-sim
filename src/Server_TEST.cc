@@ -1012,8 +1012,11 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
           if (mesh)
           {
-            EXPECT_EQ("model://scheme_resource_uri/meshes/box.dae",
-                mesh->Uri());
+            // StoreResolvedURIs is set to true so expect full path
+            EXPECT_NE(std::string::npos,
+                mesh->Uri().find("scheme_resource_uri/meshes/box.dae"));
+            EXPECT_FALSE(common::isRelativePath(mesh->Uri()));
+            EXPECT_TRUE(common::isFile(mesh->Uri()));
           }
 
           eachCount++;
