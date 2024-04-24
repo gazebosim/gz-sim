@@ -598,12 +598,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
             options['record-period'], options['seed'])
             # Otherwise run the gui
       else options['gui']
-        if plugin.end_with? ".dll"
-          puts "`gz sim` currently only works with the -s argument on Windows.
-See https://github.com/gazebosim/gz-sim/issues/168 for more info."
-          exit(-1)
-        end
-
         ENV['RMT_PORT'] = '1501'
         Importer.runGui(options['gui_config'], options['file'],
                         options['wait_gui'], options['render_engine_gui'],
