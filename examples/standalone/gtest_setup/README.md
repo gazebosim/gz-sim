@@ -9,18 +9,37 @@ The example contains 2 tests:
 
 See the comments on the source code for more explanations.
 
-## Build
+## Build Instructions
 
-From the root of the repository:
+From this directory, run the following to compile:
 
-    cd examples/standalone/gtest_setup
-    mkdir build
-    cd build
-    cmake ..
-    make
+```bash
+cmake -B build
+cmake --build build
+```
 
 ## Run tests
 
-    cd examples/standalone/gtest_setup/build
-    ./gravity_TEST
-    ./command_TEST
+From this directory, run the following to run tests:
+
+### CMake 3.20 or newer
+
+```bash
+ctest --test-dir build
+```
+
+By default, ctest hides stdout from tests.
+To enable test output, add `-V`.
+CTest also hides colors, which can be re-enabled.
+```bash
+GTEST_COLOR=1 ctest -V --test-dir build 
+```
+
+
+### CMake 3.19 or earlier
+
+```bash
+cd build
+ctest
+```
+

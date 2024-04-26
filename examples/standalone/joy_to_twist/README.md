@@ -6,17 +6,14 @@ messages and converts publishes
 [gz::msgs::Twist](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Twist.html)
 messages according to user-defined configuration.
 
-## Build
+## Build Instructions
 
-From the root of the `gz-sim` repository, do the following to build the example:
+From this directory, run the following to compile:
 
-~~~
-cd examples/standalone/joy_to_twist
-mkdir build
-cd build
-cmake ..
-make
-~~~
+```bash
+cmake -B build
+cmake --build build
+```
 
 This will generate the `joy_to_twist` executable under `build`.
 
@@ -27,7 +24,9 @@ An example file, `joy_to_twist.sdf`, is provided.
 
 You can run the example as follows:
 
-    ./joy_to_twist ../joy_to_twist.sdf
+```bash
+./build/joy_to_twist joy_to_twist.sdf
+```
 
 This program by itself won't do much unless there is another source of joy
 messages that it can consume. See the demo below for a full integrated example.
@@ -41,8 +40,10 @@ that can be controlled using a joystick. You can run it as follows:
    messages. See that standalone program's instructions to details on how
    to build it. Once it's built, you can run it as follows:
 
-        cd examples/standalone/joystick
-        ./joystick ../joystick.sdf
+```bash
+cd examples/standalone/joystick
+./build/joystick ../joystick.sdf
+```
 
 1. On another terminal, run the `joy_to_twist` executable as described above,
    which will convert joy messages to twist messages:
