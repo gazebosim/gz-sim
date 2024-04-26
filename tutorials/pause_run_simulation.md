@@ -1,6 +1,6 @@
 \page pause_run_simulation Pause and Run simulation
 
-The TODO Gazebo transport API is exposed to allow starting and stopping the simulation.
+A Gazebo transport API is exposed to allow starting and stopping the simulation.
 It's possible to call this API using the command line or through the GUI.
 
 To repeat this demo, run the `default` world:
