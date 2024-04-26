@@ -14,7 +14,7 @@
   <depend>glut</depend>
   <depend>gz-cmake3</depend>
   <depend>gz-common5</depend>
-  <depend>gz-fuel-tools9</depend>
+  <depend>gz-fuel_tools9</depend>
   <depend>gz-gui8</depend>
   <depend>gz-math7</depend>
   <depend>gz-msgs10</depend>
