@@ -603,8 +603,13 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("Update");
-    for (auto& system : this->systemMgr->SystemsUpdate())
-      system->Update(this->currentInfo, this->entityCompMgr);
+    for (auto& [priority, systems]: this->systemMgr->SystemsUpdate())
+    {
+      for (auto& system : systems)
+      {
+        system->Update(this->currentInfo, this->entityCompMgr);
+      }
+    }
   }
 
   {

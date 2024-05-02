@@ -19,6 +19,8 @@
 
 #include <gz/msgs/entity_plugin_v.pb.h>
 
+#include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,6 +46,13 @@ namespace gz
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
     {
+      using PriorityType = int32_t;
+      const PriorityType defaultPriority {0};
+      const std::string priorityElementName {"gz:system_priority"};
+      template<typename S>
+      class PrioritizedSystems : public std::map<PriorityType, std::vector<S>>
+      {};
+
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins
       ///  from files
@@ -132,7 +141,7 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
-      public: const std::vector<ISystemUpdate *>& SystemsUpdate();
+      public: const PrioritizedSystems<ISystemUpdate *>& SystemsUpdate();
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
@@ -200,7 +209,7 @@ namespace gz
       private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
+      private: PrioritizedSystems<ISystemUpdate *> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
       private: std::vector<ISystemPostUpdate *> systemsPostupdate;

@@ -106,6 +106,13 @@ size_t SystemManager::ActivatePendingSystems()
   {
     this->systems.push_back(system);
 
+    PriorityType p {defaultPriority};
+    if (system.configureSdf &&
+        system.configureSdf->HasElement(priorityElementName))
+    {
+      p = system.configureSdf->Get<PriorityType>(priorityElementName);
+    }
+
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
 
@@ -119,7 +126,10 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsPreupdate.push_back(system.preupdate);
 
     if (system.update)
-      this->systemsUpdate.push_back(system.update);
+    {
+      this->systemsUpdate.try_emplace(p);
+      this->systemsUpdate[p].push_back(system.update);
+    }
 
     if (system.postupdate)
       this->systemsPostupdate.push_back(system.postupdate);
@@ -301,7 +311,8 @@ const std::vector<ISystemPreUpdate *>& SystemManager::SystemsPreUpdate()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
+const SystemManager::PrioritizedSystems<ISystemUpdate *>&
+SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
