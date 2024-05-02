@@ -4,6 +4,38 @@
 
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.3.0 (2024-04-11)
+
+1. Use relative install paths for plugin shared libraries and gz-tools data
+    * [Pull request #2358](https://github.com/gazebosim/gz-sim/pull/2358)
+
+1. Use `steer_p_gain` for UpdateVelocity steer joint speed
+    * [Pull request #2355](https://github.com/gazebosim/gz-sim/pull/2355)
+
+1. Fix TriggeredPublisher test
+    * [Pull request #2354](https://github.com/gazebosim/gz-sim/pull/2354)
+
+1. Use SetComponentData to simplify code and improve coverage
+    * [Pull request #2360](https://github.com/gazebosim/gz-sim/pull/2360)
+
+1. Remove unnecessary sleep
+    * [Pull request #2357](https://github.com/gazebosim/gz-sim/pull/2357)
+
+1. Fixed undefined behavior in thruster.cc
+    * [Pull request #2350](https://github.com/gazebosim/gz-sim/pull/2350)
+
+1. Added mutex to protect stored time variables
+    * [Pull request #2345](https://github.com/gazebosim/gz-sim/pull/2345)
+
+1. Fixed turning error in ackermann steering
+    * [Pull request #2342](https://github.com/gazebosim/gz-sim/pull/2342)
+
+1. Check null mesh
+    * [Pull request #2341](https://github.com/gazebosim/gz-sim/pull/2341)
+
+1. Publish step size in world stats topic
+    * [Pull request #2340](https://github.com/gazebosim/gz-sim/pull/2340)
+
 ### Gazebo Sim 8.2.0 (2024-03-14)
 
 1. Add reference to joint_controller.md tutorial.
