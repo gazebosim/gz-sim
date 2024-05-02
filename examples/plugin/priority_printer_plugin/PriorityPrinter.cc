@@ -43,6 +43,8 @@ void PriorityPrinter::Configure(
         gz::sim::EntityComponentManager &_ecm,
         gz::sim::EventManager &_eventMgr)
 {
+  // TODO(scpeters) get element name from System.hh once it has been defined
+  // there
   const std::string priorityElementName {"gz:system_priority"};
   if (_sdf && _sdf->HasElement(priorityElementName))
   {

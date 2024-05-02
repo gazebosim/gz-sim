@@ -46,6 +46,8 @@ namespace gz
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
     {
+      // TODO(scpeters) define these three variables in public System.hh
+      // and document their effect
       using PriorityType = int32_t;
       const PriorityType defaultPriority {0};
       const std::string priorityElementName {"gz:system_priority"};
