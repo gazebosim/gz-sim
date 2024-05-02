@@ -603,7 +603,7 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("Update");
-    for (auto& [priority, systems]: this->systemMgr->SystemsUpdate())
+    for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
     {
       for (auto& system : systems)
       {
