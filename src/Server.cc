@@ -121,6 +121,7 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->dataPtr->sdfRoot.LoadSdfString(
@@ -157,7 +158,8 @@ Server::Server(const ServerConfig &_config)
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (errors.empty()) {
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -172,7 +174,9 @@ Server::Server(const ServerConfig &_config)
             return;
           }
           world->AddModel(*sdfRoot.Model());
-          if (errors.empty()) {
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
         }
@@ -197,7 +201,11 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       gzerr << err << "\n";
-    return;
+    if (_config.BehaviorOnSdfErrors() ==
+        ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+    {
+      return;
+    }
   }
 
   // Add record plugin
