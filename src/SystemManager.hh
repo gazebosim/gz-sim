@@ -216,7 +216,8 @@ namespace gz
       private: mutable std::mutex pendingSystemsMutex;
 
       /// \brief Systems implementing Configure
-      private: std::vector<SystemIfaceWithParent<ISystemConfigure>> systemsConfigure;
+      private: std::vector<SystemIfaceWithParent<ISystemConfigure>>
+        systemsConfigure;
 
       /// \brief Systems implementing ConfigureParameters
       private: std::vector<SystemIfaceWithParent<ISystemConfigureParameters>>
@@ -226,13 +227,15 @@ namespace gz
       private: std::vector<SystemIfaceWithParent<ISystemReset>> systemsReset;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<SystemIfaceWithParent<ISystemPreUpdate>> systemsPreupdate;
+      private: std::vector<SystemIfaceWithParent<ISystemPreUpdate>>
+        systemsPreupdate;
 
       /// \brief Systems implementing Update
       private: std::vector<SystemIfaceWithParent<ISystemUpdate>> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<SystemIfaceWithParent<ISystemPostUpdate>> systemsPostupdate;
+      private: std::vector<SystemIfaceWithParent<ISystemPostUpdate>>
+        systemsPostupdate;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;

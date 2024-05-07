@@ -301,7 +301,8 @@ SystemManager::SystemsConfigureParameters()
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemReset>> &SystemManager::SystemsReset()
+const std::vector<SystemIfaceWithParent<ISystemReset>>&
+SystemManager::SystemsReset()
 {
   return this->systemsReset;
 }
