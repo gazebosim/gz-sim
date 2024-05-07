@@ -288,40 +288,40 @@ void SystemManager::AddSystemImpl(
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemConfigure>>&
+const std::vector<SystemIfaceWithParent<ISystemConfigure>>&
   SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
 }
 
-const std::vector<SystemHolder<ISystemConfigureParameters>>&
+const std::vector<SystemIfaceWithParent<ISystemConfigureParameters>>&
 SystemManager::SystemsConfigureParameters()
 {
   return this->systemsConfigureParameters;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemReset>> &SystemManager::SystemsReset()
+const std::vector<SystemIfaceWithParent<ISystemReset>> &SystemManager::SystemsReset()
 {
   return this->systemsReset;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemPreUpdate>>&
+const std::vector<SystemIfaceWithParent<ISystemPreUpdate>>&
   SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemUpdate>>&
+const std::vector<SystemIfaceWithParent<ISystemUpdate>>&
   SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemHolder<ISystemPostUpdate>>&
+const std::vector<SystemIfaceWithParent<ISystemPostUpdate>>&
   SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
@@ -475,19 +475,19 @@ void SystemManager::ProcessRemovedEntities(
   }
 
   RemoveFromVectorIf(this->systemsReset,
-    [&](const SystemHolder<ISystemReset>& system) {
+    [&](const SystemIfaceWithParent<ISystemReset>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
   RemoveFromVectorIf(this->systemsPreupdate,
-    [&](const SystemHolder<ISystemPreUpdate>& system) {
+    [&](const SystemIfaceWithParent<ISystemPreUpdate>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
   RemoveFromVectorIf(this->systemsUpdate,
-    [&](const SystemHolder<ISystemUpdate>& system) {
+    [&](const SystemIfaceWithParent<ISystemUpdate>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
   RemoveFromVectorIf(this->systemsPostupdate,
-    [&](const SystemHolder<ISystemPostUpdate>& system) {
+    [&](const SystemIfaceWithParent<ISystemPostUpdate>& system) {
       // Post update system. Make sure that the threadsToTerminate
       if (_ecm.IsMarkedForRemoval(system.parent)) {
         auto threads = _threadsToTerminate.find(system.parent);
@@ -501,11 +501,11 @@ void SystemManager::ProcessRemovedEntities(
       return false;
     });
   RemoveFromVectorIf(this->systemsConfigure,
-    [&](const SystemHolder<ISystemConfigure>& system) {
+    [&](const SystemIfaceWithParent<ISystemConfigure>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
   RemoveFromVectorIf(this->systemsConfigureParameters,
-    [&](const SystemHolder<ISystemConfigureParameters>& system) {
+    [&](const SystemIfaceWithParent<ISystemConfigureParameters>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
 
