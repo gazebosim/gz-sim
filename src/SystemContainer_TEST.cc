@@ -91,6 +91,39 @@ TEST(SystemContainer, RemoveAtEnd)
 }
 
 //////////////////////////////////////////////////
+TEST(SystemContainer, RemoveFromMiddle)
+{
+  SystemContainer<int> cont;
+  for (int i = 0; i < 10; i++)
+  {
+    cont.Push(i);
+  }
+
+  ASSERT_EQ(cont.Size(), 10);
+
+  cont.RemoveIf([](int i) {
+    return i == 5;
+  });
+  ASSERT_EQ(cont.Size(), 9);
+
+
+  for (auto &i : cont)
+  {
+    ASSERT_NE(i, 5);
+  }
+
+  cont.RemoveIf([](int i) {
+    return i % 2 == 1;
+  });
+
+  for (auto &i : cont)
+  {
+    ASSERT_NE(i % 2, 1);
+  }
+  ASSERT_EQ(cont.Size(), 5);
+}
+
+//////////////////////////////////////////////////
 TEST(SystemContainer, CheckEmptyProperties)
 {
   SystemContainer<int> cont;

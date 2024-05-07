@@ -121,7 +121,12 @@ namespace gz
           // O(n) for now
           do {
             ++num;
-          } while(num < parent->Size() && !parent->occupied[num]);
+          } while(num < parent->systems.size() && !parent->occupied[num]);
+
+          auto res = parent->end();
+          if (num >= parent->systems.size()){
+            num = res.num;
+          }
           return *this;
         }
         bool operator==(iterator other) const { return num == other.num; }
