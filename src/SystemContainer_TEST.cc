@@ -16,9 +16,8 @@
 */
 #include <gtest/gtest.h>
 #include <unordered_set>
-#include "SystemCointainer.hpp"
+#include "SystemContainer.hpp"
 
-#include "iostream"
 using namespace gz::sim;
 
 //////////////////////////////////////////////////

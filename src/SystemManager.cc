@@ -21,7 +21,7 @@
 
 #include <gz/common/StringUtils.hh>
 
-#include "SystemCointainer.hpp"
+#include "SystemContainer.hpp"
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
