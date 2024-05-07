@@ -33,7 +33,7 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
-#include "SystemCointainer.hpp"
+#include "SystemContainer.hpp"
 #include "SystemInternal.hh"
 
 namespace gz
@@ -137,12 +137,14 @@ namespace gz
       /// \brief Get an vector of all active systems implementing
       ///   "ConfigureParameters"
       /// \return Vector of systems's configure interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemConfigureParameters>>&
+      public: const std::vector<
+        SystemIfaceWithParent<ISystemConfigureParameters>>&
         SystemsConfigureParameters();
 
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemReset>>& SystemsReset();
+      public: const std::vector<SystemIfaceWithParent<ISystemReset>>&
+        SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
@@ -151,7 +153,8 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemUpdate>>& SystemsUpdate();
+      public: const std::vector<SystemIfaceWithParent<ISystemUpdate>>&
+        SystemsUpdate();
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
