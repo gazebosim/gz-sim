@@ -172,7 +172,7 @@ namespace gz
       /// \param[in] _entityCompMgr - ECM with entities marked for removal
       public: void ProcessRemovedEntities(
         const EntityComponentManager &_entityCompMgr,
-        std::unordered_map<Entity, std::size_t> &_threadsToTerminate);
+        std::unordered_set<Entity> &_threadsToTerminate);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.

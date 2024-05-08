@@ -569,10 +569,6 @@ void SimulationRunner::ProcessSystemQueue()
         {
           auto terminate = this->threadsToTerminate.find(parentEntity);
           if (terminate != this->threadsToTerminate.end()) {
-            terminate->second--;
-            if (terminate->second == 0) {
-              this->threadsToTerminate.erase(terminate);
-            }
             gzdbg << "Terminating thread " << id << ", " << parentEntity <<"\n";
             this->postUpdateStartBarrier->Drop();
             this->postUpdateStopBarrier->Drop();
@@ -900,6 +896,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Update all the systems.
   this->UpdateSystems();
+
+  // Remove any threads that have been terminated
+  this->threadsToTerminate.clear();
 
   if (!this->Paused() && this->requestedRunToSimTime &&
        this->requestedRunToSimTime.value() > this->simTimeEpoch &&
