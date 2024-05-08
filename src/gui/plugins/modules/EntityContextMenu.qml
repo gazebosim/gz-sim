@@ -33,6 +33,11 @@ Item {
       onTriggered: context.OnRequest("follow", context.entity)
     }
     MenuItem {
+      id: trackMenu
+      text: "Track"
+      onTriggered: context.OnRequest("track", context.entity)
+    }
+    MenuItem {
       id: removeMenu
       text: "Remove"
       onTriggered: context.OnRemove(context.entity, context.type)

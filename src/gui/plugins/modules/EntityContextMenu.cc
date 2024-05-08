@@ -43,7 +43,7 @@ namespace gz::sim
     public: std::string moveToService;
 
     /// \brief Follow topic name
-    public: std::string followTopic;
+    public: std::string trackTopic;
 
     /// \brief Remove service name
     public: std::string removeService;
@@ -78,8 +78,8 @@ namespace gz::sim
     /// \brief Name of world.
     public: std::string worldName;
 
-    /// \brief follow publisher
-    public: transport::Node::Publisher followPub;
+    /// \brief /gui/track publisher
+    public: transport::Node::Publisher trackPub;
   };
 }
 
@@ -101,8 +101,8 @@ EntityContextMenu::EntityContextMenu()
   // For move to service requests
   this->dataPtr->moveToService = "/gui/move_to";
 
-  // For follow topic message
-  this->dataPtr->followTopic = "/gui/track";
+  // For track topic message
+  this->dataPtr->trackTopic = "/gui/track";
 
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
@@ -134,8 +134,8 @@ EntityContextMenu::EntityContextMenu()
   // For paste service requests
   this->dataPtr->pasteService = "/gui/paste";
 
-  this->dataPtr->followPub =
-    this->dataPtr->node.Advertise<msgs::CameraTrack>(this->dataPtr->followTopic);
+  this->dataPtr->trackPub =
+    this->dataPtr->node.Advertise<msgs::CameraTrack>(this->dataPtr->trackTopic);
 }
 
 /////////////////////////////////////////////////
@@ -205,8 +205,17 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   {
     msgs::CameraTrack followMsg;
     followMsg.set_target(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW);
     gzmsg << "Follow target: " << followMsg.target() << std::endl;
-    this->dataPtr->followPub.Publish(followMsg);
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "track")
+  {
+    msgs::CameraTrack trackMsg;
+    trackMsg.set_target(_data.toStdString());
+    trackMsg.set_track_mode(msgs::CameraTrack::TRACK);
+    gzmsg << "Follow target: " << trackMsg.target() << std::endl;
+    this->dataPtr->trackPub.Publish(trackMsg);
   }
   else if (request == "view_transparent")
   {
