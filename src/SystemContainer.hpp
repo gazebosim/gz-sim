@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEM_CONTAINER_HH_
 #define GZ_SIM_SYSTEM_CONTAINER_HH_
 
+#include <iterator>
 #include <vector>
 #include <cstddef>
 #include <functional>
@@ -102,16 +103,15 @@ namespace gz
       private: std::vector<std::size_t> freeSpots;
 
       //////////////////////////////////////////
-      class iterator : public std::iterator<
-                                std::input_iterator_tag, // iterator_category
-                                T,                    // value_type
-                                long,                    // difference_type
-                                T*,             // pointer
-                                T&              // reference
-                            > {
+      class iterator {
         std::size_t num;
         SystemContainer<T>* parent;
       public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = T;
+        using difference_type = long;
+        using pointer = T*;
+        using reference = T&;
         explicit iterator(SystemContainer<T>* _parent, std::size_t _num = 0) :
           num(_num), parent(_parent)
         {

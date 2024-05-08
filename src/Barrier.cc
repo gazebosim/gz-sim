@@ -16,9 +16,6 @@
  */
 
 #include "Barrier.hh"
-#include <cinttypes>
-#include <thread>
-#include <iostream>
 
 class gz::sim::BarrierPrivate
 {
