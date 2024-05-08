@@ -543,8 +543,10 @@ namespace gz
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
-
-      private: std::unordered_map<Entity, std::size_t> threadsToTerminate;
+      /// \brief Lists which threads are supposed to be removed on the next iteration.
+      /// Note: We read from this during the `postUpdate` the set is cleared after
+      /// `postUpdate`.
+      private: std::unordered_set<Entity> threadsToTerminate;
 
       private: bool resetInitiated{false};
       friend class LevelManager;

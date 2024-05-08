@@ -464,7 +464,7 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 //////////////////////////////////////////////////
 void SystemManager::ProcessRemovedEntities(
   const EntityComponentManager &_ecm,
-  std::unordered_map<Entity, std::size_t> &_threadsToTerminate)
+  std::unordered_set<Entity> &_threadsToTerminate)
 {
   // Note: This function has  O(n) time when an entity is removed
   // where n is number of systems. Ideally we would only iterate
@@ -491,12 +491,7 @@ void SystemManager::ProcessRemovedEntities(
     [&](const SystemIfaceWithParent<ISystemPostUpdate>& system) {
       // Post update system. Make sure that the threadsToTerminate
       if (_ecm.IsMarkedForRemoval(system.parent)) {
-        auto threads = _threadsToTerminate.find(system.parent);
-        if (threads == _threadsToTerminate.end()) {
-          _threadsToTerminate.emplace(system.parent, 1);
-        } else {
-          threads->second++;
-        }
+        _threadsToTerminate.emplace(system.parent);
         return true;
       }
       return false;
