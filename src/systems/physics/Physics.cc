@@ -1143,11 +1143,9 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
         auto modelPtrPhys =
             this->entityModelMap.Get(_parent->Data());
 
-
         sdf::Link link;
         link.SetName(_name->Data());
         link.SetRawPose(_pose->Data());
-
 
         if (this->staticEntities.find(_parent->Data()) !=
             this->staticEntities.end())
@@ -1172,7 +1170,6 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
                 std::abs(gravity->Data().Y()) <= 1e-5 &&
                 std::abs(gravity->Data().Z()) <= 1e-5) {
                 link.SetEnableGravity(false);
-                // ignmsg << "CreateLinkEntity, EnableGravity = " << link.EnableGravity() << std::endl;
             } else {
                 link.SetEnableGravity(true);
             }

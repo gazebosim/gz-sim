@@ -594,10 +594,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     // This gravity will have value 0,0,0
     this->dataPtr->ecm->CreateComponent(
         linkEntity, components::Gravity());
-    // Debug code
-    // ignmsg << "gravity disabled" << std::endl;
-    // const components::Gravity *gravity = this->dataPtr->ecm->Component<components::Gravity>(linkEntity);
-    // ignmsg << _link->EnableGravity() << std::endl;
   }
 
   // Visuals
