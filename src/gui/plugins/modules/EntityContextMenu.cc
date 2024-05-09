@@ -78,6 +78,9 @@ namespace gz::sim
     /// \brief Name of world.
     public: std::string worldName;
 
+    /// \brief storing last follow target for look at.
+    public: std::string followTargetLookAt;
+
     /// \brief /gui/track publisher
     public: transport::Node::Publisher trackPub;
   };
@@ -204,17 +207,37 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   else if (request == "follow")
   {
     msgs::CameraTrack followMsg;
-    followMsg.set_target(_data.toStdString());
+    followMsg.set_follow_target(_data.toStdString());
     followMsg.set_track_mode(msgs::CameraTrack::FOLLOW);
-    gzmsg << "Follow target: " << followMsg.target() << std::endl;
+    this->dataPtr->followTargetLookAt = followMsg.follow_target();
+    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "free_look")
+  {
+    msgs::CameraTrack followMsg;
+    followMsg.set_follow_target(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_FREE_LOOK);
+    this->dataPtr->followTargetLookAt = followMsg.follow_target();
+    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "look_at")
+  {
+    msgs::CameraTrack followMsg;
+    followMsg.set_track_target(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_LOOK_AT);
+    followMsg.set_follow_target(this->dataPtr->followTargetLookAt);
+    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
+    gzmsg << "Look at target: " << followMsg.track_target() << std::endl;
     this->dataPtr->trackPub.Publish(followMsg);
   }
   else if (request == "track")
   {
     msgs::CameraTrack trackMsg;
-    trackMsg.set_target(_data.toStdString());
+    trackMsg.set_track_target(_data.toStdString());
     trackMsg.set_track_mode(msgs::CameraTrack::TRACK);
-    gzmsg << "Follow target: " << trackMsg.target() << std::endl;
+    gzmsg << "Track target: " << trackMsg.track_target() << std::endl;
     this->dataPtr->trackPub.Publish(trackMsg);
   }
   else if (request == "view_transparent")

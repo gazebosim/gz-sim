@@ -28,9 +28,14 @@ Item {
       onTriggered: context.OnRequest("move_to", context.entity)
     }
     MenuItem {
-      id: followMenu
-      text: "Follow"
-      onTriggered: context.OnRequest("follow", context.entity)
+      id: followOptionsSubmenu
+      text: "Follow Options >"
+      MouseArea {
+        id: followOptionsSubMouseArea
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: secondMenu.open()
+      }
     }
     MenuItem {
       id: trackMenu
@@ -72,12 +77,41 @@ Item {
         id: viewSubMouseArea
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: secondMenu.open()
+        onEntered: thirdMenu.open()
       }
     }
   }
   Menu {
     id: secondMenu
+    x: menu.x + menu.width
+    y: menu.y + followOptionsSubmenu.y
+    MenuItem {
+      id: followMenu
+      text: "Follow"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("follow", context.entity)
+      }
+    }
+    MenuItem {
+      id: followFreeLookMenu
+      text: "Free Look"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("free_look", context.entity)
+      }
+    }
+    MenuItem {
+      id: followLookAtMenu
+      text: "Look At"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("look_at", context.entity)
+      }
+    }
+  }
+  Menu {
+    id: thirdMenu
     x: menu.x + menu.width
     y: menu.y + viewSubmenu.y
     MenuItem {
@@ -145,6 +179,9 @@ Item {
     context.type = _type
     moveToMenu.enabled = false
     followMenu.enabled = false
+    followFreeLookMenu.enabled = false
+    followLookAtMenu.enabled = false
+    trackMenu.enabled = false
     removeMenu.enabled = false
     viewTransparentMenu.enabled = false;
     viewCOMMenu.enabled = false;
@@ -161,6 +198,12 @@ Item {
     {
       moveToMenu.enabled = true
       followMenu.enabled = true
+      followFreeLookMenu.enabled = true
+      if (context.followingTarget)
+      {
+        followLookAtMenu.enabled = true
+      }
+      trackMenu.enabled = true
     }
 
     if (context.type == "model" || context.type == "light")
@@ -195,6 +238,7 @@ Item {
   GzSim.EntityContextMenuItem {
     id: context
     property string entity
+    property bool followingTarget: true
     property string type
   }
 }
