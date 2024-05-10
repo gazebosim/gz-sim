@@ -37,10 +37,10 @@ namespace gz::sim
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
-    
+
     /// \brief Protects variable changed through services.
     public: std::mutex mutex;
-    
+
     /// \brief Gazebo communication node.
     public: transport::Node node;
 
@@ -117,7 +117,7 @@ void EntityContextMenu::OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg)
     this->dataPtr->followingTarget = false;
     this->FollowingTargetChanged();
   }
-  
+
   return;
 }
 
