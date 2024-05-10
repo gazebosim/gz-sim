@@ -19,13 +19,13 @@
 #include "EntityContextMenu.hh"
 
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/cameratrack.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/entity.pb.h>
 
 #include <iostream>
-#include <string>
 #include <mutex>
+#include <string>
 
 #include <gz/common/Console.hh>
 #include <gz/sim/Conversions.hh>
@@ -86,7 +86,7 @@ namespace gz::sim
     /// \brief Name of world.
     public: std::string worldName;
 
-    /// \brief storing last follow target for look at.
+    /// \brief Storing last follow target for look at.
     public: std::string followTargetLookAt;
 
     /// \brief Flag used to disable look at when not following target.
@@ -108,7 +108,6 @@ void EntityContextMenu::OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg)
       _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_LOOK_AT ||
       _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_FREE_LOOK)
   {
-    // gzmsg << "Currently following a target: Look At enabled."<< std::endl;
     this->dataPtr->followingTarget = true;
     this->FollowingTargetChanged();
   }
@@ -177,14 +176,13 @@ EntityContextMenu::EntityContextMenu()
 
   this->dataPtr->trackPub =
     this->dataPtr->node.Advertise<msgs::CameraTrack>(this->dataPtr->trackTopic);
-
 }
 
 /////////////////////////////////////////////////
 EntityContextMenu::~EntityContextMenu() = default;
 
 /////////////////////////////////////////////////
-void EntityContextMenu::SetFollowingTarget(const bool &_followingTarget)
+void EntityContextMenu::SetFollowingTarget(bool &_followingTarget)
 {
   this->dataPtr->followingTarget = _followingTarget;
   this->FollowingTargetChanged();

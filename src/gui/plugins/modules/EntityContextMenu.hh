@@ -73,7 +73,7 @@ namespace sim
     signals: void FollowingTargetChanged();
 
     /// \brief Callback function to get data from the message
-    /// \param[in]_msg CameraTrack message
+    /// \param[in] _msg CameraTrack message
     public: void OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg);
 
     /// \brief Callback when a context menu item is invoked
