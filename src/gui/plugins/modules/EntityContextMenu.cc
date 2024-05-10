@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <string>
+#include <mutex>
 
 #include <gz/common/Console.hh>
 #include <gz/sim/Conversions.hh>
@@ -36,14 +37,21 @@ namespace gz::sim
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
+    
+    /// \brief Protects variable changed through services.
+    public: std::mutex mutex;
+    
     /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Move to service name
     public: std::string moveToService;
 
-    /// \brief Follow topic name
+    /// \brief Track topic name
     public: std::string trackTopic;
+
+    /// \brief Currently tracked topic name
+    public: std::string currentTrackTopic;
 
     /// \brief Remove service name
     public: std::string removeService;
@@ -81,6 +89,9 @@ namespace gz::sim
     /// \brief storing last follow target for look at.
     public: std::string followTargetLookAt;
 
+    /// \brief Flag used to disable look at when not following target.
+    public: bool followingTarget{false};
+
     /// \brief /gui/track publisher
     public: transport::Node::Publisher trackPub;
   };
@@ -88,6 +99,27 @@ namespace gz::sim
 
 using namespace gz;
 using namespace sim;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  if (_msg.track_mode() == gz::msgs::CameraTrack::FOLLOW ||
+      _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_LOOK_AT ||
+      _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_FREE_LOOK)
+  {
+    // gzmsg << "Currently following a target: Look At enabled."<< std::endl;
+    this->dataPtr->followingTarget = true;
+    this->FollowingTargetChanged();
+  }
+  else
+  {
+    this->dataPtr->followingTarget = false;
+    this->FollowingTargetChanged();
+  }
+  
+  return;
+}
 
 /////////////////////////////////////////////////
 void GzSimPlugin::registerTypes(const char *_uri)
@@ -101,6 +133,12 @@ void GzSimPlugin::registerTypes(const char *_uri)
 EntityContextMenu::EntityContextMenu()
   : dataPtr(std::make_unique<EntityContextMenuPrivate>())
 {
+  this->dataPtr->currentTrackTopic = "/gui/currently_tracked";
+  this->dataPtr->node.Subscribe(this->dataPtr->currentTrackTopic,
+      &EntityContextMenu::OnCurrentlyTrackedSub, this);
+  gzmsg << "Currently tracking topic on ["
+         << this->dataPtr->currentTrackTopic << "]" << std::endl;
+
   // For move to service requests
   this->dataPtr->moveToService = "/gui/move_to";
 
@@ -139,10 +177,24 @@ EntityContextMenu::EntityContextMenu()
 
   this->dataPtr->trackPub =
     this->dataPtr->node.Advertise<msgs::CameraTrack>(this->dataPtr->trackTopic);
+
 }
 
 /////////////////////////////////////////////////
 EntityContextMenu::~EntityContextMenu() = default;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::SetFollowingTarget(const bool &_followingTarget)
+{
+  this->dataPtr->followingTarget = _followingTarget;
+  this->FollowingTargetChanged();
+}
+
+/////////////////////////////////////////////////
+bool EntityContextMenu::FollowingTarget() const
+{
+  return this->dataPtr->followingTarget;
+}
 
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRemove(

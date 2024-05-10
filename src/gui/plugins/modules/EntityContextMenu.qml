@@ -238,7 +238,6 @@ Item {
   GzSim.EntityContextMenuItem {
     id: context
     property string entity
-    property bool followingTarget: true
     property string type
   }
 }
