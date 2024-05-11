@@ -67,7 +67,7 @@ namespace sim
 
     /// \brief Set whether followingTarget
     /// \param[in] _followingTarget True if followingTarget
-    public: Q_INVOKABLE void SetFollowingTarget(const bool &_followingTarget);
+    public: Q_INVOKABLE void SetFollowingTarget(bool &_followingTarget);
 
     /// \brief Notify that followingTarget has changed
     signals: void FollowingTargetChanged();

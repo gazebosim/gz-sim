@@ -20,8 +20,8 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/cameratrack.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/entity.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <iostream>
 #include <mutex>
@@ -257,37 +257,38 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   else if (request == "follow")
   {
     msgs::CameraTrack followMsg;
-    followMsg.set_follow_target(_data.toStdString());
+    followMsg.mutable_follow_target()->set_name(_data.toStdString());
     followMsg.set_track_mode(msgs::CameraTrack::FOLLOW);
-    this->dataPtr->followTargetLookAt = followMsg.follow_target();
-    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
+    this->dataPtr->followTargetLookAt = followMsg.follow_target().name();
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
     this->dataPtr->trackPub.Publish(followMsg);
   }
   else if (request == "free_look")
   {
     msgs::CameraTrack followMsg;
-    followMsg.set_follow_target(_data.toStdString());
+    followMsg.mutable_follow_target()->set_name(_data.toStdString());
     followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_FREE_LOOK);
-    this->dataPtr->followTargetLookAt = followMsg.follow_target();
-    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
+    this->dataPtr->followTargetLookAt = followMsg.follow_target().name();
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
     this->dataPtr->trackPub.Publish(followMsg);
   }
   else if (request == "look_at")
   {
     msgs::CameraTrack followMsg;
-    followMsg.set_track_target(_data.toStdString());
+    followMsg.mutable_track_target()->set_name(_data.toStdString());
     followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_LOOK_AT);
-    followMsg.set_follow_target(this->dataPtr->followTargetLookAt);
-    gzmsg << "Follow target: " << followMsg.follow_target() << std::endl;
-    gzmsg << "Look at target: " << followMsg.track_target() << std::endl;
+    followMsg.mutable_follow_target()->set_name(
+        this->dataPtr->followTargetLookAt);
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
+    gzmsg << "Look at target: " << followMsg.track_target().name() << std::endl;
     this->dataPtr->trackPub.Publish(followMsg);
   }
   else if (request == "track")
   {
     msgs::CameraTrack trackMsg;
-    trackMsg.set_track_target(_data.toStdString());
+    trackMsg.mutable_track_target()->set_name(_data.toStdString());
     trackMsg.set_track_mode(msgs::CameraTrack::TRACK);
-    gzmsg << "Track target: " << trackMsg.track_target() << std::endl;
+    gzmsg << "Track target: " << trackMsg.track_target().name() << std::endl;
     this->dataPtr->trackPub.Publish(trackMsg);
   }
   else if (request == "view_transparent")
