@@ -35,6 +35,7 @@ namespace gz
     {
       kBox,
       kCapsule,
+      kCone,
       kCylinder,
       kEllipsoid,
       kSphere,
@@ -67,7 +68,7 @@ namespace gz
     /// \brief Return an SDF string of one of the available primitive shape or
     /// light types.
     /// \param[in] _typeName Type name of the of shape or light to retrieve.
-    /// Must be one of: box, sphere, cylinder, capsule, ellipsoid, directional,
+    /// Must be one of: box, sphere, cylinder, cone, capsule, ellipsoid, directional,
     /// point, or spot.
     /// \return String containing SDF description of primitive shape or light.
     /// Empty string if the _typeName is invalid.

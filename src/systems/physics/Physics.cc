@@ -53,6 +53,7 @@
 #include <gz/physics/RequestEngine.hh>
 
 #include <gz/physics/BoxShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ForwardStep.hh>

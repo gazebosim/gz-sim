@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Collision.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Heightmap.hh>
@@ -666,6 +667,13 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     capsule->SetRadius(_geom.CapsuleShape()->Radius());
     capsule->SetLength(_geom.CapsuleShape()->Length());
     geom = capsule;
+  }
+  else if (_geom.Type() == sdf::GeometryType::CONE)
+  {
+    geom = this->dataPtr->scene->CreateCone();
+    scale.X() = _geom.ConeShape()->Radius() * 2;
+    scale.Y() = scale.X();
+    scale.Z() = _geom.ConeShape()->Length();
   }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
@@ -1576,6 +1584,11 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
     case gz::msgs::ParticleEmitter_EmitterType_BOX:
     {
       emitter->SetType(gz::rendering::EmitterType::EM_BOX);
+      break;
+    }
+    case gz::msgs::ParticleEmitter_EmitterType_CONE:
+    {
+      emitter->SetType(gz::rendering::EmitterType::EM_CONE);
       break;
     }
     case gz::msgs::ParticleEmitter_EmitterType_CYLINDER:

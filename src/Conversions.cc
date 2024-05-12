@@ -20,6 +20,7 @@
 #include <gz/msgs/axis_aligned_box.pb.h>
 #include <gz/msgs/boxgeom.pb.h>
 #include <gz/msgs/capsulegeom.pb.h>
+#include <gz/msgs/conegeom.pb.h>
 #include <gz/msgs/cylindergeom.pb.h>
 #include <gz/msgs/ellipsoidgeom.pb.h>
 #include <gz/msgs/entity.pb.h>
@@ -53,6 +54,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
 #include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
@@ -176,6 +178,12 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     out.mutable_capsule()->set_radius(_in.CapsuleShape()->Radius());
     out.mutable_capsule()->set_length(_in.CapsuleShape()->Length());
   }
+  else if (_in.Type() == sdf::GeometryType::CONE && _in.ConeShape())
+  {
+    out.set_type(msgs::Geometry::CONE);
+    out.mutable_cone()->set_radius(_in.ConeShape()->Radius());
+    out.mutable_cone()->set_length(_in.ConeShape()->Length());
+  }
   else if (_in.Type() == sdf::GeometryType::CYLINDER && _in.CylinderShape())
   {
     out.set_type(msgs::Geometry::CYLINDER);
@@ -292,6 +300,16 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     capsuleShape.SetLength(_in.capsule().length());
 
     out.SetCapsuleShape(capsuleShape);
+  }
+  else if (_in.type() == msgs::Geometry::CONE && _in.has_cone())
+  {
+    out.SetType(sdf::GeometryType::CONE);
+
+    sdf::Cone coneShape;
+    coneShape.SetRadius(_in.cone().radius());
+    coneShape.SetLength(_in.cone().length());
+
+    out.SetConeShape(coneShape);
   }
   else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
   {
@@ -1644,6 +1662,9 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     case sdf::ParticleEmitterType::CYLINDER:
       out.set_type(msgs::ParticleEmitter::CYLINDER);
       break;
+    case sdf::ParticleEmitterType::CONE:
+      out.set_type(msgs::ParticleEmitter::CONE);
+      break;
     case sdf::ParticleEmitterType::ELLIPSOID:
       out.set_type(msgs::ParticleEmitter::ELLIPSOID);
       break;
@@ -1709,6 +1730,9 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
       break;
     case msgs::ParticleEmitter::BOX:
       out.SetType(sdf::ParticleEmitterType::BOX);
+      break;
+    case msgs::ParticleEmitter::CONE:
+      out.SetType(sdf::ParticleEmitterType::CONE);
       break;
     case msgs::ParticleEmitter::CYLINDER:
       out.SetType(sdf::ParticleEmitterType::CYLINDER);
