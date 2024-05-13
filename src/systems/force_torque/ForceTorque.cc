@@ -181,10 +181,10 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the ForceTorquePrivate::Update function
     bool needsUpdate = false;
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (const auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+      if (sensor->NextDataUpdateTime() <= _info.simTime &&
+          sensor->HasConnections())
       {
         needsUpdate = true;
         break;
@@ -193,11 +193,16 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
+    // Transform joint wrench to sensor wrench and write to sensor
     this->dataPtr->Update(_ecm);
 
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      it.second->Update(_info.simTime, false);
+      // Call gz::sensors::ForceTorqueSensor::Update
+      // * Convert to user-specified frame
+      // * Apply noise
+      // * Publish to gz-transport topic
+      sensor->Update(_info.simTime, false);
     }
   }
 
@@ -269,7 +274,8 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
             return true;
           }
 
-          // Appropriate components haven't been populated by physics yet
+          // Return early if JointTransmittedWrench component has not yet been
+          // populated by the Physics system
           auto jointWrench = _ecm.Component<components::JointTransmittedWrench>(
               jointLinkIt->second.joint);
           if (nullptr == jointWrench)
