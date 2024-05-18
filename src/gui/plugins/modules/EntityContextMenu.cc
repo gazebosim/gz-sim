@@ -104,18 +104,14 @@ using namespace sim;
 void EntityContextMenu::OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followingTarget = false;
   if (_msg.track_mode() == gz::msgs::CameraTrack::FOLLOW ||
       _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_LOOK_AT ||
       _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_FREE_LOOK)
   {
     this->dataPtr->followingTarget = true;
-    this->FollowingTargetChanged();
   }
-  else
-  {
-    this->dataPtr->followingTarget = false;
     this->FollowingTargetChanged();
-  }
 
   return;
 }
