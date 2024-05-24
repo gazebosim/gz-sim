@@ -226,8 +226,8 @@ namespace systems::physics_system
       if (it != this->entityMap.end())
       {
         this->reverseMap.erase(it->second);
-        this->entityMap.erase(it);
         this->castCache.erase(_entity);
+        this->entityMap.erase(it);
         return true;
       }
       return false;
@@ -242,8 +242,8 @@ namespace systems::physics_system
       if (it != this->reverseMap.end())
       {
         this->entityMap.erase(it->second);
-        this->reverseMap.erase(it);
         this->castCache.erase(it->second);
+        this->reverseMap.erase(it);
         return true;
       }
       return false;
