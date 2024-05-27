@@ -3,17 +3,14 @@
 Example showing how to get a snapshot of all entities and components in a
 running simulation from an external program using the state message.
 
-## Build
+## Build Instructions
 
-From the root of the `gz-sim` repository, do the following to build the example:
+From this directory, run the following to compile:
 
-~~~
-cd gz-sim/examples/standalone/external_ecm
-mkdir build
-cd build
-cmake ..
-make
-~~~
+```bash
+cmake -B build
+cmake --build build
+```
 
 This will generate the `external_ecm` executable under `build`.
 
@@ -21,17 +18,20 @@ This will generate the `external_ecm` executable under `build`.
 
 Start a simulation, for example:
 
-    gz sim shapes.sdf
+```bash
+gz sim shapes.sdf
+```
 
-On another terminal, run the `external_ecm` executable, passing the name of the
+In another terminal, from this directory, run the `external_ecm` executable, passing the name of the
 running world you want to inspect:
 
-  cd gz-sim/examples/standalone/external_ecm
-  ./external_ecm shapes
+```bash
+./build/external_ecm shapes
+```
 
 You should see something like this:
 
-```
+```text
 $ ./external_ecm shapes
 
 Requesting state for world [shapes] on service [/world/shapes/state]...

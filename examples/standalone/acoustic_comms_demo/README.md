@@ -15,17 +15,19 @@ will receive the signal and start moving before Daphne.
 
 From this directory, run the following to compile:
 
-    mkdir build
-    cd build
-    cmake ..
-    make
+```bash
+cmake -B build
+cmake --build build
+```
 
 ## Execute Instructions
 
-From the `build` directory, run Gazebo Sim and the example controller:
+Run Gazebo Sim and the example controller:
 
-    gz sim -r ../../../worlds/acoustic_comms_demo.sdf
-    ./acoustic_comms_demo
+```bash
+gz sim -r ../../worlds/acoustic_comms_demo.sdf
+./build/acoustic_comms_demo
+```
 
 It can be seen visually that one of the vehicles (Triton) starts moving
 immediately, then afer a while Tethys will start moving, and then finally Daphne.

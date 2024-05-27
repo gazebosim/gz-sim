@@ -5,17 +5,18 @@ using the C++ API, instead of using Gazebo from the command line.
 
 ## Build Instructions
 
-From this directory:
+From this directory, run the following to compile:
 
-    cd gz-sim/examples/standalone/custom_server
-    mkdir build
-    cd build
-    cmake ..
-    make
+```bash
+cmake -B build
+cmake --build build
+```
 
 ## Execute Instructions
 
-    ./custom_server
+```bash
+./build/custom_server
+```
 
 The server will run `shapes.sdf` for 100 iterations and exit. No GUI will
 show up.
