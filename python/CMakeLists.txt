@@ -15,7 +15,6 @@ else()
   set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
 
-set(GZ_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 
 # Set the build location and install location for a CPython extension
@@ -85,7 +84,7 @@ if (BUILD_TESTING)
     world_TEST
   )
 
-  execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version
+  execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
     ERROR_VARIABLE  PYTEST_error
     RESULT_VARIABLE PYTEST_result)
@@ -99,10 +98,10 @@ if (BUILD_TESTING)
   foreach (test ${python_tests})
     if (pytest_FOUND)
       add_test(NAME ${test} COMMAND
-        "${GZ_PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
+        "${Python3_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
     else()
       add_test(NAME ${test} COMMAND
-        "${GZ_PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+        "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
 
     set(_env_vars)
