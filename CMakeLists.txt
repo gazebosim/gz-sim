@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim8 VERSION 8.2.0)
+project(gz-sim8 VERSION 8.3.0)
 set (GZ_DISTRIBUTION "Harmonic")
 
 #============================================================================
@@ -225,11 +225,17 @@ else()
   endif()
 endif()
 # Plugin install dirs
+set(GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+)
 set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR}
+)
+set(GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+  ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR}
 )
 
 #============================================================================
