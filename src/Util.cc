@@ -16,6 +16,8 @@
 */
 
 #include <cstddef>
+#include <string>
+#include <vector>
 
 #include <gz/msgs/entity.pb.h>
 
