@@ -1,22 +1,6 @@
-if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # pybind11 logic for setting up a debug build when both a debug and release
-  # python interpreter are present in the system seems to be pretty much broken.
-  # This works around the issue.
-  set(PYTHON_LIBRARIES "${PYTHON_DEBUG_LIBRARIES}")
-endif()
-
-
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
-  if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-  from distutils import sysconfig as sc
-  print(sc.get_python_lib(plat_specific=True))"
-      OUTPUT_VARIABLE Python3_SITEARCH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  else()
-    # Get install variable from Python3 module
-    # Python3_SITEARCH is available from 3.12 on, workaround if needed:
+  if(NOT Python3_SITEARCH)
+    # Get variable from Python3 module
     find_package(Python3 COMPONENTS Interpreter)
   endif()
 
