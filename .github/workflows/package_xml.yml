@@ -1,0 +1,11 @@
+name: Validate package.xml
+
+on:
+  pull_request:
+
+jobs:
+  package-xml:
+    runs-on: ubuntu-latest
+    name: Validate package.xml
+    steps:
+      - uses: gazebo-tooling/action-gz-ci/validate_package_xml@jammy
