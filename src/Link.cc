@@ -337,6 +337,18 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
       math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
 }
 
+std::optional<math::Matrix6d> Link::WorldFluidAddedMassMatrix(
+    const EntityComponentManager &_ecm) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+
+  if (!worldPose || !inertial)
+    return std::nullopt;
+
+  return inertial->Data().FluidAddedMass();
+}
+
 //////////////////////////////////////////////////
 std::optional<double> Link::WorldKineticEnergy(
     const EntityComponentManager &_ecm) const

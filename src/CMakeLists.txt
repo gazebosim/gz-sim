@@ -46,6 +46,11 @@ set(cli_sources
   cmd/ModelCommandAPI.cc
 )
 
+set(material_sources
+  rendering/MaterialParser/MaterialParser.cc
+  rendering/MaterialParser/ConfigLoader.cc
+)
+
 set (sources
   Actor.cc
   Barrier.cc
@@ -78,6 +83,7 @@ set (sources
   ${network_sources}
   ${comms_sources}
   ${component_sources}
+  ${material_sources}
 )
 
 set (gtest_sources
@@ -186,7 +192,9 @@ set_property(
   GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins"
   GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui"
   GZ_SIM_WORLD_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/worlds"
+  GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/media"
 )
+install(FILES "rendering/MaterialParser/gazebo.material" DESTINATION ${GZ_DATA_INSTALL_DIR}/media)
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
@@ -292,7 +300,7 @@ foreach(CMD_TEST
   # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that is only available
   # since CMake 3.22. However, if an older CMake is used another trick to install the libraries
   # beforehand
-  if (WIN32 AND CMAKE_VERSION STRGREATER "3.22")
+  if (WIN32 AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.22")
     set_tests_properties(${CMD_TEST} PROPERTIES
       ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   endif()
