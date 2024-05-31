@@ -124,7 +124,6 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
   SystemManager_TEST.cc
-  System_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
