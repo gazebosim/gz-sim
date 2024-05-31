@@ -273,10 +273,6 @@ void LevelManager::ReadLevels(const sdf::Plugin &_plugin)
   if (sdf == nullptr)
     return;
 
-  /*auto worldEntity =
-      this->runner->entityCompMgr.EntityByComponents(components::World());
-      */
-
   if (!sdf->HasElement("level"))
     return;
 
@@ -331,10 +327,13 @@ void LevelManager::ReadLevels(const sdf::Plugin &_plugin)
     this->runner->entityCompMgr.CreateComponent(
         levelEntity, components::LevelBuffer(buffer));
 
+    auto worldEntity =
+      this->runner->entityCompMgr.EntityByComponents(components::World());
+
     // All levels start inactive and unloaded.
-    /* RESHUFFLE: this->UnloadLevel(levelEntity);
+    this->UnloadLevel(levelEntity);
     this->entityCreator->SetParent(levelEntity, worldEntity);
-    */
+
     gzdbg << "Created level with name[" << name << "] and pose["
       << pose << "]\n";
   }
@@ -362,10 +361,10 @@ void LevelManager::ConfigureDefaultLevel()
     // check if the model is in this level
     auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
     // If model is a performer, it will be handled separately
-    /*if (this->performerMap.find(model->Name()) != this->performerMap.end())
+    if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
       continue;
-    }*/
+    }
 
     if (this->entityNamesInLevels.find(model->Name()) ==
         this->entityNamesInLevels.end())
@@ -382,10 +381,10 @@ void LevelManager::ConfigureDefaultLevel()
     // check if the actor is in this level
     auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
     // If actor is a performer, it will be handled separately
-    /*if (this->performerMap.find(actor->Name()) != this->performerMap.end())
+    if (this->performerMap.find(actor->Name()) != this->performerMap.end())
     {
       continue;
-    }*/
+    }
 
     if (this->entityNamesInLevels.find(actor->Name()) ==
         this->entityNamesInLevels.end())
