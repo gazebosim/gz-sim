@@ -124,7 +124,6 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
   SystemManager_TEST.cc
-  System_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
@@ -243,10 +242,6 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/gz_msgs_gen>
-)
-
-set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/test)
