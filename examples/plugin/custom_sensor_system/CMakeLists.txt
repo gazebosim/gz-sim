@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 find_package(gz-cmake4 REQUIRED)
 

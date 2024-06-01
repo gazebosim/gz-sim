@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 #============================================================================
 # Initialize the project
@@ -65,9 +65,6 @@ cmake_dependent_option(USE_DIST_PACKAGES_FOR_PYTHON
 # Search for project-specific dependencies
 #============================================================================
 
-# Setting this policy enables using the protobuf_MODULE_COMPATIBLE
-# set command in CMake versions older than 13.13
-set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # This option is needed to use the PROTOBUF_GENERATE_CPP
 # in case protobuf is found with the CMake config files
 # It needs to be set before any find_package(...) call
