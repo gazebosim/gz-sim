@@ -405,12 +405,11 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
     };
 
   // create services for this source
-  const auto fullName = topicFromScopedName(entity, _ecm, true);
-  auto validName = transport::TopicUtils::AsValidTopic(fullName);
+  const auto fullName = topicFromScopedName(entity, _ecm, false);
   if (validName.empty())
   {
     gzerr << "Failed to create valid topics with entity scoped name ["
-           << fullName << "]" << std::endl;
+           << scopedName(entity, _ecm) << "]" << std::endl;
     return;
   }
   if (!this->node.Advertise(validName + "/play", playSrvCb))
@@ -504,7 +503,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
 
   // create the detection publisher for this microphone
   auto pub = this->node.Advertise<msgs::Double>(
-      topicFromScopedName(entity, _ecm, true) + "/detection");
+      topicFromScopedName(entity, _ecm, false) + "/detection");
   if (!pub)
   {
     gzerr << "Error creating a detection publisher for microphone "
