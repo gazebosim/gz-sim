@@ -98,10 +98,7 @@ class gz::sim::systems::SpacecraftThrusterModelPrivate
   /// \brief Topic namespace.
   public: std::string robotNamespace;
 
-  /// \brief Sampling time (from motor_model.hpp).
-  public: double samplingTime = 0.01;
-
-  /// \brief Simulation time
+  /// \brief Simulation time tracker
   public: double simTime = 0.01;
 
   /// \brief Index of motor in Actuators msg on multirotor_base.
@@ -112,6 +109,9 @@ class gz::sim::systems::SpacecraftThrusterModelPrivate
 
   /// \brief Cycle start time
   public: double cycleStartTime = 0.0;
+
+  /// \brief Sampling time with the cycle period.
+  public: double samplingTime = 0.01;
 
   /// \brief Actuator maximum thrust
   public: double maxThrust = 0.0;
@@ -363,11 +363,24 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
     return;
   }
 
-  // Process input
-  double ref_duty_cycle_ = msg->normalized(this->actuatorNumber);
+  // METHOD:
+  //
+  // targetDutyCycle starts as a normalized value between 0 and 1, so we
+  // need to convert it to the corresponding time in the duty cycle
+  // period
+  //   |________|    |________
+  //   |    ^   |    |        |
+  // __|    |   |____|        |__
+  //   a    b    c   d
+  // a: cycle start time
+  // b: sampling time
+  // c: ref duty cycle
+  // d: cycle period
+  double targetDutyCycle =
+    msg->normalized(this->actuatorNumber) * (1.0 / this->dutyCycleFrequency);
   if (DEBUG && this->actuatorNumber == 0)
     std::cout << this->actuatorNumber
-              << ": Ref duty cycle: " << ref_duty_cycle_ << std::endl;
+              << ": target duty cycle: " << targetDutyCycle << std::endl;
 
   // Calculate cycle start time
   if (this->samplingTime >= 1.0/this->dutyCycleFrequency) {
@@ -386,24 +399,23 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
               << " Cycle Start time: " << this->cycleStartTime
               << " Sampling time: " << this->samplingTime << std::endl;
 
-  double ref_duty_cycle = ref_duty_cycle_ * (1.0 / this->dutyCycleFrequency);
-  double force = this->samplingTime <= ref_duty_cycle ? this->maxThrust : 0.0;
+  // Apply force if the sampling time is less than the target ON duty cycle
+  double force = this->samplingTime <= targetDutyCycle ? this->maxThrust : 0.0;
   if (DEBUG && this->actuatorNumber == 0)
     std::cout << this->actuatorNumber
               << ": Force: " << force
               << "  Sampling time: " << this->samplingTime
-              << "  Ref duty cycle: " << ref_duty_cycle_ << std::endl;
+              << "  Tgt duty cycle: " << targetDutyCycle << std::endl;
 
+  // Apply force to the link
   Link link(this->linkEntity);
   const auto worldPose = link.WorldPose(_ecm);
-
-  // Apply a force to the link.
   link.AddWorldForce(_ecm,
     worldPose->Rot().RotateVector(math::Vector3d(0, 0, force)));
   if (DEBUG && this->actuatorNumber == 0)
     std::cout << this->actuatorNumber
-              << ": Value: " << msg->normalized(this->actuatorNumber)
-              << "  Force: " << force << std::endl;
+              << ": Input Value: " << msg->normalized(this->actuatorNumber)
+              << "  Calc. Force: " << force << std::endl;
 }
 
 GZ_ADD_PLUGIN(SpacecraftThrusterModel,
