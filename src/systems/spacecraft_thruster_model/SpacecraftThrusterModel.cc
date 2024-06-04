@@ -5,8 +5,9 @@
  * Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
+ * Copyright (C) 2024 Pedro Roque, DCS, KTH, Sweden
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +27,8 @@
 
 #include <mutex>
 #include <string>
+#include <optional>
+#include <chrono>
 
 #include <gz/msgs/actuators.pb.h>
 
@@ -49,7 +52,7 @@
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/Wind.hh"  
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
@@ -141,7 +144,7 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   if (!this->dataPtr->model.Valid(_ecm))
   {
     gzerr << "SpacecraftThrusterModel plugin should be attached to a model "
-           << "entity. Failed to initialize." << std::endl;
+          << "entity. Failed to initialize." << std::endl;
     return;
   }
 
@@ -201,16 +204,19 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Please specify actuator "<< this->dataPtr->actuatorNumber <<" maxThrust.\n";
+    gzerr << "Please specify actuator "
+          << this->dataPtr->actuatorNumber <<" maxThrust.\n";
   }
 
   if (sdfClone->HasElement("dutyCycleFrequency"))
   {
-    this->dataPtr->dutyCycleFrequency = sdfClone->GetElement("dutyCycleFrequency")->Get<double>();
+    this->dataPtr->dutyCycleFrequency =
+          sdfClone->GetElement("dutyCycleFrequency")->Get<double>();
   }
   else
   {
-    gzerr << "Please specify actuator "<< this->dataPtr->actuatorNumber <<" dutyCycleFrequency.\n";
+    gzerr << "Please specify actuator "
+          << this->dataPtr->actuatorNumber <<" dutyCycleFrequency.\n";
   }
 
   sdfClone->Get<std::string>("commandSubTopic",
@@ -281,7 +287,7 @@ void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
       this->dataPtr->linkEntity == kNullEntity ||
       this->dataPtr->parentLinkEntity == kNullEntity)
     return;
-  
+
   // skip UpdateForcesAndMoments if needed components are missing
   bool doUpdateForcesAndMoments = true;
 
@@ -351,36 +357,53 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
         << msg->velocity_size() << std::endl;
       return;
     }
-  }else{
+  }
+  else
+  {
     return;
   }
 
   // Process input
   double ref_duty_cycle_ = msg->normalized(this->actuatorNumber);
-  if (DEBUG && this->actuatorNumber == 0) std::cout << this->actuatorNumber << ": Ref duty cycle: " << ref_duty_cycle_ << std::endl;
+  if (DEBUG && this->actuatorNumber == 0)
+    std::cout << this->actuatorNumber
+              << ": Ref duty cycle: " << ref_duty_cycle_ << std::endl;
 
   // Calculate cycle start time
   if (this->samplingTime >= 1.0/this->dutyCycleFrequency) {
-    if (DEBUG && this->actuatorNumber == 0) std::cout << this->actuatorNumber << ": Cycle completed. Resetting cycle start time." << std::endl;
+    if (DEBUG && this->actuatorNumber == 0)
+      std::cout << this->actuatorNumber
+                << ": Cycle completed. Resetting cycle start time."
+                << std::endl;
     this->cycleStartTime = this->simTime;
   }
 
   // Calculate sampling time instant within the cycle
   this->samplingTime = this->simTime - this->cycleStartTime;
-  if (DEBUG && this->actuatorNumber == 0) std::cout << this->actuatorNumber << ": PWM Period: " << 1.0/this->dutyCycleFrequency << " Cycle Start time: " << this->cycleStartTime << " Sampling time: " << this->samplingTime << std::endl;
+  if (DEBUG && this->actuatorNumber == 0)
+    std::cout << this->actuatorNumber
+              << ": PWM Period: " << 1.0/this->dutyCycleFrequency
+              << " Cycle Start time: " << this->cycleStartTime
+              << " Sampling time: " << this->samplingTime << std::endl;
 
   double ref_duty_cycle = ref_duty_cycle_ * (1.0 / this->dutyCycleFrequency);
   double force = this->samplingTime <= ref_duty_cycle ? this->maxThrust : 0.0;
-  if (DEBUG && this->actuatorNumber == 0) std::cout << this->actuatorNumber << ": Force: " << force << "  Sampling time: " << this->samplingTime << "  Ref duty cycle: " << ref_duty_cycle_ << std::endl;
-  
+  if (DEBUG && this->actuatorNumber == 0)
+    std::cout << this->actuatorNumber
+              << ": Force: " << force
+              << "  Sampling time: " << this->samplingTime
+              << "  Ref duty cycle: " << ref_duty_cycle_ << std::endl;
+
   Link link(this->linkEntity);
   const auto worldPose = link.WorldPose(_ecm);
 
   // Apply a force to the link.
   link.AddWorldForce(_ecm,
-                      worldPose->Rot().RotateVector(math::Vector3d(0, 0, force)));
-  if (DEBUG && this->actuatorNumber == 0) std::cout << this->actuatorNumber << ": Value: " << msg->normalized(this->actuatorNumber) << 
-               "  Force: " << force << std::endl;
+    worldPose->Rot().RotateVector(math::Vector3d(0, 0, force)));
+  if (DEBUG && this->actuatorNumber == 0)
+    std::cout << this->actuatorNumber
+              << ": Value: " << msg->normalized(this->actuatorNumber)
+              << "  Force: " << force << std::endl;
 }
 
 GZ_ADD_PLUGIN(SpacecraftThrusterModel,
