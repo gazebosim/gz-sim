@@ -374,7 +374,7 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
   //   a    b    c   d
   // a: cycle start time
   // b: sampling time
-  // c: ref duty cycle
+  // c: target duty cycle
   // d: cycle period
   double targetDutyCycle =
     msg->normalized(this->actuatorNumber) * (1.0 / this->dutyCycleFrequency);
