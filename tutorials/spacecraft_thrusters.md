@@ -80,4 +80,4 @@ The spacecraft model can be found in the `PX4-gazebo-models` repository, in the 
 For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
 
 Below is a picture of the simulator:
-![Spacecraft simulator](https://raw.githubusercontent.com/DISCOWER/gz-sim/pr-spacecraft-thrusters/tutorials/files/spacecraft/kth_spacecraft_simulator.png)
+![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)
