@@ -12,6 +12,9 @@ release will remove the deprecated code.
      each time step, whereas previously the component values were set to `0`
      after each time step. Persistent velocity commands should be reapplied at
      each time step.
+   + For camera baesd sensors, their pose now takes into account the
+     `//sensor/camera/pose` sdf element. Previously only the `//sensor/pose`
+     sdf element was used and `//sensor/camera/pose` was ignored.
 
 ## Gazebo Sim 7.x to 8.0
 * **Deprecated**
