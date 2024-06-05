@@ -1206,3 +1206,13 @@ TEST(Conversions, MsgsPluginToSdf)
   EXPECT_EQ(innerXml, sdfPlugins[1].Contents()[0]->ToString(""));
   EXPECT_EQ(innerXml2, sdfPlugins[1].Contents()[1]->ToString(""));
 }
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryEmpty)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::EMPTY);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::EMPTY, geometryMsg.type());
+}
