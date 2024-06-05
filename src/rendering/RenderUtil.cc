@@ -1334,10 +1334,6 @@ void RenderUtil::Update()
           {
             sensorPose = dataSdf.RawPose();
           }
-          if (dataSdf.CameraSensor())
-          {
-            sensorPose = sensorPose * dataSdf.CameraSensor()->RawPose();
-          }
           sensorNode->SetLocalPose(sensorPose);
         }
       }
