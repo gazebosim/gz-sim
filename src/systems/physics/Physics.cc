@@ -123,6 +123,8 @@
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/WorldLinearVelocityReset.hh"
+#include "gz/sim/components/WorldAngularVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -2590,11 +2592,62 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-
   // Update link linear velocity
   _ecm.Each<components::Link, components::LinearVelocityCmd>(
+        [&](const Entity &_entity, const components::Link *,
+            const components::LinearVelocityCmd *_linearVelocityCmd)
+        {
+          if (!this->entityLinkMap.HasEntity(_entity))
+          {
+            gzwarn << "Failed to find link [" << _entity
+                    << "]." << std::endl;
+            return true;
+          }
+  
+          auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+          if (nullptr == linkPtrPhys)
+            return true;
+  
+          auto freeGroup = linkPtrPhys->FindFreeGroup();
+          if (!freeGroup)
+            return true;
+          this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+  
+          auto worldLinearVelFeature =
+              this->entityFreeGroupMap
+                  .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+          if (!worldLinearVelFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set link linear velocity, but the "
+                     << "physics engine doesn't support velocity commands. "
+                     << "Velocity won't be set."
+                     << std::endl;
+              informed = true;
+            }
+            return true;
+          }
+  
+          // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+          Entity modelEntity = topLevelModel(_entity, _ecm);
+          const components::Pose *modelEntityPoseComp =
+              _ecm.Component<components::Pose>(modelEntity);
+          math::Pose3d modelToLinkTransform = this->RelativePose(
+              modelEntity, _entity, _ecm);
+          math::Vector3d worldLinearVel = modelEntityPoseComp->Data().Rot()
+              * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
+          worldLinearVelFeature->SetWorldLinearVelocity(
+              math::eigen3::convert(worldLinearVel));
+  
+          return true;
+        });
+  
+  // Set initial link linear velocity
+  _ecm.Each<components::Link, components::WorldLinearVelocityReset>(
       [&](const Entity &_entity, const components::Link *,
-          const components::LinearVelocityCmd *_linearVelocityCmd)
+          const components::WorldLinearVelocityReset *_worldlinearvelocityreset)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
@@ -2629,20 +2682,59 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
-        // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
-        Entity modelEntity = topLevelModel(_entity, _ecm);
-        const components::Pose *modelEntityPoseComp =
-            _ecm.Component<components::Pose>(modelEntity);
-        math::Pose3d modelToLinkTransform = this->RelativePose(
-            modelEntity, _entity, _ecm);
-        math::Vector3d worldLinearVel = modelEntityPoseComp->Data().Rot()
-            * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
+        // velocity in world frame
+        math::Vector3d worldLinearVel = _worldlinearvelocityreset->Data();
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
 
         return true;
       });
+    
+   // Set initial link angular velocity
+   _ecm.Each<components::Link, components::WorldAngularVelocityReset>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::WorldAngularVelocityReset *_worldangularvelocityreset)
+      {
+        if (!this->entityLinkMap.HasEntity(_entity))
+        {
+          gzwarn << "Failed to find link [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
 
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto worldAngularVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        // velocity in world frame 
+        math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
+
+        return true;
+      });
 
   // Populate bounding box info
   // Only compute bounding box if component exists to avoid unnecessary
