@@ -525,7 +525,8 @@ public:
     void
     check_default_transition()
     {
-        auto const& ttable = transition_table<none>( state_indexes{} );
+        auto st = state_indexes{};
+        auto const& ttable = transition_table<none>(st);
         ttable[current_state()](*this, none{});
     }
 
@@ -544,7 +545,8 @@ public:
     void
     exit(Event&& event)
     {
-        auto const& table = exit_table<Event>( state_indexes{} );
+        auto st = state_indexes{};
+        auto const& table = exit_table<Event>(st);
         table[current_state()](states_, ::std::forward<Event>(event), *fsm_);
     }
 
@@ -552,7 +554,8 @@ public:
     actions::event_process_result
     process_transition_event(Event&& event)
     {
-        auto const& inv_table = transition_table<Event>( state_indexes{} );
+        auto st = state_indexes{};
+        auto const& inv_table = transition_table<Event>(st);
         return inv_table[current_state()](*this, ::std::forward<Event>(event));
     }
 
@@ -655,10 +658,11 @@ public:
     event_set
     current_handled_events() const
     {
-        auto const& table = get_current_events_table(state_indexes{});
+        auto st = state_indexes{};
+        auto const& table = get_current_events_table(st);
         auto res = table[current_state_](states_);
         auto const& available_transitions
-                            = get_available_transitions_table(state_indexes{});
+                            = get_available_transitions_table(st);
         auto const& trans = available_transitions[current_state_];
         res.insert( trans.begin(), trans.end());
         return res;
@@ -667,7 +671,8 @@ public:
     event_set
     current_deferrable_events() const
     {
-        auto const& table = get_current_deferred_events_table(state_indexes{});
+        auto st = state_indexes{};
+        auto const& table = get_current_deferred_events_table(st);
         return table[current_state_](states_);
     }
 
