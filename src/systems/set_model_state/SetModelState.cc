@@ -23,11 +23,14 @@
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/Angle.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/WorldLinearVelocityReset.hh"
+#include "gz/sim/components/WorldAngularVelocityReset.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
@@ -210,6 +213,8 @@ void SetModelState::Configure(const Entity &_entity,
       // }
     }
 
+     
+
     if (jointPositionSet)
     {
       _ecm.SetComponentData<components::JointPositionReset>(jointEntity,
@@ -222,6 +227,51 @@ void SetModelState::Configure(const Entity &_entity,
                                                             jointVelocity);
     }
   }
+  for (auto linkStateElem = modelStateElem->FindElement("link_state");
+       linkStateElem != nullptr;
+       linkStateElem = linkStateElem->GetNextElement("link_state")){
+
+        std::pair<std::string, bool> namePair = linkStateElem->Get<std::string>("name", "");
+    if (!namePair.second)
+    {
+      gzerr << "No name specified for link_state, skipping.\n";
+      continue;
+    }
+    const auto &linkName = namePair.first;
+
+    Entity linkEntity = this->dataPtr->model.LinkByName(_ecm, linkName);
+    if (linkEntity == kNullEntity)
+    {
+      gzerr << "Unable to find link with name [" << linkName << "] "
+            << "in model with name [" << modelName << "], skipping.\n";
+      continue;
+    }
+
+    math::Vector3d defaultVelocity;
+    math::Vector3d linearVelocity;
+    math::Vector3d angularVelocity;
+
+    auto linearVelocityElem = linkStateElem->FindElement("linear_velocity");
+
+    if(linearVelocityElem){
+      std::pair<math::Vector3d, bool> vectorPair = linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+      if (vectorPair.second){
+        linearVelocity = vectorPair.first;
+        _ecm.SetComponentData<components::WorldLinearVelocityReset>(linkEntity, linearVelocity);
+      }
+    }
+    
+    auto angularVelocityElem = linkStateElem->FindElement("angular_velocity");
+
+    if(angularVelocityElem){
+      std::pair<math::Vector3d, bool> vectorPair = angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+      if(vectorPair.second){
+         angularVelocity = vectorPair.first;
+         _ecm.SetComponentData<components::WorldAngularVelocityReset>(linkEntity, angularVelocity);
+      }
+    }
+            
+       }
 }
 
 //////////////////////////////////////////////////
