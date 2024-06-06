@@ -1,4 +1,4 @@
-gz_add_system(spacecraft_thruster_model
+gz_add_system(spacecraft-thruster-model
   SOURCES
   SpacecraftThrusterModel.cc
   PUBLIC_LINK_LIBS

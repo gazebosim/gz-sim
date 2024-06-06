@@ -31,8 +31,8 @@ namespace systems
   // Forward declaration
   class SpacecraftThrusterModelPrivate;
 
-  /// \brief This system applies a thrust force to models with spinning
-  /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
+  /// \brief This system applies a thrust force to models with RCS-like
+  /// thrusters. See examples/worlds/spacecraft.sdf for a demonstration.
   class SpacecraftThrusterModel
       : public System,
         public ISystemConfigure,

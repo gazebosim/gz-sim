@@ -57,8 +57,6 @@
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
-#define DEBUG 0
-
 using namespace gz;
 using namespace sim;
 using namespace systems;
@@ -237,29 +235,8 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   }
   this->dataPtr->node.Subscribe(topic,
       &SpacecraftThrusterModelPrivate::OnActuatorMsg, this->dataPtr.get());
-}
 
-//////////////////////////////////////////////////
-void SpacecraftThrusterModelPrivate::OnActuatorMsg(
-    const msgs::Actuators &_msg)
-{
-  std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
-  this->recvdActuatorsMsg = _msg;
-}
-
-//////////////////////////////////////////////////
-void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
-{
-  GZ_PROFILE("SpacecraftThrusterModel::PreUpdate");
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
-
+  // Look for components
   // If the joint or links haven't been identified yet, look for them
   if (this->dataPtr->jointEntity == kNullEntity)
   {
@@ -286,29 +263,56 @@ void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
   if (this->dataPtr->jointEntity == kNullEntity ||
       this->dataPtr->linkEntity == kNullEntity ||
       this->dataPtr->parentLinkEntity == kNullEntity)
+  {
+
+    gzerr << "Failed to find joint, link or parent link entity. "
+          << "Failed to initialize." << std::endl;
     return;
+  }
+
 
   // skip UpdateForcesAndMoments if needed components are missing
-  bool doUpdateForcesAndMoments = true;
-
+  bool providedAllComponents = true;
   if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
   {
     _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
-    doUpdateForcesAndMoments = false;
-  }
-  if (!_ecm.Component<components::WorldLinearVelocity>(
-      this->dataPtr->linkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->linkEntity,
-        components::WorldLinearVelocity());
-    doUpdateForcesAndMoments = false;
+    providedAllComponents = false;
   }
 
   if (!_ecm.Component<components::WorldPose>(this->dataPtr->parentLinkEntity))
   {
     _ecm.CreateComponent(this->dataPtr->parentLinkEntity,
         components::WorldPose());
-    doUpdateForcesAndMoments = false;
+    providedAllComponents = false;
+  }
+
+  if (!providedAllComponents) {
+    gzerr << "Failed to find all necessary components. "
+          << "Failed to initialize." << std::endl;
+    return;
+  }
+
+}
+
+//////////////////////////////////////////////////
+void SpacecraftThrusterModelPrivate::OnActuatorMsg(
+    const msgs::Actuators &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
+  this->recvdActuatorsMsg = _msg;
+}
+
+//////////////////////////////////////////////////
+void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("SpacecraftThrusterModel::PreUpdate");
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    gzwarn << "Detected jump back in time ["
+        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
+        << "s]. System may not work properly." << std::endl;
   }
 
   // Nothing left to do if paused.
@@ -316,10 +320,7 @@ void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
     return;
 
   this->dataPtr->simTime = std::chrono::duration<double>(_info.simTime).count();
-  if (doUpdateForcesAndMoments)
-  {
-    this->dataPtr->UpdateForcesAndMoments(_ecm);
-  }
+  this->dataPtr->UpdateForcesAndMoments(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -378,14 +379,14 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
   // d: cycle period
   double targetDutyCycle =
     msg->normalized(this->actuatorNumber) * (1.0 / this->dutyCycleFrequency);
-  if (DEBUG && this->actuatorNumber == 0)
-    std::cout << this->actuatorNumber
+  if (this->actuatorNumber == 0)
+    gzdbg << this->actuatorNumber
               << ": target duty cycle: " << targetDutyCycle << std::endl;
 
   // Calculate cycle start time
   if (this->samplingTime >= 1.0/this->dutyCycleFrequency) {
-    if (DEBUG && this->actuatorNumber == 0)
-      std::cout << this->actuatorNumber
+    if (this->actuatorNumber == 0)
+      gzdbg << this->actuatorNumber
                 << ": Cycle completed. Resetting cycle start time."
                 << std::endl;
     this->cycleStartTime = this->simTime;
@@ -393,16 +394,16 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
 
   // Calculate sampling time instant within the cycle
   this->samplingTime = this->simTime - this->cycleStartTime;
-  if (DEBUG && this->actuatorNumber == 0)
-    std::cout << this->actuatorNumber
+  if (this->actuatorNumber == 0)
+    gzdbg << this->actuatorNumber
               << ": PWM Period: " << 1.0/this->dutyCycleFrequency
               << " Cycle Start time: " << this->cycleStartTime
               << " Sampling time: " << this->samplingTime << std::endl;
 
   // Apply force if the sampling time is less than the target ON duty cycle
   double force = this->samplingTime <= targetDutyCycle ? this->maxThrust : 0.0;
-  if (DEBUG && this->actuatorNumber == 0)
-    std::cout << this->actuatorNumber
+  if (this->actuatorNumber == 0)
+    gzdbg << this->actuatorNumber
               << ": Force: " << force
               << "  Sampling time: " << this->samplingTime
               << "  Tgt duty cycle: " << targetDutyCycle << std::endl;
@@ -412,8 +413,8 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
   const auto worldPose = link.WorldPose(_ecm);
   link.AddWorldForce(_ecm,
     worldPose->Rot().RotateVector(math::Vector3d(0, 0, force)));
-  if (DEBUG && this->actuatorNumber == 0)
-    std::cout << this->actuatorNumber
+  if (this->actuatorNumber == 0)
+    gzdbg << this->actuatorNumber
               << ": Input Value: " << msg->normalized(this->actuatorNumber)
               << "  Calc. Force: " << force << std::endl;
 }
