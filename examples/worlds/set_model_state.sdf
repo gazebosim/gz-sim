@@ -248,5 +248,46 @@
         </model_state>
       </plugin>
     </model>
+
+    <model name="model_state_example_link_velocity">
+      <pose>2 0 1 0 0 0</pose>
+      <link name="box_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <inertial>
+          <mass>120.0</mass>
+        </inertial>
+        <visual name="box_visual">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+        <collision name="box_collision">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-set-model-state-system"
+        name="gz::sim::systems::SetModelState">
+        <model_state>
+         <link_state name="box_link">
+           <linear_velocity>0.1 -0.1 0.1</linear_velocity>
+           <angular_velocity>1 2 1</angular_velocity>
+         </link_state>
+       </model_state>
+      </plugin>
+      </model>
   </world>
 </sdf>
