@@ -294,14 +294,12 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
   }
 
   // \TODO(anyone) Support rewind
-  
-if (_info.dt < std::chrono::steady_clock::duration::zero())
-{
-  gzwarn << "Detected jump back in time ["
-         << std::chrono::duration<double>(_info.dt).count()
-         << "s]. System may not work properly." << std::endl;
-}
-
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    gzwarn << "Detected jump back in time ["
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
+  }
 
   // Create the pose component if it does not exist.
   auto pos = _ecm.Component<components::Pose>(
