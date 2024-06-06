@@ -464,6 +464,10 @@ TEST(Conversions, GeometryMesh)
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
   meshShape.SetOptimization("convex_decomposition");
+  sdf::ConvexDecomposition convexDecomp;
+  convexDecomp.SetMaxConvexHulls(4);
+  convexDecomp.SetVoxelResolution(10000);
+  meshShape.SetConvexDecomposition(convexDecomp);
   geometry.SetMeshShape(meshShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -477,6 +481,12 @@ TEST(Conversions, GeometryMesh)
   auto header = geometryMsg.header().data(0);
   EXPECT_EQ("optimization", header.key());
   EXPECT_EQ("convex_decomposition", header.value(0));
+  header = geometryMsg.header().data(1);
+  EXPECT_EQ("max_convex_hulls", header.key());
+  EXPECT_EQ("4", header.value(0));
+  header = geometryMsg.header().data(2);
+  EXPECT_EQ("voxel_resolution", header.key());
+  EXPECT_EQ("10000", header.value(0));
 
   auto newGeometry = convert<sdf::Geometry>(geometryMsg);
   EXPECT_EQ(sdf::GeometryType::MESH, newGeometry.Type());
@@ -486,6 +496,10 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("grape", newGeometry.MeshShape()->Submesh());
   EXPECT_TRUE(newGeometry.MeshShape()->CenterSubmesh());
   EXPECT_EQ("convex_decomposition", newGeometry.MeshShape()->OptimizationStr());
+  auto newConvexDecomp = newGeometry.MeshShape()->ConvexDecomposition();
+  ASSERT_NE(nullptr, newConvexDecomp);
+  EXPECT_EQ(4, newConvexDecomp->MaxConvexHulls());
+  EXPECT_EQ(10000, newConvexDecomp->VoxelResolution());
 }
 
 /////////////////////////////////////////////////

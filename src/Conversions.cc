@@ -225,6 +225,10 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       header->set_key("max_convex_hulls");
       header->add_value(std::to_string(
           meshSdf->ConvexDecomposition()->MaxConvexHulls()));
+      header = out.mutable_header()->add_data();
+      header->set_key("voxel_resolution");
+      header->add_value(std::to_string(
+          meshSdf->ConvexDecomposition()->VoxelResolution()));
     }
   }
   else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
@@ -355,6 +359,8 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     meshShape.SetSubmesh(_in.mesh().submesh());
     meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
 
+    sdf::ConvexDecomposition convexDecomp;
+    bool setConvexDecomp = false;
     for (int i = 0; i < _in.header().data_size(); ++i)
     {
       auto data = _in.header().data(i);
@@ -364,11 +370,17 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
       }
       if (data.key() == "max_convex_hulls" && data.value_size() > 0)
       {
-        sdf::ConvexDecomposition convexDecomp;
         convexDecomp.SetMaxConvexHulls(std::stoul(data.value(0)));
-        meshShape.SetConvexDecomposition(convexDecomp);
+        setConvexDecomp = true;
+      }
+      if (data.key() == "voxel_resolution" && data.value_size() > 0)
+      {
+        convexDecomp.SetVoxelResolution(std::stoul(data.value(0)));
+        setConvexDecomp = true;
       }
     }
+    if (setConvexDecomp)
+      meshShape.SetConvexDecomposition(convexDecomp);
     out.SetMeshShape(meshShape);
   }
   else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
