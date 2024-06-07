@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="mountain_fog">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
+    <plugin name='gz::sim::systems::Contact' filename='gz-sim-contact-system' />
+    <plugin name='gz::sim::systems::Imu' filename='gz-sim-imu-system' />
+    <plugin name='gz::sim::systems::AirPressure' filename='gz-sim-air-pressure-system' />
+    <plugin name='gz::sim::systems::Sensors' filename='gz-sim-sensors-system'>
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-particle-emitter2-system"
+      name="gz::sim::systems::ParticleEmitter2">
+    </plugin>
+
+    <model name="heightmap">
+      <static>true</static>
+      <link name="link">
+
+        <!-- A simpler collision can be added. -->
+        <!-- <collision name="heightmap_collision">
+          <geometry>
+            <heightmap>
+              <uri>file://media/dem/data.dt2</uri>
+              <size>60 60 10</size>
+              <pos>0 0 -643</pos>
+            </heightmap>
+          </geometry>
+        </collision> -->
+
+        <visual name="heightmap_visual">
+          <geometry>
+            <heightmap>
+              <texture>
+                <diffuse>file://media/materials/textures/water.jpg</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>1</size>
+              </texture>
+              <texture>
+                <diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>1</size>
+              </texture>
+              <texture>
+                <diffuse>file://media/materials/textures/grass_diffusespecular.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>1</size>
+              </texture>
+              <texture>
+                <diffuse>file://media/materials/textures/fungus_diffusespecular.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>1</size>
+              </texture>
+              <blend>
+                <min_height>0</min_height>
+                <fade_dist>1.74</fade_dist>
+              </blend>
+              <blend>
+                <min_height>2</min_height>
+                <fade_dist>4</fade_dist>
+              </blend>
+              <blend>
+                <min_height>4</min_height>
+                <fade_dist>9</fade_dist>
+              </blend>
+
+              <uri>file://media/dem/data.dt2</uri>
+              <size>60 60 10</size>
+              <pos>0 0 -643</pos>
+            </heightmap>
+          </geometry>
+        </visual>
+
+      </link>
+    </model>
+
+    <include>
+      <name>fog_1</name>
+      <pose>-10 10 10 0 1.57 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
+    </include>
+    <include>
+      <name>fog_2</name>
+      <pose>-0 0 10 0 1.57 0</pose>
+      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/fog generator</uri>
+    </include>
+
+    <light name="sunUTC" type="directional">
+      <pose>0 0 500 0 -0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <intensity>1</intensity>
+      <direction>0.001 0.625 -0.78</direction>
+      <diffuse>0.904 0.904 0.904 1</diffuse>
+      <specular>0.271 0.271 0.271 1</specular>
+      <attenuation>
+        <range>2000</range>
+        <linear>0</linear>
+        <constant>1</constant>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+  </world>
+</sdf>
