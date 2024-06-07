@@ -91,7 +91,7 @@ Below, an image of the spacecraft:
 
 ## 2D Spacecraft Simulator - Ground Space Robotics testbed
 
-An example of a spacecraft with thrusters is implemented in `examples/worlds/spacecraft.sdf`. To run the example, run the following command:
+An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
 ```bash
 cd examples/worlds/spacecraft.sdf
 gz sim spacecraft.sdf
@@ -99,7 +99,7 @@ gz sim spacecraft.sdf
 
 This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the following command:
 ```bash
-gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /spacecraft/command/motor_speed --msgtype gz.msgs.Actuators
+gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
 ```
 
 This command will send the maximum force of a thruster over one sampling time.
