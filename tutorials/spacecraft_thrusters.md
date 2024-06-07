@@ -74,10 +74,29 @@ An example of this goes below:
 
 ## Testing an implementation of a Spacecraft model
 
+An example of a spacecraft with thrusters is implemented in `examples/worlds/spacecraft.sdf`. To run the example, run the following command:
+```bash
+cd examples/worlds/spacecraft.sdf
+gz sim spacecraft.sdf
+```
+
+This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the following command:
+```bash
+gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /spacecraft/command/motor_speed --msgtype gz.msgs.Actuators
+```
+
+This command will send the maximum force of a thruster over one sampling time.
+
+Below, an image of the spacecraft:
+![Spacecraft](./files/spacecraft/dart.png)
+
+## 2D Spacecraft Simulator - Ground Space Robotics testbed
+
 Examples of spacecraft models with thrusters were implemented as part of the PX4-Autopilot SITL simulation.
 The spacecraft model can be found in the `PX4-gazebo-models` repository, in the `models/spacecraft_2d/model.sdf` directory.
+This model simulates a ground testbed for space robotics, where the spacecraft is mounted on a 2D plane. The spacecraft has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This demo replicates the facilities available at KTH Space Robotics Laboratory, Stockholm, Sweden. For more information, please visit [DISCOWER](https://www.discower.io/).
 
-For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
+For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page. 
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)

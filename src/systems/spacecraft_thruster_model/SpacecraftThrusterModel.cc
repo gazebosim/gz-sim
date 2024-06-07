@@ -270,27 +270,17 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
     return;
   }
 
-
   // skip UpdateForcesAndMoments if needed components are missing
   bool providedAllComponents = true;
   if (!_ecm.Component<components::WorldPose>(this->dataPtr->linkEntity))
   {
     _ecm.CreateComponent(this->dataPtr->linkEntity, components::WorldPose());
-    providedAllComponents = false;
-  }
-
-  if (!_ecm.Component<components::WorldPose>(this->dataPtr->parentLinkEntity))
-  {
-    _ecm.CreateComponent(this->dataPtr->parentLinkEntity,
-        components::WorldPose());
-    providedAllComponents = false;
   }
 
   if (!providedAllComponents) {
-    gzerr << "Failed to find all necessary components. "
-          << "Failed to initialize." << std::endl;
-    return;
+    gzdbg << "Created necessary components." << std::endl;
   }
+  
 
 }
 
@@ -355,7 +345,7 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
     {
       gzerr << "You tried to access index " << this->actuatorNumber
         << " of the Actuator array which is of size "
-        << msg->velocity_size() << std::endl;
+        << msg->normalized_size() << std::endl;
       return;
     }
   }
