@@ -2663,6 +2663,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = linkPtrPhys->FindFreeGroup();
         if (!freeGroup)
           return true;
+        auto rootLinkPtr = freeGroup->RootLink();
+
+        if(rootLinkPtr != linkPtrPhys){
+          gzwarn << "Attempting to set linear velocity for link ["<< _entity
+          <<"] which is not root link of the FreeGroup."
+          <<"Velocity won't be set."<< std::endl;
+
+          return true;
+        }
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
         auto worldLinearVelFeature =
@@ -2709,6 +2718,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = linkPtrPhys->FindFreeGroup();
         if (!freeGroup)
           return true;
+
+        auto rootLinkPtr = freeGroup->RootLink();
+
+        if(rootLinkPtr != linkPtrPhys){
+          gzwarn << "Attempting to set angular velocity for link ["<< _entity
+          <<"] which is not root link of the FreeGroup."
+          <<"Velocity won't be set."<< std::endl;
+
+          return true;
+        }
+
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
         auto worldAngularVelFeature =
