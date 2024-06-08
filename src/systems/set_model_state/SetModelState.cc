@@ -254,13 +254,16 @@ void SetModelState::Configure(const Entity &_entity,
 
     auto linearVelocityElem = linkStateElem->FindElement("linear_velocity");
 
-    if(linearVelocityElem){
-      std::pair<math::Vector3d, bool> vectorPair =
-      linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
-      if (vectorPair.second){
+    if(linearVelocityElem)
+    {
+     std::pair<math::Vector3d, bool> vectorPair =
+     linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+      if (vectorPair.second)
+      {
         linearVelocity = vectorPair.first;
-        _ecm.SetComponentData<components::WorldLinearVelocityReset>(linkEntity,
-                                                                    linearVelocity);
+        _ecm.SetComponentData<components::WorldLinearVelocityReset>(
+                                          linkEntity,
+                                          linearVelocity);
       }
     }
 
@@ -272,8 +275,9 @@ void SetModelState::Configure(const Entity &_entity,
            angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
       if(vectorPair.second){
          angularVelocity = vectorPair.first;
-         _ecm.SetComponentData<components::WorldAngularVelocityReset>(linkEntity,
-                                                                      angularVelocity);
+         _ecm.SetComponentData<components::WorldAngularVelocityReset>(
+                                           linkEntity,
+                                           angularVelocity);
       }
     }
 
