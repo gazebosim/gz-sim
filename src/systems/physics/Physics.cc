@@ -2702,7 +2702,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
    // Set initial link angular velocity
    _ecm.Each<components::Link, components::WorldAngularVelocityReset>(
       [&](const Entity &_entity, const components::Link *,
-          const components::WorldAngularVelocityReset *_worldangularvelocityreset)
+          const components::WorldAngularVelocityReset
+          *_worldangularvelocityreset)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {

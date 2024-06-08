@@ -231,7 +231,8 @@ void SetModelState::Configure(const Entity &_entity,
        linkStateElem != nullptr;
        linkStateElem = linkStateElem->GetNextElement("link_state")){
 
-        std::pair<std::string, bool> namePair = linkStateElem->Get<std::string>("name", "");
+    std::pair<std::string, bool> namePair =
+         linkStateElem->Get<std::string>("name", "");
     if (!namePair.second)
     {
       gzerr << "No name specified for link_state, skipping.\n";
@@ -254,20 +255,25 @@ void SetModelState::Configure(const Entity &_entity,
     auto linearVelocityElem = linkStateElem->FindElement("linear_velocity");
 
     if(linearVelocityElem){
-      std::pair<math::Vector3d, bool> vectorPair = linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+      std::pair<math::Vector3d, bool> vectorPair =
+      linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
       if (vectorPair.second){
         linearVelocity = vectorPair.first;
-        _ecm.SetComponentData<components::WorldLinearVelocityReset>(linkEntity, linearVelocity);
+        _ecm.SetComponentData<components::WorldLinearVelocityReset>(linkEntity,
+                                                                    linearVelocity);
       }
     }
 
-    auto angularVelocityElem = linkStateElem->FindElement("angular_velocity");
+    auto angularVelocityElem =
+                     linkStateElem->FindElement("angular_velocity");
 
     if(angularVelocityElem){
-      std::pair<math::Vector3d, bool> vectorPair = angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+      std::pair<math::Vector3d, bool> vectorPair =
+           angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
       if(vectorPair.second){
          angularVelocity = vectorPair.first;
-         _ecm.SetComponentData<components::WorldAngularVelocityReset>(linkEntity, angularVelocity);
+         _ecm.SetComponentData<components::WorldAngularVelocityReset>(linkEntity,
+                                                                      angularVelocity);
       }
     }
 
