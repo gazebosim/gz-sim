@@ -2603,16 +2603,16 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                     << "]." << std::endl;
             return true;
           }
-  
+
           auto linkPtrPhys = this->entityLinkMap.Get(_entity);
           if (nullptr == linkPtrPhys)
             return true;
-  
+
           auto freeGroup = linkPtrPhys->FindFreeGroup();
           if (!freeGroup)
             return true;
           this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
-  
+
           auto worldLinearVelFeature =
               this->entityFreeGroupMap
                   .EntityCast<WorldVelocityCommandFeatureList>(_entity);
@@ -2629,7 +2629,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             }
             return true;
           }
-  
+
           // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
           Entity modelEntity = topLevelModel(_entity, _ecm);
           const components::Pose *modelEntityPoseComp =
@@ -2640,10 +2640,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
               * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
           worldLinearVelFeature->SetWorldLinearVelocity(
               math::eigen3::convert(worldLinearVel));
-  
+
           return true;
         });
-  
+
   // Set initial link linear velocity
   _ecm.Each<components::Link, components::WorldLinearVelocityReset>(
       [&](const Entity &_entity, const components::Link *,
@@ -2698,7 +2698,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
-    
+
    // Set initial link angular velocity
    _ecm.Each<components::Link, components::WorldAngularVelocityReset>(
       [&](const Entity &_entity, const components::Link *,
@@ -2748,7 +2748,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
           return true;
         }
-        // velocity in world frame 
+        // velocity in world frame
         math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));

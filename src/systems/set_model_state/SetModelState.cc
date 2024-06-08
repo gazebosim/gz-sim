@@ -213,7 +213,7 @@ void SetModelState::Configure(const Entity &_entity,
       // }
     }
 
-     
+
 
     if (jointPositionSet)
     {
@@ -260,7 +260,7 @@ void SetModelState::Configure(const Entity &_entity,
         _ecm.SetComponentData<components::WorldLinearVelocityReset>(linkEntity, linearVelocity);
       }
     }
-    
+
     auto angularVelocityElem = linkStateElem->FindElement("angular_velocity");
 
     if(angularVelocityElem){
@@ -270,7 +270,7 @@ void SetModelState::Configure(const Entity &_entity,
          _ecm.SetComponentData<components::WorldAngularVelocityReset>(linkEntity, angularVelocity);
       }
     }
-            
+
        }
 }
 
