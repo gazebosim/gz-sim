@@ -2630,7 +2630,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             return true;
           }
 
-          // velocity in world frame = world_to_model_tf * model_to_link_tf * vel
+          // velocity in world frame = world_to_model_tf *
+          //                               model_to_link_tf * vel
           Entity modelEntity = topLevelModel(_entity, _ecm);
           const components::Pose *modelEntityPoseComp =
               _ecm.Component<components::Pose>(modelEntity);
@@ -2691,7 +2692,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
-        // velocity in world frame
+        // Linear velocity in world frame
         math::Vector3d worldLinearVel = _worldlinearvelocityreset->Data();
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
@@ -2749,7 +2750,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
           return true;
         }
-        // velocity in world frame
+        // Angular velocity in world frame
         math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
