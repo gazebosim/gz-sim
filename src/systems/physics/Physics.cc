@@ -2664,8 +2664,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         auto freeGroup = linkPtrPhys->FindFreeGroup();
         if (!freeGroup)
           return true;
-        auto rootLinkPtr = freeGroup->RootLink();
 
+        auto rootLinkPtr = freeGroup->RootLink();
         if(rootLinkPtr != linkPtrPhys){
           gzwarn << "Attempting to set linear velocity for link ["<< _entity
           <<"] which is not root link of the FreeGroup."
@@ -2722,7 +2722,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         auto rootLinkPtr = freeGroup->RootLink();
-
         if(rootLinkPtr != linkPtrPhys){
           gzwarn << "Attempting to set angular velocity for link ["<< _entity
           <<"] which is not root link of the FreeGroup."
