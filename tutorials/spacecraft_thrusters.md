@@ -27,7 +27,7 @@ Here follows an example instance of the SpacecraftThrusterModel plugin in an SDF
     </plugin>
 ```
 
-In this case, each thruster link should be placed in the proper location in the spacecraft model. 
+In this case, each thruster link should be placed in the proper location in the spacecraft model.
 An example of this goes below:
 ```xml
 <joint name='thruster_0_joint' type='fixed'>
@@ -85,7 +85,7 @@ This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the follow
 gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
 ```
 
-This command will send the maximum force of a thruster over one sampling time.
+This command will send the maximum force of a thruster over one sampling time. Repeating the command above a second time will cause the spacecraft to move faster.
 
 Below, an image of the spacecraft:
 ![Spacecraft](./files/spacecraft/dart.png)
@@ -96,7 +96,7 @@ Examples of spacecraft models with thrusters were implemented as part of the PX4
 The spacecraft model can be found in the `PX4-gazebo-models` repository, in the `models/spacecraft_2d/model.sdf` directory.
 This model simulates a ground testbed for space robotics, where the spacecraft is mounted on a 2D plane. The spacecraft has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This demo replicates the facilities available at KTH Space Robotics Laboratory, Stockholm, Sweden. For more information, please visit [DISCOWER](https://www.discower.io/).
 
-For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page. 
+For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)
