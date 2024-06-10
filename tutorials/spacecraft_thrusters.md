@@ -84,7 +84,7 @@ This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the follow
 gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
 ```
 
-This command will send the maximum force of a thruster over one sampling time. Repeating the command above a second time will cause the spacecraft to move faster.
+This command will send the maximum force of a thruster over one sampling time.
 
 Below, an image of the spacecraft:
 ![Spacecraft](./files/spacecraft/dart.png)
