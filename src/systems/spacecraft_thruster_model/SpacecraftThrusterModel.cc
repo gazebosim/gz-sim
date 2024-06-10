@@ -280,7 +280,6 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   if (!providedAllComponents) {
     gzdbg << "Created necessary components." << std::endl;
   }
-  
 
 }
 
