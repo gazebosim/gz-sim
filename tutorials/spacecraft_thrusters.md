@@ -74,7 +74,11 @@ An example of this goes below:
 
 ## Testing an implementation of a Spacecraft model
 
+<<<<<<< HEAD
 An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
+=======
+An example of a spacecraft with thrusters is implemented in `examples/worlds/spacecraft.sdf`. To run the example, run the following command:
+>>>>>>> a25ed5071 (feat: added world with spacecraft example and dart model)
 ```bash
 cd examples/worlds/spacecraft.sdf
 gz sim spacecraft.sdf
@@ -96,7 +100,7 @@ Examples of spacecraft models with thrusters were implemented as part of the PX4
 The spacecraft model can be found in the `PX4-gazebo-models` repository, in the `models/spacecraft_2d/model.sdf` directory.
 This model simulates a ground testbed for space robotics, where the spacecraft is mounted on a 2D plane. The spacecraft has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This demo replicates the facilities available at KTH Space Robotics Laboratory, Stockholm, Sweden. For more information, please visit [DISCOWER](https://www.discower.io/).
 
-For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
+For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page. 
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)
