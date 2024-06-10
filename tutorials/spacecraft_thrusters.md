@@ -5,7 +5,7 @@
 To enable a seamless transition of space robotics control and planning schemes from simulation to real, we introduce
 a spacecraft thrusters model in Gazebo. The model provides a very simple interface to a solenoid valve that controls
 the flow of gas to the thruster. The thruster model is as follows:
-    
+
 - force output equals maxThrust when the command is 1
 - force output equals 0 when the command is 0
 - force output is modeled according to a duty cycle with a given frequency, and thrust output is maximum at the ON state of the duty cycle
@@ -113,7 +113,7 @@ Examples of spacecraft models with thrusters were implemented as part of the PX4
 The spacecraft model can be found in the `PX4-gazebo-models` repository, in the `models/spacecraft_2d/model.sdf` directory.
 This model simulates a ground testbed for space robotics, where the spacecraft is mounted on a 2D plane. The spacecraft has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This demo replicates the facilities available at KTH Space Robotics Laboratory, Stockholm, Sweden. For more information, please visit [DISCOWER](https://www.discower.io/).
 
-For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page. 
+For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)
