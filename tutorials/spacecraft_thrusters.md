@@ -73,16 +73,7 @@ An example of this goes below:
 ```
 
 ## Testing an implementation of a Spacecraft model
-
-<<<<<<< HEAD
-<<<<<<< HEAD
 An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
-=======
-An example of a spacecraft with thrusters is implemented in `examples/worlds/spacecraft.sdf`. To run the example, run the following command:
->>>>>>> a25ed5071 (feat: added world with spacecraft example and dart model)
-=======
-An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
->>>>>>> ffb179ff5 (rft: moved mesh to fuel)
 ```bash
 cd examples/worlds/spacecraft.sdf
 gz sim spacecraft.sdf

@@ -38,11 +38,7 @@
     </light>
     <include>
       <pose>0 0 0 0 0 0</pose>
-<<<<<<< HEAD
       <uri>https://fuel.gazebosim.org/1.0/proque/models/dart/3</uri>
-=======
-      <uri>https://fuel.gazebosim.org/1.0/proque/models/dart</uri>
->>>>>>> ffb179ff5 (rft: moved mesh to fuel)
     </include>
   </world>
 </sdf>
@@ -51,5 +47,5 @@
 
   Send commands to a single thruster:
 
-      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /spacecraft/command/motor_speed --msgtype gz.msgs.Actuators
+      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
 -->
