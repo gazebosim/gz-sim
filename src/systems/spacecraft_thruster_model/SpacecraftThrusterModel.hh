@@ -37,7 +37,7 @@ namespace systems
   /// \param linkName Name of the link that the thruster is attached to.
   /// \param actuatorNumber Index of the actuator in the joint.
   /// \param dutyCycleFrequency Frequency of the duty cycle signal in Hz.
-  /// \param maxThrust Maximum thrust force in Newtons, applied on the 
+  /// \param maxThrust Maximum thrust force in Newtons, applied on the
   ///        «on» phase of the duty cycle.
   /// \param commandSubTopic Name of the topic where the commanded normalized
   ///        thrust is published. Unit is <0, 1>, corresponding to the percentage
@@ -46,10 +46,10 @@ namespace systems
   /// \param thrusterName [OPTIONAL] Name of the thruster. Default is "".
   ///
   /// This plugin replicates the PWM thruster behavior in:
-  /// Nakka, Yashwanth Kumar, et al. "A six degree-of-freedom spacecraft dynamics 
-  /// simulator for formation control research." 2018 AAS/AIAA Astrodynamics 
+  /// Nakka, Yashwanth Kumar, et al. "A six degree-of-freedom spacecraft dynamics
+  /// simulator for formation control research." 2018 AAS/AIAA Astrodynamics
   /// Specialist Conference. 2018. -> 'Thruster Firing Time'
-  /// Phodapol, S. (2023). Predictive Controllers for Load Transportation in 
+  /// Phodapol, S. (2023). Predictive Controllers for Load Transportation in
   /// Microgravity Environments (Dissertation). -> '5.3.4 PWM Controller Node'
   /// Retrieved from https://urn.kb.se/resolve?urn=urn:nbn:se:kth:diva-344440
 
