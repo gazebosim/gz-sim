@@ -1023,4 +1023,12 @@ TEST_F(UtilTest, LoadMesh)
     "test", "media", "duck.dae");
   meshSdf.SetFilePath(filePath);
   EXPECT_NE(nullptr, loadMesh(meshSdf));
+
+  EXPECT_TRUE(meshSdf.SetOptimization("convex_decomposition"));
+  sdf::ConvexDecomposition convexDecomp;
+  convexDecomp.SetMaxConvexHulls(16u);
+  meshSdf.SetConvexDecomposition(convexDecomp);
+  auto *optimizedMesh = loadMesh(meshSdf);
+  EXPECT_NE(nullptr, optimizedMesh);
+  EXPECT_EQ(16u, optimizedMesh->SubMeshCount());
 }

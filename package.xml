@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="2">
+  <name>gz-sim8</name>
+  <version>8.3.0</version>
+  <description>Gazebo Sim : A Robotic Simulator</description>
+  <maintainer email="mjcarroll@intrinsic.ai">Michael Carroll</maintainer>
+  <license>Apache License 2.0</license>
+  <url type="website">https://github.com/gazebosim/gz-sim</url>
+
+  <buildtool_depend>cmake</buildtool_depend>
+
+  <depend>benchmark</depend>
+  <depend>glut</depend>
+  <depend>gz-cmake3</depend>
+  <depend>gz-common5</depend>
+  <depend>gz-fuel_tools9</depend>
+  <depend>gz-gui8</depend>
+  <depend>gz-math7</depend>
+  <depend>gz-msgs10</depend>
+  <depend>gz-physics7</depend>
+  <depend>gz-plugin2</depend>
+  <depend>gz-rendering8</depend>
+  <depend>gz-sensors8</depend>
+  <depend>gz-tools2</depend>
+  <depend>gz-transport13</depend>
+  <depend>gz-utils2</depend>
+  <depend>libfreeimage-dev</depend>
+  <depend>libglew-dev</depend>
+  <depend>libxi-dev</depend>
+  <depend>libxmu-dev</depend>
+  <depend>protobuf-dev</depend>
+  <depend>pybind11-dev</depend>
+  <depend>python3-distutils</depend>
+  <depend>qml-module-qt-labs-folderlistmodel</depend>
+  <depend>qml-module-qt-labs-settings</depend>
+  <depend>qml-module-qtgraphicaleffects</depend>
+  <depend>qml-module-qtquick-controls2</depend>
+  <depend>qml-module-qtquick-controls</depend>
+  <depend>qml-module-qtquick-dialogs</depend>
+  <depend>qml-module-qtquick-layouts</depend>
+  <depend>qml-module-qtquick2</depend>
+  <depend>qtbase5-dev</depend>
+  <depend>qtdeclarative5-dev</depend>
+  <depend>sdformat14</depend>
+  <depend>tinyxml2</depend>
+  <depend>uuid</depend>
+
+  <test_depend>xvfb</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
