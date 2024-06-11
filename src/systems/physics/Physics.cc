@@ -1161,18 +1161,21 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm)
         }
 
         // get link gravity
-        const components::Gravity *gravity = _ecm.Component<components::Gravity>(_entity);
-        if (nullptr != gravity) {
-            // Entity has a gravity component that is all zeros when
-            // <gravity> is set to false
-            // See SdfEntityCreator::CreateEntities()
-            if (std::abs(gravity->Data().X()) <= 1e-5 &&
-                std::abs(gravity->Data().Y()) <= 1e-5 &&
-                std::abs(gravity->Data().Z()) <= 1e-5) {
-                link.SetEnableGravity(false);
-            } else {
-                link.SetEnableGravity(true);
-            }
+        const components::Gravity *gravity =
+            _ecm.Component<components::Gravity>(_entity);
+        if (nullptr != gravity)
+        {
+          // Entity has a gravity component that is all zeros when
+          // <gravity> is set to false
+          // See SdfEntityCreator::CreateEntities()
+          if (gravity->Data() == math::Vector3d::Zero)
+          {
+            link.SetEnableGravity(false);
+          }
+          else
+          {
+            link.SetEnableGravity(true);
+          }
         }
 
         auto linkPtrPhys = modelPtrPhys->ConstructLink(link);
