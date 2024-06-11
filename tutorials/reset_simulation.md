@@ -4,9 +4,9 @@ The Reset Gazebo transport API is exposed to allow resetting simulation to time 
 It's possible to call this API using the command line or through the GUI.
 In addition to the API, we have also expanded the simulation system API with a Reset interface.
 
-To repeat this demo, run the `default` world:
+To repeat this demo, run the `rolling_shapes.sdf` file:
 ```bash
-gz sim default.sdf
+gz sim rolling_shapes.sdf
 ```
 
 ## Reset interface
