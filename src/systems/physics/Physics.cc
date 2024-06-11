@@ -2593,7 +2593,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
-    // Update link linear velocity
+  // Update link linear velocity
   _ecm.Each<components::Link, components::LinearVelocityCmd>(
       [&](const Entity &_entity, const components::Link *,
           const components::LinearVelocityCmd *_linearVelocityCmd)
@@ -2653,7 +2653,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (!this->entityLinkMap.HasEntity(_entity))
         {
           gzwarn << "Failed to find link [" << _entity
-                  << "]." << std::endl;
+                 << "]." << std::endl;
           return true;
         }
 
@@ -2666,13 +2666,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         auto rootLinkPtr = freeGroup->RootLink();
-        if(rootLinkPtr != linkPtrPhys){
-          gzwarn << "Attempting to set linear velocity for link ["<< _entity
-          <<"] which is not root link of the FreeGroup."
-          <<"Velocity won't be set."<< std::endl;
+        if(rootLinkPtr != linkPtrPhys)
+        {
+          gzwarn << "Attempting to set linear velocity for link [ " << _entity
+                 << " ] which is not root link of the FreeGroup."
+                 << "Velocity won't be set." << std::endl;
 
           return true;
         }
+
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
         auto worldLinearVelFeature =
@@ -2684,9 +2686,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           if (!informed)
           {
             gzdbg << "Attempting to set link linear velocity, but the "
-                   << "physics engine doesn't support velocity commands. "
-                   << "Velocity won't be set."
-                   << std::endl;
+                  << "physics engine doesn't support velocity commands. "
+                  << "Velocity won't be set."
+                  << std::endl;
             informed = true;
           }
           return true;
@@ -2709,7 +2711,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (!this->entityLinkMap.HasEntity(_entity))
         {
           gzwarn << "Failed to find link [" << _entity
-                  << "]." << std::endl;
+                 << "]." << std::endl;
           return true;
         }
 
@@ -2722,10 +2724,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
 
         auto rootLinkPtr = freeGroup->RootLink();
-        if(rootLinkPtr != linkPtrPhys){
-          gzwarn << "Attempting to set angular velocity for link ["<< _entity
-          <<"] which is not root link of the FreeGroup."
-          <<"Velocity won't be set."<< std::endl;
+        if(rootLinkPtr != linkPtrPhys)
+        {
+          gzwarn << "Attempting to set angular velocity for link [ " << _entity
+                 << " ] which is not root link of the FreeGroup."
+                 << "Velocity won't be set." << std::endl;
 
           return true;
         }
@@ -2742,9 +2745,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           if (!informed)
           {
             gzdbg << "Attempting to set link angular velocity, but the "
-                   << "physics engine doesn't support velocity commands. "
-                   << "Velocity won't be set."
-                   << std::endl;
+                  << "physics engine doesn't support velocity commands. "
+                  << "Velocity won't be set."
+                  << std::endl;
             informed = true;
           }
           return true;

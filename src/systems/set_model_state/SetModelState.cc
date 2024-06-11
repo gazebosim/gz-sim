@@ -213,8 +213,6 @@ void SetModelState::Configure(const Entity &_entity,
       // }
     }
 
-
-
     if (jointPositionSet)
     {
       _ecm.SetComponentData<components::JointPositionReset>(jointEntity,
@@ -229,7 +227,8 @@ void SetModelState::Configure(const Entity &_entity,
   }
   for (auto linkStateElem = modelStateElem->FindElement("link_state");
        linkStateElem != nullptr;
-       linkStateElem = linkStateElem->GetNextElement("link_state")){
+       linkStateElem = linkStateElem->GetNextElement("link_state"))
+  {
 
     std::pair<std::string, bool> namePair =
          linkStateElem->Get<std::string>("name", "");
@@ -248,6 +247,7 @@ void SetModelState::Configure(const Entity &_entity,
       continue;
     }
 
+    //default velocity is initialsed as zero vector.
     math::Vector3d defaultVelocity;
     math::Vector3d linearVelocity;
     math::Vector3d angularVelocity;
@@ -273,15 +273,16 @@ void SetModelState::Configure(const Entity &_entity,
     if(angularVelocityElem){
       std::pair<math::Vector3d, bool> vectorPair =
            angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
-      if(vectorPair.second){
+      if(vectorPair.second)
+      {
          angularVelocity = vectorPair.first;
          _ecm.SetComponentData<components::WorldAngularVelocityReset>(
                                            linkEntity,
                                            angularVelocity);
+
       }
     }
-
-       }
+  }
 }
 
 //////////////////////////////////////////////////
