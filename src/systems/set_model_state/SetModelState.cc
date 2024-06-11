@@ -247,7 +247,7 @@ void SetModelState::Configure(const Entity &_entity,
       continue;
     }
 
-    //default velocity is initialsed as zero vector.
+    // Default velocity is initialsed as zero vector.
     math::Vector3d defaultVelocity;
     math::Vector3d linearVelocity;
     math::Vector3d angularVelocity;
