@@ -69,23 +69,11 @@ class gz::sim::systems::SpacecraftThrusterModelPrivate
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
 
-  /// \brief Joint Entity
-  public: Entity jointEntity;
-
-  /// \brief Joint name
-  public: std::string jointName;
-
   /// \brief Link Entity
   public: Entity linkEntity;
 
   /// \brief Link name
   public: std::string linkName;
-
-  /// \brief Parent link Entity
-  public: Entity parentLinkEntity;
-
-  /// \brief Parent link name
-  public: std::string parentLinkName;
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -161,19 +149,6 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
     this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
-  // Get params from SDF
-  if (sdfClone->HasElement("jointName"))
-  {
-    this->dataPtr->jointName = sdfClone->Get<std::string>("jointName");
-  }
-
-  if (this->dataPtr->jointName.empty())
-  {
-    gzerr << "SpacecraftThrusterModel found an empty jointName parameter. "
-           << "Failed to initialize.";
-    return;
-  }
-
   if (sdfClone->HasElement("linkName"))
   {
     this->dataPtr->linkName = sdfClone->Get<std::string>("linkName");
@@ -237,35 +212,16 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
       &SpacecraftThrusterModelPrivate::OnActuatorMsg, this->dataPtr.get());
 
   // Look for components
-  // If the joint or links haven't been identified yet, look for them
-  if (this->dataPtr->jointEntity == kNullEntity)
-  {
-    this->dataPtr->jointEntity =
-        this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
-
-    const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
-        this->dataPtr->jointEntity);
-    this->dataPtr->parentLinkName = parentLinkName->Data();
-  }
-
+  // If the link hasn't been identified yet, look for it
   if (this->dataPtr->linkEntity == kNullEntity)
   {
     this->dataPtr->linkEntity =
         this->dataPtr->model.LinkByName(_ecm, this->dataPtr->linkName);
   }
 
-  if (this->dataPtr->parentLinkEntity == kNullEntity)
+  if ( this->dataPtr->linkEntity == kNullEntity)
   {
-    this->dataPtr->parentLinkEntity =
-        this->dataPtr->model.LinkByName(_ecm, this->dataPtr->parentLinkName);
-  }
-
-  if (this->dataPtr->jointEntity == kNullEntity ||
-      this->dataPtr->linkEntity == kNullEntity ||
-      this->dataPtr->parentLinkEntity == kNullEntity)
-  {
-
-    gzerr << "Failed to find joint, link or parent link entity. "
+    gzerr << "Failed to find link entity. "
           << "Failed to initialize." << std::endl;
     return;
   }
