@@ -46,8 +46,8 @@ namespace systems
   /// \param thrusterName [OPTIONAL] Name of the thruster. Default is "".
   ///
   /// This plugin replicates the PWM thruster behavior in:
-  /// Nakka, Yashwanth Kumar, et al. "A six degree-of-freedom spacecraft 
-  /// dynamics simulator for formation control research." 2018 AAS/AIAA 
+  /// Nakka, Yashwanth Kumar, et al. "A six degree-of-freedom spacecraft
+  /// dynamics simulator for formation control research." 2018 AAS/AIAA
   /// Astrodynamics Specialist Conference. 2018. -> 'Thruster Firing Time'
   /// Phodapol, S. (2023). Predictive Controllers for Load Transportation in
   /// Microgravity Environments (Dissertation). -> '5.3.4 PWM Controller Node'
