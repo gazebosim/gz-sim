@@ -34,16 +34,18 @@ namespace systems
   /// \brief This system applies a thrust force to models with RCS-like
   /// thrusters. See tutorials/spacecraft_thrusters.md for a tutorial usage.
   /// Below follow the minimum necessary parameters needed by the plugin:
-  /// \param linkName Name of the link that the thruster is attached to.
-  /// \param actuatorNumber Index of the actuator in the joint.
-  /// \param dutyCycleFrequency Frequency of the duty cycle signal in Hz.
-  /// \param maxThrust Maximum thrust force in Newtons, applied on the
+  /// \param link_name Name of the link that the thruster is attached to.
+  /// \param actuator_number Index of the element to be used from the
+  ///        actuators message for a joint.
+  /// \param duty_cycle_frequency Frequency of the duty cycle signal in Hz.
+  /// \param max_thrust Maximum thrust force in Newtons, applied on the
   ///        «on» phase of the duty cycle.
-  /// \param commandSubTopic Name of the topic where the commanded normalized
+  /// \param topic Name of the topic where the commanded normalized
   ///        thrust is published. Unit is <0, 1>, corresponding to the
   ///        percentage of the duty cycle that the thruster is on.
-  /// \param robotNamespace [OPTIONAL] Namespace of the robot. Default is "".
-  /// \param thrusterName [OPTIONAL] Name of the thruster. Default is "".
+  ///        Default uses the models name.
+  /// \param sub_topic [optional] Name of the sub_topic to listen to actuator
+  ///        message on.
   ///
   /// This plugin replicates the PWM thruster behavior in:
   /// Nakka, Yashwanth Kumar, et al. "A six degree-of-freedom spacecraft

@@ -6,7 +6,7 @@ To enable a seamless transition of space robotics control and planning schemes f
 a spacecraft thrusters model in Gazebo. The model provides a very simple interface to a solenoid valve that controls
 the flow of gas to the thruster. The thruster model is as follows:
 
-- force output equals maxThrust when the command is 1
+- force output equals max_thrust when the command is 1
 - force output equals 0 when the command is 0
 - force output is modeled according to a duty cycle with a given frequency, and thrust output is maximum at the ON state of the duty cycle
 
@@ -15,14 +15,14 @@ If the duty cycle signal is low, the solenoid valve behaves as a fully-closed th
 
 ## Setting up the SpacecraftThrusterModel plugin
 
-Here follows an example instance of the SpacecraftThrusterModel plugin in an SDF file:
+Here follows an example instance of the `SpacecraftThrusterModel` plugin in an SDF file:
 ```xml
     <plugin filename="gz-sim-spacecraft_thruster_model-system" name="gz::sim::systems::SpacecraftThrusterModel">
-      <linkName>thruster_0</linkName>
-      <actuatorNumber>0</actuatorNumber>
-      <dutyCycleFrequency>10</dutyCycleFrequency>
-      <maxThrust>1.4</maxThrust>
-      <commandSubTopic>command/motor_speed</commandSubTopic>
+      <link_name>thruster_0</link_name>
+      <actuator_number>0</actuator_number>
+      <duty_cycle_frequency>10</duty_cycle_frequency>
+      <max_thrust>1.4</max_thrust>
+      <sub_topic>command/motor_speed</sub_topic>
     </plugin>
 ```
 
@@ -72,9 +72,8 @@ An example of this goes below:
 ```
 
 ## Testing an implementation of a Spacecraft model
-An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
+An example of a spacecraft with thrusters is implemented in the [DART spacecraft model](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
 ```bash
-cd examples/worlds/spacecraft.sdf
 gz sim spacecraft.sdf
 ```
 
@@ -90,29 +89,7 @@ Below, an image of the spacecraft:
 
 ## 2D Spacecraft Simulator - Ground Space Robotics testbed
 
-An example of a spacecraft with thrusters is implemented available in [DART](https://app.gazebosim.org/proque/fuel/models/dart). To run the example, run the following command:
-```bash
-cd examples/worlds/spacecraft.sdf
-gz sim spacecraft.sdf
-```
-
-This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the following command:
-```bash
-gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
-```
-
-This command will send the maximum force of a thruster over one sampling time.
-
-Below, an image of the spacecraft:
-![Spacecraft](./files/spacecraft/dart.png)
-
-## 2D Spacecraft Simulator - Ground Space Robotics testbed
-
-Examples of spacecraft models with thrusters were implemented as part of the PX4-Autopilot SITL simulation.
-The spacecraft model can be found in the `PX4-gazebo-models` repository, in the `models/spacecraft_2d/model.sdf` directory.
-This model simulates a ground testbed for space robotics, where the spacecraft is mounted on a 2D plane. The spacecraft has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This demo replicates the facilities available at KTH Space Robotics Laboratory, Stockholm, Sweden. For more information, please visit [DISCOWER](https://www.discower.io/).
-
-For instructions on how to run the spacecraft model, please refer to the [PX4-Space-Systems](https://github.com/DISCOWER/PX4-Space-Systems) page.
+An example ground based, where the spacecraft is mounted on a 2D plane, [testbed for space robotics model](https://github.com/DISCOWER/PX4-gazebo-models/tree/pr-spacecraft/models/spacecraft_2d) can also be simulated. The testbed spacecraft model has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This replicates the real [DISCOWER](https://www.discower.io/) testbed at KTH Space Robotics Laboratory in Stockholm Sweden.
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)

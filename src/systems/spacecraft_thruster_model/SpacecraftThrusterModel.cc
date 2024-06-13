@@ -6,7 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2024 Open Source Robotics Foundation
- * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
+ * Copyright (C) 2024 Benjamin Perseghetti, Rudis Laboratories
  * Copyright (C) 2024 Pedro Roque, DCS, KTH, Sweden
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,11 +78,11 @@ class gz::sim::systems::SpacecraftThrusterModelPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Topic for actuator commands.
-  public: std::string commandSubTopic;
+  /// \brief sub topic for actuator commands.
+  public: std::string subTopic;
 
   /// \brief Topic namespace.
-  public: std::string robotNamespace;
+  public: std::string topic;
 
   /// \brief Simulation time tracker
   public: double simTime = 0.01;
@@ -136,71 +136,79 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
 
   auto sdfClone = _sdf->Clone();
 
-  this->dataPtr->robotNamespace.clear();
+  this->dataPtr->topic.clear();
 
-  if (sdfClone->HasElement("robotNamespace"))
+  if (sdfClone->HasElement("topic"))
   {
-    this->dataPtr->robotNamespace =
-        sdfClone->Get<std::string>("robotNamespace");
+    this->dataPtr->topic =
+        sdfClone->Get<std::string>("topic");
   }
   else
   {
-    gzwarn << "No robotNamespace set using entity name.\n";
-    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
+    gzwarn << "No topic set using entity name.\n";
+    this->dataPtr->topic = this->dataPtr->model.Name(_ecm);
   }
 
-  if (sdfClone->HasElement("linkName"))
+  if (sdfClone->HasElement("link_name"))
   {
-    this->dataPtr->linkName = sdfClone->Get<std::string>("linkName");
+    this->dataPtr->linkName = sdfClone->Get<std::string>("link_name");
   }
 
   if (this->dataPtr->linkName.empty())
   {
-    gzerr << "SpacecraftThrusterModel found an empty linkName parameter. "
+    gzerr << "SpacecraftThrusterModel found an empty link_name parameter. "
            << "Failed to initialize.";
     return;
   }
 
-  if (sdfClone->HasElement("actuatorNumber"))
+  if (sdfClone->HasElement("actuator_number"))
   {
     this->dataPtr->actuatorNumber =
-      sdfClone->GetElement("actuatorNumber")->Get<int>();
+      sdfClone->GetElement("actuator_number")->Get<int>();
   }
   else
   {
     gzerr << "Please specify a actuator_number.\n";
   }
 
-  if (sdfClone->HasElement("maxThrust"))
+  if (sdfClone->HasElement("max_thrust"))
   {
-    this->dataPtr->maxThrust = sdfClone->GetElement("maxThrust")->Get<double>();
+    this->dataPtr->maxThrust = sdfClone->GetElement("max_thrust")->Get<double>();
   }
   else
   {
     gzerr << "Please specify actuator "
-          << this->dataPtr->actuatorNumber <<" maxThrust.\n";
+          << this->dataPtr->actuatorNumber <<" max_thrust.\n";
   }
 
-  if (sdfClone->HasElement("dutyCycleFrequency"))
+  if (sdfClone->HasElement("duty_cycle_frequency"))
   {
     this->dataPtr->dutyCycleFrequency =
-          sdfClone->GetElement("dutyCycleFrequency")->Get<double>();
+          sdfClone->GetElement("duty_cycle_frequency")->Get<double>();
   }
   else
   {
     gzerr << "Please specify actuator "
-          << this->dataPtr->actuatorNumber <<" dutyCycleFrequency.\n";
+          << this->dataPtr->actuatorNumber <<" duty_cycle_frequency.\n";
   }
 
-  sdfClone->Get<std::string>("commandSubTopic",
-      this->dataPtr->commandSubTopic, this->dataPtr->commandSubTopic);
+  if (sdfClone->HasElement("sub_topic"))
+  {
+    this->dataPtr->subTopic =
+        sdfClone->Get<std::string>("sub_topic");
+    std::string topic = transport::TopicUtils::AsValidTopic(
+      this->dataPtr->topic + "/" + this->dataPtr->subTopic);
+  }
+  else
+  {
+    std::string topic = transport::TopicUtils::AsValidTopic(
+      this->dataPtr->topic);
+  }
 
-  // Subscribe to actuator command messages
-  std::string topic = transport::TopicUtils::AsValidTopic(
-      this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
+  // Subscribe to actuator command message
   if (topic.empty())
   {
-    gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
+    gzerr << "Failed to create topic for [" << this->dataPtr->topic
            << "]" << std::endl;
     return;
   }
