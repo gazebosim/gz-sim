@@ -46,13 +46,7 @@
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
-#include "gz/sim/components/JointAxis.hh"
-#include "gz/sim/components/JointVelocity.hh"
-#include "gz/sim/components/JointVelocityCmd.hh"
-#include "gz/sim/components/LinearVelocity.hh"
-#include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/Wind.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
@@ -192,16 +186,17 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
           << this->dataPtr->actuatorNumber <<" duty_cycle_frequency.\n";
   }
 
+  std::string topic;
   if (sdfClone->HasElement("sub_topic"))
   {
     this->dataPtr->subTopic =
         sdfClone->Get<std::string>("sub_topic");
-    std::string topic = transport::TopicUtils::AsValidTopic(
+    topic = transport::TopicUtils::AsValidTopic(
       this->dataPtr->topic + "/" + this->dataPtr->subTopic);
   }
   else
   {
-    std::string topic = transport::TopicUtils::AsValidTopic(
+    topic = transport::TopicUtils::AsValidTopic(
       this->dataPtr->topic);
   }
 
@@ -253,6 +248,8 @@ void SpacecraftThrusterModelPrivate::OnActuatorMsg(
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
+  if (this->actuatorNumber == 0)
+    gzdbg << "Received actuator message!" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -281,7 +278,6 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("SpacecraftThrusterModelPrivate::UpdateForcesAndMoments");
-
   std::optional<msgs::Actuators> msg;
   auto actuatorMsgComp =
       _ecm.Component<components::Actuators>(this->model.Entity());
@@ -298,7 +294,6 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
     if (this->recvdActuatorsMsg.has_value())
     {
       msg = *this->recvdActuatorsMsg;
-      this->recvdActuatorsMsg.reset();
     }
   }
 

@@ -17,7 +17,7 @@ If the duty cycle signal is low, the solenoid valve behaves as a fully-closed th
 
 Here follows an example instance of the `SpacecraftThrusterModel` plugin in an SDF file:
 ```xml
-    <plugin filename="gz-sim-spacecraft_thruster_model-system" name="gz::sim::systems::SpacecraftThrusterModel">
+    <plugin filename="gz-sim-spacecraft-thruster-model-system" name="gz::sim::systems::SpacecraftThrusterModel">
       <link_name>thruster_0</link_name>
       <actuator_number>0</actuator_number>
       <duty_cycle_frequency>10</duty_cycle_frequency>

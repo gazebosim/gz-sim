@@ -45,7 +45,7 @@
     </light>
     <include>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/proque/models/dart/4</uri>
+      <uri>https://fuel.gazebosim.org/1.0/proque/models/dart/6</uri>
     </include>
   </world>
 </sdf>
