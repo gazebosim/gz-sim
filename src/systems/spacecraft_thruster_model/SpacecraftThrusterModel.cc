@@ -167,7 +167,8 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
 
   if (sdfClone->HasElement("max_thrust"))
   {
-    this->dataPtr->maxThrust = sdfClone->GetElement("max_thrust")->Get<double>();
+    this->dataPtr->maxThrust =
+      sdfClone->GetElement("max_thrust")->Get<double>();
   }
   else
   {
