@@ -89,7 +89,17 @@ Below, an image of the spacecraft:
 
 ## 2D Spacecraft Simulator - Ground Space Robotics testbed
 
-An example ground based, where the spacecraft is mounted on a 2D plane, [testbed for space robotics model](https://github.com/DISCOWER/PX4-gazebo-models/tree/pr-spacecraft/models/spacecraft_2d) can also be simulated. The testbed spacecraft model has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This replicates the real [DISCOWER](https://www.discower.io/) testbed at KTH Space Robotics Laboratory in Stockholm Sweden.
+An example of a ground testbed for spacecrafts is also available, where the spacecraft moves a 2D plane using thrusters. The testbed spacecraft model has 8 thrusters, and the thrusters are controlled by the `SpacecraftThrusterModel` plugin. This replicates the real [DISCOWER](https://www.discower.io/) testbed at KTH Space Robotics Laboratory in Stockholm Sweden.
+
+To run this example, run the following command:
+```bash
+gz sim ground_spacecraft_testbed.sdf
+```
+
+This spacecraft has 8 thrusters. To send inputs to `thruster_0`, run the following command:
+```bash
+gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /kth_freeflyer/command/motor_speed --msgtype gz.msgs.Actuators
+```
 
 Below is a picture of the simulator:
 ![Spacecraft simulator](./files/spacecraft/kth_spacecraft_simulator.png)
