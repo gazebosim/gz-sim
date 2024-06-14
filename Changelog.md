@@ -1,5 +1,114 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.4.0 (2024-06-12)
+
+1. Add pause run tutorial
+    * [Pull request #2383](https://github.com/gazebosim/gz-sim/pull/2383)
+
+1. Fix warning message to show precise jump back in time duration
+    * [Pull request #2435](https://github.com/gazebosim/gz-sim/pull/2435)
+
+1. Optimize rendering sensor pose updates
+    * [Pull request #2425](https://github.com/gazebosim/gz-sim/pull/2425)
+
+1. Remove a few extra zeros from some sdf files
+    * [Pull request #2426](https://github.com/gazebosim/gz-sim/pull/2426)
+
+1. Use VERSION_GREATER_EQUAL in cmake logic
+    * [Pull request #2418](https://github.com/gazebosim/gz-sim/pull/2418)
+
+1. Support mesh optimization when using AttachMeshShapeFeature
+    * [Pull request #2417](https://github.com/gazebosim/gz-sim/pull/2417)
+
+1. Rephrase cmake comment about CMP0077
+    * [Pull request #2419](https://github.com/gazebosim/gz-sim/pull/2419)
+
+1. Fix CMake warnings in Noble
+    * [Pull request #2397](https://github.com/gazebosim/gz-sim/pull/2397)
+
+1. Update sensors with pending trigger immediately in Sensors system
+    * [Pull request #2408](https://github.com/gazebosim/gz-sim/pull/2408)
+
+1. Add missing algorithm include
+    * [Pull request #2414](https://github.com/gazebosim/gz-sim/pull/2414)
+
+1. Add Track and Follow options in gui EntityContextMenu
+    * [Pull request #2402](https://github.com/gazebosim/gz-sim/pull/2402)
+
+1. ForceTorque system: improve readability
+    * [Pull request #2403](https://github.com/gazebosim/gz-sim/pull/2403)
+
+1. LTA Dynamics System
+    * [Pull request #2241](https://github.com/gazebosim/gz-sim/pull/2241)
+
+1. Remove Empty Test File
+    * [Pull request #2396](https://github.com/gazebosim/gz-sim/pull/2396)
+
+1. Fix GCC/CMake warnings for Noble
+    * [Pull request #2375](https://github.com/gazebosim/gz-sim/pull/2375)
+
+1. Fix warn unused variable in test
+    * [Pull request #2388](https://github.com/gazebosim/gz-sim/pull/2388)
+
+1. Fix name of gz-fuel_tools in package.xml
+    * [Pull request #2386](https://github.com/gazebosim/gz-sim/pull/2386)
+
+1. Add package.xml
+    * [Pull request #2337](https://github.com/gazebosim/gz-sim/pull/2337)
+
+1. Fix namespace and class links in documentation references that use namespace `gz`
+    * [Pull request #2385](https://github.com/gazebosim/gz-sim/pull/2385)
+
+1. Fix ModelPhotoShootTest test failures
+    * [Pull request #2294](https://github.com/gazebosim/gz-sim/pull/2294)
+
+1. Enable StoreResolvedURIs when loading SDF
+    * [Pull request #2349](https://github.com/gazebosim/gz-sim/pull/2349)
+
+1. Drop python3-disttutils from apt packages files
+    * [Pull request #2374](https://github.com/gazebosim/gz-sim/pull/2374)
+
+1. Added example world for `DopplerVelocityLogSystem`
+    * [Pull request #2373](https://github.com/gazebosim/gz-sim/pull/2373)
+
+1. Fix Gazebo/White and refactored MaterialParser
+    * [Pull request #2302](https://github.com/gazebosim/gz-sim/pull/2302)
+
+1. Support for Gazebo materials
+    * [Pull request #2269](https://github.com/gazebosim/gz-sim/pull/2269)
+
+### Gazebo Sim 8.3.0 (2024-04-11)
+
+1. Use relative install paths for plugin shared libraries and gz-tools data
+    * [Pull request #2358](https://github.com/gazebosim/gz-sim/pull/2358)
+
+1. Use `steer_p_gain` for UpdateVelocity steer joint speed
+    * [Pull request #2355](https://github.com/gazebosim/gz-sim/pull/2355)
+
+1. Fix TriggeredPublisher test
+    * [Pull request #2354](https://github.com/gazebosim/gz-sim/pull/2354)
+
+1. Use SetComponentData to simplify code and improve coverage
+    * [Pull request #2360](https://github.com/gazebosim/gz-sim/pull/2360)
+
+1. Remove unnecessary sleep
+    * [Pull request #2357](https://github.com/gazebosim/gz-sim/pull/2357)
+
+1. Fixed undefined behavior in thruster.cc
+    * [Pull request #2350](https://github.com/gazebosim/gz-sim/pull/2350)
+
+1. Added mutex to protect stored time variables
+    * [Pull request #2345](https://github.com/gazebosim/gz-sim/pull/2345)
+
+1. Fixed turning error in ackermann steering
+    * [Pull request #2342](https://github.com/gazebosim/gz-sim/pull/2342)
+
+1. Check null mesh
+    * [Pull request #2341](https://github.com/gazebosim/gz-sim/pull/2341)
+
+1. Publish step size in world stats topic
+    * [Pull request #2340](https://github.com/gazebosim/gz-sim/pull/2340)
+
 ### Gazebo Sim 8.2.0 (2024-03-14)
 
 1. Add reference to joint_controller.md tutorial.
