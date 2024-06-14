@@ -1586,11 +1586,6 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
       emitter->SetType(gz::rendering::EmitterType::EM_BOX);
       break;
     }
-    case gz::msgs::ParticleEmitter_EmitterType_CONE:
-    {
-      emitter->SetType(gz::rendering::EmitterType::EM_CONE);
-      break;
-    }
     case gz::msgs::ParticleEmitter_EmitterType_CYLINDER:
     {
       emitter->SetType(gz::rendering::EmitterType::EM_CYLINDER);

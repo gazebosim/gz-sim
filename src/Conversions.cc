@@ -1662,9 +1662,6 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     case sdf::ParticleEmitterType::CYLINDER:
       out.set_type(msgs::ParticleEmitter::CYLINDER);
       break;
-    case sdf::ParticleEmitterType::CONE:
-      out.set_type(msgs::ParticleEmitter::CONE);
-      break;
     case sdf::ParticleEmitterType::ELLIPSOID:
       out.set_type(msgs::ParticleEmitter::ELLIPSOID);
       break;
