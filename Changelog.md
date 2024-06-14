@@ -256,7 +256,6 @@
     * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
     * [Pull request #2222](https://github.com/gazebosim/gz-sim/pull/2222)
 
->>>>>>> gz-sim8
 ### Gazebo Sim 8.0.0 (2023-09-29)
 
 1. TouchPlugin: Reset the plugin with the initial values
