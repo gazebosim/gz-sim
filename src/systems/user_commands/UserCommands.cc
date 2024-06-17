@@ -25,6 +25,7 @@
 #endif
 
 #include <google/protobuf/message.h>
+#include <google/protobuf/message_lite.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
