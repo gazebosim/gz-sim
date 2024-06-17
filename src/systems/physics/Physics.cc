@@ -1306,6 +1306,24 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetInertial(inertial->Data());
         }
 
+        // get link gravity
+        const components::Gravity *gravity =
+            _ecm.Component<components::Gravity>(_entity);
+        if (nullptr != gravity)
+        {
+          // Entity has a gravity component that is all zeros when
+          // <gravity> is set to false
+          // See SdfEntityCreator::CreateEntities()
+          if (gravity->Data() == math::Vector3d::Zero)
+          {
+            link.SetEnableGravity(false);
+          }
+          else
+          {
+            link.SetEnableGravity(true);
+          }
+        }
+
         auto constructLinkFeature =
           this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
             _parent->Data());
