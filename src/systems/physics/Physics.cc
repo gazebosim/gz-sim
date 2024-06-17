@@ -374,6 +374,12 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
 
+  /// \brief Flag indicating wheather link linear velocity component is already set.
+  public: bool linearVelocityResetFlag = false;
+
+  /// \brief Flag indicating wheather link angular velocity compi340onent is already set.
+  public: bool angularVelocityResetFlag = false;
+
   /// \brief Vector3d equality comparison function.
   public: std::function<bool(const math::Vector3d &, const math::Vector3d &)>
           vec3Eql { [](const math::Vector3d &_a, const math::Vector3d &_b)
@@ -2696,8 +2702,13 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         // Linear velocity in world frame
         math::Vector3d worldLinearVel = _worldlinearvelocityreset->Data();
-        worldLinearVelFeature->SetWorldLinearVelocity(
-            math::eigen3::convert(worldLinearVel));
+
+        if(!linearVelocityResetFlag)
+        {
+          worldLinearVelFeature->SetWorldLinearVelocity(
+                                 math::eigen3::convert(worldLinearVel));
+          this->linearVelocityResetFlag = true;
+        }
 
         return true;
       });
@@ -2754,8 +2765,13 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
         // Angular velocity in world frame
         math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
-        worldAngularVelFeature->SetWorldAngularVelocity(
-            math::eigen3::convert(worldAngularVel));
+
+        if(!angularVelocityResetFlag)
+        {
+          worldAngularVelFeature->SetWorldAngularVelocity(
+              math::eigen3::convert(worldAngularVel));
+          this->angularVelocityResetFlag = true;
+        }
 
         return true;
       });
