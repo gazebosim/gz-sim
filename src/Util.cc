@@ -907,7 +907,7 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
   // Check if MeshManager contains the decomposed mesh already. If not
   // add it to the MeshManager so we do not need to decompose it again.
   const std::string convexMeshName =
-      _mesh.Name() + " " + _meshSdf.Submesh() + "_CONVEX_" +
+      _mesh.Name() + "_" + _meshSdf.Submesh() + "_CONVEX_" +
       std::to_string(maxConvexHulls) + "_" + std::to_string(voxelResolution);
   auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
   if (!optimizedMesh)

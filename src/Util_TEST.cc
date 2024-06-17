@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
+#include <gz/common/testing/TestPaths.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Types.hh>
@@ -1019,8 +1020,7 @@ TEST_F(UtilTest, LoadMesh)
   EXPECT_NE(nullptr, loadMesh(meshSdf));
 
   meshSdf.SetUri("duck.dae");
-  std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-    "test", "media", "duck.dae");
+  std::string filePath = common::testing::TestFile("media", "duck.dae");
   meshSdf.SetFilePath(filePath);
   EXPECT_NE(nullptr, loadMesh(meshSdf));
 
