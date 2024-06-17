@@ -99,6 +99,8 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
+using google::protobuf::DynamicCastMessage;
+
 /// \brief This class is passed to every command and contains interfaces that
 /// can be shared among all commands. For example, all create and remove
 /// commands can use the `creator` object.
@@ -1060,7 +1062,7 @@ CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
 //////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
-  auto createMsg = proto2::DynamicCastMessage<msgs::EntityFactory>(this->msg);
+  auto createMsg = DynamicCastMessage<msgs::EntityFactory>(this->msg);
   if (nullptr == createMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1324,7 +1326,7 @@ RemoveCommand::RemoveCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool RemoveCommand::Execute()
 {
-  auto removeMsg = proto2::DynamicCastMessage<msgs::Entity>(this->msg);
+  auto removeMsg = DynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == removeMsg)
   {
     gzerr << "Internal error, null remove message" << std::endl;
@@ -1373,7 +1375,7 @@ LightCommand::LightCommand(msgs::Light *_msg,
 //////////////////////////////////////////////////
 bool LightCommand::Execute()
 {
-  auto lightMsg = proto2::DynamicCastMessage<msgs::Light>(this->msg);
+  auto lightMsg = DynamicCastMessage<msgs::Light>(this->msg);
   if (nullptr == lightMsg)
   {
     gzerr << "Internal error, null light message" << std::endl;
@@ -1567,7 +1569,7 @@ PoseCommand::PoseCommand(msgs::Pose *_msg,
 //////////////////////////////////////////////////
 bool PoseCommand::Execute()
 {
-  auto poseMsg = proto2::DynamicCastMessage<msgs::Pose>(this->msg);
+  auto poseMsg = DynamicCastMessage<msgs::Pose>(this->msg);
   if (nullptr == poseMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1587,7 +1589,7 @@ PoseVectorCommand::PoseVectorCommand(msgs::Pose_V *_msg,
 //////////////////////////////////////////////////
 bool PoseVectorCommand::Execute()
 {
-  auto poseVectorMsg = proto2::DynamicCastMessage<msgs::Pose_V>(this->msg);
+  auto poseVectorMsg = DynamicCastMessage<msgs::Pose_V>(this->msg);
   if (nullptr == poseVectorMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1615,7 +1617,7 @@ PhysicsCommand::PhysicsCommand(msgs::Physics *_msg,
 //////////////////////////////////////////////////
 bool PhysicsCommand::Execute()
 {
-  auto physicsMsg = proto2::DynamicCastMessage<msgs::Physics>(this->msg);
+  auto physicsMsg = DynamicCastMessage<msgs::Physics>(this->msg);
   if (nullptr == physicsMsg)
   {
     gzerr << "Internal error, null physics message" << std::endl;
@@ -1651,7 +1653,7 @@ SphericalCoordinatesCommand::SphericalCoordinatesCommand(
 bool SphericalCoordinatesCommand::Execute()
 {
   auto sphericalCoordinatesMsg =
-      proto2::DynamicCastMessage<msgs::SphericalCoordinates>(this->msg);
+      DynamicCastMessage<msgs::SphericalCoordinates>(this->msg);
   if (nullptr == sphericalCoordinatesMsg)
   {
     gzerr << "Internal error, null SphericalCoordinates message" << std::endl;
@@ -1729,7 +1731,7 @@ EnableCollisionCommand::EnableCollisionCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool EnableCollisionCommand::Execute()
 {
-  auto entityMsg = proto2::DynamicCastMessage<msgs::Entity>(this->msg);
+  auto entityMsg = DynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == entityMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1779,7 +1781,7 @@ DisableCollisionCommand::DisableCollisionCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool DisableCollisionCommand::Execute()
 {
-  auto entityMsg = proto2::DynamicCastMessage<msgs::Entity>(this->msg);
+  auto entityMsg = DynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == entityMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1838,9 +1840,8 @@ VisualCommand::VisualCommand(msgs::MaterialColor *_msg,
 //////////////////////////////////////////////////
 bool VisualCommand::Execute()
 {
-  auto visualMsg = proto2::DynamicCastMessage<msgs::Visual>(this->msg);
-  auto materialColorMsg =
-      proto2::DynamicCastMessage<msgs::MaterialColor>(this->msg);
+  auto visualMsg = DynamicCastMessage<msgs::Visual>(this->msg);
+  auto materialColorMsg = DynamicCastMessage<msgs::MaterialColor>(this->msg);
   if (visualMsg != nullptr)
   {
     Entity visualEntity = kNullEntity;
@@ -1966,7 +1967,7 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 bool WheelSlipCommand::Execute()
 {
   auto wheelSlipMsg =
-      proto2::DynamicCastMessage<msgs::WheelSlipParametersCmd>(this->msg);
+      DynamicCastMessage<msgs::WheelSlipParametersCmd>(this->msg);
   if (nullptr == wheelSlipMsg)
   {
     gzerr << "Internal error, null wheel slip message" << std::endl;
