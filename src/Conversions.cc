@@ -1728,9 +1728,6 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
     case msgs::ParticleEmitter::BOX:
       out.SetType(sdf::ParticleEmitterType::BOX);
       break;
-    case msgs::ParticleEmitter::CONE:
-      out.SetType(sdf::ParticleEmitterType::CONE);
-      break;
     case msgs::ParticleEmitter::CYLINDER:
       out.SetType(sdf::ParticleEmitterType::CYLINDER);
       break;
