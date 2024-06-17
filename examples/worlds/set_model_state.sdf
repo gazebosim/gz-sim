@@ -7,6 +7,7 @@
 -->
 <sdf version="1.6">
   <world name="set_model_state">
+    <gravity>0 0 0</gravity>
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
