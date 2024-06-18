@@ -490,7 +490,8 @@ void SystemManager::ProcessRemovedEntities(
     });
   RemoveFromVectorIf(this->systemsPostupdate,
     [&](const SystemIfaceWithParent<ISystemPostUpdate>& system) {
-      // Post update system. Make sure that the threadsToTerminate
+      // If system with a PostUpdate is marked for removal, mark its thread for
+      // termination.
       if (_ecm.IsMarkedForRemoval(system.parent)) {
         _threadsToTerminate.emplace(system.parent);
         return true;
