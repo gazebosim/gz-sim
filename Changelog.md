@@ -1,5 +1,82 @@
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.7.0 (2024-01-17)
+
+1. Allow using plugin file names and environment variables compatible with Garden and later
+    * [Pull request #2275](https://github.com/gazebosim/gz-sim/pull/2275)
+
+1. Added tutorial for Gazebo joint controller plugin
+    * [Pull request #2263](https://github.com/gazebosim/gz-sim/pull/2263)
+
+1. Fix incorrect light direction in tunnel.sdf example
+    * [Pull request #2264](https://github.com/gazebosim/gz-sim/pull/2264)
+
+1. Fix DLL linkage/visibility issues
+    * [Pull request #2254](https://github.com/gazebosim/gz-sim/pull/2254)
+
+1. mecanum_drive: use mesh wheels in example world
+    * [Pull request #2250](https://github.com/gazebosim/gz-sim/pull/2250)
+
+1. environment_preload: fix windows compiler warnings
+    * [Pull request #2246](https://github.com/gazebosim/gz-sim/pull/2246)
+
+1. EnvironmentPreload: ignerr -> gzerr
+    * [Pull request #2245](https://github.com/gazebosim/gz-sim/pull/2245)
+
+1. Update friction parameters for skid steer example
+    * [Pull request #2235](https://github.com/gazebosim/gz-sim/pull/2235)
+
+1. Use sdf FindElement API to avoid const_cast
+    * [Pull request #2236](https://github.com/gazebosim/gz-sim/pull/2236)
+
+1. Use `GZ_PI` instead of `M_PI` to fix windows builds
+    * [Pull request #2230](https://github.com/gazebosim/gz-sim/pull/2230)
+
+1. Add note about elevator example
+    * [Pull request #2227](https://github.com/gazebosim/gz-sim/pull/2227)
+
+1. Porting Advanced Lift Drag Plugin to Gazebo
+    * [Pull request #2185](https://github.com/gazebosim/gz-sim/pull/2185)
+    * [Pull request #2226](https://github.com/gazebosim/gz-sim/pull/2226)
+
+1. Fix macOS test failures by registering components in the core library
+    * [Pull request #2220](https://github.com/gazebosim/gz-sim/pull/2220)
+
+1. Fix for sensor pointer null when navsat plugin in included in sdf
+    * [Pull request #2176](https://github.com/gazebosim/gz-sim/pull/2176)
+
+1. Fix another deadlock in sensors system
+    * [Pull request #2200](https://github.com/gazebosim/gz-sim/pull/2200)
+
+1. Fix sensors system parallel updates
+    * [Pull request #2201](https://github.com/gazebosim/gz-sim/pull/2201)
+
+1. Relax pose check in actor no mesh test
+    * [Pull request #2196](https://github.com/gazebosim/gz-sim/pull/2196)
+
+1. backport component inspector Vector3d width fix
+    * [Pull request #2195](https://github.com/gazebosim/gz-sim/pull/2195)
+
+1. fix INTEGRATION_save_world's SdfGeneratorFixture.ModelWithNestedIncludes test
+    * [Pull request #2197](https://github.com/gazebosim/gz-sim/pull/2197)
+
+1. Lift Drag Bug Fix
+    * [Pull request #2189](https://github.com/gazebosim/gz-sim/pull/2189)
+    * [Pull request #2272](https://github.com/gazebosim/gz-sim/pull/2272)
+    * [Pull request #2273](https://github.com/gazebosim/gz-sim/pull/2273)
+    * [Issue #2188](https://github.com/gazebosim/gz-sim/issues/2188)
+
+1. Bump Fuel model version in test
+    * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
+
+1. Fix enviroment system loading mechanism
+    * [Pull request #1842](https://github.com/gazebosim/gz-sim/pull/1842)
+
+1. Infrastructure
+    * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
+    * [Pull request #2222](https://github.com/gazebosim/gz-sim/pull/2222)
+
+
 ### Gazebo Sim 7.6.0 (2023-09-26)
 
 1. Documentation updates
@@ -887,6 +964,35 @@
 
 ## Gazebo Sim 6.x
 
+### Gazebo Sim 6.16.0 (2024-01-12)
+
+1. Allow using plugin file names and environment variables compatible with Garden and later
+    * [Pull request #2275](https://github.com/gazebosim/gz-sim/pull/2275)
+
+1. Update friction parameters for skid steer example
+    * [Pull request #2235](https://github.com/gazebosim/gz-sim/pull/2235)
+
+1. Relax pose check in actor no mesh test
+    * [Pull request #2196](https://github.com/gazebosim/gz-sim/pull/2196)
+
+1. Fix macOS test failures by registering components in the core library
+    * [Pull request #2220](https://github.com/gazebosim/gz-sim/pull/2220)
+
+1. Fix for sensor pointer null when navsat plugin in included in sdf
+    * [Pull request #2176](https://github.com/gazebosim/gz-sim/pull/2176)
+
+1. Fix another deadlock in sensors system
+    * [Pull request #2200](https://github.com/gazebosim/gz-sim/pull/2200)
+
+1. Backport component inspector Vector3d width fix
+    * [Pull request #2195](https://github.com/gazebosim/gz-sim/pull/2195)
+
+1. Bump Fuel model version in test
+    * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
+
+1. Infrastructure
+    * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
+    * [Pull request #2222](https://github.com/gazebosim/gz-sim/pull/2222)
 
 ### Gazebo Sim 6.15.0 (2023-08-16)
 
