@@ -31,7 +31,6 @@
   <depend>libxmu-dev</depend>
   <depend>protobuf-dev</depend>
   <depend>pybind11-dev</depend>
-  <depend>python3-distutils</depend>
   <depend>qml-module-qt-labs-folderlistmodel</depend>
   <depend>qml-module-qt-labs-settings</depend>
   <depend>qml-module-qtgraphicaleffects</depend>
