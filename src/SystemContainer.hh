@@ -88,7 +88,7 @@ namespace gz
 
       //////////////////////////////////////////
       /// Remove an item if a condition is met.
-      public: void RemoveIf(std::function<bool(const T&)> fn, T null_type=T(0))
+      public: void RemoveIf(std::function<bool(const T&)> fn, T null_type = T(0))
       {
         for (std::size_t i = 0; i < systems.size(); i++)
         {
