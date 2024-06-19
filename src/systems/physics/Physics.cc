@@ -374,10 +374,12 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
 
-  /// \brief Flag indicating wheather link linear velocity component is already set.
+  /// \brief Flag indicating wheather link linear velocity component is
+  /// already set.
   public: bool linearVelocityResetFlag = false;
 
-  /// \brief Flag indicating wheather link angular velocity compi340onent is already set.
+  /// \brief Flag indicating wheather link angular velocity compi340onent
+  /// is already set.
   public: bool angularVelocityResetFlag = false;
 
   /// \brief Vector3d equality comparison function.
