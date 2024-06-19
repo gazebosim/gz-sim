@@ -34,7 +34,7 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
-#include "SystemContainer.hpp"
+#include "SystemContainer.hh"
 #include "SystemInternal.hh"
 
 namespace gz

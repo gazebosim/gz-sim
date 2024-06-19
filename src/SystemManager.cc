@@ -22,7 +22,7 @@
 
 #include <gz/common/StringUtils.hh>
 
-#include "SystemContainer.hpp"
+#include "SystemContainer.hh"
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"

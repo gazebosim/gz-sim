@@ -22,10 +22,13 @@
 #include <cstddef>
 #include <functional>
 
+#include "gz/sim/config.hh"
+
 namespace gz
 {
   namespace sim
   {
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
     //////////////////////////////////////////////////
     /// This container implements a simple masked vector.
     /// Using a masked vector for systems ensures that
@@ -103,7 +106,7 @@ namespace gz
       private: std::vector<std::size_t> freeSpots;
 
       //////////////////////////////////////////
-      class iterator {
+      class Iterator {
         std::size_t num;
         SystemContainer<T>* parent;
       public:
@@ -112,12 +115,12 @@ namespace gz
         using difference_type = long;
         using pointer = T*;
         using reference = T&;
-        explicit iterator(SystemContainer<T>* _parent, std::size_t _num = 0) :
+        explicit Iterator(SystemContainer<T>* _parent, std::size_t _num = 0) :
           num(_num), parent(_parent)
         {
 
         }
-        iterator& operator++() {
+        Iterator& operator++() {
           auto end = parent->end();
           // O(n) for now
           do {
@@ -126,36 +129,37 @@ namespace gz
 
           return *this;
         }
-        bool operator==(iterator other) const { return num == other.num; }
-        bool operator!=(iterator other) const { return !(*this == other); }
+        bool operator==(Iterator other) const { return num == other.num; }
+        bool operator!=(Iterator other) const { return !(*this == other); }
         T& operator*() const {
           return parent->systems[num];
         }
       };
 
       //////////////////////////////////////////
-      public: iterator begin()
+      public: Iterator begin()
       {
-        return iterator(this);
+        return Iterator(this);
       }
 
       //////////////////////////////////////////
-      public: iterator end()
+      public: Iterator end()
       {
         auto lastIdx = this->occupied.size();
 
         if (lastIdx == 0)
         {
-          return iterator(this);
+          return Iterator(this);
         }
 
         while(!this->occupied[lastIdx-1] && lastIdx != 0)
         {
           lastIdx--;
         }
-        return iterator(this, lastIdx);
+        return Iterator(this, lastIdx);
       }
     };
+    }
   }
 }
 

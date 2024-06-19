@@ -16,7 +16,7 @@
 */
 #include <gtest/gtest.h>
 #include <unordered_set>
-#include "SystemContainer.hpp"
+#include "SystemContainer.hh"
 
 using namespace gz::sim;
 
