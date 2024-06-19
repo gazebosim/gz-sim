@@ -20,6 +20,7 @@
 #include <iterator>
 #include <vector>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 
 #include "gz/sim/config.hh"
@@ -112,7 +113,7 @@ namespace gz
       public:
         using iterator_category = std::input_iterator_tag;
         using value_type = T;
-        using difference_type = long;
+        using difference_type = int64_t;
         using pointer = T*;
         using reference = T&;
         explicit Iterator(SystemContainer<T>* _parent, std::size_t _num = 0) :
