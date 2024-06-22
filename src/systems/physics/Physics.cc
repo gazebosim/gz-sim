@@ -99,6 +99,7 @@
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/CanonicalLink.hh"
@@ -123,8 +124,7 @@
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
-#include "gz/sim/components/WorldLinearVelocityReset.hh"
-#include "gz/sim/components/WorldAngularVelocityReset.hh"
+#include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -373,14 +373,6 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
-
-  /// \brief Flag indicating wheather link linear velocity component is
-  /// already set.
-  public: bool linearVelocityResetFlag = false;
-
-  /// \brief Flag indicating wheather link angular velocity compi340onent
-  /// is already set.
-  public: bool angularVelocityResetFlag = false;
 
   /// \brief Vector3d equality comparison function.
   public: std::function<bool(const math::Vector3d &, const math::Vector3d &)>
@@ -2705,12 +2697,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // Linear velocity in world frame
         math::Vector3d worldLinearVel = _worldlinearvelocityreset->Data();
 
-        if(!linearVelocityResetFlag)
-        {
-          worldLinearVelFeature->SetWorldLinearVelocity(
-                                 math::eigen3::convert(worldLinearVel));
-          this->linearVelocityResetFlag = true;
-        }
+        worldLinearVelFeature->SetWorldLinearVelocity(
+                               math::eigen3::convert(worldLinearVel));
 
         return true;
       });
@@ -2768,12 +2756,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // Angular velocity in world frame
         math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
 
-        if(!angularVelocityResetFlag)
-        {
-          worldAngularVelFeature->SetWorldAngularVelocity(
-              math::eigen3::convert(worldAngularVel));
-          this->angularVelocityResetFlag = true;
-        }
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
 
         return true;
       });
@@ -3711,6 +3695,32 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
   for (const auto entity : entitiesVelocityReset)
   {
     _ecm.RemoveComponent<components::JointVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesLinearVelocityReset;
+  _ecm.Each<components::WorldLinearVelocityReset>(
+      [&](const Entity &_entity, components::WorldLinearVelocityReset *) -> bool
+      {
+        entitiesLinearVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesLinearVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesAngularVelocityReset;
+  _ecm.Each<components::WorldAngularVelocityReset>(
+      [&](const Entity &_entity, components::WorldAngularVelocityReset *) -> bool
+      {
+        entitiesAngularVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesAngularVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
   }
 
   std::vector<Entity> entitiesCustomContactSurface;

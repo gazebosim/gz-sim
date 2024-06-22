@@ -29,8 +29,8 @@
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
-#include "gz/sim/components/WorldLinearVelocityReset.hh"
-#include "gz/sim/components/WorldAngularVelocityReset.hh"
+#include "gz/sim/components/LinearVelocityReset.hh"
+#include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
@@ -247,17 +247,13 @@ void SetModelState::Configure(const Entity &_entity,
       continue;
     }
 
-    // Default velocity is initialsed as zero vector.
-    math::Vector3d defaultVelocity;
     math::Vector3d linearVelocity;
-    math::Vector3d angularVelocity;
-
     auto linearVelocityElem = linkStateElem->FindElement("linear_velocity");
 
     if(linearVelocityElem)
     {
      std::pair<math::Vector3d, bool> vectorPair =
-     linearVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+     linearVelocityElem->Get<math::Vector3d>("", math::Vector3d::Zero);
       if (vectorPair.second)
       {
         linearVelocity = vectorPair.first;
@@ -267,12 +263,13 @@ void SetModelState::Configure(const Entity &_entity,
       }
     }
 
+    math::Vector3d angularVelocity;
     auto angularVelocityElem =
                      linkStateElem->FindElement("angular_velocity");
 
     if(angularVelocityElem){
       std::pair<math::Vector3d, bool> vectorPair =
-           angularVelocityElem->Get<math::Vector3d>("", defaultVelocity);
+           angularVelocityElem->Get<math::Vector3d>("", math::Vector3d::Zero);
       if(vectorPair.second)
       {
          angularVelocity = vectorPair.first;
@@ -280,9 +277,11 @@ void SetModelState::Configure(const Entity &_entity,
                                            linkEntity,
                                            angularVelocity);
 
+
       }
     }
   }
+  // \TODO(yaswanth1701) set reset velocity components in body frame.
 }
 
 //////////////////////////////////////////////////

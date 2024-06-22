@@ -31,10 +31,15 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Link linear velocity in world frame in SI units (m/s).
-  ///
-  /// The component wraps a std::vector of size equal to the degrees of freedom
-  /// of the joint.
+  /// \brief Entity initial linear velocity in its own frame and in SI units (m/s).
+  /// The linear velocity of entity is represented by gz::math::vector3d.
+  using LinearVelocityReset = Component<math::Vector3d ,
+                                       class LinearVelocityResetTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.LinearVelocityReset", LinearVelocityReset)
+
+  /// \brief Entity initial linear velocity in world frame and in SI units (m/s).
+  /// The linear velocity of entity is represented by gz::math::vector3d.
   using WorldLinearVelocityReset = Component<math::Vector3d ,
                                        class WorldLinearVelocityResetTag>;
   GZ_SIM_REGISTER_COMPONENT(

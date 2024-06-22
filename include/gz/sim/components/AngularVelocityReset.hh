@@ -31,10 +31,15 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Link angular velocity in world frame in SI units (rad/s).
-  ///
-  /// The component wraps a std::vector of size equal to the degrees of freedom
-  /// of the joint.
+  /// \brief Link initial angular velocity in its own frame and in SI units (rad/s).
+  /// The angular velocity of entity is represented by gz::math::vector3d.
+  using AngularVelocityReset = Component<math::Vector3d,
+                                       class AngularVelocityResetTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.AngularVelocityReset", AngularVelocityReset)
+
+  /// \brief Link initial angular velocity in world frame and in SI units (rad/s).
+  /// The angular velocity of entity is represented by gz::math::vector3d.
   using WorldAngularVelocityReset = Component<math::Vector3d,
                                        class WorldAngularVelocityResetTag>;
   GZ_SIM_REGISTER_COMPONENT(
