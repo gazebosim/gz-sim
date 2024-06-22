@@ -3699,7 +3699,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   std::vector<Entity> entitiesLinearVelocityReset;
   _ecm.Each<components::WorldLinearVelocityReset>(
-      [&](const Entity &_entity, components::WorldLinearVelocityReset *) -> bool
+      [&](const Entity &_entity,
+      components::WorldLinearVelocityReset *) -> bool
       {
         entitiesLinearVelocityReset.push_back(_entity);
         return true;
@@ -3712,7 +3713,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   std::vector<Entity> entitiesAngularVelocityReset;
   _ecm.Each<components::WorldAngularVelocityReset>(
-      [&](const Entity &_entity, components::WorldAngularVelocityReset *) -> bool
+      [&](const Entity &_entity,
+      components::WorldAngularVelocityReset *) -> bool
       {
         entitiesAngularVelocityReset.push_back(_entity);
         return true;
