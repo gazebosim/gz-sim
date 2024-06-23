@@ -590,10 +590,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
 
   if (!_link->EnableGravity())
   {
-    // If disable gravity, create a gravity component to the entity
-    // This gravity will have value 0,0,0
+    // If disable gravity, create a GravityEnabled component to the entity
     this->dataPtr->ecm->CreateComponent(
-        linkEntity, components::Gravity());
+        linkEntity, components::GravityEnabled(false));
   }
 
   // Visuals
