@@ -61,8 +61,7 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const ServerConfig &_config,
-                                   const bool _createEntities)
+                                   const ServerConfig &_config)
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
@@ -204,8 +203,7 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
-  if (_createEntities)
-    this->CreateEntities(_world);
+  this->CreateEntities(_world);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);

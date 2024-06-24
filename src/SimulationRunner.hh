@@ -77,13 +77,9 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
-      /// \param[in] _createEntities True to create entities. Use false if
-      /// you'd like to delay entity creation. False is used to support
-      /// background simulation asset download.
       public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
-                                const ServerConfig &_config = ServerConfig(),
-                                bool _createEntities = true);
+                                const ServerConfig &_config = ServerConfig());
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -486,7 +482,7 @@ namespace gz
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
 
-      /// \brief Pointer to the sdf::World object of this runner
+      /// \brief The sdf::World object of this runner
       private: sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
