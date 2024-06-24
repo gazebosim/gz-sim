@@ -360,7 +360,6 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
 
     sdf::ConvexDecomposition convexDecomp;
-    bool setConvexDecomp = false;
     for (int i = 0; i < _in.header().data_size(); ++i)
     {
       auto data = _in.header().data(i);
@@ -371,16 +370,13 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
       if (data.key() == "max_convex_hulls" && data.value_size() > 0)
       {
         convexDecomp.SetMaxConvexHulls(std::stoul(data.value(0)));
-        setConvexDecomp = true;
       }
       if (data.key() == "voxel_resolution" && data.value_size() > 0)
       {
         convexDecomp.SetVoxelResolution(std::stoul(data.value(0)));
-        setConvexDecomp = true;
       }
     }
-    if (setConvexDecomp)
-      meshShape.SetConvexDecomposition(convexDecomp);
+    meshShape.SetConvexDecomposition(convexDecomp);
     out.SetMeshShape(meshShape);
   }
   else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
