@@ -3421,6 +3421,23 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(321, comp->Data());
 }
 
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EntityByName)
+{
+  // Create an entity, and give it a name
+  Entity entity = manager.CreateEntity();
+  manager.CreateComponent(entity, components::Name("entity_name_a"));
+
+  // Try to get an entity that doesn't exist
+  std::optional<Entity> entityByName = manager.EntityByName("a_bad_name");
+  EXPECT_FALSE(entityByName);
+
+  entityByName = manager.EntityByName("entity_name_a");
+  EXPECT_TRUE(entityByName);
+  CompareEntityComponents<components::Name>(manager, entity,
+    *entityByName, true);
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,

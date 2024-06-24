@@ -77,9 +77,13 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
-      public: explicit SimulationRunner(const sdf::World *_world,
+      /// \param[in] _createEntities True to create entities. Use false if
+      /// you'd like to delay entity creation. False is used to support
+      /// background simulation asset download.
+      public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
-                                const ServerConfig &_config = ServerConfig());
+                                const ServerConfig &_config = ServerConfig(),
+                                bool _createEntities = true);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -151,8 +155,8 @@ namespace gz
           const sdf::Plugins &_plugins);
 
       /// \brief Load server plugins for a given entity.
-      /// \param[in] _config Configuration to load plugins from.
-      ///     plugins based on the _config contents
+      /// \param[in] _plugins Load any additional plugins from the
+      /// Server Configuration
       public: void LoadServerPlugins(
           const std::list<ServerConfig::PluginInfo> &_plugins);
 
@@ -373,6 +377,11 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Create entities for the world simulated by this runner based
+      /// on the provided SDF Root object.
+      /// \param[in] _world SDF world created entities from.
+      public: void CreateEntities(const sdf::World &_world);
+
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();
@@ -478,7 +487,7 @@ namespace gz
       private: common::ConnectionPtr loadPluginsConn;
 
       /// \brief Pointer to the sdf::World object of this runner
-      private: const sdf::World *sdfWorld;
+      private: sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
