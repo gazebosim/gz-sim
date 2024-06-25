@@ -912,12 +912,36 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
   auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
   if (!optimizedMesh)
   {
-    // Merge meshes before convex decomposition
-    auto mergedMesh = gz::common::MeshManager::MergeSubMeshes(_mesh);
-    if (mergedMesh && mergedMesh->SubMeshCount() == 1u)
+    std::unique_ptr<common::Mesh> meshToDecompose =
+        std::make_unique<common::Mesh>();
+    // check if a particular submesh is requested
+    if (!_meshSdf.Submesh().empty())
+    {
+      for (unsigned int submeshIdx = 0;
+           submeshIdx < _mesh.SubMeshCount();
+           ++submeshIdx)
+      {
+        auto submesh = _mesh.SubMeshByIndex(submeshIdx).lock();
+        if (submesh->Name() == _meshSdf.Submesh())
+        {
+          if (_meshSdf.CenterSubmesh())
+            submesh->Center(math::Vector3d::Zero);
+          meshToDecompose->AddSubMesh(*submesh.get());
+          break;
+        }
+      }
+    }
+    else
+    {
+      // Merge meshes before convex decomposition
+      meshToDecompose =
+           gz::common::MeshManager::MergeSubMeshes(_mesh);
+    }
+
+    if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
     {
       // Decompose and add mesh to MeshManager
-      auto mergedSubmesh = mergedMesh->SubMeshByIndex(0u).lock();
+      auto mergedSubmesh = meshToDecompose->SubMeshByIndex(0u).lock();
       std::vector<common::SubMesh> decomposed =
         gz::common::MeshManager::ConvexDecomposition(
         *mergedSubmesh.get(), maxConvexHulls, voxelResolution);
