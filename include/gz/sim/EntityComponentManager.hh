@@ -835,6 +835,8 @@ namespace gz
       // states. Like the runners, the managers are internal.
       friend class NetworkManagerPrimary;
       friend class NetworkManagerSecondary;
+
+      public: mutable std::mutex globalMutex;
     };
     }
   }

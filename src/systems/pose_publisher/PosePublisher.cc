@@ -21,6 +21,8 @@
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/time.pb.h>
 
+#include <iostream>
+#include <mutex>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -292,6 +294,10 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PosePublisher::PostUpdate");
+  {
+    std::lock_guard<std::mutex> lock(_ecm.globalMutex);
+    std::cout << std::this_thread::get_id() << ":" << this->dataPtr->model.Entity() << "\n";
+  }
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())

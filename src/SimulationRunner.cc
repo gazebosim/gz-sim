@@ -577,6 +577,7 @@ void SimulationRunner::ProcessSystemQueue()
           system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
+        std::cout << "\n";
       }
 
       gzdbg << "Exiting postupdate worker thread ("
