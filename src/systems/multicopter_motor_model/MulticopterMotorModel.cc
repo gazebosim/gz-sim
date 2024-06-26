@@ -6,7 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
- * Copyright (C) 2022 Rudis Laboratories
+ * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
  * Copyright (C) 2024 CogniPilot Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

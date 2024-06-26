@@ -332,10 +332,10 @@
       <plugin
         filename="gz-sim-multicopter-control-system"
         name="gz::sim::systems::MulticopterVelocityControl">
-        <topic>X3</topic>
-        <sub_topic>gazebo/command/twist</sub_topic>
+        <robotNamespace>X3</robotNamespace>
+        <commandSubTopic>gazebo/command/twist</commandSubTopic>
         <enableSubTopic>enable</enableSubTopic>
-        <comlink_name>base_link</comlink_name>
+        <comLinkName>base_link</comLinkName>
         <velocityGain>2.7 2.7 2.7</velocityGain>
         <attitudeGain>2 3 0.15</attitudeGain>
         <angularRateGain>0.4 0.52 0.18</angularRateGain>
@@ -343,27 +343,27 @@
 
         <rotorConfiguration>
           <rotor>
-            <joint_name>rotor_0_joint</joint_name>
+            <jointName>rotor_0_joint</jointName>
             <forceConstant>8.54858e-06</forceConstant>
-            <moment_constant>0.016</moment_constant>
+            <momentConstant>0.016</momentConstant>
             <direction>1</direction>
           </rotor>
           <rotor>
-            <joint_name>rotor_1_joint</joint_name>
+            <jointName>rotor_1_joint</jointName>
             <forceConstant>8.54858e-06</forceConstant>
-            <moment_constant>0.016</moment_constant>
+            <momentConstant>0.016</momentConstant>
             <direction>1</direction>
           </rotor>
           <rotor>
-            <joint_name>rotor_2_joint</joint_name>
+            <jointName>rotor_2_joint</jointName>
             <forceConstant>8.54858e-06</forceConstant>
-            <moment_constant>0.016</moment_constant>
+            <momentConstant>0.016</momentConstant>
             <direction>-1</direction>
           </rotor>
           <rotor>
-            <joint_name>rotor_3_joint</joint_name>
+            <jointName>rotor_3_joint</jointName>
             <forceConstant>8.54858e-06</forceConstant>
-            <moment_constant>0.016</moment_constant>
+            <momentConstant>0.016</momentConstant>
             <direction>-1</direction>
           </rotor>
         </rotorConfiguration>
