@@ -618,6 +618,14 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
+  // CollisionPairMaxContacts
+  /// \brief Feature list for setting and getting the max total contacts for
+  /// collision pairs
+  public: struct CollisionPairMaxContactsFeatureList :
+            gz::physics::FeatureList<
+            gz::physics::CollisionPairMaxContacts>{};
+
+  //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
@@ -642,7 +650,8 @@ class gz::sim::systems::PhysicsPrivate
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
           SolverFeatureList,
-          WorldModelFeatureList
+          WorldModelFeatureList,
+          CollisionPairMaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -1042,6 +1051,33 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           else
           {
             solverFeature->SetSolver(solverComp->Data());
+          }
+        }
+
+        auto physicsComp =
+            _ecm.Component<components::Physics>(_entity);
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<
+              CollisionPairMaxContactsFeatureList>(_entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[CollisionPairMaxContacts]. "
+                     << "Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetCollisionPairMaxContacts(
+              physicsComp->Data().MaxContacts());
           }
         }
 
