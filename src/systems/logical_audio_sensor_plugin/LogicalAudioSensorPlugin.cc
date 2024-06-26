@@ -405,7 +405,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
     };
 
   // create services for this source
-  const auto fullName = topicFromScopedName(entity, _ecm, false);
+  const auto validName = topicFromScopedName(entity, _ecm, false);
   if (validName.empty())
   {
     gzerr << "Failed to create valid topics with entity scoped name ["
