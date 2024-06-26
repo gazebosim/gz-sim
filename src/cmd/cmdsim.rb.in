@@ -198,7 +198,15 @@ COMMANDS = { 'sim' =>
 class Cmd
 
   def killProcess(pid, name, timeout)
-    Process.kill("-INT", pid)
+    if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+      # On Windows, the Ruby signal machinery does not properly work,
+      # so let's just use system level commands, see
+      # https://blog.simplificator.com/2016/01/18/how-to-kill-processes-on-windows-using-ruby/
+      print("Calling Process.kill INT with pid #{pid}\n")
+      system("taskkill /pid #{pid}")
+    else
+      Process.kill("-INT", pid)
+    end
 
     sleepSecs = 0.001
     iterations = (timeout / sleepSecs).to_i
@@ -220,7 +228,11 @@ class Cmd
 
     if killedPid != pid
       puts "Escalating to SIGKILL on [#{name}]"
-      Process.kill("-KILL", pid)
+      if RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/
+        system("taskkill /f /pid #{pid}")
+      else
+        Process.kill("-KILL", pid)
+      end
     end
   end
 
@@ -380,6 +392,8 @@ class Cmd
   end # parse()
 
   def execute(args)
+    # The parse method modifies args
+    original_args = args.clone()
     options = parse(args)
 
     library_name_path = Pathname.new(LIBRARY_NAME)
@@ -527,41 +541,51 @@ See https://github.com/gazebosim/gz-sim/issues/44 for more info."
           exit(-1)
         end
 
-        if plugin.end_with? ".dll"
-          puts "`ign gazebo` currently only works with the -s argument on Windows.
-See https://github.com/gazebosim/gz-sim/issues/168 for more info."
-          exit(-1)
-        end
+        if not(plugin.end_with? ".dylib" or  plugin.end_with? ".dll")
+          # Not on Windows or macOS, Process.fork works fine
+          serverPid = Process.fork do
+            ENV['RMT_PORT'] = '1500'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim server')
+            Importer.runServer(parsed,
+              options['iterations'], options['run'], options['hz'],
+              options['initial_sim_time'], options['levels'],
+              options['network_role'], options['network_secondaries'],
+              options['record'], options['record-path'],
+              options['record-resources'], options['log-overwrite'],
+              options['log-compress'], options['playback'],
+              options['physics_engine'],
+              options['render_engine_server'],
+              options['render_engine_server_api_backend'],
+              options['render_engine_gui'],
+              options['render_engine_gui_api_backend'],
+              options['file'], options['record-topics'].join(':'),
+              options['wait_gui'],
+              options['headless-rendering'], options['record-period'],
+              options['seed'])
+          end
 
-        serverPid = Process.fork do
-          ENV['RMT_PORT'] = '1500'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim server')
-          Importer.runServer(parsed,
-            options['iterations'], options['run'], options['hz'],
-            options['initial_sim_time'], options['levels'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['record-path'],
-            options['record-resources'], options['log-overwrite'],
-            options['log-compress'], options['playback'],
-            options['physics_engine'],
-            options['render_engine_server'],
-            options['render_engine_server_api_backend'],
-            options['render_engine_gui'],
-            options['render_engine_gui_api_backend'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'],
-            options['headless-rendering'], options['record-period'],
-            options['seed'])
-        end
-
-        guiPid = Process.fork do
-          ENV['RMT_PORT'] = '1501'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim gui')
-          Importer.runGui(options['gui_config'], options['file'],
-                          options['wait_gui'], options['render_engine_gui'],
-                          options['render_engine_gui_api_backend'])
+          guiPid = Process.fork do
+            ENV['RMT_PORT'] = '1501'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim gui')
+            Importer.runGui(options['gui_config'], options['file'],
+                            options['wait_gui'], options['render_engine_gui'],
+                            options['render_engine_gui_api_backend'])
+          end
+        else
+          server_args = original_args.clone()
+          # Add -s after sim to spawn a server
+          server_args.insert(1, "-s")
+          # Prepend gz script location
+          server_args.prepend($PROGRAM_NAME)
+          serverPid = Process.spawn("ruby", *server_args)
+          gui_args = original_args.clone()
+          # Add -g after sim to spawn a server
+          gui_args.insert(1, "-g")
+          # Add gz script location
+          gui_args.prepend($PROGRAM_NAME)
+          guiPid = Process.spawn("ruby", *gui_args)
         end
 
         Signal.trap("INT") {
