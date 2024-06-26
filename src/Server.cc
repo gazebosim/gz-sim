@@ -33,24 +33,6 @@
 using namespace gz;
 using namespace sim;
 
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
-
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
@@ -63,6 +45,11 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
+  // Turn off downloads so that we can do an initial parsing of the SDF
+  // file. This will let us get the world names, which in turn allows the
+  // GUI to not-block while simulation assets download.
+  this->dataPtr->enableDownload = false;
+
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
@@ -71,112 +58,39 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  sdf::Errors errors;
+  std::string outputMsgs;
+  // Ignore the sdf::Errors returned by this function. The errors will be
+  // displayed later in the downloadThread.
+  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
+      this->dataPtr->sdfRoot, outputMsgs);
+  gzmsg << outputMsgs;
 
-  switch (_config.Source())
+  // Remove all the models, lights, and actors from the primary sdfRoot object
+  // so that they can be downloaded and added to simulation in the background.
+  // Do this before the `CreateEntities` function call.
+  for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
   {
-    // Load a world if specified. Check SDF string first, then SDF file
-    case ServerConfig::SourceType::kSdfRoot:
-    {
-      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-      gzmsg << "Loading SDF world from SDF DOM.\n";
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfString:
-    {
-      std::string msg = "Loading SDF string. ";
-      if (_config.SdfFile().empty())
-      {
-        msg += "File path not available.\n";
-      }
-      else
-      {
-        msg += "File path [" + _config.SdfFile() + "].\n";
-      }
-      gzmsg <<  msg;
-      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfFile:
-    {
-      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-          _config.ResourceCache());
-
-      if (filePath.empty())
-      {
-        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
-               << std::endl;
-        return;
-      }
-
-      gzmsg << "Loading SDF world file[" << filePath << "].\n";
-
-      sdf::Root sdfRoot;
-      // \todo(nkoenig) Async resource download.
-      // This call can block for a long period of time while
-      // resources are downloaded. Blocking here causes the GUI to block with
-      // a black screen (search for "Async resource download" in
-      // 'src/gui_main.cc'.
-      errors = sdfRoot.Load(filePath);
-      if (errors.empty()) {
-        if (sdfRoot.Model() == nullptr) {
-          this->dataPtr->sdfRoot = std::move(sdfRoot);
-        }
-        else
-        {
-          // If the specified file only contains a model, load the default
-          // world and add the model to it.
-          errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-          sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
-          if (world == nullptr) {
-            return;
-          }
-          world->AddModel(*sdfRoot.Model());
-          if (errors.empty()) {
-            errors = this->dataPtr->sdfRoot.UpdateGraphs();
-          }
-        }
-      }
-      break;
-    }
-
-    case ServerConfig::SourceType::kNone:
-    default:
-    {
-      gzmsg << "Loading default world.\n";
-      // Load an empty world.
-      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-      break;
-    }
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearActors();
+    this->dataPtr->sdfRoot.WorldByIndex(i)->ClearLights();
   }
 
-  if (!errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << "\n";
-    return;
-  }
+  // This will create the simulation runners.
+  this->dataPtr->CreateSimulationRunners();
 
-  // Add record plugin
-  if (_config.UseLogRecord())
-  {
-    this->dataPtr->AddRecordPlugin(_config);
-  }
+  // Establish publishers and subscribers. Setup transport before
+  // downloading simulation assets so that the GUI is not blocked during
+  // download.
+  this->dataPtr->SetupTransport();
 
-  this->dataPtr->CreateEntities();
+  // Download the simulation assets. This function will block if
+  // _config.WaitForAssets() is true;
+  this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.
   if (_config.UpdatePeriod())
-  {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
-  }
-
-  // Establish publishers and subscribers.
-  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////
