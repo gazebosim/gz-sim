@@ -257,7 +257,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->commandTopic =
         sdfClone->Get<std::string>("robotNamespace");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <topic> instead of <robotNamespace>."
            << std::endl;
   }
@@ -277,7 +277,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->commandSubTopic =
       sdfClone->Get<std::string>("commandSubTopic");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <sub_topic> instead of <commandSubTopic>."
            << std::endl;
   }
@@ -316,7 +316,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else if (sdfClone->HasElement("jointName"))
   {
     this->dataPtr->jointName = sdfClone->Get<std::string>("jointName");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <joint_name> instead of <jointName>."
            << std::endl;
   }
@@ -336,7 +336,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else if (sdfClone->HasElement("linkName"))
   {
     this->dataPtr->jointName = sdfClone->Get<std::string>("linkName");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <link_name> instead of <linkName>."
            << std::endl;
   }
@@ -358,7 +358,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <motor_number> instead of <motorNumber>."
            << std::endl;
   }
@@ -381,7 +381,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else if (sdfClone->HasElement("turningDirection"))
   {
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <turning_direction> instead of <turningDirection>."
            << std::endl;
     auto turningDirection =
@@ -423,7 +423,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else if (sdfClone->HasElement("motorType"))
   {
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <motor_type> instead of <motorType>."
            << std::endl;
     auto motorType = sdfClone->GetElement("motorType")->Get<std::string>();
@@ -461,7 +461,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rotorDragCoefficient =
       sdfClone->Get<double>("rotorDragCoefficient");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <rotor_drag_coefficient> instead of "
            << "<rotorDragCoefficient>."
            << std::endl;
@@ -476,7 +476,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rollingMomentCoefficient =
       sdfClone->Get<double>("rollingMomentCoefficient");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <rolling_moment_coefficient> instead "
            << "of <rollingMomentCoefficient>."
            << std::endl;
@@ -491,7 +491,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->maxRotVelocity =
       sdfClone->Get<double>("maxRotVelocity");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <max_rot_velocity> instead "
            << "of <maxRotVelocity>."
            << std::endl;
@@ -506,7 +506,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->motorConstant =
       sdfClone->Get<double>("motorConstant");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <motor_constant> instead "
            << "of <motorConstant>."
            << std::endl;
@@ -521,7 +521,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->momentConstant =
       sdfClone->Get<double>("momentConstant");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <moment_constant> instead "
            << "of <momentConstant>."
            << std::endl;
@@ -536,7 +536,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->timeConstantUp =
       sdfClone->Get<double>("timeConstantUp");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <time_constant_up> instead "
            << "of <timeConstantUp>."
            << std::endl;
@@ -551,7 +551,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->timeConstantDown =
       sdfClone->Get<double>("timeConstantDown");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <time_constant_down> instead "
            << "of <timeConstantDown>."
            << std::endl;
@@ -566,7 +566,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rotorVelocitySlowdownSim =
       sdfClone->Get<double>("rotorVelocitySlowdownSim");
-    gzinfo << "For ease of future compatibility consider "
+    gzmsg << "For ease of future compatibility consider "
            << "using <rotor_velocity_slowdown_sim> instead "
            << "of <rotorVelocitySlowdownSim>."
            << std::endl;
@@ -577,22 +577,6 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       std::make_unique<FirstOrderFilter<double>>(
           this->dataPtr->timeConstantUp, this->dataPtr->timeConstantDown,
           this->dataPtr->refMotorInput);
-
-  // Subscribe to actuator command messages
-  std::string topic = transport::TopicUtils::AsValidTopic(
-      this->dataPtr->commandTopic + "/" + this->dataPtr->commandSubTopic);
-  if (topic.empty())
-  {
-    gzerr << "Failed to create topic for [" << this->dataPtr->commandTopic
-           << "/" << this->dataPtr->commandSubTopic << "]" << std::endl;
-    return;
-  }
-  else
-  {
-    gzdbg << "Listening to topic: " << topic << std::endl;
-  }
-  this->dataPtr->node.Subscribe(topic,
-      &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
