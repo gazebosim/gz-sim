@@ -1,12 +1,13 @@
 <?xml version="1.0" ?>
-<!--
-
-Try moving a model:
-
-    gz service -s /world/shapes/set_pose --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean --timeout 300 --req 'name: "box", position: {z: 5.0}'
-
--->
-<sdf version="1.6">
+<sdf version="1.11">
+  <!--
+    Try moving a model using the command in the following CDATA block::
+  -->
+  <![CDATA[
+    gz service -s /world/shapes/set_pose \
+               --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean \
+               --timeout 300 --req 'name: "box", position: {z: 5.0}'
+  ]]>
   <world name="shapes">
     <scene>
       <ambient>1.0 1.0 1.0</ambient>
@@ -236,6 +237,37 @@ Try moving a model:
             <ambient>1 0 1 1</ambient>
             <diffuse>1 0 1 1</diffuse>
             <specular>1 0 1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="cone">
+      <pose>0 4.5 0.5 0 0 0</pose>
+      <link name="cone_link">
+        <inertial auto="true">
+          <density>1</density>
+        </inertial>
+        <collision name="cone_collision">
+          <geometry>
+            <cone>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cone>
+          </geometry>
+        </collision>
+
+        <visual name="cone_visual">
+          <geometry>
+            <cone>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </cone>
+          </geometry>
+          <material>
+            <ambient>1 0.47 0 1</ambient>
+            <diffuse>1 0.47 0 1</diffuse>
+            <specular>1 0.47 0 1</specular>
           </material>
         </visual>
       </link>
