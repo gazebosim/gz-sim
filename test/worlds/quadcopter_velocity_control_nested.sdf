@@ -331,7 +331,7 @@
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>rotor_0_joint</joint_name>
         <link_name>rotor_0</link_name>
         <turning_direction>ccw</turning_direction>
@@ -351,7 +351,7 @@
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>rotor_1_joint</joint_name>
         <link_name>rotor_1</link_name>
         <turning_direction>ccw</turning_direction>
@@ -371,7 +371,7 @@
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>rotor_2_joint</joint_name>
         <link_name>rotor_2</link_name>
         <turning_direction>cw</turning_direction>
@@ -391,7 +391,7 @@
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>rotor_3_joint</joint_name>
         <link_name>rotor_3</link_name>
         <turning_direction>cw</turning_direction>

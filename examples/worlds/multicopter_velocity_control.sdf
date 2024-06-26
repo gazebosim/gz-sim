@@ -107,7 +107,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>X3/rotor_0_joint</joint_name>
         <link_name>X3/rotor_0</link_name>
         <turning_direction>ccw</turning_direction>
@@ -127,7 +127,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>X3/rotor_1_joint</joint_name>
         <link_name>X3/rotor_1</link_name>
         <turning_direction>ccw</turning_direction>
@@ -147,7 +147,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>X3/rotor_2_joint</joint_name>
         <link_name>X3/rotor_2</link_name>
         <turning_direction>cw</turning_direction>
@@ -167,7 +167,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       <plugin
         filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <joint_name>X3/rotor_3_joint</joint_name>
         <link_name>X3/rotor_3</link_name>
         <turning_direction>cw</turning_direction>
@@ -187,7 +187,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       <plugin
         filename="gz-sim-multicopter-control-system"
         name="gz::sim::systems::MulticopterVelocityControl">
-        <robot_namespace>X3</robot_namespace>
+        <topic>X3</topic>
         <sub_topic>gazebo/command/twist</sub_topic>
         <enableSubTopic>enable</enableSubTopic>
         <comlink_name>X3/base_link</comlink_name>
@@ -237,7 +237,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
 
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_0_joint</joint_name>
         <link_name>rotor_0</link_name>
         <turning_direction>ccw</turning_direction>
@@ -257,7 +257,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_1_joint</joint_name>
         <link_name>rotor_1</link_name>
         <turning_direction>cw</turning_direction>
@@ -277,7 +277,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_2_joint</joint_name>
         <link_name>rotor_2</link_name>
         <turning_direction>ccw</turning_direction>
@@ -297,7 +297,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_3_joint</joint_name>
         <link_name>rotor_3</link_name>
         <turning_direction>cw</turning_direction>
@@ -317,7 +317,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_4_joint</joint_name>
         <link_name>rotor_4</link_name>
         <turning_direction>ccw</turning_direction>
@@ -337,7 +337,7 @@ You can use the velocity controller and command linear velocity and yaw angular 
       </plugin>
       <plugin filename="gz-sim-multicopter-motor-model-system"
         name="gz::sim::systems::MulticopterMotorModel">
-        <robot_namespace>X4</robot_namespace>
+        <topic>X4</topic>
         <joint_name>rotor_5_joint</joint_name>
         <link_name>rotor_5</link_name>
         <turning_direction>cw</turning_direction>

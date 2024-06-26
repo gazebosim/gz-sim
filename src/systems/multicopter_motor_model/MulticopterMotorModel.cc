@@ -6,7 +6,8 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
- * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
+ * Copyright (C) 2022 Rudis Laboratories
+ * Copyright (C) 2024 CogniPilot Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,11 +149,11 @@ class gz::sim::systems::MulticopterMotorModelPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief Topic for actuator commands.
+  /// \brief Subtopic for actuator commands.
   public: std::string commandSubTopic;
 
-  /// \brief Topic namespace.
-  public: std::string robotNamespace;
+  /// \brief Topic for actuator commands.
+  public: std::string commandTopic;
 
   /// \brief Sampling time (from motor_model.hpp).
   public: double samplingTime = 0.01;
@@ -245,27 +246,67 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   auto sdfClone = _sdf->Clone();
 
-  this->dataPtr->robotNamespace.clear();
+  this->dataPtr->commandTopic.clear();
 
-  if (sdfClone->HasElement("robot_namespace"))
+  if (sdfClone->HasElement("topic"))
   {
-    this->dataPtr->robotNamespace =
-        sdfClone->Get<std::string>("robot_namespace");
+    this->dataPtr->commandTopic =
+        sdfClone->Get<std::string>("topic");
   }
   else if (sdfClone->HasElement("robotNamespace"))
   {
-    this->dataPtr->robotNamespace =
+    this->dataPtr->commandTopic =
         sdfClone->Get<std::string>("robotNamespace");
-    gzwarn << "<robotNamespace> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <robot_namespace>." << std::endl;
+    gzinfo << "For ease of future compatibility consider "
+           << "using <topic> instead of <robotNamespace>."
+           << std::endl;
   }
   else
   {
-    gzwarn << "No robot_namespace set using entity name."
+    gzwarn << "No Topic set using entity name."
            << std::endl;
-    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
+    this->dataPtr->commandTopic = this->dataPtr->model.Name(_ecm);
   }
+
+  if (sdfClone->HasElement("sub_topic"))
+  {
+    this->dataPtr->commandSubTopic =
+      sdfClone->Get<std::string>("sub_topic");
+  }
+  else if (sdfClone->HasElement("commandSubTopic"))
+  {
+    this->dataPtr->commandSubTopic =
+      sdfClone->Get<std::string>("commandSubTopic");
+    gzinfo << "For ease of future compatibility consider "
+           << "using <sub_topic> instead of <commandSubTopic>."
+           << std::endl;
+  }
+
+  // Subscribe to actuator command messages
+  std::string topic;
+  if (sdfClone->HasElement("sub_topic") ||
+      sdfClone->HasElement("commandSubTopic"))
+  {
+    topic = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->commandTopic + "/" + this->dataPtr->commandSubTopic);
+  }
+  else
+  {
+    topic = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->commandTopic);
+  }
+  if (topic.empty())
+  {
+    gzerr << "Failed to create topic for [" << this->dataPtr->commandTopic
+           << "/" << this->dataPtr->commandSubTopic << "]" << std::endl;
+    return;
+  }
+  else
+  {
+    gzdbg << "Listening to topic: " << topic << std::endl;
+  }
+  this->dataPtr->node.Subscribe(topic,
+      &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 
   // Get params from SDF
   if (sdfClone->HasElement("joint_name"))
@@ -275,9 +316,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else if (sdfClone->HasElement("jointName"))
   {
     this->dataPtr->jointName = sdfClone->Get<std::string>("jointName");
-    gzwarn << "<jointName> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <joint_name>." << std::endl;
+    gzinfo << "For ease of future compatibility consider "
+           << "using <joint_name> instead of <jointName>."
+           << std::endl;
   }
 
   if (this->dataPtr->jointName.empty())
@@ -295,9 +336,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else if (sdfClone->HasElement("linkName"))
   {
     this->dataPtr->jointName = sdfClone->Get<std::string>("linkName");
-    gzwarn << "<linkName> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <link_name>." << std::endl;
+    gzinfo << "For ease of future compatibility consider "
+           << "using <link_name> instead of <linkName>."
+           << std::endl;
   }
 
   if (this->dataPtr->linkName.empty())
@@ -317,9 +358,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
-    gzwarn << "<motorNumber> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <actuator_number>." << std::endl;
+    gzinfo << "For ease of future compatibility consider "
+           << "using <motor_number> instead of <motorNumber>."
+           << std::endl;
   }
   else
   {
@@ -340,9 +381,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else if (sdfClone->HasElement("turningDirection"))
   {
-    gzwarn << "<turningDirection> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <turning_direction>." << std::endl;
+    gzinfo << "For ease of future compatibility consider "
+           << "using <turning_direction> instead of <turningDirection>."
+           << std::endl;
     auto turningDirection =
         sdfClone->GetElement("turningDirection")->Get<std::string>();
     if (turningDirection == "cw")
@@ -382,9 +423,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else if (sdfClone->HasElement("motorType"))
   {
-    gzwarn << "<motorType> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <motor_type>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <motor_type> instead of <motorType>."
            << std::endl;
     auto motorType = sdfClone->GetElement("motorType")->Get<std::string>();
     if (motorType == "velocity")
@@ -412,20 +452,6 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
     this->dataPtr->motorType = MotorType::kVelocity;
   }
 
-  if (sdfClone->HasElement("sub_topic"))
-  {
-    this->dataPtr->commandSubTopic =
-      sdfClone->Get<std::string>("sub_topic");
-  }
-  else if (sdfClone->HasElement("commandSubTopic"))
-  {
-    this->dataPtr->commandSubTopic =
-      sdfClone->Get<std::string>("commandSubTopic");
-    gzwarn << "<commandSubTopic> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <sub_topic>." << std::endl;
-  }
-
   if (sdfClone->HasElement("rotor_drag_coefficient"))
   {
     this->dataPtr->rotorDragCoefficient =
@@ -435,9 +461,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rotorDragCoefficient =
       sdfClone->Get<double>("rotorDragCoefficient");
-    gzwarn << "<rotorDragCoefficientc> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <rotor_drag_coefficient>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <rotor_drag_coefficient> instead of "
+           << "<rotorDragCoefficient>."
            << std::endl;
   }
 
@@ -450,9 +476,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rollingMomentCoefficient =
       sdfClone->Get<double>("rollingMomentCoefficient");
-    gzwarn << "<rollingMomentCoefficient> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <rolling_moment_coefficient>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <rolling_moment_coefficient> instead "
+           << "of <rollingMomentCoefficient>."
            << std::endl;
   }
 
@@ -465,9 +491,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->maxRotVelocity =
       sdfClone->Get<double>("maxRotVelocity");
-    gzwarn << "<maxRotVelocity> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <max_rot_velocity>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <max_rot_velocity> instead "
+           << "of <maxRotVelocity>."
            << std::endl;
   }
 
@@ -480,9 +506,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->motorConstant =
       sdfClone->Get<double>("motorConstant");
-    gzwarn << "<motorConstant> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <motor_constant>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <motor_constant> instead "
+           << "of <motorConstant>."
            << std::endl;
   }
 
@@ -495,9 +521,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->momentConstant =
       sdfClone->Get<double>("momentConstant");
-    gzwarn << "<momentConstant> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <moment_constant>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <moment_constant> instead "
+           << "of <momentConstant>."
            << std::endl;
   }
 
@@ -510,9 +536,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->timeConstantUp =
       sdfClone->Get<double>("timeConstantUp");
-    gzwarn << "<timeConstantUp> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <time_constant_up>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <time_constant_up> instead "
+           << "of <timeConstantUp>."
            << std::endl;
   }
 
@@ -525,9 +551,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->timeConstantDown =
       sdfClone->Get<double>("timeConstantDown");
-    gzwarn << "<timeConstantDown> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <time_constant_down>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <time_constant_down> instead "
+           << "of <timeConstantDown>."
            << std::endl;
   }
 
@@ -540,9 +566,9 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->rotorVelocitySlowdownSim =
       sdfClone->Get<double>("rotorVelocitySlowdownSim");
-    gzwarn << "<rotorVelocitySlowdownSim> is deprecated "
-           << "and will be removed in Harmonic, "
-           << "please use <rotor_velocity_slowdown_sim>."
+    gzinfo << "For ease of future compatibility consider "
+           << "using <rotor_velocity_slowdown_sim> instead "
+           << "of <rotorVelocitySlowdownSim>."
            << std::endl;
   }
 
@@ -554,11 +580,11 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
 
   // Subscribe to actuator command messages
   std::string topic = transport::TopicUtils::AsValidTopic(
-      this->dataPtr->robotNamespace + "/" + this->dataPtr->commandSubTopic);
+      this->dataPtr->commandTopic + "/" + this->dataPtr->commandSubTopic);
   if (topic.empty())
   {
-    gzerr << "Failed to create topic for [" << this->dataPtr->robotNamespace
-           << "]" << std::endl;
+    gzerr << "Failed to create topic for [" << this->dataPtr->commandTopic
+           << "/" << this->dataPtr->commandSubTopic << "]" << std::endl;
     return;
   }
   else
