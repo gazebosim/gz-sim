@@ -160,7 +160,7 @@ target_link_libraries(${ign_lib_target}
 )
 
 # Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui gz.cc)
+add_executable(runGui cmd/runGui_main.cc)
 target_link_libraries(runGui PRIVATE ${ign_lib_target})
 
 # Create the library target
