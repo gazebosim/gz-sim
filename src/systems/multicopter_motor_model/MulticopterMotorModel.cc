@@ -335,7 +335,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else if (sdfClone->HasElement("linkName"))
   {
-    this->dataPtr->jointName = sdfClone->Get<std::string>("linkName");
+    this->dataPtr->linkName = sdfClone->Get<std::string>("linkName");
     gzmsg << "For ease of future compatibility consider "
            << "using <link_name> instead of <linkName>."
            << std::endl;
