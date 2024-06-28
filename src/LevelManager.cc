@@ -99,7 +99,6 @@ void LevelManager::ReadLevelPerformerInfo(const sdf::World &_world)
       this->ReadPerformers(plugin);
       if (this->useLevels)
         this->ReadLevels(plugin);
-      else
       found = true;
       break;
     }
