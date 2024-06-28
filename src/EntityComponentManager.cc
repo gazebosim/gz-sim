@@ -2320,16 +2320,9 @@ std::optional<Entity> EntityComponentManager::EntityByName(
     const std::string &_name) const
 {
   std::optional<Entity> entity;
-  this->Each<components::Name>([&](const Entity _entity,
-        const components::Name *_entityName)->bool
-  {
-    if (_entityName->Data() == _name)
-    {
-      entity = _entity;
-      return false;
-    }
-    return true;
-  });
+   Entity entByName = EntityByComponents(components::Name(_name));
+  if (entByName != kNullEntity)
+    entity = entByName;
 
   return entity;
 }
