@@ -71,8 +71,8 @@ namespace
       // parse degree attribute, default false
       std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
       // parse element vector, default math::Vector3d::Zero
-      std::pair<math::Vector3d, bool> vectorPair = _elem->Get<math::Vector3d>("",
-                                                             math::Vector3d::Zero);
+      std::pair<math::Vector3d, bool> vectorPair = _elem->Get<math::Vector3d>
+                                                  ("", math::Vector3d::Zero);
       if(vectorPair.second)
       {
         if(degreesPair.first)
@@ -303,7 +303,8 @@ void SetModelState::Configure(const Entity &_entity,
                      linkStateElem->FindElement("angular_velocity");
 
     if(angularVelocityElem){
-      bool parsedVector = parseVectorWithDegree(angularVelocity, angularVelocityElem);
+      bool parsedVector = parseVectorWithDegree(angularVelocity,
+                                                angularVelocityElem);
       if(parsedVector)
       {
          _ecm.SetComponentData<components::WorldAngularVelocityReset>(
