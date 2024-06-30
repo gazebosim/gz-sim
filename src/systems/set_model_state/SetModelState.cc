@@ -63,6 +63,41 @@ namespace
     }
     return false;
   }
+
+  bool parseVectorWithDegree(math::Vector3d &vector, sdf::ElementConstPtr _elem)
+  {
+    if(_elem)
+    {
+      // parse degree attribute, default false
+      std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
+      // parse element vector, default math::Vector3d::Zero
+      std::pair<math::Vector3d, bool> vectorPair = _elem->Get<math::Vector3d>("",
+                                                             math::Vector3d::Zero);
+      if(vectorPair.second)
+      {
+        if(degreesPair.first)
+        {
+          math::Angle angularVelocityX;
+          angularVelocityX.SetDegree(vectorPair.first.X());
+
+          math::Angle angularVelocityY;
+          angularVelocityY.SetDegree(vectorPair.first.Y());
+
+          math::Angle angularVelocityZ;
+          angularVelocityZ.SetDegree(vectorPair.first.Z());
+
+          vector.Set(angularVelocityX.Radian(), angularVelocityY.Radian(),
+                     angularVelocityZ.Radian());
+        }
+        else
+        {
+          vector = vectorPair.first;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class gz::sim::systems::SetModelStatePrivate
@@ -268,16 +303,12 @@ void SetModelState::Configure(const Entity &_entity,
                      linkStateElem->FindElement("angular_velocity");
 
     if(angularVelocityElem){
-      std::pair<math::Vector3d, bool> vectorPair =
-           angularVelocityElem->Get<math::Vector3d>("", math::Vector3d::Zero);
-      if(vectorPair.second)
+      bool parsedVector = parseVectorWithDegree(angularVelocity, angularVelocityElem);
+      if(parsedVector)
       {
-         angularVelocity = vectorPair.first;
          _ecm.SetComponentData<components::WorldAngularVelocityReset>(
                                            linkEntity,
                                            angularVelocity);
-
-
       }
     }
   }
