@@ -4,6 +4,11 @@
 
   The initial joint position should be 90 degrees, and the initial joint
   velocity should be -30 degrees / second.
+
+  The initial linear velocity should be (0.9, 0.4, 0.1) m/s for the first box
+  and (0.9, -0.4, 0.1) for the second box, and initial angular velocity should be
+  (0.1, 5, 0.1) rad/s for both.
+
 -->
 <sdf version="1.11">
   <world name="set_model_state">
@@ -254,7 +259,7 @@
       <pose>2 0 1 0 0 0</pose>
       <link name="box_link">
         <pose>0.0 0.0 0.0 0 0 0</pose>
-        <inertial>
+        <inertial auto="true">
            <density>277.7</density>
         </inertial>
         <visual name="box_visual">
@@ -295,7 +300,7 @@
       <pose>-1 0 1 0 0 0</pose>
       <link name="box_link">
         <pose>0.0 0.0 0.0 0 0 0</pose>
-        <inertial>
+        <inertial auto="true">
            <density>277.7</density>
         </inertial>
         <visual name="box_visual">
@@ -325,7 +330,7 @@
         name="gz::sim::systems::SetModelState">
         <model_state>
          <link_state name="box_link">
-           <linear_velocity>0.9 0.4 0.1</linear_velocity>
+           <linear_velocity>0.9 -0.4 0.1</linear_velocity>
            <angular_velocity  degrees="true">5.73 286.479 5.73</angular_velocity>
          </link_state>
        </model_state>
