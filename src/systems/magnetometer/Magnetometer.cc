@@ -98,7 +98,7 @@ static constexpr const int8_t inclination_table[13][37] = \
   { 71, 71, 72, 73, 75, 77, 78, 80, 81, 81, 80, 79, 77, 76, 74, 73, 73, 73, 73, 73, 73, 74, 74, 75, 76, 77, 78, 78, 78, 78, 77, 75, 73, 72, 71, 71, 71 },  // NOLINT
 };
 
-// strength data in centi-Tesla
+// strength data in centi-Gauss
 static constexpr const int8_t strength_table[13][37] = \
 {
   { 62, 60, 58, 56, 54, 52, 49, 46, 43, 41, 38, 36, 34, 32, 31, 31, 30, 30, 30, 31, 33, 35, 38, 42, 46, 51, 55, 59, 62, 64, 66, 67, 67, 66, 65, 64, 62 },  // NOLINT
@@ -226,7 +226,7 @@ class gz::sim::systems::MagnetometerPrivate
     return get_table_data(lat, lon, inclination_table);
   }
 
-  // return magnetic field strength in centi-Tesla
+  // return magnetic field strength in centi-Gauss
   float get_mag_strength(float lat, float lon)
   {
     return get_table_data(lat, lon, strength_table);
@@ -446,18 +446,27 @@ void MagnetometerPrivate::Update(
             get_mag_inclination(
               lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
 
-          // Magnetic strength (10^5xnanoTesla)
+          // Magnetic strength in Gauss (10^5 nanoTesla = 10^-2 centiGauss)
           float strength_ga =
             0.01f *
             get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
 
-          // Magnetic filed components are calculated by http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
-          float H = strength_ga * cosf(inclination_rad);
-          float Z = tanf(inclination_rad) * H;
-          float X = H * cosf(declination_rad);
-          float Y = H * sinf(declination_rad);
+          // Magnetic intensity measured in Telsa (gz-msgs/magnetometer.proto)
+          float strength_tesla = 1.0E-4 * strength_ga;
 
-          math::Vector3d magnetic_field_I(X, Y, Z);
+          // Magnetic field components are calculated in world NED frame using:
+          // http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
+          float H = strength_tesla * cosf(inclination_rad);
+          float Z_ned = tanf(inclination_rad) * H;
+          float X_ned = H * cosf(declination_rad);
+          float Y_ned = H * sinf(declination_rad);
+
+          // Gazebo world frame is ENU
+          float X_enu = Y_ned;
+          float Y_enu = X_ned;
+          float Z_enu = -1.0 * Z_ned;
+
+          math::Vector3d magnetic_field_I(X_enu, Y_enu, Z_enu);
           it->second->SetWorldMagneticField(magnetic_field_I);
         }
         else
