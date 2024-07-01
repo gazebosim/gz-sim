@@ -52,7 +52,6 @@ namespace systems
   /// the index of the steering angle position actuator.
   ///
   /// - `<steer_p_gain>`: Float used to control the steering angle P gain.
-  /// Only used for when in steering_only mode.
   ///
   /// - `<left_joint>`: Name of a joint that controls a left wheel. This
   /// element can appear multiple times, and must appear at least once.

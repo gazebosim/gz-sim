@@ -19,10 +19,12 @@
 #include "EntityContextMenu.hh"
 
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/cameratrack.pb.h>
 #include <gz/msgs/entity.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <iostream>
+#include <mutex>
 #include <string>
 
 #include <gz/common/Console.hh>
@@ -35,14 +37,21 @@ namespace gz::sim
   /// \brief Private data class for EntityContextMenu
   class EntityContextMenuPrivate
   {
+
+    /// \brief Protects variable changed through services.
+    public: std::mutex mutex;
+
     /// \brief Gazebo communication node.
     public: transport::Node node;
 
     /// \brief Move to service name
     public: std::string moveToService;
 
-    /// \brief Follow service name
-    public: std::string followService;
+    /// \brief Track topic name
+    public: std::string trackTopic;
+
+    /// \brief Currently tracked topic name
+    public: std::string currentTrackTopic;
 
     /// \brief Remove service name
     public: std::string removeService;
@@ -76,11 +85,36 @@ namespace gz::sim
 
     /// \brief Name of world.
     public: std::string worldName;
+
+    /// \brief Storing last follow target for look at.
+    public: std::string followTargetLookAt;
+
+    /// \brief Flag used to disable look at when not following target.
+    public: bool followingTarget{false};
+
+    /// \brief /gui/track publisher
+    public: transport::Node::Publisher trackPub;
   };
 }
 
 using namespace gz;
 using namespace sim;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->followingTarget = false;
+  if (_msg.track_mode() == gz::msgs::CameraTrack::FOLLOW ||
+      _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_LOOK_AT ||
+      _msg.track_mode() == gz::msgs::CameraTrack::FOLLOW_FREE_LOOK)
+  {
+    this->dataPtr->followingTarget = true;
+  }
+    this->FollowingTargetChanged();
+
+  return;
+}
 
 /////////////////////////////////////////////////
 void GzSimPlugin::registerTypes(const char *_uri)
@@ -94,11 +128,17 @@ void GzSimPlugin::registerTypes(const char *_uri)
 EntityContextMenu::EntityContextMenu()
   : dataPtr(std::make_unique<EntityContextMenuPrivate>())
 {
+  this->dataPtr->currentTrackTopic = "/gui/currently_tracked";
+  this->dataPtr->node.Subscribe(this->dataPtr->currentTrackTopic,
+      &EntityContextMenu::OnCurrentlyTrackedSub, this);
+  gzmsg << "Currently tracking topic on ["
+         << this->dataPtr->currentTrackTopic << "]" << std::endl;
+
   // For move to service requests
   this->dataPtr->moveToService = "/gui/move_to";
 
-  // For follow service requests
-  this->dataPtr->followService = "/gui/follow";
+  // For track topic message
+  this->dataPtr->trackTopic = "/gui/track";
 
   // For remove service requests
   this->dataPtr->removeService = "/world/default/remove";
@@ -129,10 +169,26 @@ EntityContextMenu::EntityContextMenu()
 
   // For paste service requests
   this->dataPtr->pasteService = "/gui/paste";
+
+  this->dataPtr->trackPub =
+    this->dataPtr->node.Advertise<msgs::CameraTrack>(this->dataPtr->trackTopic);
 }
 
 /////////////////////////////////////////////////
 EntityContextMenu::~EntityContextMenu() = default;
+
+/////////////////////////////////////////////////
+void EntityContextMenu::SetFollowingTarget(bool &_followingTarget)
+{
+  this->dataPtr->followingTarget = _followingTarget;
+  this->FollowingTargetChanged();
+}
+
+/////////////////////////////////////////////////
+bool EntityContextMenu::FollowingTarget() const
+{
+  return this->dataPtr->followingTarget;
+}
 
 /////////////////////////////////////////////////
 void EntityContextMenu::OnRemove(
@@ -196,9 +252,40 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "follow")
   {
-    msgs::StringMsg req;
-    req.set_data(_data.toStdString());
-    this->dataPtr->node.Request(this->dataPtr->followService, req, cb);
+    msgs::CameraTrack followMsg;
+    followMsg.mutable_follow_target()->set_name(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW);
+    this->dataPtr->followTargetLookAt = followMsg.follow_target().name();
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "free_look")
+  {
+    msgs::CameraTrack followMsg;
+    followMsg.mutable_follow_target()->set_name(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_FREE_LOOK);
+    this->dataPtr->followTargetLookAt = followMsg.follow_target().name();
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "look_at")
+  {
+    msgs::CameraTrack followMsg;
+    followMsg.mutable_track_target()->set_name(_data.toStdString());
+    followMsg.set_track_mode(msgs::CameraTrack::FOLLOW_LOOK_AT);
+    followMsg.mutable_follow_target()->set_name(
+        this->dataPtr->followTargetLookAt);
+    gzmsg << "Follow target: " << followMsg.follow_target().name() << std::endl;
+    gzmsg << "Look at target: " << followMsg.track_target().name() << std::endl;
+    this->dataPtr->trackPub.Publish(followMsg);
+  }
+  else if (request == "track")
+  {
+    msgs::CameraTrack trackMsg;
+    trackMsg.mutable_track_target()->set_name(_data.toStdString());
+    trackMsg.set_track_mode(msgs::CameraTrack::TRACK);
+    gzmsg << "Track target: " << trackMsg.track_target().name() << std::endl;
+    this->dataPtr->trackPub.Publish(trackMsg);
   }
   else if (request == "view_transparent")
   {

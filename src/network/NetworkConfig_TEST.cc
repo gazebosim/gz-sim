@@ -33,6 +33,7 @@ TEST(NetworkManager, ValueConstructor)
     assert(config.role == NetworkRole::None);
     assert(config.numSecondariesExpected == 0);
     // Expect console warning as well
+    (void) config;
   }
 
   {
@@ -40,23 +41,27 @@ TEST(NetworkManager, ValueConstructor)
     auto config = NetworkConfig::FromValues("PRIMARY", 3);
     assert(config.role == NetworkRole::SimulationPrimary);
     assert(config.numSecondariesExpected == 3);
+    (void) config;
   }
 
   {
     // Secondary is always valid
     auto config = NetworkConfig::FromValues("SECONDARY", 0);
     assert(config.role == NetworkRole::SimulationSecondary);
+    (void) config;
   }
 
   {
     // Readonly is always valid
     auto config = NetworkConfig::FromValues("READONLY");
     assert(config.role == NetworkRole::ReadOnly);
+    (void) config;
   }
 
   {
     // Anything else is invalid
     auto config = NetworkConfig::FromValues("READ_WRITE");
     assert(config.role == NetworkRole::None);
+    (void) config;
   }
 }
