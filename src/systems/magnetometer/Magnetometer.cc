@@ -430,7 +430,7 @@ void MagnetometerPrivate::Update(
           auto latLonEle = sphericalCoordinates(_entity, _ecm);
           if (!latLonEle)
           {
-            gzwarn << "Failed to update NavSat sensor enity [" << _entity
+            gzwarn << "Failed to update Magnetometer sensor enity [" << _entity
                     << "]. Spherical coordinates not set." << std::endl;
             return true;
           }
