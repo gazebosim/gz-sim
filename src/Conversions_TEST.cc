@@ -1041,10 +1041,7 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f),
       msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
-
-  auto header = emitterMsg.header().data(0);
-  EXPECT_EQ("topic", header.key());
-  EXPECT_EQ("my_topic", header.value(0));
+  EXPECT_EQ("my_topic", emitterMsg.topic().data());
 
   EXPECT_FLOAT_EQ(0.9f, emitterMsg.particle_scatter_ratio().data());
 
@@ -1094,10 +1091,7 @@ TEST(Conversions, Projector)
   EXPECT_NEAR(30, projectorMsg.far_clip(), 1e-3);
   EXPECT_NEAR(0.4, projectorMsg.fov(), 1e-3);
   EXPECT_EQ("projector.png", projectorMsg.texture());
-
-  auto header = projectorMsg.header().data(0);
-  EXPECT_EQ("visibility_flags", header.key());
-  EXPECT_EQ(0xFF, std::stoul(header.value(0)));
+  EXPECT_EQ(0xFF, projectorMsg.visibility_flags());
 
   // Convert the message back to SDF.
   sdf::Projector projector2 = convert<sdf::Projector>(projectorMsg);
