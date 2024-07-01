@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <!--
+      System plugins can be loaded from <plugin> tags attached to entities like
+      the world, models, visuals, etc.
+    -->
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>100</gz:system_priority>
+      <label>first</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>10</gz:system_priority>
+      <label>second</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>-10</gz:system_priority>
+      <label>third</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <label>fourth</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>-100</gz:system_priority>
+      <label>fifth</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>0</gz:system_priority>
+      <label>sixth</label>
+    </plugin>
+    <plugin filename="PriorityPrinter" name="priority_printer::PriorityPrinter">
+      <gz:system_priority>100</gz:system_priority>
+      <label>seventh</label>
+    </plugin>
+  </world>
+</sdf>
