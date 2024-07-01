@@ -135,10 +135,10 @@ class gz::sim::systems::MagnetometerPrivate
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
-  /// /brief True if the magnetic field is reported in gauss rather than tesla. 
+  /// \brief True if the magnetic field is reported in gauss rather than tesla.
   public: bool useUnitsGauss = true;
 
-  /// /brief True if the magnetic field earth frame is NED rather than ENU. 
+  /// \brief True if the magnetic field earth frame is NED rather than ENU.
   public: bool useEarthFrameNED = true;
 
   /// \brief Create sensor
