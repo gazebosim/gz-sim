@@ -245,6 +245,7 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
+
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -380,8 +381,27 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       this->dataPtr->ecm->EntityByName(_ref->Data());
     if (!parentEntity)
     {
-      gzerr << "Unable to find performer parent entity with name[" <<
-        _ref->Data() << "]. This performer will not adhere to levels.\n";
+      // Performers have not been created yet. Try to create the model
+      // or actor and attach the peformer.
+      if (_world->ModelNameExists(_ref->Data()))
+      {
+        const sdf::Model *model = _world->ModelByName(_ref->Data());
+        Entity modelEntity = this->CreateEntities(model, false);
+        this->SetParent(modelEntity, _worldEntity);
+        this->SetParent(_entity, modelEntity);
+      }
+      else if (_world->ActorNameExists(_ref->Data()))
+      {
+        const sdf::Actor *actor = _world->ActorByName(_ref->Data());
+        Entity actorEntity = this->CreateEntities(actor);
+        this->SetParent(actorEntity, _worldEntity);
+        this->SetParent(_entity, actorEntity);
+      }
+      else
+      {
+        gzerr << "Unable to find performer parent entity with name[" <<
+          _ref->Data() << "]. This performer will not adhere to levels.\n";
+      }
     }
     else
     {
@@ -704,6 +724,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
   {
     this->dataPtr->ecm->CreateComponent(
         linkEntity, components::WindMode(_link->EnableWind()));
+  }
+
+  if (!_link->EnableGravity())
+  {
+    // If disable gravity, create a GravityEnabled component to the entity
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::GravityEnabled(false));
   }
 
   // Visuals

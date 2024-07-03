@@ -159,20 +159,9 @@ void LevelManager::ReadPerformers(const sdf::Plugin &_plugin)
       this->runner->entityCompMgr.CreateComponent(performerEntity,
           components::Geometry(geometry));
 
-      /* RESHUFFLE
-      std::optional<Entity> parentEntity = this->runner->EntityByName(ref);
-      if (!parentEntity)
-      {
-        gzerr << "Unable to find performer parent entity with name[" <<
-          ref << "]. This performer will not adhere to levels.\n";
-      }
-      else
-      {
-        this->entityCreator->SetParent(performerEntity, *parentEntity);
-      }*/
-
-      gzmsg << "Created performer [" << performerEntity << " / " << name << "]"
-             << std::endl;
+      gzmsg << "Created performer. EntityId[" << performerEntity
+            << "] EntityName[" << name << "] Ref[" << ref << "]"
+            << std::endl;
     }
   }
 
@@ -360,6 +349,12 @@ void LevelManager::ConfigureDefaultLevel()
     // There is no sdf::World::ModelByName so we have to iterate by index and
     // check if the model is in this level
     auto model = this->runner->sdfWorld.ModelByIndex(modelIndex);
+    if (!this->useLevels)
+    {
+      entityNamesInDefault.insert(model->Name());
+      continue;
+    }
+
     // If model is a performer, it will be handled separately
     if (this->performerMap.find(model->Name()) != this->performerMap.end())
     {
@@ -380,6 +375,13 @@ void LevelManager::ConfigureDefaultLevel()
     // There is no sdf::World::ActorByName so we have to iterate by index and
     // check if the actor is in this level
     auto actor = this->runner->sdfWorld.ActorByIndex(actorIndex);
+
+    if (!this->useLevels)
+    {
+      entityNamesInDefault.insert(actor->Name());
+      continue;
+    }
+
     // If actor is a performer, it will be handled separately
     if (this->performerMap.find(actor->Name()) != this->performerMap.end())
     {
@@ -413,7 +415,8 @@ void LevelManager::ConfigureDefaultLevel()
   {
     auto joint = this->runner->sdfWorld.JointByIndex(jointIndex);
 
-    if (this->entityNamesInLevels.find(joint->Name()) ==
+    if (
+        this->entityNamesInLevels.find(joint->Name()) ==
         this->entityNamesInLevels.end())
     {
       entityNamesInDefault.insert(joint->Name());

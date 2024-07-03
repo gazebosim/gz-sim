@@ -90,6 +90,7 @@ namespace gz
 
       /// \brief Read level and performer information from the sdf::World
       /// object
+      /// \param[in] _world The SDF world
       public: void ReadLevelPerformerInfo(const sdf::World &_world);
 
       /// \brief Determine which entities belong to the default level and

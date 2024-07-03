@@ -148,33 +148,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   this->node = std::make_unique<transport::Node>(opts);
 
-  // TODO(louise) Combine both messages into one.
-  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
-  this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
-      this);
-  this->node->Advertise("playback/control",
-      &SimulationRunner::OnPlaybackControl, this);
-
-  gzmsg << "Serving world controls on [" << opts.NameSpace()
-         << "/control], [" << opts.NameSpace() << "/control/state] and ["
-         << opts.NameSpace() << "/playback/control]" << std::endl;
-
-  std::string infoService{"gui/info"};
-  this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
-
-  gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
-         << infoService << "]" << std::endl;
-
-  gzmsg << "World [" << this->worldName << "] initialized with ["
-         << physics->Name() << "] physics profile." << std::endl;
-
-  std::string genWorldSdfService{"generate_world_sdf"};
-  this->node->Advertise(
-      genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
-
-  gzmsg << "Serving world SDF generation service on [" << opts.NameSpace()
-         << "/" << genWorldSdfService << "]" << std::endl;
-
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(
       _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
@@ -233,6 +206,40 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   if (_createEntities)
     this->CreateEntities(_world);
+
+  // TODO(louise) Combine both messages into one.
+  this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
+      this);
+  this->node->Advertise("playback/control",
+      &SimulationRunner::OnPlaybackControl, this);
+
+  gzmsg << "Serving world controls on [" << opts.NameSpace()
+         << "/control], [" << opts.NameSpace() << "/control/state] and ["
+         << opts.NameSpace() << "/playback/control]" << std::endl;
+
+  // Publish empty GUI messages for worlds that have no GUI in the beginning.
+  // In the future, support modifying GUI from the server at runtime.
+  if (_world.Gui())
+  {
+    this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+  }
+
+  std::string infoService{"gui/info"};
+  this->node->Advertise(infoService, &SimulationRunner::GuiInfoService, this);
+
+  gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
+         << infoService << "]" << std::endl;
+
+  gzmsg << "World [" << this->worldName << "] initialized with ["
+         << physics->Name() << "] physics profile." << std::endl;
+
+  std::string genWorldSdfService{"generate_world_sdf"};
+  this->node->Advertise(
+      genWorldSdfService, &SimulationRunner::GenerateWorldSdf, this);
+
+  gzmsg << "Serving world SDF generation service on [" << opts.NameSpace()
+         << "/" << genWorldSdfService << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -958,60 +965,28 @@ void SimulationRunner::LoadServerPlugins(
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::LoadLoggingPlugins(sdf::Plugins &_plugins)
+void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 {
-  if (this->serverConfig.UseLogRecord() &&
-      !this->serverConfig.LogPlaybackPath().empty())
+  std::list<ServerConfig::PluginInfo> plugins;
+
+  if (_config.UseLogRecord() && !_config.LogPlaybackPath().empty())
   {
     gzwarn <<
       "Both recording and playback are specified, defaulting to playback\n";
   }
 
-  if (!this->serverConfig.LogPlaybackPath().empty())
+  if (!_config.LogPlaybackPath().empty())
   {
-    ServerConfig::PluginInfo playbackPlugin =
-      this->serverConfig.LogPlaybackPlugin();
-
-    // Remove an existing plugin
-    for (sdf::Plugins::iterator iter = _plugins.begin();
-         iter != _plugins.end();)
-    {
-      if (iter->Filename() == playbackPlugin.Plugin().Filename() &&
-          iter->Name() == playbackPlugin.Plugin().Name())
-      {
-        iter = _plugins.erase(iter);
-      }
-      else
-      {
-        ++iter;
-      }
-    }
-
-    _plugins.push_back(playbackPlugin.Plugin());
+    auto playbackPlugin = _config.LogPlaybackPlugin();
+    plugins.push_back(playbackPlugin);
   }
-  else if (this->serverConfig.UseLogRecord())
+  else if (_config.UseLogRecord())
   {
-
-    ServerConfig::PluginInfo recordPlugin =
-      this->serverConfig.LogRecordPlugin();
-
-    // Remove an existing plugin
-    for (sdf::Plugins::iterator iter = _plugins.begin();
-         iter != _plugins.end();)
-    {
-      if (iter->Filename() == recordPlugin.Plugin().Filename() &&
-          iter->Name() == recordPlugin.Plugin().Name())
-      {
-        iter = _plugins.erase(iter);
-      }
-      else
-      {
-        ++iter;
-      }
-    }
-
-    _plugins.push_back(recordPlugin.Plugin());
+    auto recordPlugin = _config.LogRecordPlugin();
+    plugins.push_back(recordPlugin);
   }
+
+  this->LoadServerPlugins(plugins);
 }
 
 //////////////////////////////////////////////////
@@ -1594,8 +1569,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Configure the default level
   this->levelMgr->ConfigureDefaultLevel();
 
-  this->LoadLoggingPlugins(this->sdfWorld.Plugins());
-
   // Create components based on the contents of the server configuration.
   this->entityCompMgr.CreateComponent(worldEntity,
       components::PhysicsEnginePlugin(this->serverConfig.PhysicsEngine()));
@@ -1621,6 +1594,8 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Some entities and component should be removed based on the levels.
   this->entityCompMgr.ProcessRemoveEntityRequests();
   this->entityCompMgr.ClearRemovedComponents();
+
+  this->LoadLoggingPlugins(this->serverConfig);
 
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());

@@ -162,8 +162,8 @@ namespace gz
           const std::list<ServerConfig::PluginInfo> &_plugins);
 
       /// \brief Load logging/playback plugins
-      /// \params[out] _plugins Logging plugins that should be loaded.
-      public: void LoadLoggingPlugins(sdf::Plugins &_plugins);
+      /// \param[in] _config Configuration to load plugins from.
+      public: void LoadLoggingPlugins(const ServerConfig &_config);
 
       /// \brief Get whether this is running. When running is true,
       /// then simulation is stepping forward.
@@ -514,7 +514,7 @@ namespace gz
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
 
-      /// \brief Pointer to the sdf::World object of this runner
+      /// \brief The sdf::World object of this runner
       private: sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
