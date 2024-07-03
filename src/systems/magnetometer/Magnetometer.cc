@@ -24,7 +24,6 @@
 
 #include <gz/plugin/Register.hh>
 
-#include <sdf/sdf.hh>
 #include <sdf/Sensor.hh>
 
 #include <gz/common/Profiler.hh>
