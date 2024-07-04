@@ -561,6 +561,7 @@ void SimulationRunner::ProcessSystemQueue()
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
       auto parentEntity = system.parent;
+      auto this_thread_system = system.system;
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
       GZ_PROFILE_THREAD_NAME(ss.str().c_str());
@@ -576,9 +577,10 @@ void SimulationRunner::ProcessSystemQueue()
             this->postUpdateStopBarrier->Drop();
             break;
           }
-          system.system->PostUpdate(this->currentInfo, this->entityCompMgr);
+          this_thread_system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
+
       }
 
       gzdbg << "Exiting postupdate worker thread ("

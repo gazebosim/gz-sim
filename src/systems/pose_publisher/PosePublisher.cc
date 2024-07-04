@@ -155,6 +155,16 @@ class gz::sim::systems::PosePublisherPrivate
   /// improves performance by avoiding memory allocation
   public: std::vector<std::pair<Entity, math::Pose3d>> staticPoses;
 
+  /// \brief A variable that gets populated with poses. This also here as a
+  /// member variable to avoid repeated memory allocations and improve
+  /// performance.
+  public: msgs::Pose poseMsg;
+
+  /// \brief A variable that gets populated with poses. This also here as a
+  /// member variable to avoid repeated memory allocations and improve
+  /// performance.
+  public: msgs::Pose_V poseVMsg;
+
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
   public: bool usePoseV = false;
@@ -242,8 +252,7 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
-  poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
+  std::string poseTopic = topicFromScopedName(_entity, _ecm, false) + "/pose";
   if (poseTopic.empty())
   {
     poseTopic = "/pose";
@@ -287,8 +296,8 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // Nothing left to do if paused.
@@ -520,10 +529,11 @@ void PosePublisherPrivate::PublishPoses(
     transport::Node::Publisher &_publisher)
 {
   GZ_PROFILE("PosePublisher::PublishPoses");
-  msgs::Pose poseMsg;
-  msgs::Pose_V poseVMsg;
+
   // publish poses
   msgs::Pose *msg = nullptr;
+  if (this->usePoseV)
+    this->poseVMsg.Clear();
 
   for (const auto &[entity, pose] : _poses)
   {
@@ -533,12 +543,12 @@ void PosePublisherPrivate::PublishPoses(
 
     if (this->usePoseV)
     {
-      msg = poseVMsg.add_pose();
+      msg = this->poseVMsg.add_pose();
     }
     else
     {
-      poseMsg.Clear();
-      msg = &poseMsg;
+      this->poseMsg.Clear();
+      msg = &this->poseMsg;
     }
 
     // fill pose msg
@@ -565,12 +575,12 @@ void PosePublisherPrivate::PublishPoses(
 
     // publish individual pose msgs
     if (!this->usePoseV)
-      _publisher.Publish(poseMsg);
+      _publisher.Publish(this->poseMsg);
   }
 
   // publish pose vector msg
   if (this->usePoseV)
-    _publisher.Publish(poseVMsg);
+    _publisher.Publish(this->poseVMsg);
 }
 
 GZ_ADD_PLUGIN(PosePublisher,
@@ -579,4 +589,4 @@ GZ_ADD_PLUGIN(PosePublisher,
                     PosePublisher::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(PosePublisher,
-                          "gz::sim::systems::PosePublisher")
+                          "gz::sim::systems::PosePublisher") //14,16
