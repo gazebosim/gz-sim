@@ -561,7 +561,7 @@ void SimulationRunner::ProcessSystemQueue()
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
       auto parentEntity = system.parent;
-      auto this_thread_system = system.system;
+      auto thisThreadSystem = system.system;
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
       GZ_PROFILE_THREAD_NAME(ss.str().c_str());
@@ -577,7 +577,8 @@ void SimulationRunner::ProcessSystemQueue()
             this->postUpdateStopBarrier->Drop();
             break;
           }
-          this_thread_system->PostUpdate(this->currentInfo, this->entityCompMgr);
+          thisThreadSystem->PostUpdate(this->currentInfo,
+            this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
 
@@ -967,7 +968,7 @@ void SimulationRunner::LoadServerPlugins(
   //
   // Check plugins from the ServerConfig for matching entities.
 
-  for (const ServerConfig::PluginInfo &plugin : _plugins)
+  for (const ServerConfig::PluginInfo &plugin : _plugins)4:00pm
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
