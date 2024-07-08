@@ -968,7 +968,7 @@ void SimulationRunner::LoadServerPlugins(
   //
   // Check plugins from the ServerConfig for matching entities.
 
-  for (const ServerConfig::PluginInfo &plugin : _plugins)4:00pm
+  for (const ServerConfig::PluginInfo &plugin : _plugins)
   {
     // \todo(anyone) Type + name is not enough to uniquely identify an entity
     // \todo(louise) The runner shouldn't care about specific components, this
