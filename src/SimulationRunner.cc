@@ -537,7 +537,8 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->needsCleanUp)
     return;
 
-  // If additional systems are to be added or removed, stop the existing threads.
+  // If additional systems are to be added or removed, stop the existing
+  // threads.
   this->StopWorkerThreads();
 
   this->needsCleanUp = false;

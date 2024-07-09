@@ -507,11 +507,6 @@ void SystemManager::ProcessRemovedEntities(
     [&](const SystemIfaceWithParent<ISystemConfigureParameters>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
-  //SystemInternal null_sys(nullptr, kNullEntity);
-  /*this->systems.RemoveIf([&](const SystemInternal& system) {
-      return _ecm.IsMarkedForRemoval(system.parentEntity);
-    }, null_sys);*/
-
   RemoveFromVectorIf(this->systems, [&](const SystemInternal& system) {
       return _ecm.IsMarkedForRemoval(system.parentEntity);
     });
