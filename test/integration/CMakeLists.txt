@@ -88,6 +88,7 @@ set(tests
   wind_effects.cc
   world.cc
   world_control_state.cc
+  reset_sensors.cc
 )
 
 # elevator system causes compile erros on windows
@@ -111,7 +112,7 @@ set(tests_needing_display
   markers.cc
   mesh_uri.cc
   optical_tactile_plugin.cc
-  reset_sensors.cc
+
   rgbd_camera.cc
   sensors_system.cc
   sensors_system_battery.cc

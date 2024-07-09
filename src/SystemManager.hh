@@ -208,7 +208,7 @@ namespace gz
                                             msgs::EntityPlugin_V &_res);
 
       /// \brief All the systems.
-      private: SystemContainer<SystemInternal> systems;
+      private: std::vector<SystemInternal> systems;
 
       /// \brief Pending systems to be added to systems.
       private: std::vector<SystemInternal> pendingSystems;

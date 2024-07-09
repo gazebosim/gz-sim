@@ -25,6 +25,8 @@
 
 #include "gz/sim/config.hh"
 
+#include "gz/common/Console.hh"
+
 namespace gz
 {
   namespace sim
@@ -91,6 +93,7 @@ namespace gz
       public: void RemoveIf(std::function<bool(const T&)> fn,
         T null_type = T(0))
       {
+gzerr << "Removing";
         for (std::size_t i = 0; i < systems.size(); i++)
         {
           if (occupied[i] && fn(systems[i]))

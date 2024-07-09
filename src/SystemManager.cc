@@ -89,7 +89,7 @@ size_t SystemManager::TotalCount() const
 //////////////////////////////////////////////////
 size_t SystemManager::ActiveCount() const
 {
-  return this->systems.Size();
+  return this->systems.size();
 }
 
 //////////////////////////////////////////////////
@@ -108,7 +108,7 @@ size_t SystemManager::ActivatePendingSystems()
 
   for (const auto& system : this->pendingSystems)
   {
-    this->systems.Push(system);
+    this->systems.push_back(system);
 
     if (system.configure)
       this->systemsConfigure.emplace_back(
@@ -204,7 +204,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
     }
   }
 
-  this->systems.Clear();
+  this->systems.clear();
 
   // Load plugins which do not implement reset after clearing this->systems
   // to ensure the previous instance is destroyed before the new one is created
@@ -458,6 +458,8 @@ void SystemManager::ProcessRemovedEntities(
     return;
   }
 
+  _threadsToTerminate.emplace(10);
+
   RemoveFromVectorIf(this->systemsReset,
     [&](const SystemIfaceWithParent<ISystemReset>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
@@ -475,7 +477,6 @@ void SystemManager::ProcessRemovedEntities(
       // If system with a PostUpdate is marked for removal, mark its thread for
       // termination.
       if (_ecm.IsMarkedForRemoval(system.parent)) {
-        _threadsToTerminate.emplace(system.parent);
         return true;
       }
       return false;
@@ -488,11 +489,14 @@ void SystemManager::ProcessRemovedEntities(
     [&](const SystemIfaceWithParent<ISystemConfigureParameters>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
-  SystemInternal null_sys(nullptr, kNullEntity);
-  this->systems.RemoveIf([&](const SystemInternal& system) {
+  //SystemInternal null_sys(nullptr, kNullEntity);
+  /*this->systems.RemoveIf([&](const SystemInternal& system) {
       return _ecm.IsMarkedForRemoval(system.parentEntity);
-    }, null_sys);
+    }, null_sys);*/
 
+  RemoveFromVectorIf(this->systems, [&](const SystemInternal& system) {
+      return _ecm.IsMarkedForRemoval(system.parentEntity);
+    });
   std::lock_guard lock(this->pendingSystemsMutex);
   RemoveFromVectorIf(this->pendingSystems,
     [&](const SystemInternal& system) {
