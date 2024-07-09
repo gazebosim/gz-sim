@@ -17,7 +17,6 @@
 
 #include <gtest/gtest.h>
 
-#include <mutex>
 #include <thread>
 
 #include "Barrier.hh"
