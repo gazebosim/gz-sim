@@ -534,14 +534,13 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending && this->threadsToTerminate.size() == 0)
+  if (0 == pending && !this->needsCleanUp)
     return;
 
-  gzerr << "Pausing all systems to rebuild\n";
   // If additional systems are to be added or removed, stop the existing threads.
   this->StopWorkerThreads();
 
-  this->threadsToTerminate.clear();
+  this->needsCleanUp = false;
 
   this->systemMgr->ActivatePendingSystems();
 
@@ -563,7 +562,6 @@ void SimulationRunner::ProcessSystemQueue()
 
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
-      auto thisThreadSystem = system.system;
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
       GZ_PROFILE_THREAD_NAME(ss.str().c_str());
@@ -572,7 +570,7 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
-          thisThreadSystem->PostUpdate(this->currentInfo,
+          system->PostUpdate(this->currentInfo,
             this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
@@ -897,8 +895,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Update all the systems.
   this->UpdateSystems();
 
-  // Remove any threads that have been terminated
-  this->threadsToTerminate.clear();
 
   if (!this->Paused() && this->requestedRunToSimTime &&
        this->requestedRunToSimTime.value() > this->simTimeEpoch &&
@@ -934,7 +930,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
-    this->threadsToTerminate);
+    this->needsCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals

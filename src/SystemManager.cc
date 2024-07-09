@@ -22,7 +22,6 @@
 
 #include <gz/common/StringUtils.hh>
 
-#include "SystemContainer.hh"
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
@@ -133,8 +132,10 @@ size_t SystemManager::ActivatePendingSystems()
         system.update);
 
     if (system.postupdate)
-      this->systemsPostupdate.emplace_back(system.parentEntity,
-        system.postupdate);
+    {
+      this->systemsPostupdate.push_back(system.postupdate);
+      this->postUpdateParent.push_back(system.parentEntity);
+    }
   }
 
   this->pendingSystems.clear();
@@ -168,6 +169,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
+  this->postUpdateParent.clear();
 
   std::vector<PluginInfo> pluginsToBeLoaded;
 
@@ -323,7 +325,7 @@ const std::vector<SystemIfaceWithParent<ISystemUpdate>>&
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemPostUpdate>>&
+const std::vector<ISystemPostUpdate *>&
   SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
@@ -447,7 +449,7 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 //////////////////////////////////////////////////
 void SystemManager::ProcessRemovedEntities(
   const EntityComponentManager &_ecm,
-  std::unordered_set<Entity> &_threadsToTerminate)
+  bool &_needsCleanUp)
 {
   // Note: This function has  O(n) time when an entity is removed
   // where n is number of systems. Ideally we would only iterate
@@ -458,7 +460,7 @@ void SystemManager::ProcessRemovedEntities(
     return;
   }
 
-  _threadsToTerminate.emplace(10);
+  _needsCleanUp = true;
 
   RemoveFromVectorIf(this->systemsReset,
     [&](const SystemIfaceWithParent<ISystemReset>& system) {
@@ -472,15 +474,31 @@ void SystemManager::ProcessRemovedEntities(
     [&](const SystemIfaceWithParent<ISystemUpdate>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
     });
+
+  std::unordered_set<ISystemPostUpdate *> markedForRemoval;
+  for (std::size_t i = 0; i < this->systemsPostupdate.size(); i++)
+  {
+    if(_ecm.IsMarkedForRemoval(postUpdateParent[i]))
+    {
+      markedForRemoval.insert(this->systemsPostupdate[i]);
+    }
+  }
+
   RemoveFromVectorIf(this->systemsPostupdate,
-    [&](const SystemIfaceWithParent<ISystemPostUpdate>& system) {
+    [&](const auto system) {
       // If system with a PostUpdate is marked for removal, mark its thread for
       // termination.
-      if (_ecm.IsMarkedForRemoval(system.parent)) {
+      if (markedForRemoval.count(system)) {
         return true;
       }
       return false;
     });
+
+  RemoveFromVectorIf(this->postUpdateParent,
+    [&](const Entity& entity){
+      return _ecm.IsMarkedForRemoval(entity);
+    }
+  );
   RemoveFromVectorIf(this->systemsConfigure,
     [&](const SystemIfaceWithParent<ISystemConfigure>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);

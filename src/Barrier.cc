@@ -70,6 +70,7 @@ Barrier::ExitStatus Barrier::Wait()
     this->dataPtr->cv.notify_all();
     return Barrier::ExitStatus::DONE_LAST;
   }
+
   while (gen == this->dataPtr->generation && !this->dataPtr->cancelled)
   {
     // All threads haven't reached, so wait until generation is reached
@@ -95,18 +96,4 @@ void Barrier::Cancel()
   this->dataPtr->generation++;
   this->dataPtr->cancelled = true;
   this->dataPtr->cv.notify_all();
-}
-
-//////////////////////////////////////////////////
-void Barrier::Drop()
-{
-  std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->threadCount--;
-  if (--this->dataPtr->count == 0)
-  {
-    // All threads have reached the wait, so reset the barrier.
-    this->dataPtr->generation++;
-    this->dataPtr->count = this->dataPtr->threadCount;
-    this->dataPtr->cv.notify_all();
-  }
 }

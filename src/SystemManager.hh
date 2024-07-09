@@ -34,7 +34,6 @@
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
-#include "SystemContainer.hh"
 #include "SystemInternal.hh"
 
 namespace gz
@@ -159,7 +158,7 @@ namespace gz
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemPostUpdate>>&
+      public: const std::vector<ISystemPostUpdate *>&
         SystemsPostUpdate();
 
       /// \brief Get an vector of all systems attached to a given entity.
@@ -173,7 +172,7 @@ namespace gz
       /// \param[in] _entityCompMgr - ECM with entities marked for removal
       public: void ProcessRemovedEntities(
         const EntityComponentManager &_entityCompMgr,
-        std::unordered_set<Entity> &_threadsToTerminate);
+        bool &_threadsToTerminate);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
@@ -235,8 +234,10 @@ namespace gz
       private: std::vector<SystemIfaceWithParent<ISystemUpdate>> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
-      private: std::vector<SystemIfaceWithParent<ISystemPostUpdate>>
-        systemsPostupdate;
+      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+
+      /// \brief Parents of post update system.
+      private: std::vector<Entity> postUpdateParent;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;

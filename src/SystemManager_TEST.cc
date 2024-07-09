@@ -266,11 +266,10 @@ TEST(SystemManager, AddAndRemoveSystemEcm)
 
   // Remove the entity
   ecm.RequestRemoveEntity(entity);
-  std::unordered_set<Entity> entities_to_remove;
-  systemMgr.ProcessRemovedEntities(ecm, entities_to_remove);
+  bool needsCleanUp;
+  systemMgr.ProcessRemovedEntities(ecm, needsCleanUp);
 
-  EXPECT_EQ(entities_to_remove.size(), 1);
-  EXPECT_EQ(entities_to_remove.count(entity), 1);
+  EXPECT_TRUE(needsCleanUp);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(0u, systemMgr.PendingCount());
   EXPECT_EQ(1u, systemMgr.TotalCount());
