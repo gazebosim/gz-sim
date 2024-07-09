@@ -534,11 +534,14 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending)
+  if (0 == pending && this->threadsToTerminate.size() == 0)
     return;
 
-  // If additional systems are to be added, stop the existing threads.
+  gzerr << "Pausing all systems to rebuild\n";
+  // If additional systems are to be added or removed, stop the existing threads.
   this->StopWorkerThreads();
+
+  this->threadsToTerminate.clear();
 
   this->systemMgr->ActivatePendingSystems();
 
@@ -560,7 +563,6 @@ void SimulationRunner::ProcessSystemQueue()
 
     this->postUpdateThreads.push_back(std::thread([&, id]()
     {
-      auto parentEntity = system.parent;
       auto thisThreadSystem = system.system;
       std::stringstream ss;
       ss << "PostUpdateThread: " << id;
@@ -570,13 +572,6 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
-          auto terminate = this->threadsToTerminate.find(parentEntity);
-          if (terminate != this->threadsToTerminate.end()) {
-            gzdbg << "Terminating thread " << id << ", " << parentEntity <<"\n";
-            this->postUpdateStartBarrier->Drop();
-            this->postUpdateStopBarrier->Drop();
-            break;
-          }
           thisThreadSystem->PostUpdate(this->currentInfo,
             this->entityCompMgr);
         }
