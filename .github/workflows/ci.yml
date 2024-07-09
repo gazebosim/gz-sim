@@ -20,6 +20,7 @@ jobs:
         uses: ignition-tooling/action-ignition-ci@bionic
         with:
           codecov-enabled: true
+          cmake-args: "-DCMAKE_INSTALL_PREFIX=/usr"
   focal-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Focal CI
@@ -29,6 +30,8 @@ jobs:
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@focal
+        with:
+          cmake-args: "-DCMAKE_INSTALL_PREFIX=/usr"
   jammy-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Jammy CI
@@ -40,4 +43,4 @@ jobs:
         uses: ignition-tooling/action-ignition-ci@jammy
         with:
           # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
-          cmake-args: '-DBUILD_DOCS=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
