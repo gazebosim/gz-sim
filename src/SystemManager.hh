@@ -170,9 +170,11 @@ namespace gz
 
       /// \brief Remove systems that are attached to removed entities
       /// \param[in] _entityCompMgr - ECM with entities marked for removal
+      /// \param[out] _needsCleanUp - Set to true if a system with a
+      /// PostUpdate was removed, and its thread needs to be terminated
       public: void ProcessRemovedEntities(
         const EntityComponentManager &_entityCompMgr,
-        bool &_threadsToTerminate);
+        bool &_needsCleanUp);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
