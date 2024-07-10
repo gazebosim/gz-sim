@@ -537,8 +537,8 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
-  // If additional systems are to be added or removed, stop the existing
-  // threads.
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
   this->StopWorkerThreads();
 
   this->threadsNeedCleanUp = false;
@@ -575,7 +575,6 @@ void SimulationRunner::ProcessSystemQueue()
             this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
-
       }
 
       gzdbg << "Exiting postupdate worker thread ("
