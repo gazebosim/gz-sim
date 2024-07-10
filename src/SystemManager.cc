@@ -460,8 +460,6 @@ void SystemManager::ProcessRemovedEntities(
     return;
   }
 
-  _needsCleanUp = true;
-
   RemoveFromVectorIf(this->systemsReset,
     [&](const SystemIfaceWithParent<ISystemReset>& system) {
       return _ecm.IsMarkedForRemoval(system.parent);
@@ -480,14 +478,15 @@ void SystemManager::ProcessRemovedEntities(
   {
     if(_ecm.IsMarkedForRemoval(postUpdateParent[i]))
     {
+      // If system with a PostUpdate is marked for removal
+      // mark all worker threads for removal.
+      _needsCleanUp = true;
       markedForRemoval.insert(this->systemsPostupdate[i]);
     }
   }
 
   RemoveFromVectorIf(this->systemsPostupdate,
     [&](const auto system) {
-      // If system with a PostUpdate is marked for removal, mark its thread for
-      // termination.
       if (markedForRemoval.count(system)) {
         return true;
       }
