@@ -38,3 +38,5 @@ qtdeclarative5-dev
 qtquickcontrols2-5-dev
 uuid-dev
 xvfb
+x11-utils
+mesa-utils
