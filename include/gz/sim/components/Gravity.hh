@@ -36,6 +36,11 @@ namespace components
   /// \brief Store the gravity acceleration.
   using Gravity = Component<math::Vector3d, class GravityTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.Gravity", Gravity)
+
+  /// \brief Store the gravity acceleration.
+  using GravityEnabled = Component<bool, class GravityEnabledTag>;
+  IGN_GAZEBO_REGISTER_COMPONENT(
+      "ign_gazebo_components.GravityEnabled", GravityEnabled)
 }
 }
 }
