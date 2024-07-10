@@ -534,14 +534,14 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending && !this->needsCleanUp)
+  if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
   // If additional systems are to be added or removed, stop the existing
   // threads.
   this->StopWorkerThreads();
 
-  this->needsCleanUp = false;
+  this->threadsNeedCleanUp = false;
 
   this->systemMgr->ActivatePendingSystems();
 
@@ -931,7 +931,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Process entity removals.
   this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
-    this->needsCleanUp);
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
