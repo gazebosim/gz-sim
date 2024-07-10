@@ -1034,6 +1034,11 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
       continue;
     }
 
+    if (rs->IsTriggered())
+    {
+      continue;
+    }
+
     std::chrono::steady_clock::duration time;
     // if sensor's next update tims is less or equal to current sim time then
     // it's in the process of being updated by the render loop

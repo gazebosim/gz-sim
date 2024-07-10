@@ -892,18 +892,18 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
   auto &meshManager = *common::MeshManager::Instance();
   std::size_t maxConvexHulls = 16u;
   std::size_t voxelResolution = 200000u;
+  if (_meshSdf.ConvexDecomposition())
+  {
+    // limit max number of convex hulls to generate
+    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
+    voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
+  }
   if (_meshSdf.Optimization() == sdf::MeshOptimization::CONVEX_HULL)
   {
     /// create 1 convex hull for the whole submesh
     maxConvexHulls = 1u;
   }
-  else if (_meshSdf.ConvexDecomposition())
-  {
-    // set convex decomposition params: max number of convex hulls
-    // and voxel resolution
-    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
-    voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
-  }
+
   // Check if MeshManager contains the decomposed mesh already. If not
   // add it to the MeshManager so we do not need to decompose it again.
   const std::string convexMeshName =

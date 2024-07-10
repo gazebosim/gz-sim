@@ -286,6 +286,10 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       }
     }
   }
+  else if (_in.Type() == sdf::GeometryType::EMPTY)
+  {
+    out.set_type(msgs::Geometry::EMPTY);
+  }
   else
   {
     gzerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -902,7 +906,7 @@ msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
     out.set_type(msgs::Atmosphere::ADIABATIC);
   }
   // todo(anyone) add mass density to sdf::Atmosphere?
-  // out.set_mass_density(_in.MassDensity());k
+  // out.set_mass_density(_in.MassDensity());
 
   return out;
 }
@@ -1735,15 +1739,7 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     }
   }
 
-  /// \todo(nkoenig) Modify the particle_emitter.proto file to
-  /// have a topic field.
-  if (!_in.Topic().empty())
-  {
-    auto header = out.mutable_header()->add_data();
-    header->set_key("topic");
-    header->add_value(_in.Topic());
-  }
-
+  out.mutable_topic()->set_data(_in.Topic());
   out.mutable_particle_scatter_ratio()->set_data(_in.ScatterRatio());
   return out;
 }
@@ -1798,15 +1794,8 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
     out.SetColorRangeImage(_in.color_range_image().data());
   if (_in.has_particle_scatter_ratio())
     out.SetScatterRatio(_in.particle_scatter_ratio().data());
-
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    auto data = _in.header().data(i);
-    if (data.key() == "topic" && data.value_size() > 0)
-    {
-      out.SetTopic(data.value(0));
-    }
-  }
+  if (_in.has_topic())
+    out.SetTopic(_in.topic().data());
 
   return out;
 }
@@ -1824,10 +1813,7 @@ msgs::Projector gz::sim::convert(const sdf::Projector &_in)
   out.set_fov(_in.HorizontalFov().Radian());
   out.set_texture(_in.Texture().empty() ? "" :
       asFullPath(_in.Texture(), _in.FilePath()));
-
-  auto header = out.mutable_header()->add_data();
-  header->set_key("visibility_flags");
-  header->add_value(std::to_string(_in.VisibilityFlags()));
+  out.set_visibility_flags(_in.VisibilityFlags());
 
   return out;
 }
@@ -1844,26 +1830,7 @@ sdf::Projector gz::sim::convert(const msgs::Projector &_in)
   out.SetHorizontalFov(math::Angle(_in.fov()));
   out.SetTexture(_in.texture());
   out.SetRawPose(msgs::Convert(_in.pose()));
-
-  /// \todo(anyone) add "visibility_flags" field to projector.proto
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    auto data = _in.header().data(i);
-    if (data.key() == "visibility_flags" && data.value_size() > 0)
-    {
-      try
-      {
-        out.SetVisibilityFlags(std::stoul(data.value(0)));
-      }
-      catch (...)
-      {
-        gzerr << "Failed to parse projector <visibility_flags>: "
-              << data.value(0) << ". Using default value: 0xFFFFFFFF."
-              << std::endl;
-        out.SetVisibilityFlags(0xFFFFFFFF);
-      }
-    }
-  }
+  out.SetVisibilityFlags(_in.visibility_flags());
 
   return out;
 }
