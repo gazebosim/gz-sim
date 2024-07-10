@@ -134,7 +134,7 @@ size_t SystemManager::ActivatePendingSystems()
     if (system.postupdate)
     {
       this->systemsPostupdate.push_back(system.postupdate);
-      this->postUpdateParent.push_back(system.parentEntity);
+      this->postUpdateParents.push_back(system.parentEntity);
     }
   }
 
@@ -169,7 +169,7 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
-  this->postUpdateParent.clear();
+  this->postUpdateParents.clear();
 
   std::vector<PluginInfo> pluginsToBeLoaded;
 
@@ -476,7 +476,7 @@ void SystemManager::ProcessRemovedEntities(
   std::unordered_set<ISystemPostUpdate *> markedForRemoval;
   for (std::size_t i = 0; i < this->systemsPostupdate.size(); i++)
   {
-    if(_ecm.IsMarkedForRemoval(postUpdateParent[i]))
+    if(_ecm.IsMarkedForRemoval(postUpdateParents[i]))
     {
       // If system with a PostUpdate is marked for removal
       // mark all worker threads for removal.
@@ -493,7 +493,7 @@ void SystemManager::ProcessRemovedEntities(
       return false;
     });
 
-  RemoveFromVectorIf(this->postUpdateParent,
+  RemoveFromVectorIf(this->postUpdateParents,
     [&](const Entity& entity){
       return _ecm.IsMarkedForRemoval(entity);
     }

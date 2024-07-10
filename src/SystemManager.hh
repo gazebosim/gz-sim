@@ -236,8 +236,8 @@ namespace gz
       /// \brief Systems implementing PostUpdate
       private: std::vector<ISystemPostUpdate *> systemsPostupdate;
 
-      /// \brief Parents of post update system.
-      private: std::vector<Entity> postUpdateParent;
+      /// \brief Parents of post update systems.
+      private: std::vector<Entity> postUpdateParents;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;
