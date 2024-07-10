@@ -14,13 +14,12 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 2.1
-import QtQuick.Controls.Material 2.2
-import QtQuick.Controls.Material.impl 2.2
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
-import "qrc:/qml"
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Controls.Material.impl
+import QtQuick.Layouts
+import "qrc:/gz/gui/qml"
 
 ColumnLayout {
   Layout.minimumWidth: 320
@@ -221,11 +220,11 @@ ColumnLayout {
       id: viewControlSensitivitySpinBox
       Layout.fillWidth: true
       value: 1.0
-      maximumValue: 10.0
-      minimumValue: 0.01
-      decimals: 2
-      stepSize: 0.1
-      onEditingFinished:{
+      to: 10
+      from: 0
+      // decimals: 2
+      stepSize: 1
+      onValueChanged:{
         ViewAngle.OnViewControlSensitivity(value)
       }
     }
@@ -299,11 +298,11 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.camClipDist[0]
-      maximumValue: farClip.value
-      minimumValue: 0.000001
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      to: farClip.value
+      from: 0
+      // decimals: 6
+      stepSize: 1
+      onValueChanged: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
     Text {
       text: "Far (m)"
@@ -318,11 +317,11 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 3
       value: ViewAngle.camClipDist[1]
-      maximumValue: Number.MAX_VALUE
-      minimumValue: nearClip.value
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      to: Number.MAX_VALUE
+      from: nearClip.value
+      // decimals: 6
+      stepSize: 1
+      onValueChanged: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
   }
 
@@ -353,11 +352,12 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.horizontalFOV
-      maximumValue: 3.14159
-      minimumValue: 0.000001
-      decimals: 6
-      stepSize: 0.01
-      onEditingFinished: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
+      //to: 3.14159
+      to: 4
+      from: 0
+      // decimals: 6
+      stepSize: 1
+      onValueChanged: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
     }
   }
 

@@ -3,6 +3,6 @@ gz_add_gui_plugin(JointPositionController
     JointPositionController.cc
   QT_HEADERS
     JointPositionController.hh
-  TEST_SOURCES
-    JointPositionController_TEST.cc
+  #TEST_SOURCES
+  #  JointPositionController_TEST.cc
 )

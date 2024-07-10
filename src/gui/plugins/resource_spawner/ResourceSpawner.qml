@@ -14,16 +14,16 @@
  * limitations under the License.
  *
  */
-import QtQuick 2.9
-import QtQuick.Window 2.2
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.1
-import QtQuick.Controls.Material 2.2
-import QtQuick.Controls.Material.impl 2.2
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Controls.Material.impl
+import QtQuick.Layouts
+import QtQuick.Controls.Styles
 
-import QtQml.Models 2.2
+import QtQml.Models
 
 // Wrap everything in a rectangle so that there are no transparent
 // areas at the end of the trees

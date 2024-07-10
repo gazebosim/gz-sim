@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 // Item displaying 3D pose information.
 Rectangle {

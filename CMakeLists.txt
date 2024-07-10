@@ -117,7 +117,7 @@ gz_find_package(gz-gui9 REQUIRED)
 set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
 
 set(QT_MAJOR_VERSION 6)
-set(QT_MINOR_VERSION 0)
+set(QT_MINOR_VERSION 4)
 gz_find_package (Qt${QT_MAJOR_VERSION}
   VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
   COMPONENTS
@@ -126,6 +126,15 @@ gz_find_package (Qt${QT_MAJOR_VERSION}
     QuickControls2
   REQUIRED
   PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+
+set(CMAKE_AUTOMOC TRUE)
+set(CMAKE_AUTOUIC TRUE)
+set(CMAKE_AUTORCC TRUE)
+if(POLICY CMP0100)
+  cmake_policy(SET CMP0100 NEW)
+endif()
+
+qt_standard_project_setup()
 
 #--------------------------------------
 # Find gz-physics
