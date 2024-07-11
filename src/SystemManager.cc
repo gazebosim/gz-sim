@@ -453,7 +453,7 @@ void SystemManager::ProcessRemovedEntities(
   }
 
   std::vector<SystemInternal> markedForRemoval;
-  for (const auto &system: this->systems)
+  for (const auto &system : this->systems)
   {
     if (_ecm.IsMarkedForRemoval(system.parentEntity))
     {
@@ -461,7 +461,7 @@ void SystemManager::ProcessRemovedEntities(
     }
   }
 
-  for (const auto &system: markedForRemoval)
+  for (const auto &system : markedForRemoval)
   {
     removeFromVector(this->systemsReset, system.reset);
     removeFromVector(this->systemsPreupdate, system.preupdate);
@@ -476,7 +476,8 @@ void SystemManager::ProcessRemovedEntities(
 
     removeFromVector(this->systemsPostupdate, system.postupdate);
     removeFromVector(this->systemsConfigure, system.configure);
-    removeFromVector(this->systemsConfigureParameters, system.configureParameters);
+    removeFromVector(this->systemsConfigureParameters,
+                     system.configureParameters);
     RemoveFromVectorIf(this->systems,
                        [&](const SystemInternal& _arg) {
                        return _arg.parentEntity == system.parentEntity;
