@@ -77,17 +77,8 @@ namespace
       {
         if(degreesPair.first)
         {
-          math::Angle angularVelocityX;
-          angularVelocityX.SetDegree(vectorPair.first.X());
-
-          math::Angle angularVelocityY;
-          angularVelocityY.SetDegree(vectorPair.first.Y());
-
-          math::Angle angularVelocityZ;
-          angularVelocityZ.SetDegree(vectorPair.first.Z());
-
-          vector.Set(angularVelocityX.Radian(), angularVelocityY.Radian(),
-                     angularVelocityZ.Radian());
+          vector.Set(GZ_DTOR(vectorPair.first.X()), GZ_DTOR(vectorPair.first.Y()),
+                     GZ_DTOR(vectorPair.first.Z()));
         }
         else
         {
