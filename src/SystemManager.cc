@@ -18,7 +18,6 @@
 #include <list>
 #include <mutex>
 #include <set>
-#include <unordered_set>
 
 #include <gz/common/StringUtils.hh>
 
@@ -110,31 +109,23 @@ size_t SystemManager::ActivatePendingSystems()
     this->systems.push_back(system);
 
     if (system.configure)
-      this->systemsConfigure.emplace_back(
-        system.parentEntity,
-        system.configure);
+      this->systemsConfigure.push_back(system.configure);
 
     if (system.configureParameters)
-      this->systemsConfigureParameters.emplace_back(
-        system.parentEntity,
-        system.configureParameters);
+      this->systemsConfigureParameters.push_back(system.configureParameters);
 
     if (system.reset)
-      this->systemsReset.emplace_back(system.parentEntity,
-        system.reset);
+      this->systemsReset.push_back(system.reset);
 
     if (system.preupdate)
-      this->systemsPreupdate.emplace_back(system.parentEntity,
-        system.preupdate);
+      this->systemsPreupdate.push_back(system.preupdate);
 
     if (system.update)
-      this->systemsUpdate.emplace_back(system.parentEntity,
-        system.update);
+      this->systemsUpdate.push_back(system.update);
 
     if (system.postupdate)
     {
       this->systemsPostupdate.push_back(system.postupdate);
-      this->postUpdateParents.push_back(system.parentEntity);
     }
   }
 
@@ -169,7 +160,6 @@ void SystemManager::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
   this->systemsPreupdate.clear();
   this->systemsUpdate.clear();
   this->systemsPostupdate.clear();
-  this->postUpdateParents.clear();
 
   std::vector<PluginInfo> pluginsToBeLoaded;
 
@@ -291,42 +281,37 @@ void SystemManager::AddSystemImpl(
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemConfigure>>&
-  SystemManager::SystemsConfigure()
+const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
 {
   return this->systemsConfigure;
 }
 
-const std::vector<SystemIfaceWithParent<ISystemConfigureParameters>>&
+const std::vector<ISystemConfigureParameters *>&
 SystemManager::SystemsConfigureParameters()
 {
   return this->systemsConfigureParameters;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemReset>>&
-SystemManager::SystemsReset()
+const std::vector<ISystemReset *> &SystemManager::SystemsReset()
 {
   return this->systemsReset;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemPreUpdate>>&
-  SystemManager::SystemsPreUpdate()
+const std::vector<ISystemPreUpdate *>& SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<SystemIfaceWithParent<ISystemUpdate>>&
-  SystemManager::SystemsUpdate()
+const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemPostUpdate *>&
-  SystemManager::SystemsPostUpdate()
+const std::vector<ISystemPostUpdate *>& SystemManager::SystemsPostUpdate()
 {
   return this->systemsPostupdate;
 }
@@ -445,6 +430,13 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 {
   vec.erase(std::remove_if(vec.begin(), vec.end(), pred), vec.end());
 }
+template <typename Tp>
+void removeFromVector(std::vector<Tp> &_vec, const Tp &_value)
+{
+  _vec.erase(std::remove_if(_vec.begin(), _vec.end(),
+                            [&](const auto &_arg) { return _arg == _value; }),
+             _vec.end());
+}
 
 //////////////////////////////////////////////////
 void SystemManager::ProcessRemovedEntities(
@@ -460,58 +452,40 @@ void SystemManager::ProcessRemovedEntities(
     return;
   }
 
-  RemoveFromVectorIf(this->systemsReset,
-    [&](const SystemIfaceWithParent<ISystemReset>& system) {
-      return _ecm.IsMarkedForRemoval(system.parent);
-    });
-  RemoveFromVectorIf(this->systemsPreupdate,
-    [&](const SystemIfaceWithParent<ISystemPreUpdate>& system) {
-      return _ecm.IsMarkedForRemoval(system.parent);
-    });
-  RemoveFromVectorIf(this->systemsUpdate,
-    [&](const SystemIfaceWithParent<ISystemUpdate>& system) {
-      return _ecm.IsMarkedForRemoval(system.parent);
-    });
-
-  std::unordered_set<ISystemPostUpdate *> markedForRemoval;
-  for (std::size_t i = 0; i < this->systemsPostupdate.size(); i++)
+  std::vector<SystemInternal> markedForRemoval;
+  for (const auto &system: this->systems)
   {
-    if(_ecm.IsMarkedForRemoval(postUpdateParents[i]))
+    if (_ecm.IsMarkedForRemoval(system.parentEntity))
+    {
+      markedForRemoval.push_back(system);
+    }
+  }
+
+  for (const auto &system: markedForRemoval)
+  {
+    removeFromVector(this->systemsReset, system.reset);
+    removeFromVector(this->systemsPreupdate, system.preupdate);
+    removeFromVector(this->systemsUpdate, system.update);
+
+    if (system.postupdate)
     {
       // If system with a PostUpdate is marked for removal
       // mark all worker threads for removal.
       _needsCleanUp = true;
-      markedForRemoval.insert(this->systemsPostupdate[i]);
     }
+
+    removeFromVector(this->systemsPostupdate, system.postupdate);
+    removeFromVector(this->systemsConfigure, system.configure);
+    removeFromVector(this->systemsConfigureParameters, system.configureParameters);
+    RemoveFromVectorIf(this->systems,
+                       [&](const SystemInternal& _arg) {
+                       return _arg.parentEntity == system.parentEntity;
+                       });
   }
 
-  RemoveFromVectorIf(this->systemsPostupdate,
-    [&](const auto system) {
-      if (markedForRemoval.count(system)) {
-        return true;
-      }
-      return false;
-    });
-
-  RemoveFromVectorIf(this->postUpdateParents,
-    [&](const Entity& entity){
-      return _ecm.IsMarkedForRemoval(entity);
-    }
-  );
-  RemoveFromVectorIf(this->systemsConfigure,
-    [&](const SystemIfaceWithParent<ISystemConfigure>& system) {
-      return _ecm.IsMarkedForRemoval(system.parent);
-    });
-  RemoveFromVectorIf(this->systemsConfigureParameters,
-    [&](const SystemIfaceWithParent<ISystemConfigureParameters>& system) {
-      return _ecm.IsMarkedForRemoval(system.parent);
-    });
-  RemoveFromVectorIf(this->systems, [&](const SystemInternal& system) {
-      return _ecm.IsMarkedForRemoval(system.parentEntity);
-    });
   std::lock_guard lock(this->pendingSystemsMutex);
   RemoveFromVectorIf(this->pendingSystems,
-    [&](const SystemInternal& system) {
-      return _ecm.IsMarkedForRemoval(system.parentEntity);
+    [&](const SystemInternal& _system) {
+      return _ecm.IsMarkedForRemoval(_system.parentEntity);
     });
 }

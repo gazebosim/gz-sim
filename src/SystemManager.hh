@@ -21,8 +21,6 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include <sdf/Plugin.hh>
@@ -42,21 +40,6 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
-
-    /// \brief Helper container to keep track of
-    /// system interfaces and their parents
-    template<typename IFace>
-    struct SystemIfaceWithParent {
-      /// Parent entity of system
-      Entity parent;
-
-      /// Interface pointer
-      IFace* system;
-
-      /// \brief constructor
-      SystemIfaceWithParent(Entity _parent, IFace* _iface):
-        parent(_parent), system(_iface) {}
-    };
 
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
@@ -131,35 +114,29 @@ namespace gz
 
       /// \brief Get a vector of all systems implementing "Configure"
       /// \return Vector of systems' configure interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemConfigure>>&
-        SystemsConfigure();
+      public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
       /// \brief Get an vector of all active systems implementing
       ///   "ConfigureParameters"
       /// \return Vector of systems's configure interfaces.
-      public: const std::vector<
-        SystemIfaceWithParent<ISystemConfigureParameters>>&
-        SystemsConfigureParameters();
+      public: const std::vector<ISystemConfigureParameters *>&
+      SystemsConfigureParameters();
 
       /// \brief Get an vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemReset>>&
-        SystemsReset();
+      public: const std::vector<ISystemReset *>& SystemsReset();
 
       /// \brief Get an vector of all active systems implementing "PreUpdate"
       /// \return Vector of systems's pre-update interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemPreUpdate>>&
-        SystemsPreUpdate();
+      public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
 
       /// \brief Get an vector of all active systems implementing "Update"
       /// \return Vector of systems's update interfaces.
-      public: const std::vector<SystemIfaceWithParent<ISystemUpdate>>&
-        SystemsUpdate();
+      public: const std::vector<ISystemUpdate *>& SystemsUpdate();
 
       /// \brief Get an vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
-      public: const std::vector<ISystemPostUpdate *>&
-        SystemsPostUpdate();
+      public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
 
       /// \brief Get an vector of all systems attached to a given entity.
       /// \return Vector of systems.
@@ -218,28 +195,23 @@ namespace gz
       private: mutable std::mutex pendingSystemsMutex;
 
       /// \brief Systems implementing Configure
-      private: std::vector<SystemIfaceWithParent<ISystemConfigure>>
-        systemsConfigure;
+      private: std::vector<ISystemConfigure *> systemsConfigure;
 
       /// \brief Systems implementing ConfigureParameters
-      private: std::vector<SystemIfaceWithParent<ISystemConfigureParameters>>
+      private: std::vector<ISystemConfigureParameters *>
         systemsConfigureParameters;
 
       /// \brief Systems implementing Reset
-      private: std::vector<SystemIfaceWithParent<ISystemReset>> systemsReset;
+      private: std::vector<ISystemReset *> systemsReset;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<SystemIfaceWithParent<ISystemPreUpdate>>
-        systemsPreupdate;
+      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<SystemIfaceWithParent<ISystemUpdate>> systemsUpdate;
+      private: std::vector<ISystemUpdate *> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
       private: std::vector<ISystemPostUpdate *> systemsPostupdate;
-
-      /// \brief Parents of post update systems.
-      private: std::vector<Entity> postUpdateParents;
 
       /// \brief System loader, for loading system plugins.
       private: SystemLoaderPtr systemLoader;
