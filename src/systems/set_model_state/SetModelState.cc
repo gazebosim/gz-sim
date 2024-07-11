@@ -77,8 +77,8 @@ namespace
       {
         if(degreesPair.first)
         {
-          vector.Set(GZ_DTOR(vectorPair.first.X()), GZ_DTOR(vectorPair.first.Y()),
-                     GZ_DTOR(vectorPair.first.Z()));
+          vector.Set(GZ_DTOR(vectorPair.first.X()),
+                 GZ_DTOR(vectorPair.first.Y()),GZ_DTOR(vectorPair.first.Z()));
         }
         else
         {
