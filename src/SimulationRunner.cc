@@ -571,12 +571,10 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
-          system->PostUpdate(this->currentInfo,
-            this->entityCompMgr);
+          system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
       }
-
       gzdbg << "Exiting postupdate worker thread ("
         << id << ")" << std::endl;
     }));
@@ -604,13 +602,13 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
-      system.system->PreUpdate(this->currentInfo, this->entityCompMgr);
+      system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
     GZ_PROFILE("Update");
     for (auto& system : this->systemMgr->SystemsUpdate())
-      system.system->Update(this->currentInfo, this->entityCompMgr);
+      system->Update(this->currentInfo, this->entityCompMgr);
   }
 
   {
@@ -894,7 +892,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Update all the systems.
   this->UpdateSystems();
-
 
   if (!this->Paused() && this->requestedRunToSimTime &&
        this->requestedRunToSimTime.value() > this->simTimeEpoch &&
