@@ -124,7 +124,7 @@ function(gz_add_gui_plugin plugin_name)
     endif()
   endif()
 
-  install (TARGETS ${plugin_name} DESTINATION ${GZ_SIM_GUI_PLUGIN_INSTALL_DIR})
+  install (TARGETS ${plugin_name} DESTINATION ${GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR})
 endfunction()
 
 add_subdirectory(modules)

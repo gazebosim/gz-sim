@@ -72,7 +72,7 @@ function(gz_add_system system_name)
   endif()
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
-  install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
+  install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
 
   # The library created by `gz_add_component` includes the gz-sim version
   # (i.e. libgz-sim1-name-system.so), but for portability of SDF
@@ -90,12 +90,13 @@ function(gz_add_system system_name)
   else()
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_INSTALL_DIR})
+    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
   endif()
 endfunction()
 
 add_subdirectory(ackermann_steering)
 add_subdirectory(acoustic_comms)
+add_subdirectory(advanced_lift_drag)
 add_subdirectory(air_pressure)
 add_subdirectory(air_speed)
 add_subdirectory(altimeter)
@@ -130,6 +131,7 @@ add_subdirectory(kinetic_energy_monitor)
 add_subdirectory(label)
 add_subdirectory(lens_flare)
 add_subdirectory(lift_drag)
+add_subdirectory(lighter_than_air_dynamics)
 add_subdirectory(log)
 add_subdirectory(log_video_recorder)
 add_subdirectory(logical_audio_sensor_plugin)

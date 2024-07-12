@@ -28,17 +28,22 @@ directory where the plugin's shared library can be found.
 For example, if you've created the following physics engine shared library on
 Linux:
 
-`/home/physics_engines/libCustomEngine.so`
+```
+/home/physics_engines/libCustomEngine.so
+```
 
 You should set the variable as follows:
 
-`export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines`
-
+```
+export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines
+```
 
 If you have several libraries installed in different paths, you can add more
 paths, for example:
 
-`export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines:/home/more_engines`
+```
+export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines:/home/more_engines
+```
 
 ## Tell Gazebo what engine to load
 
@@ -70,7 +75,9 @@ For the example above, you can load it like this:
 Alternatively, you can choose a plugin from the command line using the
 `--physics-engine` option, for example:
 
-`gz sim --physics-engine CustomEngine`
+```
+gz sim --physics-engine CustomEngine
+```
 
 To use an existing alternative engine (e.g. Bullet Featherstone)
 

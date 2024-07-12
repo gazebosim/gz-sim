@@ -187,18 +187,14 @@ void DiffDrive::Configure(const Entity &_entity,
     return;
   }
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
   // Get params from SDF
-  sdf::ElementPtr sdfElem = ptr->GetElement("left_joint");
+  auto sdfElem = _sdf->FindElement("left_joint");
   while (sdfElem)
   {
     this->dataPtr->leftJointNames.push_back(sdfElem->Get<std::string>());
     sdfElem = sdfElem->GetNextElement("left_joint");
   }
-  sdfElem = ptr->GetElement("right_joint");
+  sdfElem = _sdf->FindElement("right_joint");
   while (sdfElem)
   {
     this->dataPtr->rightJointNames.push_back(sdfElem->Get<std::string>());
@@ -400,8 +396,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // If the joints haven't been identified yet, look for them
@@ -463,17 +459,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->leftJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->rightJoints)
@@ -483,17 +470,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->rightJointSpeed});
   }
 
   // Create the left and right side joint position components if they

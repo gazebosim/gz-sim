@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -41,6 +40,7 @@
 #include <gz/sensors/RgbdCameraSensor.hh>
 #include <gz/sensors/ThermalCameraSensor.hh>
 #include <gz/sensors/SegmentationCameraSensor.hh>
+#include <gz/sensors/Sensor.hh>
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
 
@@ -126,12 +126,22 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Mutex to protect rendering data
   public: std::mutex renderMutex;
 
+  /// \brief Mutex to protect renderUtil changes
+  public: std::mutex renderUtilMutex;
+
   /// \brief Condition variable to signal rendering thread
   ///
   /// This variable is used to block/unblock operations in the rendering
   /// thread.  For a more detailed explanation on the flow refer to the
   /// documentation on RenderThread.
   public: std::condition_variable renderCv;
+
+  /// \brief Condition variable to signal update time applied
+  ///
+  /// This variable is used to block/unblock operations in PostUpdate thread
+  /// to make sure renderUtil's ECM updates are applied to the scene first
+  /// before they are overriden by PostUpdate
+  public: std::condition_variable updateTimeCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
   public: common::ConnectionPtr stopConn;
@@ -141,6 +151,12 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Update time for the next rendering iteration
   public: std::chrono::steady_clock::duration updateTime;
+
+  /// \brief Update time applied in the rendering thread
+  public: std::chrono::steady_clock::duration updateTimeApplied;
+
+  /// \brief Update time to be appplied in the rendering thread
+  public: std::chrono::steady_clock::duration updateTimeToApply;
 
   /// \brief Next sensors update time
   public: std::chrono::steady_clock::duration nextUpdateTime;
@@ -211,6 +227,9 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Check if any of the sensors have connections
   public: bool SensorsHaveConnections();
+
+  /// \brief Returns all sensors that have a pending trigger
+  public: std::unordered_set<sensors::SensorId> SensorsWithPendingTrigger();
 
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
@@ -298,13 +317,13 @@ void SensorsPrivate::RunOnce()
   if (!this->scene)
     return;
 
-  std::chrono::steady_clock::duration updateTimeApplied;
   GZ_PROFILE("SensorsPrivate::RunOnce");
   {
     GZ_PROFILE("Update");
-    std::unique_lock<std::mutex> timeLock(this->renderMutex);
+    std::unique_lock<std::mutex> timeLock(this->renderUtilMutex);
     this->renderUtil.Update();
-    updateTimeApplied = this->updateTime;
+    this->updateTimeApplied = this->updateTime;
+    this->updateTimeCv.notify_one();
   }
 
   bool activeSensorsEmpty = true;
@@ -335,7 +354,7 @@ void SensorsPrivate::RunOnce()
     {
       GZ_PROFILE("PreRender");
       this->eventManager->Emit<events::PreRender>();
-      this->scene->SetTime(updateTimeApplied);
+      this->scene->SetTime(this->updateTimeApplied);
       // Update the scene graph manually to improve performance
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
@@ -362,11 +381,11 @@ void SensorsPrivate::RunOnce()
     // safety check to see if reset occurred while we're rendering
     // avoid publishing outdated data if reset occurred
     std::unique_lock<std::mutex> timeLock(this->renderMutex);
-    if (updateTimeApplied <= this->updateTime)
+    if (this->updateTimeApplied <= this->updateTime)
     {
       // publish data
       GZ_PROFILE("RunOnce");
-      this->sensorManager.RunOnce(updateTimeApplied);
+      this->sensorManager.RunOnce(this->updateTimeApplied);
       this->eventManager->Emit<events::Render>();
     }
 
@@ -625,8 +644,10 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
       s->SetNextDataUpdateTime(_info.simTime);
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
-    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+    std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
     this->dataPtr->updateTime =  _info.simTime;
+    this->dataPtr->updateTimeToApply =  _info.simTime;
+    this->dataPtr->updateTimeApplied =  _info.simTime;
   }
 }
 
@@ -688,7 +709,19 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
     {
-      std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
+      GZ_PROFILE("UpdateFromECM");
+      // Make sure we do not override the state in renderUtil if there are
+      // still ECM changes that still need to be propagated to the scene,
+      // i.e. wait until renderUtil.Update(), has taken place in the
+      // rendering thread
+      std::unique_lock<std::mutex> lock(this->dataPtr->renderUtilMutex);
+      this->dataPtr->updateTimeCv.wait(lock, [this]()
+      {
+        return !this->dataPtr->updateAvailable ||
+               (this->dataPtr->updateTimeToApply ==
+               this->dataPtr->updateTimeApplied);
+      });
+
       this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
       this->dataPtr->updateTime = _info.simTime;
     }
@@ -715,11 +748,15 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
           this->dataPtr->sensorsToUpdate, _info.simTime);
     }
 
+    std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
+        this->dataPtr->SensorsWithPendingTrigger();
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
-        this->dataPtr->forceUpdate)
+        this->dataPtr->forceUpdate ||
+        !sensorsWithPendingTriggers.empty())
     {
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
@@ -739,17 +776,26 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
         this->dataPtr->activeSensors =
             std::move(this->dataPtr->sensorsToUpdate);
-
-        this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
-            this->dataPtr->sensorsToUpdate, _info.simTime);
-
-        // Force scene tree update if there are sensors to be created or
-        // subscribes to the render events. This does not necessary force
-        // sensors to update. Only active sensors will be updated
-        this->dataPtr->forceUpdate =
-            (this->dataPtr->renderUtil.PendingSensors() > 0) ||
-            hasRenderConnections;
+        // Add all sensors that have pending triggers.
+        this->dataPtr->activeSensors.insert(sensorsWithPendingTriggers.begin(),
+                                            sensorsWithPendingTriggers.end());
       }
+
+      this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
+          this->dataPtr->sensorsToUpdate, _info.simTime);
+
+      // Force scene tree update if there are sensors to be created or
+      // subscribes to the render events. This does not necessary force
+      // sensors to update. Only active sensors will be updated
+      this->dataPtr->forceUpdate =
+          (this->dataPtr->renderUtil.PendingSensors() > 0) ||
+          hasRenderConnections;
+
+      {
+        std::unique_lock<std::mutex> timeLock(this->dataPtr->renderUtilMutex);
+        this->dataPtr->updateTimeToApply = this->dataPtr->updateTime;
+      }
+
       {
         std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
         this->dataPtr->updateAvailable = true;
@@ -988,6 +1034,11 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
       continue;
     }
 
+    if (rs->IsTriggered())
+    {
+      continue;
+    }
+
     std::chrono::steady_clock::duration time;
     // if sensor's next update tims is less or equal to current sim time then
     // it's in the process of being updated by the render loop
@@ -1037,6 +1088,27 @@ bool SensorsPrivate::SensorsHaveConnections()
     }
   }
   return false;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<sensors::SensorId>
+SensorsPrivate::SensorsWithPendingTrigger()
+{
+  std::unordered_set<sensors::SensorId> sensorsWithPendingTrigger;
+  for (auto id : this->sensorIds)
+  {
+    sensors::Sensor *s = this->sensorManager.Sensor(id);
+    if (nullptr == s)
+    {
+      continue;
+    }
+
+    if (s->HasPendingTrigger())
+    {
+      sensorsWithPendingTrigger.insert(id);
+    }
+  }
+  return sensorsWithPendingTrigger;
 }
 
 GZ_ADD_PLUGIN(Sensors, System,

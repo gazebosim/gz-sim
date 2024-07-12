@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_PHYSICS_HH_
 #define GZ_SIM_COMPONENTS_PHYSICS_HH_
 
+#include <cstdint>
 #include <string>
 
 #include <gz/msgs/physics.pb.h>
@@ -65,6 +66,12 @@ namespace components
       class PhysicsSolverTag, serializers::StringSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsSolver",
        PhysicsSolver)
+
+  /// \brief The number of solver iterations for each step.
+  using PhysicsSolverIterations = Component<uint32_t,
+      class PhysicsSolverIterationsTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PhysicsSolverIterations",
+       PhysicsSolverIterations)
 }
 }
 }

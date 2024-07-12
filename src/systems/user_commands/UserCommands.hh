@@ -38,38 +38,38 @@ namespace systems
   /// \todo(louise) In the future, an interface undo/redo commands will also
   /// be provided.
   ///
-  /// # Spawn entity
+  /// ### Spawn entity
   ///
   /// * **Service**: `/world/<world name>/create`
-  /// * **Request type*: gz.msgs.EntityFactory
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type**: gz.msgs.EntityFactory
+  /// * **Response type**: gz.msgs.Boolean
   ///
-  /// # Spawn multiple entities
+  /// ### Spawn multiple entities
   ///
   /// This service can spawn multiple entities in the same iteration,
   /// thereby eliminating simulation steps between entity spawn times.
   ///
   /// * **Service**: `/world/<world name>/create_multiple`
-  /// * **Request type*: gz.msgs.EntityFactory_V
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type**: gz.msgs.EntityFactory_V
+  /// * **Response type**: gz.msgs.Boolean
   ///
-  /// # Set entity pose
+  /// ### Set entity pose
   ///
   /// This service set the pose of entities
   ///
   /// * **Service**: `/world/<world name>/set_pose`
-  /// * **Request type*: gz.msgs.Pose
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type**: gz.msgs.Pose
+  /// * **Response type**: gz.msgs.Boolean
   ///
-  /// # Set multiple entity poses
+  /// ### Set multiple entity poses
   ///
   /// This service set the pose of multiple entities
   ///
   /// * **Service**: `/world/<world name>/set_pose_vector`
-  /// * **Request type*: gz.msgs.Pose_V
-  /// * **Response type*: gz.msgs.Boolean
+  /// * **Request type**: gz.msgs.Pose_V
+  /// * **Response type**: gz.msgs.Boolean
   ///
-  /// Try some examples described on examples/worlds/empty.sdf
+  /// Try some examples described in examples/worlds/empty.sdf
   class UserCommands final:
     public System,
     public ISystemConfigure,

@@ -23,7 +23,7 @@ libsdformat15-dev
 libtinyxml2-dev
 libxi-dev
 libxmu-dev
-python3-distutils
+libpython3-dev
 python3-gz-math8
 python3-gz-msgs11
 python3-gz-transport14

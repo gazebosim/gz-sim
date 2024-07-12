@@ -80,6 +80,9 @@ struct MaybeGilScopedRelease
 #else
   struct MaybeGilScopedRelease
   {
+    // The empty constructor is needed to avoid an "unused variable" warning
+    // when an instance of this class is used.
+    MaybeGilScopedRelease(){}
   };
 #endif
 }
@@ -459,6 +462,8 @@ void SimulationRunner::PublishStats()
   msg.set_iterations(this->currentInfo.iterations);
 
   msg.set_paused(this->currentInfo.paused);
+
+  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
 
   if (this->Stepping())
   {

@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Collision.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Heightmap.hh>
@@ -667,6 +668,13 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     capsule->SetLength(_geom.CapsuleShape()->Length());
     geom = capsule;
   }
+  else if (_geom.Type() == sdf::GeometryType::CONE)
+  {
+    geom = this->dataPtr->scene->CreateCone();
+    scale.X() = _geom.ConeShape()->Radius() * 2;
+    scale.Y() = scale.X();
+    scale.Z() = _geom.ConeShape()->Length();
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->dataPtr->scene->CreateCylinder();
@@ -813,8 +821,14 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::MeshDescriptor descriptor;
     descriptor.meshName = name;
     descriptor.mesh = meshManager->MeshByName(name);
-
-    geom = this->dataPtr->scene->CreateMesh(descriptor);
+    if (descriptor.mesh)
+    {
+      geom = this->dataPtr->scene->CreateMesh(descriptor);
+    }
+    else
+    {
+      gzerr << "Unable to find the polyline mesh: " << name << std::endl;
+    }
   }
   else
   {

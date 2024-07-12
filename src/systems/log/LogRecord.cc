@@ -338,8 +338,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   // Get the topics to record, if any.
   if (this->sdf->HasElement("record_topic"))
   {
-    auto ptr = const_cast<sdf::Element *>(this->sdf.get());
-    sdf::ElementPtr recordTopicElem = ptr->GetElement("record_topic");
+    auto recordTopicElem = this->sdf->FindElement("record_topic");
 
     // This is used to determine if a topic is a regular expression.
     std::regex regexMatch(".*[\\*\\?\\[\\]\\(\\)\\.]+.*");
@@ -670,8 +669,8 @@ void LogRecord::PostUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // Publish only once

@@ -53,6 +53,7 @@
 #include <gz/physics/RequestEngine.hh>
 
 #include <gz/physics/BoxShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ForwardStep.hh>
@@ -622,8 +623,15 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
-  // Nested Models
+  // CollisionPairMaxContacts
+  /// \brief Feature list for setting and getting the max total contacts for
+  /// collision pairs
+  public: struct CollisionPairMaxContactsFeatureList :
+            gz::physics::FeatureList<
+            gz::physics::CollisionPairMaxContacts>{};
 
+  //////////////////////////////////////////////////
+  // Nested Models
   /// \brief Feature list to construct nested models
   public: struct NestedModelFeatureList : physics::FeatureList<
             MinimumFeatureList,
@@ -646,7 +654,8 @@ class gz::sim::systems::PhysicsPrivate
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
           SolverFeatureList,
-          WorldModelFeatureList
+          WorldModelFeatureList,
+          CollisionPairMaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -1024,6 +1033,57 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             solverFeature->SetSolver(solverComp->Data());
           }
         }
+        auto solverItersComp =
+            _ecm.Component<components::PhysicsSolverIterations>(_entity);
+        if (solverItersComp)
+        {
+          auto solverFeature =
+              this->entityWorldMap.EntityCast<SolverFeatureList>(
+              _entity);
+          if (!solverFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[SolverFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            solverFeature->SetSolverIterations(solverItersComp->Data());
+          }
+        }
+
+        auto physicsComp =
+            _ecm.Component<components::Physics>(_entity);
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<
+              CollisionPairMaxContactsFeatureList>(_entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[CollisionPairMaxContacts]. "
+                     << "Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetCollisionPairMaxContacts(
+              physicsComp->Data().MaxContacts());
+          }
+        }
 
         // World Model proxy (used for joints directly under <world> in SDF)
         auto worldModelFeature =
@@ -1284,6 +1344,15 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         if (inertial)
         {
           link.SetInertial(inertial->Data());
+        }
+
+        // get link gravity
+        const components::GravityEnabled *gravityEnabled =
+            _ecm.Component<components::GravityEnabled>(_entity);
+        if (nullptr != gravityEnabled)
+        {
+          // gravityEnabled set in SdfEntityCreator::CreateEntities()
+          link.SetEnableGravity(gravityEnabled->Data());
         }
 
         auto constructLinkFeature =
@@ -3628,12 +3697,20 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  _ecm.Each<components::JointVelocityCmd>(
-      [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
-      {
-        std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
-        return true;
-      });
+  {
+    std::vector<Entity> entitiesJointVelocityCmd;
+    _ecm.Each<components::JointVelocityCmd>(
+        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
+        {
+          entitiesJointVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesJointVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
+    }
+  }
 
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
@@ -3641,21 +3718,37 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
+
+  {
+    std::vector<Entity> entitiesAngularVelocityCmd;
+    _ecm.Each<components::AngularVelocityCmd>(
+        [&](const Entity &_entity, components::AngularVelocityCmd *) -> bool
+        {
+          entitiesAngularVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesAngularVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::AngularVelocityCmd>(entity);
+    }
+  }
+
+  {
+    std::vector<Entity> entitiesLinearVelocityCmd;
+    _ecm.Each<components::LinearVelocityCmd>(
+        [&](const Entity &_entity, components::LinearVelocityCmd *) -> bool
+        {
+          entitiesLinearVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesLinearVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::LinearVelocityCmd>(entity);
+    }
+  }
   GZ_PROFILE_END();
-
-  _ecm.Each<components::AngularVelocityCmd>(
-      [&](const Entity &, components::AngularVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
-
-  _ecm.Each<components::LinearVelocityCmd>(
-      [&](const Entity &, components::LinearVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
 
   // Update joint positions
   GZ_PROFILE_BEGIN("Joints");

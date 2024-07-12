@@ -374,6 +374,14 @@ Rectangle {
           }
 
           MenuItem {
+            id: coneLink
+            text: "Cone"
+            onClicked: {
+              ComponentInspectorEditor.OnAddEntity("cone", "link");
+            }
+          }
+
+          MenuItem {
             id: cylinderLink
             text: "Cylinder"
             onClicked: {

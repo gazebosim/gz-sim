@@ -99,7 +99,7 @@ class ActorFixture : public InternalFixture<InternalFixture<::testing::Test>>
 // Load the actor_trajectory.sdf world that animates a box (actor) to follow
 // a trajectory. Verify that the box pose changes over time on the rendering
 // side.
-TEST_F(ActorFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(ActorTrajectoryNoMesh))
+TEST_F(ActorFixture, ActorTrajectoryNoMesh)
 {
   sim::ServerConfig serverConfig;
 
@@ -156,9 +156,12 @@ TEST_F(ActorFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(ActorTrajectoryNoMesh))
     std::lock_guard<std::mutex> lock(g_mutex);
     auto it = g_modelPoses.find(boxName);
     auto &poses = it->second;
-    for (unsigned int i = 0; i < poses.size()-1; ++i)
+    for (unsigned int i = 0; i < poses.size()-2; i+=2)
     {
-      EXPECT_NE(poses[i], poses[i+1]);
+      // There could be times when the rendering thread has not updated
+      // between PostUpdates so two consecutive poses may still be the same.
+      // So check for diff between every other pose
+      EXPECT_NE(poses[i], poses[i+2]);
     }
   }
 

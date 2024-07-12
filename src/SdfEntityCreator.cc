@@ -15,6 +15,8 @@
  *
 */
 
+#include <cstdint>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
@@ -84,6 +86,8 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/components/World.hh"
 
+#include "rendering/MaterialParser/MaterialParser.hh"
+
 class gz::sim::SdfEntityCreatorPrivate
 {
   /// \brief Pointer to entity component manager. We don't assume ownership.
@@ -103,6 +107,9 @@ class gz::sim::SdfEntityCreatorPrivate
   /// \brief Keep track of new visuals being added, so we load their plugins
   /// only after we have their scoped name.
   public: std::map<Entity, sdf::Plugins> newVisuals;
+
+  /// \brief Parse Gazebo defined materials for visuals
+  public: MaterialParser materialParser;
 };
 
 using namespace gz;
@@ -193,6 +200,7 @@ SdfEntityCreator::SdfEntityCreator(EntityComponentManager &_ecm,
 {
   this->dataPtr->ecm = &_ecm;
   this->dataPtr->eventManager = &_eventManager;
+  this->dataPtr->materialParser.Load();
 }
 
 /////////////////////////////////////////////////
@@ -299,26 +307,39 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   // Populate physics options that aren't accessible outside the Element()
   // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
+  if (physics->Element())
   {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
+    if (auto dartElem = physics->Element()->FindElement("dart"))
     {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
+      if (dartElem->HasElement("collision_detector"))
+      {
+        auto collisionDetector =
+            dartElem->Get<std::string>("collision_detector");
 
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
+        this->dataPtr->ecm->CreateComponent(worldEntity,
+            components::PhysicsCollisionDetector(collisionDetector));
+      }
+      if (auto solverElem = dartElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("solver_type"))
+        {
+          auto solver = solverElem->Get<std::string>("solver_type");
+          this->dataPtr->ecm->CreateComponent(worldEntity,
+              components::PhysicsSolver(solver));
+        }
+      }
     }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
+    if (auto bulletElem = physics->Element()->FindElement("bullet"))
     {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsSolver(solver));
+      if (auto solverElem = bulletElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("iters"))
+        {
+          uint32_t solverIterations = solverElem->Get<uint32_t>("iters");
+          this->dataPtr->ecm->CreateComponent(worldEntity,
+              components::PhysicsSolverIterations(solverIterations));
+        }
+      }
     }
   }
 
@@ -566,6 +587,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
         linkEntity, components::WindMode(_link->EnableWind()));
   }
 
+  if (!_link->EnableGravity())
+  {
+    // If disable gravity, create a GravityEnabled component to the entity
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::GravityEnabled(false));
+  }
+
   // Visuals
   for (uint64_t visualIndex = 0; visualIndex < _link->VisualCount();
       ++visualIndex)
@@ -788,8 +816,47 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
   // \todo(louise) Populate with default material if undefined
   if (_visual->Material())
   {
+    sdf::Material visualMaterial = *_visual->Material();
+    if (!_visual->Material()->ScriptUri().empty())
+    {
+      gzwarn << "Gazebo does not support Ogre material scripts. See " <<
+      "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
+      "for details." << std::endl;
+      std::string scriptUri = visualMaterial.ScriptUri();
+      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+        gzwarn << "Custom material scripts are not supported."
+          << std::endl;
+      }
+    }
+    if (!_visual->Material()->ScriptName().empty())
+    {
+      std::string scriptName = visualMaterial.ScriptName();
+
+      if ((scriptName.find("Gazebo/") == 0u))
+      {
+        gzwarn << "Using an internal gazebo.material to parse "
+          << scriptName << std::endl;
+        std::optional<MaterialParser::MaterialValues> parsed =
+          this->dataPtr->materialParser.GetMaterialValues(scriptName);
+
+        if(parsed.has_value())
+        {
+          visualMaterial.SetAmbient
+            (parsed->ambient.value_or(visualMaterial.Ambient()));
+          visualMaterial.SetDiffuse
+            (parsed->diffuse.value_or(visualMaterial.Diffuse()));
+          visualMaterial.SetSpecular
+            (parsed->specular.value_or(visualMaterial.Specular()));
+        }
+        else
+        {
+          gzwarn << "Material " << scriptName <<
+            " not recognized or supported, using default." << std::endl;
+        }
+      }
+    }
     this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(*_visual->Material()));
+        components::Material(visualMaterial));
   }
 
   // store the plugin in a component

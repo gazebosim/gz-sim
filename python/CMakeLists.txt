@@ -1,34 +1,20 @@
-if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # pybind11 logic for setting up a debug build when both a debug and release
-  # python interpreter are present in the system seems to be pretty much broken.
-  # This works around the issue.
-  set(PYTHON_LIBRARIES "${PYTHON_DEBUG_LIBRARIES}")
-endif()
-
-
 if(USE_SYSTEM_PATHS_FOR_PYTHON_INSTALLATION)
-  if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "if True:
-  from distutils import sysconfig as sc
-  print(sc.get_python_lib(plat_specific=True))"
-      OUTPUT_VARIABLE Python3_SITEARCH
-      OUTPUT_STRIP_TRAILING_WHITESPACE)
-  else()
-    # Get install variable from Python3 module
-    # Python3_SITEARCH is available from 3.12 on, workaround if needed:
+  if(NOT Python3_SITEARCH)
+    # Get variable from Python3 module
     find_package(Python3 COMPONENTS Interpreter)
   endif()
 
   if(USE_DIST_PACKAGES_FOR_PYTHON)
     string(REPLACE "site-packages" "dist-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
+  else()
+    # custom cmake command is returning dist-packages
+    string(REPLACE "dist-packages" "site-packages" GZ_PYTHON_INSTALL_PATH ${Python3_SITEARCH})
   endif()
 else()
   # If not a system installation, respect local paths
   set(GZ_PYTHON_INSTALL_PATH ${GZ_LIB_INSTALL_DIR}/python)
 endif()
 
-set(GZ_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 set(GZ_PYTHON_INSTALL_PATH "${GZ_PYTHON_INSTALL_PATH}/gz")
 
 # Set the build location and install location for a CPython extension
@@ -98,7 +84,7 @@ if (BUILD_TESTING)
     world_TEST
   )
 
-  execute_process(COMMAND "${GZ_PYTHON_EXECUTABLE}" -m pytest --version
+  execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
     ERROR_VARIABLE  PYTEST_error
     RESULT_VARIABLE PYTEST_result)
@@ -112,10 +98,10 @@ if (BUILD_TESTING)
   foreach (test ${python_tests})
     if (pytest_FOUND)
       add_test(NAME ${test} COMMAND
-        "${GZ_PYTHON_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
+        "${Python3_EXECUTABLE}" -m pytest "${CMAKE_SOURCE_DIR}/python/test/${test}.py" --junitxml "${CMAKE_BINARY_DIR}/test_results/UNIT_${test}.xml")
     else()
       add_test(NAME ${test} COMMAND
-        "${GZ_PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
+        "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
 
     set(_env_vars)

@@ -43,19 +43,25 @@ class gz::sim::systems::ApplyJointForcePrivate
   public: transport::Node node;
 
   /// \brief Joint Entity
+  //! [jointEntityDeclaration]
   public: Entity jointEntity;
+  //! [jointEntityDeclaration]
 
   /// \brief Joint name
   public: std::string jointName;
 
   /// \brief Commanded joint force
+  //! [forceDeclaration]
   public: double jointForceCmd;
+  //! [forceDeclaration]
 
   /// \brief mutex to protect jointForceCmd
   public: std::mutex jointForceCmdMutex;
 
   /// \brief Model interface
+  //! [modelDeclaration]
   public: Model model{kNullEntity};
+  //! [modelDeclaration]
 };
 
 //////////////////////////////////////////////////
@@ -65,12 +71,14 @@ ApplyJointForce::ApplyJointForce()
 }
 
 //////////////////////////////////////////////////
+//! [Configure]
 void ApplyJointForce::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
+  //! [Configure]
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
@@ -96,17 +104,21 @@ void ApplyJointForce::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
+  //! [cmdTopic]
   auto topic = transport::TopicUtils::AsValidTopic("/model/" +
       this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
       "/cmd_force");
+  //! [cmdTopic]
   if (topic.empty())
   {
     gzerr << "Failed to create valid topic for [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
+  //! [cmdSub]
   this->dataPtr->node.Subscribe(topic, &ApplyJointForcePrivate::OnCmdForce,
                                 this->dataPtr.get());
+  //! [cmdSub]
 
   gzmsg << "ApplyJointForce subscribing to Double messages on [" << topic
          << "]" << std::endl;
@@ -122,16 +134,18 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // If the joint hasn't been identified yet, look for it
+  //! [findJoint]
   if (this->dataPtr->jointEntity == kNullEntity)
   {
     this->dataPtr->jointEntity =
         this->dataPtr->model.JointByName(_ecm, this->dataPtr->jointName);
   }
+  //! [findJoint]
 
   if (this->dataPtr->jointEntity == kNullEntity)
     return;
@@ -141,11 +155,14 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
     return;
 
   // Update joint force
+  //! [jointForceComponent]
   auto force = _ecm.Component<components::JointForceCmd>(
       this->dataPtr->jointEntity);
+  //! [jointForceComponent]
 
   std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
 
+  //! [modifyComponent]
   if (force == nullptr)
   {
     _ecm.CreateComponent(
@@ -156,14 +173,17 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
   {
     force->Data()[0] += this->dataPtr->jointForceCmd;
   }
+  //! [modifyComponent]
 }
 
 //////////////////////////////////////////////////
+//! [setForce]
 void ApplyJointForcePrivate::OnCmdForce(const msgs::Double &_msg)
 {
   std::lock_guard<std::mutex> lock(this->jointForceCmdMutex);
   this->jointForceCmd = _msg.data();
 }
+//! [setForce]
 
 GZ_ADD_PLUGIN(ApplyJointForce,
                     System,

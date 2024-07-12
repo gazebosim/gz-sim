@@ -1834,12 +1834,13 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "physics_options.sdf"));
 
-  bool checked{false};
+  bool checkedDart{false};
+  bool checkedBullet{false};
 
   // Create a system to check components
   test::Relay testSystem;
   testSystem.OnPostUpdate(
-    [&checked](const sim::UpdateInfo &,
+    [&checkedDart, &checkedBullet](const sim::UpdateInfo &,
     const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::World, components::PhysicsCollisionDetector,
@@ -1858,16 +1859,30 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
           {
             EXPECT_EQ("pgs", _solver->Data());
           }
-          checked = true;
+          checkedDart = true;
           return true;
         });
+      _ecm.Each<components::World, components::PhysicsSolverIterations>(
+        [&](const gz::sim::Entity &, const components::World *,
+            const components::PhysicsSolverIterations *_solverIters)->bool
+        {
+          EXPECT_NE(nullptr, _solverIters);
+          if (_solverIters)
+          {
+            EXPECT_EQ(100, _solverIters->Data());
+          }
+          checkedBullet = true;
+          return true;
+        });
+
     });
 
   sim::Server server(serverConfig);
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
 
-  EXPECT_TRUE(checked);
+  EXPECT_TRUE(checkedDart);
+  EXPECT_TRUE(checkedBullet);
 }
 
 /////////////////////////////////////////////////

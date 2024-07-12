@@ -154,14 +154,10 @@ void VelocityControl::Configure(const Entity &_entity,
          << modelTopic << "]"
          << std::endl;
 
-  // Ugly, but needed because the sdf::Element::GetElement is not a const
-  // function and _sdf is a const shared pointer to a const sdf::Element.
-  auto ptr = const_cast<sdf::Element *>(_sdf.get());
-
-  if (!ptr->HasElement("link_name"))
+  if (!_sdf->HasElement("link_name"))
     return;
 
-  sdf::ElementPtr sdfElem = ptr->GetElement("link_name");
+  auto sdfElem = _sdf->FindElement("link_name");
   while (sdfElem)
   {
     this->dataPtr->linkNames.push_back(sdfElem->Get<std::string>());
@@ -192,8 +188,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // Nothing left to do if paused.
@@ -201,38 +197,12 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     return;
 
   // update angular velocity of model
-  auto modelAngularVel =
-    _ecm.Component<components::AngularVelocityCmd>(
-      this->dataPtr->model.Entity());
-
-  if (modelAngularVel == nullptr)
-  {
-    _ecm.CreateComponent(
-      this->dataPtr->model.Entity(),
-      components::AngularVelocityCmd({this->dataPtr->angularVelocity}));
-  }
-  else
-  {
-    *modelAngularVel =
-      components::AngularVelocityCmd({this->dataPtr->angularVelocity});
-  }
+  _ecm.SetComponentData<components::AngularVelocityCmd>(
+    this->dataPtr->model.Entity(), {this->dataPtr->angularVelocity});
 
   // update linear velocity of model
-  auto modelLinearVel =
-    _ecm.Component<components::LinearVelocityCmd>(
-      this->dataPtr->model.Entity());
-
-  if (modelLinearVel == nullptr)
-  {
-    _ecm.CreateComponent(
-      this->dataPtr->model.Entity(),
-      components::LinearVelocityCmd({this->dataPtr->linearVelocity}));
-  }
-  else
-  {
-    *modelLinearVel =
-      components::LinearVelocityCmd({this->dataPtr->linearVelocity});
-  }
+  _ecm.SetComponentData<components::LinearVelocityCmd>(
+    this->dataPtr->model.Entity(), {this->dataPtr->linearVelocity});
 
   // If there are links, create link components
   // If the link hasn't been identified yet, look for it
@@ -266,17 +236,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     auto it = this->dataPtr->links.find(linkName);
     if (it != this->dataPtr->links.end())
     {
-      auto linkAngularVelComp =
-          _ecm.Component<components::AngularVelocityCmd>(it->second);
-      if (!linkAngularVelComp)
-      {
-        _ecm.CreateComponent(it->second,
-            components::AngularVelocityCmd({angularVel}));
-      }
-      else
-      {
-        *linkAngularVelComp = components::AngularVelocityCmd(angularVel);
-      }
+      _ecm.SetComponentData<components::AngularVelocityCmd>(
+        it->second, {angularVel});
     }
     else
     {
@@ -290,17 +251,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
     auto it = this->dataPtr->links.find(linkName);
     if (it != this->dataPtr->links.end())
     {
-      auto linkLinearVelComp =
-          _ecm.Component<components::LinearVelocityCmd>(it->second);
-      if (!linkLinearVelComp)
-      {
-        _ecm.CreateComponent(it->second,
-            components::LinearVelocityCmd({linearVel}));
-      }
-      else
-      {
-        *linkLinearVelComp = components::LinearVelocityCmd(linearVel);
-      }
+      _ecm.SetComponentData<components::LinearVelocityCmd>(
+        it->second, {linearVel});
     }
     else
     {

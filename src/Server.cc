@@ -121,6 +121,7 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->dataPtr->sdfRoot.LoadSdfString(
@@ -145,6 +146,7 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
 
@@ -156,7 +158,8 @@ Server::Server(const ServerConfig &_config)
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (errors.empty()) {
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY) {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -171,7 +174,9 @@ Server::Server(const ServerConfig &_config)
             return;
           }
           world->AddModel(*sdfRoot.Model());
-          if (errors.empty()) {
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
         }
@@ -196,7 +201,11 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       gzerr << err << "\n";
-    return;
+    if (_config.BehaviorOnSdfErrors() ==
+        ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+    {
+      return;
+    }
   }
 
   // Add record plugin
@@ -353,6 +362,29 @@ std::optional<size_t> Server::SystemCount(const unsigned int _worldIndex) const
 std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
                                       const unsigned int _worldIndex)
 {
+  return this->AddSystem(_system, std::nullopt, std::nullopt, _worldIndex);
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Server::AddSystem(const sdf::Plugin &_plugin,
+                                      std::optional<Entity> _entity,
+                                      const unsigned int _worldIndex)
+{
+  auto system = this->dataPtr->systemLoader->LoadPlugin(_plugin);
+  if (system)
+  {
+    return this->AddSystem(*system, _entity, _plugin.ToElement(), _worldIndex);
+  }
+  return false;
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Server::AddSystem(
+    const SystemPluginPtr &_system,
+    std::optional<Entity> _entity,
+    std::optional<std::shared_ptr<const sdf::Element>> _sdf,
+    const unsigned int _worldIndex)
+{
   // Check the current state, and return early if preconditions are not met.
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   // Do not allow running more than once.
@@ -364,7 +396,7 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 
   if (_worldIndex < this->dataPtr->simRunners.size())
   {
-    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
+    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system, _entity, _sdf);
     return true;
   }
 
@@ -375,6 +407,16 @@ std::optional<bool> Server::AddSystem(const SystemPluginPtr &_system,
 std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
                                       const unsigned int _worldIndex)
 {
+  return this->AddSystem(_system, std::nullopt, std::nullopt, _worldIndex);
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Server::AddSystem(
+    const std::shared_ptr<System> &_system,
+    std::optional<Entity> _entity,
+    std::optional<std::shared_ptr<const sdf::Element>> _sdf,
+    const unsigned int _worldIndex)
+{
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->running)
   {
@@ -384,7 +426,7 @@ std::optional<bool> Server::AddSystem(const std::shared_ptr<System> &_system,
 
   if (_worldIndex < this->dataPtr->simRunners.size())
   {
-    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system);
+    this->dataPtr->simRunners[_worldIndex]->AddSystem(_system, _entity, _sdf);
     return true;
   }
 

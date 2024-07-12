@@ -15,7 +15,6 @@
  *
  */
 
-#include <gz/math/Inertial.hh>
 #include <gz/math/Matrix3.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
@@ -191,6 +190,23 @@ std::optional<math::Pose3d> Link::WorldPose(
 }
 
 //////////////////////////////////////////////////
+std::optional<math::Inertiald> Link::WorldInertial(
+    const EntityComponentManager &_ecm) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  if (!inertial)
+    return std::nullopt;
+
+  const math::Pose3d &comWorldPose =
+      worldPose * inertial->Data().Pose();
+  return std::make_optional(
+    math::Inertiald(inertial->Data().MassMatrix(), comWorldPose));
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Pose3d> Link::WorldInertialPose(
     const EntityComponentManager &_ecm) const
 {
@@ -338,6 +354,18 @@ std::optional<math::Matrix3d> Link::WorldInertiaMatrix(
       worldPose * inertial->Data().Pose();
   return std::make_optional(
       math::Inertiald(inertial->Data().MassMatrix(), comWorldPose).Moi());
+}
+
+std::optional<math::Matrix6d> Link::WorldFluidAddedMassMatrix(
+    const EntityComponentManager &_ecm) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.Component<components::WorldPose>(this->dataPtr->id);
+
+  if (!worldPose || !inertial)
+    return std::nullopt;
+
+  return inertial->Data().FluidAddedMass();
 }
 
 //////////////////////////////////////////////////
