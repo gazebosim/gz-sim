@@ -1,5 +1,25 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.5.0 (2024-06-26)
+
+1. Backport: Adding cone primitives
+    * [Pull request #2404](https://github.com/gazebosim/gz-sim/pull/2404)
+
+1. Permit to run gz sim -g on Windows
+    * [Pull request #2382](https://github.com/gazebosim/gz-sim/pull/2382)
+
+1. Parse voxel resolution SDF param when decomposing meshes
+    * [Pull request #2445](https://github.com/gazebosim/gz-sim/pull/2445)
+
+1. Fix model command api test
+    * [Pull request #2444](https://github.com/gazebosim/gz-sim/pull/2444)
+
+1. Add tutorial for using the Pose component
+    * [Pull request #2219](https://github.com/gazebosim/gz-sim/pull/2219)
+
+1. Do not update sensors if it a triggered sensor
+    * [Pull request #2443](https://github.com/gazebosim/gz-sim/pull/2443)
+
 ### Gazebo Sim 8.4.0 (2024-06-12)
 
 1. Add pause run tutorial

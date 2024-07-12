@@ -65,6 +65,7 @@
 #include <gz/transport/Node.hh>
 
 #include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Heightmap.hh>
@@ -1192,6 +1193,13 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     capsule->SetRadius(_geom.CapsuleShape()->Radius());
     capsule->SetLength(_geom.CapsuleShape()->Length());
     geom = capsule;
+  }
+  else if (_geom.Type() == sdf::GeometryType::CONE)
+  {
+    geom = this->scene->CreateCone();
+    scale.X() = _geom.ConeShape()->Radius() * 2;
+    scale.Y() = scale.X();
+    scale.Z() = _geom.ConeShape()->Length();
   }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
