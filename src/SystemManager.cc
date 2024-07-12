@@ -430,13 +430,6 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 {
   vec.erase(std::remove_if(vec.begin(), vec.end(), pred), vec.end());
 }
-template <typename Tp>
-void removeFromVector(std::vector<Tp> &_vec, const Tp &_value)
-{
-  _vec.erase(std::remove_if(_vec.begin(), _vec.end(),
-                            [&](const auto &_arg) { return _arg == _value; }),
-             _vec.end());
-}
 
 //////////////////////////////////////////////////
 void SystemManager::ProcessRemovedEntities(
@@ -452,37 +445,93 @@ void SystemManager::ProcessRemovedEntities(
     return;
   }
 
-  std::vector<SystemInternal> markedForRemoval;
+  std::unordered_set<ISystemReset *> resetSystemsToBeRemoved;
+  std::unordered_set<ISystemPreUpdate *> preupdateSystemsToBeRemoved;
+  std::unordered_set<ISystemUpdate *> updateSystemsToBeRemoved;
+  std::unordered_set<ISystemPostUpdate *> postupdateSystemsToBeRemoved;
+  std::unordered_set<ISystemConfigure *> configureSystemsToBeRemoved;
+  std::unordered_set<ISystemConfigureParameters *> configureParametersSystemsToBeRemoved;
   for (const auto &system : this->systems)
   {
     if (_ecm.IsMarkedForRemoval(system.parentEntity))
     {
-      markedForRemoval.push_back(system);
+      if (system.reset)
+      {
+        resetSystemsToBeRemoved.insert(system.reset);
+      }
+      if (system.preupdate)
+      {
+        preupdateSystemsToBeRemoved.insert(system.preupdate);
+      }
+      if (system.update)
+      {
+        updateSystemsToBeRemoved.insert(system.update);
+      }
+      if (system.postupdate)
+      {
+        postupdateSystemsToBeRemoved.insert(system.postupdate);
+        // If system with a PostUpdate is marked for removal
+        // mark all worker threads for removal.
+        _needsCleanUp = true;
+      }
+      if (system.configure)
+      {
+        configureSystemsToBeRemoved.insert(system.configure);
+      }
+      if (system.configureParameters)
+      {
+        configureParametersSystemsToBeRemoved.insert(system.configureParameters);
+      }
     }
   }
 
-  for (const auto &system : markedForRemoval)
-  {
-    removeFromVector(this->systemsReset, system.reset);
-    removeFromVector(this->systemsPreupdate, system.preupdate);
-    removeFromVector(this->systemsUpdate, system.update);
+  RemoveFromVectorIf(this->systemsReset,
+    [&](const auto system) {
+      if (resetSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systemsPreupdate,
+    [&](const auto& system) {
+      if (preupdateSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systemsUpdate,
+    [&](const auto& system) {
+      if (updateSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
 
-    if (system.postupdate)
-    {
-      // If system with a PostUpdate is marked for removal
-      // mark all worker threads for removal.
-      _needsCleanUp = true;
-    }
-
-    removeFromVector(this->systemsPostupdate, system.postupdate);
-    removeFromVector(this->systemsConfigure, system.configure);
-    removeFromVector(this->systemsConfigureParameters,
-                     system.configureParameters);
-    RemoveFromVectorIf(this->systems,
-                       [&](const SystemInternal& _arg) {
-                       return _arg.parentEntity == system.parentEntity;
-                       });
-  }
+  RemoveFromVectorIf(this->systemsPostupdate,
+    [&](const auto& system) {
+      if (postupdateSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systemsConfigure,
+    [&](const auto& system) {
+      if (configureSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systemsConfigureParameters,
+    [&](const auto& system) {
+      if (configureParametersSystemsToBeRemoved.count(system)) {
+        return true;
+      }
+      return false;
+    });
+  RemoveFromVectorIf(this->systems,
+    [&](const SystemInternal& _arg) {
+      return _ecm.IsMarkedForRemoval(_arg.parentEntity);
+    });
 
   std::lock_guard lock(this->pendingSystemsMutex);
   RemoveFromVectorIf(this->pendingSystems,
