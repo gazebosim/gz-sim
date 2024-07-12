@@ -18,6 +18,7 @@
 #include <list>
 #include <mutex>
 #include <set>
+#include <unordered_set>
 
 #include <gz/common/StringUtils.hh>
 
@@ -450,7 +451,8 @@ void SystemManager::ProcessRemovedEntities(
   std::unordered_set<ISystemUpdate *> updateSystemsToBeRemoved;
   std::unordered_set<ISystemPostUpdate *> postupdateSystemsToBeRemoved;
   std::unordered_set<ISystemConfigure *> configureSystemsToBeRemoved;
-  std::unordered_set<ISystemConfigureParameters *> configureParametersSystemsToBeRemoved;
+  std::unordered_set<ISystemConfigureParameters *>
+    configureParametersSystemsToBeRemoved;
   for (const auto &system : this->systems)
   {
     if (_ecm.IsMarkedForRemoval(system.parentEntity))
@@ -480,7 +482,8 @@ void SystemManager::ProcessRemovedEntities(
       }
       if (system.configureParameters)
       {
-        configureParametersSystemsToBeRemoved.insert(system.configureParameters);
+        configureParametersSystemsToBeRemoved.insert(
+          system.configureParameters);
       }
     }
   }
