@@ -3794,6 +3794,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
     return;
 
+  // Also check if any entity currently has a ContactSensorData component.
+  bool need_contact_sensor_data = false;
+  _ecm.Each<components::Collision, components::ContactSensorData>(
+      [&](const Entity &_collEntity1, components::Collision *,
+          components::ContactSensorData *_contacts) -> bool
+      {
+        need_contact_sensor_data = true;
+        return false;
+      });
+  if (!need_contact_sensor_data) return;
+
   // TODO(addisu) If systems are assumed to only have one world, we should
   // capture the world Entity in a Configure call
   Entity worldEntity = _ecm.EntityByComponents(components::World());
