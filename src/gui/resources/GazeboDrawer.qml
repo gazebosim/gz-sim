@@ -132,10 +132,10 @@ Rectangle {
   FileDialog {
     id: saveWorldDialog
     title: "Save world"
-    folder: shortcuts.home
+    currentFolder: shortcuts.home
     nameFilters: [ "SDF files (*.sdf)" ]
-    selectMultiple: false
-    selectExisting: false
+    // selectMultiple: false
+    // selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
     }
@@ -204,8 +204,8 @@ Rectangle {
           id: saveWorldFileText
           text: "file:///"
           selectByMouse: true
-          validator: RegExpValidator {
-            regExp: fileValidator
+          validator: RegularExpressionValidator {
+            regularExpression: fileValidator
           }
           onTextChanged: {
             var valid = saveWorldFileText.text.match(fileValidator)
