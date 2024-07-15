@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<sdf version="1.12">
+<sdf version="1.11">
   <!--
     Try moving a model using the command in the following CDATA block::
   -->

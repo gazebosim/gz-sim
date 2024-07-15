@@ -99,7 +99,7 @@ class ActorFixture : public InternalFixture<InternalFixture<::testing::Test>>
 // Load the actor_trajectory.sdf world that animates a box (actor) to follow
 // a trajectory. Verify that the box pose changes over time on the rendering
 // side.
-TEST_F(ActorFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(ActorTrajectoryNoMesh))
+TEST_F(ActorFixture, ActorTrajectoryNoMesh)
 {
   sim::ServerConfig serverConfig;
 
