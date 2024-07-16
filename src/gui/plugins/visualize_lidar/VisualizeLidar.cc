@@ -277,15 +277,28 @@ void VisualizeLidar::Update(const UpdateInfo &,
         _ecm.EntityByComponents(components::SensorTopic(topic));
     }
 
+    static bool informed{false};
     if (lidarEnt == kNullEntity)
     {
-      gzerr << "The lidar entity with topic '['" <<  this->dataPtr->topicName
-            << "'] could not be found. "
-            << "Error displaying lidar visual. " << std::endl;
+      if (!informed)
+      {
+        gzerr << "The lidar entity with topic '['" <<  this->dataPtr->topicName
+              << "'] could not be found. "
+              << "Error displaying lidar visual. " << std::endl;
+        informed = true;
+      }
       return;
     }
+    informed = false;
     this->dataPtr->lidarEntity = lidarEnt;
     this->dataPtr->lidarEntityDirty = false;
+  }
+
+  if (!_ecm.HasEntity(this->dataPtr->lidarEntity))
+  {
+    this->dataPtr->resetVisual = true;
+    this->dataPtr->topicName = "";
+    return;
   }
 
   // Only update lidarPose if the lidarEntity exists and the lidar is
@@ -295,7 +308,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
   // data arrives, the visual is offset from the obstacle if the sensor is
   // moving fast.
   if (!this->dataPtr->lidarEntityDirty && this->dataPtr->initialized &&
-                                          !this->dataPtr->visualDirty)
+      !this->dataPtr->visualDirty)
   {
     this->dataPtr->lidarPose = worldPose(this->dataPtr->lidarEntity, _ecm);
   }
