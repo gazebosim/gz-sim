@@ -71,7 +71,7 @@ class SpacecraftTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedActuatorDutyCycle))
+TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
 {
   // Start server
   auto server = this->StartServer("/examples/worlds/spacecraft.sdf");
