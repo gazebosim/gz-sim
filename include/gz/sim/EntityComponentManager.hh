@@ -836,6 +836,9 @@ namespace ignition
       friend class GuiRunner;
       friend class SimulationRunner;
 
+      // Make SystemManager friend so it has access to removals
+      friend class SystemManager;
+
       // Make network managers friends so they have control over component
       // states. Like the runners, the managers are internal.
       friend class NetworkManagerPrimary;

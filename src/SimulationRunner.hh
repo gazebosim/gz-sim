@@ -532,6 +532,9 @@ namespace ignition
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+      /// \brief Set if we need to remove systems due to entity removal
+      private: bool threadsNeedCleanUp;
+
       friend class LevelManager;
     };
     }
