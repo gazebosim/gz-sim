@@ -1,3 +1,5 @@
+# DONT MERGE: testing revert of gz-math graph init changes
+
 # Gazebo Sim : A Robotic Simulator
 
 **Maintainer:** michael AT openrobotics DOT org
