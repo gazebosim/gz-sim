@@ -351,6 +351,8 @@ void SpacecraftThrusterModelPrivate::UpdateForcesAndMoments(
 
   // Apply force if the sampling time is less than the target ON duty cycle
   double force = this->samplingTime <= targetDutyCycle ? this->maxThrust : 0.0;
+  if(targetDutyCycle < 1e-9) force = 0.0;
+
   if (this->actuatorNumber == 0)
     gzdbg << this->actuatorNumber
               << ": Force: " << force
