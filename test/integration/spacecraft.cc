@@ -90,7 +90,6 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
           const EntityComponentManager &_ecm)
       {
         // Command a motor speed
-        // After nIters iterations, check angular velocity of each of the rotors
         const double cmdDutyCycle{0};
         if (_info.iterations == iterTestStart)
         {
@@ -108,6 +107,7 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
 
             auto poseComp = _ecm.Component<components::Pose>(id);
             ASSERT_NE(nullptr, poseComp);
+            // Collect poses
             poses.push_back(poseComp->Data());
         }
       });
