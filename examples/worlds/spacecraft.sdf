@@ -4,7 +4,7 @@
 
   Send commands to a single thruster:
 
-      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
+      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/duty_cycle --msgtype gz.msgs.Actuators
 -->
 <sdf version="1.6">
   <world name="zero_g">
@@ -45,7 +45,7 @@
     </light>
     <include>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/proque/models/dart/6</uri>
+      <uri>https://fuel.gazebosim.org/1.0/proque/models/dart/7</uri>
     </include>
   </world>
 </sdf>

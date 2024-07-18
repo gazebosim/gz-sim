@@ -4,7 +4,7 @@
 
   Send commands to a single thruster:
 
-      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
+      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/duty_cycle --msgtype gz.msgs.Actuators
 -->
 <sdf version="1.6">
   <world name="ground_testbed">

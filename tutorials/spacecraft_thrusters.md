@@ -22,7 +22,7 @@ Here follows an example instance of the `SpacecraftThrusterModel` plugin in an S
       <actuator_number>0</actuator_number>
       <duty_cycle_frequency>10</duty_cycle_frequency>
       <max_thrust>1.4</max_thrust>
-      <sub_topic>command/motor_speed</sub_topic>
+      <sub_topic>command/duty_cycle</sub_topic>
     </plugin>
 ```
 
@@ -79,7 +79,7 @@ gz sim spacecraft.sdf
 
 This spacecraft has 12 thrusters. To send inputs to `thruster_0`, run the following command:
 ```bash
-gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/motor_speed --msgtype gz.msgs.Actuators
+gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/duty_cycle --msgtype gz.msgs.Actuators
 ```
 
 This command will send the maximum force of a thruster over one sampling time.
@@ -98,7 +98,7 @@ gz sim ground_spacecraft_testbed.sdf
 
 This spacecraft has 8 thrusters. To send inputs to `thruster_0`, run the following command:
 ```bash
-gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /kth_freeflyer/command/motor_speed --msgtype gz.msgs.Actuators
+gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /kth_freeflyer/command/duty_cycle --msgtype gz.msgs.Actuators
 ```
 
 Below is a picture of the simulator:

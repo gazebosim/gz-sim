@@ -77,8 +77,8 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
 
   test::Relay testSystem;
   transport::Node node;
-  auto cmdMotorSpeed =
-      node.Advertise<msgs::Actuators>("/dart/command/motor_speed");
+  auto cmdDutyCyclePublisher =
+      node.Advertise<msgs::Actuators>("/dart/command/duty_cycle");
 
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
@@ -95,7 +95,7 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
           msgs::Actuators msg;
           msg.mutable_normalized()->Resize(12, cmdDutyCycle);
           msg.mutable_normalized()->Set(0, 1.0);
-          cmdMotorSpeed.Publish(msg);
+          cmdDutyCyclePublisher.Publish(msg);
         }
         else
         {
