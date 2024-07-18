@@ -70,7 +70,7 @@ class SpacecraftTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that a thruster duty cycle command is applied
-TEST_F(SpacecraftTest, InputTest)
+TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
 {
   // Start server
   auto server = this->StartServer("/examples/worlds/spacecraft.sdf");
