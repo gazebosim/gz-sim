@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,9 +69,8 @@ class SpacecraftTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-// Test that commanded motor speed is applied
-// See https://github.com/gazebosim/gz-sim/issues/1175
-TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
+// Test that a thruster duty cycle command is applied
+TEST_F(SpacecraftTest, InputTest)
 {
   // Start server
   auto server = this->StartServer("/examples/worlds/spacecraft.sdf");
@@ -89,7 +88,7 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
       [&](const UpdateInfo &_info,
           const EntityComponentManager &_ecm)
       {
-        // Command a motor speed
+        // Command a thruster duty cycle
         const double cmdDutyCycle{0};
         if (_info.iterations == iterTestStart)
         {
