@@ -1,4 +1,4 @@
-# DONT MERGE: testing revert of gz-math graph init changes
+# DONT MERGE: testing reapplying fix for gz-math graph init
 
 # Gazebo Sim : A Robotic Simulator
 
