@@ -40,7 +40,11 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Recreate.hh"
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
@@ -55,21 +59,13 @@ using StringSet = std::unordered_set<std::string>;
 
 
 //////////////////////////////////////////////////
-SimulationRunner::SimulationRunner(const sdf::World *_world,
+SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const ServerConfig &_config)
-    // \todo(nkoenig) Either copy the world, or add copy constructor to the
-    // World and other elements.
-    : sdfWorld(_world), serverConfig(_config)
+  : sdfWorld(_world), serverConfig(_config)
 {
-  if (nullptr == _world)
-  {
-    gzerr << "Can't start simulation runner with null world." << std::endl;
-    return;
-  }
-
   // Keep world name
-  this->worldName = _world->Name();
+  this->worldName = _world.Name();
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(
@@ -77,10 +73,10 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
-  auto physics = _world->PhysicsByIndex(0);
+  const sdf::Physics *physics = _world.PhysicsByIndex(0);
   if (!physics)
   {
-    physics = _world->PhysicsDefault();
+    physics = _world.PhysicsDefault();
   }
 
   // Step size
@@ -166,9 +162,6 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
-  // Create the level manager
-  this->levelMgr = std::make_unique<LevelManager>(this, _config.UseLevels());
-
   // Check if this is going to be a distributed runner
   // Attempt to create the manager based on environment variables.
   // If the configuration is invalid, then networkMgr will be `nullptr`.
@@ -206,27 +199,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
     }
   }
 
-  // Load the active levels
-  this->levelMgr->UpdateLevelsState();
+  // Create the level manager
+  this->levelMgr = std::make_unique<LevelManager>(this,
+      this->serverConfig.UseLevels());
 
-  // Store the initial state of the ECM;
-  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
-
-  // Load any additional plugins from the Server Configuration
-  this->LoadServerPlugins(this->serverConfig.Plugins());
-
-  // If we have reached this point and no world systems have been loaded, then
-  // load a default set of systems.
-  if (this->systemMgr->TotalByEntity(
-      worldEntity(this->entityCompMgr)).empty())
-  {
-    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = sim::loadPluginInfo(isPlayback);
-    this->LoadServerPlugins(plugins);
-  }
-
-  this->LoadLoggingPlugins(this->serverConfig);
+  this->CreateEntities(_world);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -241,9 +218,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
 
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
-  if (_world->Gui())
+  if (_world.Gui())
   {
-    this->guiMsg = convert<msgs::GUI>(*_world->Gui());
+    this->guiMsg = convert<msgs::GUI>(*_world.Gui());
   }
 
   std::string infoService{"gui/info"};
@@ -252,7 +229,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   gzmsg << "Serving GUI information on [" << opts.NameSpace() << "/"
          << infoService << "]" << std::endl;
 
-  gzmsg << "World [" << _world->Name() << "] initialized with ["
+  gzmsg << "World [" << this->worldName << "] initialized with ["
          << physics->Name() << "] physics profile." << std::endl;
 
   std::string genWorldSdfService{"generate_world_sdf"};
@@ -1417,19 +1394,7 @@ bool SimulationRunner::RequestRemoveEntity(const std::string &_name,
 std::optional<Entity> SimulationRunner::EntityByName(
     const std::string &_name) const
 {
-  std::optional<Entity> entity;
-  this->entityCompMgr.Each<components::Name>([&](const Entity _entity,
-        const components::Name *_entityName)->bool
-    {
-      if (_entityName->Data() == _name)
-      {
-        entity = _entity;
-        return false;
-      }
-      return true;
-    });
-
-  return entity;
+  return this->entityCompMgr.EntityByName(_name);
 }
 
 /////////////////////////////////////////////////
@@ -1496,4 +1461,81 @@ bool SimulationRunner::NextStepIsBlockingPaused() const
 void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::CreateEntities(const sdf::World &_world)
+{
+  this->sdfWorld = _world;
+
+  // Instantiate the SDF creator
+  auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+      this->eventMgr);
+
+  // We create the world entity so that the simulation runner can inject
+  // some components
+  Entity worldEntity = this->entityCompMgr.CreateEntity();
+  this->entityCompMgr.CreateComponent(worldEntity, components::World());
+
+  // 1. Level manager read performers and levels. Add components to the
+  // performers and levels so that the SdfEntityCreator knows whether to
+  // create them or not. Make sure to set parents properly
+  // 2. Create entities.
+
+  // Read the level information. This will create components containing
+  // information about which entities should be created for the current
+  // level.
+  this->levelMgr->ReadLevelPerformerInfo(this->sdfWorld);
+
+  // Configure the default level
+  this->levelMgr->ConfigureDefaultLevel();
+
+  // Create components based on the contents of the server configuration.
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::PhysicsEnginePlugin(this->serverConfig.PhysicsEngine()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerPlugin(
+        this->serverConfig.RenderEngineServer()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerHeadless(
+      this->serverConfig.HeadlessRendering()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineGuiPlugin(
+      this->serverConfig.RenderEngineGui()));
+
+  // Load the world entities from SDF
+  creator->CreateEntities(&this->sdfWorld, worldEntity);
+
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
+
+  // Some entities and component should be removed based on the levels.
+  this->entityCompMgr.ProcessRemoveEntityRequests();
+  this->entityCompMgr.ClearRemovedComponents();
+
+  this->LoadLoggingPlugins(this->serverConfig);
+
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig.Plugins());
+
+  // If we have reached this point and no world systems have been loaded, then
+  // load a default set of systems.
+  if (this->systemMgr->TotalByEntity(worldEntity).empty())
+  {
+    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
+    this->LoadServerPlugins(plugins);
+  }
+
+  // Store the initial state of the ECM;
+  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+
+  // Publish empty GUI messages for worlds that have no GUI in the beginning.
+  // In the future, support modifying GUI from the server at runtime.
+  if (_world.Gui())
+    this->guiMsg = convert<msgs::GUI>(*_world.Gui());
 }
