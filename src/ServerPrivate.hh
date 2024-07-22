@@ -187,6 +187,11 @@ namespace gz
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
 
+      /// \brief Gazebo classic material URI string
+      /// Only gazebo classic material script uri matching this still will be
+      /// migrated to gz.
+      public: static const std::string kClassicMaterialScriptUri;
+
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 

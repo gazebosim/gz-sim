@@ -37,6 +37,9 @@
 using namespace gz;
 using namespace sim;
 
+const std::string ServerPrivate::kClassicMaterialScriptUri =
+    "file://media/materials/scripts/gazebo.material";
+
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -546,6 +549,12 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
+  // Check if it is a gazebo classic material URI
+  // Return original URI string. The MaterialParser will handle this URI.
+  if (_uri == kClassicMaterialScriptUri)
+    return _uri;
+
+  // Fetch resource from fuel
   auto path =
       fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
 

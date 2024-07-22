@@ -85,6 +85,7 @@
 #include "gz/sim/components/World.hh"
 
 #include "rendering/MaterialParser/MaterialParser.hh"
+#include "ServerPrivate.hh"
 
 class gz::sim::SdfEntityCreatorPrivate
 {
@@ -808,7 +809,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
       "for details." << std::endl;
       std::string scriptUri = visualMaterial.ScriptUri();
-      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+      if (scriptUri != ServerPrivate::kClassicMaterialScriptUri)
+      {
         gzwarn << "Custom material scripts are not supported."
           << std::endl;
       }
