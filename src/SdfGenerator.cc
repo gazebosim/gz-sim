@@ -26,6 +26,7 @@
 #include <gz/common/URI.hh>
 
 #include "gz/sim/Util.hh"
+#include "gz/sim/components/AirFlowSensor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
@@ -714,6 +715,15 @@ namespace sdf_generator
       // components::ContactSensor holds an sdf::ElementPtr instead of an
       // sdf::Sensor
       _elem = contactComp->Data();
+      return updateSensorNameAndPose();
+    }
+    // air flow
+    auto airFlowComp =
+        _ecm.Component<components::AirFlowSensor>(_entity);
+    if (airFlowComp)
+    {
+      const sdf::Sensor &sensor = airFlowComp->Data();
+      _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
     }
     // air pressure
