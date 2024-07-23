@@ -301,7 +301,7 @@ TEST_F(MaterialTest, WorldWithClassicMaterial)
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
-      "test/worlds/classic_material.sdf"));
+      "test", "worlds", "classic_material.sdf"));
 
   std::cout << "Loading: " << serverConfig.SdfFile() << std::endl;
   this->StartServer(serverConfig);
