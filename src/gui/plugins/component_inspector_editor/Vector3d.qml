@@ -16,10 +16,8 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 
@@ -43,7 +41,7 @@ Rectangle {
   property double spinMax: Number.MAX_VALUE
 
   // Units, defaults to meters.
-  property string unit: model && model.unit != undefined ? model.unit : 'm'
+  property string unit: model && model.unit !== undefined ? model.unit : 'm'
 
   // Readn-only / write
   property bool readOnly: true
@@ -56,9 +54,9 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: numberValue
-      minimumValue: -spinMax
-      maximumValue: spinMax
-      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
+      from: -spinMax
+      to: spinMax
+      // decimals: getDecimalsAdjustValue(writableSpin, numberValue)
     }
   }
 

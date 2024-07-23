@@ -38,10 +38,10 @@ GridLayout {
   property int decimalPlaces: 2
 
   // Step size of the force and torque
-  property double step: 100.0
+  property double step: 100
 
   // Step size of the offset
-  property double stepOffset: 1.0
+  property double stepOffset: 1
 
   Label {
     Layout.columnSpan: 8
@@ -120,12 +120,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: forceX
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.force.x
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.force.x = forceX.value
+    onValueModified: ApplyForceTorque.force.x = forceX.value
   }
 
   Label {
@@ -140,12 +140,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: offsetX
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: 0
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: stepOffset
-    onValueChanged: ApplyForceTorque.UpdateOffset(
+    onValueModified: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }
 
@@ -161,12 +161,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: forceY
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.force.y
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.force.y = forceY.value
+    onValueModified: ApplyForceTorque.force.y = forceY.value
   }
 
   Label {
@@ -181,12 +181,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: offsetY
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: 0
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: stepOffset
-    onValueChanged: ApplyForceTorque.UpdateOffset(
+    onValueModified: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }
 
@@ -202,12 +202,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: forceZ
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.force.z
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.force.z = forceZ.value
+    onValueModified: ApplyForceTorque.force.z = forceZ.value
   }
 
   Label {
@@ -222,12 +222,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: offsetZ
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: 0
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: stepOffset
-    onValueChanged: ApplyForceTorque.UpdateOffset(
+    onValueModified: ApplyForceTorque.UpdateOffset(
       offsetX.value, offsetY.value, offsetZ.value)
   }
 
@@ -243,12 +243,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: forceMag
-    maximumValue: maxValue
-    minimumValue: 0
+    to: maxValue
+    from: 0
     value: ApplyForceTorque.forceMag
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.forceMag = forceMag.value
+    onValueModified: ApplyForceTorque.forceMag = forceMag.value
   }
 
   Button {
@@ -280,12 +280,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueX
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.torque.x
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.torque.x = torqueX.value
+    onValueModified: ApplyForceTorque.torque.x = torqueX.value
   }
 
   Label {
@@ -300,12 +300,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueY
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.torque.y
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.torque.y = torqueY.value
+    onValueModified: ApplyForceTorque.torque.y = torqueY.value
   }
 
   Label {
@@ -320,12 +320,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueZ
-    maximumValue: maxValue
-    minimumValue: minValue
+    to: maxValue
+    from: minValue
     value: ApplyForceTorque.torque.z
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.torque.z = torqueZ.value
+    onValueModified: ApplyForceTorque.torque.z = torqueZ.value
   }
 
   Label {
@@ -340,12 +340,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: torqueMag
-    maximumValue: maxValue
-    minimumValue: 0
+    to: maxValue
+    from: 0
     value: ApplyForceTorque.torqueMag
-    decimals: decimalPlaces
+    // decimals: decimalPlaces
     stepSize: step
-    onValueChanged: ApplyForceTorque.torqueMag = torqueMag.value
+    onValueModified: ApplyForceTorque.torqueMag = torqueMag.value
   }
 
   Button {

@@ -36,7 +36,7 @@ Rectangle {
 
   id: quickStart
   anchors.fill: parent
-  property var selectedWorld: ""
+  property string selectedWorld: ""
 
   function changeDefault(checked) {
     QuickStartHandler.SetShowAgain(checked);
@@ -79,7 +79,7 @@ Rectangle {
   }
 
   function getColor(fileName){
-    if(fileName == selectedWorld)
+    if(fileName === selectedWorld)
       return Material.primary;
     return "#e0e0e0";
   }

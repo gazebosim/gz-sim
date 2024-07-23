@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspector"
 import "qrc:/gz/gui/qml"
 
@@ -52,46 +50,46 @@ Rectangle {
   property double aDiffuseValue: model.data[7]
 
   // Loaded item for attenuation range
-  property var attRangeItem: {}
+  property var attRangeItem: ({})
 
   // Loaded item for attenuation linear
-  property var attLinearItem: {}
+  property var attLinearItem: ({})
 
   // Loaded item for attenuation constant
-  property var attConstantItem: {}
+  property var attConstantItem: ({})
 
   // Loaded item for attenuation quadratic
-  property var attQuadraticItem: {}
+  property var attQuadraticItem: ({})
 
   // Loaded item for cast shadows
-  property var castShadowsItem: {}
+  property var castShadowsItem: ({})
 
   // Loaded item for direction X (spotlight or directional)
-  property var directionXItem: {}
+  property var directionXItem: ({})
 
   // Loaded item for direction Y (spotlight or directional)
-  property var directionYItem: {}
+  property var directionYItem: ({})
 
   // Loaded item for direction Z (spotlight or directional)
-  property var directionZItem: {}
+  property var directionZItem: ({})
 
   // Loaded item for inner angle (spotlight)
-  property var innerAngleItem: {}
+  property var innerAngleItem: ({})
 
   // Loaded item for inner angle (spotlight)
-  property var outerAngleItem: {}
+  property var outerAngleItem: ({})
 
   // Loaded item for falloff (spotlight)
-  property var falloffItem: {}
+  property var falloffItem: ({})
 
   // Loaded item for intensity
-  property var intensityItem: {}
+  property var intensityItem: ({})
 
   // Loaded item for isLightOn
-  property var isLightOnItem: {}
+  property var isLightOnItem: ({})
 
   // Loaded item for visualizeVisuals
-  property var visualizeVisualItem: {}
+  property var visualizeVisualItem: ({})
 
   // Send new light data to C++
   function sendLight() {
@@ -138,7 +136,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       from: 0.0
       to: 1.0
-      onValueChanged: {
+      onValueModified: {
         if (hovered){
           sendLight()
         }
@@ -163,10 +161,10 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: 0
-      maximumValue: 1000000
-      decimals: 6
-      onEditingFinished: {
+      from: 0
+      to: 1000000
+      // decimals: 6
+      onValueModified: {
         sendLight()
       }
     }
@@ -176,10 +174,10 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: -100000
-      maximumValue: 100000
-      decimals: 6
-      onEditingFinished: {
+      from: -100000
+      to: 100000
+      // decimals: 6
+      onValueModified: {
         sendLight()
       }
     }

@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 

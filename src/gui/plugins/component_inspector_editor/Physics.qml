@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 
@@ -46,10 +44,10 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded item for physics step size
-  property var stepSizeItem: {}
+  property var stepSizeItem: ({})
 
   // Loaded item for real time factor
-  property var realTimeFactorItem: {}
+  property var realTimeFactorItem: ({})
 
   // Send new physics data to C++
   function sendPhysics() {
@@ -74,11 +72,12 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: minPhysParam
-      maximumValue: maxPhysParam
-      decimals: 6
-      stepSize: 0.001
-      onEditingFinished: {
+      from: minPhysParam
+      to: maxPhysParam
+      // decimals: 6
+      // stepSize: 0.001
+      stepSize: 1
+      onValueModified: {
         sendPhysics()
       }
     }

@@ -85,10 +85,10 @@ GridLayout {
     id: resolutionSpinX
     value: cascadePtr.resolutionX
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 4
-    maximumValue: 512
-    decimals: 1
-    onEditingFinished: {
+    from: 4
+    to: 512
+    // decimals: 1
+    onValueModified: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -104,10 +104,10 @@ GridLayout {
     id: resolutionSpinY
     value: cascadePtr.resolutionY
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 4
-    maximumValue: 512
-    decimals: 1
-    onEditingFinished: {
+    from: 4
+    to: 512
+    // decimals: 1
+    onValueModified: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -123,10 +123,10 @@ GridLayout {
     id: resolutionSpinZ
     value: cascadePtr.resolutionZ
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 4
-    maximumValue: 512
-    decimals: 1
-    onEditingFinished: {
+    from: 4
+    to: 512
+    // decimals: 1
+    onValueModified: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -147,10 +147,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountX
     value: cascadePtr.octantCountX
-    minimumValue: 1
-    maximumValue: 8
-    decimals: 1
-    onEditingFinished: {
+    from: 1
+    to: 8
+    // decimals: 1
+    onValueModified: {
       cascadePtr.octantCountX = value
     }
   }
@@ -159,10 +159,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountY
     value: cascadePtr.octantCountY
-    minimumValue: 1
-    maximumValue: 8
-    decimals: 1
-    onEditingFinished: {
+    from: 1
+    to: 8
+    // decimals: 1
+    onValueModified: {
       cascadePtr.octantCountY = value
     }
   }
@@ -171,10 +171,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountZ
     value: cascadePtr.octantCountZ
-    minimumValue: 1
-    maximumValue: 8
-    decimals: 1
-    onEditingFinished: {
+    from: 1
+    to: 8
+    // decimals: 1
+    onValueModified: {
       cascadePtr.octantCountZ = value
     }
   }
@@ -191,11 +191,12 @@ GridLayout {
     Layout.fillWidth: true
     id: thinWallCounter
     value: cascadePtr.thinWallCounter
-    minimumValue: 0
-    maximumValue: 5
-    decimals: 2
-    stepSize: 0.1
-    onValueChanged: {
+    from: 0
+    to: 5
+    // decimals: 2
+    // stepSize: 0.1
+    stepSize: 1
+    onValueModified: {
       cascadePtr.thinWallCounter = value
     }
   }
@@ -212,10 +213,10 @@ GridLayout {
     id: areaHalfSizeX
     value: cascadePtr.areaHalfSizeX
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 0.01
-    maximumValue: 100000
-    decimals: 2
-    onEditingFinished: {
+    from: 0
+    to: 100000
+    // decimals: 2
+    onValueModified: {
       cascadePtr.areaHalfSizeX = value
     }
   }
@@ -225,10 +226,10 @@ GridLayout {
     id: areaHalfSizeY
     value: cascadePtr.areaHalfSizeY
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 0.01
-    maximumValue: 100000
-    decimals: 2
-    onEditingFinished: {
+    from: 0
+    to: 100000
+    // decimals: 2
+    onValueModified: {
       cascadePtr.areaHalfSizeY = value
     }
   }
@@ -238,10 +239,10 @@ GridLayout {
     id: areaHalfSizeZ
     value: cascadePtr.areaHalfSizeZ
     enabled: GlobalIlluminationCiVct.cascadesEditable
-    minimumValue: 0.01
-    maximumValue: 100000
-    decimals: 2
-    onEditingFinished: {
+    from: 0
+    to: 100000
+    // decimals: 2
+    onValueModified: {
       cascadePtr.areaHalfSizeZ = value
     }
   }

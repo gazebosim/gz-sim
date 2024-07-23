@@ -18,7 +18,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspector"
 import "qrc:/gz/gui/qml"
 
@@ -98,7 +97,7 @@ Rectangle {
           id: gzVectorInstance
           Layout.fillWidth: true
           Layout.preferredWidth: parent.width
-          gzUnit: model && model.unit != undefined ? model.unit : 'm'
+          gzUnit: model && model.unit !== undefined ? model.unit : 'm'
 
           xValue: model.data[0]
           yValue: model.data[1]

@@ -17,7 +17,6 @@
 import QtQml.Models
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -88,7 +87,7 @@ Rectangle {
    * found and select that.
    */
   function selectFromCpp(_entity, itemId) {
-    if (EntityTreeModel.data(itemId, 101) == _entity) {
+    if (EntityTreeModel.data(itemId, 101) === _entity) {
       tree.selection.select(itemId, ItemSelectionModel.Select)
       return
     }

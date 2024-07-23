@@ -71,7 +71,7 @@ Rectangle {
     Material.accent.b, 0.3)
 
   function delegateQml(_model) {
-    if (_model === null || _model.dataType == undefined)
+    if (_model === null || _model.dataType === undefined)
       return 'NoData.qml'
 
     return _model.dataType + '.qml'

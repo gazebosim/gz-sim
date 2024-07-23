@@ -17,11 +17,9 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Controls.Material.impl
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 
 import QtQml.Models
 
@@ -118,86 +116,86 @@ Rectangle {
           Layout.minimumWidth: 300
           Layout.minimumHeight: 100
           // For some reason, SingleSelection is not working
-          selectionMode: SelectionMode.MultiSelection
-          verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
-          headerVisible: false
-          backgroundVisible: false
-          frameVisible: false
+          // selectionMode: SelectionMode.MultiSelection
+          // verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
+          // headerVisible: false
+          // backgroundVisible: false
+          // frameVisible: false
 
-          headerDelegate: Rectangle {
-            visible: false
-          }
+          // headerDelegate: Rectangle {
+          //   visible: false
+          // }
 
-          TableViewColumn
-          {
-            role: "name"
-          }
+          // TableViewColumn
+          // {
+          //   role: "name"
+          // }
 
-          selection: ItemSelectionModel {
-            model: PathList
-          }
+          // selection: ItemSelectionModel {
+          //   model: PathList
+          // }
 
-          style: TreeViewStyle {
-            indentation: 0
-            rowDelegate: Rectangle {
-              id: row
-              color: Material.background
-              height: treeItemHeight
-            }
-            itemDelegate: Rectangle {
-              id: localItem
-              color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
-              height: treeItemHeight
-
-              anchors.top: parent.top
-              anchors.right: parent.right
-
-              Image {
-                id: dirIcon
-                source: styleData.selected ? "folder_open.png" : "folder_closed.png"
-                height: treeItemHeight * 0.6
-                width: treeItemHeight * 0.6
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-              }
-
-              Label {
-                text: (model === null) ? "" : model.path
-                elide: Text.ElideMiddle
-                font.pointSize: 12
-                anchors.leftMargin: 1
-                anchors.left: dirIcon.right
-                anchors.verticalCenter: parent.verticalCenter
-                leftPadding: 2
-              }
-
-              MouseArea {
-                id: ma
-                anchors.fill: parent
-                propagateComposedEvents: true
-                hoverEnabled: true
-                onClicked: {
-                  ResourceSpawner.OnPathClicked(model.path);
-                  ResourceSpawner.DisplayResources();
-                  currentPath = model.path
-                  gridView.currentIndex = -1
-                  mouse.accepted = false
-                  treeView.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
-                  treeView2.selection.clearSelection()
-                }
-              }
-
-              ToolTip {
-                visible: ma.containsMouse
-                delay: 500
-                y: localItem.z - 30
-                text: model === null ?
-                "?" : model.path
-                enter: null
-                exit: null
-              }
-            }
-          }
+          // style: TreeViewStyle {
+          //   indentation: 0
+          //   rowDelegate: Rectangle {
+          //     id: row
+          //     color: Material.background
+          //     height: treeItemHeight
+          //   }
+          //   itemDelegate: Rectangle {
+          //     id: localItem
+          //     color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
+          //     height: treeItemHeight
+          // 
+          //     anchors.top: parent.top
+          //     anchors.right: parent.right
+          // 
+          //     Image {
+          //       id: dirIcon
+          //       source: styleData.selected ? "folder_open.png" : "folder_closed.png"
+          //       height: treeItemHeight * 0.6
+          //       width: treeItemHeight * 0.6
+          //       anchors.verticalCenter: parent.verticalCenter
+          //       anchors.left: parent.left
+          //     }
+          // 
+          //     Label {
+          //       text: (model === null) ? "" : model.path
+          //       elide: Text.ElideMiddle
+          //       font.pointSize: 12
+          //       anchors.leftMargin: 1
+          //       anchors.left: dirIcon.right
+          //       anchors.verticalCenter: parent.verticalCenter
+          //       leftPadding: 2
+          //     }
+          // 
+          //     MouseArea {
+          //       id: ma
+          //       anchors.fill: parent
+          //       propagateComposedEvents: true
+          //       hoverEnabled: true
+          //       onClicked: {
+          //         ResourceSpawner.OnPathClicked(model.path);
+          //         ResourceSpawner.DisplayResources();
+          //         currentPath = model.path
+          //         gridView.currentIndex = -1
+          //         mouse.accepted = false
+          //         treeView.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
+          //         treeView2.selection.clearSelection()
+          //       }
+          //     }
+          // 
+          //     ToolTip {
+          //       visible: ma.containsMouse
+          //       delay: 500
+          //       y: localItem.z - 30
+          //       text: model === null ?
+          //       "?" : model.path
+          //       enter: null
+          //       exit: null
+          //     }
+          //   }
+          // }
         }
       }
 
@@ -237,7 +235,7 @@ Rectangle {
 
           delegate: Rectangle {
             id: fuelItem2
-            color: ListView.view.currentIndex == index ? Material.accent : (index % 2 == 0) ? evenColor : oddColor
+            color: ListView.view.currentIndex === index ? Material.accent : (index % 2 == 0) ? evenColor : oddColor
             height: treeItemHeight
             width: ListView.view.width
             ListView.onAdd : {

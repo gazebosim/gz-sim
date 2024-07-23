@@ -20,7 +20,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Controls.Material.impl
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 
 GridLayout {
   id: playbackScrubber
@@ -35,22 +34,22 @@ GridLayout {
   /**
    * True if the playback scrubber is currently being pressed/dragged.
    */
-  property var isPressed: false
+  property bool isPressed: false
 
   /**
    * The current time the playback scrubber is at.
    */
-  property var currentTime: ""
+  property string currentTime: ""
 
   /**
    * The start time of the log playback file.
    */
-  property var startTime: ""
+  property string startTime: ""
 
   /**
    * The end time of the log playback file.
    */
-  property var endTime: ""
+  property string endTime: ""
 
   /**
    * Update the slider to the new values if it is currently being dragged.

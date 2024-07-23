@@ -69,7 +69,7 @@ GridLayout {
     Layout.columnSpan: 8
     id: dataFileDialog
     title: qsTr("Please choose a data file")
-    folder: shortcuts.home
+    currentFolder: shortcuts.home
     visible: false
     onAccepted: {
       EnvironmentLoader.SetDataUrl(dataFileDialog.fileUrl)

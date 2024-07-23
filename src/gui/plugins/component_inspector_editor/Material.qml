@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 
@@ -40,28 +38,28 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property var rAmbientItem: {}
-  property var gAmbientItem: {}
-  property var bAmbientItem: {}
-  property var aAmbientItem: {}
+  property var rAmbientItem: ({})
+  property var gAmbientItem: ({})
+  property var bAmbientItem: ({})
+  property var aAmbientItem: ({})
 
   // Loaded items for diffuse red, green, blue, alpha
-  property var rDiffuseItem: {}
-  property var gDiffuseItem: {}
-  property var bDiffuseItem: {}
-  property var aDiffuseItem: {}
+  property var rDiffuseItem: ({})
+  property var gDiffuseItem: ({})
+  property var bDiffuseItem: ({})
+  property var aDiffuseItem: ({})
 
   // Loaded items for specular red, green, blue, alpha
-  property var rSpecularItem: {}
-  property var gSpecularItem: {}
-  property var bSpecularItem: {}
-  property var aSpecularItem: {}
+  property var rSpecularItem: ({})
+  property var gSpecularItem: ({})
+  property var bSpecularItem: ({})
+  property var aSpecularItem: ({})
 
   // Loaded items for emissive red, green, blue, alpha
-  property var rEmissiveItem: {}
-  property var gEmissiveItem: {}
-  property var bEmissiveItem: {}
-  property var aEmissiveItem: {}
+  property var rEmissiveItem: ({})
+  property var gEmissiveItem: ({})
+  property var bEmissiveItem: ({})
+  property var aEmissiveItem: ({})
 
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
@@ -120,10 +118,9 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: 0
-      maximumValue: 255
-      decimals: 0
-      onEditingFinished: {
+      from: 0
+      to: 255
+      onValueModified: {
         // sending empty params to not open color dialog
         sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
       }

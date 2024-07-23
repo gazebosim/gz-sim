@@ -16,10 +16,8 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 
@@ -39,7 +37,7 @@ Rectangle {
   property double spinMax: Number.MAX_VALUE
 
   // Unit
-  property string unit: model && model.unit != undefined ? model.unit : ''
+  property string unit: model && model.unit !== undefined ? model.unit : ''
 
   RowLayout {
     anchors.fill: parent

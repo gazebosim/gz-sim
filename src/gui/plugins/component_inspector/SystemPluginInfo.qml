@@ -16,10 +16,8 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspector"
 
 Rectangle {
@@ -217,7 +215,7 @@ Rectangle {
               TextEdit {
                 id: innerXmlText
                 width: parent.width
-                text: modelData[2].length == 0 ? "N/A" : modelData[2].trim()
+                text: modelData[2].length === 0 ? "N/A" : modelData[2].trim()
                 color: valueColor
                 textFormat: TextEdit.PlainText
                 font.pointSize: 10

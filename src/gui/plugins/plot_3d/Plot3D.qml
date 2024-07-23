@@ -16,10 +16,8 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/gz/gui/qml"
 
 Rectangle {
@@ -142,11 +140,11 @@ Rectangle {
         Layout.row: 1
         Layout.column: 1
         value: Plot3D.offset.x
-        maximumValue: 1000000
-        minimumValue: -1000000
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+        to: 1000000
+        from: -1000000
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
       }
       Text {
         text: "Y (m)"
@@ -159,11 +157,11 @@ Rectangle {
         id: y
         Layout.fillWidth: true
         value: Plot3D.offset.y
-        maximumValue: 1000000
-        minimumValue: -1000000
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+        to: 1000000
+        from: -1000000
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
       }
       Text {
         text: "Z (m)"
@@ -178,11 +176,11 @@ Rectangle {
         Layout.row: 1
         Layout.column: 5
         value: Plot3D.offset.z
-        maximumValue: 1000000
-        minimumValue: -1000000
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
+        to: 1000000
+        from: -1000000
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetOffset(Qt.vector3d(x.value, y.value, z.value))
       }
 
       Text {
@@ -210,11 +208,11 @@ Rectangle {
         Layout.row: 3
         Layout.column: 1
         value: Plot3D.color.x
-        maximumValue: 1.00
-        minimumValue: 0.00
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+        to: 1.00
+        from: 0.00
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
       }
 
       Text {
@@ -231,11 +229,11 @@ Rectangle {
         Layout.row: 3
         Layout.column: 3
         value: Plot3D.color.y
-        maximumValue: 1.00
-        minimumValue: 0.00
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+        to: 1
+        from: 0
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
       }
 
       Text {
@@ -252,11 +250,11 @@ Rectangle {
         Layout.row: 3
         Layout.column: 5
         value: Plot3D.color.z
-        maximumValue: 1.00
-        minimumValue: 0.00
-        decimals: 2
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
+        to: 1.00
+        from: 0.00
+        // decimals: 2
+        stepSize: 1
+        onValueModified: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))
       }
     }
 
@@ -277,11 +275,11 @@ Rectangle {
         Layout.row: 0
         Layout.column: 1
         value: Plot3D.minDistance
-        maximumValue: 1000000
-        minimumValue: 0
-        decimals: 6
-        stepSize: 0.01
-        onEditingFinished: Plot3D.SetMinDistance(minDist.value)
+        to: 1000000
+        from: 0
+        // decimals: 6
+        stepSize: 1
+        onValueModified: Plot3D.SetMinDistance(minDist.value)
       }
 
       Text {
@@ -297,11 +295,10 @@ Rectangle {
         Layout.row: 1
         Layout.column: 1
         value: Plot3D.maxPoints
-        maximumValue: 1000000
-        minimumValue: 0
-        decimals: 0
+        to: 1000000
+        from: 0
         stepSize: 100
-        onEditingFinished: Plot3D.SetMaxPoints(maxPoints.value)
+        onValueModified: Plot3D.SetMaxPoints(maxPoints.value)
       }
     }
 

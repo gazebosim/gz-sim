@@ -19,7 +19,6 @@ import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Controls.Material.impl
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 
 ToolBar {
   Layout.minimumWidth: 280

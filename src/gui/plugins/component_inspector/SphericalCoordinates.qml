@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspector"
 import "qrc:/gz/gui/qml"
 
@@ -163,11 +161,12 @@ Rectangle {
           height: 40
           property double numberValue: model.data[1]
           value: latSpin.activeFocus ? latSpin.value : numberValue
-          minimumValue: -90
-          maximumValue: 90
-          decimals: 12
-          stepSize: 0.1
-          onEditingFinished: {
+          from: -90
+          to: 90
+          // decimals: 12
+          // stepSize: 0.1
+          stepSize: 1
+          onValueModified: {
             sendSphericalCoordinates()
           }
         }
@@ -198,11 +197,12 @@ Rectangle {
           height: 40
           property double numberValue: model.data[2]
           value: lonSpin.activeFocus ? lonSpin.value : numberValue
-          minimumValue: -180
-          maximumValue: 180
-          decimals: 12
-          stepSize: 0.1
-          onEditingFinished: {
+          from: -180
+          to: 180
+          // decimals: 12
+          // stepSize: 0.1
+          stepSize: 1
+          onValueModified: {
             sendSphericalCoordinates()
           }
         }
@@ -233,11 +233,12 @@ Rectangle {
           height: 40
           property double numberValue: model.data[3]
           value: elevationSpin.activeFocus ? elevationSpin.value : numberValue
-          minimumValue: -100000
-          maximumValue: 100000
-          decimals: 12
-          stepSize: 0.1
-          onEditingFinished: {
+          from: -100000
+          to: 100000
+          // decimals: 12
+          // stepSize: 0.1
+          stepSize: 1
+          onValueModified: {
             sendSphericalCoordinates()
           }
         }
@@ -268,11 +269,12 @@ Rectangle {
           height: 40
           property double numberValue: model.data[4]
           value: headingSpin.activeFocus ? headingSpin.value : numberValue
-          minimumValue: -180
-          maximumValue: 180
-          decimals: 12
-          stepSize: 0.1
-          onEditingFinished: {
+          from: -180
+          to: 180
+          // decimals: 12
+          // stepSize: 0.1
+          stepSize: 1
+          onValueModified: {
             sendSphericalCoordinates()
           }
         }

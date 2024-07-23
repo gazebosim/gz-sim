@@ -224,7 +224,7 @@ ColumnLayout {
       from: 0
       // decimals: 2
       stepSize: 1
-      onValueChanged:{
+      onValueModified:{
         ViewAngle.OnViewControlSensitivity(value)
       }
     }
@@ -302,7 +302,7 @@ ColumnLayout {
       from: 0
       // decimals: 6
       stepSize: 1
-      onValueChanged: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      onValueModified: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
     Text {
       text: "Far (m)"
@@ -321,7 +321,7 @@ ColumnLayout {
       from: nearClip.value
       // decimals: 6
       stepSize: 1
-      onValueChanged: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      onValueModified: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
   }
 
@@ -357,7 +357,7 @@ ColumnLayout {
       from: 0
       // decimals: 6
       stepSize: 1
-      onValueChanged: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
+      onValueModified: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
     }
   }
 

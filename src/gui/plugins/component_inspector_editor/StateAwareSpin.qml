@@ -16,11 +16,9 @@
 */
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Controls
 import QtQuick.Controls.Material
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import QtQuick.Controls.Styles
 import "qrc:/ComponentInspectorEditor"
 import "qrc:/gz/gui/qml"
 
@@ -30,7 +28,8 @@ Rectangle {
   color: "transparent"
 
   // step size
-  property double stepValue: 0.1
+  // property double stepValue: 0.1
+  property double stepValue: 1
 
   // min value
   property double minValue: 0
@@ -57,14 +56,14 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      minimumValue: minValue
-      maximumValue: maxValue
+      from: minValue
+      to: maxValue
       stepSize: stepValue
-      decimals: {
-        writableSpin.value = writableSpin.activeFocus ? writableSpin.value : numberValue
-        stepSize == 1 ? 0 : componentInspectorEditor.getDecimals(writableSpin.width)
-      }
-      onEditingFinished: {
+      // decimals: {
+      //   writableSpin.value = writableSpin.activeFocus ? writableSpin.value : numberValue
+      //   stepSize == 1 ? 0 : componentInspectorEditor.getDecimals(writableSpin.width)
+      // }
+      onValueModified: {
         numberValue = writableSpin.value
         onChange(writableSpin.value)
       }
