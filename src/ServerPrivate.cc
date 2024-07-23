@@ -549,8 +549,8 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  // Check if it is a gazebo classic material URI
-  // Return original URI string. The MaterialParser will handle this URI.
+  // Handle gazebo classic material URIs.
+  // Return original URI string as the SdfEntityCreator checks for this URI
   if (_uri == kClassicMaterialScriptUri)
     return _uri;
 
