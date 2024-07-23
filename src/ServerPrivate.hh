@@ -188,8 +188,8 @@ namespace gz
       public: std::unordered_map<std::string, std::string> fuelUriMap;
 
       /// \brief Gazebo classic material URI string
-      /// Only gazebo classic material script uri matching this still will be
-      /// migrated to gz.
+      /// A URI matching this string indicates that it is a gazebo classic
+      /// material.
       public: static const std::string kClassicMaterialScriptUri;
 
       /// \brief List of names for all worlds loaded in this server.
