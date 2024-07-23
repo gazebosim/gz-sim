@@ -8,9 +8,6 @@
 1. Disable rendering tests that are failing on github actions
     * [Pull request #2480](https://github.com/gazebosim/gz-sim/pull/2480)
 
-1. Merge from ign-gazebo6
-    * [Pull request #2477](https://github.com/gazebosim/gz-sim/pull/2477)
-
 1. Consolidate entity creation.
     * [Pull request #2452](https://github.com/gazebosim/gz-sim/pull/2452)
 
