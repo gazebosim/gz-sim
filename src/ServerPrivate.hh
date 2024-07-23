@@ -190,7 +190,7 @@ namespace gz
       /// \brief Gazebo classic material URI string
       /// A URI matching this string indicates that it is a gazebo classic
       /// material.
-      public: static const std::string kClassicMaterialScriptUri;
+      public: static const char kClassicMaterialScriptUri[];
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

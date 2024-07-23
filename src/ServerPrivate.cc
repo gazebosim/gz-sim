@@ -37,7 +37,7 @@
 using namespace gz;
 using namespace sim;
 
-const std::string ServerPrivate::kClassicMaterialScriptUri =
+const char ServerPrivate::kClassicMaterialScriptUri[] =
     "file://media/materials/scripts/gazebo.material";
 
 /// \brief This struct provides access to the record plugin SDF string
