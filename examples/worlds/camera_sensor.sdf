@@ -9,21 +9,9 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
-    </plugin>
-    <plugin
       filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
-    </plugin>
-    <plugin
-      filename="gz-sim-user-commands-system"
-      name="gz::sim::systems::UserCommands">
-    </plugin>
-    <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <scene>
@@ -32,124 +20,31 @@
       <grid>true</grid>
     </scene>
 
+    <gz:policies>
+      <no_default_gui_plugins>false</no_default_gui_plugins>
+    </gz:policies>
     <gui fullscreen="0">
 
-      <!-- 3D scene -->
       <plugin filename="MinimalScene" name="3D View">
+        <gz:config_action>prepend_replace</gz:config_action>
         <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
           <property type="string" key="state">docked</property>
         </gz-gui>
-
         <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
-      </plugin>
-
-      <!-- Plugins that add functionality to the scene -->
-      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
-        <gz-gui>
-          <property key="state" type="string">floating</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </gz-gui>
-      </plugin>
-      <plugin filename="GzSceneManager" name="Scene Manager">
-        <gz-gui>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </gz-gui>
-      </plugin>
-      <plugin filename="InteractiveViewControl" name="Interactive view control">
-        <gz-gui>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </gz-gui>
-      </plugin>
-      <plugin filename="CameraTracking" name="Camera Tracking">
-        <gz-gui>
-          <property key="resizable" type="bool">false</property>
-          <property key="width" type="double">5</property>
-          <property key="height" type="double">5</property>
-          <property key="state" type="string">floating</property>
-          <property key="showTitleBar" type="bool">false</property>
-        </gz-gui>
-      </plugin>
-      <!-- World control -->
-      <plugin filename="WorldControl" name="World control">
-        <gz-gui>
-          <title>World control</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">72</property>
-          <property type="double" key="z">1</property>
-
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="left" target="left"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </gz-gui>
-
-        <play_pause>true</play_pause>
-        <step>true</step>
-        <start_paused>true</start_paused>
-        <use_event>true</use_event>
-
-      </plugin>
-
-      <!-- World statistics -->
-      <plugin filename="WorldStats" name="World stats">
-        <gz-gui>
-          <title>World stats</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="bool" key="resizable">false</property>
-          <property type="double" key="height">110</property>
-          <property type="double" key="width">290</property>
-          <property type="double" key="z">1</property>
-
-          <property type="string" key="state">floating</property>
-          <anchors target="3D View">
-            <line own="right" target="right"/>
-            <line own="bottom" target="bottom"/>
-          </anchors>
-        </gz-gui>
-
-        <sim_time>true</sim_time>
-        <real_time>true</real_time>
-        <real_time_factor>true</real_time_factor>
-        <iterations>true</iterations>
+        <camera_pose>-3 0 3 0 0.5 0</camera_pose>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
+        <gz:config_action>append</gz:config_action>
         <gz-gui>
           <property key="state" type="string">docked</property>
         </gz-gui>
         <topic>camera</topic>
-      </plugin>
-
-      <!-- Inspector -->
-      <plugin filename="ComponentInspector" name="Component inspector">
-        <gz-gui>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
-      </plugin>
-
-      <!-- Entity tree -->
-      <plugin filename="EntityTree" name="Entity tree">
-        <gz-gui>
-          <property type="string" key="state">docked</property>
-        </gz-gui>
       </plugin>
     </gui>
 

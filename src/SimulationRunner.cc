@@ -18,6 +18,7 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <iterator>
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
 #endif
@@ -36,6 +37,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -252,22 +254,93 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load the active levels
   this->levelMgr->UpdateLevelsState();
 
+  auto worldElem = this->sdfWorld->Element();
+  bool noDefaultServerPlugins = false;
+  bool noDefaultGuiPlugins = false;
+  if (worldElem)
+  {
+    auto policies = worldElem->FindElement("gz:policies");
+    if (policies)
+    {
+      noDefaultServerPlugins =
+          policies
+              ->Get<bool>("no_default_server_plugins", noDefaultServerPlugins)
+              .first;
+      noDefaultGuiPlugins =
+          policies->Get<bool>("no_default_gui_plugins", noDefaultGuiPlugins)
+              .first;
+    }
+  }
+
+  auto getUserPlugins = [&]()
+  {
+    std::list<ServerConfig::PluginInfo> userPlugins;
+    for (const auto &plugin : this->sdfWorld->Plugins())
+    {
+      userPlugins.emplace_back("*", "world", plugin);
+    }
+    return userPlugins;
+  };
+
+  auto combineUserAndDefaultPlugins =
+      [](const auto &_userPlugins, const auto &_defaultPlugins, bool _policy)
+  {
+    // TODO(azeey) Handle serverConfigPlugins
+    /* auto serverConfigPlugins = this->serverConfig.Plugins(); */
+    if (!_policy)
+    {
+      auto combinedPlugins = _defaultPlugins;
+      for (const auto &userPlugin : _userPlugins)
+      {
+        auto pluginElem = userPlugin.Plugin().Element();
+        assert(pluginElem);
+        auto configAction = pluginElem
+                                ->template Get<std::string>("gz:config_action",
+                                                            "append_replace")
+                                .first;
+        gzmsg << "Plugin: " << userPlugin.Plugin().Filename() << " act: " << configAction << "\n";
+        if (configAction == config_action::kPrependReplace ||
+            configAction == config_action::kAppendReplace)
+        {
+          // Remove all matching plugins
+          combinedPlugins.remove_if(
+              [&](const auto &_pl) {
+                return _pl.Plugin().Filename() ==
+                       userPlugin.Plugin().Filename();
+              });
+        }
+        if (configAction == config_action::kPrependReplace ||
+            configAction == config_action::kPrepend)
+        {
+          // Remove all matching plugins
+          combinedPlugins.push_front(userPlugin);
+        }
+        else if (configAction == config_action::kAppendReplace ||
+                  configAction == config_action::kAppend)
+        {
+          combinedPlugins.push_back(userPlugin);
+        }
+      }
+      return combinedPlugins;
+    }
+    return _userPlugins;
+  };
+  bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+  // TODO(azeey) Let's assume these are just default plugins. loadPluginInfo
+  // can also load from a custom config file, so we need to handle that
+  // differently
+  auto pluginsToLoad = combineUserAndDefaultPlugins(
+      getUserPlugins(), sim::loadPluginInfo(isPlayback),
+      noDefaultServerPlugins);
+  gzdbg << "Loading plugins:\n";
+  for (const auto &plugin: pluginsToLoad) {
+    gzdbg << plugin.Plugin().Name() << "\n";
+    /* gzdbg << plugin.Plugin().Element()->ToString("\t"); */
+  }
+
+  this->LoadServerPlugins(pluginsToLoad);
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
-
-  // Load any additional plugins from the Server Configuration
-  this->LoadServerPlugins(this->serverConfig.Plugins());
-
-  // If we have reached this point and no world systems have been loaded, then
-  // load a default set of systems.
-  if (this->systemMgr->TotalByEntity(
-      worldEntity(this->entityCompMgr)).empty())
-  {
-    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = sim::loadPluginInfo(isPlayback);
-    this->LoadServerPlugins(plugins);
-  }
 
   this->LoadLoggingPlugins(this->serverConfig);
 
@@ -287,6 +360,16 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   if (_world->Gui())
   {
     this->guiMsg = convert<msgs::GUI>(*_world->Gui());
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement("gz:policies");
+      if (policies)
+      {
+        auto headerData = this->guiMsg.mutable_header()->add_data();
+        headerData->set_key("gz:policies");
+        headerData->add_value(policies->ToString(""));
+      }
+    }
   }
 
   std::string infoService{"gui/info"};

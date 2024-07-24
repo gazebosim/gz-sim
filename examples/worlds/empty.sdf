@@ -65,19 +65,14 @@ gz service -s /world/empty/create \
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
+
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
+      <engine>bullet</engine>
     </plugin>
     <plugin
-      filename="gz-sim-user-commands-system"
-      name="gz::sim::systems::UserCommands">
-    </plugin>
-    <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
-    </plugin>
-    <plugin
+      gz:config_action="prepend_replace"
       filename="gz-sim-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
