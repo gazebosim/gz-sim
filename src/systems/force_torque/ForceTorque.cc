@@ -77,7 +77,7 @@ class gz::sim::systems::ForceTorquePrivate
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Keep list of sensors that were created during the previous
-  /// `PostUpdate`, so that components can be created during the next
+  /// `Update`, so that components can be created during the next
   /// `PreUpdate`.
   public: std::unordered_set<Entity> newSensors;
 
@@ -157,10 +157,10 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-void ForceTorque::PostUpdate(const UpdateInfo &_info,
-                     const EntityComponentManager &_ecm)
+void ForceTorque::Update(const UpdateInfo &_info,
+                         EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("ForceTorque::PostUpdate");
+  GZ_PROFILE("ForceTorque::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -445,7 +445,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
 
 GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPreUpdate,
-  ForceTorque::ISystemPostUpdate
+  ForceTorque::ISystemUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
