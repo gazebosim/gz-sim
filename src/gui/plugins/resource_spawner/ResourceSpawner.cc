@@ -739,7 +739,7 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
             resource.isFuel = true;
             resource.isDownloaded = false;
             resource.owner = id.Owner();
-            resource.sdfPath = "https://" + id.UniqueName();
+            resource.sdfPath = id.Url().Str();
 
             QMetaObject::invokeMethod(
                 this, "UpdateOwnerListModel", Qt::QueuedConnection,
