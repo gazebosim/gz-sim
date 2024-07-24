@@ -44,6 +44,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/WrenchMeasured.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
@@ -152,6 +153,9 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
         _ecm.Component<components::ParentEntity>(entity)->Data();
     gzdbg << "Adding JointTransmittedWrench to: " << jointEntity << std::endl;
     _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
+    // Enable WrenchMeasured to save sensor measurements
+    gzdbg << "Adding WrenchMeasured to: " << entity << std::endl;
+    _ecm.CreateComponent(entity, components::WrenchMeasured());
   }
   this->dataPtr->newSensors.clear();
 }
@@ -203,6 +207,9 @@ void ForceTorque::Update(const UpdateInfo &_info,
       // * Apply noise
       // * Publish to gz-transport topic
       sensor->Update(_info.simTime, false);
+      const auto &measuredWrench = sensor->MeasuredWrench();
+      _ecm.SetComponentData<components::WrenchMeasured>(
+        sensorEntity, measuredWrench);
     }
   }
 
