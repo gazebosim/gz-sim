@@ -513,9 +513,9 @@ void SystemManager::ProcessRemovedEntities(
       }
       return false;
     });
-  for (auto& [priority, systems] : this->systemsPreupdate)
+  for (auto& [priority, systemsVector] : this->systemsPreupdate)
   {
-    RemoveFromVectorIf(systems,
+    RemoveFromVectorIf(systemsVector,
       [&](const auto& system) {
         if (preupdateSystemsToBeRemoved.count(system)) {
           return true;
@@ -523,9 +523,9 @@ void SystemManager::ProcessRemovedEntities(
         return false;
       });
   }
-  for (auto& [priority, systems] : this->systemsUpdate)
+  for (auto& [priority, systemsVector] : this->systemsUpdate)
   {
-    RemoveFromVectorIf(systems,
+    RemoveFromVectorIf(systemsVector,
       [&](const auto& system) {
         if (updateSystemsToBeRemoved.count(system)) {
           return true;
