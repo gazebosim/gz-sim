@@ -169,6 +169,10 @@ namespace gz
       /// \brief Our signal handler.
       public: gz::common::SignalHandler sigHandler;
 
+      /// \brief Set to true from signal handler. This will be used to
+      /// terminate the server where checking `running` is not sufficient.
+      public: std::atomic<bool> signalReceived{false};
+
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
 
