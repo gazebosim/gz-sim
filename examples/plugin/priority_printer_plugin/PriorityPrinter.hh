@@ -18,6 +18,7 @@
 #ifndef EXAMPLE_PLUGIN_PRIORITYPRINTER_HH_
 #define EXAMPLE_PLUGIN_PRIORITYPRINTER_HH_
 
+#include <memory>
 #include <string>
 #include <gz/sim/System.hh>
 

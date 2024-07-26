@@ -17,6 +17,7 @@
 
 // We'll use a string and the gzmsg command below for a brief example.
 // Remove these includes if your plugin doesn't need them.
+#include <memory>
 #include <string>
 #include <gz/common/Console.hh>
 

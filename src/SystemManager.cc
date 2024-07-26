@@ -18,6 +18,7 @@
 #include <list>
 #include <mutex>
 #include <set>
+#include <string>
 #include <unordered_set>
 
 #include <gz/common/StringUtils.hh>
@@ -513,25 +514,35 @@ void SystemManager::ProcessRemovedEntities(
       }
       return false;
     });
-  for (auto& [priority, systems] : this->systemsPreupdate)
+  for (auto it = this->systemsPreupdate.begin();
+            it != this->systemsPreupdate.end();)
   {
-    RemoveFromVectorIf(systems,
+    RemoveFromVectorIf(it->second,
       [&](const auto& system) {
         if (preupdateSystemsToBeRemoved.count(system)) {
           return true;
         }
         return false;
       });
+    if (it->second.empty())
+      it = this->systemsPreupdate.erase(it);
+    else
+      ++it;
   }
-  for (auto& [priority, systems] : this->systemsUpdate)
+  for (auto it = this->systemsUpdate.begin();
+            it != this->systemsUpdate.end();)
   {
-    RemoveFromVectorIf(systems,
+    RemoveFromVectorIf(it->second,
       [&](const auto& system) {
         if (updateSystemsToBeRemoved.count(system)) {
           return true;
         }
         return false;
       });
+    if (it->second.empty())
+      it = this->systemsUpdate.erase(it);
+    else
+      ++it;
   }
 
   RemoveFromVectorIf(this->systemsPostupdate,

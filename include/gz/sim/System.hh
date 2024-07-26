@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEM_HH_
 #define GZ_SIM_SYSTEM_HH_
 
+#include <cstdint>
 #include <memory>
 
 #include <gz/sim/config.hh>
