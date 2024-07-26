@@ -86,6 +86,7 @@ if (BUILD_TESTING)
     testFixture_TEST
   )
 
+  # Check issue #1023 for more information
   if (APPLE)
     list(REMOVE_ITEM python_tests testFixture_TEST)
   endif()
