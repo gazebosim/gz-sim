@@ -514,25 +514,35 @@ void SystemManager::ProcessRemovedEntities(
       }
       return false;
     });
-  for (auto& [priority, systemsVector] : this->systemsPreupdate)
+  for (auto it = this->systemsPreupdate.begin();
+            it != this->systemsPreupdate.end();)
   {
-    RemoveFromVectorIf(systemsVector,
+    RemoveFromVectorIf(it->second,
       [&](const auto& system) {
         if (preupdateSystemsToBeRemoved.count(system)) {
           return true;
         }
         return false;
       });
+    if (it->second.empty())
+      it = this->systemsPreupdate.erase(it);
+    else
+      ++it;
   }
-  for (auto& [priority, systemsVector] : this->systemsUpdate)
+  for (auto it = this->systemsUpdate.begin();
+            it != this->systemsUpdate.end();)
   {
-    RemoveFromVectorIf(systemsVector,
+    RemoveFromVectorIf(it->second,
       [&](const auto& system) {
         if (updateSystemsToBeRemoved.count(system)) {
           return true;
         }
         return false;
       });
+    if (it->second.empty())
+      it = this->systemsUpdate.erase(it);
+    else
+      ++it;
   }
 
   RemoveFromVectorIf(this->systemsPostupdate,
