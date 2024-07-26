@@ -86,6 +86,11 @@ if (BUILD_TESTING)
     testFixture_TEST
   )
 
+  # Check issue #1887 for more information
+  if (APPLE)
+    list(REMOVE_ITEM python_tests testFixture_TEST)
+  endif()
+
   execute_process(COMMAND "${PYTHON_EXECUTABLE}" -m pytest --version
     OUTPUT_VARIABLE PYTEST_output
     ERROR_VARIABLE  PYTEST_error
