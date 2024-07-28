@@ -180,15 +180,13 @@ void ForceTorque::Update(const UpdateInfo &_info,
   if (!_info.paused)
   {
     // check to see if update is necessary
-    // we only update if there is at least one sensor that needs data
-    // and that sensor has subscribers.
+    // we only update if there is at least one sensor that needs data.
     // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the ForceTorquePrivate::Update function
     bool needsUpdate = false;
     for (const auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      if (sensor->NextDataUpdateTime() <= _info.simTime &&
-          sensor->HasConnections())
+      if (sensor->NextDataUpdateTime() <= _info.simTime)
       {
         needsUpdate = true;
         break;
