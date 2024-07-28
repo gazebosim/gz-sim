@@ -25,9 +25,14 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/ForceTorque.hh"
+#include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/WrenchMeasured.hh"
 
+#include "gz/sim/Joint.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
@@ -98,6 +103,68 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightTopic))
     EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
     EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
+{
+  using namespace std::chrono_literals;
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(1ns);
+
+  test::Relay testSystem;
+
+  // Get the MeasuredWrench for //test1/scale/sensor_joint/force_torque_sensor
+  msgs::Wrench wrench;
+  testSystem.OnPostUpdate(
+    [&wrench](const UpdateInfo &,
+              const EntityComponentManager &_ecm)
+    {
+      auto test1ModelEntity = _ecm.EntityByComponents(
+          components::Model(), components::Name("test1"));
+      Model test1Model(test1ModelEntity);
+
+      Model scaleModel(test1Model.ModelByName(_ecm, "scale"));
+      ASSERT_TRUE(scaleModel.Valid(_ecm));
+
+      Joint sensorJoint(scaleModel.JointByName(_ecm, "sensor_joint"));
+      ASSERT_TRUE(sensorJoint.Valid(_ecm));
+
+      auto sensorEntity =
+          sensorJoint.SensorByName(_ecm, "force_torque_sensor");
+      auto measuredWrench =
+          _ecm.Component<components::WrenchMeasured>(sensorEntity);
+      if (measuredWrench)
+      {
+        wrench = measuredWrench->Data();
+      }
+    });
+
+  // Add the system
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  const size_t iters = 999u;
+
+  // Run server (iters-1) steps, since we already took 1 step above
+  server.Run(true, iters - 1, false);
+  ASSERT_EQ(iters, *server.IterationCount());
+
+  const double kSensorMass = 0.2;
+  const double kWeightMass = 10;
+  const double kGravity = 9.8;
+  const math::Vector3 expectedForce =
+      math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
+  EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
+  EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
 }
 
 /////////////////////////////////////////////////
