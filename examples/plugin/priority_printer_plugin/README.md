@@ -1,7 +1,7 @@
 # Priority Printer
 
 This example illustrates how to control the order of execution of System
-Update callbacks.
+PreUpdate and Update callbacks.
 
 ## Build
 
@@ -30,7 +30,7 @@ cd gz-sim/examples/plugins/priority_printer
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 
-Then load the example world:
+Then load the example world and run for 5 iterations:
 
     gz sim -v 3 priority_printer_plugin.sdf -s -r --iterations 5
 
