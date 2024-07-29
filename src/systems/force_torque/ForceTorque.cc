@@ -130,6 +130,12 @@ ForceTorque::ForceTorque()
 ForceTorque::~ForceTorque() = default;
 
 //////////////////////////////////////////////////
+System::PriorityType ForceTorque::ConfigurePriority()
+{
+  return 10;
+}
+
+//////////////////////////////////////////////////
 void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
@@ -449,6 +455,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
 }
 
 GZ_ADD_PLUGIN(ForceTorque, System,
+  ForceTorque::ISystemConfigurePriority,
   ForceTorque::ISystemPreUpdate,
   ForceTorque::ISystemUpdate
 )

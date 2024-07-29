@@ -41,6 +41,7 @@ namespace systems
   /// quantites are expressed, not the point of application.
   class ForceTorque:
     public System,
+    public ISystemConfigurePriority,
     public ISystemPreUpdate,
     public ISystemUpdate
   {
@@ -49,6 +50,9 @@ namespace systems
 
     /// \brief Destructor
     public: ~ForceTorque() override;
+
+    /// Documentation inherited
+    public: System::PriorityType ConfigurePriority() final;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
