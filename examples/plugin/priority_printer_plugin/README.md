@@ -1,7 +1,14 @@
 # Priority Printer
 
 This example illustrates how to control the order of execution of System
-PreUpdate and Update callbacks.
+PreUpdate and Update callbacks. As documented in
+[gz/sim/System.hh](https://github.com/gazebosim/gz-sim/tree/main/include/gz/sim/System.hh),
+the PreUpdate and Update phases are executed sequentially in the same
+thread, and the order of execution of these phases can be
+controlled by specifying a signed integer priority value for the System
+in its XML configuration. The default priority value is zero, and
+smaller values are executed earlier. Systems with the same priority
+value are executed in the order in which they are loaded.
 
 ## Build
 
@@ -19,9 +26,15 @@ This will generate the `PriorityPrinter` library under `build`.
 
 ## Run
 
-Multiple instances of the `PriorityPrinter` plugin are added to the world
-with various priority values and unique labels in the
-`priority_printer_plugin.sdf` file that's going to be loaded.
+Multiple instances of the `PriorityPrinter` plugin are added to the
+[priority\_printer\_plugin.sdf](priority_printer_plugin.sdf) world file
+with various priority values and unique labels corresponding to the order
+in which the plugins are specified ("first" for the first plugin and so on).
+Without priority values, the systems would be executed in the order they are
+specified in XML ("first", then "second", etc.).
+With the priority values specified, the systems with smallest integer priority
+values are executed first. For systems with the same priority value, the
+system that is specified earlier in the XML file will be executed first.
 
 Before starting Gazebo, we must make sure it can find the plugin by doing:
 
@@ -34,7 +47,12 @@ Then load the example world and run for 5 iterations:
 
     gz sim -v 3 priority_printer_plugin.sdf -s -r --iterations 5
 
-You should see green messages on the terminal like:
+You should see green messages on the terminal like those given below.
+Note that the system with priority `-100` was executed first, despite being
+the fifth system in the XML ordering. There are two instances of systems with
+the same priority value: the fourth and sixth systems with priority 0 (with
+"unset" defaulting to 0) and the first and seventh systems with priority 100.
+In each case, the system declared earlier in XML executed first.
 
 ```
 [Msg] PreUpdate: Iteration 1, system priority -100, system label fifth
