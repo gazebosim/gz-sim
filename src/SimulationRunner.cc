@@ -61,7 +61,8 @@ using StringSet = std::unordered_set<std::string>;
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const ServerConfig &_config)
+                                   const ServerConfig &_config,
+                                   const bool _createEntities)
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
@@ -203,7 +204,8 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
-  this->CreateEntities(_world);
+  if (_createEntities)
+    this->CreateEntities(_world);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -528,6 +530,8 @@ void SimulationRunner::UpdateSystems()
     return;
   }
 
+  this->UpdateAssetCreation();
+
   {
     GZ_PROFILE("PreUpdate");
     for (auto& system : this->systemMgr->SystemsPreUpdate())
@@ -706,6 +710,15 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep number of iterations requested by caller
   uint64_t processedIterations{0};
 
+  // Force a wait on asset creation.
+  {
+    std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
+    if (_iterations > 0 && this->forcedPause)
+    {
+      this->creationCv.wait(createLock);
+    }
+  }
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   while (this->running && (_iterations == 0 ||
@@ -755,16 +768,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       processedIterations++;
     }
 
-    // If network, wait for network step, otherwise do our own step
-    if (this->networkMgr)
     {
-      auto netPrimary =
-          dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
-      netPrimary->Step(this->currentInfo);
-    }
-    else
-    {
-      this->Step(this->currentInfo);
+      std::scoped_lock stepLock(this->stepMutex);
+      // If network, wait for network step, otherwise do our own step
+      if (this->networkMgr)
+      {
+        auto netPrimary =
+            dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
+        netPrimary->Step(this->currentInfo);
+      }
+      else
+      {
+        this->Step(this->currentInfo);
+      }
     }
 
     // Handle Server::RunOnce(false) in which a single paused run is executed
@@ -1041,6 +1057,16 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
+  // Skip if attempting to unpause while initial set of models are being
+  // downloaded in the background. We must remain paused while downloading.
+  if (!_paused && this->forcedPause)
+  {
+    gzmsg << "Received run request while simulation assets are downloading. "
+      << "Simulation will start running once all the assets are downloaded.\n";
+    this->requestedPause = _paused;
+    return;
+  }
+
   // Only update the realtime clock if Run() has been called.
   if (this->running)
   {
@@ -1464,8 +1490,61 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
+void SimulationRunner::CreateEntity(const std::variant<
+                     sdf::Actor, sdf::Light, sdf::Model> &_asset)
+{
+  std::lock_guard<std::mutex> lock(this->assetCreationMutex);
+  this->assetsToCreate.push_back(_asset);
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetForcedPause(bool _p)
+{
+  bool setRequested = this->forcedPause && !_p;
+  bool setPaused = !this->forcedPause && _p;
+
+  this->forcedPause = _p;
+
+  if (setRequested)
+    this->SetPaused(this->requestedPause);
+  else if (setPaused)
+    this->SetPaused(setPaused);
+}
+
+//////////////////////////////////////////////////
+const sdf::World &SimulationRunner::WorldSdf() const
+{
+  return this->sdfWorld;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::UpdateAssetCreation()
+{
+  // Add assets, if any exist.
+  if (!this->assetsToCreate.empty())
+  {
+    std::lock_guard<std::mutex> lock(this->assetCreationMutex);
+    auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+        this->eventMgr);
+
+    // Create the asset
+    for (const auto &variant : this->assetsToCreate)
+    {
+      std::visit([&](auto &&arg) {
+          Entity entity = creator->CreateEntities(&arg);
+          creator->SetParent(entity, worldEntity(this->entityCompMgr));
+          }, variant);
+    }
+    this->assetsToCreate.clear();
+  }
+}
+
+//////////////////////////////////////////////////
 void SimulationRunner::CreateEntities(const sdf::World &_world)
 {
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  std::scoped_lock<std::mutex> stepLock(this->stepMutex);
+
   this->sdfWorld = _world;
 
   // Instantiate the SDF creator
@@ -1538,4 +1617,8 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // In the future, support modifying GUI from the server at runtime.
   if (_world.Gui())
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+
+  // Allow the runner to resume normal operations.
+  this->SetForcedPause(false);
+  this->creationCv.notify_all();
 }
