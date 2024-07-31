@@ -112,6 +112,7 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
+  this->signalReceived = true;
   gzdbg << "Server received signal[" << _sig  << "]\n";
   this->Stop();
 }
@@ -130,6 +131,13 @@ void ServerPrivate::Stop()
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {
+  // Return early if we've received a signal right before.
+  // The ServerPrivate signal handler would set `running=false`,
+  // but we immediately would set it to true here, which will essentially ignore
+  // the signal. Since we can't reliably use the `running` variable, we return
+  // if `signalReceived` is true
+  if (this->signalReceived)
+    return false;
   this->runMutex.lock();
   this->running = true;
   if (_cond)
