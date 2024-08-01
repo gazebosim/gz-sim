@@ -376,7 +376,7 @@ A detailed description and related parameter of JointTrajectoryController can be
 
 The trajectory message can be published or subscribed at `/model/${MODEL_NAME}/joint_trajectory` by default.
 
-Message type: [`JointTrajectory`](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
+Message type: [`JointTrajectory`](https://github.com/gazebosim/gz-msgs/blob/gz-msgs10/proto/gz/msgs/joint_trajectory.proto)
 
 ### Example usage:
 

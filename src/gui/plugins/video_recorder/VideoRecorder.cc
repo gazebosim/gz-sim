@@ -341,7 +341,7 @@ void VideoRecorder::OnStart(const QString &_format)
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
   this->dataPtr->format = _format.toStdString();
-  this->dataPtr->filename = "ign_recording." + this->dataPtr->format;
+  this->dataPtr->filename = "gz_recording." + this->dataPtr->format;
   this->dataPtr->recordVideo = true;
   this->dataPtr->recording = true;
 }

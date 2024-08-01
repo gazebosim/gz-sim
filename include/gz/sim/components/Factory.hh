@@ -283,17 +283,6 @@ namespace components
       std::string debugEnv;
       gz::common::env("GZ_DEBUG_COMPONENT_FACTORY", debugEnv);
 
-      if (debugEnv != "true")
-      {
-        gz::common::env("IGN_DEBUG_COMPONENT_FACTORY", debugEnv);
-        if (debugEnv == "true")
-        {
-          std::cerr << "Environment variable [IGN_DEBUG_COMPONENT_FACTORY] "
-                    << "is deprecated! Please use [GZ_DEBUG_COMPONENT_FACTORY]"
-                    << "instead." << std::endl;
-        }
-      }
-
       if (debugEnv == "true")
       {
         std::cout << "Registering [" << ComponentTypeT::typeName << "]"

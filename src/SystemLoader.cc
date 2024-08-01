@@ -64,18 +64,7 @@ class gz::sim::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
               gz::plugin::PluginPtr &_gzPlugin)
   {
-    // Deprecated: accept ignition-gazebo-prefixed systems. Remove this on
-    // gz-sim9
-    std::string deprecatedPrefix{"ignition-gazebo"};
     auto filename = _sdfPlugin.Filename();
-    auto pos = filename.find(deprecatedPrefix);
-    if (pos != std::string::npos)
-    {
-      filename.replace(pos, deprecatedPrefix.size(), "gz-sim");
-      gzwarn << "Trying to load deprecated plugin [" << _sdfPlugin.Filename()
-             << "]. Using [" << filename << "] instead." << std::endl;
-    }
-
     std::list<std::string> paths = this->PluginPaths();
     common::SystemPaths systemPaths;
     for (const auto &p : paths)
@@ -124,19 +113,6 @@ class gz::sim::SystemLoaderPrivate
     // use the first plugin name in the library if not specified
     std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
         pluginName : _sdfPlugin.Name();
-
-    // Deprecated: accept ignition plugins. Remove this on gz-sim9
-    std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
-    pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
-    if (pos != std::string::npos)
-    {
-      auto origPluginName = pluginToInstantiate;
-      pluginToInstantiate.replace(pos, deprecatedPluginNamePrefix.size(),
-          "gz::sim");
-      gzwarn << "Trying to load deprecated plugin name [" << origPluginName
-             << "]. Using [" << pluginToInstantiate << "] instead."
-             << std::endl;
-    }
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
     if (!_gzPlugin)
@@ -200,7 +176,6 @@ class gz::sim::SystemLoaderPrivate
 
   // Default plugin search path environment variable
   public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
-  public: std::string pluginPathEnvDeprecated{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
   public: gz::plugin::Loader loader;
