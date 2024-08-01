@@ -143,8 +143,14 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(0u, systemMgr.PendingCount());
   EXPECT_EQ(2u, systemMgr.TotalCount());
   EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  // Expect PreUpdate and Update to contain one map entry with Priority 0 and
+  // a vector of length 1.
   EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(0).size());
   EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(0).size());
   EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
   EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
 }
