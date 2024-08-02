@@ -63,6 +63,7 @@
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
 #include <gz/physics/GetEntities.hh>
+#include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
@@ -129,6 +130,7 @@
 #include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
+#include "gz/sim/components/MultiRay.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
@@ -313,6 +315,10 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Update collision components from physics simulation
   /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateCollisions(EntityComponentManager &_ecm);
+
+  /// \brief Update ray intersection components from physics simulation
+  /// \param[in] _ecm Mutable reference to ECM.
+  public: void UpdateRayIntersections(EntityComponentManager &_ecm);
 
   /// \brief FrameData relative to world at a given offset pose
   /// \param[in] _link gz-physics link
@@ -514,6 +520,11 @@ class gz::sim::systems::PhysicsPrivate
             CollisionFeatureList,
             physics::GetContactsFromLastStepFeature>{};
 
+  /// \brief Feature list to handle ray intersection information.
+  public: struct RayIntersectionFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetRayIntersectionFromLastStepFeature>{};
+
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
             physics::FeatureList<
@@ -651,6 +662,7 @@ class gz::sim::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
+          RayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
@@ -3984,6 +3996,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   // TODO(louise) Skip this if there are no collision features
   this->UpdateCollisions(_ecm);
+
+  this->UpdateRayIntersections(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
@@ -4161,6 +4175,64 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
         _ecm.SetChanged(
           _collEntity1, components::ContactSensorData::typeId, state);
 
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
+  // Quit early if the MultiRayIntersections component hasn't been created. This means
+  // there are no systems that need contact information
+  if (!_ecm.HasComponentType(components::MultiRayIntersections::typeId))
+    return;
+
+  // Assume that there is only one world entity
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
+
+  if (!this->entityWorldMap.HasEntity(worldEntity))
+  {
+    gzwarn << "Failed to find world [" << worldEntity << "]." << std::endl;
+    return;
+  }
+
+  auto worldRayIntersectionFeature =
+      this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
+
+  // Go through each entity that has a MultiRay and MultiRayIntersections components,
+  // trace the rays and set the MultiRayIntersections component value to the list of
+  // intersections that correspond to the ray entity
+  _ecm.Each<components::MultiRay,
+            components::MultiRayIntersections>(
+      [&](const Entity &/*_entity*/,
+          components::MultiRay *_multiRay,
+          components::MultiRayIntersections *_multiRayIntersections) -> bool
+      {
+        // Retrieve the rays from the MultiRay component
+        const auto &rays = _multiRay->Data();
+
+        // Retrieve and clear the results from the MultiRayIntersections component
+        auto &rayIntersections = _multiRayIntersections->Data();
+        rayIntersections.clear();
+
+        for (const auto &ray : rays)
+        {
+          // Compute the ray intersections
+          auto rayIntersection =
+            worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
+              math::eigen3::convert(ray.start), math::eigen3::convert(ray.end));
+
+          const auto result =
+            rayIntersection.Get<physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
+
+          // Store the results into the MultiRayIntersections component
+          components::RayIntersectionInfo info;
+          info.point = math::eigen3::convert(result.point);
+          info.fraction = result.fraction;
+          info.normal = math::eigen3::convert(result.normal);
+          rayIntersections.push_back(info);
+        }
         return true;
       });
 }
