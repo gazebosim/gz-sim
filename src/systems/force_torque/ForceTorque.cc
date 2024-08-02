@@ -153,9 +153,6 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
         _ecm.Component<components::ParentEntity>(entity)->Data();
     gzdbg << "Adding JointTransmittedWrench to: " << jointEntity << std::endl;
     _ecm.CreateComponent(jointEntity, components::JointTransmittedWrench());
-    // Enable WrenchMeasured to save sensor measurements
-    gzdbg << "Adding WrenchMeasured to: " << entity << std::endl;
-    _ecm.CreateComponent(entity, components::WrenchMeasured());
   }
   this->dataPtr->newSensors.clear();
 }
@@ -186,7 +183,9 @@ void ForceTorque::Update(const UpdateInfo &_info,
     bool needsUpdate = false;
     for (const auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      if (sensor->NextDataUpdateTime() <= _info.simTime)
+      if (sensor->NextDataUpdateTime() <= _info.simTime &&
+          (sensor->HasConnections() ||
+          _ecm.Component<components::WrenchMeasured>(sensorEntity) != nullptr))
       {
         needsUpdate = true;
         break;
@@ -205,9 +204,13 @@ void ForceTorque::Update(const UpdateInfo &_info,
       // * Apply noise
       // * Publish to gz-transport topic
       sensor->Update(_info.simTime, false);
-      const auto &measuredWrench = sensor->MeasuredWrench();
-      _ecm.SetComponentData<components::WrenchMeasured>(
-        sensorEntity, measuredWrench);
+      auto wrenchComponent =
+          _ecm.Component<components::WrenchMeasured>(sensorEntity);
+      if (wrenchComponent)
+      {
+        const auto &measuredWrench = sensor->MeasuredWrench();
+        *wrenchComponent = components::WrenchMeasured(measuredWrench);
+      }
     }
   }
 
