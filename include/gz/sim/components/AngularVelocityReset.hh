@@ -15,7 +15,7 @@
  *
  */
 #ifndef GZ_SIM_COMPONENTS_WORLDANGULARVELOCITYRESET_HH_
-#define GZ_SIM_COMPONENTS_WORLDANGULARELOCITYRESET_HH_
+#define GZ_SIM_COMPONENTS_WORLDANGULARVELOCITYRESET_HH_
 
 #include <gz/math/Vector3.hh>
 #include <gz/sim/components/Component.hh>
