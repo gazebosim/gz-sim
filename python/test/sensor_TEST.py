@@ -33,7 +33,7 @@ class TestSensor(unittest.TestCase):
         file_path = os.path.dirname(os.path.realpath(__file__))
         fixture = TestFixture(os.path.join(file_path, 'joint_test.sdf'))
 
-        def on_post_udpate_cb(_info, _ecm):
+        def on_post_update_cb(_info, _ecm):
             self.post_iterations += 1
 
         def on_update_cb(_info, _ecm):
@@ -63,7 +63,7 @@ class TestSensor(unittest.TestCase):
         def on_pre_update_cb(_info, _ecm):
             self.pre_iterations += 1
 
-        fixture.on_post_update(on_post_udpate_cb)
+        fixture.on_post_update(on_post_update_cb)
         fixture.on_update(on_update_cb)
         fixture.on_pre_update(on_pre_update_cb)
         fixture.finalize()
