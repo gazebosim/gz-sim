@@ -36,8 +36,8 @@ class TestSensor(unittest.TestCase):
         def on_post_udpate_cb(_info, _ecm):
             self.post_iterations += 1
 
-        def on_pre_udpate_cb(_info, _ecm):
-            self.pre_iterations += 1
+        def on_update_cb(_info, _ecm):
+            self.iterations += 1
             world_e = world_entity(_ecm)
             self.assertNotEqual(K_NULL_ENTITY, world_e)
             w = World(world_e)
@@ -53,19 +53,19 @@ class TestSensor(unittest.TestCase):
             # Pose Test
             self.assertEqual(Pose3d(0, 1, 0, 0, 0, 0), sensor.pose(_ecm))
             # Topic Test
-            if self.pre_iterations <= 1:
+            if self.iterations <= 1:
                 self.assertEqual(None, sensor.topic(_ecm))
             else:
                 self.assertEqual('sensor_topic_test', sensor.topic(_ecm))
             # Parent Test
             self.assertEqual(j.entity(), sensor.parent(_ecm))
 
-        def on_udpate_cb(_info, _ecm):
-            self.iterations += 1
+        def on_pre_update_cb(_info, _ecm):
+            self.pre_iterations += 1
 
         fixture.on_post_update(on_post_udpate_cb)
-        fixture.on_update(on_udpate_cb)
-        fixture.on_pre_update(on_pre_udpate_cb)
+        fixture.on_update(on_update_cb)
+        fixture.on_pre_update(on_pre_update_cb)
         fixture.finalize()
 
         server = fixture.server()
