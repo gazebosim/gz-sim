@@ -48,6 +48,8 @@ namespace gz
                 configure(systemPlugin->QueryInterface<ISystemConfigure>()),
                 configureParameters(
                   systemPlugin->QueryInterface<ISystemConfigureParameters>()),
+                configurePriority(
+                  systemPlugin->QueryInterface<ISystemConfigurePriority>()),
                 reset(systemPlugin->QueryInterface<ISystemReset>()),
                 preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
                 update(systemPlugin->QueryInterface<ISystemUpdate>()),
@@ -66,6 +68,8 @@ namespace gz
                 configure(dynamic_cast<ISystemConfigure *>(_system.get())),
                 configureParameters(
                   dynamic_cast<ISystemConfigureParameters *>(_system.get())),
+                configurePriority(
+                  dynamic_cast<ISystemConfigurePriority *>(_system.get())),
                 reset(dynamic_cast<ISystemReset *>(_system.get())),
                 preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
                 update(dynamic_cast<ISystemUpdate *>(_system.get())),
@@ -94,6 +98,11 @@ namespace gz
       ///   interface.
       /// Will be nullptr if the System doesn't implement this interface.
       public: ISystemConfigureParameters *configureParameters = nullptr;
+
+      /// \brief Access this system via the ISystemConfigurePriority
+      ///   interface.
+      /// Will be nullptr if the System doesn't implement this interface.
+      public: ISystemConfigurePriority *configurePriority = nullptr;
 
       /// \brief Access this system via the ISystemReset interface
       /// Will be nullptr if the System doesn't implement this interface.

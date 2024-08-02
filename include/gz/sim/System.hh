@@ -124,6 +124,20 @@ namespace gz
                   EventManager &_eventMgr) = 0;
     };
 
+    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
+    /// \brief Interface for a system that implements optional configuration
+    /// of the default priority value.
+    ///
+    /// ConfigurePriority is called before the system is instantiated to
+    /// override System::kDefaultPriority. It can still be overridden by the
+    /// XML priority element.
+    class ISystemConfigurePriority {
+      /// \brief Configure the default priority of the system, which can still
+      /// be overridden by the XML priority element.
+      /// \return The default priority for the system.
+      public: virtual System::PriorityType ConfigurePriority() = 0;
+    };
+
     /// \class ISystemConfigureParameters ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that declares parameters.
     ///

@@ -112,6 +112,10 @@ size_t SystemManager::ActivatePendingSystems()
     this->systems.push_back(system);
 
     PriorityType p {System::kDefaultPriority};
+    if (system.configurePriority)
+    {
+      p = system.configurePriority->ConfigurePriority();
+    }
     const std::string kPriorityElementName
         {gz::sim::System::kPriorityElementName};
     if (system.configureSdf &&
@@ -304,6 +308,7 @@ const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
   return this->systemsConfigure;
 }
 
+//////////////////////////////////////////////////
 const std::vector<ISystemConfigureParameters *>&
 SystemManager::SystemsConfigureParameters()
 {
