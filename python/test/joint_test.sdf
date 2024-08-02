@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
     <world name="world_test">
-    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
-    <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque" />
+        <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+        <plugin filename="gz-sim-forcetorque-system" name="gz::sim::systems::ForceTorque">
+            <gz:system_priority>10</gz:system_priority>
+        </plugin>
         <model name="model_test">
 
             <link name="link_test_1">
