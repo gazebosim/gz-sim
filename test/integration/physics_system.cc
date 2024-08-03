@@ -954,9 +954,9 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_EQ(math::Vector3d::Zero, childLinkAngularVel);
   }
 
-  const math:Posed pose0(0, 0, 1, 0, 0, 0);
+  const math:Pose3d pose0(0, 0, 1, 0, 0, 0);
   // To avoid collision with ground plane while rotating
-  model.SetWorldPoseCmd(pose0);
+  model.SetWorldPoseCmd(*ecm, pose0);
   server.Run(true, 1, false);
 
   const math::Vector3d vel0(0.1, 5.0, 0.1);
