@@ -2745,8 +2745,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
-        auto worldLinearVelFeature =
-            this->entityFreeGroupMap
+        auto worldLinearVelFeature = this->entityFreeGroupMap
                 .EntityCast<WorldVelocityCommandFeatureList>(_entity);
         if (!worldLinearVelFeature)
         {
@@ -2805,8 +2804,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
-        auto worldAngularVelFeature =
-            this->entityFreeGroupMap
+        auto worldAngularVelFeature = this->entityFreeGroupMap
                 .EntityCast<WorldVelocityCommandFeatureList>(_entity);
 
         if (!worldAngularVelFeature)
