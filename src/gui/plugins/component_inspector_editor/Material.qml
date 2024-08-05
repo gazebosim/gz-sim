@@ -120,6 +120,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       minimumValue: 0
       maximumValue: 255
+      decimals: 0
       onEditingFinished: {
         // sending empty params to not open color dialog
         sendMaterialColor("", Qt.rgba(0, 0, 0, 0))

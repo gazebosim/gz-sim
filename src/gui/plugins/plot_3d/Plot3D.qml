@@ -229,8 +229,8 @@ Rectangle {
         Layout.row: 3
         Layout.column: 3
         value: Plot3D.color.y
-        maximumValue: 1
-        minimumValue: 0
+        maximumValue: 1.00
+        minimumValue: 0.00
         decimals: 2
         stepSize: 0.01
         onEditingFinished: Plot3D.SetColor(Qt.vector3d(r.value, g.value, b.value))

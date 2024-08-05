@@ -195,7 +195,7 @@ GridLayout {
     maximumValue: 5
     decimals: 2
     stepSize: 0.1
-    onEditingFinished: {
+    onValueChanged: {
       cascadePtr.thinWallCounter = value
     }
   }

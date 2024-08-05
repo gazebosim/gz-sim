@@ -76,7 +76,6 @@ Rectangle {
       maximumValue: model.max
       decimals: 2
       stepSize: 0.1
-      stepSize: 1
       onEditingFinished: {
         joint.targetValue = spin.value
       }
