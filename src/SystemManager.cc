@@ -25,6 +25,7 @@
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
+#include "gz/sim/Util.hh"
 #include "SystemManager.hh"
 
 using namespace gz;
@@ -400,6 +401,19 @@ void SystemManager::ProcessPendingEntitySystems()
     {
       gzwarn << "Unable to add plugins to Entity: '" << entity
              << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    // set to world entity if entity id is not specified in the request.
+    if (entity == kNullEntity || entity == 0u)
+    {
+      entity = worldEntity(*this->entityCompMgr);
+    }
+    // otherwise check if entity exists before attempting to load the plugin.
+    else if (!this->entityCompMgr->HasEntity(entity))
+    {
+      gzwarn << "Unable to add plugins to Entity: '" << entity
+             << "'. Entity does not exist." << std::endl;
        continue;
     }
 
