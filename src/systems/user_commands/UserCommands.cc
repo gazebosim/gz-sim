@@ -586,7 +586,7 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 
   if (linkEntity == nullptr)
   {
-    return false; 
+    return false;
   }
 
   auto allLinkSensors =
