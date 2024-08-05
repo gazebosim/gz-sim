@@ -220,11 +220,11 @@ ColumnLayout {
       id: viewControlSensitivitySpinBox
       Layout.fillWidth: true
       value: 1.0
-      to: 10
-      from: 0
-      // decimals: 2
-      stepSize: 1
-      onValueModified:{
+      maximumValue: 10.0
+      minimumValue: 0.01
+      decimals: 2
+      stepSize: 0.1
+      onEditingFinished:{
         ViewAngle.OnViewControlSensitivity(value)
       }
     }
@@ -298,11 +298,11 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.camClipDist[0]
-      to: farClip.value
-      from: 0
-      // decimals: 6
-      stepSize: 1
-      onValueModified: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      maximumValue: farClip.value
+      minimumValue: 0.000001
+      decimals: 6
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
     Text {
       text: "Far (m)"
@@ -317,11 +317,11 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 3
       value: ViewAngle.camClipDist[1]
-      to: Number.MAX_VALUE
-      from: nearClip.value
-      // decimals: 6
-      stepSize: 1
-      onValueModified: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      maximumValue: Number.MAX_VALUE
+      minimumValue: nearClip.value
+      decimals: 6
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
   }
 
@@ -352,12 +352,11 @@ ColumnLayout {
       Layout.row: 0
       Layout.column: 1
       value: ViewAngle.horizontalFOV
-      //to: 3.14159
-      to: 4
-      from: 0
-      // decimals: 6
-      stepSize: 1
-      onValueModified: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
+      maximumValue: 3.14159
+      minimumValue: 0.000001
+      decimals: 6
+      stepSize: 0.01
+      onEditingFinished: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
     }
   }
 

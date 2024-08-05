@@ -72,12 +72,11 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      from: minPhysParam
-      to: maxPhysParam
-      // decimals: 6
-      // stepSize: 0.001
-      stepSize: 1
-      onValueModified: {
+      minimumValue: minPhysParam
+      maximumValue: maxPhysParam
+      decimals: 6
+      stepSize: 0.001
+      onEditingFinished: {
         sendPhysics()
       }
     }

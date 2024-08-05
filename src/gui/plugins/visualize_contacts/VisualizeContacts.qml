@@ -64,12 +64,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: radius
-    to: 2
-    from: 0
-    value: 0
-    // decimals: 2
-    stepSize: 1
-    onValueModified: VisualizeContacts.UpdateRadius(radius.value)
+    maximumValue: 2.00
+    minimumValue: 0.01
+    value: 0.10
+    decimals: 2
+    stepSize: 0.05
+    onEditingFinished: VisualizeContacts.UpdateRadius(radius.value)
   }
 
   Text {
@@ -83,12 +83,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: updatePeriod
-    to: 2000
-    from: 10
+    maximumValue: 2000
+    minimumValue: 10
     value: 200
-    // decimals: 0
+    decimals: 0
     stepSize: 50
-    onValueModified: VisualizeContacts.UpdatePeriod(updatePeriod.value)
+    onEditingFinished: VisualizeContacts.UpdatePeriod(updatePeriod.value)
   }
 
   // Bottom spacer

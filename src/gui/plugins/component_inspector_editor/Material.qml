@@ -118,9 +118,9 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      from: 0
-      to: 255
-      onValueModified: {
+      minimumValue: 0
+      maximumValue: 255
+      onEditingFinished: {
         // sending empty params to not open color dialog
         sendMaterialColor("", Qt.rgba(0, 0, 0, 0))
       }

@@ -89,10 +89,10 @@ GridLayout {
     Layout.fillWidth: true
     id: bounceCount
     value: GlobalIlluminationVct.bounceCount
-    from: 0
-    to: 16
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 0
+    maximumValue: 16
+    decimals: 1
+    onValueChanged: {
       GlobalIlluminationVct.bounceCount = value
     }
   }
@@ -111,10 +111,10 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinX
     value: GlobalIlluminationVct.resolutionX
-    from: 4
-    to: 512
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 4
+    maximumValue: 512
+    decimals: 1
+    onEditingFinished: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -129,10 +129,10 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinY
     value: GlobalIlluminationVct.resolutionY
-    from: 4
-    to: 512
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 4
+    maximumValue: 512
+    decimals: 1
+    onEditingFinished: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -147,10 +147,10 @@ GridLayout {
     Layout.fillWidth: true
     id: resolutionSpinZ
     value: GlobalIlluminationVct.resolutionZ
-    from: 4
-    to: 512
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 4
+    maximumValue: 512
+    decimals: 1
+    onEditingFinished: {
       var tmpValue = value;
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
@@ -171,10 +171,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountX
     value: GlobalIlluminationVct.octantCountX
-    from: 1
-    to: 8
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 1
+    maximumValue: 8
+    decimals: 1
+    onEditingFinished: {
       GlobalIlluminationVct.octantCountX = value
     }
   }
@@ -183,10 +183,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountY
     value: GlobalIlluminationVct.octantCountY
-    from: 1
-    to: 8
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 1
+    maximumValue: 8
+    decimals: 1
+    onEditingFinished: {
       GlobalIlluminationVct.octantCountY = value
     }
   }
@@ -195,10 +195,10 @@ GridLayout {
     Layout.fillWidth: true
     id: octantCountZ
     value: GlobalIlluminationVct.octantCountZ
-    from: 1
-    to: 8
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 1
+    maximumValue: 8
+    decimals: 1
+    onEditingFinished: {
       GlobalIlluminationVct.octantCountZ = value
     }
   }
@@ -251,12 +251,11 @@ GridLayout {
     Layout.fillWidth: true
     id: thinWallCounter
     value: GlobalIlluminationVct.thinWallCounter
-    from: 0
-    to: 5
-    // decimals: 2
-    // stepSize: 0.1
-    stepSize: 1
-    onValueModified: {
+    minimumValue: 0
+    maximumValue: 5
+    decimals: 2
+    stepSize: 0.1
+    onValueChanged: {
       GlobalIlluminationVct.thinWallCounter = value
     }
   }

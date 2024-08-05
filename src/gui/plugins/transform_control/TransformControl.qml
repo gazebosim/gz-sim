@@ -346,14 +346,14 @@ ToolBar {
         }
         GzSpinBox {
           id: xEntry
-          from: 1
-          to: 100
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
           value: 1
           Layout.row: 1
           Layout.column: 1
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
@@ -369,14 +369,14 @@ ToolBar {
         }
         GzSpinBox {
           id: yEntry
-          from: 1
-          to: 100
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
           value: 1
           Layout.row: 2
           Layout.column: 1
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
@@ -392,14 +392,14 @@ ToolBar {
         }
         GzSpinBox {
           id: zEntry
-          from: 1
-          to: 100
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 100.0
+          decimals: 2
+          stepSize: 0.01
           value: 1
           Layout.row: 3
           Layout.column: 1
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
@@ -424,14 +424,14 @@ ToolBar {
         }
         GzSpinBox {
           id: rollEntry
-          from: 1
-          to: 180
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
           value: 45
           Layout.row: 1
           Layout.column: 3
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
@@ -447,14 +447,14 @@ ToolBar {
         }
         GzSpinBox {
           id: pitchEntry
-          from: 1
-          to: 180.0
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
           value: 45
           Layout.row: 2
           Layout.column: 3
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
@@ -470,14 +470,14 @@ ToolBar {
         }
         GzSpinBox {
           id: yawEntry
-          from: 1
-          to: 180
-          //decimals: 2
-          stepSize: 1
+          minimumValue: 0.01
+          maximumValue: 180.0
+          decimals: 2
+          stepSize: 0.01
           value: 45
           Layout.row: 3
           Layout.column: 3
-          onValueModified: {
+          onEditingFinished: {
             TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,

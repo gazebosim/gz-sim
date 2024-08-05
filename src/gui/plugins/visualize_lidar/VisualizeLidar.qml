@@ -145,9 +145,9 @@ GridLayout {
   GzSpinBox {
     Layout.columnSpan: 2
     id: pointSize
-    to: 1000
-    from: 1
+    maximumValue: 1000
+    minimumValue: 1
     value: 1
-    onValueModified: VisualizeLidar.UpdateSize(pointSize.value)
+    onEditingFinished: VisualizeLidar.UpdateSize(pointSize.value)
   }
 }

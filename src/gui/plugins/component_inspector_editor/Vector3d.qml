@@ -54,9 +54,9 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: numberValue
-      from: -spinMax
-      to: spinMax
-      // decimals: getDecimalsAdjustValue(writableSpin, numberValue)
+      minimumValue: -spinMax
+      maximumValue: spinMax
+      decimals: getDecimalsAdjustValue(writableSpin, numberValue)
     }
   }
 

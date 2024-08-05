@@ -128,10 +128,10 @@ GridLayout {
     Layout.fillWidth: true
     id: bounceCount
     value: GlobalIlluminationCiVct.bounceCount
-    from: 0
-    to: 16
-    // decimals: 1
-    onValueModified: {
+    minimumValue: 0
+    maximumValue: 16
+    decimals: 1
+    onValueChanged: {
       GlobalIlluminationCiVct.bounceCount = value
     }
   }

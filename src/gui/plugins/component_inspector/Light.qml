@@ -136,7 +136,7 @@ Rectangle {
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
       from: 0.0
       to: 1.0
-      onValueModified: {
+      onValueChanged: {
         if (hovered){
           sendLight()
         }
@@ -161,10 +161,10 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      from: 0
-      to: 1000000
-      // decimals: 6
-      onValueModified: {
+      minimumValue: 0
+      maximumValue: 1000000
+      decimals: 6
+      onEditingFinished: {
         sendLight()
       }
     }
@@ -174,10 +174,10 @@ Rectangle {
     GzSpinBox {
       id: writableSpin
       value: writableSpin.activeFocus ? writableSpin.value : numberValue
-      from: -100000
-      to: 100000
-      // decimals: 6
-      onValueModified: {
+      minimumValue: -100000
+      maximumValue: 100000
+      decimals: 6
+      onEditingFinished: {
         sendLight()
       }
     }

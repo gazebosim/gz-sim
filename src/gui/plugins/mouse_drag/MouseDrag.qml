@@ -35,7 +35,7 @@ GridLayout {
   property int decimalPlaces: 1
 
   // Step size of the GzSpinBoxes
-  property double step: 10
+  property double step: 10.0
 
   Text {
     Layout.columnSpan: 8
@@ -54,12 +54,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: rotStiffness
-    to: maxValue
-    from: 0
+    maximumValue: maxValue
+    minimumValue: 0
     value: MouseDrag.rotStiffness
-    // decimals: decimalPlaces
+    decimals: decimalPlaces
     stepSize: step
-    onValueModified: MouseDrag.rotStiffness = rotStiffness.value
+    onValueChanged: MouseDrag.rotStiffness = rotStiffness.value
   }
 
   Text {
@@ -79,12 +79,12 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     id: posStiffness
-    to: maxValue
-    from: 0
+    maximumValue: maxValue
+    minimumValue: 0
     value: MouseDrag.posStiffness
-    // decimals: decimalPlaces
+    decimals: decimalPlaces
     stepSize: step
-    onValueModified: MouseDrag.posStiffness = posStiffness.value
+    onValueChanged: MouseDrag.posStiffness = posStiffness.value
   }
 
   Switch {

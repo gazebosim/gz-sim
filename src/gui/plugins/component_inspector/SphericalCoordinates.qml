@@ -161,12 +161,11 @@ Rectangle {
           height: 40
           property double numberValue: model.data[1]
           value: latSpin.activeFocus ? latSpin.value : numberValue
-          from: -90
-          to: 90
-          // decimals: 12
-          // stepSize: 0.1
-          stepSize: 1
-          onValueModified: {
+          minimumValue: -90
+          maximumValue: 90
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
             sendSphericalCoordinates()
           }
         }
@@ -197,12 +196,11 @@ Rectangle {
           height: 40
           property double numberValue: model.data[2]
           value: lonSpin.activeFocus ? lonSpin.value : numberValue
-          from: -180
-          to: 180
-          // decimals: 12
-          // stepSize: 0.1
-          stepSize: 1
-          onValueModified: {
+          minimumValue: -180
+          maximumValue: 180
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
             sendSphericalCoordinates()
           }
         }
@@ -233,12 +231,11 @@ Rectangle {
           height: 40
           property double numberValue: model.data[3]
           value: elevationSpin.activeFocus ? elevationSpin.value : numberValue
-          from: -100000
-          to: 100000
-          // decimals: 12
-          // stepSize: 0.1
-          stepSize: 1
-          onValueModified: {
+          minimumValue: -100000
+          maximumValue: 100000
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
             sendSphericalCoordinates()
           }
         }
@@ -269,12 +266,11 @@ Rectangle {
           height: 40
           property double numberValue: model.data[4]
           value: headingSpin.activeFocus ? headingSpin.value : numberValue
-          from: -180
-          to: 180
-          // decimals: 12
-          // stepSize: 0.1
-          stepSize: 1
-          onValueModified: {
+          minimumValue: -180
+          maximumValue: 180
+          decimals: 12
+          stepSize: 0.1
+          onEditingFinished: {
             sendSphericalCoordinates()
           }
         }

@@ -72,12 +72,12 @@ Rectangle {
     GzSpinBox {
       id: spin
       value: spin.activeFocus ? joint.targetValue : model.value
-      from: model.min
-      to: model.max
-      // decimals: 2
-      // stepSize: 0.1
+      minimumValue: model.min
+      maximumValue: model.max
+      decimals: 2
+      stepSize: 0.1
       stepSize: 1
-      onValueModified: {
+      onEditingFinished: {
         joint.targetValue = spin.value
       }
     }
