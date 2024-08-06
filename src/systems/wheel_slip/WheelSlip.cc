@@ -27,6 +27,7 @@
 
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
@@ -34,6 +35,9 @@
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/SlipComplianceCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
+
+#include <gz/msgs/wheel_slip_parameters.pb.h>
+
 
 using namespace gz;
 using namespace sim;
@@ -52,6 +56,9 @@ class gz::sim::systems::WheelSlipPrivate
 
   /// \brief Gazebo communication node
   public: transport::Node node;
+
+    /// \brief Parameters registry
+  public: transport::parameters::ParametersRegistry * registry;
 
   /// \brief Joint Entity
   public: Entity jointEntity;
@@ -248,29 +255,48 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
   for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
     auto &params = linkSurface.second;
-    const auto * wheelSlipCmdComp =
-      _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
-    if (wheelSlipCmdComp)
+      std::string scopedName = ignition::gazebo::scopedName(
+      linkSurface.first, _ecm, ".", false);
+
+    // TODO(ivanpauno): WHY THE SCOPED NAME CHANGES BETWEEN HERE AND
+    //   ConfigureParameters()?
+    // Here the scoped name starts with "wheel_slip."
+    // In `ConfigureParameters()` that doesn't happen!
+    auto paramName = std::string("systems.") + scopedName;
+    transport::parameters::ParametersRegistry::ParameterValue value;
+    try {
+      value = this->registry->Parameter(paramName);
+    } catch (const std::exception & ex) {
+      ignerr << "WheelSlip system Update(): failed to get parameter ["
+              << paramName << "]: " << ex.what() << std::endl;
+    }
+    auto * msg = dynamic_cast<msgs::WheelSlipParameters *>(value.msg.get());
+    if (msg)
     {
       const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
       bool changed = (!math::equal(
           params.slipComplianceLateral,
-          wheelSlipCmdParams.slip_compliance_lateral(),
+          msg->slip_compliance_lateral(),
           1e-6)) ||
         (!math::equal(
           params.slipComplianceLongitudinal,
-          wheelSlipCmdParams.slip_compliance_longitudinal(),
+          msg->slip_compliance_longitudinal(),
           1e-6));
 
       if (changed)
       {
+        gzdbg << "WheelSlip system Update(): parameter ["
+              << paramName << "] updated"
+              << std::endl;
         params.slipComplianceLateral =
-          wheelSlipCmdParams.slip_compliance_lateral();
+          msg->slip_compliance_lateral();
         params.slipComplianceLongitudinal =
-          wheelSlipCmdParams.slip_compliance_longitudinal();
+          msg->slip_compliance_longitudinal();
       }
-      _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
-    }
+    } else if (value.msg.get()) {
+      gzerr << "WheelSlip system Update(): parameter ["
+              << paramName << "] is not of type [ign_msgs.WheelSlipParameters]"
+              << std::endl;    }
 
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
@@ -346,6 +372,26 @@ void WheelSlip::Configure(const Entity &_entity,
   this->dataPtr->validConfig = this->dataPtr->Load(_ecm, sdfClone);
 }
 
+void WheelSlip::ConfigureParameters(
+  ignition::transport::parameters::ParametersRegistry & _registry,
+  EntityComponentManager &_ecm)
+{
+  this->dataPtr->registry = &_registry;
+  for (const auto & linkParamsPair : this->dataPtr->mapLinkSurfaceParams) {
+    std::string scopedName = ignition::gazebo::scopedName(
+      linkParamsPair.first, _ecm, ".", false);
+
+    auto paramName = std::string("systems.wheel_slip.") + scopedName;
+    auto wsParams = std::make_unique<ignition::msgs::WheelSlipParameters>();
+    wsParams->set_slip_compliance_lateral(
+      linkParamsPair.second.slipComplianceLateral);
+    wsParams->set_slip_compliance_longitudinal(
+      linkParamsPair.second.slipComplianceLongitudinal);
+    _registry.DeclareParameter(paramName, std::move(wsParams));
+  }
+}
+
+
 //////////////////////////////////////////////////
 void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
@@ -388,6 +434,7 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 GZ_ADD_PLUGIN(WheelSlip,
                     System,
                     WheelSlip::ISystemConfigure,
+                    WheelSlip::ISystemConfigureParameters,
                     WheelSlip::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(WheelSlip,
