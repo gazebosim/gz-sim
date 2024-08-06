@@ -44,10 +44,12 @@ set(tests
   level_manager.cc
   level_manager_runtime_performers.cc
   light.cc
+  lighter_than_air_dynamics.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
+  material.cc
   mesh_inertia_calculation.cc
   model.cc
   model_photo_shoot_default_joints.cc

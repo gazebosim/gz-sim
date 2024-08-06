@@ -463,6 +463,11 @@ TEST(Conversions, GeometryMesh)
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
+  meshShape.SetOptimization("convex_decomposition");
+  sdf::ConvexDecomposition convexDecomp;
+  convexDecomp.SetMaxConvexHulls(4);
+  convexDecomp.SetVoxelResolution(10000);
+  meshShape.SetConvexDecomposition(convexDecomp);
   geometry.SetMeshShape(meshShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -473,6 +478,15 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("file://watermelon", geometryMsg.mesh().filename());
   EXPECT_EQ("grape", geometryMsg.mesh().submesh());
   EXPECT_TRUE(geometryMsg.mesh().center_submesh());
+  auto header = geometryMsg.header().data(0);
+  EXPECT_EQ("optimization", header.key());
+  EXPECT_EQ("convex_decomposition", header.value(0));
+  header = geometryMsg.header().data(1);
+  EXPECT_EQ("max_convex_hulls", header.key());
+  EXPECT_EQ("4", header.value(0));
+  header = geometryMsg.header().data(2);
+  EXPECT_EQ("voxel_resolution", header.key());
+  EXPECT_EQ("10000", header.value(0));
 
   auto newGeometry = convert<sdf::Geometry>(geometryMsg);
   EXPECT_EQ(sdf::GeometryType::MESH, newGeometry.Type());
@@ -481,6 +495,11 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("file://watermelon", newGeometry.MeshShape()->Uri());
   EXPECT_EQ("grape", newGeometry.MeshShape()->Submesh());
   EXPECT_TRUE(newGeometry.MeshShape()->CenterSubmesh());
+  EXPECT_EQ("convex_decomposition", newGeometry.MeshShape()->OptimizationStr());
+  auto newConvexDecomp = newGeometry.MeshShape()->ConvexDecomposition();
+  ASSERT_NE(nullptr, newConvexDecomp);
+  EXPECT_EQ(4, newConvexDecomp->MaxConvexHulls());
+  EXPECT_EQ(10000, newConvexDecomp->VoxelResolution());
 }
 
 /////////////////////////////////////////////////
@@ -1041,10 +1060,7 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f),
       msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
-
-  auto header = emitterMsg.header().data(0);
-  EXPECT_EQ("topic", header.key());
-  EXPECT_EQ("my_topic", header.value(0));
+  EXPECT_EQ("my_topic", emitterMsg.topic().data());
 
   EXPECT_FLOAT_EQ(0.9f, emitterMsg.particle_scatter_ratio().data());
 
@@ -1094,10 +1110,7 @@ TEST(Conversions, Projector)
   EXPECT_NEAR(30, projectorMsg.far_clip(), 1e-3);
   EXPECT_NEAR(0.4, projectorMsg.fov(), 1e-3);
   EXPECT_EQ("projector.png", projectorMsg.texture());
-
-  auto header = projectorMsg.header().data(0);
-  EXPECT_EQ("visibility_flags", header.key());
-  EXPECT_EQ(0xFF, std::stoul(header.value(0)));
+  EXPECT_EQ(0xFF, projectorMsg.visibility_flags());
 
   // Convert the message back to SDF.
   sdf::Projector projector2 = convert<sdf::Projector>(projectorMsg);
@@ -1202,4 +1215,14 @@ TEST(Conversions, MsgsPluginToSdf)
   ASSERT_EQ(2u, sdfPlugins[1].Contents().size());
   EXPECT_EQ(innerXml, sdfPlugins[1].Contents()[0]->ToString(""));
   EXPECT_EQ(innerXml2, sdfPlugins[1].Contents()[1]->ToString(""));
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryEmpty)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::EMPTY);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::EMPTY, geometryMsg.type());
 }

@@ -1091,9 +1091,7 @@ TEST_P(SceneBroadcasterTest,
       EXPECT_DOUBLE_EQ(0.5, projector.fov());
       EXPECT_NE(std::string::npos,
           projector.texture().find("path/to/dummy_image.png"));
-      auto header = projector.header().data(0);
-      EXPECT_EQ("visibility_flags", header.key());
-      EXPECT_EQ(0x01, std::stoul(header.value(0)));
+      EXPECT_EQ(0x01, projector.visibility_flags());
     }
   }
 

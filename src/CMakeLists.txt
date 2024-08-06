@@ -60,6 +60,11 @@ set(cli_sources
   cmd/ModelCommandAPI.cc
 )
 
+set(material_sources
+  rendering/MaterialParser/MaterialParser.cc
+  rendering/MaterialParser/ConfigLoader.cc
+)
+
 set (sources
   Actor.cc
   Barrier.cc
@@ -92,6 +97,7 @@ set (sources
   ${network_sources}
   ${comms_sources}
   ${msgs_sources}
+  ${material_sources}
 )
 
 set (gtest_sources
@@ -118,7 +124,6 @@ set (gtest_sources
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
   SystemManager_TEST.cc
-  System_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
   World_TEST.cc
@@ -182,7 +187,7 @@ target_link_libraries(${gz_lib_target}
 )
 
 # Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui gz.cc)
+add_executable(runGui cmd/runGui_main.cc)
 target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
@@ -200,7 +205,9 @@ set_property(
   GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins"
   GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR="${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui"
   GZ_SIM_WORLD_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/worlds"
+  GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR="${GZ_DATA_INSTALL_DIR}/media"
 )
+install(FILES "rendering/MaterialParser/gazebo.material" DESTINATION ${GZ_DATA_INSTALL_DIR}/media)
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
@@ -235,10 +242,6 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/gz_msgs_gen>
-)
-
-set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/test)
@@ -306,7 +309,7 @@ foreach(CMD_TEST
   # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that is only available
   # since CMake 3.22. However, if an older CMake is used another trick to install the libraries
   # beforehand
-  if (WIN32 AND CMAKE_VERSION STRGREATER "3.22")
+  if (WIN32 AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.22")
     set_tests_properties(${CMD_TEST} PROPERTIES
       ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   endif()

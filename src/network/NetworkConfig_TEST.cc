@@ -15,6 +15,7 @@
  *
  */
 
+
 #include <gtest/gtest.h>
 
 #include <gz/common/Console.hh>
@@ -30,33 +31,33 @@ TEST(NetworkManager, ValueConstructor)
   {
     // Primary without number of secondaries is invalid
     auto config = NetworkConfig::FromValues("PRIMARY", 0);
-    assert(config.role == NetworkRole::None);
-    assert(config.numSecondariesExpected == 0);
+    ASSERT_EQ(config.role, NetworkRole::None);
+    ASSERT_EQ(config.numSecondariesExpected, 0);
     // Expect console warning as well
   }
 
   {
     // Primary with number of secondaries is valid
     auto config = NetworkConfig::FromValues("PRIMARY", 3);
-    assert(config.role == NetworkRole::SimulationPrimary);
-    assert(config.numSecondariesExpected == 3);
+    ASSERT_EQ(config.role, NetworkRole::SimulationPrimary);
+    ASSERT_EQ(config.numSecondariesExpected, 3);
   }
 
   {
     // Secondary is always valid
     auto config = NetworkConfig::FromValues("SECONDARY", 0);
-    assert(config.role == NetworkRole::SimulationSecondary);
+    ASSERT_EQ(config.role, NetworkRole::SimulationSecondary);
   }
 
   {
     // Readonly is always valid
     auto config = NetworkConfig::FromValues("READONLY");
-    assert(config.role == NetworkRole::ReadOnly);
+    ASSERT_EQ(config.role, NetworkRole::ReadOnly);
   }
 
   {
     // Anything else is invalid
     auto config = NetworkConfig::FromValues("READ_WRITE");
-    assert(config.role == NetworkRole::None);
+    ASSERT_EQ(config.role, NetworkRole::None);
   }
 }

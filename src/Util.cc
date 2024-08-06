@@ -15,12 +15,17 @@
  *
 */
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/SubMesh.hh>
 #include <gz/common/URI.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
@@ -397,12 +402,19 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   {
     return _uri;
   }
+#elif defined(_WIN32)
+  if (_uri.find("://") != std::string::npos ||
+      common::isFile(_uri))
+  {
+    return _uri;
+  }
 #else
   if (_uri.find("://") != std::string::npos ||
       !common::isRelativePath(_uri))
   {
     return _uri;
   }
+
 #endif
 
   // When SDF is loaded from a string instead of a file
@@ -435,15 +447,31 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   return common::joinPaths(path,  uri);
 }
 
+namespace
+{
+//////////////////////////////////////////////////
+/// \brief Helper function to extract paths form an environment variable
+/// refactored from `resourcePaths` below.
+/// common::SystemPaths::PathsFromEnv is available, but it's behavior is
+/// slightly different from this in that it adds trailing `/` to the end of a
+/// path if it doesn't have it already.
+std::vector<std::string> extractPathsFromEnv(const std::string &_envVar)
+{
+  std::vector<std::string> pathsFromEnv;
+  char *pathFromEnvCStr = std::getenv(_envVar.c_str());
+  if (pathFromEnvCStr && *pathFromEnvCStr != '\0')
+  {
+    pathsFromEnv =
+        common::Split(pathFromEnvCStr, common::SystemPaths::Delimiter());
+  }
+  return pathsFromEnv;
+}
+}  // namespace
+
 //////////////////////////////////////////////////
 std::vector<std::string> resourcePaths()
 {
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
-  {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -476,36 +504,28 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   }
 
   // Gazebo resource paths
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+
+  auto addUniquePaths = [](std::vector<std::string> &_container,
+                           const std::vector<std::string> _pathsToAdd)
   {
-    gzPaths = common::Split(gzPathCStr, common::SystemPaths::Delimiter());
-  }
+    for (const auto &path : _pathsToAdd)
+    {
+      if (std::find(_container.begin(), _container.end(), path) ==
+          _container.end())
+      {
+        _container.push_back(path);
+      }
+    }
+  };
 
   // Add new paths to gzPaths
-  for (const auto &path : _paths)
-  {
-    if (std::find(gzPaths.begin(), gzPaths.end(), path) == gzPaths.end())
-    {
-      gzPaths.push_back(path);
-    }
-  }
-
+  addUniquePaths(gzPaths, _paths);
   // Append Gz paths to SDF / Ign paths
-  for (const auto &path : gzPaths)
-  {
-    if (std::find(sdfPaths.begin(), sdfPaths.end(), path) == sdfPaths.end())
-    {
-      sdfPaths.push_back(path);
-    }
+  addUniquePaths(sdfPaths, gzPaths);
+  addUniquePaths(commonPaths, gzPaths);
 
-    if (std::find(commonPaths.begin(),
-        commonPaths.end(), path) == commonPaths.end())
-    {
-      commonPaths.push_back(path);
-    }
-  }
+
 
   // Update the vars
   std::string sdfPathsStr;
@@ -847,8 +867,109 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
            << "]." << std::endl;
     return nullptr;
   }
+
+  if (mesh && _meshSdf.Optimization() != sdf::MeshOptimization::NONE)
+  {
+    const common::Mesh *optimizedMesh = optimizeMesh(_meshSdf, *mesh);
+    if (optimizedMesh)
+      return optimizedMesh;
+    else
+      gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
+  }
+
   return mesh;
 }
+
+const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
+    const common::Mesh &_mesh)
+{
+  if (_meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_DECOMPOSITION &&
+      _meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_HULL)
+    return nullptr;
+
+  auto &meshManager = *common::MeshManager::Instance();
+  std::size_t maxConvexHulls = 16u;
+  std::size_t voxelResolution = 200000u;
+  if (_meshSdf.ConvexDecomposition())
+  {
+    // limit max number of convex hulls to generate
+    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
+    voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
+  }
+  if (_meshSdf.Optimization() == sdf::MeshOptimization::CONVEX_HULL)
+  {
+    /// create 1 convex hull for the whole submesh
+    maxConvexHulls = 1u;
+  }
+
+  // Check if MeshManager contains the decomposed mesh already. If not
+  // add it to the MeshManager so we do not need to decompose it again.
+  const std::string convexMeshName =
+      _mesh.Name() + "_" + _meshSdf.Submesh() + "_CONVEX_" +
+      std::to_string(maxConvexHulls) + "_" + std::to_string(voxelResolution);
+  auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
+  if (!optimizedMesh)
+  {
+    std::unique_ptr<common::Mesh> meshToDecompose =
+        std::make_unique<common::Mesh>();
+    // check if a particular submesh is requested
+    if (!_meshSdf.Submesh().empty())
+    {
+      for (unsigned int submeshIdx = 0;
+           submeshIdx < _mesh.SubMeshCount();
+           ++submeshIdx)
+      {
+        auto submesh = _mesh.SubMeshByIndex(submeshIdx).lock();
+        if (submesh->Name() == _meshSdf.Submesh())
+        {
+          if (_meshSdf.CenterSubmesh())
+            submesh->Center(math::Vector3d::Zero);
+          meshToDecompose->AddSubMesh(*submesh.get());
+          break;
+        }
+      }
+    }
+    else
+    {
+      // Merge meshes before convex decomposition
+      meshToDecompose =
+           gz::common::MeshManager::MergeSubMeshes(_mesh);
+    }
+
+    if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
+    {
+      // Decompose and add mesh to MeshManager
+      auto mergedSubmesh = meshToDecompose->SubMeshByIndex(0u).lock();
+      std::vector<common::SubMesh> decomposed =
+        gz::common::MeshManager::ConvexDecomposition(
+        *mergedSubmesh.get(), maxConvexHulls, voxelResolution);
+      gzdbg << "Optimizing mesh (" << _meshSdf.OptimizationStr() << "): "
+            <<  _mesh.Name() << std::endl;
+      // Create decomposed mesh and add it to MeshManager
+      // Note: MeshManager will call delete on this mesh in its destructor
+      // \todo(iche033) Consider updating MeshManager to accept
+      // unique pointers instead
+      common::Mesh *convexMesh = new common::Mesh;
+      convexMesh->SetName(convexMeshName);
+      for (const auto & submesh : decomposed)
+        convexMesh->AddSubMesh(submesh);
+      meshManager.AddMesh(convexMesh);
+      if (decomposed.empty())
+      {
+        // Print an error if convex decomposition returned empty submeshes
+        // but still add it to MeshManager to avoid going through the
+        // expensive convex decomposition process for the same mesh again
+        gzerr << "Convex decomposition generated zero meshes: "
+               << _mesh.Name() << std::endl;
+      }
+      optimizedMesh = meshManager.MeshByName(convexMeshName);
+    }
+  }
+  return optimizedMesh;
+}
+
 }
 }
 }

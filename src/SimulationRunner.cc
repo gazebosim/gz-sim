@@ -33,6 +33,7 @@
 #include <gz/msgs/world_stats.pb.h>
 
 #include <sdf/Root.hh>
+#include <vector>
 
 #include "gz/common/Profiler.hh"
 #include "gz/sim/components/Model.hh"
@@ -463,6 +464,8 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
+  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
+
   if (this->Stepping())
   {
     // (deprecated) Remove this header in Gazebo H
@@ -531,11 +534,14 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending)
+  if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
-  // If additional systems are to be added, stop the existing threads.
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
   this->StopWorkerThreads();
+
+  this->threadsNeedCleanUp = false;
 
   this->systemMgr->ActivatePendingSystems();
 
@@ -920,6 +926,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
