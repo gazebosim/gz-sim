@@ -432,7 +432,7 @@ class gz::sim::systems::PhysicsPrivate
                       }
                       return true;
                     }};
-  /// \brief msgs::Contacts equality comparison function.
+  /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
           [](const msgs::Wrench &_a, const msgs::Wrench &_b)

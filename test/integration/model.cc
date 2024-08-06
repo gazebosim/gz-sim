@@ -165,6 +165,30 @@ TEST_F(ModelIntegrationTest, SourceFilePath)
 }
 
 //////////////////////////////////////////////////
+TEST_F(ModelIntegrationTest, ModelByName)
+{
+  EntityComponentManager ecm;
+
+  // Model
+  auto eModel = ecm.CreateEntity();
+  Model model(eModel);
+  EXPECT_EQ(eModel, model.Entity());
+  EXPECT_EQ(0u, model.ModelCount(ecm));
+
+  // Nested Model
+  auto eNestedModel = ecm.CreateEntity();
+  ecm.CreateComponent<components::Model>(eNestedModel, components::Model());
+  ecm.CreateComponent<components::ParentEntity>(eNestedModel,
+      components::ParentEntity(eModel));
+  ecm.CreateComponent<components::Name>(eNestedModel,
+      components::Name("nested_model_name"));
+
+  // Check model
+  EXPECT_EQ(eNestedModel, model.ModelByName(ecm, "nested_model_name"));
+  EXPECT_EQ(1u, model.ModelCount(ecm));
+}
+
+//////////////////////////////////////////////////
 TEST_F(ModelIntegrationTest, LinkByName)
 {
   EntityComponentManager ecm;

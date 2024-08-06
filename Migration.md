@@ -12,6 +12,11 @@ release will remove the deprecated code.
      each time step, whereas previously the component values were set to `0`
      after each time step. Persistent velocity commands should be reapplied at
      each time step.
+   + The ForceTorque system has been changed from updating sensor data during
+     the parallelized `PostUpdate` phase to use the sequential `Update` phase
+     and writing directly to the ECM if a sensor entity has a `WrenchMeasured`
+     component. The ForceTorque system priority is specified to ensure that its
+     `Update` phase executes after `Physics::Update`.
 
 ## Gazebo Sim 7.x to 8.0
 * **Deprecated**
