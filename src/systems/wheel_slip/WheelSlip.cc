@@ -58,7 +58,7 @@ class gz::sim::systems::WheelSlipPrivate
   public: transport::Node node;
 
     /// \brief Parameters registry
-  public: transport::parameters::ParametersRegistry * registry;
+  public: transport::parameters::ParametersInterface * registry;
 
   /// \brief Joint Entity
   public: Entity jointEntity;
@@ -263,24 +263,20 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     // Here the scoped name starts with "wheel_slip."
     // In `ConfigureParameters()` that doesn't happen!
     auto paramName = std::string("systems.") + scopedName;
-    transport::parameters::ParametersRegistry::ParameterValue value;
-    try {
-      value = this->registry->Parameter(paramName);
-    } catch (const std::exception & ex) {
-      ignerr << "WheelSlip system Update(): failed to get parameter ["
-              << paramName << "]: " << ex.what() << std::endl;
-    }
-    auto * msg = dynamic_cast<msgs::WheelSlipParametersCmd *>(value.msg.get());
-    if (msg)
+    //transport::parameters::ParameterResult value;
+    msgs::WheelSlipParametersCmd msg;
+
+    auto result = this->registry->Parameter(paramName, msg);
+
+    if (result)
     {
-      const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
       bool changed = (!math::equal(
           params.slipComplianceLateral,
-          msg->slip_compliance_lateral(),
+          msg.slip_compliance_lateral(),
           1e-6)) ||
         (!math::equal(
           params.slipComplianceLongitudinal,
-          msg->slip_compliance_longitudinal(),
+          msg.slip_compliance_longitudinal(),
           1e-6));
 
       if (changed)
@@ -289,14 +285,11 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
               << paramName << "] updated"
               << std::endl;
         params.slipComplianceLateral =
-          msg->slip_compliance_lateral();
+          msg.slip_compliance_lateral();
         params.slipComplianceLongitudinal =
-          msg->slip_compliance_longitudinal();
+          msg.slip_compliance_longitudinal();
       }
-    } else if (value.msg.get()) {
-      gzerr << "WheelSlip system Update(): parameter ["
-              << paramName << "] is not of type [ign_msgs.WheelSlipParameters]"
-              << std::endl;    }
+    } 
 
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
