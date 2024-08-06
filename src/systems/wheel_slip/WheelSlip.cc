@@ -36,7 +36,7 @@
 #include "gz/sim/components/SlipComplianceCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
 
-#include <gz/msgs/wheel_slip_parameters.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 
 using namespace gz;
@@ -255,7 +255,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
   for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
     auto &params = linkSurface.second;
-      std::string scopedName = ignition::gazebo::scopedName(
+      std::string scopedName = gz::sim::scopedName(
       linkSurface.first, _ecm, ".", false);
 
     // TODO(ivanpauno): WHY THE SCOPED NAME CHANGES BETWEEN HERE AND
@@ -270,7 +270,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
       ignerr << "WheelSlip system Update(): failed to get parameter ["
               << paramName << "]: " << ex.what() << std::endl;
     }
-    auto * msg = dynamic_cast<msgs::WheelSlipParameters *>(value.msg.get());
+    auto * msg = dynamic_cast<msgs::WheelSlipParametersCmd *>(value.msg.get());
     if (msg)
     {
       const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
@@ -373,16 +373,16 @@ void WheelSlip::Configure(const Entity &_entity,
 }
 
 void WheelSlip::ConfigureParameters(
-  ignition::transport::parameters::ParametersRegistry & _registry,
+  gz::transport::parameters::ParametersRegistry & _registry,
   EntityComponentManager &_ecm)
 {
   this->dataPtr->registry = &_registry;
   for (const auto & linkParamsPair : this->dataPtr->mapLinkSurfaceParams) {
-    std::string scopedName = ignition::gazebo::scopedName(
+    std::string scopedName = gz::sim::scopedName(
       linkParamsPair.first, _ecm, ".", false);
 
     auto paramName = std::string("systems.wheel_slip.") + scopedName;
-    auto wsParams = std::make_unique<ignition::msgs::WheelSlipParameters>();
+    auto wsParams = std::make_unique<gz::msgs::WheelSlipParametersCmd>();
     wsParams->set_slip_compliance_lateral(
       linkParamsPair.second.slipComplianceLateral);
     wsParams->set_slip_compliance_longitudinal(
