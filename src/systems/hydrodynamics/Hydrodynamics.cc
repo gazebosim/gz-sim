@@ -365,8 +365,10 @@ void Hydrodynamics::Configure(
     gzerr << "The use of added mass through this plugin is deprecated and will"
       << "be removed in Gazebo J* as this formulation has instabilities."
       << " We recommend using the SDF `<fluid_added_mass>` tag based method"
-      << "[http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass]"
-      << "To get rid of this warning we recommend setting `<disable_added_mass> to true."
+      << "[http://sdformat.org/spec?ver=1.11&elem=link"
+      << "#inertial_fluid_added_mass]"
+      << "To get rid of this warning we recommend setting"
+      << "`<disable_added_mass> to true."
       << std::endl;
   }
   // Create model object, to access convenient functions
