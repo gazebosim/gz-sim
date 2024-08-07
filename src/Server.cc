@@ -214,6 +214,11 @@ Server::Server(const ServerConfig &_config)
     this->dataPtr->AddRecordPlugin(_config);
   }
 
+  // If we've received a signal before we create entities, the Stop event
+  // won't be propagated to them. Instead, we just quit early here.
+  if (this->dataPtr->signalReceived)
+    return;
+
   this->dataPtr->CreateEntities();
 
   // Set the desired update period, this will override the desired RTF given in
