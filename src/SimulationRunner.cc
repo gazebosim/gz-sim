@@ -20,24 +20,27 @@
 #include <algorithm>
 
 #include <sdf/Root.hh>
+#include <vector>
 
-#include "ignition/common/Profiler.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/Physics.hh"
-#include "ignition/gazebo/components/PhysicsCmd.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/common/Profiler.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsCmd.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 using StringSet = std::unordered_set<std::string>;
 
@@ -59,8 +62,9 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Keep world name
   this->worldName = _world->Name();
 
-  // Keep system loader so plugins can be loaded at runtime
-  this->systemLoader = _systemLoader;
+  this->parametersRegistry = std::make_unique<
+    ignition::transport::parameters::ParametersRegistry>(
+      std::string{"world/"} + this->worldName);
 
   // Get the physics profile
   // TODO(luca): remove duplicated logic in SdfEntityCreator and LevelManager
@@ -103,8 +107,39 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // So to get a given RTF, our desired period is:
   //
   // period = step_size / RTF
-  this->updatePeriod = std::chrono::nanoseconds(
-      static_cast<int>(this->stepSize.count() / this->desiredRtf));
+  if (this->desiredRtf < 1e-9)
+  {
+    this->updatePeriod = 0ms;
+  }
+  else
+  {
+    this->updatePeriod = std::chrono::nanoseconds(
+        static_cast<int>(this->stepSize.count() / this->desiredRtf));
+  }
+
+  // World control
+  transport::NodeOptions opts;
+  std::string ns{"/world/" + this->worldName};
+  if (this->networkMgr)
+  {
+    ns = this->networkMgr->Namespace() + ns;
+  }
+
+  auto validNs = transport::TopicUtils::AsValidTopic(ns);
+  if (validNs.empty())
+  {
+    ignerr << "Invalid namespace [" << ns
+           << "], not initializing runner transport." << std::endl;
+    return;
+  }
+  opts.SetNameSpace(validNs);
+
+  this->node = std::make_unique<transport::Node>(opts);
+
+  // Create the system manager
+  this->systemMgr = std::make_unique<SystemManager>(
+      _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
+      this->parametersRegistry.get());
 
   this->pauseConn = this->eventMgr.Connect<events::Pause>(
       std::bind(&SimulationRunner::SetPaused, this, std::placeholders::_1));
@@ -112,7 +147,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->stopConn = this->eventMgr.Connect<events::Stop>(
       std::bind(&SimulationRunner::OnStop, this));
 
-  this->loadPluginsConn = this->eventMgr.Connect<events::LoadPlugins>(
+  this->loadPluginsConn = this->eventMgr.Connect<events::LoadSdfPlugins>(
       std::bind(&SimulationRunner::LoadPlugins, this, std::placeholders::_1,
       std::placeholders::_2));
 
@@ -162,36 +197,18 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
-  // If we have reached this point and no systems have been loaded, then load
-  // a default set of systems.
-  if (this->systems.empty() && this->pendingSystems.empty())
+  // If we have reached this point and no world systems have been loaded, then
+  // load a default set of systems.
+  if (this->systemMgr->TotalByEntity(
+      worldEntity(this->entityCompMgr)).empty())
   {
     ignmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = ignition::gazebo::loadPluginInfo(isPlayback);
+    auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
 
   this->LoadLoggingPlugins(this->serverConfig);
-
-  // World control
-  transport::NodeOptions opts;
-  std::string ns{"/world/" + this->worldName};
-  if (this->networkMgr)
-  {
-    ns = this->networkMgr->Namespace() + ns;
-  }
-
-  auto validNs = transport::TopicUtils::AsValidTopic(ns);
-  if (validNs.empty())
-  {
-    ignerr << "Invalid namespace [" << ns
-           << "], not initializing runner transport." << std::endl;
-    return;
-  }
-  opts.SetNameSpace(validNs);
-
-  this->node = std::make_unique<transport::Node>(opts);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -393,14 +410,14 @@ void SimulationRunner::PublishStats()
   IGN_PROFILE("SimulationRunner::PublishStats");
 
   // Create the world statistics message.
-  ignition::msgs::WorldStatistics msg;
+  msgs::WorldStatistics msg;
   msg.set_real_time_factor(this->realTimeFactor);
 
   auto realTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.realTime);
+    math::durationToSecNsec(this->currentInfo.realTime);
 
   auto simTimeSecNsec =
-    ignition::math::durationToSecNsec(this->currentInfo.simTime);
+    math::durationToSecNsec(this->currentInfo.simTime);
 
   msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
   msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
@@ -426,7 +443,7 @@ void SimulationRunner::PublishStats()
 
   // Create and publish the clock message. The clock message is not
   // throttled.
-  ignition::msgs::Clock clockMsg;
+  msgs::Clock clockMsg;
   clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
@@ -446,7 +463,9 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
+  auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
+  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
 //////////////////////////////////////////////////
@@ -455,104 +474,60 @@ void SimulationRunner::AddSystem(
       std::optional<Entity> _entity,
       std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
-  this->AddSystemImpl(SystemInternal(_system), _entity, _sdf);
-}
-
-//////////////////////////////////////////////////
-void SimulationRunner::AddSystemImpl(
-      SystemInternal _system,
-      std::optional<Entity> _entity,
-      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
-{
-  // Call configure
-  if (_system.configure)
-  {
-    // Default to world entity and SDF
-    auto entity = _entity.has_value() ? _entity.value()
-        : worldEntity(this->entityCompMgr);
-    auto sdf = _sdf.has_value() ? _sdf.value() : this->sdfWorld->Element();
-
-    _system.configure->Configure(
-        entity, sdf,
-        this->entityCompMgr,
-        this->eventMgr);
-  }
-
-  // Update callbacks will be handled later, add to queue
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  this->pendingSystems.push_back(_system);
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::AddSystemToRunner(SystemInternal _system)
-{
-  this->systems.push_back(_system);
-
-  if (_system.preupdate)
-    this->systemsPreupdate.push_back(_system.preupdate);
-
-  if (_system.update)
-    this->systemsUpdate.push_back(_system.update);
-
-  if (_system.postupdate)
-    this->systemsPostupdate.push_back(_system.postupdate);
+  auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
+  auto sdf = _sdf.value_or(this->sdfWorld->Element());
+  this->systemMgr->AddSystem(_system, entity, sdf);
 }
 
 /////////////////////////////////////////////////
 void SimulationRunner::ProcessSystemQueue()
 {
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  auto pending = this->pendingSystems.size();
+  auto pending = this->systemMgr->PendingCount();
 
-  if (pending > 0)
+  if (0 == pending && !this->threadsNeedCleanUp)
+    return;
+
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
+  this->StopWorkerThreads();
+
+  this->threadsNeedCleanUp = false;
+
+  this->systemMgr->ActivatePendingSystems();
+
+  auto threadCount = this->systemMgr->SystemsPostUpdate().size() + 1u;
+
+  igndbg << "Creating PostUpdate worker threads: "
+    << threadCount << std::endl;
+
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+
+  this->postUpdateThreadsRunning = true;
+  int id = 0;
+
+  for (auto &system : this->systemMgr->SystemsPostUpdate())
   {
-    // If additional systems are to be added, stop the existing threads.
-    this->StopWorkerThreads();
-  }
+    igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
 
-  for (const auto &system : this->pendingSystems)
-  {
-    this->AddSystemToRunner(system);
-  }
-  this->pendingSystems.clear();
-
-  // If additional systems were added, recreate the worker threads.
-  if (pending > 0)
-  {
-    igndbg << "Creating PostUpdate worker threads: "
-      << this->systemsPostupdate.size() + 1 << std::endl;
-
-    this->postUpdateStartBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
-    this->postUpdateStopBarrier =
-      std::make_unique<Barrier>(this->systemsPostupdate.size() + 1u);
-
-    this->postUpdateThreadsRunning = true;
-    int id = 0;
-
-    for (auto &system : this->systemsPostupdate)
+    this->postUpdateThreads.push_back(std::thread([&, id]()
     {
-      igndbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
-
-      this->postUpdateThreads.push_back(std::thread([&, id]()
+      std::stringstream ss;
+      ss << "PostUpdateThread: " << id;
+      IGN_PROFILE_THREAD_NAME(ss.str().c_str());
+      while (this->postUpdateThreadsRunning)
       {
-        std::stringstream ss;
-        ss << "PostUpdateThread: " << id;
-        IGN_PROFILE_THREAD_NAME(ss.str().c_str());
-        while (this->postUpdateThreadsRunning)
+        this->postUpdateStartBarrier->Wait();
+        if (this->postUpdateThreadsRunning)
         {
-          this->postUpdateStartBarrier->Wait();
-          if (this->postUpdateThreadsRunning)
-          {
-            system->PostUpdate(this->currentInfo, this->entityCompMgr);
-          }
-          this->postUpdateStopBarrier->Wait();
+          system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
-        igndbg << "Exiting postupdate worker thread ("
-          << id << ")" << std::endl;
-      }));
-      id++;
-    }
+        this->postUpdateStopBarrier->Wait();
+      }
+      igndbg << "Exiting postupdate worker thread ("
+        << id << ")" << std::endl;
+    }));
+    id++;
   }
 }
 
@@ -561,20 +536,20 @@ void SimulationRunner::UpdateSystems()
 {
   IGN_PROFILE("SimulationRunner::UpdateSystems");
   // \todo(nkoenig)  Systems used to be updated in parallel using
-  // an ignition::common::WorkerPool. There is overhead associated with
+  // an common::WorkerPool. There is overhead associated with
   // this, most notably the creation and destruction of WorkOrders (see
   // WorkerPool.cc). We could turn on parallel updates in the future, and/or
   // turn it on if there are sufficient systems. More testing is required.
 
   {
     IGN_PROFILE("PreUpdate");
-    for (auto& system : this->systemsPreupdate)
+    for (auto& system : this->systemMgr->SystemsPreUpdate())
       system->PreUpdate(this->currentInfo, this->entityCompMgr);
   }
 
   {
     IGN_PROFILE("Update");
-    for (auto& system : this->systemsUpdate)
+    for (auto& system : this->systemMgr->SystemsUpdate())
       system->Update(this->currentInfo, this->entityCompMgr);
   }
 
@@ -676,14 +651,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // https://github.com/ignitionrobotics/ign-gui/pull/306 and
     // https://github.com/ignitionrobotics/ign-gazebo/pull/1163)
     advertOpts.SetMsgsPerSec(10);
-    this->statsPub = this->node->Advertise<ignition::msgs::WorldStatistics>(
+    this->statsPub = this->node->Advertise<msgs::WorldStatistics>(
         "stats", advertOpts);
   }
 
   if (!this->rootStatsPub.Valid())
   {
     // Check for the existence of other publishers on `/stats`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/stats", publishers);
 
     if (!publishers.empty())
@@ -710,13 +685,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
-    this->clockPub = this->node->Advertise<ignition::msgs::Clock>("clock");
+    this->clockPub = this->node->Advertise<msgs::Clock>("clock");
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
   {
     // Check for the existence of other publishers on `/clock`
-    std::vector<ignition::transport::MessagePublisher> publishers;
+    std::vector<transport::MessagePublisher> publishers;
     this->node->TopicInfo("/clock", publishers);
 
     if (!publishers.empty())
@@ -736,7 +711,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       ignmsg << "Found no publishers on /clock, adding root clock topic"
              << std::endl;
-      this->rootClockPub = this->node->Advertise<ignition::msgs::Clock>(
+      this->rootClockPub = this->node->Advertise<msgs::Clock>(
           "/clock");
     }
   }
@@ -820,6 +795,10 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   IGN_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
+  // Process new ECM state information, typically sent from the GUI after
+  // a change was made to the GUI's ECM.
+  this->ProcessNewWorldControlState();
+
   // Publish info
   this->PublishStats();
 
@@ -830,6 +809,15 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Handle pending systems
   this->ProcessSystemQueue();
+
+  // Handle entities that need to be recreated.
+  // Put in a request to mark them as removed so that in the UpdateSystem call
+  // the systems can remove them first before new ones are created. This is
+  // so that we can recreate entities with the same name.
+  this->ProcessRecreateEntitiesRemove();
+
+  // handle systems that need to be added
+  this->systemMgr->ProcessPendingEntitySystems();
 
   // Update all the systems.
   this->UpdateSystems();
@@ -861,7 +849,15 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Clear all new entities
   this->entityCompMgr.ClearNewlyCreatedEntities();
 
+  // Recreate any entities that have the Recreate component
+  // The entities will have different Entity ids but keep the same name
+  // Make sure this happens after ClearNewlyCreatedEntities, otherwise the
+  // cloned entities will loose their "New" state.
+  this->ProcessRecreateEntitiesCreate();
+
   // Process entity removals.
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
@@ -874,23 +870,9 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugin(const Entity _entity,
-                                  const std::string &_fname,
-                                  const std::string &_name,
-                                  const sdf::ElementPtr &_sdf)
+                                  const sdf::Plugin &_plugin)
 {
-  std::optional<SystemPluginPtr> system;
-  {
-    std::lock_guard<std::mutex> lock(this->systemLoaderMutex);
-    system = this->systemLoader->LoadPlugin(_fname, _name, _sdf);
-  }
-
-  // System correctly loaded from library
-  if (system)
-  {
-    this->AddSystem(system.value(), _entity, _sdf);
-    igndbg << "Loaded system [" << _name
-           << "] for entity [" << _entity << "]" << std::endl;
-  }
+  this->systemMgr->LoadPlugin(_entity, _plugin);
 }
 
 //////////////////////////////////////////////////
@@ -970,7 +952,7 @@ void SimulationRunner::LoadServerPlugins(
 
     if (kNullEntity != entity)
     {
-      this->LoadPlugin(entity, plugin.Filename(), plugin.Name(), plugin.Sdf());
+      this->LoadPlugin(entity, plugin.Plugin());
     }
   }
 }
@@ -1002,23 +984,18 @@ void SimulationRunner::LoadLoggingPlugins(const ServerConfig &_config)
 
 //////////////////////////////////////////////////
 void SimulationRunner::LoadPlugins(const Entity _entity,
-    const sdf::ElementPtr &_sdf)
+    const sdf::Plugins &_plugins)
 {
-  sdf::ElementPtr pluginElem = _sdf->FindElement("plugin");
-  while (pluginElem)
+  for (const sdf::Plugin &plugin : _plugins)
   {
-    auto filename = pluginElem->Get<std::string>("filename");
-    auto name = pluginElem->Get<std::string>("name");
     // No error message for the 'else' case of the following 'if' statement
     // because SDF create a default <plugin> element even if it's not
     // specified. An error message would result in spamming
     // the console.
-    if (filename != "__default__" && name != "__default__")
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
     {
-      this->LoadPlugin(_entity, filename, name, pluginElem);
+      this->LoadPlugin(_entity, plugin);
     }
-
-    pluginElem = pluginElem->GetNextElement("plugin");
   }
 }
 
@@ -1060,8 +1037,7 @@ size_t SimulationRunner::EntityCount() const
 /////////////////////////////////////////////////
 size_t SimulationRunner::SystemCount() const
 {
-  std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
-  return this->systems.size() + this->pendingSystems.size();
+  return this->systemMgr->TotalCount();
 }
 
 /////////////////////////////////////////////////
@@ -1135,11 +1111,13 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
 {
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
-  // update the server ECM if the request contains SerializedState information
+  // Copy the state information if it exists
   if (_req.has_state())
-    this->entityCompMgr.SetState(_req.state());
-  // TODO(anyone) notify server systems of changes made to the ECM, if there
-  // were any?
+  {
+    if (this->newWorldControlState == nullptr)
+      this->newWorldControlState.reset(_req.New());
+    this->newWorldControlState->CopyFrom(_req);
+  }
 
   WorldControl control;
   control.pause = _req.world_control().pause();
@@ -1169,13 +1147,28 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
   {
     control.runToSimTime = std::chrono::seconds(
         _req.world_control().run_to_sim_time().sec()) +
-        std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
+      std::chrono::nanoseconds(_req.world_control().run_to_sim_time().nsec());
   }
 
   this->worldControls.push_back(control);
 
   _res.set_data(true);
   return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessNewWorldControlState()
+{
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  // update the server ECM if the request contains SerializedState information
+  if (this->newWorldControlState && this->newWorldControlState->has_state())
+  {
+    this->entityCompMgr.SetState(this->newWorldControlState->state());
+
+    this->newWorldControlState.reset();
+  }
+  // TODO(anyone) notify server systems of changes made to the ECM, if there
+  // were any?
 }
 
 /////////////////////////////////////////////////
@@ -1252,6 +1245,73 @@ void SimulationRunner::ProcessWorldControl()
 }
 
 /////////////////////////////////////////////////
+void SimulationRunner::ProcessRecreateEntitiesRemove()
+{
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
+
+  // store the original entities to recreate and put in request to remove them
+  this->entityCompMgr.EachNoCache<components::Model,
+                           components::Recreate>(
+      [&](const Entity &_entity,
+          const components::Model *,
+          const components::Recreate *)->bool
+      {
+        this->entitiesToRecreate.insert(_entity);
+        this->entityCompMgr.RequestRemoveEntity(_entity, true);
+        return true;
+      });
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::ProcessRecreateEntitiesCreate()
+{
+  IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesCreate");
+
+  // clone the original entities
+  for (auto & ent : this->entitiesToRecreate)
+  {
+    auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
+    auto parentComp =
+        this->entityCompMgr.Component<components::ParentEntity>(ent);
+    if (nameComp  && parentComp)
+    {
+      // set allowRenaming to false so the entities keep their original name
+      Entity clonedEntity = this->entityCompMgr.Clone(ent,
+         parentComp->Data(), nameComp->Data(), false);
+
+      // remove the Recreate component so they do not get recreated again in the
+      // next iteration
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(ent))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << ent << "]" << std::endl;
+      }
+
+      if (!this->entityCompMgr.RemoveComponent<components::Recreate>(
+            clonedEntity))
+      {
+        ignerr << "Failed to remove Recreate component from entity["
+          << clonedEntity << "]" << std::endl;
+      }
+    }
+    else if (!nameComp)
+    {
+      ignerr << "Missing name component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+        << std::endl;
+    }
+    else if (!parentComp)
+    {
+      ignerr << "Missing parent component for entity[" << ent << "]. "
+        << "The entity will not be cloned during the recreation process."
+         << std::endl;
+    }
+  }
+
+  this->entitiesToRecreate.clear();
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::Paused() const
 {
   return this->currentInfo.paused;
@@ -1283,13 +1343,13 @@ SimulationRunner::UpdatePeriod() const
 }
 
 /////////////////////////////////////////////////
-const ignition::math::clock::duration &SimulationRunner::StepSize() const
+const math::clock::duration &SimulationRunner::StepSize() const
 {
   return this->stepSize;
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::SetStepSize(const ignition::math::clock::duration &_step)
+void SimulationRunner::SetStepSize(const math::clock::duration &_step)
 {
   this->stepSize = _step;
 }
@@ -1365,7 +1425,7 @@ bool SimulationRunner::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
-bool SimulationRunner::GuiInfoService(ignition::msgs::GUI &_res)
+bool SimulationRunner::GuiInfoService(msgs::GUI &_res)
 {
   _res.Clear();
 

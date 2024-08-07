@@ -24,41 +24,41 @@
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
-#include <ignition/math/Vector3.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/math/Pose3.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Conversions.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Conversions.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
-#include "ignition/rendering/RenderTypes.hh"
-#include "ignition/rendering/RenderingIface.hh"
-#include "ignition/rendering/RenderEngine.hh"
-#include "ignition/rendering/Scene.hh"
-#include "ignition/rendering/LidarVisual.hh"
+#include "gz/rendering/RenderTypes.hh"
+#include "gz/rendering/RenderingIface.hh"
+#include "gz/rendering/RenderEngine.hh"
+#include "gz/rendering/Scene.hh"
+#include "gz/rendering/LidarVisual.hh"
 
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Util.hh"
 
-#include "ignition/msgs/laserscan.pb.h"
+#include "gz/msgs/laserscan.pb.h"
 
 namespace ignition
 {
@@ -81,9 +81,6 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     /// \brief Visual type for lidar visual
     public: rendering::LidarVisualType visualType{
                             rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
-
-    /// \brief URI sequence to the lidar link
-    public: std::string lidarString{""};
 
     /// \brief LaserScan message from sensor
     public: msgs::LaserScan msg;
@@ -122,7 +119,7 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE
     public: bool visualDirty{false};
 
     /// \brief lidar sensor entity dirty flag
-    public: bool lidarEntityDirty{true};
+    public: bool lidarEntityDirty{false};
   };
 }
 }
@@ -197,8 +194,8 @@ void VisualizeLidar::LoadLidar()
 
     scene->DestroyVisual(this->dataPtr->lidar);
 
-    ignition::gui::App()->findChild<
-        ignition::gui::MainWindow *>()->removeEventFilter(this);
+    gz::gui::App()->findChild<
+        gz::gui::MainWindow *>()->removeEventFilter(this);
   }
   else
   {
@@ -214,14 +211,14 @@ void VisualizeLidar::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Visualize lidar";
 
-  ignition::gui::App()->findChild<
-    ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+    gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
 bool VisualizeLidar::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     // This event is called in Scene3d's RenderThread, so it's safe to make
     // rendering calls here
@@ -266,58 +263,39 @@ void VisualizeLidar::Update(const UpdateInfo &,
 
   if (this->dataPtr->lidarEntityDirty)
   {
-    auto lidarURIVec = common::split(common::trimmed(
-                  this->dataPtr->lidarString), "::");
-    if (lidarURIVec.size() > 0)
+    std::string topic = this->dataPtr->topicName;
+    auto lidarEnt =
+        _ecm.EntityByComponents(components::SensorTopic(topic));
+    if (lidarEnt == kNullEntity)
     {
-      auto baseEntity = _ecm.EntityByComponents(
-          components::Name(lidarURIVec[0]));
-      if (!baseEntity)
-      {
-        ignerr << "Error entity " << lidarURIVec[0]
-            << " doesn't exist and cannot be used to set lidar visual pose"
-            << std::endl;
-        return;
-      }
-      else
-      {
-        auto parent = baseEntity;
-        bool success = false;
-        for (size_t i = 0u; i < lidarURIVec.size()-1; i++)
-        {
-          auto children = _ecm.EntitiesByComponents(
-                            components::ParentEntity(parent));
-          bool foundChild = false;
-          for (auto child : children)
-          {
-            std::string nextstring = lidarURIVec[i+1];
-            std::string childname = std::string(
-                            _ecm.Component<components::Name>(child)->Data());
-            if (nextstring.compare(childname) == 0)
-            {
-              parent = child;
-              foundChild = true;
-              if (i+1 == lidarURIVec.size()-1)
-              {
-                success = true;
-              }
-              break;
-            }
-          }
-          if (!foundChild)
-          {
-            ignerr << "The entity could not be found."
-                  << "Error displaying lidar visual" <<std::endl;
-            return;
-          }
-        }
-        if (success)
-        {
-          this->dataPtr->lidarEntity = parent;
-          this->dataPtr->lidarEntityDirty = false;
-        }
-      }
+      if (topic[0] == '/')
+        topic = topic.substr(1);
+      lidarEnt =
+        _ecm.EntityByComponents(components::SensorTopic(topic));
     }
+
+    static bool informed{false};
+    if (lidarEnt == kNullEntity)
+    {
+      if (!informed)
+      {
+        ignerr << "The lidar entity with topic '['" <<  this->dataPtr->topicName
+               << "'] could not be found. "
+               << "Error displaying lidar visual. " << std::endl;
+        informed = true;
+      }
+      return;
+    }
+    informed = false;
+    this->dataPtr->lidarEntity = lidarEnt;
+    this->dataPtr->lidarEntityDirty = false;
+  }
+
+  if (!_ecm.HasEntity(this->dataPtr->lidarEntity))
+  {
+    this->dataPtr->resetVisual = true;
+    this->dataPtr->topicName = "";
+    return;
   }
 
   // Only update lidarPose if the lidarEntity exists and the lidar is
@@ -327,7 +305,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
   // data arrives, the visual is offset from the obstacle if the sensor is
   // moving fast.
   if (!this->dataPtr->lidarEntityDirty && this->dataPtr->initialized &&
-                                          !this->dataPtr->visualDirty)
+      !this->dataPtr->visualDirty)
   {
     this->dataPtr->lidarPose = worldPose(this->dataPtr->lidarEntity, _ecm);
   }
@@ -374,15 +352,19 @@ void VisualizeLidar::UpdateSize(int _size)
 //////////////////////////////////////////////////
 void VisualizeLidar::OnTopic(const QString &_topicName)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::string topic = _topicName.toStdString();
+  if (this->dataPtr->topicName == topic)
+    return;
+
   if (!this->dataPtr->topicName.empty() &&
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     ignerr << "Unable to unsubscribe from topic ["
            << this->dataPtr->topicName <<"]" <<std::endl;
   }
-  this->dataPtr->topicName = _topicName.toStdString();
+  this->dataPtr->topicName = topic;
 
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   // Reset visualization
   this->dataPtr->resetVisual = true;
 
@@ -396,19 +378,21 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   }
   this->dataPtr->visualDirty = false;
   ignmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
+
+  this->dataPtr->lidarEntityDirty = true;
 }
 
 //////////////////////////////////////////////////
 void VisualizeLidar::UpdateNonHitting(bool _value)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetDisplayNonHitting(_value);
 }
 
 //////////////////////////////////////////////////
 void VisualizeLidar::DisplayVisual(bool _value)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetVisible(_value);
   ignmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
          << std::endl;
@@ -417,7 +401,6 @@ void VisualizeLidar::DisplayVisual(bool _value)
 /////////////////////////////////////////////////
 void VisualizeLidar::OnRefresh()
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
   ignmsg << "Refreshing topic list for LaserScan messages." << std::endl;
 
   // Clear
@@ -463,7 +446,7 @@ void VisualizeLidar::SetTopicList(const QStringList &_topicList)
 //////////////////////////////////////////////////
 void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
 {
-  std::lock_guard<std::mutex>(this->dataPtr->serviceMutex);
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->initialized)
   {
     this->dataPtr->msg = std::move(_msg);
@@ -484,27 +467,22 @@ void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
                                   this->dataPtr->msg.ranges().begin(),
                                   this->dataPtr->msg.ranges().end()));
 
-    this->dataPtr->visualDirty = true;
-
-    for (auto data_values : this->dataPtr->msg.header().data())
+    if (!math::equal(this->dataPtr->maxVisualRange,
+        this->dataPtr->msg.range_max()))
     {
-      if (data_values.key() == "frame_id")
-      {
-        if (this->dataPtr->lidarString.compare(
-                common::trimmed(data_values.value(0))) != 0)
-        {
-          this->dataPtr->lidarString = common::trimmed(data_values.value(0));
-          this->dataPtr->lidarEntityDirty = true;
-          this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
-          this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
-          this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
-          this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
-          this->MinRangeChanged();
-          this->MaxRangeChanged();
-          break;
-        }
-      }
+      this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
+      this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
+      this->MaxRangeChanged();
     }
+    if (!math::equal(this->dataPtr->minVisualRange,
+        this->dataPtr->msg.range_min()))
+    {
+      this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
+      this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
+      this->MinRangeChanged();
+    }
+
+    this->dataPtr->visualDirty = true;
   }
 }
 
@@ -522,4 +500,4 @@ QString VisualizeLidar::MinRange() const
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::VisualizeLidar,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

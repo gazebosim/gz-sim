@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
-#define IGNITION_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
+#define GZ_GAZEBO_SYSTEMS_ACKERMANNSTEERING_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -75,12 +75,12 @@ namespace systems
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-  /// '<min_velocity>': Minimum velocity [m/s], usually <= 0.
-  /// '<max_velocity>': Maximum velocity [m/s], usually >= 0.
-  /// '<min_acceleration>': Minimum acceleration [m/s^2], usually <= 0.
-  /// '<max_acceleration>': Maximum acceleration [m/s^2], usually >= 0.
-  /// '<min_jerk Minimum>': jerk [m/s^3], usually <= 0.
-  /// '<max_jerk Maximum>': jerk [m/s^3], usually >= 0.
+  /// `<min_velocity>`: Minimum velocity [m/s], usually <= 0.
+  /// `<max_velocity>`: Maximum velocity [m/s], usually >= 0.
+  /// `<min_acceleration>`: Minimum acceleration [m/s^2], usually <= 0.
+  /// `<max_acceleration>`: Maximum acceleration [m/s^2], usually >= 0.
+  /// `<min_jerk Minimum>`: jerk [m/s^3], usually <= 0.
+  /// `<max_jerk Maximum>`: jerk [m/s^3], usually >= 0.
   ///
   /// `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command velocity messages. This element if optional, and the
@@ -90,12 +90,28 @@ namespace systems
   /// messages. This element if optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
+  /// `<tf_topic>`: Custom topic on which this system will publish the
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
+  /// and the default value is `/model/{name_of_model}/tf`.
+  ///
+  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
+  /// origin of the odometry transform in both the `<tf_topic>`
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional, and the
+  /// default value is `{name_of_model}/odom`.
+  ///
+  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
+  /// the target of the odometry transform in both the `<tf_topic>`
+  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  /// `ignition.msgs.Odometry` message. This element if optional,
+  /// and the default value is `{name_of_model}/{name_of_link}`.
+  ///
   /// A robot with rear drive and front steering would have one each
   /// of left_joint, right_joint, left_steering_joint and
   /// right_steering_joint
   ///
   /// References:
-  /// https://github.com/ignitionrobotics/ign-gazebo/tree/main/src/systems/diff_drive
+  /// https://github.com/gazebosim/gz-sim/tree/main/src/systems/ackermann_steering
   /// https://www.auto.tuwien.ac.at/bib/pdf_TR/TR0183.pdf
   /// https://github.com/froohoo/ackermansteer/blob/master/ackermansteer/
 
@@ -120,8 +136,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

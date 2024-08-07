@@ -2,15 +2,15 @@
 
 Ignition Gazebo supports choosing what physics engine to use at runtime.
 This is made possible by
-[Ignition Physics](https://ignitionrobotics.org/libs/physics)' abstraction
+[Gazebo Physics](https://gazebosim.org/libs/physics)' abstraction
 layer.
 
 Ignition Gazebo uses the [DART](https://dartsim.github.io/) physics engine
 by default.
 
 Downstream developers may also integrate other physics engines by creating new
-Ignition Physics engine plugins. See
-[Ignition Physics](https://ignitionrobotics.org/api/physics/2.0/tutorials.html)'s
+Gazebo Physics engine plugins. See
+[Gazebo Physics](https://gazebosim.org/api/physics/2.0/tutorials.html)'s
 tutorials to learn how to integrate a new engine.
 
 ## How Gazebo finds engines
@@ -56,7 +56,7 @@ For the example above, you can load it like this:
 ```{.xml}
 <plugin
   filename="ignition-gazebo-physics-system"
-  name="ignition::gazebo::systems::Physics">
+  name="gz::sim::systems::Physics">
   <engine>
     <filename>CustomEngine</filename>
   </engine>
@@ -73,15 +73,15 @@ Alternatively, you can choose a plugin from the command line using the
 ### From C++ API
 
 All features available through the command line are also available through
-[ignition::gazebo::ServerConfig](https://ignitionrobotics.org/api/gazebo/2.0/classignition_1_1gazebo_1_1ServerConfig.html).
+[gz::sim::ServerConfig](https://gazebosim.org/api/gazebo/6/classignition_1_1gazebo_1_1ServerConfig.html).
 When instantiating a server programmatically, a physics engine can be passed
 to the constructor, for example:
 
 ```
-ignition::gazebo::ServerConfig serverConfig;
+gz::sim::ServerConfig serverConfig;
 serverConfig.SetPhysicsEngine("CustomEngine");
 
-ignition::gazebo::Server server(serverConfig);
+gz::sim::Server server(serverConfig);
 ```
 
 ## Engine configuration

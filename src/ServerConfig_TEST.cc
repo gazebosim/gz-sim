@@ -17,13 +17,13 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gazebo/ServerConfig.hh>
-#include <ignition/gazebo/Util.hh>
-#include <ignition/gazebo/test_config.hh>
+#include <gz/common/Console.hh>
+#include <gz/sim/ServerConfig.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/test_config.hh>
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 //////////////////////////////////////////////////
 TEST(ParsePluginsFromString, Valid)
@@ -35,21 +35,21 @@ TEST(ParsePluginsFromString, Valid)
         entity_name="default"
         entity_type="world"
         filename="TestWorldSystem"
-        name="ignition::gazebo::TestWorldSystem">
+        name="gz::sim::TestWorldSystem">
         <world_key>0.123</world_key>
       </plugin>
       <plugin
         entity_name="box"
         entity_type="model"
         filename="TestModelSystem"
-        name="ignition::gazebo::TestModelSystem">
+        name="gz::sim::TestModelSystem">
         <model_key>987</model_key>
       </plugin>
       <plugin
         entity_name="default::box::link_1::camera"
         entity_type="sensor"
         filename="TestSensorSystem"
-        name="ignition::gazebo::TestSensorSystem">
+        name="gz::sim::TestSensorSystem">
         <sensor_key>456</sensor_key>
       </plugin>
     </plugins>
@@ -63,21 +63,27 @@ TEST(ParsePluginsFromString, Valid)
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
   EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
   EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("TestSensorSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Plugin().Name());
 }
 
 //////////////////////////////////////////////////
@@ -89,7 +95,7 @@ TEST(ParsePluginsFromString, Invalid)
       entity_name="default"
       entity_type="world"
       filename="TestWorldSystem"
-      name="ignition::gazebo::TestWorldSystem">
+      name="gz::sim::TestWorldSystem">
       <world_key>0.123</world_key>
     </plugin>
   </server_config>)";
@@ -115,21 +121,27 @@ TEST(ParsePluginsFromFile, Valid)
   EXPECT_EQ("default", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
   EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("default::box::link_1::camera", plugin->EntityName());
   EXPECT_EQ("sensor", plugin->EntityType());
   EXPECT_EQ("TestSensorSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("TestSensorSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestSensorSystem", plugin->Plugin().Name());
 }
 
 //////////////////////////////////////////////////
@@ -155,7 +167,7 @@ TEST(ParsePluginsFromFile, DefaultConfig)
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "server.config");
+    "include", "gz", "sim", "server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(3u, plugins.size());
@@ -169,7 +181,7 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
   // If more systems are added, then the number needs
   // to be adjusted below.
   auto config = common::joinPaths(PROJECT_SOURCE_PATH,
-    "include", "ignition", "gazebo", "playback_server.config");
+    "include", "gz", "sim", "playback_server.config");
 
   auto plugins = parsePluginsFromFile(config);
   ASSERT_EQ(2u, plugins.size());
@@ -179,21 +191,15 @@ TEST(ParsePluginsFromFile, PlaybackConfig)
 TEST(LoadPluginInfo, FromEmptyEnv)
 {
   // Set environment to something that doesn't exist
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, "foo"));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, "foo"));
   auto plugins = loadPluginInfo();
 
   EXPECT_EQ(0u, plugins.size());
-  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
 }
 
-//////////////////////////////////////////////////
-TEST(LoadPluginInfo, FromValidEnv)
+void testFromValidEnvPlugins()
 {
-  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
-    "test", "worlds", "server_valid2.config");
-
-  ASSERT_TRUE(common::setenv(gazebo::kServerConfigPathEnv, validPath));
-
   auto plugins = loadPluginInfo();
   ASSERT_EQ(2u, plugins.size());
 
@@ -202,16 +208,46 @@ TEST(LoadPluginInfo, FromValidEnv)
   EXPECT_EQ("*", plugin->EntityName());
   EXPECT_EQ("world", plugin->EntityType());
   EXPECT_EQ("TestWorldSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("TestWorldSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestWorldSystem", plugin->Plugin().Name());
 
   plugin = std::next(plugin, 1);
 
   EXPECT_EQ("box", plugin->EntityName());
   EXPECT_EQ("model", plugin->EntityType());
-  EXPECT_EQ("TestModelSystem", plugin->Filename());
-  EXPECT_EQ("ignition::gazebo::TestModelSystem", plugin->Name());
+  EXPECT_EQ("TestModelSystem", plugin->Plugin().Filename());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Name());
+  EXPECT_EQ("gz::sim::TestModelSystem", plugin->Plugin().Name());
 
-  EXPECT_TRUE(common::unsetenv(gazebo::kServerConfigPathEnv));
+}
+//////////////////////////////////////////////////
+TEST(LoadPluginInfo, FromValidEnv)
+{
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnv, validPath));
+
+  SCOPED_TRACE("FromValidEnv");
+  testFromValidEnvPlugins();
+
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
+}
+
+//////////////////////////////////////////////////
+TEST(LoadPluginInfo, FromValidEnvGzSimCompatibility)
+{
+  auto validPath = common::joinPaths(PROJECT_SOURCE_PATH,
+    "test", "worlds", "server_valid2.config");
+
+  ASSERT_TRUE(common::unsetenv(kServerConfigPathEnv));
+  ASSERT_TRUE(common::setenv(kServerConfigPathEnvGzSim, validPath));
+
+  SCOPED_TRACE("FromValidEnvGzSimCompatibility");
+  testFromValidEnvPlugins();
+
+  EXPECT_TRUE(common::unsetenv(kServerConfigPathEnvGzSim));
 }
 
 //////////////////////////////////////////////////
@@ -221,10 +257,43 @@ TEST(ServerConfig, GenerateRecordPlugin)
   config.SetUseLogRecord(true);
   config.SetLogRecordPath("foo/bar");
   config.SetLogRecordResources(true);
+  auto period =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    std::chrono::duration<double>(0.04));
+  config.SetLogRecordPeriod(period);
+  EXPECT_EQ(period, config.LogRecordPeriod());
 
   auto plugin = config.LogRecordPlugin();
   EXPECT_EQ(plugin.EntityName(), "*");
   EXPECT_EQ(plugin.EntityType(), "world");
-  EXPECT_EQ(plugin.Name(), "ignition::gazebo::systems::LogRecord");
+  EXPECT_EQ(plugin.Plugin().Name(), "gz::sim::systems::LogRecord");
 }
 
+//////////////////////////////////////////////////
+TEST(ServerConfig, SdfRoot)
+{
+  ServerConfig config;
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kNone, config.Source());
+
+  config.SetSdfString("string");
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_FALSE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfString, config.Source());
+
+  config.SetSdfFile("file");
+  EXPECT_FALSE(config.SdfRoot());
+  EXPECT_FALSE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfFile, config.Source());
+
+  sdf::Root root;
+  config.SetSdfRoot(root);
+  EXPECT_TRUE(config.SdfRoot());
+  EXPECT_TRUE(config.SdfFile().empty());
+  EXPECT_TRUE(config.SdfString().empty());
+  EXPECT_EQ(ServerConfig::SourceType::kSdfRoot, config.Source());
+}

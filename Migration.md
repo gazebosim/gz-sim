@@ -5,6 +5,12 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.11.X to 6.12.X
+
+ * **Modified**:
+   + In the Hydrodynamics plugin, inverted the added mass contribution to make it
+     act in the correct direction.
+
 ## Ignition Gazebo 6.1 to 6.2
 
 * If no `<namespace>` is given to the `Thruster` plugin, the namespace now
@@ -134,6 +140,10 @@ in SDF by setting the `<visual><material><double_sided>` SDF element.
 * `rendering::SceneManager`
     * **Deprecated**: `Entity EntityFromNode(const rendering::NodePtr &_node) const;`
     * **Replacement**: `Entity entity = std::get<int>(visual->UserData("gazebo-entity"));`
+
+## Ignition Gazebo 3.12.0 to 3.X.X
+
+* Some sensors will only have the `SensorTopic` component after the 1st iteration.
 
 ## Ignition Gazebo 2.x to 3.x
 

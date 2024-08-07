@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
+#define GZ_GAZEBO_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -36,10 +36,12 @@ namespace systems
   ///
   /// A new Ignition Transport topic is created to send target joint positions.
   /// The topic name is
-  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos"
+  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
   ///
-  /// This topic accepts ignition::msgs::Double values representing the target
-  /// position.
+  /// This topic accepts gz::msgs::Double values representing the target
+  /// position. If you wish to change the topic on which this plugin listens
+  /// you may use the `<topic>` parameter to specify which topic the plugin
+  /// should listen on.
   ///
   /// ## System Parameters
   ///
@@ -75,6 +77,13 @@ namespace systems
   /// `<use_velocity_commands>` Bypasses the PID and creates a perfect
   /// position. The maximum speed on the joint can be set using the `<cmd_max>`
   /// tag.
+  ///
+  /// `<topic>` If you wish to listen on a non-default topic you may specify it
+  /// here, otherwise the controller defaults to listening on
+  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  ///
+  /// `<initial_position>` Initial position of a joint. Optional parameter.
+  ///  The default value is 0.
   class JointPositionController
       : public System,
         public ISystemConfigure,
@@ -94,8 +103,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;

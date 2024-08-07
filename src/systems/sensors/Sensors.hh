@@ -14,14 +14,14 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_SENSORS_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_SENSORS_HH_
+#define GZ_GAZEBO_SYSTEMS_SENSORS_HH_
 
 #include <memory>
 #include <string>
 
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 #include <sdf/Sensor.hh>
 
 namespace ignition
@@ -47,6 +47,9 @@ namespace systems
   /// - `<ambient_light>` Color used for the scene's ambient light. This
   /// will override the ambient value specified in a world's SDF <scene>
   /// element. This ambient light is used by sensors, not the GUI.
+  /// - `<disable_on_drained_battery>` Disable sensors if the model's
+  /// battery plugin charge reaches zero. Sensors that are in nested
+  /// models are also affected.
   ///
   /// \TODO(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?

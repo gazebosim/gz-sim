@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/gazebo/Primitives.hh>
+#include <gz/sim/Primitives.hh>
 #include <sdf/Root.hh>
 
 using PrimitiveShape = ignition::gazebo::PrimitiveShape;

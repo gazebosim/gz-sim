@@ -15,23 +15,32 @@
  *
 */
 
+#include <map>
+#include <set>
+#include <string>
+
+#include <QQmlProperty>
+
+#include "../../GuiRunner.hh"
 #include "GzSceneManager.hh"
 
-#include <vector>
+#include <sdf/Element.hh>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
-#include "ignition/gazebo/rendering/RenderUtil.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
 
 namespace ignition
 {
@@ -49,6 +58,25 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 
     /// \brief Rendering utility
     public: RenderUtil renderUtil;
+
+    /// \brief True if render engine plugins paths are initialized
+    public: bool renderEnginePluginPathsInit{false};
+
+    /// \brief List of new entities from a gui event
+    public: std::set<Entity> newEntities;
+
+    /// \brief List of removed entities from a gui event
+    public: std::set<Entity> removedEntities;
+
+    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// for newEntities and removedEntities
+    public: std::mutex newRemovedEntityMutex;
+
+    /// \brief Indicates whether initial visual plugins have been loaded or not.
+    public: bool initializedVisualPlugins = false;
+
+    /// \brief Whether the plugin was correctly initialized
+    public: bool initialized{false};
   };
 }
 }
@@ -72,40 +100,143 @@ void GzSceneManager::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Scene Manager";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  static bool done{false};
+  if (done)
+  {
+    std::string msg{"Only one GzSceneManager is supported at a time."};
+    ignerr << msg << std::endl;
+    QQmlProperty::write(this->PluginItem(), "message",
+        QString::fromStdString(msg));
+    return;
+  }
+  done = true;
+
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
+
+  this->dataPtr->initialized = true;
 }
 
 //////////////////////////////////////////////////
 void GzSceneManager::Update(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
+  if (!this->dataPtr->initialized)
+    return;
+
   IGN_PROFILE("GzSceneManager::Update");
 
+  if (!this->dataPtr->renderEnginePluginPathsInit)
+  {
+    this->dataPtr->renderUtil.InitRenderEnginePluginPaths();
+    this->dataPtr->renderEnginePluginPathsInit = true;
+  }
+
   this->dataPtr->renderUtil.UpdateECM(_info, _ecm);
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+  {
+    this->dataPtr->renderUtil.CreateVisualsForEntities(_ecm,
+        this->dataPtr->newEntities);
+    this->dataPtr->newEntities.clear();
+  }
+
   this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
 
-  // Emit entities removed event
-  std::vector<Entity> removed;
+  // load visual plugin on gui side
+  std::map<Entity, sdf::Plugins> plugins;
+  if (!this->dataPtr->initializedVisualPlugins)
+  {
+    _ecm.Each<components::Visual, components::SystemPluginInfo>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::SystemPluginInfo *_plugins)->bool
+    {
+      sdf::Plugins convertedPlugins = convert<sdf::Plugins>(_plugins->Data());
+      plugins[_entity].insert(plugins[_entity].end(),
+          convertedPlugins.begin(), convertedPlugins.end());
+      return true;
+    });
+    this->dataPtr->initializedVisualPlugins = true;
+  }
+  else
+  {
+    _ecm.EachNew<components::Visual, components::SystemPluginInfo>(
+        [&](const Entity &_entity,
+            const components::Visual *,
+            const components::SystemPluginInfo *_plugins)->bool
+    {
+      sdf::Plugins convertedPlugins = convert<sdf::Plugins>(_plugins->Data());
+      plugins[_entity].insert(plugins[_entity].end(),
+          convertedPlugins.begin(), convertedPlugins.end());
+      return true;
+    });
+  }
+  for (const auto &it : plugins)
+  {
+    // Send the new VisualPlugins event
+    ignition::gazebo::gui::events::VisualPlugins visualPluginsEvent(
+        it.first, it.second);
+    gz::gui::App()->sendEvent(
+        gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+        &visualPluginsEvent);
+
+    // Send the old VisualPlugin event
+    for (const sdf::Plugin &plugin : it.second)
+    {
+      ignition::gazebo::gui::events::VisualPlugin visualPluginEvent(
+          it.first, plugin.ToElement());
+      gz::gui::App()->sendEvent(
+          gz::gui::App()->findChild<gz::gui::MainWindow *>(),
+          &visualPluginEvent);
+    }
+  }
+
+  // Emit entities created / removed event for gui::Plugins which don't have
+  // direct access to the ECM.
+  std::set<Entity> created;
+  _ecm.EachNew<components::Name>(
+      [&](const Entity &_entity, const components::Name *)->bool
+      {
+        created.insert(_entity);
+        return true;
+      });
+  std::set<Entity> removed;
   _ecm.EachRemoved<components::Name>(
       [&](const Entity &_entity, const components::Name *)->bool
       {
-        removed.push_back(_entity);
+        removed.insert(_entity);
         return true;
       });
 
-  ignition::gazebo::gui::events::RemovedEntities removedEvent(removed);
-  ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+  ignition::gazebo::gui::events::NewRemovedEntities removedEvent(
+      created, removed);
+  gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &removedEvent);
 }
 
 /////////////////////////////////////////////////
 bool GzSceneManager::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::Render::kType)
+  if (_event->type() == gz::gui::events::Render::kType)
   {
     this->dataPtr->OnRender();
+  }
+  else if (_event->type() ==
+           ignition::gazebo::gui::events::GuiNewRemovedEntities::kType)
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->newRemovedEntityMutex);
+    auto addedRemovedEvent =
+        reinterpret_cast<gui::events::GuiNewRemovedEntities *>(_event);
+    if (addedRemovedEvent)
+    {
+      for (auto entity : addedRemovedEvent->NewEntities())
+        this->dataPtr->newEntities.insert(entity);
+
+      for (auto entity : addedRemovedEvent->RemovedEntities())
+        this->dataPtr->removedEntities.insert(entity);
+    }
   }
 
   // Standard event processing
@@ -122,6 +253,16 @@ void GzSceneManagerPrivate::OnRender()
       return;
 
     this->renderUtil.SetScene(this->scene);
+
+    auto runners = gz::gui::App()->findChildren<GuiRunner *>();
+    if (runners.empty() || runners[0] == nullptr)
+    {
+      ignerr << "Internal error: no GuiRunner found." << std::endl;
+    }
+    else
+    {
+      this->renderUtil.SetEventManager(&runners[0]->GuiEventManager());
+    }
   }
 
   this->renderUtil.Update();
@@ -129,4 +270,4 @@ void GzSceneManagerPrivate::OnRender()
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::GzSceneManager,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

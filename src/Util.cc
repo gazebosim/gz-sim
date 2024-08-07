@@ -30,28 +30,31 @@
   #endif
 #endif
 
-#include <ignition/common/Filesystem.hh>
-#include <ignition/common/StringUtils.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/TopicUtils.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/StringUtils.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
-#include "ignition/gazebo/components/Actor.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/SphericalCoordinates.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+
+#include "gz/sim/Util.hh"
 
 namespace ignition
 {
@@ -81,7 +84,7 @@ math::Pose3d worldPose(const Entity &_entity,
     if (!parentPose)
       break;
     // transform pose
-    pose = pose + parentPose->Data();
+    pose = parentPose->Data() * pose;
     // keep going up the tree
     p = _ecm.Component<components::ParentEntity>(p->Data());
   }
@@ -398,15 +401,35 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   return common::joinPaths(path,  uri);
 }
 
+namespace
+{
+//////////////////////////////////////////////////
+/// \brief Helper function to extract paths form an environment variable
+/// refactored from `resourcePaths` below.
+/// common::SystemPaths::PathsFromEnv is available, but it's behavior is
+/// slightly different from this in that it adds trailing `/` to the end of a
+/// path if it doesn't have it already.
+std::vector<std::string> extractPathsFromEnv(const std::string &_envVar)
+{
+  std::vector<std::string> pathsFromEnv;
+  char *pathFromEnvCStr = std::getenv(_envVar.c_str());
+  if (pathFromEnvCStr && *pathFromEnvCStr != '\0')
+  {
+    pathsFromEnv =
+        common::Split(pathFromEnvCStr, common::SystemPaths::Delimiter());
+  }
+  return pathsFromEnv;
+}
+}  // namespace
+
 //////////////////////////////////////////////////
 std::vector<std::string> resourcePaths()
 {
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
-  {
-    gzPaths = common::Split(gzPathCStr, ':');
-  }
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+  const auto gzSimResourcePaths = extractPathsFromEnv(kResourcePathEnvGzSim);
+
+  gzPaths.insert(gzPaths.end(), gzSimResourcePaths.begin(),
+                 gzSimResourcePaths.end());
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -425,7 +448,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *sdfPathCStr = std::getenv(kSdfPathEnv.c_str());
   if (sdfPathCStr && *sdfPathCStr != '\0')
   {
-    sdfPaths = common::Split(sdfPathCStr, ':');
+    sdfPaths = common::Split(sdfPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Ignition file paths (for <uri>s)
@@ -434,59 +457,55 @@ void addResourcePaths(const std::vector<std::string> &_paths)
   char *ignPathCStr = std::getenv(systemPaths->FilePathEnv().c_str());
   if (ignPathCStr && *ignPathCStr != '\0')
   {
-    ignPaths = common::Split(ignPathCStr, ':');
+    ignPaths = common::Split(ignPathCStr, common::SystemPaths::Delimiter());
   }
 
   // Gazebo resource paths
-  std::vector<std::string> gzPaths;
-  char *gzPathCStr = std::getenv(kResourcePathEnv.c_str());
-  if (gzPathCStr && *gzPathCStr != '\0')
+  auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
+
+  auto addUniquePaths = [](std::vector<std::string> &_container,
+                           const std::vector<std::string> _pathsToAdd)
   {
-    gzPaths = common::Split(gzPathCStr, ':');
-  }
+    for (const auto &path : _pathsToAdd)
+    {
+      if (std::find(_container.begin(), _container.end(), path) ==
+          _container.end())
+      {
+        _container.push_back(path);
+      }
+    }
+  };
 
   // Add new paths to gzPaths
-  for (const auto &path : _paths)
-  {
-    if (std::find(gzPaths.begin(), gzPaths.end(), path) == gzPaths.end())
-    {
-      gzPaths.push_back(path);
-    }
-  }
-
+  addUniquePaths(gzPaths, _paths);
   // Append Gz paths to SDF / Ign paths
-  for (const auto &path : gzPaths)
-  {
-    if (std::find(sdfPaths.begin(), sdfPaths.end(), path) == sdfPaths.end())
-    {
-      sdfPaths.push_back(path);
-    }
+  addUniquePaths(sdfPaths, gzPaths);
+  addUniquePaths(ignPaths, gzPaths);
 
-    if (std::find(ignPaths.begin(), ignPaths.end(), path) == ignPaths.end())
-    {
-      ignPaths.push_back(path);
-    }
-  }
+  // Also append paths from GZ_SIM_RESOURCE_PATH
+  const auto gzSimResourcePaths = extractPathsFromEnv(kResourcePathEnvGzSim);
+  addUniquePaths(sdfPaths, gzSimResourcePaths);
+  addUniquePaths(ignPaths, gzSimResourcePaths);
 
   // Update the vars
   std::string sdfPathsStr;
   for (const auto &path : sdfPaths)
-    sdfPathsStr += ':' + path;
+    sdfPathsStr += common::SystemPaths::Delimiter() + path;
 
-  ignition::common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
+  common::setenv(kSdfPathEnv.c_str(), sdfPathsStr.c_str());
 
   std::string ignPathsStr;
   for (const auto &path : ignPaths)
-    ignPathsStr += ':' + path;
+    ignPathsStr += common::SystemPaths::Delimiter() + path;
 
-  ignition::common::setenv(
+  common::setenv(
     systemPaths->FilePathEnv().c_str(), ignPathsStr.c_str());
 
   std::string gzPathsStr;
   for (const auto &path : gzPaths)
-    gzPathsStr += ':' + path;
+    gzPathsStr += common::SystemPaths::Delimiter() + path;
 
-  ignition::common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
+  common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -494,7 +513,7 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 }
 
 //////////////////////////////////////////////////
-ignition::gazebo::Entity topLevelModel(const Entity &_entity,
+gz::sim::Entity topLevelModel(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   auto entity = _entity;
@@ -557,6 +576,86 @@ std::string validTopic(const std::vector<std::string> &_topics)
 }
 
 //////////////////////////////////////////////////
+Entity entityFromMsg(const EntityComponentManager &_ecm,
+    const msgs::Entity &_msg)
+{
+  if (_msg.id() != kNullEntity)
+  {
+    return _msg.id();
+  }
+
+  // If there's no ID, check name + type
+  if (_msg.type() == msgs::Entity::NONE)
+  {
+    return kNullEntity;
+  }
+
+  auto entities = entitiesFromScopedName(_msg.name(), _ecm);
+  if (entities.empty())
+  {
+    return kNullEntity;
+  }
+
+  for (const auto &entity : entities)
+  {
+    if (_msg.type() == msgs::Entity::LIGHT &&
+        _ecm.Component<components::Light>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::MODEL &&
+        _ecm.Component<components::Model>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::LINK &&
+        _ecm.Component<components::Link>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::VISUAL &&
+        _ecm.Component<components::Visual>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::COLLISION &&
+        _ecm.Component<components::Collision>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::SENSOR &&
+        _ecm.Component<components::Sensor>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::JOINT &&
+        _ecm.Component<components::Joint>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::ACTOR &&
+        _ecm.Component<components::Actor>(entity))
+    {
+      return entity;
+    }
+
+    if (_msg.type() == msgs::Entity::WORLD &&
+        _ecm.Component<components::World>(entity))
+    {
+      return entity;
+    }
+  }
+  return kNullEntity;
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
     const EntityComponentManager &_ecm)
 {
@@ -579,7 +678,85 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
   // Return degrees
   return math::Vector3d(IGN_RTOD(rad.X()), IGN_RTOD(rad.Y()), rad.Z());
 }
-}
-}
+
+//////////////////////////////////////////////////
+// Getting the first .sdf file in the path
+std::string findFuelResourceSdf(const std::string &_path)
+{
+  if (!common::exists(_path))
+    return "";
+
+  for (common::DirIter file(_path); file != common::DirIter(); ++file)
+  {
+    std::string current(*file);
+    if (!common::isFile(current))
+      continue;
+
+    auto fileName = common::basename(current);
+    auto fileExtensionIndex = fileName.rfind(".");
+    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
+
+    if (fileExtension == "sdf")
+    {
+      return current;
+    }
+  }
+  return "";
 }
 
+//////////////////////////////////////////////////
+std::string resolveSdfWorldFile(const std::string &_sdfFile,
+    const std::string &_fuelResourceCache)
+{
+  std::string filePath;
+
+  // Check Fuel if it's a URL
+  auto sdfUri = common::URI(_sdfFile);
+  if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+  {
+    fuel_tools::ClientConfig config;
+    if (!_fuelResourceCache.empty())
+      config.SetCacheLocation(_fuelResourceCache);
+    fuel_tools::FuelClient fuelClient(config);
+
+    std::string fuelCachePath;
+    if (fuelClient.CachedWorld(common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else if (auto result = fuelClient.DownloadWorld(
+          common::URI(_sdfFile), fuelCachePath))
+    {
+      filePath = findFuelResourceSdf(fuelCachePath);
+    }
+    else
+    {
+      ignwarn << "Fuel couldn't download URL [" << _sdfFile
+        << "], error: [" << result.ReadableResult() << "]"
+        << std::endl;
+    }
+  }
+
+  if (filePath.empty())
+  {
+    common::SystemPaths systemPaths;
+
+    // Worlds from environment variable
+    systemPaths.SetFilePathEnv(kResourcePathEnv);
+    // Also add paths from GZ_SIM_RESOURCE_PATH
+    for (const auto &path : extractPathsFromEnv(kResourcePathEnvGzSim))
+    {
+      systemPaths.AddFilePaths(path);
+    }
+
+    // Worlds installed with ign-gazebo
+    systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+
+    filePath = systemPaths.FindFile(_sdfFile);
+  }
+
+  return filePath;
+}
+}
+}
+}

@@ -17,23 +17,24 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/float.pb.h>
-#include <ignition/msgs/joint_trajectory.pb.h>
+#include <gz/msgs/float.pb.h>
+#include <gz/msgs/joint_trajectory.pb.h>
 
 #include <array>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointPosition.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -52,8 +53,9 @@ class JointTrajectoryControllerTestFixture
 /////////////////////////////////////////////////
 // Tests that JointTrajectoryController accepts position-controlled joint
 // trajectory
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(JointTrajectoryControllerTestFixture,
-       JointTrajectoryControllerPositionControl)
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPositionControl))
 {
   using namespace std::chrono_literals;
 
@@ -229,7 +231,7 @@ TEST_F(JointTrajectoryControllerTestFixture,
 // Tests that JointTrajectoryController accepts velocity-controlled joint
 // trajectory
 TEST_F(JointTrajectoryControllerTestFixture,
-       JointTrajectoryControllerVelocityControl)
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerVelocityControl))
 {
   using namespace std::chrono_literals;
 

@@ -23,25 +23,25 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/Profiler.hh>
 
 #include "msgs/peer_control.pb.h"
 #include "msgs/simulation_step.pb.h"
 
-#include "ignition/gazebo/components/PerformerAffinity.hh"
-#include "ignition/gazebo/components/PerformerLevels.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
+#include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
 
 #include "NetworkManagerPrivate.hh"
 #include "PeerTracker.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 //////////////////////////////////////////////////
@@ -212,7 +212,7 @@ bool NetworkManagerPrimary::SecondariesCanStep() const
   // TODO(anyone) Ideally we'd check the number of connections against the
   // number of expected secondaries, but there's no interface for that
   // on ign-transport yet:
-  // https://github.com/ignitionrobotics/ign-transport/issues/39
+  // https://github.com/gazebosim/gz-transport/issues/39
   return this->simStepPub.HasConnections();
 }
 

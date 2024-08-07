@@ -17,7 +17,7 @@
 #ifndef IGNITION_GAZEBO_SYSTEMS_THRUSTER_HH_
 #define IGNITION_GAZEBO_SYSTEMS_THRUSTER_HH_
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 #include <memory>
 
@@ -40,8 +40,10 @@ namespace systems
   ///
   /// ## System Parameters
   /// - <namespace> - The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`.
+  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`
+  ///   or on {namespace}/{topic} if {topic} is set.
   ///   [Optional]
+  /// - <topic> - The topic for receiving thrust commands. [Optional]
   /// - <joint_name> - This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// - <fluid_density> - The fluid density of the liquid in which the thruster
@@ -64,6 +66,26 @@ namespace systems
   ///              no units, defaults to 0.0]
   /// - <d_gain> - Derivative gain for joint PID controller. [Optional,
   ///              no units, defaults to 0.0]
+  /// - <max_thrust_cmd> - Maximum thrust command. [Optional,
+  ///                      defaults to 1000N]
+  /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
+  ///                      defaults to -1000N]
+  /// - <wake_fraction>  - Relative speed reduction between the water
+  ///                      at the propeller (Va) vs behind the vessel.
+  ///                      [Optional, defults to 0.2]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  ///                Va = (1 - wake_fraction) * advance_speed
+  ///
+  /// - <alpha_1> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 1]
+  /// - <alpha_2> - Constant given by the open water propeller diagram. Used
+  ///               in the calculation of the thrust coefficient (Kt).
+  ///               [Optional, defults to 0]
+  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///
+  /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
   ///
   /// ## Example
   /// An example configuration is installed with Gazebo. The example
@@ -85,24 +107,29 @@ namespace systems
   /// ```
   /// The vehicle should move in a circle.
   class Thruster:
-    public ignition::gazebo::System,
-    public ignition::gazebo::ISystemConfigure,
-    public ignition::gazebo::ISystemPreUpdate
+    public System,
+    public ISystemConfigure,
+    public ISystemPreUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: Thruster();
 
     /// Documentation inherited
     public: void Configure(
-        const ignition::gazebo::Entity &_entity,
+        const Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
-        ignition::gazebo::EntityComponentManager &_ecm,
-        ignition::gazebo::EventManager &/*_eventMgr*/) override;
+        EntityComponentManager &_ecm,
+        EventManager &/*_eventMgr*/) override;
 
     /// Documentation inherited
     public: void PreUpdate(
         const ignition::gazebo::UpdateInfo &_info,
         ignition::gazebo::EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+        const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;

@@ -15,25 +15,31 @@
  *
 */
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 
 // Include all components so they have first-class support
-#include "ignition/gazebo/components/components.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/gui/GuiSystem.hh"
+#include "gz/sim/components/components.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include <gz/sim/gui/GuiEvents.hh>
+#include "gz/sim/gui/GuiSystem.hh"
+#include "gz/sim/SystemLoader.hh"
 
 #include "GuiRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod
@@ -68,6 +74,31 @@ class ignition::gazebo::GuiRunner::Implementation
 
   /// \brief Name of WorldControl service
   public: std::string controlService;
+
+  /// \brief System loader for loading ign-gazebo systems
+  public: std::unique_ptr<SystemLoader> systemLoader;
+
+  /// \brief Mutex to protect systemLoader
+  public: std::mutex systemLoadMutex;
+
+  /// \brief Events containing visual plugins to load
+  public: std::vector<std::pair<ignition::gazebo::Entity, sdf::Plugin>>
+      visualPlugins;
+
+  /// \brief Systems implementing PreUpdate
+  public: std::vector<SystemPluginPtr> systems;
+
+  /// \brief Systems implementing PreUpdate
+  public: std::vector<ISystemPreUpdate *> systemsPreupdate;
+
+  /// \brief Systems implementing Update
+  public: std::vector<ISystemUpdate *> systemsUpdate;
+
+  /// \brief Systems implementing PostUpdate
+  public: std::vector<ISystemPostUpdate *> systemsPostupdate;
+
+  /// \brief Manager of all events.
+  public: EventManager eventMgr;
 };
 
 /////////////////////////////////////////////////
@@ -92,7 +123,7 @@ GuiRunner::GuiRunner(const std::string &_worldName)
   // so that an offset is not required
   this->dataPtr->ecm.SetEntityCreateOffset(math::MAX_I32 / 2);
 
-  auto win = gui::App()->findChild<ignition::gui::MainWindow *>();
+  auto win = gz::gui::App()->findChild<gz::gui::MainWindow *>();
   auto winWorldNames = win->property("worldNames").toStringList();
   winWorldNames.append(QString::fromStdString(_worldName));
   win->setProperty("worldNames", winWorldNames);
@@ -123,8 +154,8 @@ GuiRunner::GuiRunner(const std::string &_worldName)
 
   this->dataPtr->controlService = "/world/" + _worldName + "/control/state";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -133,10 +164,10 @@ GuiRunner::~GuiRunner() = default;
 /////////////////////////////////////////////////
 bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == ignition::gui::events::WorldControl::kType)
+  if (_event->type() == gz::gui::events::WorldControl::kType)
   {
     auto worldControlEvent =
-      reinterpret_cast<gui::events::WorldControl *>(_event);
+      reinterpret_cast<gz::gui::events::WorldControl *>(_event);
     if (worldControlEvent)
     {
       msgs::WorldControlState req;
@@ -162,7 +193,37 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
       this->dataPtr->node.Request(this->dataPtr->controlService, req, cb);
     }
   }
+  else if (_event->type() ==
+      ignition::gazebo::gui::events::VisualPlugins::kType)
+  {
+    auto visualPluginEvent =
+      reinterpret_cast<gui::events::VisualPlugins *>(_event);
+    if (visualPluginEvent)
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
 
+      Entity entity = visualPluginEvent->Entity();
+      for (const sdf::Plugin &plugin : visualPluginEvent->Plugins())
+      {
+        this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
+      }
+    }
+  }
+  else if (_event->type() == ignition::gazebo::gui::events::VisualPlugin::kType)
+  {
+    auto visualPluginEvent =
+      reinterpret_cast<gui::events::VisualPlugin *>(_event);
+    if (visualPluginEvent)
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
+
+      Entity entity = visualPluginEvent->Entity();
+      sdf::ElementPtr pluginElem = visualPluginEvent->Element();
+      sdf::Plugin plugin;
+      plugin.Load(pluginElem);
+      this->dataPtr->visualPlugins.push_back(std::make_pair(entity, plugin));
+    }
+  }
   // Standard event processing
   return QObject::eventFilter(_obj, _event);
 }
@@ -171,7 +232,7 @@ bool GuiRunner::eventFilter(QObject *_obj, QEvent *_event)
 void GuiRunner::RequestState()
 {
   // set up service for async state response callback
-  std::string id = std::to_string(gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   auto reqSrvValid = transport::TopicUtils::AsValidTopic(reqSrv);
@@ -194,7 +255,7 @@ void GuiRunner::RequestState()
     }
   }
 
-  ignition::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(reqSrv);
 
   // Subscribe to periodic updates.
@@ -225,7 +286,7 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
-  std::string id = std::to_string(gui::App()->applicationPid());
+  std::string id = std::to_string(gz::gui::App()->applicationPid());
   std::string reqSrv =
       this->dataPtr->node.Options().NameSpace() + "/" + id + "/state_async";
   this->dataPtr->node.UnadvertiseSrv(reqSrv);
@@ -264,7 +325,8 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 /////////////////////////////////////////////////
 void GuiRunner::UpdatePlugins()
 {
-  auto plugins = gui::App()->findChildren<GuiSystem *>();
+  // gui plugins
+  auto plugins = gz::gui::App()->findChildren<GuiSystem *>();
   for (auto plugin : plugins)
   {
     plugin->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
@@ -272,4 +334,89 @@ void GuiRunner::UpdatePlugins()
   this->dataPtr->ecm.ClearRemovedComponents();
   this->dataPtr->ecm.ClearNewlyCreatedEntities();
   this->dataPtr->ecm.ProcessRemoveEntityRequests();
+
+  // ign-gazebo systems
+  this->LoadSystems();
+  this->UpdateSystems();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::LoadSystems()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->systemLoadMutex);
+  // currently only support systems that are visual plugins
+  for (auto &visualPlugin : this->dataPtr->visualPlugins)
+  {
+    Entity entity = visualPlugin.first;
+    sdf::Plugin plugin = visualPlugin.second;
+    if (plugin.Filename() != "__default__" && plugin.Name() != "__default__")
+    {
+      std::optional<SystemPluginPtr> system;
+      if (!this->dataPtr->systemLoader)
+        this->dataPtr->systemLoader = std::make_unique<SystemLoader>();
+      system = this->dataPtr->systemLoader->LoadPlugin(plugin);
+      if (system)
+      {
+        SystemPluginPtr sys = system.value();
+        this->dataPtr->systems.push_back(sys);
+        this->dataPtr->systemsPreupdate.push_back(
+            sys->QueryInterface<ISystemPreUpdate>());
+        this->dataPtr->systemsUpdate.push_back(
+            sys->QueryInterface<ISystemUpdate>());
+        this->dataPtr->systemsPostupdate.push_back(
+            sys->QueryInterface<ISystemPostUpdate>());
+
+        auto sysConfigure = sys->QueryInterface<ISystemConfigure>();
+        if (sysConfigure)
+        {
+          sysConfigure->Configure(entity, plugin.ToElement(),
+              this->dataPtr->ecm, this->dataPtr->eventMgr);
+        }
+        igndbg << "Loaded system [" << plugin.Name()
+               << "] for entity [" << entity << "] in GUI"
+               << std::endl;
+      }
+    }
+  }
+  this->dataPtr->visualPlugins.clear();
+}
+
+/////////////////////////////////////////////////
+void GuiRunner::UpdateSystems()
+{
+  IGN_PROFILE("GuiRunner::UpdateSystems");
+
+  {
+    IGN_PROFILE("PreUpdate");
+    for (auto& system : this->dataPtr->systemsPreupdate)
+    {
+      if (system)
+        system->PreUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
+  }
+
+  {
+    IGN_PROFILE("Update");
+    for (auto& system : this->dataPtr->systemsUpdate)
+    {
+      if (system)
+        system->Update(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
+  }
+
+  {
+    IGN_PROFILE("PostUpdate");
+    // \todo(anyone) Do PostUpdates in parallel
+    for (auto& system : this->dataPtr->systemsPostupdate)
+    {
+      if (system)
+        system->PostUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+EventManager &GuiRunner::GuiEventManager() const
+{
+  return this->dataPtr->eventMgr;
 }

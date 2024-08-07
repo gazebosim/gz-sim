@@ -21,16 +21,16 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/Interface.hh>
 
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -59,7 +59,7 @@ struct LoggingPlugin
   public: static std::string &RecordPluginName()
   {
     static std::string recordPluginName =
-      "ignition::gazebo::systems::LogRecord";
+      "gz::sim::systems::LogRecord";
     return recordPluginName;
   }
 
@@ -76,7 +76,7 @@ struct LoggingPlugin
   public: static std::string &PlaybackPluginName()
   {
     static std::string playbackPluginName =
-      "ignition::gazebo::systems::LogPlayback";
+      "gz::sim::systems::LogPlayback";
     return playbackPluginName;
   }
 };
@@ -97,6 +97,10 @@ ServerPrivate::~ServerPrivate()
   if (this->runThread.joinable())
   {
     this->runThread.join();
+  }
+  if (this->stopThread && this->stopThread->joinable())
+  {
+    this->stopThread->join();
   }
 }
 
@@ -181,77 +185,52 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-sdf::ElementPtr GetRecordPluginElem(sdf::Root &_sdfRoot)
-{
-  sdf::ElementPtr rootElem = _sdfRoot.Element();
-
-  if (rootElem->HasElement("world"))
-  {
-    sdf::ElementPtr worldElem = rootElem->GetElement("world");
-
-    if (worldElem->HasElement("plugin"))
-    {
-      sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
-
-      while (pluginElem != nullptr)
-      {
-        sdf::ParamPtr pluginName = pluginElem->GetAttribute("name");
-        sdf::ParamPtr pluginFileName = pluginElem->GetAttribute("filename");
-
-        if (pluginName != nullptr && pluginFileName != nullptr)
-        {
-          // Found a logging plugin
-          if (pluginFileName->GetAsString().find(
-              LoggingPlugin::LoggingPluginSuffix()) != std::string::npos)
-          {
-            if (pluginName->GetAsString() == LoggingPlugin::RecordPluginName())
-            {
-              return pluginElem;
-            }
-          }
-        }
-
-        pluginElem = pluginElem->GetNextElement();
-      }
-    }
-  }
-  return nullptr;
-}
-
-//////////////////////////////////////////////////
 void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 {
-  auto recordPluginElem = GetRecordPluginElem(this->sdfRoot);
-  bool sdfUseLogRecord = (recordPluginElem != nullptr);
-
   bool hasRecordResources {false};
   bool hasRecordTopics {false};
 
   bool sdfRecordResources;
   std::vector<std::string> sdfRecordTopics;
 
-  if (sdfUseLogRecord)
+  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
+       ++worldIndex)
   {
-    std::tie(sdfRecordResources, hasRecordResources) =
-      recordPluginElem->Get<bool>("record_resources", false);
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::Plugins &plugins = world->Plugins();
 
-    hasRecordTopics = recordPluginElem->HasElement("record_topic");
-    if (hasRecordTopics)
+    for (sdf::Plugins::iterator iter = plugins.begin();
+         iter != plugins.end(); ++iter)
     {
-      sdf::ElementPtr recordTopicElem =
-        recordPluginElem->GetElement("record_topic");
-      while (recordTopicElem)
+      std::string fname = iter->Filename();
+      std::string name = iter->Name();
+      if (fname.find(
+            LoggingPlugin::LoggingPluginSuffix()) != std::string::npos &&
+          name == LoggingPlugin::RecordPluginName())
       {
-        auto topic = recordTopicElem->Get<std::string>();
-        sdfRecordTopics.push_back(topic);
+        sdf::ElementPtr recordPluginElem = iter->ToElement();
+
+        std::tie(sdfRecordResources, hasRecordResources) =
+          recordPluginElem->Get<bool>("record_resources", false);
+
+        hasRecordTopics = recordPluginElem->HasElement("record_topic");
+        if (hasRecordTopics)
+        {
+          sdf::ElementPtr recordTopicElem =
+            recordPluginElem->GetElement("record_topic");
+          while (recordTopicElem)
+          {
+            auto topic = recordTopicElem->Get<std::string>();
+            sdfRecordTopics.push_back(topic);
+            recordTopicElem = recordTopicElem->GetNextElement();
+          }
+        }
+
+        // Remove the plugin, which will be added back in by ServerConfig.
+        plugins.erase(iter);
+        break;
       }
-
-      recordTopicElem = recordTopicElem->GetNextElement();
     }
-
-    // Remove from SDF
-    recordPluginElem->RemoveFromParent();
-    recordPluginElem->Reset();
   }
 
   // Set the config based on what is in the SDF:
@@ -270,6 +249,11 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   if (!_config.LogRecordPath().empty())
   {
     this->config.SetLogRecordPath(_config.LogRecordPath());
+  }
+
+  if (_config.LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    this->config.SetLogRecordPeriod(_config.LogRecordPeriod());
   }
 
   if (_config.LogRecordResources())
@@ -352,6 +336,21 @@ void ServerPrivate::SetupTransport()
            << "]" << std::endl;
   }
 
+  // Advertise a service that returns the full path, on the Gazebo server's
+  // host machine, based on a provided URI.
+  std::string resolvePathService{"/gazebo/resource_paths/resolve"};
+  if (this->node.Advertise(resolvePathService,
+      &ServerPrivate::ResourcePathsResolveService, this))
+  {
+    ignmsg << "Resource path resolve service on [" << resolvePathService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise [" << getPathService
+           << "]" << std::endl;
+  }
+
   std::string pathTopic{"/gazebo/resource_paths"};
   this->pathPub = this->node.Advertise<msgs::StringMsg_V>(pathTopic);
 
@@ -365,10 +364,23 @@ void ServerPrivate::SetupTransport()
     ignerr << "Something went wrong, failed to advertise [" << pathTopic
            << "]" << std::endl;
   }
+
+  std::string serverControlService{"/server_control"};
+  if (this->node.Advertise(serverControlService,
+                           &ServerPrivate::ServerControlService, this))
+  {
+    ignmsg << "Server control service on [" << serverControlService << "]."
+           << std::endl;
+  }
+  else
+  {
+    ignerr << "Something went wrong, failed to advertise ["
+           << serverControlService << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
-bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
+bool ServerPrivate::WorldsService(msgs::StringMsg_V &_res)
 {
   std::lock_guard<std::mutex> lock(this->worldsMutex);
 
@@ -383,8 +395,51 @@ bool ServerPrivate::WorldsService(ignition::msgs::StringMsg_V &_res)
 }
 
 //////////////////////////////////////////////////
+bool ServerPrivate::ServerControlService(
+  const msgs::ServerControl &_req, msgs::Boolean &_res)
+{
+  _res.set_data(false);
+
+  if (_req.stop())
+  {
+    if (!this->stopThread)
+    {
+      this->stopThread = std::make_shared<std::thread>([this]{
+        ignlog << "Stopping Gazebo" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        this->Stop();
+      });
+    }
+    _res.set_data(true);
+  }
+
+  // TODO(chapulina): implement world cloning
+  if (_req.clone() || _req.new_port() != 0 || !_req.save_world_name().empty())
+  {
+    ignerr << "ServerControl::clone is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement adding a new world
+  if (_req.new_world())
+  {
+    ignerr << "ServerControl::new_world is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  // TODO(chapulina): implement loading a world
+  if (!_req.open_filename().empty())
+  {
+    ignerr << "ServerControl::open_filename is not implemented" << std::endl;
+    _res.set_data(false);
+  }
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 void ServerPrivate::AddResourcePathsService(
-    const ignition::msgs::StringMsg_V &_req)
+    const msgs::StringMsg_V &_req)
 {
   std::vector<std::string> paths;
   for (int i = 0; i < _req.data_size(); ++i)
@@ -407,7 +462,7 @@ void ServerPrivate::AddResourcePathsService(
 
 //////////////////////////////////////////////////
 bool ServerPrivate::ResourcePathsService(
-    ignition::msgs::StringMsg_V &_res)
+    msgs::StringMsg_V &_res)
 {
   _res.Clear();
 
@@ -423,6 +478,64 @@ bool ServerPrivate::ResourcePathsService(
   }
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool ServerPrivate::ResourcePathsResolveService(
+    const ignition::msgs::StringMsg &_req,
+    ignition::msgs::StringMsg &_res)
+{
+  // Get the request
+  std::string req = _req.data();
+
+  // Handle the case where the request is already a valid path
+  if (common::exists(common::absPath(req)))
+  {
+    _res.set_data(common::absPath(req));
+    return true;
+  }
+
+  // Try Fuel
+  std::string path =
+      fuel_tools::fetchResourceWithClient(req, *this->fuelClient.get());
+  if (!path.empty() && common::exists(path))
+  {
+    _res.set_data(path);
+    return true;
+  }
+
+  // Check for the file:// prefix.
+  std::string prefix = "file://";
+  if (req.find(prefix) == 0)
+  {
+    req = req.substr(prefix.size());
+    // Check to see if the path exists
+    if (common::exists(req))
+    {
+      _res.set_data(req);
+      return true;
+    }
+  }
+
+  // Check for the model:// prefix
+  prefix = "model://";
+  if (req.find(prefix) == 0)
+    req = req.substr(prefix.size());
+
+  // Checkout resource paths
+  std::vector<std::string> gzPaths = resourcePaths();
+  for (const std::string &gzPath : gzPaths)
+  {
+    std::string fullPath = common::joinPaths(gzPath, req);
+    if (common::exists(fullPath))
+    {
+      _res.set_data(fullPath);
+      return true;
+    }
+  }
+
+  // Otherwise the resource could not be found
+  return false;
 }
 
 //////////////////////////////////////////////////

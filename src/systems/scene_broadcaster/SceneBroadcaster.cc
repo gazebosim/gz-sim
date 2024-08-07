@@ -17,38 +17,63 @@
 
 #include "SceneBroadcaster.hh"
 
-#include <ignition/msgs/scene.pb.h>
+#include <gz/msgs/scene.pb.h>
 
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <map>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/Graph.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/Graph.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/CastShadows.hh"
-#include "ignition/gazebo/components/Geometry.hh"
-#include "ignition/gazebo/components/Light.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Material.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/components/AirPressureSensor.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/CastShadows.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/Imu.hh"
+#include "gz/sim/components/LaserRetro.hh"
+#include "gz/sim/components/Lidar.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/LogicalCamera.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
+#include "gz/sim/components/Material.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/RgbdCamera.hh"
+#include "gz/sim/components/Scene.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/ThermalCamera.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+
+#include <sdf/Camera.hh>
+#include <sdf/Imu.hh>
+#include <sdf/Lidar.hh>
+#include <sdf/Noise.hh>
+#include <sdf/Scene.hh>
+#include <sdf/Sensor.hh>
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -65,21 +90,21 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \brief Callback for scene info service.
   /// \param[out] _res Response containing the latest scene message.
   /// \return True if successful.
-  public: bool SceneInfoService(ignition::msgs::Scene &_res);
+  public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
   /// \param[out] _res Response containing the the scene graph in DOT format.
   /// \return True if successful.
-  public: bool SceneGraphService(ignition::msgs::StringMsg &_res);
+  public: bool SceneGraphService(msgs::StringMsg &_res);
 
   /// \brief Callback for state service.
   /// \param[out] _res Response containing the latest full state.
   /// \return True if successful.
-  public: bool StateService(ignition::msgs::SerializedStepMap &_res);
+  public: bool StateService(msgs::SerializedStepMap &_res);
 
   /// \brief Callback for state service - non blocking.
   /// \param[out] _res Response containing the last available full state.
-  public: void StateAsyncService(const ignition::msgs::StringMsg &_req);
+  public: void StateAsyncService(const msgs::StringMsg &_req);
 
   /// \brief Updates the scene graph when entities are added
   /// \param[in] _manager The entity component manager
@@ -133,6 +158,15 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   /// \param[in] _graph Scene graph
   public: static void AddSensors(msgs::Link *_msg, const Entity _entity,
                                  const SceneGraphType &_graph);
+
+  /// \brief Adds particle emitters to a msgs::Link object based on the
+  /// contents of the scene graph
+  /// \param[inout] _msg Pointer to msg object to which the particle
+  /// emitters will be added.
+  /// \param[in] _entity Parent entity in the graph
+  /// \param[in] _graph Scene graph
+  public: static void AddParticleEmitters(msgs::Link *_msg,
+              const Entity _entity, const SceneGraphType &_graph);
 
   /// \brief Recursively remove entities from the graph
   /// \param[in] _entity Entity
@@ -199,16 +233,39 @@ class ignition::gazebo::systems::SceneBroadcasterPrivate
   public: std::chrono::time_point<std::chrono::system_clock>
       lastStatePubTime{std::chrono::system_clock::now()};
 
-  /// \brief Period to publish state, defaults to 60 Hz.
-  public: std::chrono::duration<int64_t, std::ratio<1, 1000>>
-      statePublishPeriod{std::chrono::milliseconds(1000/60)};
+  /// \brief Period to publish state while paused and running. The key for
+  /// the map is used to store the publish period when paused and not
+  /// paused. The not-paused (a.ka. running) period has a key=false and a
+  /// default update rate of 60Hz. The paused period has a key=true and a
+  /// default update rate of 30Hz.
+  public: std::map<bool, std::chrono::duration<double, std::ratio<1, 1000>>>
+      statePublishPeriod{
+        {false, std::chrono::duration<double,
+        std::ratio<1, 1000>>(1000/60.0)},
+          {true,  std::chrono::duration<double,
+            std::ratio<1, 1000>>(1000/30.0)}};
 
   /// \brief Flag used to indicate if the state service was called.
   public: bool stateServiceRequest{false};
 
   /// \brief A list of async state requests
   public: std::unordered_set<std::string> stateRequests;
+
+  /// \brief Store SDF scene information so that it can be inserted into
+  /// scene message.
+  public: sdf::Scene sdfScene;
+
+  /// \brief Flag used to indicate if periodic changes need to be published
+  /// This is currently only used in playback mode.
+  public: bool pubPeriodicChanges{false};
+
+  /// \brief Stores a cache of components that are changed. (This prevents
+  ///  dropping of periodic change components which may not be updated
+  ///  frequently enough)
+  public: std::unordered_map<ComponentTypeId,
+    std::unordered_set<Entity>> changedComponents;
 };
+
 
 //////////////////////////////////////////////////
 SceneBroadcaster::SceneBroadcaster()
@@ -236,10 +293,25 @@ void SceneBroadcaster::Configure(
   auto readHertz = _sdf->Get<int>("dynamic_pose_hertz", 60);
   this->dataPtr->dyPoseHertz = readHertz.first;
 
-  auto stateHerz = _sdf->Get<int>("state_hertz", 60);
-  this->dataPtr->statePublishPeriod =
-      std::chrono::duration<int64_t, std::ratio<1, 1000>>(
-      std::chrono::milliseconds(1000/stateHerz.first));
+  auto stateHertz = _sdf->Get<double>("state_hertz", 60);
+  if (stateHertz.first > 0.0)
+  {
+    this->dataPtr->statePublishPeriod[false] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(
+            1000 / stateHertz.first);
+
+    // Set the paused update rate to half of the running update rate.
+    this->dataPtr->statePublishPeriod[true] =
+        std::chrono::duration<double, std::ratio<1, 1000>>(1000/
+            (stateHertz.first * 0.5));
+  }
+  else
+  {
+    using secs_double = std::chrono::duration<double, std::ratio<1>>;
+    ignerr << "SceneBroadcaster state_hertz must be positive, using default ("
+      << 1.0 / secs_double(this->dataPtr->statePublishPeriod[false]).count() <<
+        "Hz)\n";
+  }
 
   // Add to graph
   {
@@ -259,8 +331,12 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   if (_manager.HasNewEntities())
     this->dataPtr->SceneGraphAddEntities(_manager);
 
-  // Populate pose message
-  // TODO(louise) Get <scene> from SDF
+  // Store the Scene component data, which holds sdf::Scene so that we can
+  // populate the scene info messages.
+  auto sceneComp =
+    _manager.Component<components::Scene>(this->dataPtr->worldEntity);
+  if (sceneComp)
+    this->dataPtr->sdfScene = sceneComp->Data();
 
   // Create and send pose update if transport connections exist.
   if (this->dataPtr->dyPosePub.HasConnections() ||
@@ -273,6 +349,9 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   // removed entities are removed from the scene graph for the next update cycle
   this->dataPtr->SceneGraphRemoveEntities(_manager);
 
+  // Iterate through entities and their changes to cache them.
+  _manager.UpdatePeriodicChangeCache(this->dataPtr->changedComponents);
+
   // Publish state only if there are subscribers and
   // * throttle rate to 60 Hz
   // * also publish off-rate if there are change events:
@@ -284,12 +363,15 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
   bool jumpBackInTime = _info.dt < std::chrono::steady_clock::duration::zero();
   bool changeEvent = _manager.HasEntitiesMarkedForRemoval() ||
     _manager.HasNewEntities() || _manager.HasOneTimeComponentChanges() ||
-    jumpBackInTime;
+    jumpBackInTime || _manager.HasRemovedComponents();
   auto now = std::chrono::system_clock::now();
-  bool itsPubTime = !_info.paused && (now - this->dataPtr->lastStatePubTime >
-       this->dataPtr->statePublishPeriod);
+  bool itsPubTime = (now - this->dataPtr->lastStatePubTime >
+       this->dataPtr->statePublishPeriod[_info.paused]);
+  // check if we need to publish periodic changes in playback mode.
+  bool pubChanges = this->dataPtr->pubPeriodicChanges &&
+      _manager.HasPeriodicComponentChanges();
   auto shouldPublish = this->dataPtr->statePub.HasConnections() &&
-       (changeEvent || itsPubTime);
+       (changeEvent || itsPubTime || pubChanges);
 
   if (this->dataPtr->stateServiceRequest || shouldPublish)
   {
@@ -298,18 +380,51 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
 
     set(this->dataPtr->stepMsg.mutable_stats(), _info);
 
-    // Publish full state if there are change events
-    if (changeEvent || this->dataPtr->stateServiceRequest)
+    // Publish full state if it has been explicitly requested
+    if (this->dataPtr->stateServiceRequest)
     {
       _manager.State(*this->dataPtr->stepMsg.mutable_state(), {}, {}, true);
     }
-    // Otherwise publish just periodic change components
-    else
+    // Publish the changed state if a change occurred to the ECS
+    else if (changeEvent)
+    {
+      _manager.ChangedState(*this->dataPtr->stepMsg.mutable_state());
+    }
+    // Otherwise publish just periodic change components when running
+    else if (!_info.paused)
     {
       IGN_PROFILE("SceneBroadcast::PostUpdate UpdateState");
-      auto periodicComponents = _manager.ComponentTypesWithPeriodicChanges();
-      _manager.State(*this->dataPtr->stepMsg.mutable_state(),
-          {}, periodicComponents);
+      if (!_manager.HasPeriodicComponentChanges())
+      {
+        // log files may be recorded at lower rate than sim time step. So in
+        // playback mode, the scene broadcaster may not see any periodic
+        // changed states here since it no longer happens every iteration.
+        // As the result, no state changes are published to be GUI, causing
+        // visuals in the GUI scene to miss updates. The visuals are only
+        // updated if by some timing coincidence that log playback updates
+        // the ECM at the same iteration as when the scene broadcaster is going
+        // to publish perioidc changes here.
+        // To work around the issue, we force the scene broadcaster
+        // to publish states at an offcycle iteration the next time it sees
+        // periodic changes.
+        auto playbackComp =
+            _manager.Component<components::LogPlaybackStatistics>(
+            this->dataPtr->worldEntity);
+        if (playbackComp)
+        {
+          this->dataPtr->pubPeriodicChanges = true;
+        }
+        // this creates an empty state in the msg even there are no periodic
+        // changed components - done to preseve existing behavior.
+        // we may be able to remove this in the future and update tests
+        this->dataPtr->stepMsg.mutable_state();
+      }
+
+      // Apply changes that were caught by the periodic state tracker and then
+      // clear the change tracker.
+      _manager.PeriodicStateFromCache(*this->dataPtr->stepMsg.mutable_state(),
+        this->dataPtr->changedComponents);
+      this->dataPtr->changedComponents.clear();
     }
 
     // Full state on demand
@@ -513,7 +628,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   // Scene info topic
   std::string sceneTopic{ns + "/scene/info"};
 
-  this->scenePub = this->node->Advertise<ignition::msgs::Scene>(sceneTopic);
+  this->scenePub = this->node->Advertise<msgs::Scene>(sceneTopic);
 
   ignmsg << "Publishing scene information on [" << sceneTopic
          << "]" << std::endl;
@@ -522,7 +637,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string deletionTopic{ns + "/scene/deletion"};
 
   this->deletionPub =
-      this->node->Advertise<ignition::msgs::UInt32_V>(deletionTopic);
+      this->node->Advertise<msgs::UInt32_V>(deletionTopic);
 
   ignmsg << "Publishing entity deletions on [" << deletionTopic << "]"
          << std::endl;
@@ -531,7 +646,7 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
   std::string stateTopic{ns + "/state"};
 
   this->statePub =
-      this->node->Advertise<ignition::msgs::SerializedStepMap>(stateTopic);
+      this->node->Advertise<msgs::SerializedStepMap>(stateTopic);
 
   ignmsg << "Publishing state changes on [" << stateTopic << "]"
       << std::endl;
@@ -560,13 +675,14 @@ void SceneBroadcasterPrivate::SetupTransport(const std::string &_worldName)
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
+bool SceneBroadcasterPrivate::SceneInfoService(msgs::Scene &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
   _res.Clear();
 
   // Populate scene message
+  _res.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
   // Add models
   AddModels(&_res, this->worldEntity, this->sceneGraph);
@@ -579,7 +695,7 @@ bool SceneBroadcasterPrivate::SceneInfoService(ignition::msgs::Scene &_res)
 
 //////////////////////////////////////////////////
 void SceneBroadcasterPrivate::StateAsyncService(
-    const ignition::msgs::StringMsg &_req)
+    const msgs::StringMsg &_req)
 {
   std::unique_lock<std::mutex> lock(this->stateMutex);
   this->stateServiceRequest = true;
@@ -588,7 +704,7 @@ void SceneBroadcasterPrivate::StateAsyncService(
 
 //////////////////////////////////////////////////
 bool SceneBroadcasterPrivate::StateService(
-    ignition::msgs::SerializedStepMap &_res)
+    msgs::SerializedStepMap &_res)
 {
   _res.Clear();
 
@@ -610,7 +726,7 @@ bool SceneBroadcasterPrivate::StateService(
 }
 
 //////////////////////////////////////////////////
-bool SceneBroadcasterPrivate::SceneGraphService(ignition::msgs::StringMsg &_res)
+bool SceneBroadcasterPrivate::SceneGraphService(msgs::StringMsg &_res)
 {
   std::lock_guard<std::mutex> lock(this->graphMutex);
 
@@ -766,8 +882,191 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         sensorMsg->set_name(_nameComp->Data());
         sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
 
+        auto altimeterComp = _manager.Component<components::Altimeter>(_entity);
+        if (altimeterComp)
+        {
+          sensorMsg->set_type("altimeter");
+        }
+        auto airPressureComp = _manager.Component<
+          components::AirPressureSensor>(_entity);
+        if (airPressureComp)
+        {
+          sensorMsg->set_type("air_pressure");
+        }
+        auto cameraComp = _manager.Component<components::Camera>(_entity);
+        if (cameraComp)
+        {
+          sensorMsg->set_type("camera");
+          msgs::CameraSensor * cameraSensorMsg = sensorMsg->mutable_camera();
+          const auto * camera = cameraComp->Data().CameraSensor();
+          if (camera)
+          {
+            cameraSensorMsg->set_horizontal_fov(
+              camera->HorizontalFov().Radian());
+            cameraSensorMsg->mutable_image_size()->set_x(camera->ImageWidth());
+            cameraSensorMsg->mutable_image_size()->set_y(camera->ImageHeight());
+            cameraSensorMsg->set_image_format(camera->PixelFormatStr());
+            cameraSensorMsg->set_near_clip(camera->NearClip());
+            cameraSensorMsg->set_far_clip(camera->FarClip());
+            msgs::Distortion *distortionMsg =
+              cameraSensorMsg->mutable_distortion();
+            if (distortionMsg)
+            {
+              distortionMsg->mutable_center()->set_x(
+                camera->DistortionCenter().X());
+              distortionMsg->mutable_center()->set_y(
+                camera->DistortionCenter().Y());
+              distortionMsg->set_k1(camera->DistortionK1());
+              distortionMsg->set_k2(camera->DistortionK2());
+              distortionMsg->set_k3(camera->DistortionK3());
+              distortionMsg->set_p1(camera->DistortionP1());
+              distortionMsg->set_p2(camera->DistortionP2());
+            }
+          }
+        }
+        auto contactSensorComp = _manager.Component<
+          components::ContactSensor>(_entity);
+        if (contactSensorComp)
+        {
+          sensorMsg->set_type("contact_sensor");
+        }
+        auto depthCameraSensorComp = _manager.Component<
+          components::DepthCamera>(_entity);
+        if (depthCameraSensorComp)
+        {
+          sensorMsg->set_type("depth_camera");
+        }
+        auto gpuLidarComp = _manager.Component<components::GpuLidar>(_entity);
+        if (gpuLidarComp)
+        {
+          sensorMsg->set_type("gpu_lidar");
+          msgs::LidarSensor * lidarSensorMsg = sensorMsg->mutable_lidar();
+          const auto * lidar = gpuLidarComp->Data().LidarSensor();
+
+          if (lidar && lidarSensorMsg)
+          {
+            lidarSensorMsg->set_horizontal_samples(
+              lidar->HorizontalScanSamples());
+            lidarSensorMsg->set_horizontal_resolution(
+              lidar->HorizontalScanResolution());
+            lidarSensorMsg->set_horizontal_min_angle(
+              lidar->HorizontalScanMinAngle().Radian());
+            lidarSensorMsg->set_horizontal_max_angle(
+              lidar->HorizontalScanMaxAngle().Radian());
+            lidarSensorMsg->set_vertical_samples(lidar->VerticalScanSamples());
+            lidarSensorMsg->set_vertical_resolution(
+              lidar->VerticalScanResolution());
+            lidarSensorMsg->set_vertical_min_angle(
+              lidar->VerticalScanMinAngle().Radian());
+            lidarSensorMsg->set_vertical_max_angle(
+              lidar->VerticalScanMaxAngle().Radian());
+            lidarSensorMsg->set_range_min(lidar->RangeMin());
+            lidarSensorMsg->set_range_max(lidar->RangeMax());
+            lidarSensorMsg->set_range_resolution(lidar->RangeResolution());
+            msgs::SensorNoise *sensorNoise = lidarSensorMsg->mutable_noise();
+            if (sensorNoise)
+            {
+              const auto noise = lidar->LidarNoise();
+              switch(noise.Type())
+              {
+                case sdf::NoiseType::GAUSSIAN:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN);
+                  break;
+                case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+                  break;
+                default:
+                  sensorNoise->set_type(msgs::SensorNoise::NONE);
+              }
+              sensorNoise->set_mean(noise.Mean());
+              sensorNoise->set_stddev(noise.StdDev());
+              sensorNoise->set_bias_mean(noise.BiasMean());
+              sensorNoise->set_bias_stddev(noise.BiasStdDev());
+              sensorNoise->set_precision(noise.Precision());
+              sensorNoise->set_dynamic_bias_stddev(noise.DynamicBiasStdDev());
+              sensorNoise->set_dynamic_bias_correlation_time(
+                noise.DynamicBiasCorrelationTime());
+            }
+          }
+        }
+        auto imuComp = _manager.Component<components::Imu>(_entity);
+        if (imuComp)
+        {
+          sensorMsg->set_type("imu");
+          msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
+          const auto * imu = imuComp->Data().ImuSensor();
+
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
+              imu->LinearAccelerationXNoise());
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
+              imu->LinearAccelerationYNoise());
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
+              imu->LinearAccelerationZNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_x_noise(),
+              imu->AngularVelocityXNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_y_noise(),
+              imu->AngularVelocityYNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_z_noise(),
+              imu->AngularVelocityZNoise());
+        }
+        auto laserRetroComp = _manager.Component<
+          components::LaserRetro>(_entity);
+        if (laserRetroComp)
+        {
+          sensorMsg->set_type("laser_retro");
+        }
+        auto lidarComp = _manager.Component<components::Lidar>(_entity);
+        if (lidarComp)
+        {
+          sensorMsg->set_type("lidar");
+        }
+        auto logicalCamera = _manager.Component<
+          components::LogicalCamera>(_entity);
+        if (logicalCamera)
+        {
+          sensorMsg->set_type("logical_camera");
+        }
+        auto rgbdCameraComp = _manager.Component<
+          components::RgbdCamera>(_entity);
+        if (rgbdCameraComp)
+        {
+          sensorMsg->set_type("rgbd_camera");
+        }
+        auto thermalCameraComp = _manager.Component<
+          components::ThermalCamera>(_entity);
+        if (thermalCameraComp)
+        {
+          sensorMsg->set_type("thermal_camera");
+        }
+
         // Add to graph
         newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Particle emitters
+  _manager.EachNew<components::ParticleEmitter, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitterComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto emitterMsg = std::make_shared<msgs::ParticleEmitter>();
+        emitterMsg->CopyFrom(_emitterComp->Data());
+        emitterMsg->set_id(_entity);
+        emitterMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        // Add to graph
+        newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
         newEntity = true;
         return true;
@@ -801,6 +1100,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       this->SetupTransport(this->worldName);
 
     msgs::Scene sceneMsg;
+    // Populate scene message
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
 
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
@@ -935,6 +1236,24 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
+    const Entity _entity, const SceneGraphType &_graph)
+{
+  if (!_msg)
+    return;
+
+  for (const auto &vertex : _graph.AdjacentsFrom(_entity))
+  {
+    auto emitterMsg = std::dynamic_pointer_cast<msgs::ParticleEmitter>(
+        vertex.second.get().Data());
+    if (!emitterMsg)
+      continue;
+
+    _msg->add_particle_emitter()->CopyFrom(*emitterMsg);
+  }
+}
+
+//////////////////////////////////////////////////
 void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
                                        const SceneGraphType &_graph)
 {
@@ -959,6 +1278,9 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
     // Sensors
     AddSensors(msgOut, vertex.second.get().Id(), _graph);
+
+    // Particle emitters
+    AddParticleEmitters(msgOut, vertex.second.get().Id(), _graph);
   }
 }
 
@@ -975,11 +1297,15 @@ void SceneBroadcasterPrivate::RemoveFromGraph(const Entity _entity,
 
 
 IGNITION_ADD_PLUGIN(SceneBroadcaster,
-                    ignition::gazebo::System,
+                    System,
                     SceneBroadcaster::ISystemConfigure,
                     SceneBroadcaster::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
+                          "gz::sim::systems::SceneBroadcaster")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "ignition::gazebo::systems::SceneBroadcaster")

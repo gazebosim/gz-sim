@@ -19,15 +19,15 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/GuiEvents.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/GuiEvents.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/gui/GuiEvents.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/gui/GuiEvents.hh"
 
 #include "CopyPaste.hh"
 
@@ -90,10 +90,10 @@ void CopyPaste::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Copy/Paste";
 
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->installEventFilter(this);
-  ignition::gui::App()->findChild<
-      ignition::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->installEventFilter(this);
+  gz::gui::App()->findChild<
+      gz::gui::MainWindow *>()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
@@ -123,9 +123,9 @@ void CopyPaste::OnPaste()
   // we should only paste if something has been copied
   if (!this->dataPtr->copiedData.empty())
   {
-    ignition::gui::events::SpawnCloneFromName event(this->dataPtr->copiedData);
-    ignition::gui::App()->sendEvent(
-      ignition::gui::App()->findChild<ignition::gui::MainWindow *>(),
+    gz::gui::events::SpawnCloneFromName event(this->dataPtr->copiedData);
+    gz::gui::App()->sendEvent(
+      gz::gui::App()->findChild<gz::gui::MainWindow *>(),
       &event);
   }
 }
@@ -182,4 +182,4 @@ bool CopyPaste::PasteServiceCB(const ignition::msgs::Empty &/*_req*/,
 
 // Register this plugin
 IGNITION_ADD_PLUGIN(ignition::gazebo::CopyPaste,
-                    ignition::gui::Plugin)
+                    gz::gui::Plugin)

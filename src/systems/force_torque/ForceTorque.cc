@@ -21,30 +21,30 @@
 #include <utility>
 #include <string>
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Element.hh>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/transport/Node.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/ForceTorqueSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/ForceTorqueSensor.hh>
 
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/ForceTorque.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointTransmittedWrench.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/ForceTorque.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointTransmittedWrench.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
 using namespace ignition;
 using namespace gazebo;
@@ -132,12 +132,29 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the ForceTorquePrivate::Update function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->Update(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
-      // Update measurement time
-      it.second->Update(_info.simTime);
+      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
     }
   }
 

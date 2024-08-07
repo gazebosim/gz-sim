@@ -15,15 +15,15 @@
  *
 */
 
-#ifndef IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
-#define IGNITION_GAZEBO_GUI_ENTITYTREE_HH_
+#ifndef GZ_GAZEBO_GUI_ENTITYTREE_HH_
+#define GZ_GAZEBO_GUI_ENTITYTREE_HH_
 
 #include <map>
 #include <memory>
 #include <vector>
 
-#include <ignition/gazebo/Entity.hh>
-#include <ignition/gazebo/gui/GuiSystem.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/gui/GuiSystem.hh>
 
 namespace ignition
 {
@@ -82,6 +82,7 @@ namespace gazebo
     struct EntityInfo
     {
       /// \brief Entity ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
       Entity entity;
 
@@ -89,6 +90,7 @@ namespace gazebo
       QString name;
 
       /// \brief Parent ID
+      // cppcheck-suppress unmatchedSuppression
       // cppcheck-suppress unusedStructMember
       Entity parentEntity;
 
@@ -135,8 +137,8 @@ namespace gazebo
     public: Q_INVOKABLE void OnInsertEntity(const QString &_type);
 
     /// \brief Callback to insert a new entity
-    /// \param[in] _type Type of entity to insert
-    public: Q_INVOKABLE void OnLoadMesh(const QString &_type);
+    /// \param[in] _mesh Mesh file to create a model from.
+    public: Q_INVOKABLE void OnLoadMesh(const QString &_mesh);
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

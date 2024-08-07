@@ -17,36 +17,37 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
-#include <ignition/common/Filesystem.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/double.pb.h>
+#include <gz/common/Filesystem.hh>
+#include <gz/msgs/Utility.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
-#include "ignition/gazebo/components/Pose.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/Pose.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 struct VerticalForceTestParam
 {
@@ -69,7 +70,9 @@ class VerticalForceParamFixture
 
 /////////////////////////////////////////////////
 /// Measure / verify force torques against analytical answers.
-TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_P(VerticalForceParamFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(VerifyVerticalForce))
 {
   using namespace std::chrono_literals;
   ignition::common::setenv(
@@ -107,7 +110,7 @@ TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
   std::vector<math::Vector3d> linearVelocities;
   std::vector<math::Vector3d> forces;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         // Create velocity and acceleration components if they dont't exist.
         // This signals physics system to populate the component
@@ -127,7 +130,7 @@ TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
   const double kp = 100.0;
   // Set a constant velocity to the prismatic joint
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));
@@ -158,8 +161,8 @@ TEST_P(VerticalForceParamFixture, VerifyVerticalForce)
   // drag system. This is needed to capture the wrench set by the lift drag
   // system. This assumption may not hold when systems are run in parallel.
   test::Relay wrenchRecorder;
-  wrenchRecorder.OnPreUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  wrenchRecorder.OnPreUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         auto bladeLink = firstEntityFromScopedName(bladeName, _ecm);
         auto bodyLink = firstEntityFromScopedName(bodyName, _ecm);

@@ -20,30 +20,32 @@
 
 #include <optional>
 
-#include <ignition/msgs.hh>
+#include <gz/msgs.hh>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 class MulticopterTest : public InternalFixture<::testing::Test>
@@ -66,7 +68,8 @@ class MulticopterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Test that commanded motor speed is applied
-TEST_F(MulticopterTest, CommandedMotorSpeed)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(MulticopterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 {
   // Start server
   auto server = this->StartServer("/test/worlds/quadcopter.sdf");
@@ -79,7 +82,7 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -95,8 +98,8 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
       });
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info,
+          const EntityComponentManager &_ecm)
       {
         // Command a motor speed
         // After nIters iterations, check angular velocity of each of the rotors
@@ -132,7 +135,8 @@ TEST_F(MulticopterTest, CommandedMotorSpeed)
 }
 
 /////////////////////////////////////////////////
-TEST_F(MulticopterTest, MulticopterVelocityControl)
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControl))
 {
   // Start server
   auto server =
@@ -144,7 +148,7 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
 
   const std::size_t nIters{2000};
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -182,8 +186,8 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
   };
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &_info,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info,
+          const EntityComponentManager &_ecm)
       {
         if (!iterTestStart.has_value())
         {
@@ -240,7 +244,8 @@ TEST_F(MulticopterTest, MulticopterVelocityControl)
 /////////////////////////////////////////////////
 // Test the interactions between MulticopterVelocityControl and
 // MulticopterMotorModel
-TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(ModelAndVelocityControlInteraction))
 {
   // Start server
   auto server =
@@ -251,7 +256,7 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
   auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
 
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &_info, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
       {
         // Create components, if the don't exist, on the first iteration
         if (_info.iterations == 1)
@@ -285,8 +290,8 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
       node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
 
   testSystem.OnPostUpdate(
-      [&](const gazebo::UpdateInfo &,
-          const gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &,
+          const EntityComponentManager &_ecm)
       {
         // Publish a motor speed command
         {
@@ -312,4 +317,66 @@ TEST_F(MulticopterTest, ModelAndVelocityControlInteraction)
         EXPECT_EQ(4u, numJoints);
       });
   server->Run(true, 10, false);
+}
+
+/////////////////////////////////////////////////
+TEST_F(MulticopterTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
+{
+  // test that the drone is able to take off when carrying a payload
+  // (nexted model) with extra mass.
+
+  // Start server
+  auto server =
+      this->StartServer("/test/worlds/quadcopter_velocity_control_nested.sdf");
+
+  test::Relay testSystem;
+  transport::Node node;
+  auto cmdVel = node.Advertise<msgs::Twist>("/X3/gazebo/command/twist");
+
+  // Add the system
+  server->AddSystem(testSystem.systemPtr);
+  server->Run(true, 1, false);
+
+  // get pose of drone in post update
+  math::Pose3d x3Pose;
+  testSystem.OnPostUpdate(
+      [&](const gazebo::UpdateInfo &,
+          const gazebo::EntityComponentManager &_ecm)
+      {
+          auto x3Ent = _ecm.EntityByComponents(
+              components::Model(), components::Name("X3"));
+          ASSERT_NE(kNullEntity, x3Ent);
+
+          auto poseComp = _ecm.Component<components::Pose>(x3Ent);
+          if (poseComp)
+             x3Pose = poseComp->Data();
+      });
+
+  server->Run(true, 100, false);
+
+  // check initial z pos
+  double initialZ = x3Pose.Pos().Z();
+  EXPECT_GT(0.1, initialZ);
+
+  // run for a few interations and verify drone is still on the ground
+  server->Run(true, 100, false);
+  EXPECT_NEAR(initialZ, x3Pose.Pos().Z(), 1e-3);
+
+  // send linear z vel for drone to take off
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0, 0, 5));
+  cmdVel.Publish(msg);
+
+  // verify drone continues to fly higher over the duration of 1 second
+  double zHeight = x3Pose.Pos().Z();
+  for (unsigned int i = 0; i < 10; ++i)
+  {
+    server->Run(true, 100, false);
+    EXPECT_LT(zHeight, x3Pose.Pos().Z());
+    zHeight = x3Pose.Pos().Z();
+  }
+
+  // one last check to verify drone is at least 5 meters off the ground
+  EXPECT_LT(5.0, x3Pose.Pos().Z());
 }

@@ -20,34 +20,34 @@
 #include <string>
 #include <unordered_map>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/common/VideoEncoder.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/common/VideoEncoder.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/rendering/Camera.hh>
-#include <ignition/rendering/RenderEngine.hh>
-#include <ignition/rendering/RenderingIface.hh>
-#include <ignition/rendering/Scene.hh>
+#include <gz/rendering/Camera.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 
-#include "ignition/gazebo/rendering/RenderUtil.hh"
-#include "ignition/gazebo/rendering/Events.hh"
-#include "ignition/gazebo/rendering/MarkerManager.hh"
+#include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/rendering/Events.hh"
+#include "gz/sim/rendering/MarkerManager.hh"
 
-#include "ignition/gazebo/components/Camera.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Camera.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/Util.hh"
 
 #include "CameraVideoRecorder.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -70,7 +70,7 @@ class ignition::gazebo::systems::CameraVideoRecorderPrivate
   public: std::mutex updateMutex;
 
   /// \brief Connection to the post-render event.
-  public: ignition::common::ConnectionPtr postRenderConn;
+  public: common::ConnectionPtr postRenderConn;
 
   /// \brief Pointer to the event manager
   public: EventManager *eventMgr = nullptr;
@@ -333,7 +333,6 @@ void CameraVideoRecorderPrivate::OnPostRender()
     {
       this->camera->Copy(this->cameraImage);
       std::chrono::steady_clock::time_point t;
-        std::chrono::steady_clock::now();
       if (this->recordVideoUseSimTime)
         t = std::chrono::steady_clock::time_point(this->simTime);
       else
@@ -356,7 +355,7 @@ void CameraVideoRecorderPrivate::OnPostRender()
         std::chrono::steady_clock::duration dt;
         dt = t - this->recordStartTime;
         int64_t sec, nsec;
-        std::tie(sec, nsec) = ignition::math::durationToSecNsec(dt);
+        std::tie(sec, nsec) = math::durationToSecNsec(dt);
         msgs::Time msg;
         msg.set_sec(sec);
         msg.set_nsec(nsec);
@@ -461,11 +460,15 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(CameraVideoRecorder,
-                    ignition::gazebo::System,
+                    System,
                     CameraVideoRecorder::ISystemConfigure,
                     CameraVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
+                          "gz::sim::systems::CameraVideoRecorder")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(CameraVideoRecorder,
                           "ignition::gazebo::systems::CameraVideoRecorder")

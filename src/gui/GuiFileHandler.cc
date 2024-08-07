@@ -15,19 +15,19 @@
  *
  */
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <fstream>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Profiler.hh>
-#include <ignition/gui/Application.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/gui/Application.hh>
 
 #include "GuiFileHandler.hh"
 
-using namespace ignition;
-using namespace gazebo;
-using namespace gazebo::gui;
+using namespace gz;
+using namespace gz::sim;
+using namespace ignition::gazebo::gui;
 
 /////////////////////////////////////////////////
 void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
@@ -45,7 +45,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
 
   std::string localPath = url.toLocalFile().toStdString() + suffix;
   std::string service{"/gazebo/worlds"};
-  ignition::msgs::StringMsg_V worldsMsg;
+  msgs::StringMsg_V worldsMsg;
 
   bool result{false};
   unsigned int timeout{5000};

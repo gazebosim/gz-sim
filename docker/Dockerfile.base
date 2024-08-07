@@ -11,10 +11,6 @@ RUN scripts/enable_ign_stable.sh
 COPY docker/scripts/install_common_deps.sh scripts/install_common_deps.sh
 RUN scripts/install_common_deps.sh
 
-# This is not strictly necessary, but makes things faster down the line.
-COPY docker/scripts/install_ign_deps.sh scripts/install_ign_deps.sh
-RUN scripts/install_ign_deps.sh
-
 COPY docker/scripts/enable_gcc8.sh scripts/enable_gcc8.sh
 RUN scripts/enable_gcc8.sh
 

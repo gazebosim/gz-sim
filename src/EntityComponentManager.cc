@@ -15,7 +15,7 @@
  *
 */
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 #include <map>
 #include <memory>
@@ -27,21 +27,23 @@
 #include <utility>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/graph/GraphAlgorithms.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/graph/GraphAlgorithms.hh>
 
-#include "ignition/gazebo/components/CanonicalLink.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Component.hh"
-#include "ignition/gazebo/components/Factory.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Recreate.hh"
+#include "gz/sim/components/World.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 class ignition::gazebo::EntityComponentManagerPrivate
 {
@@ -420,7 +422,30 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   else if (!_name.empty() && !_allowRename)
   {
-    if (kNullEntity != this->EntityByComponents(components::Name(_name)))
+    // Get the entity's original parent. This is used to make sure we get
+    // the correct entity. For example, two different models may have a
+    // child with the name "link".
+    auto origParentComp =
+        this->Component<components::ParentEntity>(_entity);
+
+    // If there is an entity with the same name and user indicated renaming is
+    // not allowed then return null entity.
+    // If the entity or one of its ancestor has a Recreate component then carry
+    // on since the ECM is supposed to create a new entity with the same name.
+    Entity ent = this->EntityByComponents(components::Name(_name),
+        components::ParentEntity(origParentComp->Data()));
+
+    bool hasRecreateComp = false;
+    Entity recreateEnt = ent;
+    while (recreateEnt != kNullEntity && !hasRecreateComp)
+    {
+      hasRecreateComp = this->Component<components::Recreate>(recreateEnt) !=
+        nullptr;
+      auto parentComp = this->Component<components::ParentEntity>(recreateEnt);
+      recreateEnt = parentComp ? parentComp->Data() : kNullEntity;
+    }
+
+    if (kNullEntity != ent && !hasRecreateComp)
     {
       ignerr << "Requested to clone entity [" << _entity
         << "] with a name of [" << _name << "], but another entity already "
@@ -468,7 +493,17 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
 
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    auto updateData =
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (updateData)
+    {
+      // When a cloned entity is removed, it erases all components/data so a new
+      // cloned entity should not have components to be updated
+      // LCOV_EXCL_START
+      ignerr << "Internal error: The component's data needs to be updated but "
+             << "this should not happen." << std::endl;
+      // LCOV_EXCL_STOP
+    }
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -497,19 +532,35 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     Entity originalParentLink = kNullEntity;
     Entity originalChildLink = kNullEntity;
 
+    auto origParentComp =
+        this->Component<components::ParentEntity>(_entity);
+
     const auto &parentName =
       this->Component<components::ParentLinkName>(_entity);
-    if (parentName)
+    if (parentName && origParentComp)
     {
-      originalParentLink = this->EntityByComponents<components::Name>(
-          components::Name(parentName->Data()));
+      // Handle the case where the parent link name is the world.
+      if (common::lowercase(parentName->Data()) == "world")
+      {
+        originalParentLink = this->Component<components::ParentEntity>(
+            origParentComp->Data())->Data();
+      }
+      else
+      {
+        originalParentLink =
+          this->EntityByComponents<components::Name, components::ParentEntity>(
+              components::Name(parentName->Data()),
+              components::ParentEntity(origParentComp->Data()));
+      }
     }
 
     const auto &childName = this->Component<components::ChildLinkName>(_entity);
-    if (childName)
+    if (childName && origParentComp)
     {
-      originalChildLink = this->EntityByComponents<components::Name>(
-          components::Name(childName->Data()));
+      originalChildLink =
+        this->EntityByComponents<components::Name, components::ParentEntity>(
+          components::Name(childName->Data()),
+          components::ParentEntity(origParentComp->Data()));
     }
 
     if (!originalParentLink || !originalChildLink)
@@ -533,7 +584,14 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   for (const auto &childEntity :
       this->EntitiesByComponents(components::ParentEntity(_entity)))
   {
-    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, "", true);
+    std::string name;
+    if (!_allowRename)
+    {
+      auto nameComp = this->Component<components::Name>(childEntity);
+      name = nameComp->Data();
+    }
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
+        _allowRename);
     if (kNullEntity == clonedChild)
     {
       ignerr << "Cloning child entity [" << childEntity << "] failed.\n";
@@ -555,6 +613,13 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
   {
     view.second.first->ResetNewEntityState();
   }
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasRemovedComponents() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+  return !this->dataPtr->removedComponents.empty();
 }
 
 /////////////////////////////////////////////////
@@ -881,6 +946,12 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasPeriodicComponentChanges() const
+{
+  return !this->dataPtr->periodicChangedComponents.empty();
+}
+
+/////////////////////////////////////////////////
 std::unordered_set<ComponentTypeId>
     EntityComponentManager::ComponentTypesWithPeriodicChanges() const
 {
@@ -890,6 +961,42 @@ std::unordered_set<ComponentTypeId>
     periodicComponents.insert(typeToEntityPtrs.first);
   }
   return periodicComponents;
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::UpdatePeriodicChangeCache(
+  std::unordered_map<ComponentTypeId,
+  std::unordered_set<Entity>> &_changes) const
+{
+  // Get all changes
+  for (const auto &[componentType, entities] :
+    this->dataPtr->periodicChangedComponents)
+  {
+    _changes[componentType].insert(
+      entities.begin(), entities.end());
+  }
+
+  // Get all removed components
+  for (const auto &[entity, components] :
+    this->dataPtr->componentsMarkedAsRemoved)
+  {
+    for (const auto &comp : components)
+    {
+      _changes[comp].erase(entity);
+    }
+  }
+
+  // Get all removed entities
+  for (const auto &entity : this->dataPtr->toRemoveEntities) {
+    for (
+      auto components = _changes.begin();
+      components != _changes.end(); components++) {
+      // Its ok to leave component entries empty, the serialization
+      // code will simply ignore it. In any case the number of components
+      // is limited, so this cache will never grow too large.
+      components->second.erase(entity);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1037,6 +1144,14 @@ bool EntityComponentManager::CreateComponentImplementation(
   }
 
   this->dataPtr->createdCompTypes.insert(_componentTypeId);
+
+  // If the component is a components::ParentEntity, then make sure to
+  // update the entities graph.
+  if (_componentTypeId == components::ParentEntity::typeId)
+  {
+    auto parentComp = this->Component<components::ParentEntity>(_entity);
+    this->SetParentEntity(_entity, parentComp->Data());
+  }
 
   return updateData;
 }
@@ -1390,7 +1505,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         // periodic change
         auto periodicIter = this->dataPtr->periodicChangedComponents.find(type);
         if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
-            periodicIter->second.find(_entity) != oneTimeIter->second.end())
+            periodicIter->second.find(_entity) != periodicIter->second.end())
           noChange = false;
       }
 
@@ -1436,9 +1551,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 }
 
 //////////////////////////////////////////////////
-ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
+msgs::SerializedState EntityComponentManager::ChangedState() const
 {
-  ignition::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
 
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1463,7 +1578,7 @@ ignition::msgs::SerializedState EntityComponentManager::ChangedState() const
 
 //////////////////////////////////////////////////
 void EntityComponentManager::ChangedState(
-    ignition::msgs::SerializedStateMap &_state) const
+    msgs::SerializedStateMap &_state) const
 {
   // New entities
   for (const auto &entity : this->dataPtr->newlyCreatedEntities)
@@ -1531,11 +1646,11 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 }
 
 //////////////////////////////////////////////////
-ignition::msgs::SerializedState EntityComponentManager::State(
+msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
 {
-  ignition::msgs::SerializedState stateMsg;
+  msgs::SerializedState stateMsg;
   for (const auto &it : this->dataPtr->componentTypeIndex)
   {
     auto entity = it.first;
@@ -1600,8 +1715,50 @@ void EntityComponentManager::State(
 }
 
 //////////////////////////////////////////////////
+void EntityComponentManager::PeriodicStateFromCache(
+  msgs::SerializedStateMap &_state,
+  const std::unordered_map<ComponentTypeId,
+    std::unordered_set<Entity>> &_cache) const
+{
+  for (auto &[typeId, entities] : _cache) {
+    // Serialize components that have changed
+    for (auto &entity : entities) {
+      // Add entity to message if it does not exist
+      auto entIter = _state.mutable_entities()->find(entity);
+      if (entIter == _state.mutable_entities()->end())
+      {
+        msgs::SerializedEntityMap ent;
+        ent.set_id(entity);
+        (*_state.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
+        entIter = _state.mutable_entities()->find(entity);
+      }
+
+      // Find the component in the message
+      auto compIter = entIter->second.mutable_components()->find(typeId);
+      if (compIter != entIter->second.mutable_components()->end())
+      {
+        // If the component is present we don't need to update it.
+        continue;
+      }
+
+      auto compIdx = this->dataPtr->componentTypeIndex[entity][typeId];
+      auto &comp = this->dataPtr->componentStorage[entity][compIdx];
+
+      // Add the component to the message
+      msgs::SerializedComponent cmp;
+      cmp.set_type(comp->TypeId());
+      std::ostringstream ostr;
+      comp->Serialize(ostr);
+      cmp.set_component(ostr.str());
+      (*(entIter->second.mutable_components()))[
+      static_cast<int64_t>(typeId)] = cmp;
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const ignition::msgs::SerializedState &_stateMsg)
+    const msgs::SerializedState &_stateMsg)
 {
   IGN_PROFILE("EntityComponentManager::SetState Non-map");
   // Create / remove / update entities
@@ -1663,11 +1820,11 @@ void EntityComponentManager::SetState(
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
 
-      std::istringstream istr(compMsg.component());
-
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         auto newComp = components::Factory::Instance()->New(type);
         if (nullptr == newComp)
         {
@@ -1676,11 +1833,20 @@ void EntityComponentManager::SetState(
           continue;
         }
         newComp->Deserialize(istr);
-        this->CreateComponentImplementation(entity, type, newComp.get());
+
+        auto updateData =
+          this->CreateComponentImplementation(entity, type, newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, type);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
+        std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
@@ -1690,7 +1856,7 @@ void EntityComponentManager::SetState(
 
 //////////////////////////////////////////////////
 void EntityComponentManager::SetState(
-    const ignition::msgs::SerializedStateMap &_stateMsg)
+    const msgs::SerializedStateMap &_stateMsg)
 {
   IGN_PROFILE("EntityComponentManager::SetState Map");
   // Create / remove / update entities
@@ -1749,24 +1915,29 @@ void EntityComponentManager::SetState(
       // Create if new
       if (nullptr == comp)
       {
+        std::istringstream istr(compMsg.component());
+
         // Create component
         auto newComp = components::Factory::Instance()->New(compMsg.type());
-
         if (nullptr == newComp)
         {
           ignerr << "Failed to create component of type [" << compMsg.type()
             << "]" << std::endl;
           continue;
         }
-
-        std::istringstream istr(compMsg.component());
         newComp->Deserialize(istr);
 
-        this->CreateComponentImplementation(entity,
-            newComp->TypeId(), newComp.get());
+        auto updateData = this->CreateComponentImplementation(
+          entity, newComp->TypeId(), newComp.get());
+        if (updateData)
+        {
+          // Set comp so we deserialize the data below again
+          comp = this->ComponentImplementation(entity, compIter.first);
+        }
       }
+
       // Update component value
-      else
+      if (comp)
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
@@ -1815,7 +1986,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
-    gazebo::ComponentState _c)
+    gz::sim::ComponentState _c)
 {
   // make sure _entity exists
   auto ecIter = this->dataPtr->componentTypeIndex.find(_entity);
@@ -1849,6 +2020,10 @@ void EntityComponentManager::SetChanged(
     auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
     if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
       oneTimeIter->second.erase(_entity);
+
+    // the component state is flagged as no change, so don't mark the
+    // corresponding entity as one with a modified component
+    return;
   }
 
   this->dataPtr->AddModifiedComponent(_entity);
@@ -1937,24 +2112,38 @@ bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     return false;
   }
 
-  auto iter = this->originalToClonedLink.find(_originalLink);
-  if (iter == this->originalToClonedLink.end())
-  {
-    ignerr << "Error: attempted to clone links, but link ["
-           << _originalLink << "] was never cloned.\n";
-    return false;
-  }
-  auto clonedLink = iter->second;
+  Entity clonedLink = kNullEntity;
 
-  auto name = _ecm->Component<components::Name>(clonedLink);
-  if (!name)
+
+  std::string name;
+  // Handle the case where the link could have been the world.
+  if (_ecm->Component<components::World>(_originalLink) != nullptr)
   {
-    ignerr << "Link [" << _originalLink << "] was cloned, but its clone has no "
-           << "name.\n";
-    return false;
+    // Use the special identifier "world".
+    name = "world";
+  }
+  else
+  {
+    auto iter = this->originalToClonedLink.find(_originalLink);
+    if (iter == this->originalToClonedLink.end())
+    {
+      ignerr << "Error: attempted to clone links, but link ["
+        << _originalLink << "] was never cloned.\n";
+      return false;
+    }
+    clonedLink = iter->second;
+
+    auto nameComp = _ecm->Component<components::Name>(clonedLink);
+    if (!nameComp)
+    {
+      ignerr << "Link [" << _originalLink
+        << "] was cloned, but its clone has no name.\n";
+      return false;
+    }
+    name = nameComp->Data();
   }
 
-  _ecm->SetComponentData<ComponentTypeT>(_joint, name->Data());
+  _ecm->SetComponentData<ComponentTypeT>(_joint, name);
   return true;
 }
 

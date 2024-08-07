@@ -1,0 +1,107 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="joint_sensor">
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="model">
+      <link name="link1"/>
+      <link name="link2"/>
+      <joint name="joint" type="revolute2">
+        <child>link2</child>
+        <parent>link1</parent>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <initial_position>0.5</initial_position>
+          <use_parent_model_frame>true</use_parent_model_frame>
+          <limit>
+            <lower>-0.5</lower>
+            <upper>0.5</upper>
+            <effort>123.4</effort>
+            <velocity>12</velocity>
+          </limit>
+          <dynamics>
+            <damping>0.1</damping>
+            <friction>0.2</friction>
+            <spring_reference>1.3</spring_reference>
+            <spring_stiffness>10.6</spring_stiffness>
+          </dynamics>
+        </axis>
+        <axis2>
+          <xyz>0 1 0</xyz>
+          <initial_position>1.5</initial_position>
+          <use_parent_model_frame>false</use_parent_model_frame>
+          <limit>
+            <lower>-1</lower>
+            <upper>1</upper>
+            <effort>0.5</effort>
+            <velocity>200</velocity>
+          </limit>
+        </axis2>
+        <physics>
+          <ode>
+            <cfm_damping>1</cfm_damping>
+            <limit>
+              <cfm>0</cfm>
+              <erp>0.2</erp>
+            </limit>
+          </ode>
+        </physics>
+          <sensor name="force_torque_sensor" type="force_torque">
+            <pose>10 11 12 0 0 0</pose>
+            <force_torque>
+              <frame>parent</frame>
+              <measure_direction>parent_to_child</measure_direction>
+              <force>
+                <x>
+                  <noise type="gaussian">
+                    <mean>0</mean>
+                    <stddev>0.1</stddev>
+                  </noise>
+                </x>
+                <y>
+                  <noise type="gaussian">
+                    <mean>1</mean>
+                    <stddev>1.1</stddev>
+                  </noise>
+                </y>
+                <z>
+                  <noise type="gaussian">
+                    <mean>2</mean>
+                    <stddev>2.1</stddev>
+                  </noise>
+                </z>
+              </force>
+              <torque>
+                <x>
+                  <noise type="gaussian">
+                    <mean>3</mean>
+                    <stddev>3.1</stddev>
+                  </noise>
+                </x>
+                <y>
+                  <noise type="gaussian">
+                    <mean>4</mean>
+                    <stddev>4.1</stddev>
+                  </noise>
+                </y>
+                <z>
+                  <noise type="gaussian">
+                    <mean>5</mean>
+                    <stddev>5.1</stddev>
+                  </noise>
+                </z>
+              </torque>
+            </force_torque>
+          </sensor>
+      </joint>
+    </model>
+
+  </world>
+</sdf>

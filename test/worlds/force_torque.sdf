@@ -132,7 +132,7 @@
           <parent>base</parent>
           <child>sensor_plate</child>
           <sensor name="force_torque_sensor" type="force_torque">
-            <update_rate>30</update_rate>
+            <update_rate>100</update_rate>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <topic>force_torque1</topic>
@@ -262,7 +262,7 @@
           <child>sensor_plate</child>
           <sensor name="force_torque_sensor" type="force_torque">
             <pose>0.1 0 0  0 0 0</pose>
-            <update_rate>30</update_rate>
+            <update_rate>100</update_rate>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <topic>force_torque2</topic>
@@ -392,7 +392,7 @@
           <child>sensor_plate</child>
           <sensor name="force_torque_sensor" type="force_torque">
             <pose degrees="true">0 0 0.0   30 0 0</pose>
-            <update_rate>30</update_rate>
+            <update_rate>100</update_rate>
             <always_on>true</always_on>
             <visualize>true</visualize>
             <topic>force_torque3</topic>

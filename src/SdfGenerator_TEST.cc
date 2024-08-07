@@ -18,34 +18,35 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
-#include <ignition/fuel_tools/Interface.hh>
+#include <gz/common/Console.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/SdfEntityCreator.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Visual.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/test_config.hh"
 
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
 #include "SdfGenerator.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 /// \breif Checks if elemA is a subset of elemB
@@ -117,6 +118,43 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
                  << "'";
         }
       }
+      else if (valA->GetTypeName() == "double")
+      {
+        double dblA, dblB;
+        valA->Get(dblA);
+        valB->Get(dblB);
+        if (!math::equal(dblA, dblB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as double: '" << dblA << "' vs '"
+                 << dblB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "float")
+      {
+        float fltA, fltB;
+        valA->Get(fltA);
+        valB->Get(fltB);
+        if (!math::equal(fltA, fltB))
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as float: '" << fltA << "' vs '"
+                 << fltB << "'";
+        }
+      }
+      else if (valA->GetTypeName() == "bool")
+      {
+        bool boolA, boolB;
+        valA->Get(boolA);
+        valB->Get(boolB);
+        if (boolA != boolB)
+        {
+          return testing::AssertionFailure()
+                 << "Mismatch in value as bool: '" << boolA << "' vs '"
+                 << boolB << "'";
+        }
+
+      }
       else if (valA->GetAsString() != valB->GetAsString())
       {
         return testing::AssertionFailure()
@@ -148,6 +186,27 @@ static testing::AssertionResult isSubset(const sdf::ElementPtr &_elemA,
 
     if (!result)
     {
+      // Ignore missing pose values if the pose is zero.
+      sdf::ParamPtr childValA = childElemA->GetValue();
+      if (childValA->GetTypeName() == "pose")
+      {
+        math::Pose3d childValPose;
+        childValA->Get(childValPose);
+        if (childValPose == math::Pose3d::Zero)
+          return testing::AssertionSuccess();
+      }
+      else if (childValA->GetTypeName() == "bool")
+      {
+        bool childValBool;
+        childValA->Get(childValBool);
+        if (!childValBool && (childElemA->GetName() == "static" ||
+            childElemA->GetName() == "self_collide" ||
+            childElemA->GetName() == "enable_wind" ))
+        {
+          return testing::AssertionSuccess();
+        }
+      }
+
       return testing::AssertionFailure()
              << "No matching child element in element B for child element '"
              << childElemA->GetName() << "' in element A";
@@ -163,15 +222,15 @@ TEST(CompareElements, CompareWithDuplicateElements)
   const std::string m1Sdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
     </model>
   </sdf>
   )";
   const std::string m1CompTestSdf = R"(
   <sdf version="1.7">
     <model name="M1">
-      <pose>0 0 0 0 0 0</pose>
-      <pose>0 0 0 0 0 0</pose>
+      <pose>1 0 0 0 0 0</pose>
+      <pose>0 1 0 0 0 0</pose>
     </model>
   </sdf>
   )";
@@ -271,7 +330,7 @@ class ModelElementFixture : public ElementUpdateFixture
 
     auto elem = std::make_shared<sdf::Element>();
     sdf::initFile("model.sdf", elem);
-    updateModelElement(elem, this->ecm, model);
+    EXPECT_TRUE(updateModelElement(elem, this->ecm, model));
     return elem;
   }
 
@@ -585,17 +644,17 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedNotExpanded)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 {
   const std::string goodUri =
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/";
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/3";
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
       // Thes following two URIs are valid, but have a trailing '/'
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/2/",
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/",
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/3/",
       // Thes following two URIs are invalid, and will not be saved
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/"
       "notInt",
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack/"
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack/"
       "notInt/",
   };
 
@@ -650,7 +709,7 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 {
   const std::vector<std::string> includeUris = {
-      "https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Backpack",
+      "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Backpack",
       std::string("file://") + PROJECT_SOURCE_PATH +
           "/test/worlds/models/sphere"};
 
@@ -834,7 +893,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ElementUpdateFixture, WorldWithModelsUsingRelativeResourceURIs)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ElementUpdateFixture,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
   const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
                           "/test/worlds/models/relative_resource_uri";

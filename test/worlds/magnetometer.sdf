@@ -4,15 +4,15 @@
     <magnetic_field>0.94 0.76 -0.12</magnetic_field>
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-magnetometer-system"
-      name="ignition::gazebo::systems::Magnetometer">
+      name="gz::sim::systems::Magnetometer">
     </plugin>
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"

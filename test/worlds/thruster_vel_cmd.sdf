@@ -103,6 +103,8 @@
         <fluid_density>950</fluid_density>
         <propeller_diameter>0.25</propeller_diameter>
         <velocity_control>true</velocity_control>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
       </plugin>
     </model>
 

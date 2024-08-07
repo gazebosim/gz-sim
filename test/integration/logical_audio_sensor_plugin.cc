@@ -23,33 +23,36 @@
 #include <thread>
 #include <vector>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/msgs.hh>
+#include <gz/transport.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/LogicalAudio.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/test_config.hh"
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/components/LogicalAudio.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/Types.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Test LogicalAudio system plugin
 class LogicalAudioTest : public InternalFixture<::testing::Test>
 {
 };
 
-TEST_F(LogicalAudioTest, LogicalAudioDetections)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(LogicalAudioDetections))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -62,10 +65,10 @@ TEST_F(LogicalAudioTest, LogicalAudioDetections)
   EXPECT_FALSE(*server.Running(0));
 
   // helper variables for checking the validity of the ECM
-  const ignition::math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d sourcePose(0, 0, 0, 0, 0, 0);
   const auto zeroSeconds = std::chrono::seconds(0);
-  const ignition::math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
-  const ignition::math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
+  const math::Pose3d micClosePose(0.5, 0, 0, 0, 0, 0);
+  const math::Pose3d micFarPose(0, 0, 0, 0, 0, 0);
   std::chrono::steady_clock::duration sourceStartTime;
   bool firstTime{true};
 
@@ -204,7 +207,9 @@ TEST_F(LogicalAudioTest, LogicalAudioDetections)
       "world/logical_audio_sensor/model/source_model/sensor/source_1");
 }
 
-TEST_F(LogicalAudioTest, LogicalAudioServices)
+// See: https://github.com/gazebosim/gz-sim/issues/630
+TEST_F(LogicalAudioTest,
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LogicalAudioServices))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +

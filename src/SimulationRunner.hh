@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
-#define IGNITION_GAZEBO_SIMULATIONRUNNER_HH_
+#ifndef GZ_GAZEBO_SIMULATIONRUNNER_HH_
+#define GZ_GAZEBO_SIMULATIONRUNNER_HH_
 
-#include <ignition/msgs/gui.pb.h>
-#include <ignition/msgs/log_playback_control.pb.h>
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <atomic>
 #include <chrono>
@@ -27,6 +27,7 @@
 #include <list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -35,26 +36,26 @@
 
 #include <sdf/World.hh>
 
-#include <ignition/common/Event.hh>
-#include <ignition/common/WorkerPool.hh>
-#include <ignition/math/Stopwatch.hh>
-#include <ignition/msgs.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Event.hh>
+#include <gz/common/WorkerPool.hh>
+#include <gz/math/Stopwatch.hh>
+#include <gz/msgs.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/EventManager.hh"
-#include "ignition/gazebo/Export.hh"
-#include "ignition/gazebo/ServerConfig.hh"
-#include "ignition/gazebo/System.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/SystemPluginPtr.hh"
-#include "ignition/gazebo/Types.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/Export.hh"
+#include "gz/sim/ServerConfig.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/Types.hh"
 
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
+#include "SystemManager.hh"
 #include "Barrier.hh"
+#include "WorldControl.hh"
 
 using namespace std::chrono_literals;
 
@@ -66,93 +67,6 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
-
-    /// \brief Helper struct to control world time. It's used to hold
-    /// input from either msgs::WorldControl or msgs::LogPlaybackControl.
-    struct WorldControl
-    {
-      /// \brief True to pause simulation.
-      // cppcheck-suppress unusedStructMember
-      bool pause{false};  // NOLINT
-
-      /// \biref Run a given number of simulation iterations.
-      // cppcheck-suppress unusedStructMember
-      uint64_t multiStep{0u};  // NOLINT
-
-      /// \brief Reset simulation back to time zero. Rewinding resets sim time,
-      /// real time and iterations.
-      // cppcheck-suppress unusedStructMember
-      bool rewind{false};  // NOLINT
-
-      /// \brief A simulation time in the future to run to and then pause.
-      /// A negative number indicates that this variable it not being used.
-      std::chrono::steady_clock::duration runToSimTime{-1};  // NOLINT
-
-      /// \brief Sim time to jump to. A negative value means don't seek.
-      /// Seeking changes sim time but doesn't affect real time.
-      /// It also resets iterations back to zero.
-      std::chrono::steady_clock::duration seek{-1};
-    };
-
-    /// \brief Class to hold systems internally. It supports systems loaded
-    /// from plugins, as well as systems created at runtime.
-    class SystemInternal
-    {
-      /// \brief Constructor
-      /// \param[in] _systemPlugin A system loaded from a plugin.
-      public: explicit SystemInternal(SystemPluginPtr _systemPlugin)
-              : systemPlugin(std::move(_systemPlugin)),
-                system(systemPlugin->QueryInterface<System>()),
-                configure(systemPlugin->QueryInterface<ISystemConfigure>()),
-                preupdate(systemPlugin->QueryInterface<ISystemPreUpdate>()),
-                update(systemPlugin->QueryInterface<ISystemUpdate>()),
-                postupdate(systemPlugin->QueryInterface<ISystemPostUpdate>())
-      {
-      }
-
-      /// \brief Constructor
-      /// \param[in] _system Pointer to a system.
-      public: explicit SystemInternal(const std::shared_ptr<System> &_system)
-              : systemShared(_system),
-                system(_system.get()),
-                configure(dynamic_cast<ISystemConfigure *>(_system.get())),
-                preupdate(dynamic_cast<ISystemPreUpdate *>(_system.get())),
-                update(dynamic_cast<ISystemUpdate *>(_system.get())),
-                postupdate(dynamic_cast<ISystemPostUpdate *>(_system.get()))
-      {
-      }
-
-      /// \brief Plugin object. This manages the lifecycle of the instantiated
-      /// class as well as the shared library.
-      /// This will be null if the system wasn't loaded from a plugin.
-      public: SystemPluginPtr systemPlugin;
-
-      /// \brief Pointer to a system.
-      /// This will be null if the system wasn't loaded from a pointer.
-      public: std::shared_ptr<System> systemShared{nullptr};
-
-      /// \brief Access this system via the `System` interface
-      public: System *system = nullptr;
-
-      /// \brief Access this system via the ISystemConfigure interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemConfigure *configure = nullptr;
-
-      /// \brief Access this system via the ISystemPreUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPreUpdate *preupdate = nullptr;
-
-      /// \brief Access this system via the ISystemUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemUpdate *update = nullptr;
-
-      /// \brief Access this system via the ISystemPostUpdate interface
-      /// Will be nullptr if the System doesn't implement this interface.
-      public: ISystemPostUpdate *postupdate = nullptr;
-
-      /// \brief Vector of queries and callbacks
-      public: std::vector<EntityQueryCallback> updates;
-    };
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
@@ -223,20 +137,15 @@ namespace ignition
       public: void PublishStats();
 
       /// \brief Load system plugin for a given entity.
-      /// \param[in] _entity Entity
-      /// \param[in] _fname Filename of the plugin library
-      /// \param[in] _name Name of the plugin
-      /// \param[in] _sdf SDF element (content of plugin tag)
-      public: void LoadPlugin(const Entity _entity,
-          const std::string &_fname,
-          const std::string &_name,
-          const sdf::ElementPtr &_sdf);
+      /// \param[in] _entity The plugins will be associated with this Entity
+      /// \param[in] _plugin SDF Plugin to load
+      public: void LoadPlugin(const Entity _entity, const sdf::Plugin &_plugin);
 
       /// \brief Load system plugins for a given entity.
-      /// \param[in] _entity Entity
-      /// \param[in] _sdf SDF element
+      /// \param[in] _entity The plugins will be associated with this Entity
+      /// \param[in] _plugins SDF Plugins to load
       public: void LoadPlugins(const Entity _entity,
-          const sdf::ElementPtr &_sdf);
+          const sdf::Plugins &_plugins);
 
       /// \brief Load server plugins for a given entity.
       /// \param[in] _config Configuration to load plugins from.
@@ -366,11 +275,11 @@ namespace ignition
 
       /// \brief Get the step size;
       /// \return Step size.
-      public: const ignition::math::clock::duration &StepSize() const;
+      public: const gz::math::clock::duration &StepSize() const;
 
       /// \brief Set the step size;
       /// \param[in] _step Step size.
-      public: void SetStepSize(const ignition::math::clock::duration &_step);
+      public: void SetStepSize(const gz::math::clock::duration &_step);
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -405,7 +314,7 @@ namespace ignition
       /// \brief Callback for GUI info service.
       /// \param[out] _res Response containing the latest GUI message.
       /// \return True if successful.
-      private: bool GuiInfoService(ignition::msgs::GUI &_res);
+      private: bool GuiInfoService(gz::msgs::GUI &_res);
 
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
@@ -456,15 +365,17 @@ namespace ignition
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
-      /// \brief Implementation for AddSystem functions. This only adds systems
-      /// to a queue, the actual addition is performed by `AddSystemToRunner` at
-      /// the appropriate time.
-      /// \param[in] _system Generic representation of a system.
-      /// \param[in] _entity Entity received from AddSystem.
-      /// \param[in] _sdf SDF received from AddSystem.
-      private: void AddSystemImpl(SystemInternal _system,
-        std::optional<Entity> _entity = std::nullopt,
-        std::optional<std::shared_ptr<const sdf::Element>> _sdf = std::nullopt);
+      /// \brief Process entities with the components::Recreate component.
+      /// Put in a request to make them as removed
+      private: void ProcessRecreateEntitiesRemove();
+
+      /// \brief Process entities with the components::Recreate component.
+      /// Reccreate the entities by cloning from the original ones.
+      private: void ProcessRecreateEntitiesCreate();
+
+      /// \brief Process the new world state message, if it is present.
+      /// See the newWorldControlState variable below.
+      private: void ProcessNewWorldControlState();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -473,29 +384,22 @@ namespace ignition
       /// server is in the run state.
       private: std::atomic<bool> running{false};
 
-      /// \brief All the systems.
-      private: std::vector<SystemInternal> systems;
-
-      /// \brief Pending systems to be added to systems.
-      private: std::vector<SystemInternal> pendingSystems;
-
-      /// \brief Mutex to protect pendingSystems
-      private: mutable std::mutex pendingSystemsMutex;
-
-      /// \brief Systems implementing Configure
-      private: std::vector<ISystemConfigure *> systemsConfigure;
-
-      /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
-
-      /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
-
-      /// \brief Systems implementing PostUpdate
-      private: std::vector<ISystemPostUpdate *> systemsPostupdate;
+      /// \brief Manager of all systems.
+      /// Note: must be before EntityComponentManager
+      /// Note: must be before EventMgr
+      /// Because systems have access to the ECM and Events, they need to be
+      /// cleanly stopped and destructed before destroying the event manager
+      /// and entity component manager.
+      private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all events.
+      /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
+
+      /// \brief Manager all parameters
+      private: std::unique_ptr<
+        ignition::transport::parameters::ParametersRegistry
+      > parametersRegistry;
 
       /// \brief Manager of all components.
       private: EntityComponentManager entityCompMgr;
@@ -526,44 +430,38 @@ namespace ignition
       /// \brief List of real times used to compute averages.
       private: std::list<std::chrono::steady_clock::duration> realTimes;
 
-      /// \brief System loader, for loading system plugins.
-      private: SystemLoaderPtr systemLoader;
-
-      /// \brief Mutex to protect systemLoader
-      private: std::mutex systemLoaderMutex;
-
       /// \brief Node for communication.
       private: std::unique_ptr<transport::Node> node{nullptr};
 
       /// \brief World statistics publisher.
-      private: ignition::transport::Node::Publisher statsPub;
+      private: gz::transport::Node::Publisher statsPub;
 
       /// \brief Clock publisher for the root `/stats` topic.
-      private: ignition::transport::Node::Publisher rootStatsPub;
+      private: gz::transport::Node::Publisher rootStatsPub;
 
       /// \brief Clock publisher.
-      private: ignition::transport::Node::Publisher clockPub;
+      private: gz::transport::Node::Publisher clockPub;
 
       /// \brief Clock publisher for the root `/clock` topic.
-      private: ignition::transport::Node::Publisher rootClockPub;
+      private: gz::transport::Node::Publisher rootClockPub;
 
       /// \brief Name of world being simulated.
       private: std::string worldName;
 
       /// \brief Stopwatch to keep track of wall time.
-      private: ignition::math::Stopwatch realTimeWatch;
+      private: gz::math::Stopwatch realTimeWatch;
 
       /// \brief Step size
-      private: ignition::math::clock::duration stepSize{10ms};
+      private: gz::math::clock::duration stepSize{10ms};
 
       /// \brief Desired real time factor
       private: double desiredRtf{1.0};
 
       /// \brief Connection to the pause event.
-      private: ignition::common::ConnectionPtr pauseConn;
+      private: gz::common::ConnectionPtr pauseConn;
 
       /// \brief Connection to the stop event.
-      private: ignition::common::ConnectionPtr stopConn;
+      private: gz::common::ConnectionPtr stopConn;
 
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
@@ -626,6 +524,16 @@ namespace ignition
       /// \brief Whether the simulation runner is currently stepping based on
       /// WorldControl info (true) or not (false)
       private: bool stepping{false};
+
+      /// \brief A set of entities that need to be recreated
+      private: std::set<Entity> entitiesToRecreate;
+
+      /// \brief Holds new world state information so that it can be processed
+      /// at the appropriate time.
+      private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
+
+      /// \brief Set if we need to remove systems due to entity removal
+      private: bool threadsNeedCleanUp{false};
 
       friend class LevelManager;
     };

@@ -22,24 +22,24 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 class ignition::gazebo::systems::TouchPluginPrivate
@@ -409,9 +409,12 @@ void TouchPlugin::PostUpdate(const UpdateInfo &_info,
 }
 
 IGNITION_ADD_PLUGIN(TouchPlugin,
-                    ignition::gazebo::System,
+                    System,
                     TouchPlugin::ISystemConfigure,
                     TouchPlugin::ISystemPreUpdate,
                     TouchPlugin::ISystemPostUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "gz::sim::systems::TouchPlugin")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(TouchPlugin, "ignition::gazebo::systems::TouchPlugin")

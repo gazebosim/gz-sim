@@ -13,13 +13,13 @@ a simulation.
 There are a few places where the plugins can be defined:
 
 1. `<plugin>` elements inside an SDF file.
-2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` environment variable.
+2. File path defined by the `IGN_GAZEBO_SERVER_CONFIG_PATH` or `GZ_SIM_SERVER_CONFIG_PATH` environment variables.
 3. The default configuration file at `$HOME/.ignition/gazebo/<#>/server.config` \*,
    where `<#>` is Gazebo's major version.
 
 Each of the items above takes precedence over the ones below it. For example,
 if a the SDF file has any `<plugin>` elements, then the
-`IGN_GAZEBO_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
+`IGN_GAZEBO_SERVER_CONFIG_PATH` and `GZ_SIM_SERVER_CONFIG_PATH` variables are ignored. And the default configuration
 file is only loaded if no plugins are passed through the SDF file or the
 environment variable.
 
@@ -91,7 +91,7 @@ favorite editor and save this file as `fuel_preview.sdf`:
   <world name="fuel_preview">
     <plugin
       filename="libignition-gazebo-scene-broadcaster-system.so"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <gui fullscreen="0">
@@ -114,11 +114,11 @@ favorite editor and save this file as `fuel_preview.sdf`:
     </gui>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Construction Cone</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone</uri>
     </include>
 
   </world>
@@ -182,12 +182,12 @@ Let's start by saving this simple world with a camera sensor as
     </gui>
 
     <include>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Sun</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
     </include>
 
     <include>
       <pose>0 0 1 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Gazebo</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo</uri>
     </include>
 
     <model name="camera">
@@ -240,12 +240,12 @@ system:
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-scene-broadcaster-system"
-            name="ignition::gazebo::systems::SceneBroadcaster">
+            name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin entity_name="*"
             entity_type="world"
             filename="ignition-gazebo-sensors-system"
-            name="ignition::gazebo::systems::Sensors">
+            name="gz::sim::systems::Sensors">
       <render_engine>ogre</render_engine>
     </plugin>
   </plugins>

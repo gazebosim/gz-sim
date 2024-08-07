@@ -1,13 +1,17 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="logical_audio_sensor">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <model name="model_playing">
       <pose>0 0 0 0 0 0</pose>
       <link name="audio_link">
       </link>
       <plugin
         filename="ignition-gazebo-logicalaudiosensorplugin-system"
-        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>1</id>
           <pose>0 0 0 0 0 0</pose>
@@ -28,7 +32,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-logicalaudiosensorplugin-system"
-        name="ignition::gazebo::systems::LogicalAudioSensorPlugin">
+        name="gz::sim::systems::LogicalAudioSensorPlugin">
         <source>
           <id>2</id>
           <pose>0 0 0 0 0 0</pose>

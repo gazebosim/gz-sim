@@ -19,18 +19,19 @@
 
 #include <string>
 
-#include <ignition/common/Util.hh>
+#include <gz/common/Util.hh>
 
-#include <ignition/math/Color.hh>
-#include <ignition/msgs/Utility.hh>
+#include <gz/math/Color.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Entity.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParticleEmitter.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Relay.hh"
@@ -59,7 +60,8 @@ class ParticleEmitterTest : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Load an SDF with a particle emitter and verify its properties.
-TEST_F(ParticleEmitterTest, SDFLoad)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(ParticleEmitterTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
   bool updateCustomChecked{false};
   bool updateDefaultChecked{false};

@@ -19,21 +19,22 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/physics/BoxShape.hh>
-#include <ignition/physics/CylinderShape.hh>
-#include <ignition/physics/ConstructEmpty.hh>
-#include <ignition/physics/Entity.hh>
-#include <ignition/physics/ForwardStep.hh>
-#include <ignition/physics/Implements.hh>
-#include <ignition/physics/Link.hh>
-#include <ignition/physics/RemoveEntities.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
+#include <gz/physics/BoxShape.hh>
+#include <gz/physics/CylinderShape.hh>
+#include <gz/physics/ConstructEmpty.hh>
+#include <gz/physics/Entity.hh>
+#include <gz/physics/ForwardStep.hh>
+#include <gz/physics/Implements.hh>
+#include <gz/physics/Link.hh>
+#include <gz/physics/RemoveEntities.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "../../../test/helpers/EnvTestFixture.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
-using namespace ignition;
+using namespace gz;
 using namespace ignition::gazebo::systems::physics_system;
 
 struct MinimumFeatureList
@@ -63,7 +64,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
         << "Failed to find plugin [" << pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library.";
@@ -81,7 +82,7 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
                           << pathToLib << "]";
 
       this->engine =
-          ignition::physics::RequestEngine<physics::FeaturePolicy3d,
+          physics::RequestEngine<physics::FeaturePolicy3d,
                                            MinimumFeatureList>::From(plugin);
 
       ASSERT_NE(nullptr, this->engine);
@@ -92,7 +93,9 @@ class EntityFeatureMapFixture: public InternalFixture<::testing::Test>
   public: EnginePtrType engine;
 };
 
-TEST_F(EntityFeatureMapFixture, AddCastRemoveEntity)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(EntityFeatureMapFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(AddCastRemoveEntity))
 {
   struct TestOptionalFeatures1
       : physics::FeatureList<physics::LinkFrameSemantics>
@@ -110,28 +113,29 @@ TEST_F(EntityFeatureMapFixture, AddCastRemoveEntity)
   // Making these entities different from 1 and 2 ensures that the implicit
   // conversion in ign-physics between EntityPtr and std::size_t doesn't cause
   // false positive tests
-  gazebo::Entity gazeboWorld1Entity = 123;
-  gazebo::Entity gazeboWorld2Entity = 456;
+  gz::sim::Entity gazeboWorld1Entity = 123;
+  gz::sim::Entity gazeboWorld2Entity = 456;
   WorldPtrType testWorld1 = this->engine->ConstructEmptyWorld("world1");
   WorldEntityMap testMap;
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld1));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 
   testMap.AddEntity(gazeboWorld1Entity, testWorld1);
 
-  // After adding the entity, there should be one entry each in three maps
-  EXPECT_EQ(3u, testMap.TotalMapEntryCount());
+  // After adding the entity, there should be one entry each in four maps
+  EXPECT_EQ(4u, testMap.TotalMapEntryCount());
   EXPECT_EQ(testWorld1, testMap.Get(gazeboWorld1Entity));
   EXPECT_EQ(gazeboWorld1Entity, testMap.Get(testWorld1));
+  EXPECT_EQ(gazeboWorld1Entity, testMap.GetByPhysicsId(testWorld1->EntityID()));
 
   // Cast to optional feature1
   auto testWorld1Feature1 =
       testMap.EntityCast<TestOptionalFeatures1>(gazeboWorld1Entity);
   ASSERT_NE(nullptr, testWorld1Feature1);
   // After the cast, there should be one more entry in the cache map.
-  EXPECT_EQ(4u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
 
   // Cast to optional feature2
   auto testWorld1Feature2 =
@@ -139,38 +143,43 @@ TEST_F(EntityFeatureMapFixture, AddCastRemoveEntity)
   ASSERT_NE(nullptr, testWorld1Feature2);
   // After the cast, the number of entries should remain the same because we
   // have not added an entity.
-  EXPECT_EQ(4u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
 
   // Add another entity
   WorldPtrType testWorld2 = this->engine->ConstructEmptyWorld("world2");
   testMap.AddEntity(gazeboWorld2Entity, testWorld2);
-  EXPECT_EQ(7u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(9u, testMap.TotalMapEntryCount());
   EXPECT_EQ(testWorld2, testMap.Get(gazeboWorld2Entity));
   EXPECT_EQ(gazeboWorld2Entity, testMap.Get(testWorld2));
+  EXPECT_EQ(gazeboWorld2Entity, testMap.GetByPhysicsId(testWorld2->EntityID()));
 
   auto testWorld2Feature1 =
       testMap.EntityCast<TestOptionalFeatures1>(testWorld2);
   ASSERT_NE(nullptr, testWorld2Feature1);
   // After the cast, there should be one more entry in the cache map.
-  EXPECT_EQ(8u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(10u, testMap.TotalMapEntryCount());
 
   auto testWorld2Feature2 =
       testMap.EntityCast<TestOptionalFeatures2>(testWorld2);
   ASSERT_NE(nullptr, testWorld2Feature2);
   // After the cast, the number of entries should remain the same because we
   // have not added an entity.
-  EXPECT_EQ(8u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(10u, testMap.TotalMapEntryCount());
 
   // Remove entitites
   testMap.Remove(gazeboWorld1Entity);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld1));
-  EXPECT_EQ(4u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld1));
+  EXPECT_EQ(gz::sim::kNullEntity,
+      testMap.GetByPhysicsId(testWorld1->EntityID()));
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
 
   testMap.Remove(testWorld2);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld2Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld2Entity));
-  EXPECT_EQ(gazebo::kNullEntity, testMap.Get(testWorld2));
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld2));
+  EXPECT_EQ(gz::sim::kNullEntity, testMap.GetByPhysicsId(
+      testWorld2->EntityID()));
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 }

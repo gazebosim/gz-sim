@@ -16,34 +16,35 @@
 */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/gazebo/components/Collision.hh>
-#include <ignition/gazebo/components/PoseCmd.hh>
-#include "ignition/gazebo/components/PhysicsEnginePlugin.hh"
-#include <ignition/gazebo/Model.hh>
-#include <ignition/physics/ContactProperties.hh>
-#include <ignition/physics/FeatureList.hh>
-#include <ignition/physics/FeaturePolicy.hh>
-#include <ignition/physics/config.hh>
-#include <ignition/plugin/Loader.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/PoseCmd.hh>
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include <gz/sim/Model.hh>
+#include <gz/physics/ContactProperties.hh>
+#include <gz/physics/FeatureList.hh>
+#include <gz/physics/FeaturePolicy.hh>
+#include <gz/physics/config.hh>
+#include <gz/plugin/Loader.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define tol 10e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 #define EXPECT_ANGLE_NEAR(a1, a2, tol) \
@@ -69,7 +70,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
                                       bool &_shouldSkip)
   {
 #if __APPLE__
-    // until https://github.com/ignitionrobotics/ign-gazebo/issues/806 is fixed
+    // until https://github.com/gazebosim/gz-sim/issues/806 is fixed
     _shouldSkip = true;
 #else
     _shouldSkip = false;
@@ -89,7 +90,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
         << "Failed to find plugin [" << *pluginLib << "]";
 
     // Load engine plugin
-    ignition::plugin::Loader pluginLoader;
+    plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     ASSERT_FALSE(plugins.empty())
         << "Unable to load the [" << pathToLib << "] library";
@@ -132,8 +133,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const UpdateInfo &,
+      EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -155,8 +156,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity modelEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         modelEntity = _ecm.EntityByComponents(
           components::Model(),
@@ -252,7 +253,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     poses.clear();
 
-    gazebo::Model model(modelEntity);
+    Model model(modelEntity);
 
     // Move the robot somewhere to free space without obstacles.
     model.SetWorldPoseCmd(*ecm, math::Pose3d(10, 10, 0.1, 0, 0, 0));
@@ -454,8 +455,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     // Create a system that records the vehicle poses
     test::Relay ecmGetterSystem;
     EntityComponentManager* ecm {nullptr};
-    ecmGetterSystem.OnPreUpdate([&ecm](const gazebo::UpdateInfo &,
-      gazebo::EntityComponentManager &_ecm)
+    ecmGetterSystem.OnPreUpdate([&ecm](const UpdateInfo &,
+      EntityComponentManager &_ecm)
       {
         if (ecm == nullptr)
           ecm = &_ecm;
@@ -477,8 +478,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     test::Relay testSystem;
     Entity boxEntity {kNullEntity};
     std::vector<math::Pose3d> poses;
-    testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-      const gazebo::EntityComponentManager &_ecm)
+    testSystem.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
       {
         boxEntity = _ecm.EntityByComponents(
           components::Model(),
@@ -563,7 +564,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, PublishCmd)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   this->TestPublishCmd(
     std::string(PROJECT_SOURCE_PATH) +
@@ -573,7 +575,7 @@ TEST_F(TrackedVehicleTest, PublishCmd)
 }
 
 /////////////////////////////////////////////////
-TEST_F(TrackedVehicleTest, Conveyor)
+TEST_F(TrackedVehicleTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
 {
   this->TestConveyor(
     std::string(PROJECT_SOURCE_PATH) +

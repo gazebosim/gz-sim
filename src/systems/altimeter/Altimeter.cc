@@ -17,64 +17,70 @@
 
 #include "Altimeter.hh"
 
-#include <ignition/msgs/altimeter.pb.h>
+#include <gz/msgs/altimeter.pb.h>
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
 
 #include <sdf/Sensor.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/sensors/SensorFactory.hh>
-#include <ignition/sensors/AltimeterSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
+#include <gz/sensors/AltimeterSensor.hh>
 
-#include "ignition/gazebo/components/Altimeter.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/ParentEntity.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/components/Altimeter.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Util.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Private Altimeter data class.
 class ignition::gazebo::systems::AltimeterPrivate
 {
-  /// \brief A map of altimeter entity to its vertical reference
+  /// \brief A map of altimeter entity to its sensor
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AltimeterSensor>> entitySensorMap;
 
   /// \brief Ign-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
+
   /// True if the rendering component is initialized
   public: bool initialized = false;
 
   /// \brief Create sensor
-  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _ecm Immutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _altimeter Altimeter component.
   /// \param[in] _parent Parent entity component.
   public: void AddAltimeter(
-    EntityComponentManager &_ecm,
+    const EntityComponentManager &_ecm,
     const Entity _entity,
     const components::Altimeter *_altimeter,
     const components::ParentEntity *_parent);
 
   /// \brief Create altimeter sensor
-  /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateAltimeterEntities(EntityComponentManager &_ecm);
+  /// \param[in] _ecm Immutable reference to ECM.
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update altimeter sensor data based on physics data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -99,7 +105,21 @@ void Altimeter::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Altimeter::PreUpdate");
-  this->dataPtr->CreateAltimeterEntities(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      ignerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+    // Set topic
+    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
+  }
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -116,17 +136,35 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
         << "s]. System may not work properly." << std::endl;
   }
 
+  this->dataPtr->CreateSensors(_ecm);
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
+    // check to see if update is necessary
+    // we only update if there is at least one sensor that needs data
+    // and that sensor has subscribers.
+    // note: ign-sensors does its own throttling. Here the check is mainly
+    // to avoid doing work in the AltimeterPrivate::UpdateAltimeters function
+    bool needsUpdate = false;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      if (it.second->NextDataUpdateTime() <= _info.simTime &&
+          it.second->HasConnections())
+      {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (!needsUpdate)
+      return;
+
     this->dataPtr->UpdateAltimeters(_ecm);
 
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Update measurement time
-      auto time = math::durationToSecNsec(_info.simTime);
-      dynamic_cast<sensors::Sensor *>(it.second.get())->Update(
-          math::secNsecToDuration(time.first, time.second), false);
+      it.second.get()->sensors::Sensor::Update(_info.simTime, false);
     }
   }
 
@@ -135,7 +173,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void AltimeterPrivate::AddAltimeter(
-  EntityComponentManager &_ecm,
+  const EntityComponentManager &_ecm,
   const Entity _entity,
   const components::Altimeter *_altimeter,
   const components::ParentEntity *_parent)
@@ -173,15 +211,13 @@ void AltimeterPrivate::AddAltimeter(
   sensor->SetVerticalReference(verticalReference);
   sensor->SetPosition(verticalReference);
 
-  // Set topic
-  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
-
   this->entitySensorMap.insert(
       std::make_pair(_entity, std::move(sensor)));
+  this->newSensors.insert(_entity);
 }
 
 //////////////////////////////////////////////////
-void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
+void AltimeterPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   IGN_PROFILE("Altimeter::CreateAltimeterEntities");
   if (!this->initialized)
@@ -192,7 +228,7 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
           const components::Altimeter *_altimeter,
           const components::ParentEntity *_parent)->bool
         {
-          AddAltimeter(_ecm, _entity, _altimeter, _parent);
+          this->AddAltimeter(_ecm, _entity, _altimeter, _parent);
           return true;
         });
     this->initialized = true;
@@ -205,7 +241,7 @@ void AltimeterPrivate::CreateAltimeterEntities(EntityComponentManager &_ecm)
           const components::Altimeter *_altimeter,
           const components::ParentEntity *_parent)->bool
         {
-          AddAltimeter(_ecm, _entity, _altimeter, _parent);
+          this->AddAltimeter(_ecm, _entity, _altimeter, _parent);
           return true;
         });
   }
@@ -225,7 +261,6 @@ void AltimeterPrivate::UpdateAltimeters(const EntityComponentManager &_ecm)
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          math::Vector3d linearVel;
           math::Pose3d worldPose = _worldPose->Data();
           it->second->SetPosition(worldPose.Pos().Z());
           it->second->SetVerticalVelocity(_worldLinearVel->Data().Z());
@@ -268,4 +303,7 @@ IGNITION_ADD_PLUGIN(Altimeter, System,
   Altimeter::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "gz::sim::systems::Altimeter")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(Altimeter, "ignition::gazebo::systems::Altimeter")

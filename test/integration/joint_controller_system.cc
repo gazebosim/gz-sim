@@ -17,27 +17,28 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Test fixture for JointController system
 class JointControllerTestFixture : public InternalFixture<::testing::Test>
@@ -46,7 +47,9 @@ class JointControllerTestFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Tests that the JointController accepts joint velocity commands
-TEST_F(JointControllerTestFixture, JointVelocityCommand)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(JointControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
 {
   using namespace std::chrono_literals;
 
@@ -67,7 +70,7 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
   test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -79,12 +82,12 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool
@@ -143,7 +146,8 @@ TEST_F(JointControllerTestFixture, JointVelocityCommand)
 
 /////////////////////////////////////////////////
 // Tests the JointController using joint force commands
-TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
+TEST_F(JointControllerTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommandWithForce))
 {
   using namespace std::chrono_literals;
 
@@ -164,7 +168,7 @@ TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
   test::Relay testSystem;
   math::Vector3d angularVelocity;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto link = _ecm.EntityByComponents(components::Link(),
                                             components::Name(linkName));
@@ -176,12 +180,12 @@ TEST_F(JointControllerTestFixture, JointVelocityCommandWithForce)
         }
       });
 
-  testSystem.OnPostUpdate([&](const gazebo::UpdateInfo &,
-                              const gazebo::EntityComponentManager &_ecm)
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
       {
         _ecm.Each<components::Link, components::Name,
                   components::AngularVelocity>(
-            [&](const ignition::gazebo::Entity &,
+            [&](const Entity &,
                 const components::Link *,
                 const components::Name *_name,
                 const components::AngularVelocity *_angularVel) -> bool

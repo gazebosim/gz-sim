@@ -8,6 +8,7 @@
           <solver_type>pgs</solver_type>
         </solver>
       </dart>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"

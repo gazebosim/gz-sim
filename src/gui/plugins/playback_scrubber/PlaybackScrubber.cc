@@ -17,8 +17,8 @@
 
 #include "PlaybackScrubber.hh"
 
-#include <ignition/msgs/boolean.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <ctime>
@@ -27,17 +27,17 @@
 #include <string>
 #include <utility>
 
-#include <ignition/common/Console.hh>
-#include <ignition/gui/Application.hh>
-#include <ignition/gui/Helpers.hh>
-#include <ignition/gui/MainWindow.hh>
-#include <ignition/math/Helpers.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/transport/Publisher.hh>
+#include <gz/common/Console.hh>
+#include <gz/gui/Application.hh>
+#include <gz/gui/Helpers.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/transport/Publisher.hh>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/components/LogPlaybackStatistics.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/LogPlaybackStatistics.hh"
 
 namespace ignition::gazebo
 {
@@ -68,7 +68,7 @@ namespace ignition::gazebo
 }
 
 using namespace ignition;
-using namespace gazebo;
+using namespace ignition::gazebo;
 
 /////////////////////////////////////////////////
 PlaybackScrubber::PlaybackScrubber() : GuiSystem(),
@@ -148,7 +148,7 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
   if (this->dataPtr->worldName == "")
   {
     // TODO(anyone) Only one world is supported for now
-    auto worldNames = ignition::gui::worldNames();
+    auto worldNames = gz::gui::worldNames();
     if (worldNames.size() >= 1)
     {
       this->dataPtr->worldName = worldNames[0].toStdString();
@@ -251,5 +251,5 @@ void PlaybackScrubber::OnDrop(double _value)
 }
 
 // Register this plugin
-IGNITION_ADD_PLUGIN(ignition::gazebo::PlaybackScrubber,
-                    ignition::gui::Plugin)
+IGNITION_ADD_PLUGIN(PlaybackScrubber,
+                    gz::gui::Plugin)

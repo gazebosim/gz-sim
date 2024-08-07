@@ -17,46 +17,21 @@
 
 #include <numeric>
 
-#include <ignition/common/SystemPaths.hh>
-#include <ignition/fuel_tools/Interface.hh>
-#include <ignition/fuel_tools/ClientConfig.hh>
+#include <gz/common/SystemPaths.hh>
+#include <gz/fuel_tools/Interface.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 
-#include "ignition/gazebo/config.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
 
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
-using namespace ignition;
-using namespace gazebo;
-
-//////////////////////////////////////////////////
-// Getting the first .sdf file in the path
-std::string findFuelResourceSdf(const std::string &_path)
-{
-  if (!common::exists(_path))
-    return "";
-
-  for (common::DirIter file(_path); file != common::DirIter(); ++file)
-  {
-    std::string current(*file);
-    if (!common::isFile(current))
-      continue;
-
-    auto fileName = common::basename(current);
-    auto fileExtensionIndex = fileName.rfind(".");
-    auto fileExtension = fileName.substr(fileExtensionIndex + 1);
-
-    if (fileExtension == "sdf")
-    {
-      return current;
-    }
-  }
-  return "";
-}
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief This struct provides access to the default world.
 struct DefaultWorld
@@ -98,89 +73,78 @@ Server::Server(const ServerConfig &_config)
 
   sdf::Errors errors;
 
-  // Load a world if specified. Check SDF string first, then SDF file
-  if (!_config.SdfString().empty())
+  switch (_config.Source())
   {
-    std::string msg = "Loading SDF string. ";
-    if (_config.SdfFile().empty())
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
     {
-      msg += "File path not available.\n";
+      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
+      ignmsg << "Loading SDF world from SDF DOM.\n";
+      break;
     }
-    else
-    {
-      msg += "File path [" + _config.SdfFile() + "].\n";
-    }
-    ignmsg <<  msg;
-    errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
-  }
-  else if (!_config.SdfFile().empty())
-  {
-    std::string filePath;
 
-    // Check Fuel if it's a URL
-    auto sdfUri = common::URI(_config.SdfFile());
-    if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+    case ServerConfig::SourceType::kSdfString:
     {
-      std::string fuelCachePath;
-      if (this->dataPtr->fuelClient->CachedWorld(common::URI(_config.SdfFile()),
-          fuelCachePath))
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
       {
-        filePath = findFuelResourceSdf(fuelCachePath);
-      }
-      else if (auto result = this->dataPtr->fuelClient->DownloadWorld(
-          common::URI(_config.SdfFile()), fuelCachePath))
-      {
-        filePath = findFuelResourceSdf(fuelCachePath);
+        msg += "File path not available.\n";
       }
       else
       {
-        ignwarn << "Fuel couldn't download URL [" << _config.SdfFile()
-                << "], error: [" << result.ReadableResult() << "]"
-                << std::endl;
+        msg += "File path [" + _config.SdfFile() + "].\n";
       }
+      ignmsg <<  msg;
+      errors = this->dataPtr->sdfRoot.LoadSdfString(_config.SdfString());
+      break;
     }
 
-    if (filePath.empty())
+    case ServerConfig::SourceType::kSdfFile:
     {
-      common::SystemPaths systemPaths;
+      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+          _config.ResourceCache());
 
-      // Worlds from environment variable
-      systemPaths.SetFilePathEnv(kResourcePathEnv);
+      if (filePath.empty())
+      {
+        ignerr << "Failed to find world [" << _config.SdfFile() << "]"
+               << std::endl;
+        return;
+      }
 
-      // Worlds installed with ign-gazebo
-      systemPaths.AddFilePaths(IGN_GAZEBO_WORLD_INSTALL_DIR);
+      ignmsg << "Loading SDF world file[" << filePath << "].\n";
 
-      filePath = systemPaths.FindFile(_config.SdfFile());
+      // \todo(nkoenig) Async resource download.
+      // This call can block for a long period of time while
+      // resources are downloaded. Blocking here causes the GUI to block with
+      // a black screen (search for "Async resource download" in
+      // 'src/gui_main.cc'.
+      errors = this->dataPtr->sdfRoot.Load(filePath);
+      break;
     }
 
-    if (filePath.empty())
+    case ServerConfig::SourceType::kNone:
+    default:
     {
-      ignerr << "Failed to find world [" << _config.SdfFile() << "]"
-             << std::endl;
-      return;
+      ignmsg << "Loading default world.\n";
+      // Load an empty world.
+      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+      break;
     }
-
-    ignmsg << "Loading SDF world file[" << filePath << "].\n";
-
-    // \todo(nkoenig) Async resource download.
-    // This call can block for a long period of time while
-    // resources are downloaded. Blocking here causes the GUI to block with
-    // a black screen (search for "Async resource download" in
-    // 'src/gui_main.cc'.
-    errors = this->dataPtr->sdfRoot.Load(filePath);
-  }
-  else
-  {
-    ignmsg << "Loading default world.\n";
-    // Load an empty world.
-    /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-    errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
   }
 
   if (!errors.empty())
   {
     for (auto &err : errors)
       ignerr << err << "\n";
+    return;
+  }
+
+  if (this->dataPtr->sdfRoot.WorldCount() == 0)
+  {
+    ignerr << "SDF file doesn't contain a world. " <<
+      "If you wish to spawn a model, use the ResourceSpawner GUI plugin " <<
+      "or the 'world/<world_name>/create' service.\n";
     return;
   }
 
@@ -420,4 +384,10 @@ bool Server::RequestRemoveEntity(const Entity _entity,
   }
 
   return false;
+}
+
+//////////////////////////////////////////////////
+void Server::Stop()
+{
+  this->dataPtr->Stop();
 }

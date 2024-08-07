@@ -16,18 +16,19 @@
  */
 #include <gtest/gtest.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/utilities/ExtraTestMacros.hh>
 
-#include "ignition/math/Pose3.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Model.hh"
+#include "gz/math/Pose3.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Model.hh"
 
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
 
@@ -41,7 +42,8 @@ class NestedModelPhysicsTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 /// Test that a tower of 3 boxes built with an <include> and further nesting
 /// moves appropriately with joints in dartsim
-TEST_F(NestedModelPhysicsTest, Movement)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(NestedModelPhysicsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(Movement))
 {
   // Start server
   ServerConfig serverConfig;

@@ -16,10 +16,15 @@
 */
 #include "TestWorldSystem.hh"
 
-#include <ignition/plugin/Register.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/plugin/RegisterMore.hh>
 
-IGNITION_ADD_PLUGIN(ignition::gazebo::TestWorldSystem,
-    ignition::gazebo::System,
-    ignition::gazebo::TestWorldSystem::ISystemConfigure,
-    ignition::gazebo::TestWorldSystem::ISystemUpdate)
+using namespace gz;
+using namespace gz::sim;
 
+IGNITION_ADD_PLUGIN(TestWorldSystem,
+    System,
+    TestWorldSystem::ISystemConfigure,
+    TestWorldSystem::ISystemUpdate)
+
+IGNITION_ADD_PLUGIN_ALIAS(TestWorldSystem, "gz::sim::TestWorldSystem")

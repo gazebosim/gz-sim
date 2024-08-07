@@ -14,12 +14,12 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
-#define IGNITION_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
+#define GZ_GAZEBO_SYSTEMS_DIFFDRIVE_HH_
 
 #include <memory>
 
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -63,7 +63,7 @@ namespace systems
   /// `/model/{name_of_model}/odometry`.
   ///
   /// `<tf_topic>`: Custom topic on which this system will publish the
-  /// transform from `frame_id` to `child_frame_id`. This element if optional,
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
   ///  and the default value is `/model/{name_of_model}/tf`.
   ///
   /// `<frame_id>`: Custom `frame_id` field that this system will use as the
@@ -73,10 +73,62 @@ namespace systems
   /// default value is `{name_of_model}/odom`.
   ///
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  /// the target of the odometry trasnform in both the `<tf_topic>`
+  /// the target of the odometry transform in both the `<tf_topic>`
   /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
   /// `ignition.msgs.Odometry` message. This element if optional,
   ///  and the default value is `{name_of_model}/{name_of_link}`.
+  ///
+  /// `<min_velocity>`: Sets both the minimum linear and minimum angular
+  ///  velocity.
+  ///
+  /// `<max_velocity>`: Sets both the maximum linear and maximum angular
+  /// velocity.
+  ///
+  /// `<min_acceleration>`: Sets both the minimum linear and minimum angular
+  /// acceleration.
+  ///
+  /// `<max_acceleration>`: Sets both the maximum linear and maximum angular
+  /// acceleration.
+  ///
+  /// `<min_jerk>`: Sets both the minimum linear and minimum angular jerk.
+  ///
+  /// `<max_jerk>`: Sets both the maximum linear and maximum angular jerk.
+  ///
+  /// `<min_linear_velocity>`: Sets the minimum linear velocity. Overrides
+  /// `<min_velocity>` if set.
+  ///
+  /// `<max_linear_velocity>`: Sets the maximum linear velocity. Overrides
+  /// `<max_velocity>` if set.
+  ///
+  /// `<min_angular_velocity>`: Sets the minimum angular velocity. Overrides
+  /// `<min_velocity>` if set.
+  ///
+  /// `<max_angular_velocity>`: Sets the maximum angular velocity. Overrides
+  /// `<max_velocity>` if set.
+  ///
+  /// `<min_linear_acceleration>`: Sets the minimum linear acceleration.
+  /// Overrides `<min_acceleration>` if set.
+  ///
+  /// `<max_linear_acceleration>`: Sets the maximum linear acceleration.
+  /// Overrides `<max_acceleration>` if set.
+  ///
+  /// `<min_angular_acceleration>`: Sets the minimum angular acceleration.
+  /// Overrides `<min_acceleration>` if set.
+  ///
+  /// `<max_angular_acceleration>`: Sets the maximum angular acceleration.
+  /// Overrides `<max_acceleration>` if set.
+  ///
+  /// `<min_linear_jerk>`: Sets the minimum linear jerk. Overrides `<min_jerk>`
+  /// if set.
+  ///
+  /// `<max_linear_jerk>`: Sets the maximum linear jerk. Overrides `<max_jerk>`
+  /// if set.
+  ///
+  /// `<min_angular_jerk>`: Sets the minimum angular jerk. Overrides
+  /// `<min_jerk>` if set.
+  ///
+  /// `<max_angular_jerk>`: Sets the maximum angular jerk. Overrides
+  /// `<max_jerk>` if set.
   class DiffDrive
       : public System,
         public ISystemConfigure,
@@ -97,8 +149,8 @@ namespace systems
 
     // Documentation inherited
     public: void PreUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PostUpdate(

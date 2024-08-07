@@ -21,26 +21,26 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/common/Time.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+#include <gz/common/Time.hh>
 
 #include <sdf/Element.hh>
 
-#include "ignition/gazebo/components/ContactSensor.hh"
-#include "ignition/gazebo/components/ContactSensorData.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/DepthCamera.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Sensor.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Geometry.hh"
+#include "gz/sim/components/ContactSensor.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/DepthCamera.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Geometry.hh"
 #include "sdf/Box.hh"
 
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/Util.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "OpticalTactilePlugin.hh"
 
@@ -615,8 +615,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
       this->sensorSize,
       this->forceLength,
       this->cameraUpdateRate,
-      this->depthCameraOffset,
-      this->visualizationResolution);
+      this->depthCameraOffset);
 
   this->initialized = true;
 }
@@ -768,8 +767,7 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   normalsMsg.set_step(3 * sizeof(float) * _msg.width());
   normalsMsg.set_pixel_format_type(ignition::msgs::PixelFormatType::R_FLOAT32);
 
-  uint32_t bufferSize = 3 * sizeof(float) * _msg.width() * _msg.height();
-  std::shared_ptr<char> normalForcesBuffer(new char[bufferSize]);
+  std::vector<float> normalForcesBuffer(3 * _msg.width() * _msg.height());
   uint32_t bufferIndex;
 
   // Marker messages representing the normal forces
@@ -805,11 +803,11 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
       // Add force to buffer
       // Forces buffer is composed of XYZ coordinates, while _msg buffer is
       // made up of XYZRGB values
-      bufferIndex = j * (_msg.row_step() / 2) + i * (_msg.point_step() / 2);
-      normalForcesBuffer.get()[bufferIndex] = normalForce.X();
-      normalForcesBuffer.get()[bufferIndex + sizeof(float)] = normalForce.Y();
-      normalForcesBuffer.get()[bufferIndex + 2 * sizeof(float)] =
-        normalForce.Z();
+
+      bufferIndex = j * (_msg.width() * 3) + i * 3;
+      normalForcesBuffer[bufferIndex] = normalForce.X();
+      normalForcesBuffer[bufferIndex+1] = normalForce.Y();
+      normalForcesBuffer[bufferIndex+2] = normalForce.Z();
 
       if (!_visualizeForces)
         continue;
@@ -821,9 +819,12 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
     }
   }
 
+  std::string *dataStr = normalsMsg.mutable_data();
+  dataStr->resize(sizeof(float) * normalForcesBuffer.size());
+  memcpy(&((*dataStr)[0]), normalForcesBuffer.data(), dataStr->size());
+
   // Publish message
-  normalsMsg.set_data(normalForcesBuffer.get(),
-    3 * sizeof(float) * _msg.width() * _msg.height());
+
   this->normalForcesPub.Publish(normalsMsg);
 
   if (_visualizeForces)

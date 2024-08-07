@@ -18,7 +18,6 @@
 
 #include <map>
 #include <memory>
-#include <unordered_map>
 
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
@@ -29,40 +28,42 @@
 #include <sdf/Mesh.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Sphere.hh>
 
-#include <ignition/common/Animation.hh>
-#include <ignition/common/Console.hh>
-#include <ignition/common/HeightmapData.hh>
-#include <ignition/common/ImageHeightmap.hh>
-#include <ignition/common/KeyFrame.hh>
-#include <ignition/common/MeshManager.hh>
-#include <ignition/common/Skeleton.hh>
-#include <ignition/common/SkeletonAnimation.hh>
+#include <gz/common/Animation.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/HeightmapData.hh>
+#include <gz/common/ImageHeightmap.hh>
+#include <gz/common/KeyFrame.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/Skeleton.hh>
+#include <gz/common/SkeletonAnimation.hh>
+#include <gz/common/Uuid.hh>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/rendering/Capsule.hh"
-#include <ignition/rendering/COMVisual.hh>
-#include <ignition/rendering/Geometry.hh>
-#include <ignition/rendering/Heightmap.hh>
-#include <ignition/rendering/HeightmapDescriptor.hh>
-#include <ignition/rendering/InertiaVisual.hh>
-#include <ignition/rendering/JointVisual.hh>
-#include <ignition/rendering/Light.hh>
-#include <ignition/rendering/LightVisual.hh>
-#include <ignition/rendering/Material.hh>
-#include <ignition/rendering/ParticleEmitter.hh>
-#include <ignition/rendering/Scene.hh>
-#include <ignition/rendering/Visual.hh>
-#include <ignition/rendering/WireBox.hh>
+#include <gz/rendering/Capsule.hh>
+#include <gz/rendering/COMVisual.hh>
+#include <gz/rendering/Geometry.hh>
+#include <gz/rendering/Heightmap.hh>
+#include <gz/rendering/HeightmapDescriptor.hh>
+#include <gz/rendering/InertiaVisual.hh>
+#include <gz/rendering/JointVisual.hh>
+#include <gz/rendering/Light.hh>
+#include <gz/rendering/LightVisual.hh>
+#include <gz/rendering/Material.hh>
+#include <gz/rendering/ParticleEmitter.hh>
+#include <gz/rendering/Scene.hh>
+#include <gz/rendering/Visual.hh>
+#include <gz/rendering/WireBox.hh>
 
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/Util.hh"
-#include "ignition/gazebo/rendering/SceneManager.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/Util.hh"
+#include "gz/sim/rendering/SceneManager.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 using TP = std::chrono::steady_clock::time_point;
@@ -114,6 +115,16 @@ class ignition::gazebo::SceneManagerPrivate
   /// also sets the time point in which the animation should be played
   public: AnimationUpdateData ActorTrajectoryAt(
       Entity _id, const std::chrono::steady_clock::duration &_time) const;
+
+  /// \brief Load Actor trajectories
+  /// \param[in] _actor Actor
+  /// \param[in] _mapAnimNameId  Animation name to id map
+  /// \param[in] _skel Mesh skeleton
+  /// \return Trajectory vector
+  public: std::vector<common::TrajectoryInfo>
+      LoadTrajectories(const sdf::Actor &_actor,
+      std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
+      common::SkeletonPtr _skel);
 };
 
 
@@ -676,16 +687,16 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     descriptor.subMeshName = _geom.MeshShape()->Submesh();
     descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
 
-    ignition::common::MeshManager *meshManager =
-        ignition::common::MeshManager::Instance();
+    common::MeshManager *meshManager =
+        common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     geom = this->dataPtr->scene->CreateMesh(descriptor);
     scale = _geom.MeshShape()->Scale();
   }
   else if (_geom.Type() == sdf::GeometryType::HEIGHTMAP)
   {
-    auto fullPath = asFullPath(_geom.HeightmapShape()->Uri(),
-        _geom.HeightmapShape()->FilePath());
+    auto fullPath = common::findFile(asFullPath(_geom.HeightmapShape()->Uri(),
+        _geom.HeightmapShape()->FilePath()));
     if (fullPath.empty())
     {
       ignerr << "Heightmap geometry missing URI" << std::endl;
@@ -733,6 +744,26 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       ignerr << "Failed to create heightmap [" << fullPath << "]" << std::endl;
     }
     scale = _geom.HeightmapShape()->Size();
+  }
+  else if (_geom.Type() == sdf::GeometryType::POLYLINE)
+  {
+    std::vector<std::vector<math::Vector2d>> vertices;
+    for (const auto &polyline : _geom.PolylineShape())
+    {
+      vertices.push_back(polyline.Points());
+    }
+
+    std::string name("POLYLINE_" + common::Uuid().String());
+
+    auto meshManager = common::MeshManager::Instance();
+    meshManager->CreateExtrudedPolyline(name, vertices,
+        _geom.PolylineShape()[0].Height());
+
+    rendering::MeshDescriptor descriptor;
+    descriptor.meshName = name;
+    descriptor.mesh = meshManager->MeshByName(name);
+
+    geom = this->dataPtr->scene->CreateMesh(descriptor);
   }
   else
   {
@@ -888,6 +919,20 @@ rendering::MaterialPtr SceneManager::LoadMaterial(
   return material;
 }
 
+void SceneManager::SequenceTrajectories(
+    std::vector<common::TrajectoryInfo>& _trajectories,
+    TP _time)
+{
+  // sequencing all trajectories
+  for (auto &trajectory : _trajectories)
+  {
+    auto duration = trajectory.Duration();
+    trajectory.SetStartTime(_time);
+    _time += duration;
+    trajectory.SetEndTime(_time);
+  }
+}
+
 /////////////////////////////////////////////////
 rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     const sdf::Actor &_actor, const std::string &_name, Entity _parentId)
@@ -929,226 +974,45 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
   common::MeshManager *meshManager = common::MeshManager::Instance();
   descriptor.mesh = meshManager->Load(descriptor.meshName);
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
+  common::SkeletonPtr meshSkel;
   if (nullptr == descriptor.mesh)
   {
-    ignerr << "Actor skin mesh [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
+    ignwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
+            << std::endl;
   }
-
-  // todo(anyone) create a copy of meshSkel so we don't modify the original
-  // when adding animations!
-  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
-  if (nullptr == meshSkel)
-  {
-    ignerr << "Mesh skeleton in [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
-  }
-
-  unsigned int numAnims = 0;
-  std::unordered_map<std::string, unsigned int> mapAnimNameId;
-  mapAnimNameId[descriptor.meshName] = numAnims++;
-
-  // Load all animations
-  for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
-  {
-    std::string animName = _actor.AnimationByIndex(i)->Name();
-    std::string animFilename = asFullPath(
-        _actor.AnimationByIndex(i)->Filename(),
-        _actor.AnimationByIndex(i)->FilePath());
-
-    double animScale = _actor.AnimationByIndex(i)->Scale();
-
-    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
-                                  animFilename.size());
-    std::transform(extension.begin(), extension.end(),
-                    extension.begin(), ::tolower);
-
-    if (extension == "bvh")
-    {
-      // do not add duplicate animation
-      // start checking from index 1 since index 0 is reserved by skin mesh
-      bool addAnim = true;
-      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
-      {
-        if (meshSkel->Animation(a)->Name() == animFilename)
-        {
-          addAnim = false;
-          break;
-        }
-      }
-      if (addAnim)
-        meshSkel->AddBvhAnimation(animFilename, animScale);
-      mapAnimNameId[animName] = numAnims++;
-    }
-    else if (extension == "dae")
-    {
-      // Load the mesh if it has not been loaded before
-      const common::Mesh *animMesh = nullptr;
-      if (!meshManager->HasMesh(animFilename))
-      {
-        animMesh = meshManager->Load(animFilename);
-        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
-        {
-          ignwarn << "File [" << animFilename
-              << "] has more than one animation, but only the 1st one is used."
-              << std::endl;
-        }
-      }
-      animMesh = meshManager->MeshByName(animFilename);
-
-      // add the first animation
-      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
-      if (nullptr == firstAnim)
-      {
-        ignerr << "Failed to get animations from [" << animFilename
-                << "]" << std::endl;
-        return nullptr;
-      }
-      // do not add duplicate animation
-      // start checking from index 1 since index 0 is reserved by skin mesh
-      bool addAnim = true;
-      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
-      {
-        if (meshSkel->Animation(a)->Name() == animName)
-        {
-          addAnim = false;
-          break;
-        }
-      }
-      if (addAnim)
-      {
-        // collada loader loads animations with name that defaults to
-        // "animation0", "animation"1", etc causing conflicts in names
-        // when multiple animations are added to meshSkel.
-        // We have to clone the skeleton animation before giving it a unique
-        // name otherwise if mulitple instances of the same animation were added
-        // to meshSkel, changing the name that would also change the name of
-        // other instances of the animation
-        // todo(anyone) cloning is inefficient and error-prone. We should
-        // add a copy constructor to animation classes in ign-common.
-        // The proper fix is probably to update ign-rendering to allow it to
-        // load multiple animations of the same name
-        common::SkeletonAnimation *skelAnim =
-            new common::SkeletonAnimation(animName);
-        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
-        {
-          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
-          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
-              node->Name());
-          if (!nodeAnim)
-            continue;
-          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
-          {
-            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
-            skelAnim->AddKeyFrame(
-                node->Name(), keyFrame.first, keyFrame.second);
-          }
-        }
-
-        meshSkel->AddAnimation(skelAnim);
-      }
-      mapAnimNameId[animName] = numAnims++;
-    }
-  }
-  this->dataPtr->actorSkeletons[_id] = meshSkel;
-
-  std::vector<common::TrajectoryInfo> trajectories;
-  if (_actor.TrajectoryCount() != 0)
-  {
-    // Load all trajectories specified in sdf
-    for (unsigned i = 0; i < _actor.TrajectoryCount(); i++)
-    {
-      const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
-      if (nullptr == trajSdf)
-      {
-        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
-               << std::endl;
-        continue;
-      }
-
-      common::TrajectoryInfo trajInfo;
-      trajInfo.SetId(trajSdf->Id());
-      trajInfo.SetAnimIndex(mapAnimNameId[trajSdf->Type()]);
-
-      if (trajSdf->WaypointCount() != 0)
-      {
-        std::map<TP, math::Pose3d> waypoints;
-        for (unsigned j = 0; j < trajSdf->WaypointCount(); j++)
-        {
-          auto point = trajSdf->WaypointByIndex(j);
-          TP pointTp(std::chrono::milliseconds(
-                    static_cast<int>(point->Time()*1000)));
-          waypoints[pointTp] = point->Pose();
-        }
-        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
-        // Animations are offset by 1 because index 0 is taken by the mesh name
-        auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex()-1);
-
-        if (animation && animation->InterpolateX())
-        {
-          // warn if no x displacement can be interpolated
-          // warn only once per mesh
-          static std::unordered_set<std::string> animInterpolateCheck;
-          if (animInterpolateCheck.count(animation->Filename()) == 0)
-          {
-            std::string rootNodeName = meshSkel->RootNode()->Name();
-            common::SkeletonAnimation *skelAnim =
-                meshSkel->Animation(trajInfo.AnimIndex());
-            common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
-                rootNodeName);
-            math::Matrix4d lastPos = rootNode->KeyFrame(
-                rootNode->FrameCount() - 1).second;
-            math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
-            if (!math::equal(firstPos.Translation().X(),
-                lastPos.Translation().X()))
-            {
-              trajInfo.Waypoints()->SetInterpolateX(animation->InterpolateX());
-            }
-            else
-            {
-              ignwarn << "Animation has no x displacement. "
-                      << "Ignoring <interpolate_x> for the animation in '"
-                      << animation->Filename() << "'." << std::endl;
-            }
-            animInterpolateCheck.insert(animation->Filename());
-          }
-        }
-      }
-      else
-      {
-        trajInfo.SetTranslated(false);
-      }
-      trajectories.push_back(trajInfo);
-    }
-  }
-  // if there are no trajectories, but there are animations, add a trajectory
   else
   {
-    auto skel = this->dataPtr->actorSkeletons[_id];
-    common::TrajectoryInfo trajInfo;
-    trajInfo.SetId(0);
-    trajInfo.SetAnimIndex(0);
-    trajInfo.SetStartTime(TP(0ms));
-    auto timepoint = std::chrono::milliseconds(
-                  static_cast<int>(skel->Animation(0)->Length() * 1000));
-    trajInfo.SetEndTime(TP(timepoint));
-    trajInfo.SetTranslated(false);
-    trajectories.push_back(trajInfo);
+    // todo(anyone) create a copy of meshSkel so we don't modify the original
+    // when adding animations!
+    meshSkel = descriptor.mesh->MeshSkeleton();
+    if (nullptr == meshSkel)
+    {
+      ignwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+              << std::endl;
+    }
+    else
+    {
+      this->dataPtr->actorSkeletons[_id] = meshSkel;
+      // Load all animations
+      mapAnimNameId = this->LoadAnimations(_actor);
+      if (mapAnimNameId.size() == 0)
+        return nullptr;
+    }
   }
+
+  // load trajectories regardless of whether the mesh skeleton exists
+  // or not. If there is no mesh skeleon, we can still do trajectory
+  // animation
+  auto trajectories = this->dataPtr->LoadTrajectories(_actor, mapAnimNameId,
+                      meshSkel);
 
   // sequencing all trajectories
   auto delayStartTime = std::chrono::milliseconds(
               static_cast<int>(_actor.ScriptDelayStart() * 1000));
   TP time(delayStartTime);
-  for (auto &trajectory : trajectories)
-  {
-    auto dura = trajectory.Duration();
-    trajectory.SetStartTime(time);
-    time += dura;
-    trajectory.SetEndTime(time);
-  }
+  this->SequenceTrajectories(trajectories, time);
+
 
   // loop flag: add a placeholder trajectory to indicate no loop
   if (!_actor.ScriptLoop())
@@ -1164,25 +1028,27 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
 
   this->dataPtr->actorTrajectories[_id] = trajectories;
 
+  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
+  rendering::MeshPtr actorMesh;
   // create mesh with animations
-  rendering::MeshPtr actorMesh = this->dataPtr->scene->CreateMesh(
-      descriptor);
-  if (nullptr == actorMesh)
+  if (descriptor.mesh)
   {
-    ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
-           << std::endl;
-    return rendering::VisualPtr();
+    actorMesh = this->dataPtr->scene->CreateMesh(descriptor);
+    if (nullptr == actorMesh)
+    {
+      ignerr << "Actor skin file [" << descriptor.meshName << "] not found."
+             << std::endl;
+      return rendering::VisualPtr();
+    }
+    actorVisual->AddGeometry(actorMesh);
   }
 
-  rendering::VisualPtr actorVisual = this->dataPtr->scene->CreateVisual(name);
   actorVisual->SetLocalPose(_actor.RawPose());
-  actorVisual->AddGeometry(actorMesh);
   actorVisual->SetUserData("gazebo-entity", static_cast<int>(_id));
   actorVisual->SetUserData("pause-update", static_cast<int>(0));
 
   this->dataPtr->visuals[_id] = actorVisual;
   this->dataPtr->actors[_id] = actorMesh;
-
 
   if (parent)
     parent->AddChild(actorVisual);
@@ -1245,6 +1111,9 @@ rendering::VisualPtr SceneManager::CreateLightVisual(Entity _id,
     lightVisual->SetInnerAngle(_light.SpotInnerAngle().Radian());
     lightVisual->SetOuterAngle(_light.SpotOuterAngle().Radian());
   }
+
+  lightVisual->SetVisible(_light.Visualize());
+
   rendering::VisualPtr lightVis = std::dynamic_pointer_cast<rendering::Visual>(
     lightVisual);
   lightVis->SetUserData("gazebo-entity", static_cast<int>(_id));
@@ -1265,6 +1134,13 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 {
   if (!this->dataPtr->scene)
     return rendering::LightPtr();
+
+  if (this->HasEntity(_id))
+  {
+    ignerr << "Light with Id: [" << _id << "] can not be create there is "
+              "another entity with the same entity number" << std::endl;
+    return nullptr;
+  }
 
   if (this->dataPtr->lights.find(_id) != this->dataPtr->lights.end())
   {
@@ -1776,6 +1652,9 @@ bool SceneManager::AddSensor(Entity _gazeboId, const std::string &_sensorName,
     return false;
   }
 
+  // \todo(anyone) change to uint64_t once UserData supports this type
+  sensor->SetUserData("gazebo-entity", static_cast<int>(_gazeboId));
+
   if (parent)
   {
     sensor->RemoveParent();
@@ -1854,11 +1733,11 @@ AnimationUpdateData SceneManager::ActorAnimationAt(
   if (trajIt == this->dataPtr->actorTrajectories.end())
     return animData;
 
+  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
+
   auto skelIt = this->dataPtr->actorSkeletons.find(_id);
   if (skelIt == this->dataPtr->actorSkeletons.end())
     return animData;
-
-  animData = this->dataPtr->ActorTrajectoryAt(_id, _time);
 
   auto skel = skelIt->second;
   unsigned int animIndex = animData.trajectory.AnimIndex();
@@ -2014,6 +1893,28 @@ void SceneManager::RemoveEntity(Entity _id)
 {
   if (!this->dataPtr->scene)
     return;
+
+  {
+    auto it = this->dataPtr->actors.find(_id);
+    if (it != this->dataPtr->actors.end())
+    {
+      this->dataPtr->actors.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorTrajectories.find(_id);
+    if (it != this->dataPtr->actorTrajectories.end())
+    {
+      this->dataPtr->actorTrajectories.erase(it);
+    }
+  }
+  {
+    auto it = this->dataPtr->actorSkeletons.find(_id);
+    if (it != this->dataPtr->actorSkeletons.end())
+    {
+      this->dataPtr->actorSkeletons.erase(it);
+    }
+  }
 
   {
     auto it = this->dataPtr->visuals.find(_id);
@@ -2298,4 +2199,231 @@ AnimationUpdateData SceneManagerPrivate::ActorTrajectoryAt(
   animData.trajectory = traj;
   animData.valid = true;
   return animData;
+}
+
+std::unordered_map<std::string, unsigned int>
+SceneManager::LoadAnimations(const sdf::Actor &_actor)
+{
+  rendering::MeshDescriptor descriptor;
+  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
+  common::MeshManager *meshManager = common::MeshManager::Instance();
+  descriptor.mesh = meshManager->Load(descriptor.meshName);
+  common::SkeletonPtr meshSkel = descriptor.mesh->MeshSkeleton();
+
+  unsigned int numAnims = 0;
+  std::unordered_map<std::string, unsigned int> mapAnimNameId;
+  mapAnimNameId[descriptor.meshName] = numAnims++;
+
+  // Load all animations
+  for (unsigned i = 0; i < _actor.AnimationCount(); ++i)
+  {
+    std::string animName = _actor.AnimationByIndex(i)->Name();
+    std::string animFilename = asFullPath(
+        _actor.AnimationByIndex(i)->Filename(),
+        _actor.AnimationByIndex(i)->FilePath());
+
+    double animScale = _actor.AnimationByIndex(i)->Scale();
+
+    std::string extension = animFilename.substr(animFilename.rfind('.') + 1,
+                                  animFilename.size());
+    std::transform(extension.begin(), extension.end(),
+                   extension.begin(), ::tolower);
+
+    if (extension == "bvh")
+    {
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animFilename)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+      {
+        if (!meshSkel->AddBvhAnimation(animFilename, animScale))
+        {
+          ignerr << "Bvh animation in file " << animFilename
+                 << " failed to load during actor creation" << std::endl;
+          continue;
+        }
+      }
+      mapAnimNameId[animName] = numAnims++;
+    }
+    else if (extension == "dae")
+    {
+      // Load the mesh if it has not been loaded before
+      const common::Mesh *animMesh = nullptr;
+      if (!meshManager->HasMesh(animFilename))
+      {
+        animMesh = meshManager->Load(animFilename);
+        if (animMesh->MeshSkeleton()->AnimationCount() > 1)
+        {
+          ignwarn << "File [" << animFilename
+                  << "] has more than one animation, "
+                  << "but only the 1st one is used."
+                  << std::endl;
+        }
+      }
+      animMesh = meshManager->MeshByName(animFilename);
+
+      // add the first animation
+      auto firstAnim = animMesh->MeshSkeleton()->Animation(0);
+      if (nullptr == firstAnim)
+      {
+        ignerr << "Failed to get animations from [" << animFilename
+               << "]" << std::endl;
+        mapAnimNameId.clear();
+        break;
+      }
+      // do not add duplicate animation
+      // start checking from index 1 since index 0 is reserved by skin mesh
+      bool addAnim = true;
+      for (unsigned int a = 1; a < meshSkel->AnimationCount(); ++a)
+      {
+        if (meshSkel->Animation(a)->Name() == animName)
+        {
+          addAnim = false;
+          break;
+        }
+      }
+      if (addAnim)
+      {
+        // collada loader loads animations with name that defaults to
+        // "animation0", "animation"1", etc causing conflicts in names
+        // when multiple animations are added to meshSkel.
+        // We have to clone the skeleton animation before giving it a unique
+        // name otherwise if mulitple instances of the same animation were added
+        // to meshSkel, changing the name that would also change the name of
+        // other instances of the animation
+        // todo(anyone) cloning is inefficient and error-prone. We should
+        // add a copy constructor to animation classes in ign-common.
+        // The proper fix is probably to update ign-rendering to allow it to
+        // load multiple animations of the same name
+        common::SkeletonAnimation *skelAnim =
+            new common::SkeletonAnimation(animName);
+        for (unsigned int j = 0; j < meshSkel->NodeCount(); ++j)
+        {
+          common::SkeletonNode *node = meshSkel->NodeByHandle(j);
+          common::NodeAnimation *nodeAnim = firstAnim->NodeAnimationByName(
+              node->Name());
+          if (!nodeAnim)
+            continue;
+          for (unsigned int k = 0; k < nodeAnim->FrameCount(); ++k)
+          {
+            std::pair<double, math::Matrix4d> keyFrame = nodeAnim->KeyFrame(k);
+            skelAnim->AddKeyFrame(
+                node->Name(), keyFrame.first, keyFrame.second);
+          }
+        }
+
+        meshSkel->AddAnimation(skelAnim);
+      }
+      mapAnimNameId[animName] = numAnims++;
+    }
+  }
+  return mapAnimNameId;
+}
+
+/////////////////////////////////////////////////
+std::vector<common::TrajectoryInfo>
+SceneManagerPrivate::LoadTrajectories(const sdf::Actor &_actor,
+  std::unordered_map<std::string, unsigned int> &_mapAnimNameId,
+  common::SkeletonPtr _meshSkel)
+{
+  std::vector<common::TrajectoryInfo> trajectories;
+  if (_actor.TrajectoryCount() != 0)
+  {
+    // Load all trajectories specified in sdf
+    for (unsigned i = 0; i < _actor.TrajectoryCount(); ++i)
+    {
+      const sdf::Trajectory *trajSdf = _actor.TrajectoryByIndex(i);
+      if (nullptr == trajSdf)
+      {
+        ignerr << "Null trajectory SDF for [" << _actor.Name() << "]"
+               << std::endl;
+        continue;
+      }
+      common::TrajectoryInfo trajInfo;
+      trajInfo.SetId(trajSdf->Id());
+
+      if (!_mapAnimNameId.empty())
+        trajInfo.SetAnimIndex(_mapAnimNameId[trajSdf->Type()]);
+
+      if (trajSdf->WaypointCount() != 0)
+      {
+        std::map<TP, math::Pose3d> waypoints;
+        for (unsigned j = 0; j < trajSdf->WaypointCount(); ++j)
+        {
+          auto point = trajSdf->WaypointByIndex(j);
+          TP pointTp(std::chrono::milliseconds(
+                    static_cast<int>(point->Time() * 1000)));
+          waypoints[pointTp] = point->Pose();
+        }
+        trajInfo.SetWaypoints(waypoints, trajSdf->Tension());
+
+        if (_meshSkel)
+        {
+          // Animations are offset by 1 because index 0 is taken by the mesh
+          // name
+          auto animation = _actor.AnimationByIndex(trajInfo.AnimIndex() - 1);
+
+          if (animation && animation->InterpolateX() && _meshSkel)
+          {
+            // warn if no x displacement can be interpolated
+            // warn only once per mesh
+            static std::unordered_set<std::string> animInterpolateCheck;
+            if (animInterpolateCheck.count(animation->Filename()) == 0)
+            {
+              std::string rootNodeName = _meshSkel->RootNode()->Name();
+              common::SkeletonAnimation *skelAnim =
+                  _meshSkel->Animation(trajInfo.AnimIndex());
+              common::NodeAnimation *rootNode = skelAnim->NodeAnimationByName(
+                  rootNodeName);
+              math::Matrix4d lastPos = rootNode->KeyFrame(
+                  rootNode->FrameCount() - 1).second;
+              math::Matrix4d firstPos = rootNode->KeyFrame(0).second;
+              if (!math::equal(firstPos.Translation().X(),
+                  lastPos.Translation().X()))
+              {
+                trajInfo.Waypoints()->SetInterpolateX(
+                    animation->InterpolateX());
+              }
+              else
+              {
+                ignwarn << "Animation has no x displacement. "
+                        << "Ignoring <interpolate_x> for the animation in '"
+                        << animation->Filename() << "'." << std::endl;
+              }
+              animInterpolateCheck.insert(animation->Filename());
+            }
+          }
+        }
+      }
+      else
+      {
+        trajInfo.SetTranslated(false);
+      }
+      trajectories.push_back(trajInfo);
+    }
+  }
+  // if there are no trajectories, but there are animations, add a trajectory
+  else
+  {
+    common::TrajectoryInfo trajInfo;
+    trajInfo.SetId(0);
+    trajInfo.SetAnimIndex(0);
+    trajInfo.SetStartTime(TP(0ms));
+
+    double animLength = (_meshSkel) ? _meshSkel->Animation(0)->Length() : 0.0;
+    auto timepoint = std::chrono::milliseconds(
+                  static_cast<int>(animLength * 1000));
+    trajInfo.SetEndTime(TP(timepoint));
+    trajInfo.SetTranslated(false);
+    trajectories.push_back(trajInfo);
+  }
+  return trajectories;
 }

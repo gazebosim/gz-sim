@@ -14,12 +14,12 @@
  * limitations under the License.
  *
 */
-#ifndef IGNITION_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
-#define IGNITION_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
+#define GZ_GAZEBO_SYSTEMS_USERCOMMANDS_HH_
 
 #include <memory>
-#include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -51,6 +51,22 @@ namespace systems
   ///
   /// * **Service**: `/world/<world name>/create_multiple`
   /// * **Request type*: ignition.msgs.EntityFactory_V
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
+  /// # Set entity pose
+  ///
+  /// This service set the pose of entities
+  ///
+  /// * **Service**: `/world/<world name>/set_pose`
+  /// * **Request type*: ignition.msgs.Pose
+  /// * **Response type*: ignition.msgs.Boolean
+  ///
+  /// # Set multiple entity poses
+  ///
+  /// This service set the pose of multiple entities
+  ///
+  /// * **Service**: `/world/<world name>/set_pose_vector`
+  /// * **Request type*: ignition.msgs.Pose_V
   /// * **Response type*: ignition.msgs.Boolean
   ///
   /// Try some examples described on examples/worlds/empty.sdf

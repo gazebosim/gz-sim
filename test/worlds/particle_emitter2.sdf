@@ -4,12 +4,16 @@
 
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
 
     <plugin
       filename="ignition-gazebo-particle-emitter2-system"
       name="ignition::gazebo::systems::ParticleEmitter2">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">

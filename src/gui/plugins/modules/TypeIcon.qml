@@ -44,6 +44,7 @@ Image {
         entityType == 'joint' ||
         entityType == 'light' ||
         entityType == 'link' ||
+        entityType == 'sensor' ||
         entityType == 'model')
     {
       entityImage = entityType

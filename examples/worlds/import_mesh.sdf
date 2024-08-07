@@ -18,15 +18,15 @@
 
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
-      name="ignition::gazebo::systems::UserCommands">
+      name="gz::sim::systems::UserCommands">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -75,7 +75,7 @@
       <static>true</static>
       <name>Electrical Box</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.ignitionrobotics.org/1.0/openrobotics/models/Electrical Box</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/Electrical Box</uri>
     </include>
 
   </world>

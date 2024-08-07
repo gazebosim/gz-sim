@@ -8,20 +8,20 @@
   <world name="thermal_camera">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-sensors-system"
-      name="ignition::gazebo::systems::Sensors">
+      name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -110,7 +110,7 @@
           </material>
           <plugin
             filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            name="gz::sim::systems::Thermal">
             <temperature>600.0</temperature>
           </plugin>
         </visual>
@@ -154,7 +154,7 @@
           </material>
           <plugin
             filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            name="gz::sim::systems::Thermal">
             <temperature>400.0</temperature>
           </plugin>
         </visual>
@@ -203,7 +203,7 @@
           </material>
           <plugin
             filename="ignition-gazebo-thermal-system"
-            name="ignition::gazebo::systems::Thermal">
+            name="gz::sim::systems::Thermal">
             <heat_signature>../media/duck.png</heat_signature>
             <temperature>400.0</temperature>
           </plugin>

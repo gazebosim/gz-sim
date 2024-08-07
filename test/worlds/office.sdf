@@ -3,7 +3,7 @@
   <world name="office_world">
     <physics name="10ms" type="ode">
       <max_step_size>0.01</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin filename="libignition-gazebo-user-commands-system.so" name="ignition::gazebo::systems::UserCommands">
     </plugin>

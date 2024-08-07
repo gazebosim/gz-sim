@@ -1,13 +1,17 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="touch">
+    <physics name="fast" type="ignored">
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-contact-system"
-      name="ignition::gazebo::systems::Contact">
+      name="gz::sim::systems::Contact">
     </plugin>
 
     <model name="ground_plane">
@@ -57,7 +61,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-touchplugin-system"
-        name="ignition::gazebo::systems::TouchPlugin">
+        name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>
         <namespace>white_touches_only_green</namespace>
@@ -112,7 +116,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-touchplugin-system"
-        name="ignition::gazebo::systems::TouchPlugin">
+        name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_red_yellow</target>
         <time>2</time>
         <namespace>red_and_yellow_touch_only_green</namespace>
@@ -145,7 +149,7 @@
       </link>
       <plugin
         filename="ignition-gazebo-touchplugin-system"
-        name="ignition::gazebo::systems::TouchPlugin">
+        name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_blue</target>
         <time>2</time>
         <namespace>blue_touches_only_green</namespace>

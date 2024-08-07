@@ -108,6 +108,14 @@ Item {
       }
     }
     MenuItem {
+      id: viewFramesMenu
+      text: "Frames"
+      onTriggered: {
+        menu.close()
+        context.OnRequest("view_frames", context.entity)
+      }
+    }
+    MenuItem {
       id: viewTransparentMenu
       text: "Transparent"
       onTriggered: {
@@ -139,6 +147,7 @@ Item {
     viewJointsMenu.enabled = false;
     viewWireframesMenu.enabled = false;
     viewCollisionsMenu.enabled = false;
+    viewFramesMenu.enabled = false;
 
     // enable / disable menu items
     if (context.type == "model" || context.type == "link" ||
@@ -166,6 +175,13 @@ Item {
     if (context.type == "model")
     {
       viewJointsMenu.enabled = true;
+    }
+
+    // TODO(chapulina) Support collision, sensor, etc.
+    if (context.type == "model" || context.type == "link" ||
+        context.type == "visual")
+    {
+      viewFramesMenu.enabled = true
     }
 
     menu.open()

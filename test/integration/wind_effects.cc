@@ -16,28 +16,29 @@
  */
 
 #include <gtest/gtest.h>
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
-#include "ignition/gazebo/components/LinearAcceleration.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/Link.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/WindMode.hh"
+#include "gz/sim/components/LinearAcceleration.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/WindMode.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Test WindEffects system
 class WindEffectsTest : public InternalFixture<::testing::Test>
@@ -69,8 +70,10 @@ class LinkComponentRecorder
   public: LinkComponentRecorder(std::string _linkName, bool _createComp = false)
       : linkName(std::move(_linkName))
   {
-    auto plugin = loader.LoadPlugin("libMockSystem.so",
-                                    "ignition::gazebo::MockSystem", nullptr);
+    sdf::Plugin sdfPlugin;
+    sdfPlugin.SetName("gz::sim::MockSystem");
+    sdfPlugin.SetFilename("libMockSystem.so");
+    auto plugin = loader.LoadPlugin(sdfPlugin);
     EXPECT_TRUE(plugin.has_value());
 
     this->systemPtr = plugin.value();
@@ -82,7 +85,7 @@ class LinkComponentRecorder
     if (_createComp)
     {
       this->mockSystem->preUpdateCallback =
-        [this](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &, EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -98,8 +101,8 @@ class LinkComponentRecorder
     }
 
     this->mockSystem->postUpdateCallback =
-        [this](const gazebo::UpdateInfo &,
-              const gazebo::EntityComponentManager &_ecm)
+        [this](const UpdateInfo &,
+              const EntityComponentManager &_ecm)
         {
           auto linkEntity = _ecm.EntityByComponents(
               components::Link(), components::Name(this->linkName));
@@ -184,7 +187,8 @@ class BlockingPublisher
 
 /////////////////////////////////////////////////
 /// Check if 'enable_wind' set only in <model> works
-TEST_F(WindEffectsTest, WindEnabledInModel)
+// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInModel))
 {
   this->StartServer("/test/worlds/wind_effects.sdf");
 
@@ -201,7 +205,7 @@ TEST_F(WindEffectsTest, WindEnabledInModel)
 
 /////////////////////////////////////////////////
 /// Check if 'enable_wind' set only in <link> works
-TEST_F(WindEffectsTest, WindEnabledInLink)
+TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEnabledInLink))
 {
   this->StartServer("/test/worlds/wind_effects.sdf");
 
@@ -218,7 +222,7 @@ TEST_F(WindEffectsTest, WindEnabledInLink)
 
 
 ////////////////////////////////////////////////
-TEST_F(WindEffectsTest , WindForce)
+TEST_F(WindEffectsTest , IGN_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
 {
   this->StartServer("/test/worlds/wind_effects.sdf");
   LinkComponentRecorder<components::WorldLinearAcceleration> linkAccelerations(
@@ -255,7 +259,7 @@ TEST_F(WindEffectsTest , WindForce)
 }
 
 ////////////////////////////////////////////////
-TEST_F(WindEffectsTest , TopicsAndServices)
+TEST_F(WindEffectsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(TopicsAndServices))
 {
   using namespace std::chrono_literals;
 
@@ -322,7 +326,8 @@ TEST_F(WindEffectsTest , TopicsAndServices)
 
 /// Test if adding a link with wind after first iteration adds
 /// WorldLinearVelocity component properly
-TEST_F(WindEffectsTest, WindEntityAddedAfterStart)
+TEST_F(WindEffectsTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(WindEntityAddedAfterStart))
 {
   const std::string windBox = R"EOF(
   <?xml version="1.0" ?>

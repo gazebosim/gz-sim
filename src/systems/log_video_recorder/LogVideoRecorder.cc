@@ -17,31 +17,31 @@
 
 #include "LogVideoRecorder.hh"
 
-#include <ignition/msgs/scene.pb.h>
-#include <ignition/msgs/stringmsg.pb.h>
+#include <gz/msgs/scene.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <chrono>
 #include <set>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/AxisAlignedBox.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/AxisAlignedBox.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/components/Model.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/Static.hh"
-#include "ignition/gazebo/components/World.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/Conversions.hh"
-#include "ignition/gazebo/EntityComponentManager.hh"
-#include "ignition/gazebo/Events.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Static.hh"
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/Conversions.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Events.hh"
 
 using namespace std::chrono_literals;
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 // Private data class.
@@ -372,8 +372,8 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Rewind()
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending rewind request" << std::endl;
@@ -399,14 +399,14 @@ void LogVideoRecorderPrivate::Play()
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Follow(const std::string &_entity)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending follow request" << std::endl;
   };
 
-  ignition::msgs::StringMsg req;
+  msgs::StringMsg req;
   req.set_data(_entity);
   if (this->node.Request(this->followService, req, cb))
   {
@@ -417,14 +417,14 @@ void LogVideoRecorderPrivate::Follow(const std::string &_entity)
 //////////////////////////////////////////////////
 void LogVideoRecorderPrivate::Record(bool _record)
 {
-  std::function<void(const ignition::msgs::Boolean &, const bool)> cb =
-      [](const ignition::msgs::Boolean &/*_rep*/, const bool _result)
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
     if (!_result)
       ignerr << "Error sending record request" << std::endl;
   };
 
-  ignition::msgs::VideoRecord req;
+  msgs::VideoRecord req;
 
   if (_record)
   {
@@ -445,11 +445,15 @@ void LogVideoRecorderPrivate::Record(bool _record)
 }
 
 IGNITION_ADD_PLUGIN(LogVideoRecorder,
-                    ignition::gazebo::System,
+                    System,
                     LogVideoRecorder::ISystemConfigure,
                     LogVideoRecorder::ISystemPostUpdate)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
+IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
+                          "gz::sim::systems::LogVideoRecorder")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "ignition::gazebo::systems::LogVideoRecorder")

@@ -17,27 +17,28 @@
 
 #include <gtest/gtest.h>
 
-#include <ignition/msgs/double.pb.h>
+#include <gz/msgs/double.pb.h>
 
-#include <ignition/common/Console.hh>
-#include <ignition/common/Util.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Console.hh>
+#include <gz/common/Util.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/Name.hh"
-#include "ignition/gazebo/components/JointForceCmd.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/JointForceCmd.hh"
 
-#include "ignition/gazebo/Server.hh"
-#include "ignition/gazebo/SystemLoader.hh"
-#include "ignition/gazebo/test_config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 
 /// \brief Test fixture for ApplyJointForce system
 class ApplyJointForceTestFixture : public InternalFixture<::testing::Test>
@@ -46,7 +47,9 @@ class ApplyJointForceTestFixture : public InternalFixture<::testing::Test>
 
 /////////////////////////////////////////////////
 // Tests that the ApplyJointForce accepts joint velocity commands
-TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ApplyJointForceTestFixture,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityCommand))
 {
   using namespace std::chrono_literals;
 
@@ -69,7 +72,7 @@ TEST_F(ApplyJointForceTestFixture, JointVelocityCommand)
   test::Relay testSystem;
   std::vector<double> jointForceCmd;
   testSystem.OnPreUpdate(
-      [&](const gazebo::UpdateInfo &, gazebo::EntityComponentManager &_ecm)
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
         auto joint = _ecm.EntityByComponents(components::Joint(),
                                              components::Name(jointName));

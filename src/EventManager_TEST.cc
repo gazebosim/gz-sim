@@ -19,21 +19,26 @@
 
 #include <atomic>
 
-#include "ignition/gazebo/Events.hh"
-#include "ignition/gazebo/EventManager.hh"
+#include "gz/sim/Events.hh"
+#include "gz/sim/EventManager.hh"
 
-using namespace ignition::gazebo;
+using namespace gz::sim;
 
 /////////////////////////////////////////////////
 TEST(EventManager, EmitConnectTest)
 {
   EventManager eventManager;
 
+  EXPECT_EQ(0u, eventManager.ConnectionCount<events::Pause>());
+
   bool paused1 = false;
   auto connection1 = eventManager.Connect<events::Pause>(
     [&paused1](bool _paused) {
       paused1 = _paused;
     });
+
+
+  EXPECT_EQ(1u, eventManager.ConnectionCount<events::Pause>());
 
   // Emitting events causes connection callbacks to be fired.
   eventManager.Emit<events::Pause>(true);
@@ -47,6 +52,8 @@ TEST(EventManager, EmitConnectTest)
       paused2 = _paused;
     });
 
+  EXPECT_EQ(2u, eventManager.ConnectionCount<events::Pause>());
+
   // Multiple connections should each be fired.
   eventManager.Emit<events::Pause>(true);
   EXPECT_EQ(true, paused1);
@@ -58,9 +65,12 @@ TEST(EventManager, EmitConnectTest)
 
   // Clearing the ConnectionPtr will cause it to no longer fire.
   connection1.reset();
+
   eventManager.Emit<events::Pause>(true);
   EXPECT_EQ(false, paused1);
   EXPECT_EQ(true, paused2);
+
+  EXPECT_EQ(1u, eventManager.ConnectionCount<events::Pause>());
 }
 
 /// Test that we are able to connect arbitrary events and signal them.
@@ -68,7 +78,7 @@ TEST(EventManager, NewEvent)
 {
   EventManager eventManager;
 
-  using TestEvent = ignition::common::EventT<void(std::string, std::string)>;
+  using TestEvent = gz::common::EventT<void(std::string, std::string)>;
 
   std::string val1, val2;
   auto connection = eventManager.Connect<TestEvent>(
@@ -91,8 +101,8 @@ TEST(EventManager, NewEvent)
 TEST(EventManager, Ambiguous)
 {
   EventManager eventManager;
-  using TestEvent1 = ignition::common::EventT<void(void)>;
-  using TestEvent2 = ignition::common::EventT<void(void)>;
+  using TestEvent1 = gz::common::EventT<void(void)>;
+  using TestEvent2 = gz::common::EventT<void(void)>;
 
   std::atomic<int> calls = 0;
   auto connection = eventManager.Connect<TestEvent1>([&](){ calls++;});
@@ -107,8 +117,8 @@ TEST(EventManager, Ambiguous)
 TEST(EventManager, Disambiguate)
 {
   EventManager eventManager;
-  using TestEvent1 = ignition::common::EventT<void(void), struct TestEvent1Tag>;
-  using TestEvent2 = ignition::common::EventT<void(void), struct TestEvent2Tag>;
+  using TestEvent1 = gz::common::EventT<void(void), struct TestEvent1Tag>;
+  using TestEvent2 = gz::common::EventT<void(void), struct TestEvent2Tag>;
 
   std::atomic<int> calls = 0;
   auto connection1 = eventManager.Connect<TestEvent1>([&](){ calls++;});

@@ -24,6 +24,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Capsule.hh>
 #include <sdf/Cylinder.hh>
+#include <sdf/Element.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Gui.hh>
 #include <sdf/Heightmap.hh>
@@ -33,17 +34,18 @@
 #include <sdf/Pbr.hh>
 #include <sdf/Physics.hh>
 #include <sdf/Plane.hh>
+#include <sdf/Polyline.hh>
 #include <sdf/Root.hh>
 #include <sdf/Scene.hh>
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
-#include <ignition/msgs/Utility.hh>
+#include <gz/msgs/Utility.hh>
 
-#include "ignition/gazebo/Conversions.hh"
+#include "gz/sim/Conversions.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace std::chrono_literals;
 
 /////////////////////////////////////////////////
@@ -55,8 +57,8 @@ TEST(Conversions, Light)
   light.SetRawPose({3, 2, 1, 0, IGN_PI, 0});
   light.SetPoseRelativeTo("world");
   light.SetCastShadows(true);
-  light.SetDiffuse(ignition::math::Color(0.4f, 0.5f, 0.6f, 1.0));
-  light.SetSpecular(ignition::math::Color(0.8f, 0.9f, 0.1f, 1.0));
+  light.SetDiffuse(math::Color(0.4f, 0.5f, 0.6f, 1.0));
+  light.SetSpecular(math::Color(0.8f, 0.9f, 0.1f, 1.0));
   light.SetAttenuationRange(3.2);
   light.SetConstantAttenuationFactor(0.5);
   light.SetLinearAttenuationFactor(0.1);
@@ -239,10 +241,10 @@ TEST(Conversions, Time)
 TEST(Conversions, Material)
 {
   sdf::Material material;
-  material.SetDiffuse(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  material.SetSpecular(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
-  material.SetAmbient(ignition::math::Color(0.9f, 1.0f, 1.1f, 1.2f));
-  material.SetEmissive(ignition::math::Color(1.3f, 1.4f, 1.5f, 1.6f));
+  material.SetDiffuse(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  material.SetSpecular(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  material.SetAmbient(math::Color(0.9f, 1.0f, 1.1f, 1.2f));
+  material.SetEmissive(math::Color(1.3f, 1.4f, 1.5f, 1.6f));
   material.SetLighting(true);
   material.SetRenderOrder(2.5);
   material.SetDoubleSided(true);
@@ -334,7 +336,7 @@ TEST(Conversions, GeometryBox)
   geometry.SetType(sdf::GeometryType::BOX);
 
   sdf::Box boxShape;
-  boxShape.SetSize(ignition::math::Vector3d(1, 2, 3));
+  boxShape.SetSize(math::Vector3d(1, 2, 3));
   geometry.SetBoxShape(boxShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -448,7 +450,7 @@ TEST(Conversions, GeometryMesh)
   geometry.SetType(sdf::GeometryType::MESH);
 
   sdf::Mesh meshShape;
-  meshShape.SetScale(ignition::math::Vector3d(1, 2, 3));
+  meshShape.SetScale(math::Vector3d(1, 2, 3));
   meshShape.SetUri("file://watermelon");
   meshShape.SetSubmesh("grape");
   meshShape.SetCenterSubmesh(true);
@@ -479,8 +481,8 @@ TEST(Conversions, GeometryPlane)
   geometry.SetType(sdf::GeometryType::PLANE);
 
   sdf::Plane planeShape;
-  planeShape.SetSize(ignition::math::Vector2d(1, 2));
-  planeShape.SetNormal(ignition::math::Vector3d::UnitY);
+  planeShape.SetSize(math::Vector2d(1, 2));
+  planeShape.SetNormal(math::Vector3d::UnitY);
   geometry.SetPlaneShape(planeShape);
 
   auto geometryMsg = convert<msgs::Geometry>(geometry);
@@ -565,6 +567,40 @@ TEST(Conversions, GeometryHeightmap)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, GeometryPolyline)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::POLYLINE);
+
+  sdf::Polyline polylineShape;
+  polylineShape.SetHeight(1.23);
+  polylineShape.AddPoint({4.5, 6.7});
+  polylineShape.AddPoint({8.9, 10.11});
+  geometry.SetPolylineShape({polylineShape});
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::POLYLINE, geometryMsg.type());
+  ASSERT_EQ(1, geometryMsg.polyline_size());
+  EXPECT_DOUBLE_EQ(1.23, geometryMsg.polyline(0).height());
+  ASSERT_EQ(2, geometryMsg.polyline(0).point_size());
+  EXPECT_DOUBLE_EQ(4.5, geometryMsg.polyline(0).point(0).x());
+  EXPECT_DOUBLE_EQ(6.7, geometryMsg.polyline(0).point(0).y());
+  EXPECT_DOUBLE_EQ(8.9, geometryMsg.polyline(0).point(1).x());
+  EXPECT_DOUBLE_EQ(10.11, geometryMsg.polyline(0).point(1).y());
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  EXPECT_EQ(sdf::GeometryType::POLYLINE, newGeometry.Type());
+  ASSERT_FALSE(newGeometry.PolylineShape().empty());
+  ASSERT_EQ(1u, newGeometry.PolylineShape().size());
+  EXPECT_DOUBLE_EQ(1.23, newGeometry.PolylineShape()[0].Height());
+  ASSERT_EQ(2u, newGeometry.PolylineShape()[0].PointCount());
+  EXPECT_DOUBLE_EQ(4.5, newGeometry.PolylineShape()[0].PointByIndex(0)->X());
+  EXPECT_DOUBLE_EQ(6.7, newGeometry.PolylineShape()[0].PointByIndex(0)->Y());
+  EXPECT_DOUBLE_EQ(8.9, newGeometry.PolylineShape()[0].PointByIndex(1)->X());
+  EXPECT_DOUBLE_EQ(10.11, newGeometry.PolylineShape()[0].PointByIndex(1)->Y());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, Inertial)
 {
   math::MassMatrix3d massMatrix;
@@ -640,8 +676,8 @@ TEST(Conversions, JointAxis)
 TEST(Conversions, Scene)
 {
   sdf::Scene scene;
-  scene.SetAmbient(ignition::math::Color(0.1f, 0.2f, 0.3f, 0.4f));
-  scene.SetBackground(ignition::math::Color(0.5f, 0.6f, 0.7f, 0.8f));
+  scene.SetAmbient(math::Color(0.1f, 0.2f, 0.3f, 0.4f));
+  scene.SetBackground(math::Color(0.5f, 0.6f, 0.7f, 0.8f));
   scene.SetShadows(true);
   scene.SetGrid(true);
   scene.SetOriginVisual(true);
@@ -674,6 +710,7 @@ TEST(Conversions, Scene)
   sky.SetCloudHumidity(0.11);
   sky.SetCloudMeanSize(0.88);
   sky.SetCloudAmbient(math::Color::Red);
+  sky.SetCubemapUri("test.dds");
   scene.SetSky(sky);
 
   auto sceneSkyMsg = convert<msgs::Scene>(scene);
@@ -687,6 +724,10 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
   EXPECT_EQ(math::Color::Red,
       msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
+  ASSERT_GT(sceneSkyMsg.sky().header().data_size(), 0);
+  auto header = sceneSkyMsg.sky().header().data(0);
+  EXPECT_EQ("cubemap_uri", header.key());
+  EXPECT_EQ("test.dds", header.value(0));
 
   auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
   ASSERT_NE(nullptr, newSceneSky.Sky());
@@ -698,6 +739,7 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.11, newSceneSky.Sky()->CloudHumidity());
   EXPECT_DOUBLE_EQ(0.88, newSceneSky.Sky()->CloudMeanSize());
   EXPECT_EQ(math::Color::Red, newSceneSky.Sky()->CloudAmbient());
+  EXPECT_EQ("test.dds", newSceneSky.Sky()->CubemapUri());
 }
 
 /////////////////////////////////////////////////
@@ -720,14 +762,14 @@ TEST(Conversions, Atmosphere)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, MagnetometerSensor)
+TEST(Conversions, MagnetometerSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
   sensor.SetType(sdf::SensorType::MAGNETOMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -760,14 +802,14 @@ TEST(CONVERSIONS, MagnetometerSensor)
 }
 
 /////////////////////////////////////////////////
-TEST(CONVERSIONS, AltimeterSensor)
+TEST(Conversions, AltimeterSensor)
 {
   sdf::Sensor sensor;
   sensor.SetName("my_sensor");
   sensor.SetType(sdf::SensorType::ALTIMETER);
   sensor.SetUpdateRate(12.4);
   sensor.SetTopic("my_topic");
-  sensor.SetRawPose(ignition::math::Pose3d(1, 2, 3, 0, 0, 0));
+  sensor.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
 
   sdf::Noise noise;
   noise.SetType(sdf::NoiseType::GAUSSIAN);
@@ -957,8 +999,8 @@ TEST(Conversions, ParticleEmitter)
   emitter.SetMaxVelocity(0.2);
   emitter.SetSize(math::Vector3d(1, 2, 3));
   emitter.SetParticleSize(math::Vector3d(4, 5, 6));
-  emitter.SetColorStart(math::Color(0.1, 0.2, 0.3));
-  emitter.SetColorEnd(math::Color(0.4, 0.5, 0.6));
+  emitter.SetColorStart(math::Color(0.1f, 0.2f, 0.3f));
+  emitter.SetColorEnd(math::Color(0.4f, 0.5f, 0.6f));
   emitter.SetColorRangeImage("range_image");
   emitter.SetTopic("my_topic");
   emitter.SetRawPose(math::Pose3d(1, 2, 3, 0, 0, 0));
@@ -988,9 +1030,10 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_NEAR(0.2, emitterMsg.max_velocity().data(), 1e-3);
   EXPECT_EQ(math::Vector3d(1, 2, 3), msgs::Convert(emitterMsg.size()));
   EXPECT_EQ(math::Vector3d(4, 5, 6), msgs::Convert(emitterMsg.particle_size()));
-  EXPECT_EQ(math::Color(0.1, 0.2, 0.3),
+  EXPECT_EQ(math::Color(0.1f, 0.2f, 0.3f),
       msgs::Convert(emitterMsg.color_start()));
-  EXPECT_EQ(math::Color(0.4, 0.5, 0.6), msgs::Convert(emitterMsg.color_end()));
+  EXPECT_EQ(math::Color(0.4f, 0.5f, 0.6f),
+      msgs::Convert(emitterMsg.color_end()));
   EXPECT_EQ("range_image", emitterMsg.color_range_image().data());
 
   auto header = emitterMsg.header().data(0);
@@ -1024,4 +1067,99 @@ TEST(Conversions, ParticleEmitter)
   EXPECT_EQ(emitter2.Topic(), emitter.Topic());
   EXPECT_EQ(emitter2.RawPose(), emitter.RawPose());
   EXPECT_FLOAT_EQ(emitter2.ScatterRatio(), emitter.ScatterRatio());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, PluginElement)
+{
+  sdf::Root root;
+  root.LoadSdfString("<?xml version='1.0'?><sdf version='1.6'>"
+      "<world name='default'>"
+      "  <plugin filename='plum' name='peach'>"
+      "    <avocado>0.5</avocado>"
+      "  </plugin>"
+      "</world></sdf>");
+
+  auto world = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, world);
+
+  auto worldElem = world->Element();
+  ASSERT_NE(nullptr, worldElem);
+
+  auto pluginElem = worldElem->GetElement("plugin");
+  ASSERT_NE(nullptr, pluginElem);
+
+  auto pluginMsg = convert<msgs::Plugin>(*(pluginElem.get()));
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos);
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, Plugin)
+{
+  sdf::Plugin pluginSdf;
+  pluginSdf.SetName("peach");
+  pluginSdf.SetFilename("plum");
+
+  auto content = std::make_shared<sdf::Element>();
+  content->SetName("avocado");
+  content->AddValue("double", "0.5", false, "");
+  pluginSdf.InsertContent(content);
+
+  auto pluginMsg = convert<msgs::Plugin>(pluginSdf);
+  EXPECT_EQ("plum", pluginMsg.filename());
+  EXPECT_EQ("peach", pluginMsg.name());
+
+  EXPECT_NE(pluginMsg.innerxml().find("<avocado>0.5</avocado>"),
+      std::string::npos) << pluginMsg.innerxml();
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, MsgsPluginToSdf)
+{
+  std::string innerXml ="<test>another_test</test>\n";
+  std::string innerXml2 ="<peanut>butter</peanut>\n";
+
+  msgs::Plugin msgPlugin;
+  msgPlugin.set_name("foo");
+  msgPlugin.set_filename("bar");
+  msgPlugin.set_innerxml(innerXml);
+
+  // Test conversion of a single msgs::Plugin to sdf::Plugin
+  sdf::Plugin sdfPlugin = convert<sdf::Plugin>(msgPlugin);
+  EXPECT_EQ("foo", sdfPlugin.Name());
+  EXPECT_EQ("bar", sdfPlugin.Filename());
+  ASSERT_EQ(1u, sdfPlugin.Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugin.Contents()[0]->ToString(""));
+
+  // Test conversion of a msgs::Plugin_V with 1 plugin to sdf::Plugins
+  msgs::Plugin_V msgsPlugin;
+  msgsPlugin.add_plugins()->CopyFrom(msgPlugin);
+  sdf::Plugins sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(1u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+
+  // Add another plugin the msgs::Plugin_V
+  msgs::Plugin anotherPlugin;
+  anotherPlugin.set_name("sandwich");
+  anotherPlugin.set_filename("time");
+  anotherPlugin.set_innerxml(innerXml + innerXml2);
+  msgsPlugin.add_plugins()->CopyFrom(anotherPlugin);
+  sdfPlugins = convert<sdf::Plugins>(msgsPlugin);
+  ASSERT_EQ(2u, sdfPlugins.size());
+  EXPECT_EQ("foo", sdfPlugins[0].Name());
+  EXPECT_EQ("bar", sdfPlugins[0].Filename());
+  ASSERT_EQ(1u, sdfPlugins[0].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[0].Contents()[0]->ToString(""));
+  EXPECT_EQ("sandwich", sdfPlugins[1].Name());
+  EXPECT_EQ("time", sdfPlugins[1].Filename());
+  ASSERT_EQ(2u, sdfPlugins[1].Contents().size());
+  EXPECT_EQ(innerXml, sdfPlugins[1].Contents()[0]->ToString(""));
+  EXPECT_EQ(innerXml2, sdfPlugins[1].Contents()[1]->ToString(""));
 }

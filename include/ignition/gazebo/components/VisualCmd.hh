@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2023 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,6 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_COMPONENTS_VISUALCMD_HH_
-#define IGNITION_GAZEBO_COMPONENTS_VISUALCMD_HH_
 
+#include <gz/sim/components/VisualCmd.hh>
 #include <ignition/gazebo/config.hh>
-#include <ignition/gazebo/Export.hh>
-#include <ignition/gazebo/components/Component.hh>
-#include <ignition/gazebo/components/Factory.hh>
-#include <ignition/gazebo/components/Serialization.hh>
-
-#include <ignition/msgs/visual.pb.h>
-
-#include <sdf/Visual.hh>
-
-namespace ignition
-{
-namespace gazebo
-{
-// Inline bracket to help doxygen filtering.
-inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
-namespace components
-{
-  /// \brief A component type that contains commanded visual of an
-  /// entity in the world frame represented by msgs::Visual.
-  using VisualCmd = Component<ignition::msgs::Visual,
-    class VisualCmdTag, serializers::MsgSerializer>;
-  IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.VisualCmd",
-      VisualCmd)
-}
-}
-}
-}
-#endif

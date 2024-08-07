@@ -104,6 +104,8 @@
         <thrust_coefficient>0.004</thrust_coefficient>
         <fluid_density>1000</fluid_density>
         <propeller_diameter>0.2</propeller_diameter>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
       </plugin>
     </model>
 

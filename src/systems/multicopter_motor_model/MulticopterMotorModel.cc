@@ -6,6 +6,7 @@
  * Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
  * Copyright 2016 Geoffrey Hunter <gbmhunter@gmail.com>
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2022 Benjamin Perseghetti, Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,29 +27,30 @@
 #include <mutex>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
+#include <gz/common/Profiler.hh>
 
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/math/Helpers.hh>
-#include <ignition/math/Pose3.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs.hh>
 
 #include <sdf/sdf.hh>
 
-#include "ignition/gazebo/components/Actuators.hh"
-#include "ignition/gazebo/components/ExternalWorldWrenchCmd.hh"
-#include "ignition/gazebo/components/JointAxis.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/JointVelocityCmd.hh"
-#include "ignition/gazebo/components/LinearVelocity.hh"
-#include "ignition/gazebo/components/ParentLinkName.hh"
-#include "ignition/gazebo/components/Pose.hh"
-#include "ignition/gazebo/components/Wind.hh"
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
+#include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 // from rotors_gazebo_plugins/include/rotors_gazebo_plugins/common.h
 /// \brief    This class can be used to apply a first order filter on a signal.
@@ -97,8 +99,8 @@ class FirstOrderFilter {
   T previousState;
 };
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 /// \brief Constants for specifying clockwise (kCw) and counter-clockwise (kCcw)
@@ -118,7 +120,7 @@ enum class MotorType {
 class ignition::gazebo::systems::MulticopterMotorModelPrivate
 {
   /// \brief Callback for actuator commands.
-  public: void OnActuatorMsg(const ignition::msgs::Actuators &_msg);
+  public: void OnActuatorMsg(const msgs::Actuators &_msg);
 
   /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
@@ -250,7 +252,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    ignerr << "Please specify a robotNamespace.\n";
+    ignwarn << "No robotNamespace set using entity name.\n";
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
   }
 
   // Get params from SDF
@@ -365,13 +368,17 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
            << "]" << std::endl;
     return;
   }
+  else
+  {
+    igndbg << "Listening to topic: " << topic << std::endl;
+  }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
 
 //////////////////////////////////////////////////
-void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
-    ignition::gazebo::EntityComponentManager &_ecm)
+void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
 {
   IGN_PROFILE("MulticopterMotorModel::PreUpdate");
 
@@ -469,7 +476,7 @@ void MulticopterMotorModel::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 void MulticopterMotorModelPrivate::OnActuatorMsg(
-    const ignition::msgs::Actuators &_msg)
+    const msgs::Actuators &_msg)
 {
   std::lock_guard<std::mutex> lock(this->recvdActuatorsMsgMutex);
   this->recvdActuatorsMsg = _msg;
@@ -559,8 +566,8 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
                       realMotorVelocity * realMotorVelocity *
                       this->motorConstant;
 
-      using Pose = ignition::math::Pose3d;
-      using Vector3 = ignition::math::Vector3d;
+      using Pose = math::Pose3d;
+      using Vector3 = math::Vector3d;
 
       Link link(this->linkEntity);
       const auto worldPose = link.WorldPose(_ecm);
@@ -671,9 +678,13 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 }
 
 IGNITION_ADD_PLUGIN(MulticopterMotorModel,
-                    ignition::gazebo::System,
+                    System,
                     MulticopterMotorModel::ISystemConfigure,
                     MulticopterMotorModel::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
+                          "gz::sim::systems::MulticopterMotorModel")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "ignition::gazebo::systems::MulticopterMotorModel")

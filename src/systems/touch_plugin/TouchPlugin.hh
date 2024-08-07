@@ -15,11 +15,11 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
-#define IGNITION_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
+#define GZ_GAZEBO_SYSTEMS_TOUCH_PLUGIN_HH_
 
 #include <memory>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -82,8 +82,8 @@ namespace systems
 
     // Documentation inherited
     public: void PostUpdate(
-                const ignition::gazebo::UpdateInfo &_info,
-                const ignition::gazebo::EntityComponentManager &_ecm) override;
+                const gz::sim::UpdateInfo &_info,
+                const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TouchPluginPrivate> dataPtr;

@@ -15,9 +15,9 @@
  *
  */
 
-#include <ignition/msgs/marker.pb.h>
-#include <ignition/msgs/contact.pb.h>
-#include <ignition/transport/Node.hh>
+#include <gz/msgs/marker.pb.h>
+#include <gz/msgs/contact.pb.h>
+#include <gz/transport/Node.hh>
 
 #include "Visualization.hh"
 
@@ -32,14 +32,12 @@ OpticalTactilePluginVisualization::OpticalTactilePluginVisualization(
   ignition::math::Vector3d &_sensorSize,
   double &_forceLength,
   float &_cameraUpdateRate,
-  ignition::math::Pose3f &_depthCameraOffset,
-  int &_visualizationResolution) :
+  ignition::math::Pose3f &_depthCameraOffset) :
   modelName(_modelName),
   sensorSize(_sensorSize),
   forceLength(_forceLength),
   cameraUpdateRate(_cameraUpdateRate),
-  depthCameraOffset(_depthCameraOffset),
-  visualizationResolution(_visualizationResolution)
+  depthCameraOffset(_depthCameraOffset)
 {
 }
 
@@ -209,8 +207,8 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
   ignition::math::Pose3f normalForcePoseFromSensor(
     normalForcePositionFromSensor, normalForceOrientationFromSensor);
 
-  ignition::math::Pose3f normalForcePoseFromWorld =
-    (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
+  ignition::math::Pose3f normalForcePoseFromWorld = _sensorWorldPose *
+    this->depthCameraOffset * normalForcePoseFromSensor;
   normalForcePoseFromWorld.Correct();
 
   // Get the start point of the normal force
@@ -222,8 +220,8 @@ void OpticalTactilePluginVisualization::AddNormalForceToMarkerMsgs(
   normalForcePoseFromSensor.Set(normalForcePositionFromSensor +
     _normalForce * this->forceLength, normalForceOrientationFromSensor);
 
-  normalForcePoseFromWorld =
-    (normalForcePoseFromSensor + this->depthCameraOffset) + _sensorWorldPose;
+  normalForcePoseFromWorld = _sensorWorldPose * this->depthCameraOffset *
+    normalForcePoseFromSensor;
   normalForcePoseFromWorld.Correct();
 
   ignition::math::Vector3f endPointFromWorld =

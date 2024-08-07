@@ -15,15 +15,15 @@
  *
  */
 
-#ifndef IGNITION_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
-#define IGNITION_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
+#ifndef GZ_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
+#define GZ_GAZEBO_SYSTEMS_STATE_PUBLISHER_HH_
 
 #include <memory>
 #include <set>
 #include <string>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/transport/Node.hh>
-#include <ignition/gazebo/System.hh>
+#include <gz/sim/Model.hh>
+#include <gz/transport/Node.hh>
+#include <gz/sim/System.hh>
 
 namespace ignition
 {
@@ -34,8 +34,8 @@ inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
 namespace systems
 {
   /// \brief The JointStatePub system publishes state information for
-  /// a model. The published message type is ignition::msgs::Model, and the
-  /// publication topic is "/world/<world_name>/model/<model_name>/state".
+  /// a model. The published message type is gz::msgs::Model, and the
+  /// publication topic is determined by the `<topic>` parameter.
   ///
   /// By default the JointStatePublisher will publish all joints for
   /// a model. Use the `<joint_name>` system parameter, described below, to
@@ -43,6 +43,9 @@ namespace systems
   ///
   /// # System Parameters
   ///
+  /// `<topic>`: Name of the topic to publish to. This parameter is optional,
+  /// and if not provided, the joint state will be published to
+  /// "/world/<world_name>/model/<model_name>/state".
   /// `<joint_name>`: Name of a joint to publish. This parameter can be
   /// specified multiple times, and is optional. All joints in a model will
   /// be published if joint names are not specified.
@@ -70,7 +73,7 @@ namespace systems
     /// \param[in] _ecm The EntityComponentManager.
     /// \param[in] _joint The joint entity to create component for.
     private: void CreateComponents(EntityComponentManager &_ecm,
-                                   gazebo::Entity _joint);
+                                   gz::sim::Entity _joint);
 
     /// \brief The model
     private: Model model;

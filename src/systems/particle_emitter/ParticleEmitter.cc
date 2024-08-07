@@ -15,27 +15,27 @@
  *
  */
 
-#include <ignition/msgs/particle_emitter.pb.h>
+#include <gz/msgs/particle_emitter.pb.h>
 
 #include <mutex>
 #include <set>
 #include <string>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/math/Color.hh>
-#include <ignition/math/Vector3.hh>
-#include <ignition/msgs/Utility.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/math/Color.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include <ignition/gazebo/components/Name.hh>
-#include <ignition/gazebo/components/ParticleEmitter.hh>
-#include <ignition/gazebo/components/Pose.hh>
-#include <ignition/gazebo/components/SourceFilePath.hh>
-#include <ignition/gazebo/Conversions.hh>
-#include <ignition/gazebo/Model.hh>
-#include <ignition/gazebo/SdfEntityCreator.hh>
-#include <ignition/gazebo/Util.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/ParticleEmitter.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/SourceFilePath.hh>
+#include <gz/sim/Conversions.hh>
+#include <gz/sim/Model.hh>
+#include <gz/sim/SdfEntityCreator.hh>
+#include <gz/sim/Util.hh>
 #include <sdf/Material.hh>
 #include "ParticleEmitter.hh"
 
@@ -250,9 +250,8 @@ void ParticleEmitter::Configure(const Entity &_entity,
     auto colorRangeImagePath = _sdf->Get<std::string>("color_range_image");
     auto path = asFullPath(colorRangeImagePath, modelPath.value());
 
-    common::SystemPaths systemPaths;
-    systemPaths.SetFilePathEnv(kResourcePathEnv);
-    auto absolutePath = systemPaths.FindFile(path);
+    const std::string absolutePath =
+        common::SystemPaths::LocateLocalFile(path, gazebo::resourcePaths());
 
     this->dataPtr->emitter.mutable_color_range_image()->set_data(
         absolutePath);

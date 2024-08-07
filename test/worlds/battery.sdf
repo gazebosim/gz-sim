@@ -3,15 +3,15 @@
   <world name="batteries">
     <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0</real_time_factor>
     </physics>
     <plugin
       filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
+      name="gz::sim::systems::Physics">
     </plugin>
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
-      name="ignition::gazebo::systems::SceneBroadcaster">
+      name="gz::sim::systems::SceneBroadcaster">
     </plugin>
 
     <light type="directional" name="sun">
@@ -43,7 +43,7 @@
       </link>
 
       <plugin filename="ignition-gazebo-linearbatteryplugin-system"
-        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        name="gz::sim::systems::LinearBatteryPlugin">
         <battery_name>linear_battery</battery_name>
         <voltage>12.592</voltage>
         <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
@@ -54,6 +54,39 @@
         <smooth_current_tau>1.9499</smooth_current_tau>
         <!-- Consumer-specific -->
         <power_load>500</power_load>  <!-- high load to quickly drain battery -->
+        <start_draining>true</start_draining>
+      </plugin>
+
+    </model>
+
+    <model name="linear_battery_demo_model_with_topics">
+      <pose>1 0 0 0 0 0</pose>
+      <static>false</static>
+      <link name="body">
+        <pose>0 0 0.5 0 0 0</pose>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <plugin filename="ignition-gazebo-linearbatteryplugin-system"
+        name="ignition::gazebo::systems::LinearBatteryPlugin">
+        <battery_name>linear_battery_topics</battery_name>
+        <voltage>12.592</voltage>
+        <open_circuit_voltage_constant_coef>12.694</open_circuit_voltage_constant_coef>
+        <open_circuit_voltage_linear_coef>-3.1424</open_circuit_voltage_linear_coef>
+        <initial_charge>1.2009</initial_charge>
+        <capacity>1.2009</capacity>
+        <resistance>0.061523</resistance>
+        <smooth_current_tau>1.9499</smooth_current_tau>
+        <!-- Consumer-specific -->
+        <power_load>500</power_load>  <!-- high load to quickly drain battery -->
+        <power_draining_topic>/battery/discharge</power_draining_topic>
+        <stop_power_draining_topic>/battery/stop_discharge</stop_power_draining_topic>
       </plugin>
 
     </model>

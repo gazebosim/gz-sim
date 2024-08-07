@@ -21,21 +21,22 @@
 #include <string>
 #include <vector>
 
-#include <ignition/common/Profiler.hh>
-#include <ignition/plugin/Register.hh>
-#include <ignition/transport/Node.hh>
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
-#include "ignition/gazebo/Link.hh"
-#include "ignition/gazebo/Model.hh"
-#include "ignition/gazebo/components/AngularVelocity.hh"
-#include "ignition/gazebo/components/ChildLinkName.hh"
-#include "ignition/gazebo/components/Collision.hh"
-#include "ignition/gazebo/components/Joint.hh"
-#include "ignition/gazebo/components/JointVelocity.hh"
-#include "ignition/gazebo/components/SlipComplianceCmd.hh"
+#include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/ChildLinkName.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointVelocity.hh"
+#include "gz/sim/components/SlipComplianceCmd.hh"
+#include "gz/sim/components/WheelSlipCmd.hh"
 
-using namespace ignition;
-using namespace gazebo;
+using namespace gz;
+using namespace gz::sim;
 using namespace systems;
 
 // Adapted from osrf/Gazebo WheelSlipPlugin
@@ -107,7 +108,9 @@ class ignition::gazebo::systems::WheelSlipPrivate
                     {
                       if (_a.size() != _b.size() ||
                           _a.size() < 2 ||_b.size() < 2)
+                      {
                         return false;
+                      }
 
                       for (size_t i = 0; i < _a.size(); i++)
                       {
@@ -242,9 +245,32 @@ bool WheelSlipPrivate::Load(const EntityComponentManager &_ecm,
 /////////////////////////////////////////////////
 void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
 {
-  for (const auto &linkSurface : this->mapLinkSurfaceParams)
+  for (auto &linkSurface : this->mapLinkSurfaceParams)
   {
-    const auto &params = linkSurface.second;
+    auto &params = linkSurface.second;
+    const auto * wheelSlipCmdComp =
+      _ecm.Component<components::WheelSlipCmd>(linkSurface.first);
+    if (wheelSlipCmdComp)
+    {
+      const auto & wheelSlipCmdParams = wheelSlipCmdComp->Data();
+      bool changed = (!math::equal(
+          params.slipComplianceLateral,
+          wheelSlipCmdParams.slip_compliance_lateral(),
+          1e-6)) ||
+        (!math::equal(
+          params.slipComplianceLongitudinal,
+          wheelSlipCmdParams.slip_compliance_longitudinal(),
+          1e-6));
+
+      if (changed)
+      {
+        params.slipComplianceLateral =
+          wheelSlipCmdParams.slip_compliance_lateral();
+        params.slipComplianceLongitudinal =
+          wheelSlipCmdParams.slip_compliance_longitudinal();
+      }
+      _ecm.RemoveComponent<components::WheelSlipCmd>(linkSurface.first);
+    }
 
     // get user-defined normal force constant
     double force = params.wheelNormalForce;
@@ -360,9 +386,13 @@ void WheelSlip::PreUpdate(const UpdateInfo &_info, EntityComponentManager &_ecm)
 }
 
 IGNITION_ADD_PLUGIN(WheelSlip,
-                    ignition::gazebo::System,
+                    System,
                     WheelSlip::ISystemConfigure,
                     WheelSlip::ISystemPreUpdate)
 
+IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
+                          "gz::sim::systems::WheelSlip")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(WheelSlip,
                           "ignition::gazebo::systems::WheelSlip")

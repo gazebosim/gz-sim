@@ -14,17 +14,17 @@
  * limitations under the License.
  *
  */
-#ifndef IGNITION_GAZEBO_SDFGENERATOR_HH_
-#define IGNITION_GAZEBO_SDFGENERATOR_HH_
+#ifndef GZ_GAZEBO_SDFGENERATOR_HH_
+#define GZ_GAZEBO_SDFGENERATOR_HH_
 
-#include <ignition/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
 
 #include <sdf/Element.hh>
 #include <optional>
 #include <string>
 #include <unordered_map>
 
-#include "ignition/gazebo/EntityComponentManager.hh"
+#include "gz/sim/EntityComponentManager.hh"
 
 namespace ignition
 {
@@ -99,9 +99,52 @@ namespace sdf_generator
                             const EntityComponentManager &_ecm,
                             const Entity &_entity, const std::string &_uri);
 
+  /// \brief Update an sdf::Element of a link.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Link entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLinkElement(const sdf::ElementPtr &_elem,
+                         const EntityComponentManager &_ecm,
+                         const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a sensor.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Sensor entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateSensorElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a light.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity Light entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateLightElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
+
+  /// \brief Update an sdf::Element of a joint.
+  /// Intended for internal use.
+  /// \input[in, out] _elem sdf::Element to update
+  /// \input[in] _ecm Immutable reference to the Entity Component Manager
+  /// \input[in] _entity joint entity
+  /// \returns true if update succeeded.
+  IGNITION_GAZEBO_VISIBLE
+  bool updateJointElement(sdf::ElementPtr _elem,
+                           const EntityComponentManager &_ecm,
+                           const Entity &_entity);
 }  // namespace sdf_generator
 }  // namespace IGNITION_GAZEBO_VERSION_NAMESPACE
 }  // namespace gazebo
 }  // namespace ignition
 
-#endif /* end of include guard: IGNITION_GAZEBO_SDFGENERATOR_HH_ */
+#endif /* end of include guard: GZ_GAZEBO_SDFGENERATOR_HH_ */
