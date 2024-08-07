@@ -141,7 +141,7 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/detachable_joint.sdf");
+  this->StartServer("/test/worlds/detachable_joint_child.sdf");
 
   // A lambda that takes a model name and a mutable reference to a vector of
   // poses and returns another lambda that can be passed to
