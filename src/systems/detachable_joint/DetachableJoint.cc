@@ -234,8 +234,33 @@ void DetachableJoint::PreUpdate(
     }
     else
     {
-      modelEntity = _ecm.EntityByComponents(
-          components::Model(), components::Name(this->childModelName));
+      auto candidateEntities = entitiesFromScopedName(
+        this->childModelName, _ecm);
+
+      if (candidateEntities.size() == 1)
+      {
+        // If there is one entity select that entity itself
+        modelEntity = *candidateEntities.begin();
+      }
+      else
+      {
+        auto parentEntityScopedPath = scopedName(this->model.Entity(), _ecm);
+        // If there is more than one entity with the same name, look for the
+        // entity with a parent component.
+        for (auto entity : candidateEntities)
+        {
+          auto childEntityScope = scopedName(entity, _ecm);
+          if (childEntityScope.size() < parentEntityScopedPath.size())
+          {
+            continue;
+          }
+          if (childEntityScope.find(parentEntityScopedPath) != 0)
+          {
+            continue;
+          }
+          modelEntity = entity;
+        }
+      }
     }
     if (kNullEntity != modelEntity)
     {
