@@ -234,30 +234,31 @@ void DetachableJoint::PreUpdate(
     }
     else
     {
-      auto candidateEntities = _ecm.EntitiesByComponents(
-          components::Model(), components::Name(this->childModelName));
+      auto candidateEntities = entitiesFromScopedName(
+        this->childModelName, _ecm);
 
       if (candidateEntities.size() == 1)
       {
         // If there is one entity select that entity itself
-        modelEntity = candidateEntities[0];
+        modelEntity = *candidateEntities.begin();
       }
       else
       {
+        auto parentEntityScopedPath = scopedName(this->model.Entity(), _ecm);
         // If there is more than one entity with the same name, look for the
         // entity with a parent component.
         for (auto entity : candidateEntities)
         {
-          // TODO(arjo): do we want to support grand children?
-          auto models = this->model.Models(_ecm);
-
-          for (auto m : models)
+          auto childEntityScope = scopedName(entity, _ecm);
+          if (childEntityScope.size() < parentEntityScopedPath.size())
           {
-            if (m == entity)
-            {
-              modelEntity = entity;
-            }
+            continue;
           }
+          if (childEntityScope.find(parentEntityScopedPath) != 0)
+          {
+            continue;
+          }
+          modelEntity = entity;
         }
       }
     }
