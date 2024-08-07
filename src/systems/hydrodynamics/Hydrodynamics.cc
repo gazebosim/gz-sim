@@ -354,7 +354,7 @@ void Hydrodynamics::Configure(
       prefix += "Dot";
       prefix += snameConventionVel[j];
       this->dataPtr->Ma(i, j) = SdfParamDouble(_sdf, prefix, 0);
-      addedMassSpecified = addedMassSpecified && (std::abs(this->dataPtr->Ma(i, j)) > 1e-6)
+      addedMassSpecified &= (std::abs(this->dataPtr->Ma(i, j)) > 1e-6);
     }
   }
 
