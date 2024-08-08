@@ -72,6 +72,7 @@ set(tests
   reset.cc
   reset_detachable_joint.cc
   save_world.cc
+  spacecraft.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
