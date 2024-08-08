@@ -284,8 +284,7 @@ void SetModelState::Configure(const Entity &_entity,
       {
         linearVelocity = vectorPair.first;
         _ecm.SetComponentData<components::WorldLinearVelocityReset>(
-                                          linkEntity,
-                                          linearVelocity);
+                                          linkEntity, linearVelocity);
       }
     }
 
@@ -299,8 +298,7 @@ void SetModelState::Configure(const Entity &_entity,
       if(parsedVector)
       {
          _ecm.SetComponentData<components::WorldAngularVelocityReset>(
-                                           linkEntity,
-                                           angularVelocity);
+                                           linkEntity, angularVelocity);
       }
     }
   }
