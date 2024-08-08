@@ -82,9 +82,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: rendering::LidarVisualType visualType{
                             rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
 
-    /// \brief URI sequence to the lidar link
-    public: std::string lidarString{""};
-
     /// \brief LaserScan message from sensor
     public: msgs::LaserScan msg;
 
@@ -122,7 +119,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: bool visualDirty{false};
 
     /// \brief lidar sensor entity dirty flag
-    public: bool lidarEntityDirty{true};
+    public: bool lidarEntityDirty{false};
   };
 }
 }
@@ -264,65 +261,44 @@ void VisualizeLidar::Update(const UpdateInfo &,
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
+  if (this->dataPtr->topicName.empty())
+    return;
+
   if (this->dataPtr->lidarEntityDirty)
   {
-    auto lidarURIVec = common::split(common::trimmed(
-                  this->dataPtr->lidarString), "::");
-    if (lidarURIVec.size() > 0)
+    std::string topic = this->dataPtr->topicName;
+    auto lidarEnt =
+        _ecm.EntityByComponents(components::SensorTopic(topic));
+    if (lidarEnt == kNullEntity)
     {
-      auto baseEntity = _ecm.EntityByComponents(
-          components::Name(lidarURIVec[0]));
-      if (!baseEntity)
-      {
-        gzerr << "Error entity " << lidarURIVec[0]
-            << " doesn't exist and cannot be used to set lidar visual pose"
-            << std::endl;
-        return;
-      }
-      else
-      {
-        auto parent = baseEntity;
-        bool success = false;
-        for (size_t i = 0u; i < lidarURIVec.size()-1; i++)
-        {
-          auto children = _ecm.EntitiesByComponents(
-                            components::ParentEntity(parent));
-          bool foundChild = false;
-          for (auto child : children)
-          {
-            std::string nextstring = lidarURIVec[i+1];
-            auto comp = _ecm.Component<components::Name>(child);
-            if (!comp)
-            {
-              continue;
-            }
-            std::string childname = std::string(
-                            comp->Data());
-            if (nextstring.compare(childname) == 0)
-            {
-              parent = child;
-              foundChild = true;
-              if (i+1 == lidarURIVec.size()-1)
-              {
-                success = true;
-              }
-              break;
-            }
-          }
-          if (!foundChild)
-          {
-            gzerr << "The entity could not be found."
-                  << "Error displaying lidar visual" <<std::endl;
-            return;
-          }
-        }
-        if (success)
-        {
-          this->dataPtr->lidarEntity = parent;
-          this->dataPtr->lidarEntityDirty = false;
-        }
-      }
+      if (topic[0] == '/')
+        topic = topic.substr(1);
+      lidarEnt =
+        _ecm.EntityByComponents(components::SensorTopic(topic));
     }
+
+    static bool informed{false};
+    if (lidarEnt == kNullEntity)
+    {
+      if (!informed)
+      {
+        gzerr << "The lidar entity with topic '['" <<  this->dataPtr->topicName
+              << "'] could not be found. "
+              << "Error displaying lidar visual. " << std::endl;
+        informed = true;
+      }
+      return;
+    }
+    informed = false;
+    this->dataPtr->lidarEntity = lidarEnt;
+    this->dataPtr->lidarEntityDirty = false;
+  }
+
+  if (!_ecm.HasEntity(this->dataPtr->lidarEntity))
+  {
+    this->dataPtr->resetVisual = true;
+    this->dataPtr->topicName = "";
+    return;
   }
 
   // Only update lidarPose if the lidarEntity exists and the lidar is
@@ -332,7 +308,7 @@ void VisualizeLidar::Update(const UpdateInfo &,
   // data arrives, the visual is offset from the obstacle if the sensor is
   // moving fast.
   if (!this->dataPtr->lidarEntityDirty && this->dataPtr->initialized &&
-                                          !this->dataPtr->visualDirty)
+      !this->dataPtr->visualDirty)
   {
     this->dataPtr->lidarPose = worldPose(this->dataPtr->lidarEntity, _ecm);
   }
@@ -379,13 +355,17 @@ void VisualizeLidar::UpdateSize(int _size)
 //////////////////////////////////////////////////
 void VisualizeLidar::OnTopic(const QString &_topicName)
 {
+  std::string topic = _topicName.toStdString();
+  if (this->dataPtr->topicName == topic)
+    return;
+
   if (!this->dataPtr->topicName.empty() &&
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     gzerr << "Unable to unsubscribe from topic ["
            << this->dataPtr->topicName <<"]" <<std::endl;
   }
-  this->dataPtr->topicName = _topicName.toStdString();
+  this->dataPtr->topicName = topic;
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   // Reset visualization
@@ -401,6 +381,8 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
   }
   this->dataPtr->visualDirty = false;
   gzmsg << "Subscribed to " << this->dataPtr->topicName << std::endl;
+
+  this->dataPtr->lidarEntityDirty = true;
 }
 
 //////////////////////////////////////////////////
@@ -489,27 +471,22 @@ void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
                                   this->dataPtr->msg.ranges().begin(),
                                   this->dataPtr->msg.ranges().end()));
 
-    this->dataPtr->visualDirty = true;
-
-    for (auto data_values : this->dataPtr->msg.header().data())
+    if (!math::equal(this->dataPtr->maxVisualRange,
+        this->dataPtr->msg.range_max()))
     {
-      if (data_values.key() == "frame_id")
-      {
-        if (this->dataPtr->lidarString.compare(
-                common::trimmed(data_values.value(0))) != 0)
-        {
-          this->dataPtr->lidarString = common::trimmed(data_values.value(0));
-          this->dataPtr->lidarEntityDirty = true;
-          this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
-          this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
-          this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
-          this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
-          this->MinRangeChanged();
-          this->MaxRangeChanged();
-          break;
-        }
-      }
+      this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
+      this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
+      this->MaxRangeChanged();
     }
+    if (!math::equal(this->dataPtr->minVisualRange,
+        this->dataPtr->msg.range_min()))
+    {
+      this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
+      this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
+      this->MinRangeChanged();
+    }
+
+    this->dataPtr->visualDirty = true;
   }
 }
 

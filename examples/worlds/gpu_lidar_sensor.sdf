@@ -22,6 +22,10 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>

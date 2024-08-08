@@ -387,6 +387,8 @@ rendering::MarkerType MarkerManagerPrivate::MsgToType(
       return rendering::MarkerType::MT_BOX;
     case msgs::Marker::CAPSULE:
       return rendering::MarkerType::MT_CAPSULE;
+    case msgs::Marker::CONE:
+      return rendering::MarkerType::MT_CONE;
     case msgs::Marker::CYLINDER:
       return rendering::MarkerType::MT_CYLINDER;
     case msgs::Marker::LINE_STRIP:

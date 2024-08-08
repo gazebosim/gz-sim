@@ -76,7 +76,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 };
 
 /////////////////////////////////////////////////
-TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdateRate))
+TEST_F(SensorsFixture, UpdateRate)
 {
   gz::sim::ServerConfig serverConfig;
 

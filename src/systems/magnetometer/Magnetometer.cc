@@ -98,7 +98,7 @@ static constexpr const int8_t inclination_table[13][37] = \
   { 71, 71, 72, 73, 75, 77, 78, 80, 81, 81, 80, 79, 77, 76, 74, 73, 73, 73, 73, 73, 73, 74, 74, 75, 76, 77, 78, 78, 78, 78, 77, 75, 73, 72, 71, 71, 71 },  // NOLINT
 };
 
-// strength data in centi-Tesla
+// strength data in centi gauss
 static constexpr const int8_t strength_table[13][37] = \
 {
   { 62, 60, 58, 56, 54, 52, 49, 46, 43, 41, 38, 36, 34, 32, 31, 31, 30, 30, 30, 31, 33, 35, 38, 42, 46, 51, 55, 59, 62, 64, 66, 67, 67, 66, 65, 64, 62 },  // NOLINT
@@ -133,6 +133,12 @@ class gz::sim::systems::MagnetometerPrivate
 
   /// True if the rendering component is initialized
   public: bool initialized = false;
+
+  /// \brief True if the magnetic field is reported in gauss rather than tesla.
+  public: bool useUnitsGauss = true;
+
+  /// \brief True if the magnetic field earth frame is NED rather than ENU.
+  public: bool useEarthFrameNED = true;
 
   /// \brief Create sensor
   /// \param[in] _ecm Immutable reference to ECM.
@@ -226,7 +232,7 @@ class gz::sim::systems::MagnetometerPrivate
     return get_table_data(lat, lon, inclination_table);
   }
 
-  // return magnetic field strength in centi-Tesla
+  // return magnetic field strength in centi-Gauss
   float get_mag_strength(float lat, float lon)
   {
     return get_table_data(lat, lon, strength_table);
@@ -241,6 +247,29 @@ Magnetometer::Magnetometer() : System(), dataPtr(
 
 //////////////////////////////////////////////////
 Magnetometer::~Magnetometer() = default;
+
+//////////////////////////////////////////////////
+void Magnetometer::Configure(const Entity &/*_entity*/,
+                           const std::shared_ptr<const sdf::Element> &_sdf,
+                           EntityComponentManager &/*_ecm*/,
+                           EventManager &/*_eventMgr*/)
+{
+    if (_sdf->HasElement("use_units_gauss"))
+    {
+      this->dataPtr->useUnitsGauss = _sdf->Get<bool>("use_units_gauss");
+    }
+    gzdbg << "Magnetometer: using param [use_units_gauss: "
+          << this->dataPtr->useUnitsGauss << "]."
+          << std::endl;
+
+    if (_sdf->HasElement("use_earth_frame_ned"))
+    {
+      this->dataPtr->useEarthFrameNED = _sdf->Get<bool>("use_earth_frame_ned");
+    }
+    gzdbg << "Magnetometer: using param [use_earth_frame_ned: "
+          << this->dataPtr->useEarthFrameNED << "]."
+          << std::endl;
+}
 
 //////////////////////////////////////////////////
 void Magnetometer::PreUpdate(const UpdateInfo &/*_info*/,
@@ -274,8 +303,8 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   this->dataPtr->CreateSensors(_ecm);
@@ -430,7 +459,7 @@ void MagnetometerPrivate::Update(
           auto latLonEle = sphericalCoordinates(_entity, _ecm);
           if (!latLonEle)
           {
-            gzwarn << "Failed to update NavSat sensor enity [" << _entity
+            gzwarn << "Failed to update Magnetometer sensor enity [" << _entity
                     << "]. Spherical coordinates not set." << std::endl;
             return true;
           }
@@ -446,16 +475,32 @@ void MagnetometerPrivate::Update(
             get_mag_inclination(
               lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
 
-          // Magnetic strength (10^5xnanoTesla)
+          // Magnetic strength in gauss (10^5 nano tesla = 10^-2 centi gauss)
           float strength_ga =
             0.01f *
             get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
 
-          // Magnetic filed components are calculated by http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
-          float H = strength_ga * cosf(inclination_rad);
-          float Z = tanf(inclination_rad) * H;
-          float X = H * cosf(declination_rad);
-          float Y = H * sinf(declination_rad);
+          // Magnetic intensity measured in telsa
+          float strength_tesla = 1.0E-4 * strength_ga;
+
+          // Magnetic field components are calculated in world NED frame using:
+          // http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
+          float H = cosf(inclination_rad);
+          H *= this->useUnitsGauss ? strength_ga : strength_tesla;
+          float Z_ned = tanf(inclination_rad) * H;
+          float X_ned = H * cosf(declination_rad);
+          float Y_ned = H * sinf(declination_rad);
+
+          float X = X_ned;
+          float Y = Y_ned;
+          float Z = Z_ned;
+          if (!this->useEarthFrameNED)
+          {
+            // Use ENU convention for earth frame.
+            X = Y_ned;
+            Y = X_ned;
+            Z = -1.0 * Z_ned;
+          }
 
           math::Vector3d magnetic_field_I(X, Y, Z);
           it->second->SetWorldMagneticField(magnetic_field_I);
@@ -494,6 +539,7 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
 }
 
 GZ_ADD_PLUGIN(Magnetometer, System,
+  Magnetometer::ISystemConfigure,
   Magnetometer::ISystemPreUpdate,
   Magnetometer::ISystemPostUpdate
 )

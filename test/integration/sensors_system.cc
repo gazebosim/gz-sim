@@ -183,7 +183,7 @@ void testDefaultTopics(const std::vector<std::string> &_topics)
 /////////////////////////////////////////////////
 /// This test checks that that the sensors system handles cases where entities
 /// are removed and then added back
-TEST_F(SensorsFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleRemovedEntities))
+TEST_F(SensorsFixture, HandleRemovedEntities)
 {
   gz::sim::ServerConfig serverConfig;
 

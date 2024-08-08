@@ -68,6 +68,23 @@ ToolBar {
       }
     }
     ToolButton {
+      id: cone
+      ToolTip.text: "Cone"
+      ToolTip.visible: hovered
+      ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+      contentItem: Image {
+        fillMode: Image.Pad
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment: Image.AlignVCenter
+        source: "cone.png"
+        sourceSize.width: 24;
+        sourceSize.height: 24;
+      }
+      onClicked: {
+        Shapes.OnMode("cone")
+      }
+    }
+    ToolButton {
       id: cylinder
       ToolTip.text: "Cylinder"
       ToolTip.visible: hovered

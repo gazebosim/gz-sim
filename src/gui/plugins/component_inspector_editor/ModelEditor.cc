@@ -32,6 +32,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/Sphere.hh>
@@ -329,6 +330,14 @@ std::optional<sdf::Geometry> ModelEditorPrivate::CreateGeom(
     shape.SetRadius(size.X() * 0.5);
     geom.SetSphereShape(shape);
     geom.SetType(sdf::GeometryType::SPHERE);
+  }
+  else if (_eta.geomOrLightType == "cone")
+  {
+    sdf::Cone shape;
+    shape.SetRadius(size.X() * 0.5);
+    shape.SetLength(size.Z());
+    geom.SetConeShape(shape);
+    geom.SetType(sdf::GeometryType::CONE);
   }
   else if (_eta.geomOrLightType == "cylinder")
   {

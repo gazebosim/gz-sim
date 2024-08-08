@@ -11,6 +11,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage gui_config "GUI configuration": Customizing your layout.
 * \subpage server_config "Server configuration": Customizing what system plugins are loaded.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
+* \subpage pause_run_simulation "Pause and Run simulation": Use Gazebo transport API to pause and run simulation.
 * \subpage reset_simulation Reset simulation
 * \subpage resources "Finding resources": The different ways in which Gazebo looks for files.
 * \subpage debugging "Debugging": Information about debugging Gazebo.

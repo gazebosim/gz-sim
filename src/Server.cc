@@ -159,7 +159,8 @@ Server::Server(const ServerConfig &_config)
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
-          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY) {
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }

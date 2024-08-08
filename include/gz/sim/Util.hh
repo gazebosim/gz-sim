@@ -316,6 +316,13 @@ namespace gz
     /// \return The loaded mesh or null if the mesh can not be loaded.
     GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
+    /// \brief Optimize input mesh.
+    /// \param[in] _meshSdf Mesh SDF DOM with mesh optimization parameters
+    /// \param[in] _mesh Input mesh to optimize.
+    /// \return The optimized mesh or null if the mesh can not be optimized.
+    GZ_SIM_VISIBLE const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
+        const common::Mesh &_mesh);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
 

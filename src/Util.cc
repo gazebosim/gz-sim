@@ -15,12 +15,17 @@
  *
 */
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/SubMesh.hh>
 #include <gz/common/URI.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
@@ -862,8 +867,109 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
            << "]." << std::endl;
     return nullptr;
   }
+
+  if (mesh && _meshSdf.Optimization() != sdf::MeshOptimization::NONE)
+  {
+    const common::Mesh *optimizedMesh = optimizeMesh(_meshSdf, *mesh);
+    if (optimizedMesh)
+      return optimizedMesh;
+    else
+      gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
+  }
+
   return mesh;
 }
+
+const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
+    const common::Mesh &_mesh)
+{
+  if (_meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_DECOMPOSITION &&
+      _meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_HULL)
+    return nullptr;
+
+  auto &meshManager = *common::MeshManager::Instance();
+  std::size_t maxConvexHulls = 16u;
+  std::size_t voxelResolution = 200000u;
+  if (_meshSdf.ConvexDecomposition())
+  {
+    // limit max number of convex hulls to generate
+    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
+    voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
+  }
+  if (_meshSdf.Optimization() == sdf::MeshOptimization::CONVEX_HULL)
+  {
+    /// create 1 convex hull for the whole submesh
+    maxConvexHulls = 1u;
+  }
+
+  // Check if MeshManager contains the decomposed mesh already. If not
+  // add it to the MeshManager so we do not need to decompose it again.
+  const std::string convexMeshName =
+      _mesh.Name() + "_" + _meshSdf.Submesh() + "_CONVEX_" +
+      std::to_string(maxConvexHulls) + "_" + std::to_string(voxelResolution);
+  auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
+  if (!optimizedMesh)
+  {
+    std::unique_ptr<common::Mesh> meshToDecompose =
+        std::make_unique<common::Mesh>();
+    // check if a particular submesh is requested
+    if (!_meshSdf.Submesh().empty())
+    {
+      for (unsigned int submeshIdx = 0;
+           submeshIdx < _mesh.SubMeshCount();
+           ++submeshIdx)
+      {
+        auto submesh = _mesh.SubMeshByIndex(submeshIdx).lock();
+        if (submesh->Name() == _meshSdf.Submesh())
+        {
+          if (_meshSdf.CenterSubmesh())
+            submesh->Center(math::Vector3d::Zero);
+          meshToDecompose->AddSubMesh(*submesh.get());
+          break;
+        }
+      }
+    }
+    else
+    {
+      // Merge meshes before convex decomposition
+      meshToDecompose =
+           gz::common::MeshManager::MergeSubMeshes(_mesh);
+    }
+
+    if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
+    {
+      // Decompose and add mesh to MeshManager
+      auto mergedSubmesh = meshToDecompose->SubMeshByIndex(0u).lock();
+      std::vector<common::SubMesh> decomposed =
+        gz::common::MeshManager::ConvexDecomposition(
+        *mergedSubmesh.get(), maxConvexHulls, voxelResolution);
+      gzdbg << "Optimizing mesh (" << _meshSdf.OptimizationStr() << "): "
+            <<  _mesh.Name() << std::endl;
+      // Create decomposed mesh and add it to MeshManager
+      // Note: MeshManager will call delete on this mesh in its destructor
+      // \todo(iche033) Consider updating MeshManager to accept
+      // unique pointers instead
+      common::Mesh *convexMesh = new common::Mesh;
+      convexMesh->SetName(convexMeshName);
+      for (const auto & submesh : decomposed)
+        convexMesh->AddSubMesh(submesh);
+      meshManager.AddMesh(convexMesh);
+      if (decomposed.empty())
+      {
+        // Print an error if convex decomposition returned empty submeshes
+        // but still add it to MeshManager to avoid going through the
+        // expensive convex decomposition process for the same mesh again
+        gzerr << "Convex decomposition generated zero meshes: "
+               << _mesh.Name() << std::endl;
+      }
+      optimizedMesh = meshManager.MeshByName(convexMeshName);
+    }
+  }
+  return optimizedMesh;
+}
+
 }
 }
 }

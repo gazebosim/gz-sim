@@ -204,6 +204,15 @@ Rectangle {
 
           MenuItem
           {
+            id: cone
+            text: "Cone"
+            onClicked: {
+              EntityTree.OnInsertEntity("cone")
+            }
+          }
+
+          MenuItem
+          {
             id: cylinder
             text: "Cylinder"
             onClicked: {

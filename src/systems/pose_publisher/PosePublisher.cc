@@ -252,8 +252,7 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
-  poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
+  std::string poseTopic = topicFromScopedName(_entity, _ecm, false) + "/pose";
   if (poseTopic.empty())
   {
     poseTopic = "/pose";
@@ -297,8 +296,8 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // Nothing left to do if paused.
