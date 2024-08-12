@@ -271,7 +271,7 @@ TEST_F(DetachableJointTest, NestedModelsWithSameName)
   const std::size_t nIters{20};
   this->server->Run(true, nIters, false);
 
-  // Both children of model1 and model4 should not move as they are held
+  // Children of model4 and model5 should not move as they are held
   // in place
   EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
   EXPECT_EQ(childM5Poses.front(), childM5Poses.back());
@@ -282,9 +282,11 @@ TEST_F(DetachableJointTest, NestedModelsWithSameName)
   pub.Publish(msgs::Empty());
   std::this_thread::sleep_for(250ms);
 
-  // Release M5's
   this->server->Run(true, nIters, false);
-  EXPECT_LT(childM5Poses.back().Z(), childM4Poses.front().Z());
+  // M5 and M4 start at the same height
+  // Only M5 should fall.
+  EXPECT_LT(childM5Poses.back().Z(), childM4Poses.back().Z());
+  EXPECT_LT(childM5Poses.back().Z(), childM5Poses.front().Z());
   EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
 }
  /////////////////////////////////////////////////
