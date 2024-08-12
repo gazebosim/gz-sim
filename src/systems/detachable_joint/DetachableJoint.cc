@@ -234,8 +234,20 @@ void DetachableJoint::PreUpdate(
     }
     else
     {
-      auto candidateEntities = entitiesFromScopedName(
+      auto entitiesMatchingName = entitiesFromScopedName(
         this->childModelName, _ecm);
+
+      // TODO(arjoc): There is probably a more efficient way of combining entitiesFromScopedName
+      // With filtering.
+      // Filter for entities with only models
+      std::vector<Entity> candidateEntities;
+      for (const auto entity: entitiesMatchingName)
+      {
+        if (_ecm.EntityHasComponentType(entity, components::Model::typeId))
+        {
+          candidateEntities.push_back(entity);
+        }
+      }
 
       if (candidateEntities.size() == 1)
       {
@@ -244,6 +256,7 @@ void DetachableJoint::PreUpdate(
       }
       else
       {
+        std::string selectedModelName;
         auto parentEntityScopedPath = scopedName(this->model.Entity(), _ecm);
         // If there is more than one entity with the same name, look for the
         // entity with a parent component.
@@ -258,7 +271,31 @@ void DetachableJoint::PreUpdate(
           {
             continue;
           }
-          modelEntity = entity;
+          if (modelEntity == kNullEntity)
+          {
+
+            this->childLinkEntity = _ecm.EntityByComponents(
+                      components::Link(), components::ParentEntity(entity),
+                      components::Name(this->childLinkName));
+
+            if (kNullEntity != this->childLinkEntity)
+            {
+                  // Only select child entity if tbe entity has a link
+                  modelEntity = entity;
+                  selectedModelName = childEntityScope;
+                  igndbg << "Selecting " << childEntityScope << " as model to be detached" << std::endl;
+            }
+            else
+            {
+              ignwarn << "Found " << childEntityScope << " with no link named " << this->childLinkName <<std::endl;
+              this->suppressChildWarning = true;
+            }
+          }
+          else
+          {
+            ignwarn << "Found multiple models skipping " << childEntityScope
+              << "Using " << selectedModelName << " instead" << std::endl;
+          }
         }
       }
     }
