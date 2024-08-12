@@ -100,7 +100,14 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
-  this->worldName = _world.Name();
+  this->worldName = transport::TopicUtils::AsValidTopic(_world.Name());
+
+  if (this->worldName.empty())
+  {
+    gzerr << "Can't start simulation runner with this world name ["
+          << _world.Name() << "]." << std::endl;
+    return;
+  }
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(
