@@ -100,11 +100,17 @@ ServerPrivate::~ServerPrivate()
 {
   this->Stop();
   if (this->runThread.joinable())
+  {
     this->runThread.join();
+  }
   if (this->stopThread && this->stopThread->joinable())
+  {
     this->stopThread->join();
+  }
   if (this->downloadThread.joinable())
+  {
     this->downloadThread.join();
+  }
 }
 
 //////////////////////////////////////////////////
