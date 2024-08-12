@@ -247,6 +247,11 @@ void DetachableJoint::PreUpdate(
         {
           candidateEntities.push_back(entity);
         }
+        else
+        {
+          ignwarn << "Found entity " << scopedName(entity, _ecm)
+            << " but it is not a model." << std::endl;
+        }
       }
 
       if (candidateEntities.size() == 1)
