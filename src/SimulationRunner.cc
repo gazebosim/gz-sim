@@ -18,6 +18,9 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#ifdef HAVE_PYBIND11
+#include <pybind11/pybind11.h>
+#endif
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
@@ -48,7 +51,7 @@
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
-
+#include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
@@ -56,6 +59,37 @@ using namespace gz;
 using namespace sim;
 
 using StringSet = std::unordered_set<std::string>;
+
+namespace {
+#ifdef HAVE_PYBIND11
+// Helper struct to maybe do a scoped release of the Python GIL. There are a
+// number of ways where releasing and acquiring the GIL is not necessary:
+// 1. Gazebo is built without Pybind11
+// 2. The python interpreter is not initialized. This could happen in tests that
+//    create a SimulationRunner without sim::Server where the interpreter is
+//    intialized.
+// 3. sim::Server was instantiated by a Python module. In this case, there's a
+//    chance that this would be called with the GIL already released.
+struct MaybeGilScopedRelease
+{
+  MaybeGilScopedRelease()
+  {
+    if (Py_IsInitialized() != 0 && PyGILState_Check() == 1)
+    {
+      this->release.emplace();
+    }
+  }
+  std::optional<pybind11::gil_scoped_release> release;
+};
+#else
+  struct MaybeGilScopedRelease
+  {
+    // The empty constructor is needed to avoid an "unused variable" warning
+    // when an instance of this class is used.
+    MaybeGilScopedRelease(){}
+  };
+#endif
+}
 
 
 //////////////////////////////////////////////////
@@ -66,7 +100,15 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
-  this->worldName = _world.Name();
+  this->worldName = transport::TopicUtils::AsValidTopic(_world->Name());
+
+  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
+  if (this->worldName.empty())
+  {
+    gzerr << "Can't start simulation runner with this world name ["
+          << worldName << "]." << std::endl;
+    return;
+  }
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(
@@ -400,6 +442,8 @@ void SimulationRunner::PublishStats()
 
   msg.set_paused(this->currentInfo.paused);
 
+  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
+
   if (this->Stepping())
   {
     // (deprecated) Remove this header in Gazebo H
@@ -551,6 +595,10 @@ void SimulationRunner::UpdateSystems()
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
     {
+      // Release the GIL from the main thread to run PostUpdate threads which
+      // might be calling into python. The system that does call into python
+      // needs to lock the GIL from its thread.
+      MaybeGilScopedRelease release;
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }
@@ -650,7 +698,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     // Check for the existence of other publishers on `/stats`
     std::vector<transport::MessagePublisher> publishers;
-    this->node->TopicInfo("/stats", publishers);
+    std::vector<transport::MessagePublisher> subscribers;
+    this->node->TopicInfo("/stats", publishers, subscribers);
 
     if (!publishers.empty())
     {
@@ -683,7 +732,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   {
     // Check for the existence of other publishers on `/clock`
     std::vector<transport::MessagePublisher> publishers;
-    this->node->TopicInfo("/clock", publishers);
+    std::vector<transport::MessagePublisher> subscribers;
+    this->node->TopicInfo("/clock", publishers, subscribers);
 
     if (!publishers.empty())
     {

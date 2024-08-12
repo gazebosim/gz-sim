@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -41,6 +40,7 @@
 #include <gz/sensors/RgbdCameraSensor.hh>
 #include <gz/sensors/ThermalCameraSensor.hh>
 #include <gz/sensors/SegmentationCameraSensor.hh>
+#include <gz/sensors/Sensor.hh>
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
 
@@ -51,6 +51,7 @@
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/RgbdCamera.hh"
@@ -226,6 +227,9 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Check if any of the sensors have connections
   public: bool SensorsHaveConnections();
+
+  /// \brief Returns all sensors that have a pending trigger
+  public: std::unordered_set<sensors::SensorId> SensorsWithPendingTrigger();
 
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
@@ -434,6 +438,7 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->scene.reset();
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
 }
@@ -528,6 +533,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   std::string engineName =
       _sdf->Get<std::string>("render_engine", "ogre2").first;
 
+  std::string apiBackend =
+    _sdf->Get<std::string>("render_engine_api_backend", "").first;
+
   // get whether or not to disable sensor when model battery is drained
   this->dataPtr->disableOnDrainedBattery =
       _sdf->Get<bool>("disable_on_drained_battery",
@@ -542,6 +550,11 @@ void Sensors::Configure(const Entity &/*_id*/,
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
+#ifdef __APPLE__
+  if (apiBackend.empty())
+    apiBackend = "metal";
+#endif
+  this->dataPtr->renderUtil.SetApiBackend(apiBackend);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -569,6 +582,16 @@ void Sensors::Configure(const Entity &/*_id*/,
     if (renderEngineServerComp && !renderEngineServerComp->Data().empty())
     {
       this->dataPtr->renderUtil.SetEngineName(renderEngineServerComp->Data());
+    }
+
+    // Set API backend if specified from command line
+    auto renderEngineServerApiBackendComp =
+      _ecm.Component<components::RenderEngineServerApiBackend>(worldEntity);
+    if (renderEngineServerApiBackendComp &&
+        !renderEngineServerApiBackendComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetApiBackend(
+        renderEngineServerApiBackendComp->Data());
     }
 
     // Set headless mode if specified from command line
@@ -725,11 +748,15 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
           this->dataPtr->sensorsToUpdate, _info.simTime);
     }
 
+    std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
+        this->dataPtr->SensorsWithPendingTrigger();
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
-        this->dataPtr->forceUpdate)
+        this->dataPtr->forceUpdate ||
+        !sensorsWithPendingTriggers.empty())
     {
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
@@ -749,6 +776,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
         this->dataPtr->activeSensors =
             std::move(this->dataPtr->sensorsToUpdate);
+        // Add all sensors that have pending triggers.
+        this->dataPtr->activeSensors.insert(sensorsWithPendingTriggers.begin(),
+                                            sensorsWithPendingTriggers.end());
       }
 
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
@@ -765,6 +795,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         std::unique_lock<std::mutex> timeLock(this->dataPtr->renderUtilMutex);
         this->dataPtr->updateTimeToApply = this->dataPtr->updateTime;
       }
+
       {
         std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
         this->dataPtr->updateAvailable = true;
@@ -1054,6 +1085,27 @@ bool SensorsPrivate::SensorsHaveConnections()
   return false;
 }
 
+//////////////////////////////////////////////////
+std::unordered_set<sensors::SensorId>
+SensorsPrivate::SensorsWithPendingTrigger()
+{
+  std::unordered_set<sensors::SensorId> sensorsWithPendingTrigger;
+  for (auto id : this->sensorIds)
+  {
+    sensors::Sensor *s = this->sensorManager.Sensor(id);
+    if (nullptr == s)
+    {
+      continue;
+    }
+
+    if (s->HasPendingTrigger())
+    {
+      sensorsWithPendingTrigger.insert(id);
+    }
+  }
+  return sensorsWithPendingTrigger;
+}
+
 GZ_ADD_PLUGIN(Sensors, System,
   Sensors::ISystemConfigure,
   Sensors::ISystemReset,
@@ -1062,6 +1114,3 @@ GZ_ADD_PLUGIN(Sensors, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(Sensors, "gz::sim::systems::Sensors")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Sensors, "ignition::gazebo::systems::Sensors")

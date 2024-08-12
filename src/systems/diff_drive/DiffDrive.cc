@@ -17,7 +17,12 @@
 
 #include "DiffDrive.hh"
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -454,17 +459,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd({this->dataPtr->leftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->leftJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->rightJoints)
@@ -474,17 +470,8 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
       continue;
 
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->rightJointSpeed});
   }
 
   // Create the left and right side joint position components if they
@@ -676,6 +663,3 @@ GZ_ADD_PLUGIN(DiffDrive,
                     DiffDrive::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(DiffDrive, "ignition::gazebo::systems::DiffDrive")

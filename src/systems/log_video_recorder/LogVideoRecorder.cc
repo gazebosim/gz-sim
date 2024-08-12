@@ -17,8 +17,11 @@
 
 #include "LogVideoRecorder.hh"
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
 #include <gz/msgs/scene.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/video_record.pb.h>
 
 #include <chrono>
 #include <set>
@@ -449,7 +452,3 @@ GZ_ADD_PLUGIN(LogVideoRecorder,
 // namespace
 GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
                           "gz::sim::systems::LogVideoRecorder")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogVideoRecorder,
-                          "ignition::gazebo::systems::LogVideoRecorder")

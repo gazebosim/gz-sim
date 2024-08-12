@@ -50,15 +50,6 @@ class gz::sim::gui::events::ModelEditorAddEntity::Implementation
   public: gz::sim::Entity parent;
 };
 
-class gz::sim::gui::events::VisualPlugin::Implementation
-{
-  /// \brief Entity to load the visual plugin for
-  public: gz::sim::Entity entity;
-
-  /// \brief Sdf element of the visual plugin
-  public: sdf::ElementPtr element;
-};
-
 class gz::sim::gui::events::VisualPlugins::Implementation
 {
   /// \brief Entity to load the visual plugin for
@@ -149,27 +140,6 @@ gz::sim::Entity ModelEditorAddEntity::ParentEntity() const
 QMap<QString, QString> &ModelEditorAddEntity::Data()
 {
   return this->dataPtr->data;
-}
-
-/////////////////////////////////////////////////
-VisualPlugin::VisualPlugin(gz::sim::Entity _entity,
-    const sdf::ElementPtr &_elem) :
-    QEvent(kType), dataPtr(utils::MakeImpl<Implementation>())
-{
-  this->dataPtr->entity = _entity;
-  this->dataPtr->element = _elem;
-}
-
-/////////////////////////////////////////////////
-gz::sim::Entity VisualPlugin::Entity() const
-{
-  return this->dataPtr->entity;
-}
-
-/////////////////////////////////////////////////
-sdf::ElementPtr VisualPlugin::Element() const
-{
-  return this->dataPtr->element;
 }
 
 /////////////////////////////////////////////////

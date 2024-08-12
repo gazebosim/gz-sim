@@ -13,17 +13,17 @@ RUN apt-get update \
  && apt-get install -y \
     libgz-cmake3-dev \
     libgz-common5-dev \
-    libgz-fuel-tools8-dev \
+    libgz-fuel-tools9-dev \
     libgz-math7-eigen3-dev \
     libgz-plugin2-dev \
-    libgz-physics6-dev \
-    libgz-rendering7-dev \
+    libgz-physics7-dev \
+    libgz-rendering8-dev \
     libgz-tools2-dev \
-    libgz-transport12-dev \
-    libgz-gui7-dev \
-    libgz-msgs9-dev \
-    libgz-sensors7-dev \
-    libsdformat13-dev
+    libgz-transport13-dev \
+    libgz-gui8-dev \
+    libgz-msgs10-dev \
+    libgz-sensors8-dev \
+    libsdformat14-dev
 
 COPY . gz-sim
 RUN cd gz-sim \

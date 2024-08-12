@@ -95,14 +95,6 @@ TEST(SystemLoader, FromPluginPathEnv)
   const auto libPath = common::joinPaths(PROJECT_BINARY_PATH, kPluginDir);
 
   {
-    common::setenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH", libPath.c_str());
-
-    gz::sim::SystemLoader sm;
-    auto system = sm.LoadPlugin(plugin);
-    EXPECT_TRUE(system.has_value());
-    EXPECT_TRUE(common::unsetenv("IGN_GAZEBO_SYSTEM_PLUGIN_PATH"));
-  }
-  {
     common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH", libPath.c_str());
 
     gz::sim::SystemLoader sm;

@@ -18,13 +18,14 @@
 #ifndef GZ_SIM_MSGMANAGER_HH_
 #define GZ_SIM_MSGMANAGER_HH_
 
+#include <gz/msgs/dataframe.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <deque>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
-#include <gz/msgs/dataframe.pb.h>
-#include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ImplPtr.hh>
 #include "gz/sim/config.hh"
@@ -33,18 +34,12 @@
 
 namespace gz
 {
-namespace msgs
-{
-  // Forward declarations.
-  class Dataframe;
-}
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace comms
 {
-
 /// \brief A queue of message pointers.
 using DataQueue = std::deque<msgs::DataframeSharedPtr>;
 

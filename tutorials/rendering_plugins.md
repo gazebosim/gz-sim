@@ -4,7 +4,7 @@ This tutorial will go over how to write Gazebo plugins that alter the
 3D scene's visual appearance using Gazebo Rendering APIs.
 
 This is not to be confused with integrating a new rendering engine. See
-[How to write your own rendering engine plugin](https://gazebosim.org/api/rendering/4.2/renderingplugin.html)
+[How to write your own rendering engine plugin](https://gazebosim.org/api/rendering/8/renderingplugin.html)
 for that.
 
 This tutorial will go over a couple of example plugins that are located at
@@ -45,8 +45,7 @@ To interact with the server-side scene, you'll need to write an
 See [Create System Plugins](createsystemplugins.html).
 
 To interact with the client-side scene, you'll need to write an
-[gz::gui::Plugin](https://gazebosim.org/api/gui/4.1/classignition_1_1gui_1_1Plugin.html),
-or a more specialized `gz::sim::GuiSystem`
+\ref gz::gui::Plugin, or a more specialized `gz::sim::GuiSystem`
 if you need to access entities and components.
 See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/gui_system_plugin).
 
@@ -71,8 +70,7 @@ different for each plugin type.
 
 ### Render events on the GUI
 
-The GUI plugin will need to listen to
-[gz::gui::events::Render](https://gazebosim.org/api/gui/4.1/classignition_1_1gui_1_1events_1_1Render.html)
+The GUI plugin will need to listen to \ref gz::gui::events::Render
 events. Here's how to do it:
 
 1. Include the GUI events header:

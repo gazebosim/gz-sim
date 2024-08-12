@@ -91,7 +91,3 @@ GZ_ADD_PLUGIN(ThermalSensor, System,
 
 GZ_ADD_PLUGIN_ALIAS(ThermalSensor,
     "gz::sim::systems::ThermalSensor")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ThermalSensor,
-    "ignition::gazebo::systems::ThermalSensor")

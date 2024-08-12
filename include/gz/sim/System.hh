@@ -102,7 +102,7 @@ namespace gz
                   EventManager &_eventMgr) = 0;
     };
 
-    /// \class ISystemConfigureParameters ISystem.hh ignition/gazebo/System.hh
+    /// \class ISystemConfigureParameters ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that declares parameters.
     ///
     /// ISystemConfigureParameters::ConfigureParameters is called after

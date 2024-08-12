@@ -16,7 +16,13 @@
 */
 
 #include <gtest/gtest.h>
+
 #include <tinyxml2.h>
+
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -32,8 +38,8 @@
 #include <sdf/Root.hh>
 #include <sdf/Sphere.hh>
 
-
 #include "test_config.hh"
+
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
@@ -1277,19 +1283,6 @@ TEST_P(SimulationRunnerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadPlugins) )
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(visualComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(visualId,
       visualComponentId));
-
-  // Clang re-registers components between tests. If we don't unregister them
-  // beforehand, the new plugin tries to create a storage type from a previous
-  // plugin, causing a crash.
-  // Is this only a problem with GTest, or also during simulation? How to
-  // reproduce? Maybe we need to test unloading plugins, but we have no API for
-  // it yet.
-  #if defined (__clang__)
-    Factory::Instance()->Unregister(worldComponentId);
-    Factory::Instance()->Unregister(modelComponentId);
-    Factory::Instance()->Unregister(sensorComponentId);
-    Factory::Instance()->Unregister(visualComponentId);
-  #endif
 }
 
 /////////////////////////////////////////////////
@@ -1402,18 +1395,6 @@ TEST_P(SimulationRunnerTest,
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(sensorComponentId));
   EXPECT_TRUE(runner.EntityCompMgr().EntityHasComponentType(sensorId,
       sensorComponentId));
-
-  // Clang re-registers components between tests. If we don't unregister them
-  // beforehand, the new plugin tries to create a storage type from a previous
-  // plugin, causing a crash.
-  // Is this only a problem with GTest, or also during simulation? How to
-  // reproduce? Maybe we need to test unloading plugins, but we have no API for
-  // it yet.
-  #if defined (__clang__)
-    Factory::Instance()->Unregister(worldComponentId);
-    Factory::Instance()->Unregister(modelComponentId);
-    Factory::Instance()->Unregister(sensorComponentId);
-  #endif
 }
 
 /////////////////////////////////////////////////

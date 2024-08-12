@@ -53,7 +53,7 @@ plugin will also affect the final resulting background color on the images.
 
 ```
 <include>
-  <uri>https://fuel.ignitionrobotics.org/1.0/OpenRobotics/models/Robonaut</uri>
+  <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Robonaut</uri>
   <plugin
     filename="gz-sim-model-photo-shoot-system"
     name="gz::sim::systems::ModelPhotoShoot">

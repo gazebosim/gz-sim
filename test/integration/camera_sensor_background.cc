@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include <string>
-
 #include <gz/msgs/image.pb.h>
+
+#include <string>
 
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>

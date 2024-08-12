@@ -185,7 +185,3 @@ GZ_ADD_PLUGIN(KineticEnergyMonitor,
 
 GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
   "gz::sim::systems::KineticEnergyMonitor")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(KineticEnergyMonitor,
-  "ignition::gazebo::systems::KineticEnergyMonitor")

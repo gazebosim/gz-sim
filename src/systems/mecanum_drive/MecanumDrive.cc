@@ -18,6 +18,8 @@
 #include "MecanumDrive.hh"
 
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <limits>
 #include <mutex>
@@ -424,66 +426,29 @@ void MecanumDrive::PreUpdate(const gz::sim::UpdateInfo &_info,
   for (Entity joint : this->dataPtr->frontLeftJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->frontLeftJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->frontLeftJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->frontRightJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed}));
-    }
-    else
-    {
-      *vel =
-          components::JointVelocityCmd({this->dataPtr->frontRightJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->frontRightJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->backLeftJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->backLeftJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->backLeftJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->backRightJoints)
   {
     // Update wheel velocity
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd({this->dataPtr->backRightJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd({this->dataPtr->backRightJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
+      {this->dataPtr->backRightJointSpeed});
   }
 }
 
@@ -563,7 +528,3 @@ GZ_ADD_PLUGIN(MecanumDrive,
 
 GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
                           "gz::sim::systems::MecanumDrive")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(MecanumDrive,
-                          "ignition::gazebo::systems::MecanumDrive")

@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="world_test">
+
+    <light type="point" name="light_point_test">
+      <pose>0 2 2 0 0 0</pose>
+      <diffuse>1 0 0 1</diffuse>
+      <specular>0.2 0 0 1</specular>
+      <intensity>2</intensity>
+      <attenuation>
+        <range>20</range>
+        <linear>0.2</linear>
+        <constant>0.8</constant>
+        <quadratic>0.01</quadratic>
+      </attenuation>
+      <cast_shadows>true</cast_shadows>
+    </light>
+
+    <light type="directional" name="light_directional_test">
+      <direction>0.5 0.5 -1</direction>
+    </light>
+
+    <light type="spot" name="light_spot_test">
+      <spot>
+        <inner_angle>10</inner_angle>
+        <outer_angle>5</outer_angle>
+        <falloff>2</falloff>
+      </spot>
+    </light>
+
+  </world>
+</sdf>

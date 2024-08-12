@@ -7,7 +7,7 @@
 if [ $# -eq 0 ]
 then
     echo "Usage: $0 <Gazebo meta-package name> <dockerfile>"
-    echo "Example: $0 ignition-blueprint ./Dockerfile.gz"
+    echo "Example: $0 gz-garden ./Dockerfile.gz"
     exit 1
 fi
 

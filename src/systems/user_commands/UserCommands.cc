@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2024 CogniPilot Foundation
+ * Copyright (C) 2024 Rudis Laboratories LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +31,15 @@
 #endif
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory_v.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
+#include <gz/msgs/physics.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
-#include <gz/msgs/physics.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
 #include <gz/msgs/visual.pb.h>
 #include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
@@ -42,6 +48,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include <gz/math/Color.hh>
 #include <gz/math/SphericalCoordinates.hh>
 #include <gz/msgs/Utility.hh>
 
@@ -112,6 +119,9 @@ class UserCommandsInterface
   /// \return True if a contact sensor is connected to the collision entity,
   /// false otherwise
   public: bool HasContactSensor(const Entity _collision);
+
+  /// \brief Bool to set all matching light entities.
+  public: bool setAllLightEntities = false;
 };
 
 /// \brief All user commands should inherit from this class so they can be
@@ -323,6 +333,12 @@ class VisualCommand : public UserCommandBase
   public: VisualCommand(msgs::Visual *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Constructor
+  /// \param[in] _msg Message containing the material color parameters.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: VisualCommand(msgs::MaterialColor *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
   // Documentation inherited
   public: bool Execute() final;
 
@@ -454,6 +470,10 @@ class gz::sim::systems::UserCommandsPrivate
   /// \brief Callback for light subscription
   /// \param[in] _msg Light message
   public: void OnCmdLight(const msgs::Light &_msg);
+
+  /// \brief Callback for MaterialColor subscription
+  /// \param[in] _msg MaterialColor message
+  public: void OnCmdMaterialColor(const msgs::MaterialColor &_msg);
 
   /// \brief Callback for pose service
   /// \param[in] _req Request containing pose update of an entity.
@@ -593,7 +613,7 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 
 //////////////////////////////////////////////////
 void UserCommands::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &,
+    const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &_eventManager)
 {
@@ -645,7 +665,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Pose vector service
   std::string poseVectorService{
-    "/world/" + worldName + "/set_pose_vector"};
+    "/world/" + validWorldName + "/set_pose_vector"};
   this->dataPtr->node.Advertise(poseVectorService,
       &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
 
@@ -662,6 +682,20 @@ void UserCommands::Configure(const Entity &_entity,
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
                                 this->dataPtr.get());
+
+  if (_sdf->HasElement("set_all_light_entities"))
+  {
+    this->dataPtr->iface->setAllLightEntities =
+      _sdf->Get<bool>("set_all_light_entities");
+    gzdbg << "Set all light entities: "
+          << this->dataPtr->iface->setAllLightEntities
+          << std::endl;
+  }
+
+  std::string materialColorTopic{
+    "/world/" + validWorldName + "/material_color"};
+  this->dataPtr->node.Subscribe(materialColorTopic,
+      &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 
   // Physics service
   std::string physicsService{"/world/" + validWorldName + "/set_physics"};
@@ -699,7 +733,7 @@ void UserCommands::Configure(const Entity &_entity,
 
   // Visual service
   std::string visualService
-      {"/world/" + worldName + "/visual_config"};
+      {"/world/" + validWorldName + "/visual_config"};
   this->dataPtr->node.Advertise(visualService,
       &UserCommandsPrivate::VisualService, this->dataPtr.get());
 
@@ -837,7 +871,6 @@ void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
   }
 }
 
-
 //////////////////////////////////////////////////
 bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
     msgs::Boolean &_res)
@@ -948,6 +981,21 @@ bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
 
   _res.set_data(true);
   return true;
+}
+
+//////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
+{
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  return;
 }
 
 //////////////////////////////////////////////////
@@ -1325,79 +1373,142 @@ LightCommand::LightCommand(msgs::Light *_msg,
 //////////////////////////////////////////////////
 bool LightCommand::Execute()
 {
-  auto lightMsg = dynamic_cast<const msgs::Light *>(this->msg);
+  auto lightMsg = dynamic_cast<msgs::Light *>(this->msg);
   if (nullptr == lightMsg)
   {
     gzerr << "Internal error, null light message" << std::endl;
     return false;
   }
-
-  Entity lightEntity{kNullEntity};
-
-  if (lightMsg->id() != kNullEntity)
+  Entity lightEntity = kNullEntity;
+  if (this->iface->setAllLightEntities)
   {
-    lightEntity = lightMsg->id();
-  }
-  else if (!lightMsg->name().empty())
-  {
-    if (lightMsg->parent_id() != kNullEntity)
+    auto entities = entitiesFromScopedName(lightMsg->name(),
+        *this->iface->ecm);
+    if (entities.empty())
     {
-      lightEntity = this->iface->ecm->EntityByComponents(
-        components::Name(lightMsg->name()),
-        components::ParentEntity(lightMsg->parent_id()));
+      gzwarn << "Entity name: " << lightMsg->name() << ", is not found."
+             << std::endl;
+      return false;
     }
-    else
+    for (const Entity &id : entities)
     {
-      lightEntity = this->iface->ecm->EntityByComponents(
-        components::Name(lightMsg->name()));
+      lightEntity = kNullEntity;
+      lightMsg->set_id(id);
+      if (lightMsg->id() != kNullEntity)
+      {
+        lightEntity = lightMsg->id();
+      }
+      if (!lightEntity)
+      {
+        gzmsg << "Failed to find light entity named [" << lightMsg->name()
+          << "]." << std::endl;
+        return false;
+      }
+
+      auto lightPose =
+        this->iface->ecm->Component<components::Pose>(lightEntity);
+      if (nullptr == lightPose)
+      {
+        lightEntity = kNullEntity;
+      }
+
+      if (!lightEntity)
+      {
+        gzmsg << "Pose component not available" << std::endl;
+        return false;
+      }
+
+      if (lightMsg->has_pose())
+      {
+        lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+      }
+
+      auto lightCmdComp =
+        this->iface->ecm->Component<components::LightCmd>(lightEntity);
+      if (!lightCmdComp)
+      {
+        this->iface->ecm->CreateComponent(
+            lightEntity, components::LightCmd(*lightMsg));
+      }
+      else
+      {
+        auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+            ComponentState::OneTimeChange :
+            ComponentState::NoChange;
+        this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+          state);
+      }
     }
-  }
-  if (kNullEntity == lightEntity)
-  {
-    gzerr << "Failed to find light with name [" << lightMsg->name()
-           << "], ID [" << lightMsg->id() << "] and parent ID ["
-           << lightMsg->parent_id() << "]." << std::endl;
-    return false;
-  }
-
-  if (!lightEntity)
-  {
-    gzmsg << "Failed to find light entity named [" << lightMsg->name()
-      << "]." << std::endl;
-    return false;
-  }
-
-  auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
-  if (nullptr == lightPose)
-    lightEntity = kNullEntity;
-
-  if (!lightEntity)
-  {
-    gzmsg << "Pose component not available" << std::endl;
-    return false;
-  }
-
-  if (lightMsg->has_pose())
-  {
-    lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
-  }
-
-  auto lightCmdComp =
-    this->iface->ecm->Component<components::LightCmd>(lightEntity);
-  if (!lightCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        lightEntity, components::LightCmd(*lightMsg));
   }
   else
   {
-    auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
-        ComponentState::OneTimeChange :
-        ComponentState::NoChange;
-    this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
-      state);
-  }
+    lightEntity = kNullEntity;
+    if (lightMsg->id() != kNullEntity)
+    {
+      lightEntity = lightMsg->id();
+    }
+    else if (!lightMsg->name().empty())
+    {
+      if (lightMsg->parent_id() != kNullEntity)
+      {
+        lightEntity = this->iface->ecm->EntityByComponents(
+          components::Name(lightMsg->name()),
+          components::ParentEntity(lightMsg->parent_id()));
+      }
+      else
+      {
+        lightEntity = this->iface->ecm->EntityByComponents(
+          components::Name(lightMsg->name()));
+      }
+    }
+    if (kNullEntity == lightEntity)
+    {
+      gzerr << "Failed to find light with name [" << lightMsg->name()
+             << "], ID [" << lightMsg->id() << "] and parent ID ["
+             << lightMsg->parent_id() << "]." << std::endl;
+      return false;
+    }
 
+    if (!lightEntity)
+    {
+      gzmsg << "Failed to find light entity named [" << lightMsg->name()
+        << "]." << std::endl;
+      return false;
+    }
+
+    auto lightPose = this->iface->ecm->Component<components::Pose>(lightEntity);
+    if (nullptr == lightPose)
+    {
+      lightEntity = kNullEntity;
+    }
+
+    if (!lightEntity)
+    {
+      gzmsg << "Pose component not available" << std::endl;
+      return false;
+    }
+
+    if (lightMsg->has_pose())
+    {
+      lightPose->Data().Pos() = msgs::Convert(lightMsg->pose()).Pos();
+    }
+
+    auto lightCmdComp =
+      this->iface->ecm->Component<components::LightCmd>(lightEntity);
+    if (!lightCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          lightEntity, components::LightCmd(*lightMsg));
+    }
+    else
+    {
+      auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
+          ComponentState::OneTimeChange :
+          ComponentState::NoChange;
+      this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
+        state);
+    }
+  }
   return true;
 }
 
@@ -1718,56 +1829,127 @@ VisualCommand::VisualCommand(msgs::Visual *_msg,
 }
 
 //////////////////////////////////////////////////
+VisualCommand::VisualCommand(msgs::MaterialColor *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
 bool VisualCommand::Execute()
 {
   auto visualMsg = dynamic_cast<const msgs::Visual *>(this->msg);
-  if (nullptr == visualMsg)
+  auto materialColorMsg = dynamic_cast<const msgs::MaterialColor *>(this->msg);
+  if (visualMsg != nullptr)
   {
-    gzerr << "Internal error, null visual message" << std::endl;
-    return false;
-  }
-
-  Entity visualEntity = kNullEntity;
-  if (visualMsg->id() != kNullEntity)
-  {
-    visualEntity = visualMsg->id();
-  }
-  else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
-  {
-    Entity parentEntity =
-      this->iface->ecm->EntityByComponents(
-        components::Name(visualMsg->parent_name()));
-
-    auto entities =
-      this->iface->ecm->ChildrenByComponents(parentEntity,
-        components::Name(visualMsg->name()));
-
-    // When size > 1, we don't know which entity to modify
-    if (entities.size() == 1)
+    Entity visualEntity = kNullEntity;
+    if (visualMsg->id() != kNullEntity)
     {
-      visualEntity = entities[0];
+      visualEntity = visualMsg->id();
+    }
+    else if (!visualMsg->name().empty() && !visualMsg->parent_name().empty())
+    {
+      Entity parentEntity =
+        this->iface->ecm->EntityByComponents(
+          components::Name(visualMsg->parent_name()));
+
+      auto entities =
+        this->iface->ecm->ChildrenByComponents(parentEntity,
+          components::Name(visualMsg->name()));
+
+      // When size > 1, we don't know which entity to modify
+      if (entities.size() == 1)
+      {
+        visualEntity = entities[0];
+      }
+    }
+
+    if (visualEntity == kNullEntity)
+    {
+      gzerr << "Failed to find visual entity" << std::endl;
+      return false;
+    }
+
+    auto visualCmdComp =
+        this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+    if (!visualCmdComp)
+    {
+      this->iface->ecm->CreateComponent(
+          visualEntity, components::VisualCmd(*visualMsg));
+    }
+    else
+    {
+      auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
+          ComponentState::OneTimeChange : ComponentState::NoChange;
+      this->iface->ecm->SetChanged(
+          visualEntity, components::VisualCmd::typeId, state);
     }
   }
-
-  if (visualEntity == kNullEntity)
+  else if (materialColorMsg != nullptr)
   {
-    gzerr << "Failed to find visual entity" << std::endl;
-    return false;
-  }
+    Entity visualEntity = kNullEntity;
+    int numberOfEntities = 0;
+    auto entities = entitiesFromScopedName(materialColorMsg->entity().name(),
+      *this->iface->ecm);
+    if (entities.empty())
+    {
+      gzwarn << "Entity name: " << materialColorMsg->entity().name()
+             << ", is not found."
+             << std::endl;
+      return false;
+    }
+    for (const Entity &id : entities)
+    {
+      if ((numberOfEntities > 0) && (materialColorMsg->entity_match() !=
+        gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL))
+      {
+        return true;
+      }
+      numberOfEntities++;
+      msgs::Visual visualMCMsg;
+      visualMCMsg.set_id(id);
+      visualMCMsg.mutable_material()->mutable_ambient()->CopyFrom(
+        materialColorMsg->ambient());
+      visualMCMsg.mutable_material()->mutable_diffuse()->CopyFrom(
+        materialColorMsg->diffuse());
+      visualMCMsg.mutable_material()->mutable_specular()->CopyFrom(
+        materialColorMsg->specular());
+      visualMCMsg.mutable_material()->mutable_emissive()->CopyFrom(
+        materialColorMsg->emissive());
+      // TODO(anyone) Enable setting shininess
+      visualEntity = kNullEntity;
+      if (visualMCMsg.id() != kNullEntity)
+      {
+        visualEntity = visualMCMsg.id();
+      }
+      if (visualEntity == kNullEntity)
+      {
+        gzerr << "Failed to find visual entity" << std::endl;
+        return false;
+      }
 
-  auto visualCmdComp =
-      this->iface->ecm->Component<components::VisualCmd>(visualEntity);
-  if (!visualCmdComp)
-  {
-    this->iface->ecm->CreateComponent(
-        visualEntity, components::VisualCmd(*visualMsg));
+      auto visualCmdComp =
+          this->iface->ecm->Component<components::VisualCmd>(visualEntity);
+      if (!visualCmdComp)
+      {
+        this->iface->ecm->CreateComponent(
+            visualEntity, components::VisualCmd(visualMCMsg));
+      }
+      else
+      {
+        auto state = visualCmdComp->SetData(visualMCMsg, this->visualEql) ?
+            ComponentState::OneTimeChange : ComponentState::NoChange;
+        this->iface->ecm->SetChanged(
+            visualEntity, components::VisualCmd::typeId, state);
+      }
+    }
   }
   else
   {
-    auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
-        ComponentState::OneTimeChange : ComponentState::NoChange;
-    this->iface->ecm->SetChanged(
-        visualEntity, components::VisualCmd::typeId, state);
+    gzerr <<
+      "VisualCommand _msg does not match MaterialColor or Visual msg type."
+      << std::endl;
+    return false;
   }
   return true;
 }
@@ -1840,7 +2022,3 @@ GZ_ADD_PLUGIN(UserCommands, System,
 
 GZ_ADD_PLUGIN_ALIAS(UserCommands,
                           "gz::sim::systems::UserCommands")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(UserCommands,
-                          "ignition::gazebo::systems::UserCommands")

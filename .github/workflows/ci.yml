@@ -13,24 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  focal-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Focal CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: --all-files
-      - name: Compile and test
-        id: ci
-        uses: gazebo-tooling/action-gz-ci@focal
-        with:
-          codecov-enabled: true
-          cppcheck-enabled: true
-          cpplint-enabled: true
-          cmake-args: "-DCMAKE_INSTALL_PREFIX=/usr"
   jammy-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Jammy CI
@@ -46,4 +28,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@jammy
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
+          cmake-args: '-DBUILD_DOCS=OFF'
+          codecov-enabled: true
+          cppcheck-enabled: true
+          cpplint-enabled: true

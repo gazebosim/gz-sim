@@ -110,7 +110,7 @@ class MaterialTest : public InternalFixture<::testing::Test>
 TEST_F(MaterialTest, SolidColor)
 {
   const std::string modelSdf = R"sdf(
-  <sdf version="1.10">
+  <sdf version="1.11">
       <model name="material_shapes">
         <pose>0 0 0.5 0 0 0</pose>
         <link name="box">
@@ -157,7 +157,7 @@ TEST_F(MaterialTest, SolidColor)
 TEST_F(MaterialTest, OtherColor)
 {
   const std::string modelSdf = R"sdf(
-  <sdf version="1.10">
+  <sdf version="1.11">
       <model name="material_shapes">
         <pose>0 0 0.5 0 0 0</pose>
         <link name="box">
@@ -205,7 +205,7 @@ TEST_F(MaterialTest, OtherColor)
 TEST_F(MaterialTest, CustomScript)
 {
   const std::string modelSdf = R"sdf(
-  <sdf version="1.10">
+  <sdf version="1.11">
       <model name="material_shapes">
         <pose>0 0 0.5 0 0 0</pose>
         <link name="box">
@@ -253,7 +253,7 @@ TEST_F(MaterialTest, CustomScript)
 TEST_F(MaterialTest, InvalidColor)
 {
   const std::string modelSdf = R"sdf(
-  <sdf version="1.10">
+  <sdf version="1.11">
       <model name="material_shapes">
         <pose>0 0 0.5 0 0 0</pose>
         <link name="box">

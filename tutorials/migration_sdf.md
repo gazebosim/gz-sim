@@ -1,6 +1,4 @@
-\page migrationsdf
-
-# Migration from Gazebo classic: SDF
+\page migrationsdf Migration from Gazebo classic: SDF
 
 Both Gazebo classic and Gazebo support [SDF](http://sdformat.org/)
 files to describe the simulation to be loaded. An SDF file defines the world

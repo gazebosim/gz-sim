@@ -17,7 +17,13 @@
 
 #include "TrackedVehicle.hh"
 
+#include <gz/msgs/double.pb.h>
+#include <gz/msgs/marker.pb.h>
 #include <gz/msgs/odometry.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/time.pb.h>
+#include <gz/msgs/twist.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <limits>
 #include <map>
@@ -772,7 +778,3 @@ GZ_ADD_PLUGIN(TrackedVehicle,
 
 GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
                           "gz::sim::systems::TrackedVehicle")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(TrackedVehicle,
-                          "ignition::gazebo::systems::TrackedVehicle")

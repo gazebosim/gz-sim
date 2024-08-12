@@ -482,7 +482,3 @@ GZ_ADD_PLUGIN(RFComms,
 
 GZ_ADD_PLUGIN_ALIAS(RFComms,
                           "gz::sim::systems::RFComms")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(RFComms,
-                          "ignition::gazebo::systems::RFComms")

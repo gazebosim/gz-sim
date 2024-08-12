@@ -733,10 +733,7 @@ TEST(Conversions, Scene)
   EXPECT_DOUBLE_EQ(0.88, sceneSkyMsg.sky().mean_cloud_size());
   EXPECT_EQ(math::Color::Red,
       msgs::Convert(sceneSkyMsg.sky().cloud_ambient()));
-  ASSERT_GT(sceneSkyMsg.sky().header().data_size(), 0);
-  auto header = sceneSkyMsg.sky().header().data(0);
-  EXPECT_EQ("cubemap_uri", header.key());
-  EXPECT_EQ("test.dds", header.value(0));
+  EXPECT_EQ("test.dds", sceneSkyMsg.sky().cubemap_uri());
 
   auto newSceneSky = convert<sdf::Scene>(sceneSkyMsg);
   ASSERT_NE(nullptr, newSceneSky.Sky());

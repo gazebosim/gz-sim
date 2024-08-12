@@ -31,16 +31,15 @@ System plugins may be loaded through:
     * Attached to a **model**: `<model><plugin>`
     * Attached to a **sensor**: `<sensor><plugin>`
 * Passing the shared library and class to be loaded through
-  [PluginInfo](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1ServerConfig_1_1PluginInfo.html)
-  (within [ServerConfig](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1ServerConfig.html))
-  when instantiating the
-  [Server](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1Server.html#a084ef7616f5af42061a7aeded5651ab0).
+  \ref gz::sim::ServerConfig::PluginInfo "PluginInfo"
+  (within \ref gz::sim::ServerConfig "ServerConfig")
+  when instantiating the \ref gz::sim::Server "Server".
 
 Gazebo will look for system plugins on the following paths, in order:
 
 1. All paths on the `GZ_SIM_SYSTEM_PLUGIN_PATH` environment variable
 2. `$HOME/.gz/sim/plugins`
-3. [Systems that are installed with Gazebo](https://gazebosim.org/api/gazebo/7/namespace gz_1_1gazebo_1_1systems.html)
+3. \ref gz::sim::systems "Systems that are installed with Gazebo"
 
 ### Gazebo GUI plugins
 
@@ -51,7 +50,7 @@ GUI plugins may be loaded through:
 
 * Tags in SDF world files, where `filename` is the shared library:
     * `<world><gui><plugin>`
-* Tags in [GUI config files](https://gazebosim.org/api/gui/4.2/config.html),
+* Tags in [GUI config files](https://gazebosim.org/api/gui/8/config.html),
   where `filename` is the shared library:
     * `<plugin>`
 * The plugin menu on the top-right of the screen.
@@ -62,7 +61,7 @@ Gazebo will look for GUI plugins on the following paths, in order:
 2. [GUI plugins that are installed with Gazebo](https://github.com/gazebosim/gz-sim/tree/main/src/gui/plugins)
 3. Other paths added by calling `gz::gui::App()->AddPluginPath`
 4. `~/.gz/gui/plugins`
-5. [Plugins which are installed with Gazebo GUI](https://gazebosim.org/api/gui/4/namespace gz_1_1gui_1_1plugins.html)
+5. \ref gz::gui::plugins "Plugins which are installed with Gazebo GUI"
 
 ### Physics engines
 
@@ -111,7 +110,7 @@ Top-level entities such as models, lights and actors may be loaded through:
     * Path / URL to SDF file
     * (TODO) `gz::msgs::Model`, `gz::msgs::Light`
 * Within a system, using
-  [SdfEntityCreator](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1SdfEntityCreator.html)
+  \ref gz::sim::SdfEntityCreator "SdfEntityCreator"
   or directly creating components and entities.
 
 Gazebo will look for URIs (path / URL) in the following, in order:
@@ -120,7 +119,7 @@ Gazebo will look for URIs (path / URL) in the following, in order:
    path is URI, scheme is stripped)
 2. Current running path / absolute path
 3. [Gazebo Fuel](https://app.gazebosim.org/fuel/models)
-    1. Cache (i.e. `$HOME/.ignition/fuel`)
+    1. Cache (i.e. `$HOME/.gz/fuel`)
     2. Web server
 
 \* The `SDF_PATH` environment variable also works in some scenarios, but
@@ -155,7 +154,7 @@ call.
 ### GUI configuration
 
 Gazebo Sim's
-[GUI configuration](https://gazebosim.org/api/gui/4.2/config.html)
+[GUI configuration](https://gazebosim.org/api/gui/8/config.html)
 can come from the following, in order:
 
 1. The command line option `--gui-config <file path>`

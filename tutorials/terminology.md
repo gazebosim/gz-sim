@@ -10,19 +10,19 @@ to developers touching the source code.
 
 * **Entity**: Every "object" in the world, such as models, links,
     collisions, visuals, lights, joints, etc.
-    An entity [is just a numeric ID](namespacegz_1_1sim.html#ad83694d867b0e3a9446b535b5dfd208d),
+    An entity \ref gz::sim::Entity "is just a numeric ID"
     and may have several components attached to it. Entity IDs are assigned
     at runtime.
 
 * **Component**: Adds a certain functionality or characteristic (e.g., pose,
     name, material, etc.) to an entity.
     Gazebo comes with various
-    [components](namespacegz_1_1sim_1_1components.html)
+    \ref gz::sim::components "components"
     ready to be used, such as `Pose` and `Inertial`, and downstream developers
     can also create their own by inheriting from the
-    [BaseComponent](classignition_1_1gazebo_1_1components_1_1BaseComponent.html)
+    \ref gz::sim::components::BaseComponent "BaseComponent"
     class or instantiating a template of
-    [Component](classignition_1_1gazebo_1_1components_1_1Component.html).
+    \ref gz::sim::components::Component "Component".
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
@@ -32,7 +32,7 @@ to developers touching the source code.
 * **Entity-component manager** (**ECM**): Provides functions for
     querying, creating, removing and updating entities and components.
     See the whole API
-    [here](classignition_1_1gazebo_1_1EntityComponentManager.html).
+    \ref gz::sim::EntityComponentManager "here".
 
 * **Level**: Part of a world, defined by a box volume and the static entities
     inside it. An entity can be present in more than one level, or in none of
@@ -63,10 +63,10 @@ to developers touching the source code.
     the world, while the **primary** runner is keeping all secondaries in sync.
     Worlds that are not split across runners don't have a primary runner.
 
-* **[Event manager](classignition_1_1gazebo_1_1EventManager.html)**:
+* \ref gz::sim::EventManager "Event manager":
     Manages events that can be sent across systems and the server. Plugins can
     create and emit custom
-    [Event](https://gazebosim.org/api/common/3.0/classignition_1_1common_1_1Event.html)s
+    \ref gz::common::Event "Event"s
     and / or emit / listen to events from Gazebo.
 
 * **Simulation runner**: Runs a whole world or some levels of a world, but no

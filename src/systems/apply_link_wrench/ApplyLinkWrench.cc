@@ -363,7 +363,3 @@ GZ_ADD_PLUGIN(ApplyLinkWrench,
 
 GZ_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
                     "gz::sim::systems::ApplyLinkWrench")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(ApplyLinkWrench,
-                    "ignition::gazebo::systems::ApplyLinkWrench")

@@ -17,7 +17,25 @@
 
 #include "SceneBroadcaster.hh"
 
+#include <gz/msgs/camerasensor.pb.h>
+#include <gz/msgs/distortion.pb.h>
+#include <gz/msgs/geometry.pb.h>
+#include <gz/msgs/imu_sensor.pb.h>
+#include <gz/msgs/lidar_sensor.pb.h>
+#include <gz/msgs/light.pb.h>
+#include <gz/msgs/link.pb.h>
+#include <gz/msgs/material.pb.h>
+#include <gz/msgs/model.pb.h>
+#include <gz/msgs/particle_emitter.pb.h>
+#include <gz/msgs/pose_v.pb.h>
+#include <gz/msgs/projector.pb.h>
 #include <gz/msgs/scene.pb.h>
+#include <gz/msgs/sensor.pb.h>
+#include <gz/msgs/sensor_noise.pb.h>
+#include <gz/msgs/serialized_map.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/uint32_v.pb.h>
+#include <gz/msgs/visual.pb.h>
 
 #include <algorithm>
 #include <chrono>
@@ -1376,7 +1394,3 @@ GZ_ADD_PLUGIN(SceneBroadcaster,
 // namespace
 GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
                           "gz::sim::systems::SceneBroadcaster")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(SceneBroadcaster,
-                          "ignition::gazebo::systems::SceneBroadcaster")

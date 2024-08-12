@@ -17,8 +17,10 @@
 
 #include "OdometryPublisher.hh"
 
+#include <gz/msgs/header.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <limits>
 #include <string>
@@ -276,6 +278,21 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
 {
   GZ_PROFILE("OdometryPublisher::PreUpdate");
 
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzwarn << "OdometryPublisher model no longer valid. "
+           << "Disabling plugin." << std::endl;
+    this->dataPtr->model = Model(kNullEntity);
+    return;
+  }
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -299,6 +316,15 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::PostUpdate");
+
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -530,7 +556,3 @@ GZ_ADD_PLUGIN(OdometryPublisher,
 
 GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
                           "gz::sim::systems::OdometryPublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(OdometryPublisher,
-                          "ignition::gazebo::systems::OdometryPublisher")

@@ -168,7 +168,7 @@ namespace gz
       /// only forces are applied
       /// \param[in] _ecm Entity Component manager.
       /// \param[in] _forces Joint force or torque commands (target forces
-      /// or toruqes). The vector of forces should have the same size as the
+      /// or torques). The vector of forces should have the same size as the
       ///  degrees of freedom of the joint.
       public: void SetForce(EntityComponentManager &_ecm,
           const std::vector<double> &_forces);
@@ -260,7 +260,7 @@ namespace gz
       public: std::optional<std::vector<double>> Position(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the position of the joint
+      /// \brief Get the transmitted wrench of the joint
       /// \param[in] _ecm Entity-component manager.
       /// \return Transmitted wrench of the joint or nullopt if transmitted
       /// wrench check is not enabled.

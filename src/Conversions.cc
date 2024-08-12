@@ -35,6 +35,7 @@
 #include <gz/msgs/plugin.pb.h>
 #include <gz/msgs/projector.pb.h>
 #include <gz/msgs/spheregeom.pb.h>
+#include <gz/msgs/sky.pb.h>
 #include <gz/msgs/Utility.hh>
 
 #include <gz/math/Angle.hh>
@@ -798,15 +799,9 @@ msgs::Scene gz::sim::convert(const sdf::Scene &_in)
     skyMsg->set_wind_direction(_in.Sky()->CloudDirection().Radian());
     skyMsg->set_humidity(_in.Sky()->CloudHumidity());
     skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
+    skyMsg->set_cubemap_uri(_in.Sky()->CubemapUri());
     msgs::Set(skyMsg->mutable_cloud_ambient(),
         _in.Sky()->CloudAmbient());
-
-    if (!_in.Sky()->CubemapUri().empty())
-    {
-      auto header = skyMsg->mutable_header()->add_data();
-      header->set_key("cubemap_uri");
-      header->add_value(_in.Sky()->CubemapUri());
-    }
   }
 
   return out;
@@ -837,15 +832,7 @@ sdf::Scene gz::sim::convert(const msgs::Scene &_in)
     sky.SetCloudHumidity(_in.sky().humidity());
     sky.SetCloudMeanSize(_in.sky().mean_cloud_size());
     sky.SetCloudAmbient(msgs::Convert(_in.sky().cloud_ambient()));
-
-    for (int i = 0; i < _in.sky().header().data_size(); ++i)
-    {
-      auto data = _in.sky().header().data(i);
-      if (data.key() == "cubemap_uri" && data.value_size() > 0)
-      {
-        sky.SetCubemapUri(data.value(0));
-      }
-    }
+    sky.SetCubemapUri(_in.sky().cubemap_uri());
 
     out.SetSky(sky);
   }
@@ -1182,26 +1169,25 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
         << "sensor pointer is null.\n";
     }
   }
-  // TODO(ahcorde): Enable this code in Harmonic
-  // else if (_in.Type() == sdf::SensorType::AIR_SPEED)
-  // {
-  //   if (_in.AirSpeedSensor())
-  //   {
-  //     msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
-  //
-  //     if (_in.AirSpeedSensor()->SpeedNoise().Type()
-  //         != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_speed_noise(),
-  //           _in.AirSpeedSensor()->PressureNoise());
-  //     }
-  //   }
-  //   else
-  //   {
-  //     gzerr << "Attempting to convert an air speed SDF sensor, but the "
-  //       << "sensor pointer is null.\n";
-  //   }
-  // }
+  else if (_in.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    if (_in.AirSpeedSensor())
+    {
+      msgs::AirSpeedSensor *sensor = out.mutable_air_speed();
+
+      if (_in.AirSpeedSensor()->PressureNoise().Type()
+          != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_pressure_noise(),
+            _in.AirSpeedSensor()->PressureNoise());
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed SDF sensor, but the "
+            << "sensor pointer is null.\n";
+    }
+  }
   else if (_in.Type() == sdf::SensorType::IMU)
   {
     if (_in.ImuSensor())
@@ -1462,27 +1448,25 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 
     out.SetAirPressureSensor(sensor);
   }
-  // TODO(ahcorde): Enable this code in Harmonic
-  // else if (out.Type() == sdf::SensorType::AIR_SPEED)
-  // {
-  //   sdf::AirSpeed sensor;
-  //   if (_in.has_air_speed())
-  //   {
-  //     if (_in.air_speed().has_speed_noise())
-  //     {
-  //       sensor.SetSpeedNoise(sim::convert<sdf::Noise>(
-  //             _in.air_speed().speed_noise()));
-  //     }
-  //
-  //   }
-  //   else
-  //   {
-  //     gzerr << "Attempting to convert an air speed sensor message, but the "
-  //       << "message does not have an air speed nested message.\n";
-  //   }
-  //
-  //   out.SetAirSpeedSensor(sensor);
-  // }
+  else if (out.Type() == sdf::SensorType::AIR_SPEED)
+  {
+    sdf::AirSpeed sensor;
+    if (_in.has_air_speed())
+    {
+      if (_in.air_speed().has_pressure_noise())
+      {
+        sensor.SetPressureNoise(sim::convert<sdf::Noise>(
+              _in.air_speed().pressure_noise()));
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert an air speed sensor message, but the "
+        << "message does not have an air speed nested message.\n";
+    }
+
+    out.SetAirSpeedSensor(sensor);
+  }
   else if (out.Type() == sdf::SensorType::IMU)
   {
     sdf::Imu sensor;
@@ -1698,21 +1682,6 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     if (!absolutePath.empty())
     {
       out.mutable_color_range_image()->set_data(absolutePath);
-    }
-    // TODO(CH3): Deprecated. Remove on tock.
-    else
-    {
-      systemPaths.SetFilePathEnv(kResourcePathEnvDeprecated);
-      absolutePath = systemPaths.FindFile(path);
-
-      if (!absolutePath.empty())
-      {
-        out.mutable_color_range_image()->set_data(absolutePath);
-        gzwarn << "Using deprecated environment variable ["
-               << kResourcePathEnvDeprecated
-               << "] to find resources. Please use ["
-               << kResourcePathEnv <<" instead." << std::endl;
-      }
     }
   }
 

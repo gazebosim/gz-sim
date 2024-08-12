@@ -126,18 +126,16 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Joint name.
       /// \return Joint entity.
-      /// \todo(anyone) Make const
       public: sim::Entity JointByName(const EntityComponentManager &_ecm,
-          const std::string &_name);
+          const std::string &_name) const;
 
       /// \brief Get the ID of a link entity which is an immediate child of
       /// this model.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _name Link name.
       /// \return Link entity.
-      /// \todo(anyone) Make const
       public: sim::Entity LinkByName(const EntityComponentManager &_ecm,
-          const std::string &_name);
+          const std::string &_name) const;
 
       /// \brief Get all joints which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.

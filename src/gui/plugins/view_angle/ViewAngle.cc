@@ -21,7 +21,6 @@
 #include <gz/msgs/gui_camera.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/vector3d.pb.h>
-#include <gz/msgs/Utility.hh>
 
 #include <iostream>
 #include <string>
@@ -32,6 +31,7 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/math/Angle.hh>
+#include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/MoveToHelper.hh>
 #include <gz/rendering/RenderingIface.hh>

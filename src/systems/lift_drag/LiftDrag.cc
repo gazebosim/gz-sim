@@ -280,7 +280,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (!worldLinVel || !worldAngVel || !worldPose)
+  {
     return;
+  }
 
   const auto &pose = worldPose->Data();
   const auto cpWorld = pose.Rot().RotateVector(this->cp);
@@ -292,7 +294,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   }
 
   if (vel.Length() <= 0.01)
+  {
     return;
+  }
 
   const auto velI = vel.Normalized();
 
@@ -589,6 +593,3 @@ GZ_ADD_PLUGIN(LiftDrag,
                     LiftDrag::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LiftDrag, "gz::sim::systems::LiftDrag")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LiftDrag, "ignition::gazebo::systems::LiftDrag")

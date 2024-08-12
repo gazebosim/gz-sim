@@ -15,12 +15,20 @@
  *
  */
 
+#include <string>
+
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
+#include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
+#include <gz/msgs/pose.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/visual.pb.h>
+#include <gz/msgs/wheel_slip_parameters_cmd.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -1025,12 +1033,23 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
   const std::string lightTopic = "/world/lights_command/light_config";
 
   msgs::Light lightMsg;
-  lightMsg.set_name("spot");
   gz::msgs::Set(lightMsg.mutable_diffuse(),
     gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+  gz::msgs::Set(lightMsg.mutable_pose()->mutable_position(),
+    gz::math::Vector3d(1.0f, 0.0f, 0.0f));
+
+  // Publish light config without name
+  auto pub = node.Advertise<msgs::Light>(lightTopic);
+  pub.Publish(lightMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  // add name
+  lightMsg.set_name("spot");
 
   // Publish light config
-  auto pub = node.Advertise<msgs::Light>(lightTopic);
   pub.Publish(lightMsg);
 
   server.Run(true, 100, false);
@@ -1039,6 +1058,429 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Light))
 
   EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
     spotLightComp->Data().Diffuse());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(LightAll))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds",
+      "lights_render_all.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  msgs::Light req;
+  msgs::Boolean res;
+  transport::Node node;
+  bool result;
+  unsigned int timeout = 1000;
+  std::string service{"/world/lights_command/light_config"};
+
+  // Point light
+  auto pointLightEntity = ecm->EntityByComponents(components::Name("point"));
+  EXPECT_NE(kNullEntity, pointLightEntity);
+
+  // Check point light entity has not been edited yet - Initial values
+  auto pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+  EXPECT_EQ(
+    math::Pose3d(0, -1.5, 3, 0, 0, 0), pointLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1.0f),
+      pointLightComp->Data().Specular());
+  EXPECT_NEAR(4.0, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.5, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.2, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.01, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_FALSE(pointLightComp->Data().CastShadows());
+  EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_TRUE(pointLightComp->Data().Visualize());
+
+  req.Clear();
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.2f, 0.2f, 0.2f, 0.2f));
+  req.set_range(2.6f);
+  req.set_name("point");
+  req.set_type(gz::msgs::Light::POINT);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(0.001f);
+  req.set_cast_shadows(true);
+  req.set_is_light_off(false);
+  req.set_visualize_visual(false);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  // Check point light entity has been edited using the service
+  pointLightComp = ecm->Component<components::Light>(pointLightEntity);
+  ASSERT_NE(nullptr, pointLightComp);
+
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+      pointLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 0.2f),
+      pointLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, pointLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, pointLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, pointLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.001, pointLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_TRUE(pointLightComp->Data().CastShadows());
+  EXPECT_TRUE(pointLightComp->Data().LightOn());
+  EXPECT_FALSE(pointLightComp->Data().Visualize());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
+
+  // Check directional light entity has not been edited yet - Initial values
+  auto directionalLightEntity = ecm->EntityByComponents(
+      components::Name("directional"));
+  EXPECT_NE(kNullEntity, directionalLightEntity);
+
+  auto directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(
+    math::Pose3d(0, 0, 10, 0, 0, 0), directionalLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0.8f, 0.8f, 0.8f, 1.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    directionalLightComp->Data().Specular());
+  EXPECT_NEAR(100, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(
+    0.01, directionalLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(
+    0.9, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(
+    math::Vector3d(0.5, 0.2, -0.9), directionalLightComp->Data().Direction());
+  EXPECT_TRUE(directionalLightComp->Data().CastShadows());
+  EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_TRUE(directionalLightComp->Data().Visualize());
+  EXPECT_EQ(sdf::LightType::POINT, pointLightComp->Data().Type());
+
+  req.Clear();
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(0.0f, 1.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
+  req.set_name("directional");
+  req.set_type(gz::msgs::Light::DIRECTIONAL);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
+  req.set_cast_shadows(false);
+  req.set_is_light_off(false);
+  req.set_visualize_visual(false);
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  // Check directional light entity has been edited using the service
+  directionalLightComp =
+    ecm->Component<components::Light>(directionalLightEntity);
+  ASSERT_NE(nullptr, directionalLightComp);
+
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 1.0f, 0.0f),
+    directionalLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
+    directionalLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, directionalLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(
+    0.7, directionalLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.6, directionalLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    1, directionalLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), directionalLightComp->Data().Direction());
+  EXPECT_FALSE(directionalLightComp->Data().CastShadows());
+  EXPECT_TRUE(directionalLightComp->Data().LightOn());
+  EXPECT_FALSE(directionalLightComp->Data().Visualize());
+  EXPECT_EQ(sdf::LightType::DIRECTIONAL,
+    directionalLightComp->Data().Type());
+
+  // spot light
+  auto spotLightEntity = ecm->EntityByComponents(
+      components::Name("spot"));
+  EXPECT_NE(kNullEntity, spotLightEntity);
+
+  // Check spot light entity has not been edited yet - Initial values
+  auto spotLightComp =
+    ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Pose3d(0, 1.5, 3, 0, 0, 0), spotLightComp->Data().RawPose());
+  EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f, 1.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.2f, 0.2f, 0.2f, 1.0f),
+    spotLightComp->Data().Specular());
+  EXPECT_NEAR(5, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.4, spotLightComp->Data().LinearAttenuationFactor(), 0.01);
+  EXPECT_NEAR(0.3, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(
+    0.001, spotLightComp->Data().QuadraticAttenuationFactor(), 0.001);
+  EXPECT_EQ(math::Vector3d(0, 0, -1), spotLightComp->Data().Direction());
+  EXPECT_FALSE(spotLightComp->Data().CastShadows());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
+  EXPECT_NEAR(0.1, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.5, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.8, spotLightComp->Data().SpotFalloff(), 0.1);
+
+  req.Clear();
+  gz::msgs::Set(req.mutable_diffuse(),
+    gz::math::Color(1.0f, 0.0f, 1.0f, 0.0f));
+  gz::msgs::Set(req.mutable_specular(),
+    gz::math::Color(0.3f, 0.3f, 0.3f, 0.3f));
+  req.set_range(2.6f);
+  req.set_name("spot");
+  req.set_type(gz::msgs::Light::SPOT);
+  req.set_attenuation_linear(0.7f);
+  req.set_attenuation_constant(0.6f);
+  req.set_attenuation_quadratic(1.0f);
+  req.set_cast_shadows(true);
+  req.set_is_light_off(true);
+  req.set_visualize_visual(true);
+  gz::msgs::Set(req.mutable_direction(),
+    gz::math::Vector3d(1, 2, 3));
+  req.set_spot_inner_angle(1.5f);
+  req.set_spot_outer_angle(0.3f);
+  req.set_spot_falloff(0.9f);
+
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  // Check spot light entity has been edited using the service
+  spotLightComp = ecm->Component<components::Light>(spotLightEntity);
+  ASSERT_NE(nullptr, spotLightComp);
+
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f, 0.0f),
+    spotLightComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 0.3f),
+    spotLightComp->Data().Specular());
+  EXPECT_NEAR(2.6, spotLightComp->Data().AttenuationRange(), 0.1);
+  EXPECT_NEAR(0.7, spotLightComp->Data().LinearAttenuationFactor(), 0.1);
+  EXPECT_NEAR(0.6, spotLightComp->Data().ConstantAttenuationFactor(), 0.1);
+  EXPECT_NEAR(1, spotLightComp->Data().QuadraticAttenuationFactor(), 0.1);
+  EXPECT_EQ(math::Vector3d(1, 2, 3), spotLightComp->Data().Direction());
+  EXPECT_TRUE(spotLightComp->Data().CastShadows());
+  EXPECT_FALSE(spotLightComp->Data().LightOn());
+  EXPECT_TRUE(spotLightComp->Data().Visualize());
+  EXPECT_EQ(sdf::LightType::SPOT, spotLightComp->Data().Type());
+  EXPECT_NEAR(1.5, spotLightComp->Data().SpotInnerAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.3, spotLightComp->Data().SpotOuterAngle().Radian(), 0.1);
+  EXPECT_NEAR(0.9, spotLightComp->Data().SpotFalloff(), 0.1);
+
+  // sphere
+  auto sphereLightEntity =
+    ecm->EntityByComponents(components::Name("sphere_light"));
+  ASSERT_NE(kNullEntity, sphereLightEntity);
+
+  // check sphere light initial values
+  auto sphereLightComp =
+    ecm->Component<components::Light>(sphereLightEntity);
+  ASSERT_NE(nullptr, sphereLightComp);
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            sphereLightComp->Data().Diffuse());
+
+  // Test light_config topic
+  const std::string lightTopic = "/world/lights_command/light_config";
+
+  msgs::Light lightMsg;
+  gz::msgs::Set(lightMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 0.0f, 0.0f, 1.0f));
+  gz::msgs::Set(lightMsg.mutable_pose()->mutable_position(),
+    gz::math::Vector3d(1.0f, 0.0f, 0.0f));
+
+  // Publish light config without name
+  auto pub = node.Advertise<msgs::Light>(lightTopic);
+  pub.Publish(lightMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  // add name
+  lightMsg.set_name("sphere_light");
+
+  // Publish light config
+  pub.Publish(lightMsg);
+
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(10);
+
+  Entity sphereEntity0 =
+    ecm->EntityByComponents(components::Name("sphere_0"));
+  Entity sphereEntity1 =
+    ecm->EntityByComponents(components::Name("sphere_1"));
+  auto sphereLinkEntity0 =
+    ecm->ChildrenByComponents(sphereEntity0,
+      components::Name("sphere_link_0"))[0];
+  auto sphereLinkEntity1 =
+    ecm->ChildrenByComponents(sphereEntity1,
+      components::Name("sphere_link_1"))[0];
+  auto sphereLightEntity0 =
+    ecm->ChildrenByComponents(sphereLinkEntity0,
+      components::Name("sphere_light"))[0];
+  auto sphereLightEntity1 =
+    ecm->ChildrenByComponents(sphereLinkEntity1,
+      components::Name("sphere_light"))[0];
+  auto updatedLight0 =
+    ecm->Component<components::Light>(sphereLightEntity0);
+  auto updatedLight1 =
+    ecm->Component<components::Light>(sphereLightEntity1);
+
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            updatedLight0->Data().Diffuse());
+  EXPECT_EQ(math::Color(1.0f, 0.0f, 0.0f, 1.0f),
+            updatedLight1->Data().Diffuse());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(MaterialColor))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "material_color.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const sim::UpdateInfo &,
+                             sim::EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  transport::Node node;
+
+  // box
+  auto sphereVisualEntity =
+    ecm->EntityByComponents(components::Name("sphere_visual"));
+  ASSERT_NE(kNullEntity, sphereVisualEntity);
+
+  // check box visual's initial values
+  auto sphereVisualComp =
+    ecm->Component<components::Material>(sphereVisualEntity);
+  ASSERT_NE(nullptr, sphereVisualComp);
+  EXPECT_EQ(math::Color(0.3f, 0.3f, 0.3f, 1.0f),
+            sphereVisualComp->Data().Diffuse());
+
+  // Test material_color topic
+  const std::string materialColorTopic =
+    "/world/material_color/material_color";
+
+  // Test first return logic (no direct compare as returns unordered set)
+  msgs::MaterialColor materialColorMsgFirst;
+  materialColorMsgFirst.mutable_entity()->set_name("sphere_visual");
+  materialColorMsgFirst.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_FIRST);
+  gz::msgs::Set(materialColorMsgFirst.mutable_diffuse(),
+    gz::math::Color(0.0f, 0.0f, 0.0f, 1.0f));
+
+  // Publish material color
+  auto pub = node.Advertise<msgs::MaterialColor>(materialColorTopic);
+  pub.Publish(materialColorMsgFirst);
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(100);
+
+  msgs::MaterialColor materialColorMsg;
+  materialColorMsg.mutable_entity()->set_name("sphere_visual");
+  materialColorMsg.set_entity_match(
+    gz::msgs::MaterialColor::EntityMatch::MaterialColor_EntityMatch_ALL);
+  gz::msgs::Set(materialColorMsg.mutable_diffuse(),
+    gz::math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+
+  Entity sphereEntity0 =
+    ecm->EntityByComponents(components::Name("sphere_0"));
+  Entity sphereEntity1 =
+    ecm->EntityByComponents(components::Name("sphere_1"));
+  auto sphereLinkEntity0 =
+    ecm->ChildrenByComponents(sphereEntity0,
+      components::Name("sphere_link_0"))[0];
+  auto sphereLinkEntity1 =
+    ecm->ChildrenByComponents(sphereEntity1,
+      components::Name("sphere_link_1"))[0];
+  auto sphereVisualEntity0 =
+    ecm->ChildrenByComponents(sphereLinkEntity0,
+      components::Name("sphere_visual"))[0];
+  auto sphereVisualEntity1 =
+    ecm->ChildrenByComponents(sphereLinkEntity1,
+      components::Name("sphere_visual"))[0];
+  auto updatedVisual0 =
+    ecm->Component<components::Material>(sphereVisualEntity0);
+  auto updatedVisual1 =
+    ecm->Component<components::Material>(sphereVisualEntity1);
+  EXPECT_TRUE((math::Color(0.0f, 0.0f, 0.0f, 1.0f) ==
+              updatedVisual0->Data().Diffuse()) ||
+              (math::Color(0.0f, 0.0f, 0.0f, 1.0f) ==
+              updatedVisual1->Data().Diffuse()));
+
+  // Publish material color
+  pub.Publish(materialColorMsg);
+  server.Run(true, 100, false);
+  // Sleep for a small duration to allow Run thread to start
+  GZ_SLEEP_MS(100);
+
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            updatedVisual0->Data().Diffuse());
+  EXPECT_EQ(math::Color(1.0f, 1.0f, 1.0f, 1.0f),
+            updatedVisual1->Data().Diffuse());
 }
 
 /////////////////////////////////////////////////

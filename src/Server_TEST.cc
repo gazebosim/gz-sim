@@ -16,6 +16,12 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/server_control.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/stringmsg_v.pb.h>
+
 #include <csignal>
 #include <vector>
 #include <gz/common/StringUtils.hh>
@@ -121,11 +127,6 @@ TEST_P(ServerFixture, ServerConfigPluginInfo)
 
   EXPECT_EQ("an_entity", plugins.front().EntityName());
   EXPECT_EQ("model", plugins.front().EntityType());
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  EXPECT_EQ("filename", plugins.front().Filename());
-  EXPECT_EQ("interface", plugins.front().Name());
-  EXPECT_EQ(nullptr, plugins.front().Sdf());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 
   // Test operator=
   {
@@ -627,16 +628,47 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
   auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
   ASSERT_TRUE(mockSystemPlugin.has_value());
 
-  // Check that it was loaded
-  const size_t systemCount = *server.SystemCount();
-  EXPECT_TRUE(*server.AddSystem(mockSystemPlugin.value()));
-  EXPECT_EQ(systemCount + 1, *server.SystemCount());
-
   // Query the interface from the plugin
   auto system = mockSystemPlugin.value()->QueryInterface<sim::System>();
   EXPECT_NE(system, nullptr);
   auto mockSystem = dynamic_cast<sim::MockSystem*>(system);
   EXPECT_NE(mockSystem, nullptr);
+
+  Entity entity = server.EntityByName("default").value();
+  size_t configureCallCount = 0;
+  auto configureCallback = [&sdfPlugin, &entity, &configureCallCount](
+    const Entity &_entity,
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    EntityComponentManager &,
+    EventManager &)
+  {
+    configureCallCount++;
+    EXPECT_EQ(entity, _entity);
+    EXPECT_EQ(sdfPlugin.ToElement()->ToString(""), _sdf->ToString(""));
+  };
+
+  mockSystem->configureCallback = configureCallback;
+  const size_t systemCount = *server.SystemCount();
+  EXPECT_TRUE(
+    *server.AddSystem(
+      mockSystemPlugin.value(), entity, sdfPlugin.ToElement()
+  ));
+
+  // Add pointer
+  auto mockSystemPtr = std::make_shared<MockSystem>();
+  mockSystemPtr->configureCallback = configureCallback;
+  EXPECT_TRUE(*server.AddSystem(mockSystemPtr, entity, sdfPlugin.ToElement()));
+
+  // Add an sdf::Plugin
+  EXPECT_TRUE(*server.AddSystem(sdfPlugin, entity));
+
+  // Fail if plugin is invalid
+  sdf::Plugin invalidPlugin("foo_plugin", "foo::systems::FooPlugin");
+  EXPECT_FALSE(*server.AddSystem(invalidPlugin, entity));
+
+  // Check that it was loaded
+  EXPECT_EQ(systemCount + 3, *server.SystemCount());
+  EXPECT_EQ(2u, configureCallCount);
 
   // No steps should have been executed
   EXPECT_EQ(0u, mockSystem->preUpdateCallCount);
@@ -983,8 +1015,11 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
           if (mesh)
           {
-            EXPECT_EQ("model://scheme_resource_uri/meshes/box.dae",
-                mesh->Uri());
+            // StoreResolvedURIs is set to true so expect full path
+            EXPECT_NE(std::string::npos,
+                mesh->Uri().find("scheme_resource_uri/meshes/box.dae"));
+            EXPECT_FALSE(common::isRelativePath(mesh->Uri()));
+            EXPECT_TRUE(common::isFile(mesh->Uri()));
           }
 
           eachCount++;

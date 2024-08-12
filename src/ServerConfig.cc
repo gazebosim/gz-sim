@@ -94,25 +94,6 @@ ServerConfig::PluginInfo::~PluginInfo() = default;
 //////////////////////////////////////////////////
 ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
                        const std::string &_entityType,
-                       const std::string &_filename,
-                       const std::string &_name,
-                       const sdf::ElementPtr &_sdf)
-  : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>())
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(this->dataPtr->sdf);
-  }
-  this->dataPtr->plugin.SetName(_name);
-  this->dataPtr->plugin.SetFilename(_filename);
-  this->dataPtr->entityName = _entityName;
-  this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-ServerConfig::PluginInfo::PluginInfo(const std::string &_entityName,
-                       const std::string &_entityType,
                        const sdf::Plugin &_plugin)
   : dataPtr(std::make_unique<ServerConfig::PluginInfoPrivate>(_entityName,
         _entityType, _plugin))
@@ -156,48 +137,6 @@ const std::string &ServerConfig::PluginInfo::EntityType() const
 void ServerConfig::PluginInfo::SetEntityType(const std::string &_entityType)
 {
   this->dataPtr->entityType = _entityType;
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Filename() const
-{
-  return this->dataPtr->plugin.Filename();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetFilename(const std::string &_filename)
-{
-  this->dataPtr->plugin.SetFilename(_filename);
-}
-
-//////////////////////////////////////////////////
-const std::string &ServerConfig::PluginInfo::Name() const
-{
-  return this->dataPtr->plugin.Name();
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetName(const std::string &_name)
-{
-  this->dataPtr->plugin.SetName(_name);
-}
-
-//////////////////////////////////////////////////
-const sdf::ElementPtr &ServerConfig::PluginInfo::Sdf() const
-{
-  return this->dataPtr->sdf;
-}
-
-//////////////////////////////////////////////////
-void ServerConfig::PluginInfo::SetSdf(const sdf::ElementPtr &_sdf)
-{
-  if (_sdf)
-  {
-    this->dataPtr->sdf = _sdf->Clone();
-    this->dataPtr->plugin.Load(_sdf);
-  }
-  else
-    this->dataPtr->sdf = nullptr;
 }
 
 //////////////////////////////////////////////////
@@ -260,14 +199,17 @@ class gz::sim::ServerConfigPrivate
             resourceCache(_cfg->resourceCache),
             physicsEngine(_cfg->physicsEngine),
             renderEngineServer(_cfg->renderEngineServer),
+            renderEngineServerApiBackend(_cfg->renderEngineServerApiBackend),
             renderEngineGui(_cfg->renderEngineGui),
+            renderEngineGuiApiBackend(_cfg->renderEngineGuiApiBackend),
             plugins(_cfg->plugins),
             networkRole(_cfg->networkRole),
             networkSecondaries(_cfg->networkSecondaries),
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
-            source(_cfg->source){ }
+            source(_cfg->source),
+            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -313,9 +255,17 @@ class gz::sim::ServerConfigPrivate
   /// will be used.
   public: std::string renderEngineServer = "";
 
+  /// \brief String on which API to select.
+  /// See --render-engine-server-api-backend for possible options
+  public: std::string renderEngineServerApiBackend = "";
+
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
   public: std::string renderEngineGui = "";
+
+  /// \brief String on which API to select.
+  /// See --render-engine-gui-api-backend for possible options
+  public: std::string renderEngineGuiApiBackend = "";
 
   /// \brief List of plugins to load.
   public: std::list<ServerConfig::PluginInfo> plugins;
@@ -343,6 +293,10 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
+
+  /// \brief Server loading behavior in presence of SDF errors.
+  public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
 
   /// \brief True to block while simulation assets download.
   public: bool waitForAssets = true;
@@ -600,17 +554,20 @@ const std::string &ServerConfig::RenderEngineServer() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineServer(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the server. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineServer = engine;
+  this->dataPtr->renderEngineServer = _engine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineServerApiBackend(
+  const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineServerApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineServerApiBackend() const
+{
+  return this->dataPtr->renderEngineServerApiBackend;
 }
 
 /////////////////////////////////////////////////
@@ -634,17 +591,32 @@ const std::string &ServerConfig::RenderEngineGui() const
 /////////////////////////////////////////////////
 void ServerConfig::SetRenderEngineGui(const std::string &_engine)
 {
-  // Deprecated: accept ignition-prefixed engines
-    std::string deprecatedPrefix{"ignition"};
-  auto engine = _engine;
-  auto pos = engine.find(deprecatedPrefix);
-  if (pos != std::string::npos)
-  {
-    engine.replace(pos, deprecatedPrefix.size(), "gz");
-    gzwarn << "Trying to load deprecated engine [" << _engine
-           << "] for the GUI. Use [" << engine << "] instead." << std::endl;
-  }
-  this->dataPtr->renderEngineGui = engine;
+  this->dataPtr->renderEngineGui = _engine;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderEngineGuiApiBackend(const std::string &_apiBackend)
+{
+  this->dataPtr->renderEngineGuiApiBackend = _apiBackend;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderEngineGuiApiBackend() const
+{
+  return this->dataPtr->renderEngineGuiApiBackend;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetBehaviorOnSdfErrors(
+    ServerConfig::SdfErrorBehavior _behavior)
+{
+  this->dataPtr->behaviorOnSdfErrors = _behavior;
+}
+
+//////////////////////////////////////////////////
+ServerConfig::SdfErrorBehavior ServerConfig::BehaviorOnSdfErrors() const
+{
+  return this->dataPtr->behaviorOnSdfErrors;
 }
 
 /////////////////////////////////////////////////

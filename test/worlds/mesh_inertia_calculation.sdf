@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<sdf version="1.11">
+  <world name="mesh_inertia_test">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+
+    <include>
+      <uri>cylinder_dae</uri>
+      <name>cylinder_dae</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>cylinder_dae_bottom_origin</uri>
+      <name>cylinder_dae_bottom_origin</name>
+      <pose>4 0 0 0 0 0</pose>
+    </include>
+  </world>
+</sdf>

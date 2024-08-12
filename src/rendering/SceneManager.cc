@@ -813,8 +813,14 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
     rendering::MeshDescriptor descriptor;
     descriptor.meshName = name;
     descriptor.mesh = meshManager->MeshByName(name);
-
-    geom = this->dataPtr->scene->CreateMesh(descriptor);
+    if (descriptor.mesh)
+    {
+      geom = this->dataPtr->scene->CreateMesh(descriptor);
+    }
+    else
+    {
+      gzerr << "Unable to find the polyline mesh: " << name << std::endl;
+    }
   }
   else
   {
@@ -1706,10 +1712,7 @@ rendering::ProjectorPtr SceneManager::CreateProjector(
     name = parent->Name() +  "::" + name;
 
   rendering::ProjectorPtr projector;
-  projector = std::dynamic_pointer_cast<rendering::Projector>(
-      this->dataPtr->scene->Extension()->CreateExt("projector", name));
-  // \todo(iche033) replace above call with CreateProjector in gz-rendering8
-  // projector = this->dataPtr->scene->CreateProjector(name);
+  projector = this->dataPtr->scene->CreateProjector(name);
 
   this->dataPtr->projectors[_id] = projector;
 
@@ -2558,6 +2561,7 @@ void SceneManager::Clear()
   this->dataPtr->actorTrajectories.clear();
   this->dataPtr->lights.clear();
   this->dataPtr->particleEmitters.clear();
+  this->dataPtr->projectors.clear();
   this->dataPtr->sensors.clear();
   this->dataPtr->scene.reset();
   this->dataPtr->originalTransparency.clear();

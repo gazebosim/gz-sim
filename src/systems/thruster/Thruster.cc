@@ -740,18 +740,8 @@ void Thruster::PreUpdate(
   // Velocity control
   else
   {
-    auto velocityComp =
-    _ecm.Component<gz::sim::components::JointVelocityCmd>(
-      this->dataPtr->jointEntity);
-    if (velocityComp == nullptr)
-    {
-      _ecm.CreateComponent(this->dataPtr->jointEntity,
-        components::JointVelocityCmd({desiredPropellerAngVel}));
-    }
-    else
-    {
-      velocityComp->Data()[0] = desiredPropellerAngVel;
-    }
+    _ecm.SetComponentData<gz::sim::components::JointVelocityCmd>(
+      this->dataPtr->jointEntity, {desiredPropellerAngVel});
     angvel.set_data(desiredPropellerAngVel);
   }
 
@@ -792,6 +782,3 @@ GZ_ADD_PLUGIN(
   Thruster::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Thruster, "gz::sim::systems::Thruster")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(Thruster, "ignition::gazebo::systems::Thruster")

@@ -1,6 +1,4 @@
-\page ardupilot
-
-# Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo
+\page ardupilot Case study: migrating the ArduPilot ModelPlugin from Gazebo classic to Gazebo
 
 A variety of changes are required when migrating a plugin from Gazebo classic
 to Gazebo. In this tutorial we offer as a case
@@ -729,14 +727,14 @@ In the new code we explicitly reference each Gazebo package that we use:
 
 ```
 # NEW
-find_package(sdformat13 REQUIRED)
+find_package(sdformat14 REQUIRED)
 find_package(gz-common5-all REQUIRED)
-find_package(gz-sim7-all REQUIRED)
+find_package(gz-sim8-all REQUIRED)
 find_package(gz-math7-all REQUIRED)
-find_package(gz-msgs9-all REQUIRED)
-find_package(gz-physics6-all REQUIRED)
-find_package(gz-sensors7-all REQUIRED)
-find_package(gz-transport12-all REQUIRED)
+find_package(gz-msgs10-all REQUIRED)
+find_package(gz-physics7-all REQUIRED)
+find_package(gz-sensors8-all REQUIRED)
+find_package(gz-transport13-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:

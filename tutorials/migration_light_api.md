@@ -1,6 +1,4 @@
-\page migrationlightapi
-
-# Migration from Gazebo-classic: Light API
+\page migrationlightapi Migration from Gazebo-classic: Light API
 
 When migrating plugins from Gazebo-classic to Gazebo, developers will
 notice that the C++ APIs for both simulators are quite different. Be sure to
@@ -29,15 +27,13 @@ In Gazebo, the light APIs has been consolidated into a single Light class with
 some of generic functions available through other utility / core classes.
 You'll find the APIs below on the following headers:
 
-* [ignition/gazebo/Light.hh](https://gazebosim.org/api/gazebo/7/Light_8hh.html)
-* [ignition/gazebo/Util.hh](https://gazebosim.org/api/gazebo/7/Util_8hh.html)
-* [ignition/gazebo/SdfEntityCreator.hh](https://gazebosim.org/api/gazebo/7/SdfEntityCreator_8hh.html)
-* [ignition/gazebo/EntityComponentManager.hh](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
+* \ref gz/sim/Light.hh
+* \ref gz/sim/Util.hh
+* \ref gz/sim/SdfEntityCreator.hh
+* \ref gz/sim/EntityComponentManager.hh
 
 It's worth remembering that most of this functionality can be performed using
-the
-[EntityComponentManager](https://gazebosim.org/api/gazebo/7/classignition_1_1gazebo_1_1EntityComponentManager.html)
-directly.
+the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
 As an example the `Light::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
@@ -62,35 +58,35 @@ This section focuses on migrating from APIs provided through the
 
 Classic | Gazebo
 -- | --
-CastShadows | `ignition::gazebo::Light::CastShadows`
+CastShadows | `gz::sim::Light::CastShadows`
 Clone | TODO
-DiffuseColor | `ignition::gazebo::Light::DiffuseColor`
-Direction | `ignition::gazebo::Light::Direction`
+DiffuseColor | `gz::sim::Light::DiffuseColor`
+Direction | `gz::sim::Light::Direction`
 FillMsg | TODO
-Id | `ignition::gazebo::Light::Entity`
-LightType | `ignition::gazebo::Light::Type`
-Name | `ignition::gazebo::Light::Name`
-Position | `ignition::gazebo::Light::Pose`
-Rotation | `ignition::gazebo::Light::Pose`
-SetAttenuation | use `ignition::gazebo::Light::SetAttenuation*`
-SetCastShadows | `ignition::gazebo::Light::SetCastShadows`
-SetDiffuseColor | `ignition::gazebo::Light::SetDiffuseColor`
-SetDirection | `ignition::gazebo::Light::SetDirection`
+Id | `gz::sim::Light::Entity`
+LightType | `gz::sim::Light::Type`
+Name | `gz::sim::Light::Name`
+Position | `gz::sim::Light::Pose`
+Rotation | `gz::sim::Light::Pose`
+SetAttenuation | use `gz::sim::Light::SetAttenuation*`
+SetCastShadows | `gz::sim::Light::SetCastShadows`
+SetDiffuseColor | `gz::sim::Light::SetDiffuseColor`
+SetDirection | `gz::sim::Light::SetDirection`
 SetLightType | TODO
 SetName | TODO
 SetPosition | TODO
-SetRange | `ignition::gazebo::Light::SetAttenuationRange`
+SetRange | `gz::sim::Light::SetAttenuationRange`
 SetRotation | TODO
 SetSelected |  Selection is client-specific, not porting
-SetSpecularColor | `ignition::gazebo::Light::SetSpecularColor`
-SetSpotFalloff | `ignition::gazebo::Light::SetSpotFalloff`
-SetSpotInnerAngle | `ignition::gazebo::Light::SetSpotInnerAngle`
-SetSpotOuterAngle | `ignition::gazebo::Light::SetSpotOuterAngle`
+SetSpecularColor | `gz::sim::Light::SetSpecularColor`
+SetSpotFalloff | `gz::sim::Light::SetSpotFalloff`
+SetSpotInnerAngle | `gz::sim::Light::SetSpotInnerAngle`
+SetSpotOuterAngle | `gz::sim::Light::SetSpotOuterAngle`
 SetVisible | TODO
 ShowVisual | TODO
-SpecularColor | `ignition::gazebo::Light::SetSpecularColor`
+SpecularColor | `gz::sim::Light::SetSpecularColor`
 ToggleShowVisual | TODO
-Type | `ignition::gazebo::Light::Type`
+Type | `gz::sim::Light::Type`
 Visible | TODO
 WorldPose | TODO
 ---
@@ -112,9 +108,9 @@ they deal with entity IDs.
 
 Classic | Gazebo
 -- | --
-GetParent | `ignition::gazebo::Light::Parent`
-GetParentId | `ignition::gazebo::Light::Parent`
-GetWorld | `ignition::gazebo::worldEntity`
+GetParent | `gz::sim::Light::Parent`
+GetParentId | `gz::sim::Light::Parent`
+GetWorld | `gz::sim::worldEntity`
 
 ---
 
@@ -148,8 +144,8 @@ its properties.
 
 Classic | Gazebo
 -- | --
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
-LoadFromMsg | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
+LoadFromMsg | `gz::sim::SdfEntityCreator::CreateEntities`
 UpdateFromMsg | TODO
 
 ---

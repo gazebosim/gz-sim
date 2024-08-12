@@ -15,12 +15,17 @@
  *
 */
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/entity.pb.h>
 
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/SubMesh.hh>
 #include <gz/common/URI.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
@@ -397,12 +402,19 @@ std::string asFullPath(const std::string &_uri, const std::string &_filePath)
   {
     return _uri;
   }
+#elif defined(_WIN32)
+  if (_uri.find("://") != std::string::npos ||
+      common::isFile(_uri))
+  {
+    return _uri;
+  }
 #else
   if (_uri.find("://") != std::string::npos ||
       !common::isRelativePath(_uri))
   {
     return _uri;
   }
+
 #endif
 
   // When SDF is loaded from a string instead of a file
@@ -460,19 +472,6 @@ std::vector<std::string> extractPathsFromEnv(const std::string &_envVar)
 std::vector<std::string> resourcePaths()
 {
   auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
-  // TODO(CH3): Deprecated. Remove on tock.
-  if (gzPaths.empty())
-  {
-    char *gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
-    if (gzPathCStr && *gzPathCStr != '\0')
-    {
-      gzwarn << "Using deprecated environment variable ["
-             << kResourcePathEnvDeprecated
-             << "] to find resources. Please use ["
-             << kResourcePathEnv <<" instead." << std::endl;
-      gzPaths = extractPathsFromEnv(kResourcePathEnvDeprecated);
-    }
-  }
 
   gzPaths.erase(std::remove_if(gzPaths.begin(), gzPaths.end(),
       [](const std::string &_path)
@@ -506,19 +505,6 @@ void addResourcePaths(const std::vector<std::string> &_paths)
 
   // Gazebo resource paths
   auto gzPaths = extractPathsFromEnv(kResourcePathEnv);
-  // TODO(CH3): Deprecated. Remove on tock.
-  if (gzPaths.empty())
-  {
-    char *gzPathCStr = std::getenv(kResourcePathEnvDeprecated.c_str());
-    if (gzPathCStr && *gzPathCStr != '\0')
-    {
-      gzwarn << "Using deprecated environment variable ["
-             << kResourcePathEnvDeprecated
-             << "] to find resources. Please use ["
-             << kResourcePathEnv <<" instead." << std::endl;
-      gzPaths = extractPathsFromEnv(kResourcePathEnvDeprecated);
-    }
-  }
 
   auto addUniquePaths = [](std::vector<std::string> &_container,
                            const std::vector<std::string> _pathsToAdd)
@@ -560,9 +546,6 @@ void addResourcePaths(const std::vector<std::string> &_paths)
     gzPathsStr += common::SystemPaths::Delimiter() + path;
 
   common::setenv(kResourcePathEnv.c_str(), gzPathsStr.c_str());
-
-  // TODO(CH3): Deprecated. Remove on tock.
-  common::setenv(kResourcePathEnvDeprecated.c_str(), gzPathsStr.c_str());
 
   // Force re-evaluation
   // SDF is evaluated at find call
@@ -884,8 +867,81 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
            << "]." << std::endl;
     return nullptr;
   }
+
+  if (mesh && _meshSdf.Optimization() != sdf::MeshOptimization::NONE)
+  {
+    const common::Mesh *optimizedMesh = optimizeMesh(_meshSdf, *mesh);
+    if (optimizedMesh)
+      return optimizedMesh;
+    else
+      gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
+  }
+
   return mesh;
 }
+
+const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
+    const common::Mesh &_mesh)
+{
+  if (_meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_DECOMPOSITION &&
+      _meshSdf.Optimization() !=
+      sdf::MeshOptimization::CONVEX_HULL)
+    return nullptr;
+
+  auto &meshManager = *common::MeshManager::Instance();
+  std::size_t maxConvexHulls = 16u;
+  if (_meshSdf.Optimization() == sdf::MeshOptimization::CONVEX_HULL)
+  {
+    /// create 1 convex hull for the whole submesh
+    maxConvexHulls = 1u;
+  }
+  else if (_meshSdf.ConvexDecomposition())
+  {
+    // limit max number of convex hulls to generate
+    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
+  }
+  // Check if MeshManager contains the decomposed mesh already. If not
+  // add it to the MeshManager so we do not need to decompose it again.
+  const std::string convexMeshName =
+      _mesh.Name() + "_CONVEX_" + std::to_string(maxConvexHulls);
+  auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
+  if (!optimizedMesh)
+  {
+    // Merge meshes before convex decomposition
+    auto mergedMesh = gz::common::MeshManager::MergeSubMeshes(_mesh);
+    if (mergedMesh && mergedMesh->SubMeshCount() == 1u)
+    {
+      // Decompose and add mesh to MeshManager
+      auto mergedSubmesh = mergedMesh->SubMeshByIndex(0u).lock();
+      std::vector<common::SubMesh> decomposed =
+        gz::common::MeshManager::ConvexDecomposition(
+        *mergedSubmesh.get(), maxConvexHulls);
+      gzdbg << "Optimizing mesh (" << _meshSdf.OptimizationStr() << "): "
+            <<  _mesh.Name() << std::endl;
+      // Create decomposed mesh and add it to MeshManager
+      // Note: MeshManager will call delete on this mesh in its destructor
+      // \todo(iche033) Consider updating MeshManager to accept
+      // unique pointers instead
+      common::Mesh *convexMesh = new common::Mesh;
+      convexMesh->SetName(convexMeshName);
+      for (const auto & submesh : decomposed)
+        convexMesh->AddSubMesh(submesh);
+      meshManager.AddMesh(convexMesh);
+      if (decomposed.empty())
+      {
+        // Print an error if convex decomposition returned empty submeshes
+        // but still add it to MeshManager to avoid going through the
+        // expensive convex decomposition process for the same mesh again
+        gzerr << "Convex decomposition generated zero meshes: "
+               << _mesh.Name() << std::endl;
+      }
+      optimizedMesh = meshManager.MeshByName(convexMeshName);
+    }
+  }
+  return optimizedMesh;
+}
+
 }
 }
 }

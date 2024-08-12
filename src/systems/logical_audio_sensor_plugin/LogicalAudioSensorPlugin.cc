@@ -534,7 +534,3 @@ GZ_ADD_PLUGIN(LogicalAudioSensorPlugin,
 
 GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
   "gz::sim::systems::LogicalAudioSensorPlugin")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(LogicalAudioSensorPlugin,
-  "ignition::gazebo::systems::LogicalAudioSensorPlugin")

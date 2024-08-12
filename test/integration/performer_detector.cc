@@ -16,7 +16,9 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/twist.pb.h>
 
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>

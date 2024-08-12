@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/laserscan.pb.h>
+
 #include <string>
 #include <vector>
 

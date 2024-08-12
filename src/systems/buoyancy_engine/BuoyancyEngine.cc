@@ -282,7 +282,3 @@ GZ_ADD_PLUGIN(
 
 GZ_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
                           "gz::sim::systems::BuoyancyEngine")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(BuoyancyEnginePlugin,
-                          "ignition::gazebo::systems::BuoyancyEngine")

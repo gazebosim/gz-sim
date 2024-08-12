@@ -234,7 +234,7 @@ namespace gz
     ///    2. "../shapes.sdf" - This is referencing a relative world file.
     ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
     ///       file.
-    ///    4. "https://fuel.ignitionrobotics.org/1.0/openrobotics/worlds/shapes.sdf"
+    ///    4. "https://fuel.gazebosim.org/1.0/openrobotics/worlds/shapes.sdf"
     /// This is referencing a Fuel URI. This will download the world file.
     /// \param[in] _fuelResourceCache Path to a Fuel resource cache, if
     /// known.
@@ -316,6 +316,13 @@ namespace gz
     /// \return The loaded mesh or null if the mesh can not be loaded.
     GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
+    /// \brief Optimize input mesh.
+    /// \param[in] _meshSdf Mesh SDF DOM with mesh optimization parameters
+    /// \param[in] _mesh Input mesh to optimize.
+    /// \return The optimized mesh or null if the mesh can not be optimized.
+    GZ_SIM_VISIBLE const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
+        const common::Mesh &_mesh);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
 
@@ -329,11 +336,6 @@ namespace gz
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"GZ_SIM_RENDER_ENGINE_PATH"};
-
-    // TODO(CH3): Deprecated. Remove on tock.
-    const std::string kResourcePathEnvDeprecated{"IGN_GAZEBO_RESOURCE_PATH"};
-    const std::string kRenderPluginPathEnvDeprecated{
-      "IGN_GAZEBO_RENDER_ENGINE_PATH"};
     }
   }
 }

@@ -17,9 +17,16 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/empty.pb.h>
-#include <gz/msgs/vector3d.pb.h>
+#include <gz/msgs/float.pb.h>
+#include <gz/msgs/header.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/int32_v.pb.h>
 #include <gz/msgs/pose.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/vector2d.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
@@ -714,6 +721,16 @@ TEST_F(TriggeredPublisherTest,
 
   std::string service = "/srv-test";
   node.Advertise(service, srvEchoCb);
+  {
+    // This block of code is here because service requests from a previous test
+    // might interfere with this test. We sleep a small amount time and reset
+    // `recvCount` to 0. This ensures that the service requets from the previous
+    // test are discarded properly.
+    // TODO(azeey) Remove once
+    // https://github.com/gazebosim/gz-transport/issues/491 is resolved.
+    GZ_SLEEP_MS(2000);
+    recvCount = 0;
+  }
 
   const std::size_t pubCount{10};
   for (std::size_t i = 0; i < pubCount; ++i)

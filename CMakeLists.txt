@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim7 VERSION 7.8.0)
-set (GZ_DISTRIBUTION "Garden")
+project(gz-sim8 VERSION 8.3.0)
+set (GZ_DISTRIBUTION "Harmonic")
 
 #============================================================================
 # Find gz-cmake
@@ -74,8 +74,8 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat13 REQUIRED)
-set(SDF_VER ${sdformat13_VERSION_MAJOR})
+gz_find_package(sdformat14 REQUIRED)
+set(SDF_VER ${sdformat14_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-plugin
@@ -84,36 +84,37 @@ set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport12 VERSION 12.1 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
+gz_find_package(gz-transport13 REQUIRED COMPONENTS log parameters)
+set(GZ_TRANSPORT_VER ${gz-transport13_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs9 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs9_VERSION_MAJOR})
+gz_find_package(gz-msgs10 REQUIRED)
+set(GZ_MSGS_VER ${gz-msgs10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
 gz_find_package(gz-common5
   COMPONENTS
-    profiler
-    events
     av
+    events
+    graphics
     io
+    profiler
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools8 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools8_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools9 REQUIRED)
+set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui7 REQUIRED)
-set(GZ_GUI_VER ${gz-gui7_VERSION_MAJOR})
+gz_find_package(gz-gui8 REQUIRED)
+set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -124,18 +125,18 @@ gz_find_package (Qt5
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics6
+gz_find_package(gz-physics7
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics6_VERSION_MAJOR})
+set(GZ_PHYSICS_VER ${gz-physics7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
+gz_find_package(gz-sensors8 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -149,6 +150,7 @@ gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
     navsat
 
     # rendering
+    dvl
     rendering
     lidar
     gpu_lidar
@@ -162,12 +164,12 @@ gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
+set(GZ_SENSORS_VER ${gz-sensors8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering7 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering7_VERSION_MAJOR})
+gz_find_package(gz-rendering8 REQUIRED)
+set(GZ_RENDERING_VER ${gz-rendering8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-math
@@ -197,23 +199,22 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs9_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs10_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
 if (SKIP_PYBIND11)
   message(STATUS "SKIP_PYBIND11 set - disabling python bindings")
 else()
-  find_package(PythonLibs QUIET)
-  if (NOT PYTHONLIBS_FOUND)
+  find_package(Python3 QUIET COMPONENTS Interpreter Development)
+  if (NOT Python3_FOUND)
     GZ_BUILD_WARNING("Python is missing: Python interfaces are disabled.")
     message (STATUS "Searching for Python - not found.")
   else()
     message (STATUS "Searching for Python - found version ${PYTHONLIBS_VERSION_STRING}.")
 
     set(PYBIND11_PYTHON_VERSION 3)
-    find_package(Python3 QUIET COMPONENTS Interpreter Development)
-    find_package(pybind11 2.2 QUIET)
+    find_package(pybind11 2.9 CONFIG QUIET)
 
     if (pybind11_FOUND)
       message (STATUS "Searching for pybind11 - found version ${pybind11_VERSION}.")
@@ -224,11 +225,17 @@ else()
   endif()
 endif()
 # Plugin install dirs
+set(GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+)
 set(GZ_SIM_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR}
+)
+set(GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
 )
 set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
-  ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+  ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR}
 )
 
 #============================================================================
@@ -243,7 +250,7 @@ add_subdirectory(examples)
 #============================================================================
 gz_create_packages()
 
-if (pybind11_FOUND)
+if (pybind11_FOUND AND NOT SKIP_PYBIND11)
 	add_subdirectory(python)
 endif()
 #============================================================================
@@ -271,19 +278,10 @@ if (NOT APPLE)
      "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
      "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
      "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
   )
 endif()
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
-
-# TICKTOCK MASTER HEADER (to bypass GZ_DESIGNATION)
-# TODO(CH3): Deprecated. Remove on tock
-configure_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/${GZ_DESIGNATION}.hh
-  ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  COPYONLY)
-install(
-  FILES ${CMAKE_CURRENT_BINARY_DIR}/include/gz/sim.hh
-  DESTINATION ${GZ_INCLUDE_INSTALL_DIR_FULL}/gz)

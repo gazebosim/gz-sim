@@ -292,6 +292,3 @@ GZ_ADD_PLUGIN(FollowActor, System,
 )
 
 GZ_ADD_PLUGIN_ALIAS(FollowActor, "gz::sim::systems::FollowActor")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(FollowActor, "ignition::gazebo::systems::FollowActor")

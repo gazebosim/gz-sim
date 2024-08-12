@@ -318,7 +318,3 @@ GZ_ADD_PLUGIN(JointStatePublisher,
 
 GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
     "gz::sim::systems::JointStatePublisher")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(JointStatePublisher,
-    "ignition::gazebo::systems::JointStatePublisher")
