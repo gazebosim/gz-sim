@@ -315,7 +315,7 @@ void DetachableJoint::PreUpdate(
       return;
     }
 
-    if (this->childLinkEntity == kNullEntity || !_ecm.HasEntity(childLinkEntity))
+    if (this->childLinkEntity == kNullEntity || !_ecm.HasEntity(this->childLinkEntity))
       this->GetChildModelAndLinkEntities(_ecm);
 
     if (kNullEntity != this->childLinkEntity)
