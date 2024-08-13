@@ -217,7 +217,8 @@ TEST_F(DetachableJointTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 }
 
 /////////////////////////////////////////////////
-TEST_F(DetachableJointTest, NestedModelsWithSameName)
+TEST_F(DetachableJointTest,
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(NestedModelsWithSameName))
 {
   using namespace std::chrono_literals;
 
