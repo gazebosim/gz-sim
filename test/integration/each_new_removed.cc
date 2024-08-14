@@ -37,7 +37,7 @@ using namespace gz;
 using namespace std::chrono_literals;
 
 using IntComponent = sim::components::Component<int, class IntComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("ign_gazebo_components.IntComponent",
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
 class EachNewRemovedFixture : public InternalFixture<::testing::Test>

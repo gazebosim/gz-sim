@@ -98,7 +98,7 @@ feature which hasn't been released yet.
 
 2. Install dependencies
   ```
-  brew install --only-dependencies ignition-gazebo<#>
+  brew install --only-dependencies gz-sim<#>
   ```
 
 3. Configure and build
