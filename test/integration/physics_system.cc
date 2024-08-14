@@ -961,7 +961,7 @@ TEST_F(PhysicsSystemFixture,
 
   const math::Vector3d vel0(0.1, 5.0, 0.1);
 
-  // Reset child link velocity to nonzero components (upward in Z)
+  // Reset child link velocity to nonzero components
   // This shouldn't do anything, since it is not the root link of its FreeGroup
   ecm->CreateComponent(childLinkEntity,
       components::WorldAngularVelocityReset(vel0));
