@@ -38,6 +38,7 @@
     <plugin
       filename="gz-sim-forcetorque-system"
       name="gz::sim::systems::ForceTorque">
+      <gz::system_priority>10</gz::system_priority>
     </plugin>
     <plugin
       filename="gz-sim-user-commands-system"

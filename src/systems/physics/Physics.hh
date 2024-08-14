@@ -26,6 +26,7 @@
 // Features need to be defined ahead of entityCast
 #include <gz/physics/BoxShape.hh>
 #include <gz/physics/CapsuleShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/EllipsoidShape.hh>
 #include <gz/physics/ForwardStep.hh>

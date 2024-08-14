@@ -169,6 +169,10 @@ namespace gz
       /// \brief Our signal handler.
       public: gz::common::SignalHandler sigHandler;
 
+      /// \brief Set to true from signal handler. This will be used to
+      /// terminate the server where checking `running` is not sufficient.
+      public: std::atomic<bool> signalReceived{false};
+
       /// \brief Our system loader.
       public: SystemLoaderPtr systemLoader;
 
@@ -186,6 +190,11 @@ namespace gz
       /// \brief Map from file paths to fuel URIs. This is set and updated by
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
+
+      /// \brief Gazebo classic material URI string
+      /// A URI matching this string indicates that it is a gazebo classic
+      /// material.
+      public: static const char kClassicMaterialScriptUri[];
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

@@ -19,6 +19,7 @@
 #define GZ_SIM_GUI_ENTITYCONTEXTMENU_HH_
 
 #include <gz/gui/qt.h>
+#include <gz/msgs/cameratrack.pb.h>
 #include <QtQml/QQmlExtensionPlugin>
 #include <memory>
 
@@ -46,12 +47,34 @@ namespace sim
   class EntityContextMenu : public QQuickItem
   {
     Q_OBJECT
+    /// \brief followingTarget
+    Q_PROPERTY(
+      bool followingTarget
+      READ FollowingTarget
+      WRITE SetFollowingTarget
+      NOTIFY FollowingTargetChanged
+    )
 
     /// \brief Constructor
     public: EntityContextMenu();
 
     /// \brief Destructor
     public: ~EntityContextMenu() override;
+
+    /// \brief Get whether it is following target
+    /// \return True if followingTarget
+    public: Q_INVOKABLE bool FollowingTarget() const;
+
+    /// \brief Set whether followingTarget
+    /// \param[in] _followingTarget True if followingTarget
+    public: Q_INVOKABLE void SetFollowingTarget(bool &_followingTarget);
+
+    /// \brief Notify that followingTarget has changed
+    signals: void FollowingTargetChanged();
+
+    /// \brief Callback function to get data from the message
+    /// \param[in] _msg CameraTrack message
+    public: void OnCurrentlyTrackedSub(const msgs::CameraTrack &_msg);
 
     /// \brief Callback when a context menu item is invoked
     /// \param[in] _data Request data

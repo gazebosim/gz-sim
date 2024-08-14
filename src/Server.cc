@@ -121,6 +121,7 @@ Server::Server(const ServerConfig &_config)
       }
       gzmsg <<  msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->dataPtr->sdfRoot.LoadSdfString(
@@ -145,6 +146,7 @@ Server::Server(const ServerConfig &_config)
 
       sdf::Root sdfRoot;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
 
@@ -156,7 +158,9 @@ Server::Server(const ServerConfig &_config)
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (errors.empty()) {
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -171,7 +175,9 @@ Server::Server(const ServerConfig &_config)
             return;
           }
           world->AddModel(*sdfRoot.Model());
-          if (errors.empty()) {
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
             errors = this->dataPtr->sdfRoot.UpdateGraphs();
           }
         }
@@ -196,7 +202,11 @@ Server::Server(const ServerConfig &_config)
   {
     for (auto &err : errors)
       gzerr << err << "\n";
-    return;
+    if (_config.BehaviorOnSdfErrors() ==
+        ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+    {
+      return;
+    }
   }
 
   // Add record plugin
@@ -204,6 +214,11 @@ Server::Server(const ServerConfig &_config)
   {
     this->dataPtr->AddRecordPlugin(_config);
   }
+
+  // If we've received a signal before we create entities, the Stop event
+  // won't be propagated to them. Instead, we just quit early here.
+  if (this->dataPtr->signalReceived)
+    return;
 
   this->dataPtr->CreateEntities();
 

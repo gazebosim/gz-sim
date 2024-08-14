@@ -37,6 +37,9 @@
 using namespace gz;
 using namespace sim;
 
+const char ServerPrivate::kClassicMaterialScriptUri[] =
+    "file://media/materials/scripts/gazebo.material";
+
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -112,6 +115,7 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
+  this->signalReceived = true;
   gzdbg << "Server received signal[" << _sig  << "]\n";
   this->Stop();
 }
@@ -130,6 +134,13 @@ void ServerPrivate::Stop()
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {
+  // Return early if we've received a signal right before.
+  // The ServerPrivate signal handler would set `running=false`,
+  // but we immediately would set it to true here, which will essentially ignore
+  // the signal. Since we can't reliably use the `running` variable, we return
+  // if `signalReceived` is true
+  if (this->signalReceived)
+    return false;
   this->runMutex.lock();
   this->running = true;
   if (_cond)
@@ -546,6 +557,12 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
+  // Handle gazebo classic material URIs.
+  // Return original URI string as the SdfEntityCreator checks for this URI
+  if (_uri == kClassicMaterialScriptUri)
+    return _uri;
+
+  // Fetch resource from fuel
   auto path =
       fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
 

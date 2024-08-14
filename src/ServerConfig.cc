@@ -208,7 +208,8 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
-            source(_cfg->source){ }
+            source(_cfg->source),
+            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors){ }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -292,6 +293,10 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
+
+  /// \brief Server loading behavior in presence of SDF errors.
+  public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
 };
 
 //////////////////////////////////////////////////
@@ -596,6 +601,19 @@ void ServerConfig::SetRenderEngineGuiApiBackend(const std::string &_apiBackend)
 const std::string &ServerConfig::RenderEngineGuiApiBackend() const
 {
   return this->dataPtr->renderEngineGuiApiBackend;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetBehaviorOnSdfErrors(
+    ServerConfig::SdfErrorBehavior _behavior)
+{
+  this->dataPtr->behaviorOnSdfErrors = _behavior;
+}
+
+//////////////////////////////////////////////////
+ServerConfig::SdfErrorBehavior ServerConfig::BehaviorOnSdfErrors() const
+{
+  return this->dataPtr->behaviorOnSdfErrors;
 }
 
 /////////////////////////////////////////////////
@@ -905,19 +923,6 @@ sim::loadPluginInfo(bool _isPlayback)
   bool configSet = common::env(sim::kServerConfigPathEnv,
                                envConfig,
                                true);
-
-  if (!configSet)
-  {
-    configSet = common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
-                            envConfig,
-                            true);
-    if (configSet)
-    {
-      gzwarn << "Config path found using deprecated environment variable "
-             << "[IGN_GAZEBO_SERVER_CONFIG_PATH]. Please use "
-             << "[GZ_SIM_SERVER_CONFIG_PATH] instead" << std::endl;
-    }
-  }
 
   if (configSet)
   {

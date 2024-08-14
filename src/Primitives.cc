@@ -105,6 +105,49 @@ constexpr const char * kSphereSdf = R"(<?xml version="1.0"?>
 )";
 
 /////////////////////////////////////////////////
+constexpr const char * kConeSdf = R"(<?xml version="1.0"?>
+<sdf version="1.9">
+  <model name="cone">
+    <pose>0 0 0.5 0 0 0</pose>
+    <link name="cone_link">
+      <inertial>
+        <inertia>
+          <ixx>0.075</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.075</iyy>
+          <iyz>0</iyz>
+          <izz>0.075</izz>
+        </inertia>
+        <mass>1.0</mass>
+      </inertial>
+      <collision name="cone_collision">
+        <geometry>
+          <cone>
+            <radius>0.5</radius>
+            <length>1.0</length>
+          </cone>
+        </geometry>
+      </collision>
+      <visual name="cone_visual">
+        <geometry>
+          <cone>
+            <radius>0.5</radius>
+            <length>1.0</length>
+          </cone>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
+          <specular>1 1 1 1</specular>
+        </material>
+     </visual>
+    </link>
+  </model>
+</sdf>
+)";
+
+/////////////////////////////////////////////////
 constexpr const char * kCylinderSdf = R"(<?xml version="1.0"?>
 <sdf version="1.9">
   <model name="cylinder">
@@ -301,6 +344,8 @@ std::string gz::sim::getPrimitiveShape(const PrimitiveShape &_type)
       return kBoxSdf;
     case PrimitiveShape::kSphere:
       return kSphereSdf;
+    case PrimitiveShape::kCone:
+      return kConeSdf;
     case PrimitiveShape::kCylinder:
       return kCylinderSdf;
     case PrimitiveShape::kCapsule:
@@ -339,6 +384,8 @@ std::string gz::sim::getPrimitive(const std::string &_typeName)
     return getPrimitiveShape(PrimitiveShape::kSphere);
   else if (type == "cylinder")
     return getPrimitiveShape(PrimitiveShape::kCylinder);
+  else if (type == "cone")
+    return getPrimitiveShape(PrimitiveShape::kCone);
   else if (type == "capsule")
     return getPrimitiveShape(PrimitiveShape::kCapsule);
   else if (type == "ellipsoid")
@@ -354,6 +401,7 @@ std::string gz::sim::getPrimitive(const std::string &_typeName)
   gzwarn << "The valid options are:\n";
   gzwarn << " - box\n";
   gzwarn << " - sphere\n";
+  gzwarn << " - cone\n";
   gzwarn << " - cylinder\n";
   gzwarn << " - capsule\n";
   gzwarn << " - ellipsoid\n";

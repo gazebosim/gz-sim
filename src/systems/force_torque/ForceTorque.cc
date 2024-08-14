@@ -44,6 +44,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/WrenchMeasured.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
@@ -77,7 +78,7 @@ class gz::sim::systems::ForceTorquePrivate
   public: sensors::SensorFactory sensorFactory;
 
   /// \brief Keep list of sensors that were created during the previous
-  /// `PostUpdate`, so that components can be created during the next
+  /// `Update`, so that components can be created during the next
   /// `PreUpdate`.
   public: std::unordered_set<Entity> newSensors;
 
@@ -157,17 +158,17 @@ void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-void ForceTorque::PostUpdate(const UpdateInfo &_info,
-                     const EntityComponentManager &_ecm)
+void ForceTorque::Update(const UpdateInfo &_info,
+                         EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("ForceTorque::PostUpdate");
+  GZ_PROFILE("ForceTorque::Update");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   this->dataPtr->CreateSensors(_ecm);
@@ -176,15 +177,15 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
   if (!_info.paused)
   {
     // check to see if update is necessary
-    // we only update if there is at least one sensor that needs data
-    // and that sensor has subscribers.
+    // we only update if there is at least one sensor that needs data.
     // note: gz-sensors does its own throttling. Here the check is mainly
     // to avoid doing work in the ForceTorquePrivate::Update function
     bool needsUpdate = false;
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (const auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+      if (sensor->NextDataUpdateTime() <= _info.simTime &&
+          (sensor->HasConnections() ||
+          _ecm.Component<components::WrenchMeasured>(sensorEntity) != nullptr))
       {
         needsUpdate = true;
         break;
@@ -193,11 +194,23 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
+    // Transform joint wrench to sensor wrench and write to sensor
     this->dataPtr->Update(_ecm);
 
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
-      it.second->Update(_info.simTime, false);
+      // Call gz::sensors::ForceTorqueSensor::Update
+      // * Convert to user-specified frame
+      // * Apply noise
+      // * Publish to gz-transport topic
+      sensor->Update(_info.simTime, false);
+      auto wrenchComponent =
+          _ecm.Component<components::WrenchMeasured>(sensorEntity);
+      if (wrenchComponent)
+      {
+        const auto &measuredWrench = sensor->MeasuredWrench();
+        *wrenchComponent = components::WrenchMeasured(measuredWrench);
+      }
     }
   }
 
@@ -269,7 +282,8 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
             return true;
           }
 
-          // Appropriate components haven't been populated by physics yet
+          // Return early if JointTransmittedWrench component has not yet been
+          // populated by the Physics system
           auto jointWrench = _ecm.Component<components::JointTransmittedWrench>(
               jointLinkIt->second.joint);
           if (nullptr == jointWrench)
@@ -439,7 +453,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
 
 GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPreUpdate,
-  ForceTorque::ISystemPostUpdate
+  ForceTorque::ISystemUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")

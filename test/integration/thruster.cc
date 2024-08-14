@@ -211,6 +211,7 @@ void ThrusterTest::TestWorld(const std::string &_world,
 
   // Check no movement because of invalid commands
   fixture.Server()->Run(true, 100, false);
+  ASSERT_FALSE(modelPoses.empty());
   EXPECT_DOUBLE_EQ(0.0, modelPoses.back().Pos().X());
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
@@ -244,10 +245,9 @@ void ThrusterTest::TestWorld(const std::string &_world,
   // Check movement
   if (_namespace != "lowbattery")
   {
-    for (sleep = 0; modelPoses.back().Pos().X() < 5.0 && sleep < maxSleep;
-        ++sleep)
+    for (sleep = 0; (modelPoses.empty() || modelPoses.back().Pos().X() < 5.0) &&
+         sleep < maxSleep; ++sleep)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       fixture.Server()->Run(true, 100, false);
     }
     EXPECT_LT(sleep, maxSleep);
@@ -331,13 +331,11 @@ void ThrusterTest::TestWorld(const std::string &_world,
     EXPECT_NEAR(0.0, angVel.Y(), _baseTol);
     EXPECT_NEAR(0.0, angVel.Z(), _baseTol);
   }
-
   modelPoses.clear();
   propellerAngVels.clear();
   propellerLinVels.clear();
   // Make sure that when the deadband is disabled
   // commands below the deadband should create a movement
-  auto latest_pose = modelPoses.back();
   msgs::Boolean db_msg;
   if (_namespace == "deadband")
   {

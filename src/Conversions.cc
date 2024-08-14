@@ -20,6 +20,7 @@
 #include <gz/msgs/axis_aligned_box.pb.h>
 #include <gz/msgs/boxgeom.pb.h>
 #include <gz/msgs/capsulegeom.pb.h>
+#include <gz/msgs/conegeom.pb.h>
 #include <gz/msgs/cylindergeom.pb.h>
 #include <gz/msgs/ellipsoidgeom.pb.h>
 #include <gz/msgs/entity.pb.h>
@@ -53,6 +54,7 @@
 #include <sdf/Box.hh>
 #include <sdf/Camera.hh>
 #include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Cylinder.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Geometry.hh>
@@ -176,6 +178,12 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     out.mutable_capsule()->set_radius(_in.CapsuleShape()->Radius());
     out.mutable_capsule()->set_length(_in.CapsuleShape()->Length());
   }
+  else if (_in.Type() == sdf::GeometryType::CONE && _in.ConeShape())
+  {
+    out.set_type(msgs::Geometry::CONE);
+    out.mutable_cone()->set_radius(_in.ConeShape()->Radius());
+    out.mutable_cone()->set_length(_in.ConeShape()->Length());
+  }
   else if (_in.Type() == sdf::GeometryType::CYLINDER && _in.CylinderShape())
   {
     out.set_type(msgs::Geometry::CYLINDER);
@@ -212,6 +220,24 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     meshMsg->set_filename(asFullPath(meshSdf->Uri(), meshSdf->FilePath()));
     meshMsg->set_submesh(meshSdf->Submesh());
     meshMsg->set_center_submesh(meshSdf->CenterSubmesh());
+
+    if (!meshSdf->OptimizationStr().empty())
+    {
+      auto header = out.mutable_header()->add_data();
+      header->set_key("optimization");
+      header->add_value(meshSdf->OptimizationStr());
+    }
+    if (meshSdf->ConvexDecomposition())
+    {
+      auto header = out.mutable_header()->add_data();
+      header->set_key("max_convex_hulls");
+      header->add_value(std::to_string(
+          meshSdf->ConvexDecomposition()->MaxConvexHulls()));
+      header = out.mutable_header()->add_data();
+      header->set_key("voxel_resolution");
+      header->add_value(std::to_string(
+          meshSdf->ConvexDecomposition()->VoxelResolution()));
+    }
   }
   else if (_in.Type() == sdf::GeometryType::HEIGHTMAP && _in.HeightmapShape())
   {
@@ -260,6 +286,10 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       }
     }
   }
+  else if (_in.Type() == sdf::GeometryType::EMPTY)
+  {
+    out.set_type(msgs::Geometry::EMPTY);
+  }
   else
   {
     gzerr << "Geometry type [" << static_cast<int>(_in.Type())
@@ -292,6 +322,16 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     capsuleShape.SetLength(_in.capsule().length());
 
     out.SetCapsuleShape(capsuleShape);
+  }
+  else if (_in.type() == msgs::Geometry::CONE && _in.has_cone())
+  {
+    out.SetType(sdf::GeometryType::CONE);
+
+    sdf::Cone coneShape;
+    coneShape.SetRadius(_in.cone().radius());
+    coneShape.SetLength(_in.cone().length());
+
+    out.SetConeShape(coneShape);
   }
   else if (_in.type() == msgs::Geometry::CYLINDER && _in.has_cylinder())
   {
@@ -341,6 +381,24 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
     meshShape.SetSubmesh(_in.mesh().submesh());
     meshShape.SetCenterSubmesh(_in.mesh().center_submesh());
 
+    sdf::ConvexDecomposition convexDecomp;
+    for (int i = 0; i < _in.header().data_size(); ++i)
+    {
+      auto data = _in.header().data(i);
+      if (data.key() == "optimization" && data.value_size() > 0)
+      {
+        meshShape.SetOptimization(data.value(0));
+      }
+      if (data.key() == "max_convex_hulls" && data.value_size() > 0)
+      {
+        convexDecomp.SetMaxConvexHulls(std::stoul(data.value(0)));
+      }
+      if (data.key() == "voxel_resolution" && data.value_size() > 0)
+      {
+        convexDecomp.SetVoxelResolution(std::stoul(data.value(0)));
+      }
+    }
+    meshShape.SetConvexDecomposition(convexDecomp);
     out.SetMeshShape(meshShape);
   }
   else if (_in.type() == msgs::Geometry::HEIGHTMAP && _in.has_heightmap())
@@ -848,7 +906,7 @@ msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
     out.set_type(msgs::Atmosphere::ADIABATIC);
   }
   // todo(anyone) add mass density to sdf::Atmosphere?
-  // out.set_mass_density(_in.MassDensity());k
+  // out.set_mass_density(_in.MassDensity());
 
   return out;
 }
@@ -1681,15 +1739,7 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
     }
   }
 
-  /// \todo(nkoenig) Modify the particle_emitter.proto file to
-  /// have a topic field.
-  if (!_in.Topic().empty())
-  {
-    auto header = out.mutable_header()->add_data();
-    header->set_key("topic");
-    header->add_value(_in.Topic());
-  }
-
+  out.mutable_topic()->set_data(_in.Topic());
   out.mutable_particle_scatter_ratio()->set_data(_in.ScatterRatio());
   return out;
 }
@@ -1744,15 +1794,8 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
     out.SetColorRangeImage(_in.color_range_image().data());
   if (_in.has_particle_scatter_ratio())
     out.SetScatterRatio(_in.particle_scatter_ratio().data());
-
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    auto data = _in.header().data(i);
-    if (data.key() == "topic" && data.value_size() > 0)
-    {
-      out.SetTopic(data.value(0));
-    }
-  }
+  if (_in.has_topic())
+    out.SetTopic(_in.topic().data());
 
   return out;
 }
@@ -1770,10 +1813,7 @@ msgs::Projector gz::sim::convert(const sdf::Projector &_in)
   out.set_fov(_in.HorizontalFov().Radian());
   out.set_texture(_in.Texture().empty() ? "" :
       asFullPath(_in.Texture(), _in.FilePath()));
-
-  auto header = out.mutable_header()->add_data();
-  header->set_key("visibility_flags");
-  header->add_value(std::to_string(_in.VisibilityFlags()));
+  out.set_visibility_flags(_in.VisibilityFlags());
 
   return out;
 }
@@ -1790,26 +1830,7 @@ sdf::Projector gz::sim::convert(const msgs::Projector &_in)
   out.SetHorizontalFov(math::Angle(_in.fov()));
   out.SetTexture(_in.texture());
   out.SetRawPose(msgs::Convert(_in.pose()));
-
-  /// \todo(anyone) add "visibility_flags" field to projector.proto
-  for (int i = 0; i < _in.header().data_size(); ++i)
-  {
-    auto data = _in.header().data(i);
-    if (data.key() == "visibility_flags" && data.value_size() > 0)
-    {
-      try
-      {
-        out.SetVisibilityFlags(std::stoul(data.value(0)));
-      }
-      catch (...)
-      {
-        gzerr << "Failed to parse projector <visibility_flags>: "
-              << data.value(0) << ". Using default value: 0xFFFFFFFF."
-              << std::endl;
-        out.SetVisibilityFlags(0xFFFFFFFF);
-      }
-    }
-  }
+  out.SetVisibilityFlags(_in.visibility_flags());
 
   return out;
 }

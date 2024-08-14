@@ -508,8 +508,8 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // If the joints haven't been identified yet, look for them
@@ -608,70 +608,29 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
     for (Entity joint : this->dataPtr->leftJoints)
     {
       // Update wheel velocity
-      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-      if (vel == nullptr)
-      {
-        _ecm.CreateComponent(
-            joint, components::JointVelocityCmd(
-              {this->dataPtr->leftJointSpeed}));
-      }
-      else
-      {
-        *vel = components::JointVelocityCmd({this->dataPtr->leftJointSpeed});
-      }
+      _ecm.SetComponentData<components::JointVelocityCmd>(
+        joint, {this->dataPtr->leftJointSpeed});
     }
 
     for (Entity joint : this->dataPtr->rightJoints)
     {
       // Update wheel velocity
-      auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-      if (vel == nullptr)
-      {
-        _ecm.CreateComponent(joint,
-            components::JointVelocityCmd({this->dataPtr->rightJointSpeed}));
-      }
-      else
-      {
-        *vel = components::JointVelocityCmd({this->dataPtr->rightJointSpeed});
-      }
+      _ecm.SetComponentData<components::JointVelocityCmd>(
+        joint, {this->dataPtr->rightJointSpeed});
     }
   }
 
   // Update steering
   for (Entity joint : this->dataPtr->leftSteeringJoints)
   {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          joint, components::JointVelocityCmd(
-                             {this->dataPtr->leftSteeringJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                         {this->dataPtr->leftSteeringJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(
+      joint, {this->dataPtr->leftSteeringJointSpeed});
   }
 
   for (Entity joint : this->dataPtr->rightSteeringJoints)
   {
-    auto vel = _ecm.Component<components::JointVelocityCmd>(joint);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(joint,
-          components::JointVelocityCmd(
-                  {this->dataPtr->rightSteeringJointSpeed}));
-    }
-    else
-    {
-      *vel = components::JointVelocityCmd(
-                     {this->dataPtr->rightSteeringJointSpeed});
-    }
+    _ecm.SetComponentData<components::JointVelocityCmd>(
+      joint, {this->dataPtr->rightSteeringJointSpeed});
   }
   if (!this->dataPtr->steeringOnly)
   {
@@ -718,6 +677,11 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
+
+  if (this->dataPtr->leftSteeringJoints.empty() ||
+      this->dataPtr->rightSteeringJoints.empty())
+    return;
+
   if (this->dataPtr->steeringOnly)
   {
     this->dataPtr->UpdateAngle(_info, _ecm);
@@ -926,11 +890,10 @@ void AckermannSteeringPrivate::UpdateVelocity(
   double leftDelta = leftSteeringJointAngle - leftSteeringPos->Data()[0];
   double rightDelta = rightSteeringJointAngle - rightSteeringPos->Data()[0];
 
-  // Simple proportional control with a gain of 1
+  // Simple proportional control with settable gain.
   // Adding programmable PID values might be a future feature.
-  // Works as is for tested cases
-  this->leftSteeringJointSpeed = leftDelta;
-  this->rightSteeringJointSpeed = rightDelta;
+  this->leftSteeringJointSpeed = this->gainPAng * leftDelta;
+  this->rightSteeringJointSpeed = this->gainPAng * rightDelta;
 }
 
 //////////////////////////////////////////////////
@@ -968,11 +931,11 @@ void AckermannSteeringPrivate::UpdateAngle(
 
   double leftSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) + \
+      ((2.0 * this->wheelBase * cos(ang)) - \
       (1.0 * this->wheelSeparation * sin(ang))));
   double rightSteeringJointAngle =
       atan((2.0 * this->wheelBase * sin(ang)) / \
-      ((2.0 * this->wheelBase * cos(ang)) - \
+      ((2.0 * this->wheelBase * cos(ang)) + \
       (1.0 * this->wheelSeparation * sin(ang))));
 
   auto leftSteeringPos = _ecm.Component<components::JointPosition>(

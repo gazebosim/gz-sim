@@ -64,8 +64,7 @@ class gz::sim::SystemLoaderPrivate
   public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
               gz::plugin::PluginPtr &_gzPlugin)
   {
-    // Deprecated: accept ignition-gazebo-prefixed systems. Remove this on
-    // gz-sim9
+    // Deprecated: accept ignition-gazebo-prefixed systems.
     std::string deprecatedPrefix{"ignition-gazebo"};
     auto filename = _sdfPlugin.Filename();
     auto pos = filename.find(deprecatedPrefix);
@@ -125,7 +124,7 @@ class gz::sim::SystemLoaderPrivate
     std::string pluginToInstantiate = _sdfPlugin.Name().empty() ?
         pluginName : _sdfPlugin.Name();
 
-    // Deprecated: accept ignition plugins. Remove this on gz-sim9
+    // Deprecated: accept ignition plugins.
     std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
     pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
     if (pos != std::string::npos)
@@ -200,7 +199,6 @@ class gz::sim::SystemLoaderPrivate
 
   // Default plugin search path environment variable
   public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
-  public: std::string pluginPathEnvDeprecated{"IGN_GAZEBO_SYSTEM_PLUGIN_PATH"};
 
   /// \brief Plugin loader instace
   public: gz::plugin::Loader loader;

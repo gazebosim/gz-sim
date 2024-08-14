@@ -72,3 +72,4 @@ The rest of the tutorial is case studies that walk through the usage of
 specific components.
 
 - \subpage jointforcecmdcomponent "JointForceCmd"
+- \subpage posecomponent "Pose"
