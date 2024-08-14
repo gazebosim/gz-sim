@@ -21,7 +21,7 @@
 
 namespace gz::sim::systems
 {
-  /// \brief A suggested priprity value for a system that should execute before
+  /// \brief A suggested priority value for a system that should execute before
   /// the Physics system.
   constexpr System::PriorityType kPrePhysicsPriority = -128;
 

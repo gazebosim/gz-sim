@@ -121,7 +121,12 @@ size_t SystemManager::ActivatePendingSystems()
     if (system.configureSdf &&
         system.configureSdf->HasElement(kPriorityElementName))
     {
-      p = system.configureSdf->Get<PriorityType>(kPriorityElementName);
+      PriorityType newPriority =
+          system.configureSdf->Get<PriorityType>(kPriorityElementName);
+      gzdbg << "Changing priority for system [" << system.name
+            << "] from {" << p
+            << "} to {" << newPriority << "}\n";
+      p = newPriority;
     }
 
     if (system.configure)
