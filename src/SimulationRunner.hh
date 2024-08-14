@@ -544,7 +544,7 @@ namespace gz
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
       /// \brief Set if we need to remove systems due to entity removal
-      private: bool threadsNeedCleanUp;
+      private: bool threadsNeedCleanUp{false};
 
       private: bool resetInitiated{false};
       friend class LevelManager;

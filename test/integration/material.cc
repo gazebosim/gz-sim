@@ -296,3 +296,30 @@ TEST_F(MaterialTest, InvalidColor)
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
             boxVisualComp->Data().Specular());
 }
+
+TEST_F(MaterialTest, WorldWithClassicMaterial)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "classic_material.sdf"));
+
+  std::cout << "Loading: " << serverConfig.SdfFile() << std::endl;
+  this->StartServer(serverConfig);
+
+  auto model = this->GetModel("box");
+  ASSERT_TRUE(model.Valid(*this->ecm));
+
+  auto boxVisualEntity =
+    this->ecm->EntityByComponents(components::Name("box_visual"));
+  ASSERT_NE(kNullEntity, boxVisualEntity);
+
+  // Blue color
+  auto boxVisualComp =
+    this->ecm->Component<components::Material>(boxVisualEntity);
+  EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
+            boxVisualComp->Data().Ambient());
+  EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
+            boxVisualComp->Data().Diffuse());
+  EXPECT_EQ(math::Color(0.1f, 0.1f, 0.1f, 1.0f),
+            boxVisualComp->Data().Specular());
+}
