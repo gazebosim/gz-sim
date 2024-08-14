@@ -46,6 +46,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/WrenchMeasured.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SystemPriorityConstants.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -132,7 +133,8 @@ ForceTorque::~ForceTorque() = default;
 //////////////////////////////////////////////////
 System::PriorityType ForceTorque::ConfigurePriority()
 {
-  return 10;
+  // Execute after Physics::Update but before systems with default priority.
+  return systems::kPostPhysicsSensorPriority;
 }
 
 //////////////////////////////////////////////////

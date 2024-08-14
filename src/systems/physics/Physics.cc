@@ -93,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/SystemPriorityConstants.hh"
 #include "gz/sim/Util.hh"
 
 // Components
@@ -759,6 +760,13 @@ class gz::sim::systems::PhysicsPrivate
 //////////////////////////////////////////////////
 Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
+}
+
+//////////////////////////////////////////////////
+System::PriorityType Physics::ConfigurePriority()
+{
+  // Use constant from SystemPriorityConstants.hh
+  return systems::kPhysicsPriority;
 }
 
 //////////////////////////////////////////////////
