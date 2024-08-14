@@ -977,7 +977,7 @@ TEST_F(PhysicsSystemFixture,
     EXPECT_EQ(math::Vector3d::Zero, childLinkAngularVel);
   }
 
-  // Reset root link velocity to nonzero components (upward in Z)
+  // Reset root link velocity to nonzero components
   ecm->CreateComponent(rootLinkEntity,
       components::WorldAngularVelocityReset(vel0));
 
