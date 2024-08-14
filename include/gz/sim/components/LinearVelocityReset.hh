@@ -31,7 +31,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Linear velocity of an entity in it's own frame
+  /// \brief Linear velocity of an entity in its own frame
   /// and in SI units (m/s). The linear velocity is
   /// represented by gz::math::Vector3d.
   using LinearVelocityReset = Component<math::Vector3d ,
