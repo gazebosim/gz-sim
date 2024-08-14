@@ -553,7 +553,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        common::URI(_path.toStdString()), localPath))
+        common::URI(_path.toStdString(), true), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
@@ -739,7 +739,7 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
             resource.isFuel = true;
             resource.isDownloaded = false;
             resource.owner = id.Owner();
-            resource.sdfPath = id.UniqueName();
+            resource.sdfPath = id.Url().Str();
 
             QMetaObject::invokeMethod(
                 this, "UpdateOwnerListModel", Qt::QueuedConnection,

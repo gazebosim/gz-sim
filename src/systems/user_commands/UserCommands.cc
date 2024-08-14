@@ -583,6 +583,12 @@ UserCommands::~UserCommands() = default;
 bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 {
   auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
+
+  if (linkEntity == nullptr)
+  {
+    return false;
+  }
+
   auto allLinkSensors =
     ecm->EntitiesByComponents(components::Sensor(),
       components::ParentEntity(*linkEntity));
