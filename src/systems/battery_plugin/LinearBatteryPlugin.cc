@@ -480,6 +480,9 @@ void LinearBatteryPlugin::PreUpdate(
 {
   GZ_PROFILE("LinearBatteryPlugin::PreUpdate");
 
+  if (!this->dataPtr->battery)
+    return;
+
   // Recalculate the total power load among consumers
   double total_power_load = this->dataPtr->initialPowerLoad;
   _ecm.Each<components::BatteryPowerLoad>(
@@ -546,6 +549,9 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 {
   GZ_PROFILE("LinearBatteryPlugin::Update");
 
+  if (!this->dataPtr->battery)
+    return;
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
@@ -608,6 +614,9 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   GZ_PROFILE("LinearBatteryPlugin::PostUpdate");
   // Nothing left to do if paused or the publisher wasn't created.
   if (_info.paused || !this->dataPtr->statePub)
+    return;
+
+  if (!this->dataPtr->battery)
     return;
 
   // Publish battery state

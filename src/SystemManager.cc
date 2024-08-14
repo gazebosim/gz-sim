@@ -27,6 +27,7 @@
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/System.hh"
+#include "gz/sim/Util.hh"
 #include "SystemManager.hh"
 
 using namespace gz;
@@ -368,6 +369,11 @@ bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
 {
   std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
   this->systemsToAdd.push_back(_req);
+
+  // The response is set to true to indicate that the service request is
+  // handled but it does not necessarily mean the system is added
+  // successfully
+  // \todo(iche033) Return false if system is not added successfully?
   _res.set_data(true);
   return true;
 }
@@ -427,8 +433,21 @@ void SystemManager::ProcessPendingEntitySystems()
 
     if (req.plugins().empty())
     {
-      gzwarn << "Unable to add plugins to Entity: '" << entity
-             << "'. No plugins specified." << std::endl;
+      gzerr << "Unable to add plugins to Entity: '" << entity
+            << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    // set to world entity if entity id is not specified in the request.
+    if (entity == kNullEntity || entity == 0u)
+    {
+      entity = worldEntity(*this->entityCompMgr);
+    }
+    // otherwise check if entity exists before attempting to load the plugin.
+    else if (!this->entityCompMgr->HasEntity(entity))
+    {
+      gzerr << "Unable to add plugins to Entity: '" << entity
+            << "'. Entity does not exist." << std::endl;
        continue;
     }
 
