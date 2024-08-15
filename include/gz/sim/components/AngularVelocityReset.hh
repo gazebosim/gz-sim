@@ -31,7 +31,7 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Angular velocity of an entity, in it's own frame
+  /// \brief Angular velocity of an entity, in its own frame
   /// and in SI units (rad/s). The angular velocity is
   //  represented by gz::math::Vector3d.
   using AngularVelocityReset = Component<math::Vector3d,

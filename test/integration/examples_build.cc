@@ -58,28 +58,6 @@ struct ExampleEntry
 };
 
 //////////////////////////////////////////////////
-/// Filter examples that are known to not build or require
-/// specific configurations
-/// \param[in] _entry Example entry to check
-/// \return true if example entry should be built, false otherwise
-bool FilterEntry(const ExampleEntry &_entry)
-{
-  math::SemanticVersion cmakeVersion{std::string(CMAKE_VERSION)};
-  if (cmakeVersion < math::SemanticVersion(3, 11, 0) &&
-      (_entry.base == "custom_sensor_system" ||
-       _entry.base == "gtest_setup"))
-  {
-    gzdbg << "Skipping [" << _entry.base
-           << "] test, which requires CMake version "
-           << ">= 3.11.0. Currently using CMake "
-           << cmakeVersion
-           << std::endl;
-    return false;
-  }
-  return true;
-}
-
-//////////////////////////////////////////////////
 /// Generate a list of examples to be built.
 std::vector<ExampleEntry> GetExamples()
 {
@@ -115,11 +93,6 @@ class ExamplesBuild
 void ExamplesBuild::Build(const ExampleEntry &_entry)
 {
   common::Console::SetVerbosity(4);
-
-  if (!FilterEntry(_entry))
-  {
-    GTEST_SKIP();
-  }
 
   // Path to examples of the given type
   ASSERT_TRUE(gz::common::exists(_entry.sourceDir));

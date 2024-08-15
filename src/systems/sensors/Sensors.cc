@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -41,6 +40,7 @@
 #include <gz/sensors/RgbdCameraSensor.hh>
 #include <gz/sensors/ThermalCameraSensor.hh>
 #include <gz/sensors/SegmentationCameraSensor.hh>
+#include <gz/sensors/Sensor.hh>
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
 
@@ -227,6 +227,9 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Check if any of the sensors have connections
   public: bool SensorsHaveConnections();
+
+  /// \brief Returns all sensors that have a pending trigger
+  public: std::unordered_set<sensors::SensorId> SensorsWithPendingTrigger();
 
   /// \brief Use to optionally set the background color.
   public: std::optional<math::Color> backgroundColor;
@@ -745,11 +748,15 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
           this->dataPtr->sensorsToUpdate, _info.simTime);
     }
 
+    std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
+        this->dataPtr->SensorsWithPendingTrigger();
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
-        this->dataPtr->forceUpdate)
+        this->dataPtr->forceUpdate ||
+        !sensorsWithPendingTriggers.empty())
     {
       if (this->dataPtr->disableOnDrainedBattery)
         this->dataPtr->UpdateBatteryState(_ecm);
@@ -769,6 +776,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         std::unique_lock<std::mutex> lockSensors(this->dataPtr->sensorsMutex);
         this->dataPtr->activeSensors =
             std::move(this->dataPtr->sensorsToUpdate);
+        // Add all sensors that have pending triggers.
+        this->dataPtr->activeSensors.insert(sensorsWithPendingTriggers.begin(),
+                                            sensorsWithPendingTriggers.end());
       }
 
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
@@ -1024,6 +1034,11 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
       continue;
     }
 
+    if (rs->IsTriggered())
+    {
+      continue;
+    }
+
     std::chrono::steady_clock::duration time;
     // if sensor's next update tims is less or equal to current sim time then
     // it's in the process of being updated by the render loop
@@ -1073,6 +1088,27 @@ bool SensorsPrivate::SensorsHaveConnections()
     }
   }
   return false;
+}
+
+//////////////////////////////////////////////////
+std::unordered_set<sensors::SensorId>
+SensorsPrivate::SensorsWithPendingTrigger()
+{
+  std::unordered_set<sensors::SensorId> sensorsWithPendingTrigger;
+  for (auto id : this->sensorIds)
+  {
+    sensors::Sensor *s = this->sensorManager.Sensor(id);
+    if (nullptr == s)
+    {
+      continue;
+    }
+
+    if (s->HasPendingTrigger())
+    {
+      sensorsWithPendingTrigger.insert(id);
+    }
+  }
+  return sensorsWithPendingTrigger;
 }
 
 GZ_ADD_PLUGIN(Sensors, System,

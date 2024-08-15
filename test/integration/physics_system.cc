@@ -48,6 +48,7 @@
 
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
@@ -67,6 +68,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -745,6 +747,272 @@ TEST_F(PhysicsSystemFixture,
 
   // Second position should be different, but close
   EXPECT_NEAR(pos0, positions[1], 0.01);
+}
+
+/////////////////////////////////////////////////
+/// Test linear veocity reset component
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(LinearVelocityResetComponent))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/diff_drive.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  // Disable gravity
+  world->SetGravity(math::Vector3d::Zero);
+
+  serverConfig.SetSdfRoot(root);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Get Link Entity's and objects
+  const std::string rootLinkName{"chassis"};
+  auto rootLinkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(rootLinkName));
+  Link rootLink(rootLinkEntity);
+  ASSERT_TRUE(rootLink.Valid(*ecm));
+
+  const std::string childLinkName{"caster"};
+  auto childLinkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(childLinkName));
+  Link childLink(childLinkEntity);
+  ASSERT_TRUE(childLink.Valid(*ecm));
+
+  // Enable velocity checks for each link
+  rootLink.EnableVelocityChecks(*ecm, true);
+  childLink.EnableVelocityChecks(*ecm, true);
+  EXPECT_NE(nullptr,
+      ecm->Component<components::WorldLinearVelocity>(rootLinkEntity));
+  EXPECT_NE(nullptr,
+      ecm->Component<components::WorldLinearVelocity>(childLinkEntity));
+
+  // Step and expect velocities near zero
+  server.Run(true, 1, false);
+  {
+    auto rootLinkLinearVel = rootLink.WorldLinearVelocity(*ecm);
+    auto childLinkLinearVel = childLink.WorldLinearVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkLinearVel);
+    ASSERT_NE(std::nullopt, childLinkLinearVel);
+    EXPECT_EQ(math::Vector3d::Zero, rootLinkLinearVel);
+    EXPECT_EQ(math::Vector3d::Zero, childLinkLinearVel);
+  }
+
+  const math::Vector3d vel0(0.125, -0.5, 3.5);
+
+  // Reset child link velocity to nonzero components (upward in Z)
+  // This shouldn't do anything, since it is not the root link of its FreeGroup
+  ecm->CreateComponent(childLinkEntity,
+      components::WorldLinearVelocityReset(vel0));
+
+  // Step and expect that all velocities are still zero
+  server.Run(true, 1, false);
+  {
+    auto rootLinkLinearVel = rootLink.WorldLinearVelocity(*ecm);
+    auto childLinkLinearVel = childLink.WorldLinearVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkLinearVel);
+    ASSERT_NE(std::nullopt, childLinkLinearVel);
+    EXPECT_EQ(math::Vector3d::Zero, rootLinkLinearVel);
+    EXPECT_EQ(math::Vector3d::Zero, childLinkLinearVel);
+  }
+
+  // Reset root link velocity to nonzero components (upward in Z)
+  ecm->CreateComponent(rootLinkEntity,
+      components::WorldLinearVelocityReset(vel0));
+
+  // Step and expect all links to have similar velocity
+  server.Run(true, 1, false);
+  {
+    auto rootLinkLinearVel = rootLink.WorldLinearVelocity(*ecm);
+    auto childLinkLinearVel = childLink.WorldLinearVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkLinearVel);
+    ASSERT_NE(std::nullopt, childLinkLinearVel);
+    EXPECT_EQ(vel0, rootLinkLinearVel);
+    EXPECT_EQ(vel0, childLinkLinearVel);
+  }
+  // expect that reset component has been removed
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::WorldLinearVelocityReset>(rootLinkEntity));
+
+  // Reset root link velocity to zero
+  ecm->CreateComponent(rootLinkEntity,
+      components::WorldLinearVelocityReset(math::Vector3d::Zero));
+
+  // Step and expect all links to have zero velocity
+  server.Run(true, 1, false);
+  {
+    auto rootLinkLinearVel = rootLink.WorldLinearVelocity(*ecm);
+    auto childLinkLinearVel = childLink.WorldLinearVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkLinearVel);
+    ASSERT_NE(std::nullopt, childLinkLinearVel);
+    // TODO(scpeters) figure out why this isn't working
+    // EXPECT_EQ(math::Vector3d::Zero, rootLinkLinearVel);
+    // EXPECT_EQ(math::Vector3d::Zero, childLinkLinearVel);
+  }
+  // expect that reset component has been removed
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::WorldLinearVelocityReset>(rootLinkEntity));
+}
+
+/////////////////////////////////////////////////
+/// Test angular veocity reset component
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AngularVelocityResetComponent))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/diff_drive.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  sdf::World *world = root.WorldByIndex(0);
+  ASSERT_TRUE(nullptr != world);
+
+  // Disable gravity
+  world->SetGravity(math::Vector3d::Zero);
+
+  serverConfig.SetSdfRoot(root);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1ms);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  // Get model Entity's
+  const std::string modelName("vehicle");
+  auto modelEntity = ecm->EntityByComponents(
+      components::Model(), components::Name(modelName));
+  Model model(modelEntity);
+  ASSERT_TRUE(model.Valid(*ecm));
+
+  // Get Link Entity's and objects
+  const std::string rootLinkName{"chassis"};
+  auto rootLinkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(rootLinkName));
+  Link rootLink(rootLinkEntity);
+  ASSERT_TRUE(rootLink.Valid(*ecm));
+
+  const std::string childLinkName{"caster"};
+  auto childLinkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(childLinkName));
+  Link childLink(childLinkEntity);
+  ASSERT_TRUE(childLink.Valid(*ecm));
+
+  // Enable velocity checks for each link
+  rootLink.EnableVelocityChecks(*ecm, true);
+  childLink.EnableVelocityChecks(*ecm, true);
+  EXPECT_NE(nullptr,
+      ecm->Component<components::WorldAngularVelocity>(rootLinkEntity));
+  EXPECT_NE(nullptr,
+      ecm->Component<components::WorldAngularVelocity>(childLinkEntity));
+
+  // Step and expect velocities near zero
+  server.Run(true, 1, false);
+  {
+    auto rootLinkAngularVel = rootLink.WorldAngularVelocity(*ecm);
+    auto childLinkAngularVel = childLink.WorldAngularVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkAngularVel);
+    ASSERT_NE(std::nullopt, childLinkAngularVel);
+    EXPECT_EQ(math::Vector3d::Zero, rootLinkAngularVel);
+    EXPECT_EQ(math::Vector3d::Zero, childLinkAngularVel);
+  }
+
+  const math::Pose3d pose0(0, 0, 1, 0, 0, 0);
+  // To avoid collision with ground plane while rotating
+  model.SetWorldPoseCmd(*ecm, pose0);
+  server.Run(true, 1, false);
+
+  const math::Vector3d vel0(0.1, 5.0, 0.1);
+
+  // Reset child link velocity to nonzero components
+  // This shouldn't do anything, since it is not the root link of its FreeGroup
+  ecm->CreateComponent(childLinkEntity,
+      components::WorldAngularVelocityReset(vel0));
+
+  // Step and expect that all velocities are still zero
+  server.Run(true, 1, false);
+  {
+    auto rootLinkAngularVel = rootLink.WorldAngularVelocity(*ecm);
+    auto childLinkAngularVel = childLink.WorldAngularVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkAngularVel);
+    ASSERT_NE(std::nullopt, childLinkAngularVel);
+    EXPECT_EQ(math::Vector3d::Zero, rootLinkAngularVel);
+    EXPECT_EQ(math::Vector3d::Zero, childLinkAngularVel);
+  }
+
+  // Reset root link velocity to nonzero components
+  ecm->CreateComponent(rootLinkEntity,
+      components::WorldAngularVelocityReset(vel0));
+
+  // Step and expect all links to have similar velocity
+  server.Run(true, 1, false);
+  {
+    auto rootLinkAngularVel = rootLink.WorldAngularVelocity(*ecm);
+    auto childLinkAngularVel = childLink.WorldAngularVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkAngularVel);
+    ASSERT_NE(std::nullopt, childLinkAngularVel);
+    EXPECT_EQ(vel0, rootLinkAngularVel);
+    EXPECT_EQ(vel0, childLinkAngularVel);
+  }
+  // expect that reset component has been removed
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::WorldAngularVelocityReset>(rootLinkEntity));
+
+  // Reset root link velocity to zero
+  ecm->CreateComponent(rootLinkEntity,
+      components::WorldAngularVelocityReset(math::Vector3d::Zero));
+
+  // Step and expect all links to have zero velocity
+  server.Run(true, 1, false);
+  {
+    auto rootLinkAngularVel = rootLink.WorldAngularVelocity(*ecm);
+    auto childLinkAngularVel = childLink.WorldAngularVelocity(*ecm);
+    ASSERT_NE(std::nullopt, rootLinkAngularVel);
+    ASSERT_NE(std::nullopt, childLinkAngularVel);
+    // TODO(scpeters) figure out why this isn't working
+    // EXPECT_EQ(math::Vector3d::Zero, rootLinkLinearVel);
+    // EXPECT_EQ(math::Vector3d::Zero, childLinkLinearVel);
+  }
+  // expect that reset component has been removed
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::WorldAngularVelocityReset>(rootLinkEntity));
 }
 
 /////////////////////////////////////////////////
@@ -1834,12 +2102,13 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "physics_options.sdf"));
 
-  bool checked{false};
+  bool checkedDart{false};
+  bool checkedBullet{false};
 
   // Create a system to check components
   test::Relay testSystem;
   testSystem.OnPostUpdate(
-    [&checked](const sim::UpdateInfo &,
+    [&checkedDart, &checkedBullet](const sim::UpdateInfo &,
     const sim::EntityComponentManager &_ecm)
     {
       _ecm.Each<components::World, components::PhysicsCollisionDetector,
@@ -1858,16 +2127,30 @@ TEST_F(PhysicsSystemFixture, PhysicsOptions)
           {
             EXPECT_EQ("pgs", _solver->Data());
           }
-          checked = true;
+          checkedDart = true;
           return true;
         });
+      _ecm.Each<components::World, components::PhysicsSolverIterations>(
+        [&](const gz::sim::Entity &, const components::World *,
+            const components::PhysicsSolverIterations *_solverIters)->bool
+        {
+          EXPECT_NE(nullptr, _solverIters);
+          if (_solverIters)
+          {
+            EXPECT_EQ(100, _solverIters->Data());
+          }
+          checkedBullet = true;
+          return true;
+        });
+
     });
 
   sim::Server server(serverConfig);
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
 
-  EXPECT_TRUE(checked);
+  EXPECT_TRUE(checkedDart);
+  EXPECT_TRUE(checkedBullet);
 }
 
 /////////////////////////////////////////////////

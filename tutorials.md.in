@@ -15,6 +15,7 @@ The Tutorials section contains step-by-step instructions with self-contained exa
 * \subpage apply_force_torque "Apply Force and Torque": Apply forces and/or torques to models during simulation through the GUI.
 * \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
 * \subpage model_command "Model Command": Use the CLI to get information about the models in a simulation.
+* \subpage pause_run_simulation "Pause and Run simulation": Use Gazebo transport API to pause and run simulation.
 * \subpage reset_simulation Reset simulation
 * \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
 

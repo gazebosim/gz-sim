@@ -46,12 +46,12 @@ namespace systems
   /// quadratic drag and coriolis force.
   ///
   /// ### Diagonal terms:
-  ///   * <xDotU> - Added mass in x direction [kg]
-  ///   * <yDotV> - Added mass in y direction [kg]
-  ///   * <zDotW> - Added mass in z direction [kg]
-  ///   * <kDotP> - Added mass in roll direction [kgm^2]
-  ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
-  ///   * <nDotR> - Added mass in yaw direction [kgm^2]
+  ///   * <xDotU> - (Deprecated) Added mass in x direction [kg]
+  ///   * <yDotV> - (Deprecated) Added mass in y direction [kg]
+  ///   * <zDotW> - (Deprecated) Added mass in z direction [kg]
+  ///   * <kDotP> - (Deprecated) Added mass in roll direction [kgm^2]
+  ///   * <mDotQ> - (Deprecated) Added mass in pitch direction [kgm^2]
+  ///   * <nDotR> - (Deprecated) Added mass in yaw direction [kgm^2]
   ///   * <xUabsU>   - Quadratic damping, 2nd order, x component [kg/m]
   ///   * <xU>    - Linear damping, 1st order, x component [kg]
   ///   * <yVabsV>   - Quadratic damping, 2nd order, y component [kg/m]
@@ -70,10 +70,13 @@ namespace systems
   /// non-diagonal sides. We use the SNAMe convention of naming search terms.
   /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
   /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
-  /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
+  /// X, Y and Z axis while P, Q, R represent angular velocity in roll, pitch
   /// and yaw axis respectively.
   ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
-  ///       Units are either kg or kgm^2 depending on the choice of terms.
+  ///       (Deprecated) Units are either kg or kgm^2 depending on the
+  ///       choice of terms. You should use the sdf method based spec
+  //        for `fluid_added_mass`:
+  ///       http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
   ///   * Quadratic Damping With abs term (this is probably what you want):
   ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>
   ///       e.g. <xRabsQ>

@@ -15,6 +15,8 @@
  *
 */
 
+#include <cstdint>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
@@ -85,6 +87,7 @@
 #include "gz/sim/components/World.hh"
 
 #include "rendering/MaterialParser/MaterialParser.hh"
+#include "ServerPrivate.hh"
 
 class gz::sim::SdfEntityCreatorPrivate
 {
@@ -305,26 +308,39 @@ Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 
   // Populate physics options that aren't accessible outside the Element()
   // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
+  if (physics->Element())
   {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
+    if (auto dartElem = physics->Element()->FindElement("dart"))
     {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
+      if (dartElem->HasElement("collision_detector"))
+      {
+        auto collisionDetector =
+            dartElem->Get<std::string>("collision_detector");
 
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
+        this->dataPtr->ecm->CreateComponent(worldEntity,
+            components::PhysicsCollisionDetector(collisionDetector));
+      }
+      if (auto solverElem = dartElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("solver_type"))
+        {
+          auto solver = solverElem->Get<std::string>("solver_type");
+          this->dataPtr->ecm->CreateComponent(worldEntity,
+              components::PhysicsSolver(solver));
+        }
+      }
     }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
+    if (auto bulletElem = physics->Element()->FindElement("bullet"))
     {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->dataPtr->ecm->CreateComponent(worldEntity,
-          components::PhysicsSolver(solver));
+      if (auto solverElem = bulletElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("iters"))
+        {
+          uint32_t solverIterations = solverElem->Get<uint32_t>("iters");
+          this->dataPtr->ecm->CreateComponent(worldEntity,
+              components::PhysicsSolverIterations(solverIterations));
+        }
+      }
     }
   }
 
@@ -572,6 +588,13 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
         linkEntity, components::WindMode(_link->EnableWind()));
   }
 
+  if (!_link->EnableGravity())
+  {
+    // If disable gravity, create a GravityEnabled component to the entity
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::GravityEnabled(false));
+  }
+
   // Visuals
   for (uint64_t visualIndex = 0; visualIndex < _link->VisualCount();
       ++visualIndex)
@@ -801,7 +824,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
       "for details." << std::endl;
       std::string scriptUri = visualMaterial.ScriptUri();
-      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+      if (scriptUri != ServerPrivate::kClassicMaterialScriptUri)
+      {
         gzwarn << "Custom material scripts are not supported."
           << std::endl;
       }
