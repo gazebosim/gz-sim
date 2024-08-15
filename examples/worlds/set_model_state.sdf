@@ -4,9 +4,15 @@
 
   The initial joint position should be 90 degrees, and the initial joint
   velocity should be -30 degrees / second.
+
+  The initial linear velocity should be (0.9, 0.4, 0.1) m/s for the first box
+  and (0.9, -0.4, 0.1) for the second box, and initial angular velocity should be
+  (0.1, 5, 0.1) rad/s for both.
+
 -->
 <sdf version="1.11">
   <world name="set_model_state">
+    <gravity>0 0 0</gravity>
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -208,5 +214,87 @@
         </model_state>
       </plugin>
     </model>
+
+    <model name="model_state_example_link_velocity_radians">
+      <pose>2 0 1 0 0 0</pose>
+      <link name="box_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <inertial auto="true">
+           <density>277.7</density>
+        </inertial>
+        <visual name="box_visual">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+        <collision name="box_collision">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-set-model-state-system"
+        name="gz::sim::systems::SetModelState">
+        <model_state>
+         <link_state name="box_link">
+           <linear_velocity>0.9 0.4 0.1</linear_velocity>
+           <angular_velocity  degrees="false">0.1 5 0.1</angular_velocity>
+         </link_state>
+       </model_state>
+      </plugin>
+      </model>
+
+    <model name="model_state_example_link_velocity_degrees">
+      <pose>-1 0 1 0 0 0</pose>
+      <link name="box_link">
+        <pose>0.0 0.0 0.0 0 0 0</pose>
+        <inertial auto="true">
+           <density>277.7</density>
+        </inertial>
+        <visual name="box_visual">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1.0 0.0 0.0 1</ambient>
+            <diffuse>1.0 0.0 0.0 1</diffuse>
+            <specular>1.0 0.0 0.0 1</specular>
+          </material>
+        </visual>
+        <collision name="box_collision">
+          <pose>0.0 0.0 0.0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.9</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-set-model-state-system"
+        name="gz::sim::systems::SetModelState">
+        <model_state>
+         <link_state name="box_link">
+           <linear_velocity>0.9 -0.4 0.1</linear_velocity>
+           <angular_velocity  degrees="true">5.73 286.479 5.73</angular_velocity>
+         </link_state>
+       </model_state>
+      </plugin>
+      </model>
   </world>
 </sdf>

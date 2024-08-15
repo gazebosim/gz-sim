@@ -23,11 +23,14 @@
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/Angle.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/LinearVelocityReset.hh"
+#include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 
@@ -54,6 +57,32 @@ namespace
         else
         {
           _scalar.SetRadian(scalarPair.first);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool parseVectorWithDegree(math::Vector3d &vector, sdf::ElementConstPtr _elem)
+  {
+    if(_elem)
+    {
+      // parse degree attribute, default false
+      std::pair<bool, bool> degreesPair = _elem->Get<bool>("degrees", false);
+      // parse element vector, default math::Vector3d::Zero
+      std::pair<math::Vector3d, bool> vectorPair = _elem->Get<math::Vector3d>
+                                                  ("", math::Vector3d::Zero);
+      if(vectorPair.second)
+      {
+        if(degreesPair.first)
+        {
+          vector.Set(GZ_DTOR(vectorPair.first.X()),
+                 GZ_DTOR(vectorPair.first.Y()), GZ_DTOR(vectorPair.first.Z()));
+        }
+        else
+        {
+          vector = vectorPair.first;
         }
         return true;
       }
@@ -222,6 +251,58 @@ void SetModelState::Configure(const Entity &_entity,
                                                             jointVelocity);
     }
   }
+  for (auto linkStateElem = modelStateElem->FindElement("link_state");
+       linkStateElem != nullptr;
+       linkStateElem = linkStateElem->GetNextElement("link_state"))
+  {
+
+    std::pair<std::string, bool> namePair =
+         linkStateElem->Get<std::string>("name", "");
+    if (!namePair.second)
+    {
+      gzerr << "No name specified for link_state, skipping.\n";
+      continue;
+    }
+    const auto &linkName = namePair.first;
+
+    Entity linkEntity = this->dataPtr->model.LinkByName(_ecm, linkName);
+    if (linkEntity == kNullEntity)
+    {
+      gzerr << "Unable to find link with name [" << linkName << "] "
+            << "in model with name [" << modelName << "], skipping.\n";
+      continue;
+    }
+
+    math::Vector3d linearVelocity;
+    auto linearVelocityElem = linkStateElem->FindElement("linear_velocity");
+
+    if(linearVelocityElem)
+    {
+     std::pair<math::Vector3d, bool> vectorPair =
+     linearVelocityElem->Get<math::Vector3d>("", math::Vector3d::Zero);
+      if (vectorPair.second)
+      {
+        linearVelocity = vectorPair.first;
+        _ecm.SetComponentData<components::WorldLinearVelocityReset>(
+                                          linkEntity, linearVelocity);
+      }
+    }
+
+    math::Vector3d angularVelocity;
+    auto angularVelocityElem =
+                     linkStateElem->FindElement("angular_velocity");
+
+    if(angularVelocityElem){
+      bool parsedVector = parseVectorWithDegree(angularVelocity,
+                                                angularVelocityElem);
+      if(parsedVector)
+      {
+         _ecm.SetComponentData<components::WorldAngularVelocityReset>(
+                                           linkEntity, angularVelocity);
+      }
+    }
+  }
+  // \TODO(yaswanth1701) set reset velocity components in body frame.
 }
 
 //////////////////////////////////////////////////
