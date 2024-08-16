@@ -134,7 +134,7 @@ ForceTorque::~ForceTorque() = default;
 System::PriorityType ForceTorque::ConfigurePriority()
 {
   // Execute after Physics::Update but before systems with default priority.
-  return systems::kPostPhysicsSensorPriority;
+  return ::gz::sim::systems::kPostPhysicsSensorPriority;
 }
 
 //////////////////////////////////////////////////
