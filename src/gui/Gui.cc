@@ -226,6 +226,8 @@ std::unique_ptr<gz::gui::Application> createGui(
   {
     if (QString::fromLocal8Bit(qgetenv("QT_QPA_PLATFORM")).isEmpty())
     {
+      gzmsg << "Detected Wayland. Setting Qt to use the xcb plugin: "
+            << "'QT_QPA_PLATFORM=xcb'." << std::endl;
       qputenv("QT_QPA_PLATFORM", "xcb");
     }
   }
