@@ -337,7 +337,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
     {
-      Entity modelEntity = this->CreateEntities(model, false);
+      Entity modelEntity = this->CreateEntities(model);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -387,7 +387,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
-        Entity modelEntity = this->CreateEntities(model, false);
+        Entity modelEntity = this->CreateEntities(model);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
       }
@@ -450,7 +450,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
 
-  // Load world plugins first.
   this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
       _world->Plugins());
 
@@ -458,9 +457,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   this->dataPtr->eventManager->Emit<events::LoadPlugins>(_worldEntity,
         _world->ToElement());
   GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  // Load model plugins after the world plugin.
-  this->LoadModelPlugins();
 }
 
 //////////////////////////////////////////////////
