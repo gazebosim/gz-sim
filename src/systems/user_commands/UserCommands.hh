@@ -73,6 +73,7 @@ namespace systems
   class UserCommands final:
     public System,
     public ISystemConfigure,
+    public ISystemConfigurePriority,
     public ISystemPreUpdate
   {
     /// \brief Constructor
@@ -86,6 +87,9 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
+
+    /// Documentation inherited
+    public: System::PriorityType ConfigurePriority() final;
 
     /// \brief All received commands are queued in order of reception and
     /// executed in order during PreUpdate.

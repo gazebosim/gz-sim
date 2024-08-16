@@ -34,6 +34,13 @@ namespace gz::sim::systems
   /// after the Physics system but before the systems with priority
   /// System::kDefaultPriority.
   constexpr System::PriorityType kPostPhysicsSensorPriority = -32;
+
+  /// \brief Default priority value for the UserCommands system, with a very
+  /// negative value to indicate that it should run before most systems in
+  /// order to modify the ECM in response to user commands received over
+  /// gz-transport. This is especially important for user commands that add
+  /// objects to the world.
+  constexpr System::PriorityType kUserCommandsPriority = -10000;
 }
 
 #endif
