@@ -328,6 +328,14 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
+      _world->Plugins());
+
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  this->dataPtr->eventManager->Emit<events::LoadPlugins>(_worldEntity,
+        _world->ToElement());
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -449,14 +457,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
-
-  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
-      _world->Plugins());
-
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(_worldEntity,
-        _world->ToElement());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 //////////////////////////////////////////////////
