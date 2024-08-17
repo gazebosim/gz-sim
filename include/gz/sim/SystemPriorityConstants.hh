@@ -18,29 +18,37 @@
 #define GZ_SIM_SYSTEMPRIORITYCONSTANTS_HH_
 
 #include <gz/sim/System.hh>
+#include "gz/sim/config.hh"
 
-namespace gz::sim::systems
+namespace gz::sim
 {
-  /// \brief Default priority value for the UserCommands system, with a very
-  /// negative value to indicate that it should run before most systems in
-  /// order to modify the ECM in response to user commands received over
-  /// gz-transport. This is especially important for user commands that add
-  /// objects to the world.
-  constexpr System::PriorityType kUserCommandsPriority = -10000;
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+  namespace systems
+  {
+    /// \brief Default priority value for the UserCommands system, with a very
+    /// negative value to indicate that it should run before most systems in
+    /// order to modify the ECM in response to user commands received over
+    /// gz-transport. This is especially important for user commands that add
+    /// objects to the world.
+    constexpr System::PriorityType kUserCommandsPriority = -10000;
 
-  /// \brief A suggested priority value for a system that should execute before
-  /// the Physics system.
-  constexpr System::PriorityType kPrePhysicsPriority = -128;
+    /// \brief A suggested priority value for a system that should execute
+    /// before the Physics system.
+    constexpr System::PriorityType kPrePhysicsPriority = -128;
 
-  /// \brief Default priority value for the Physics system, with a negative
-  /// value ensuring that it will run before systems with priority
-  /// System::kDefaultPriority.
-  constexpr System::PriorityType kPhysicsPriority = -64;
+    /// \brief Default priority value for the Physics system, with a negative
+    /// value ensuring that it will run before systems with priority
+    /// System::kDefaultPriority.
+    constexpr System::PriorityType kPhysicsPriority = -64;
 
-  /// \brief A suggested priority value for sensor systems that should execute
-  /// after the Physics system but before the systems with priority
-  /// System::kDefaultPriority.
-  constexpr System::PriorityType kPostPhysicsSensorPriority = -32;
+    /// \brief A suggested priority value for sensor systems that should
+    /// execute after the Physics system but before the systems with priority
+    /// System::kDefaultPriority.
+    constexpr System::PriorityType kPostPhysicsSensorPriority = -32;
+  }
 }
+}  // namespace gz::sim
 
 #endif
