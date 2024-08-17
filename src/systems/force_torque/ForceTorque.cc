@@ -46,7 +46,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/WrenchMeasured.hh"
 #include "gz/sim/EntityComponentManager.hh"
-#include "gz/sim/SystemPriorityConstants.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
