@@ -46,6 +46,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/WrenchMeasured.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -128,6 +129,13 @@ ForceTorque::ForceTorque()
 
 //////////////////////////////////////////////////
 ForceTorque::~ForceTorque() = default;
+
+//////////////////////////////////////////////////
+System::PriorityType ForceTorque::ConfigurePriority()
+{
+  // Execute after Physics::Update but before systems with default priority.
+  return ::gz::sim::systems::kPostPhysicsSensorPriority;
+}
 
 //////////////////////////////////////////////////
 void ForceTorque::PreUpdate(const UpdateInfo &/*_info*/,
@@ -452,6 +460,7 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
 }
 
 GZ_ADD_PLUGIN(ForceTorque, System,
+  ForceTorque::ISystemConfigurePriority,
   ForceTorque::ISystemPreUpdate,
   ForceTorque::ISystemUpdate
 )

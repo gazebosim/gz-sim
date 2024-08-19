@@ -80,6 +80,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
 #include "gz/sim/components/ContactSensorData.hh"
@@ -615,6 +616,13 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
   }
 
   return false;
+}
+
+//////////////////////////////////////////////////
+System::PriorityType UserCommands::ConfigurePriority()
+{
+  // Use constant from SystemPriorityConstants.hh
+  return ::gz::sim::systems::kUserCommandsPriority;
 }
 
 //////////////////////////////////////////////////
