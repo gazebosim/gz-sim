@@ -328,6 +328,14 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
+      _world->Plugins());
+
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+  this->dataPtr->eventManager->Emit<events::LoadPlugins>(_worldEntity,
+        _world->ToElement());
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -337,7 +345,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
     {
-      Entity modelEntity = this->CreateEntities(model, false);
+      Entity modelEntity = this->CreateEntities(model);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -387,7 +395,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
-        Entity modelEntity = this->CreateEntities(model, false);
+        Entity modelEntity = this->CreateEntities(model);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
       }
@@ -449,18 +457,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
-
-  // Load world plugins first.
-  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
-      _world->Plugins());
-
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  this->dataPtr->eventManager->Emit<events::LoadPlugins>(_worldEntity,
-        _world->ToElement());
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  // Load model plugins after the world plugin.
-  this->LoadModelPlugins();
 }
 
 //////////////////////////////////////////////////
