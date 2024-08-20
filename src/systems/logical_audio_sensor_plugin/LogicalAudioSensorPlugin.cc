@@ -405,7 +405,7 @@ void LogicalAudioSensorPluginPrivate::CreateAudioSource(
     };
 
   // create services for this source
-  const auto validName = topicFromScopedName(entity, _ecm, true);
+  const auto validName = topicFromScopedName(entity, _ecm, false);
   if (validName.empty())
   {
     gzerr << "Failed to create valid topics with entity scoped name ["
@@ -503,7 +503,7 @@ void LogicalAudioSensorPluginPrivate::CreateMicrophone(
 
   // create the detection publisher for this microphone
   auto pub = this->node.Advertise<msgs::Double>(
-      topicFromScopedName(entity, _ecm, true) + "/detection");
+      topicFromScopedName(entity, _ecm, false) + "/detection");
   if (!pub)
   {
     gzerr << "Error creating a detection publisher for microphone "
