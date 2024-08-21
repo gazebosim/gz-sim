@@ -64,6 +64,7 @@
 
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/rendering/GlobalIlluminationVct.hh"
 
 using namespace gz;
 using namespace sim;
@@ -88,6 +89,10 @@ class gz::sim::systems::SensorsPrivate
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
   public: rendering::ScenePtr scene;
+
+  public: rendering::GlobalIlluminationVctPtr gi;
+
+  public: bool builtGi = false;
 
   /// \brief Temperature used by thermal camera. Defaults to temperature at
   /// sea level
@@ -288,6 +293,25 @@ void SensorsPrivate::WaitForInit()
 #endif
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
+
+      // TODO: first check if GI enabled, 
+      this->gi = this->scene->CreateGlobalIlluminationVct();
+      this->gi->SetParticipatingVisuals(
+          rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
+          rendering::GlobalIlluminationBase::STATIC_VISUALS);
+
+      const uint32_t resolution[3]{ 16u, 16u, 16u };
+      const uint32_t octantCount[3]{ 1u, 1u, 1u };
+      const uint32_t bounceCount { 6u };
+      this->gi->SetResolution(resolution);
+      this->gi->SetOctantCount(octantCount);
+      this->gi->SetBounceCount(bounceCount);
+      this->gi->SetAnisotropic(true);
+      this->gi->SetHighQuality(false);
+      this->gi->SetConserveMemory(true);
+      this->gi->SetThinWallCounter(1.0f);
+      printf("GI params have been set!\n");
+
       this->initialized = true;
     }
 
@@ -359,6 +383,15 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
+
+      if (!this->builtGi)
+      {       
+        this->gi->Build();
+        this->scene->SetActiveGlobalIllumination(this->gi);
+        printf("gi has been built so will set flag to true now\n");
+        this->builtGi = true;
+      }
+
       this->scene->PreRender();
     }
 
@@ -476,7 +509,10 @@ void SensorsPrivate::Stop()
 //////////////////////////////////////////////////
 void SensorsPrivate::ForceRender()
 {
+  printf("forced render is called!!!\n");
   this->forceUpdate = true;
+  // TODO: doesn't work?
+  this->builtGi = false;
 }
 
 //////////////////////////////////////////////////
@@ -548,6 +584,8 @@ void Sensors::Configure(const Entity &/*_id*/,
   // Get the ambient light, if specified.
   if (_sdf->HasElement("ambient_light"))
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
+
+  //TODO: add SDF for GI stuff here
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
 #ifdef __APPLE__
