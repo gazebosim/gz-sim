@@ -28,7 +28,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@jammy
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DBUILD_DOCS=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
           codecov-enabled: true
           cppcheck-enabled: true
           cpplint-enabled: true
