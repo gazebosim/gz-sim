@@ -1,5 +1,10 @@
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.9.0 (2024-08-21)
+
+1. Revert behavior change introduced in #2452
+    * [Pull request #2527](https://github.com/gazebosim/gz-sim/pull/2527)
+
 ### Gazebo Sim 7.8.0 (2024-07-22)
 
 1. Added support for spacecraft thrusters
