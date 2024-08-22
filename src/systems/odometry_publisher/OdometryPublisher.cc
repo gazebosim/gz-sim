@@ -55,6 +55,15 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
+  /// \brief Calculates angular velocity in body frame from world frame poses.
+  /// \param[in] _lastPose Pose at last timestep in world frame.
+  /// \param[in] _currentPose Pose at current timestep in world frame.
+  /// \param[in] _dt Time elapsed from last to current timestep.
+  /// \return Angular velocity computed in body frame at current timestep.
+  public: static math::Vector3d CalculateAngularVelocity(
+    const math::Pose3d &_lastPose, const math::Pose3d &_currentPose,
+    std::chrono::duration<double> _dt);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
@@ -320,6 +329,26 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
+    const math::Pose3d &_lastPose, const math::Pose3d &_currentPose,
+    std::chrono::duration<double> _dt)
+{
+  // Compute the first order finite difference between current and previous
+  // rotation as quaternion.
+  const math::Quaterniond rotationDiff =
+    _currentPose.Rot() * _lastPose.Rot().Inverse();
+
+  math::Vector3d rotationAxis;
+  double rotationAngle;
+  rotationDiff.AxisAngle(rotationAxis, rotationAngle);
+
+  const math::Vector3d angularVelocity =
+    (rotationAngle / _dt.count()) * rotationAxis;
+
+  return _currentPose.Rot().RotateVectorReverse(angularVelocity);
+}
+
+//////////////////////////////////////////////////
 void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
@@ -365,14 +394,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
 
   double currentYaw = pose.Rot().Yaw();
-  // calculate rotation difference using the rotation as quaternion between
-  // the current and previous timestep
-  const math::Quaterniond rotationDiff = pose.Rot() *
-    this->lastUpdatePose.Rot().Inverse();
-  // calculate the angular velocity from the euler vector (radians) and dt
-  const math::Vector3d angularVelocity = rotationDiff.Euler() / dt.count();
-  const math::Vector3d angularVelocityBody =
-    pose.Rot().RotateVectorReverse(angularVelocity);
+  const math::Vector3d angularVelocityBody = CalculateAngularVelocity(
+    this->lastUpdatePose, pose, dt);
 
   // Get velocities assuming 2D
   if (this->dimensions == 2)
