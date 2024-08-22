@@ -101,6 +101,10 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
     linearMean;
 
+  /// \brief Rolling mean accumulators for the angular velocity
+  public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
+    angularMean;
+
   /// \brief Initialized flag.
   public: bool initialized{false};
 
@@ -130,6 +134,12 @@ OdometryPublisher::OdometryPublisher()
   {
     std::get<2>(this->dataPtr->linearMean).SetWindowSize(10);
     std::get<2>(this->dataPtr->linearMean).Clear();
+
+    std::get<0>(this->dataPtr->angularMean).SetWindowSize(10);
+    std::get<0>(this->dataPtr->angularMean).Clear();
+
+    std::get<1>(this->dataPtr->angularMean).SetWindowSize(10);
+    std::get<1>(this->dataPtr->angularMean).Clear();
   }
 }
 
@@ -432,6 +442,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->linearMean).Push(linearVelocity.X());
     std::get<1>(this->linearMean).Push(linearVelocity.Y());
     std::get<2>(this->linearMean).Push(linearVelocity.Z());
+    std::get<0>(this->angularMean).Push(angularVelocityBody.X());
+    std::get<1>(this->angularMean).Push(angularVelocityBody.Y());
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
@@ -442,16 +454,17 @@ void OdometryPublisherPrivate::UpdateOdometry(
       std::get<2>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_x(
-      angularVelocityBody.X() +
+      std::get<0>(this->angularMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
     msg.mutable_twist()->mutable_angular()->set_y(
-      angularVelocityBody.Y() +
+      std::get<1>(this->angularMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
   }
 
   // Set yaw rate
+  std::get<2>(this->angularMean).Push(angularVelocityBody.Z());
   msg.mutable_twist()->mutable_angular()->set_z(
-    angularVelocityBody.Z() +
+    std::get<2>(this->angularMean).Mean() +
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
 
   // Set the time stamp in the header.
