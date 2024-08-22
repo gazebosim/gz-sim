@@ -1282,7 +1282,6 @@ bool CreateCommand::Execute()
   // Spherical coordinates
   if (createMsg->has_spherical_coordinates())
   {
-    gzerr << "HasSphericalCoordinates" << std::endl;
     auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
         this->iface->worldEntity);
     if (nullptr == scComp)
@@ -1294,25 +1293,33 @@ bool CreateCommand::Execute()
     }
     else
     {
-      // deg to rad
-      math::Vector3d latLonEle{
+      auto vec = math::CoordinateVector3::Spherical(
           GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
           GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
-          createMsg->spherical_coordinates().elevation()};
-
-      auto pos = scComp->Data().PositionTransform(latLonEle,
+          createMsg->spherical_coordinates().elevation());
+      auto pos = scComp->Data().PositionTransform(vec,
           math::SphericalCoordinates::SPHERICAL,
-          math::SphericalCoordinates::LOCAL2);
+          math::SphericalCoordinates::LOCAL);
 
-      // Override pos and add to yaw
-      if (!createPose.has_value())
-        createPose = math::Pose3d::Zero;
-      createPose.value().SetX(pos.X());
-      createPose.value().SetY(pos.Y());
-      createPose.value().SetZ(pos.Z());
-      createPose.value().Rot() = math::Quaterniond(0, 0,
-          GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
-          createPose.value().Rot();
+      if (!pos.has_value() || !pos->IsMetric())
+      {
+        gzerr << "Trying to create entity [" << desiredName
+              << "] using spherical coordinates, but spherical to local "
+              << "position conversion failed. Entity will be created at the "
+              << "world origin." << std::endl;
+      }
+      else
+      {
+        // Override pos and add to yaw
+        if (!createPose.has_value())
+          createPose = math::Pose3d::Zero;
+        createPose.value().SetX(*pos->X());
+        createPose.value().SetY(*pos->Y());
+        createPose.value().SetZ(*pos->Z());
+        createPose.value().Rot() = math::Quaterniond(0, 0,
+            GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+            createPose.value().Rot();
+      }
     }
   }
 
@@ -1702,17 +1709,22 @@ bool SphericalCoordinatesCommand::Execute()
     return false;
   }
 
-  // deg to rad
-  math::Vector3d latLonEle{
+  auto vec = math::CoordinateVector3::Spherical(
       GZ_DTOR(sphericalCoordinatesMsg->latitude_deg()),
       GZ_DTOR(sphericalCoordinatesMsg->longitude_deg()),
-      sphericalCoordinatesMsg->elevation()};
-
-  auto pos = scComp->Data().PositionTransform(latLonEle,
+      sphericalCoordinatesMsg->elevation());
+  auto pos = scComp->Data().PositionTransform(vec,
       math::SphericalCoordinates::SPHERICAL,
-      math::SphericalCoordinates::LOCAL2);
+      math::SphericalCoordinates::LOCAL);
+  if (!pos.has_value() || !pos->IsMetric())
+  {
+    gzerr << "Trying to move entity [" << entity
+           << "] using spherical coordinates, but spherical to local "
+           << "position conversion failed." << std::endl;
+    return false;
+  }
 
-  math::Pose3d pose{pos.X(), pos.Y(), pos.Z(), 0, 0,
+  math::Pose3d pose{*pos->X(), *pos->Y(), *pos->Z(), 0, 0,
           GZ_DTOR(sphericalCoordinatesMsg->heading_deg())};
 
   auto poseCmdComp =
