@@ -1293,8 +1293,7 @@ bool CreateCommand::Execute()
     }
     else
     {
-      math::CoordinateVector3 vec;
-      vec.SetSpherical(
+      auto vec = math::CoordinateVector3::Spherical(
           GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
           GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
           createMsg->spherical_coordinates().elevation());
@@ -1302,7 +1301,7 @@ bool CreateCommand::Execute()
           math::SphericalCoordinates::SPHERICAL,
           math::SphericalCoordinates::LOCAL);
 
-      if (!pos.has_value())
+      if (!pos.has_value() || !pos->IsMetric())
       {
         gzerr << "Trying to create entity [" << desiredName
               << "] using spherical coordinates, but spherical to local "
@@ -1710,14 +1709,14 @@ bool SphericalCoordinatesCommand::Execute()
     return false;
   }
 
-  math::CoordinateVector3 vec;
-  vec.SetSpherical(GZ_DTOR(sphericalCoordinatesMsg->latitude_deg()),
-                   GZ_DTOR(sphericalCoordinatesMsg->longitude_deg()),
-                   sphericalCoordinatesMsg->elevation());
+  auto vec = math::CoordinateVector3::Spherical(
+      GZ_DTOR(sphericalCoordinatesMsg->latitude_deg()),
+      GZ_DTOR(sphericalCoordinatesMsg->longitude_deg()),
+      sphericalCoordinatesMsg->elevation());
   auto pos = scComp->Data().PositionTransform(vec,
       math::SphericalCoordinates::SPHERICAL,
       math::SphericalCoordinates::LOCAL);
-  if (!pos.has_value())
+  if (!pos.has_value() || !pos->IsMetric())
   {
     gzerr << "Trying to move entity [" << entity
            << "] using spherical coordinates, but spherical to local "

@@ -715,7 +715,7 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
       math::SphericalCoordinates::LOCAL,
       math::SphericalCoordinates::SPHERICAL);
 
-  if (!rad.has_value())
+  if (!rad.has_value() || !rad->IsSpherical())
     return std::nullopt;
 
   // Return degrees
@@ -772,6 +772,8 @@ std::optional<math::Vector3d> getGridFieldCoordinates(
     out.Y(position->Lon()->Radian());
   }
   out.Z(*position->Z());
+
+  // \todo(iche033) Change the return type to math::CoordinateVector3
   return out;
 }
 
