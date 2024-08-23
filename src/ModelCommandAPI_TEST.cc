@@ -657,7 +657,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
       "  - Lens intrinsics Fy: 277\n"
       "  - Lens intrinsics Cx: 160\n"
       "  - Lens intrinsics Cy: 120\n"
-      "  - Lens intrinsics skew: 1\n"
+      "  - Lens intrinsics skew: 0\n"
       "  - Visibility mask: 4294967295\n";
       EXPECT_EQ(expectedOutput, output);
   }

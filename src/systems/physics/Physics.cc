@@ -53,6 +53,7 @@
 #include <gz/physics/RequestEngine.hh>
 
 #include <gz/physics/BoxShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ForwardStep.hh>
@@ -3791,6 +3792,18 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
+    return;
+
+  // Also check if any entity currently has a ContactSensorData component.
+  bool needContactSensorData = false;
+  _ecm.Each<components::Collision, components::ContactSensorData>(
+      [&](const Entity &/*unused*/, components::Collision *,
+          components::ContactSensorData */*unused*/) -> bool
+      {
+        needContactSensorData = true;
+        return false;
+      });
+  if (!needContactSensorData)
     return;
 
   // TODO(addisu) If systems are assumed to only have one world, we should

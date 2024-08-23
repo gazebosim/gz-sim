@@ -33,6 +33,7 @@
 #include <gz/msgs/world_stats.pb.h>
 
 #include <sdf/Root.hh>
+#include <vector>
 
 #include "gz/common/Profiler.hh"
 #include "gz/sim/components/Model.hh"
@@ -102,11 +103,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   // Keep world name
   this->worldName = transport::TopicUtils::AsValidTopic(_world.Name());
 
-  auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
   if (this->worldName.empty())
   {
     gzerr << "Can't start simulation runner with this world name ["
-          << worldName << "]." << std::endl;
+          << _world.Name() << "]." << std::endl;
     return;
   }
 
@@ -512,11 +512,14 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending)
+  if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
-  // If additional systems are to be added, stop the existing threads.
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
   this->StopWorkerThreads();
+
+  this->threadsNeedCleanUp = false;
 
   this->systemMgr->ActivatePendingSystems();
 
@@ -578,14 +581,24 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PreUpdate");
-    for (auto& system : this->systemMgr->SystemsPreUpdate())
-      system->PreUpdate(this->currentInfo, this->entityCompMgr);
+    for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
+    {
+      for (auto& system : systems)
+      {
+        system->PreUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
   }
 
   {
     GZ_PROFILE("Update");
-    for (auto& system : this->systemMgr->SystemsUpdate())
-      system->Update(this->currentInfo, this->entityCompMgr);
+    for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
+    {
+      for (auto& system : systems)
+      {
+        system->Update(this->currentInfo, this->entityCompMgr);
+      }
+    }
   }
 
   {
@@ -915,6 +928,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals

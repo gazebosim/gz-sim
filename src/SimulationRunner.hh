@@ -589,6 +589,10 @@ namespace gz
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+
+      /// \brief Set if we need to remove systems due to entity removal
+      private: bool threadsNeedCleanUp{false};
+
       /// \brief On start, the server will download models in the
       /// background. The simulation runner must remain paused while this
       /// takes place. This flag can be used to make sure simulation stays
@@ -601,7 +605,6 @@ namespace gz
       private: bool requestedPause{true};
 
       private: bool resetInitiated{false};
-
       friend class LevelManager;
     };
     }

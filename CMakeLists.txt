@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim8 VERSION 8.3.0)
+project(gz-sim8 VERSION 8.6.0)
 set (GZ_DISTRIBUTION "Harmonic")
 
 #============================================================================
@@ -136,7 +136,7 @@ set(GZ_PHYSICS_VER ${gz-physics7_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors8 REQUIRED
+gz_find_package(gz-sensors8 REQUIRED VERSION 8.2.0
   # component order is important
   COMPONENTS
     # non-rendering

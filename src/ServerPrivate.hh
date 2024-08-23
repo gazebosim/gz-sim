@@ -198,6 +198,11 @@ namespace gz
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
 
+      /// \brief Gazebo classic material URI string
+      /// A URI matching this string indicates that it is a gazebo classic
+      /// material.
+      public: static const char kClassicMaterialScriptUri[];
+
       /// \brief Used to set whether models should be downloaded from Fuel.
       public: bool enableDownload = false;
 

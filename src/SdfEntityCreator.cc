@@ -91,6 +91,7 @@
 #include "gz/sim/components/World.hh"
 
 #include "rendering/MaterialParser/MaterialParser.hh"
+#include "ServerPrivate.hh"
 
 class gz::sim::SdfEntityCreatorPrivate
 {
@@ -317,6 +318,9 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
+      _world->Plugins());
+
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -325,7 +329,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     if (levelEntityNames.empty() ||
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
     {
-      Entity modelEntity = this->CreateEntities(model, false);
+      Entity modelEntity = this->CreateEntities(model);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -375,7 +379,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
-        Entity modelEntity = this->CreateEntities(model, false);
+        Entity modelEntity = this->CreateEntities(model);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
       }
@@ -437,13 +441,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
-
-  // Load world plugins first.
-  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
-      _world->Plugins());
-
-  // Load model plugins after the world plugin.
-  this->LoadModelPlugins();
 }
 
 //////////////////////////////////////////////////
@@ -918,7 +915,8 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
       "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
       "for details." << std::endl;
       std::string scriptUri = visualMaterial.ScriptUri();
-      if (scriptUri != "file://media/materials/scripts/gazebo.material") {
+      if (scriptUri != ServerPrivate::kClassicMaterialScriptUri)
+      {
         gzwarn << "Custom material scripts are not supported."
           << std::endl;
       }
