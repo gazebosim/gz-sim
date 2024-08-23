@@ -422,7 +422,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       runner->setParent(gz::gui::App());
       ++runnerCount;
 
-      bool noDefaultGuiPlugins = false;
+      bool includeDefaultGuiPlugins = false;
       std::cout << res.DebugString() << std::endl;
       for (const auto &data : res.header().data())
       {
@@ -434,19 +434,19 @@ std::unique_ptr<gz::gui::Application> createGui(
             if (doc.Parse(data.value(0).c_str()) == tinyxml2::XML_SUCCESS)
             {
               tinyxml2::XMLHandle handle(doc);
-              auto elem = handle.FirstChildElement("gz:policies")
-                              .FirstChildElement("no_default_gui_plugins")
+              auto elem = handle.FirstChildElement(kPoliciesTag.data())
+                              .FirstChildElement("include_default_gui_plugins")
                               .ToElement();
               if (elem)
               {
-                elem->QueryBoolText(&noDefaultGuiPlugins);
+                elem->QueryBoolText(&includeDefaultGuiPlugins);
               }
             }
           }
         }
       }
 
-      gzmsg << "no_default_gui_plugins: " << noDefaultGuiPlugins << "\n";
+      gzmsg << "include_default_gui_plugins: " << includeDefaultGuiPlugins << "\n";
       // Load plugins after creating GuiRunner, so they can access worldName
       if (_loadPluginsFromSdf)
       {
@@ -533,9 +533,9 @@ std::unique_ptr<gz::gui::Application> createGui(
         auto combineUserAndDefaultPlugins =
             [](std::unique_ptr<tinyxml2::XMLDocument> _userPlugins,
                const std::unique_ptr<tinyxml2::XMLDocument>& _defaultPlugins,
-               bool _policy)
+               bool _includeDefaultPlugins)
         {
-          if (!_policy)
+          if (!_includeDefaultPlugins)
           {
             auto combinedPlugins = std::make_unique<tinyxml2::XMLDocument>();
             _defaultPlugins->DeepCopy(combinedPlugins.get());
@@ -612,7 +612,7 @@ std::unique_ptr<gz::gui::Application> createGui(
         gzwarn  << "Default plugins:\n";
         printPlugins(*defaultPlugins);
         auto pluginsToLoad = combineUserAndDefaultPlugins(
-            std::move(userPlugins), defaultPlugins, noDefaultGuiPlugins);
+            std::move(userPlugins), defaultPlugins, includeDefaultGuiPlugins);
         gzwarn  << "Plugins to load:\n";
         printPlugins(*pluginsToLoad);
 

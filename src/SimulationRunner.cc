@@ -255,19 +255,19 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   this->levelMgr->UpdateLevelsState();
 
   auto worldElem = this->sdfWorld->Element();
-  bool noDefaultServerPlugins = false;
-  bool noDefaultGuiPlugins = false;
+  bool includeDefaultServerPlugins = true;
+  bool includeDefaultGuiPlugins = true;
   if (worldElem)
   {
-    auto policies = worldElem->FindElement("gz:policies");
+    auto policies = worldElem->FindElement(std::string(kPoliciesTag));
     if (policies)
     {
-      noDefaultServerPlugins =
+      includeDefaultServerPlugins =
           policies
-              ->Get<bool>("no_default_server_plugins", noDefaultServerPlugins)
+              ->Get<bool>("include_default_server_plugins", includeDefaultServerPlugins)
               .first;
-      noDefaultGuiPlugins =
-          policies->Get<bool>("no_default_gui_plugins", noDefaultGuiPlugins)
+      includeDefaultGuiPlugins =
+          policies->Get<bool>("include_default_gui_plugins", includeDefaultGuiPlugins)
               .first;
     }
   }
@@ -283,11 +283,11 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   };
 
   auto combineUserAndDefaultPlugins =
-      [](const auto &_userPlugins, const auto &_defaultPlugins, bool _policy)
+      [](const auto &_userPlugins, const auto &_defaultPlugins, bool _includeDefaultPlugins)
   {
     // TODO(azeey) Handle serverConfigPlugins
     /* auto serverConfigPlugins = this->serverConfig.Plugins(); */
-    if (!_policy)
+    if (_includeDefaultPlugins)
     {
       auto combinedPlugins = _defaultPlugins;
       for (const auto &userPlugin : _userPlugins)
@@ -331,7 +331,7 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
   // differently
   auto pluginsToLoad = combineUserAndDefaultPlugins(
       getUserPlugins(), sim::loadPluginInfo(isPlayback),
-      noDefaultServerPlugins);
+      includeDefaultServerPlugins);
   gzdbg << "Loading plugins:\n";
   for (const auto &plugin: pluginsToLoad) {
     gzdbg << plugin.Plugin().Name() << "\n";
