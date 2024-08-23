@@ -88,6 +88,15 @@ namespace gz
       /// every update cycle
       public: void UpdateLevelsState();
 
+      /// \brief Read level and performer information from the sdf::World
+      /// object
+      /// \param[in] _world The SDF world
+      public: void ReadLevelPerformerInfo(const sdf::World &_world);
+
+      /// \brief Determine which entities belong to the default level and
+      /// schedule them to be loaded
+      public: void ConfigureDefaultLevel();
+
       /// \brief Load entities that have been marked for loading.
       /// \param[in] _namesToLoad List of of entity names to load
       private: void LoadActiveEntities(
@@ -98,27 +107,15 @@ namespace gz
       private: void UnloadInactiveEntities(
           const std::set<std::string> &_namesToUnload);
 
-      /// \brief Read level and performer information from the sdf::World
-      /// object
-      private: void ReadLevelPerformerInfo();
-
-      /// \brief Create performers
-      /// Assuming that a simulation runner is performer-centered
-      private: void CreatePerformers();
-
       /// \brief Read information about performers from the sdf Element and
       /// create performer entities
-      /// \param[in] _sdf sdf::ElementPtr of the gz::sim plugin tag
-      private: void ReadPerformers(const sdf::ElementPtr &_sdf);
+      /// \param[in] _plugin sdf::Plugin of the gz::sim plugin tag
+      private: void ReadPerformers(const sdf::Plugin &_plugin);
 
       /// \brief Read information about levels from the sdf Element and
       /// create level entities
-      /// \param[in] _sdf sdf::ElementPtr of the gz::sim plugin tag
-      private: void ReadLevels(const sdf::ElementPtr &_sdf);
-
-      /// \brief Determine which entities belong to the default level and
-      /// schedule them to be loaded
-      private: void ConfigureDefaultLevel();
+      /// \param[in] _plugin sdf::Plugin of the gz::sim plugin tag
+      private: void ReadLevels(const sdf::Plugin &_plugin);
 
       /// \brief Determine if a level is active
       /// \param[in] _entity Entity of level to be checked
@@ -145,8 +142,11 @@ namespace gz
       private: int CreatePerformerEntity(const std::string &_name,
                    const sdf::Geometry &_geom);
 
+      private: void UnloadLevel(const Entity &_entity,
+                   const std::set<std::string> &_entityNamesMarked = {});
+
       /// \brief List of currently active levels
-      private: std::vector<Entity> activeLevels;
+      private: std::set<Entity> activeLevels;
 
       /// \brief Names of entities that are currently active (loaded).
       private: std::set<std::string> activeEntityNames;
@@ -160,9 +160,6 @@ namespace gz
 
       /// \brief Names of all entities that have assigned levels
       private: std::set<std::string> entityNamesInLevels;
-
-      /// \brief Entity of the world.
-      private: Entity worldEntity{kNullEntity};
 
       /// \brief Flag whether to use levels or not.
       private: bool useLevels{false};

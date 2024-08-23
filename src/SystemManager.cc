@@ -18,6 +18,7 @@
 #include <list>
 #include <mutex>
 #include <set>
+#include <string>
 #include <unordered_set>
 
 #include <gz/common/StringUtils.hh>
@@ -25,6 +26,7 @@
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 #include "SystemManager.hh"
 
@@ -110,6 +112,17 @@ size_t SystemManager::ActivatePendingSystems()
   {
     this->systems.push_back(system);
 
+    PriorityType p {System::kDefaultPriority};
+    const std::string kPriorityElementName
+        {gz::sim::System::kPriorityElementName};
+    if (system.configureSdf &&
+        system.configureSdf->HasElement(kPriorityElementName))
+    {
+      PriorityType newPriority =
+          system.configureSdf->Get<PriorityType>(kPriorityElementName);
+      p = newPriority;
+    }
+
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
 
@@ -120,10 +133,16 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsReset.push_back(system.reset);
 
     if (system.preupdate)
-      this->systemsPreupdate.push_back(system.preupdate);
+    {
+      this->systemsPreupdate.try_emplace(p);
+      this->systemsPreupdate[p].push_back(system.preupdate);
+    }
 
     if (system.update)
-      this->systemsUpdate.push_back(system.update);
+    {
+      this->systemsUpdate.try_emplace(p);
+      this->systemsUpdate[p].push_back(system.update);
+    }
 
     if (system.postupdate)
     {
@@ -301,13 +320,15 @@ const std::vector<ISystemReset *> &SystemManager::SystemsReset()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemPreUpdate *>& SystemManager::SystemsPreUpdate()
+const SystemManager::PrioritizedSystems<ISystemPreUpdate *>&
+SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
+const SystemManager::PrioritizedSystems<ISystemUpdate *>&
+SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
@@ -514,20 +535,36 @@ void SystemManager::ProcessRemovedEntities(
       }
       return false;
     });
-  RemoveFromVectorIf(this->systemsPreupdate,
-    [&](const auto& system) {
-      if (preupdateSystemsToBeRemoved.count(system)) {
-        return true;
-      }
-      return false;
-    });
-  RemoveFromVectorIf(this->systemsUpdate,
-    [&](const auto& system) {
-      if (updateSystemsToBeRemoved.count(system)) {
-        return true;
-      }
-      return false;
-    });
+  for (auto it = this->systemsPreupdate.begin();
+            it != this->systemsPreupdate.end();)
+  {
+    RemoveFromVectorIf(it->second,
+      [&](const auto& system) {
+        if (preupdateSystemsToBeRemoved.count(system)) {
+          return true;
+        }
+        return false;
+      });
+    if (it->second.empty())
+      it = this->systemsPreupdate.erase(it);
+    else
+      ++it;
+  }
+  for (auto it = this->systemsUpdate.begin();
+            it != this->systemsUpdate.end();)
+  {
+    RemoveFromVectorIf(it->second,
+      [&](const auto& system) {
+        if (updateSystemsToBeRemoved.count(system)) {
+          return true;
+        }
+        return false;
+      });
+    if (it->second.empty())
+      it = this->systemsUpdate.erase(it);
+    else
+      ++it;
+  }
 
   RemoveFromVectorIf(this->systemsPostupdate,
     [&](const auto& system) {
