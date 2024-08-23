@@ -159,7 +159,8 @@ Server::Server(const ServerConfig &_config)
       // 'src/gui_main.cc'.
       errors = sdfRoot.Load(filePath, sdfParserConfig);
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
-          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY) {
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
         if (sdfRoot.Model() == nullptr) {
           this->dataPtr->sdfRoot = std::move(sdfRoot);
         }
@@ -213,6 +214,11 @@ Server::Server(const ServerConfig &_config)
   {
     this->dataPtr->AddRecordPlugin(_config);
   }
+
+  // If we've received a signal before we create entities, the Stop event
+  // won't be propagated to them. Instead, we just quit early here.
+  if (this->dataPtr->signalReceived)
+    return;
 
   this->dataPtr->CreateEntities();
 

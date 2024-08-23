@@ -18,6 +18,7 @@
 #include <list>
 #include <mutex>
 #include <set>
+#include <string>
 #include <unordered_set>
 
 #include <gz/common/StringUtils.hh>
@@ -25,6 +26,8 @@
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
+#include "gz/sim/System.hh"
+#include "gz/sim/Util.hh"
 #include "SystemManager.hh"
 
 using namespace gz;
@@ -109,6 +112,24 @@ size_t SystemManager::ActivatePendingSystems()
   {
     this->systems.push_back(system);
 
+    PriorityType p {System::kDefaultPriority};
+    if (system.configurePriority)
+    {
+      p = system.configurePriority->ConfigurePriority();
+    }
+    const std::string kPriorityElementName
+        {gz::sim::System::kPriorityElementName};
+    if (system.configureSdf &&
+        system.configureSdf->HasElement(kPriorityElementName))
+    {
+      PriorityType newPriority =
+          system.configureSdf->Get<PriorityType>(kPriorityElementName);
+      gzdbg << "Changing priority for system [" << system.name
+            << "] from {" << p
+            << "} to {" << newPriority << "}\n";
+      p = newPriority;
+    }
+
     if (system.configure)
       this->systemsConfigure.push_back(system.configure);
 
@@ -119,10 +140,16 @@ size_t SystemManager::ActivatePendingSystems()
       this->systemsReset.push_back(system.reset);
 
     if (system.preupdate)
-      this->systemsPreupdate.push_back(system.preupdate);
+    {
+      this->systemsPreupdate.try_emplace(p);
+      this->systemsPreupdate[p].push_back(system.preupdate);
+    }
 
     if (system.update)
-      this->systemsUpdate.push_back(system.update);
+    {
+      this->systemsUpdate.try_emplace(p);
+      this->systemsUpdate[p].push_back(system.update);
+    }
 
     if (system.postupdate)
     {
@@ -287,6 +314,7 @@ const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
   return this->systemsConfigure;
 }
 
+//////////////////////////////////////////////////
 const std::vector<ISystemConfigureParameters *>&
 SystemManager::SystemsConfigureParameters()
 {
@@ -300,13 +328,15 @@ const std::vector<ISystemReset *> &SystemManager::SystemsReset()
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemPreUpdate *>& SystemManager::SystemsPreUpdate()
+const SystemManager::PrioritizedSystems<ISystemPreUpdate *>&
+SystemManager::SystemsPreUpdate()
 {
   return this->systemsPreupdate;
 }
 
 //////////////////////////////////////////////////
-const std::vector<ISystemUpdate *>& SystemManager::SystemsUpdate()
+const SystemManager::PrioritizedSystems<ISystemUpdate *>&
+SystemManager::SystemsUpdate()
 {
   return this->systemsUpdate;
 }
@@ -339,6 +369,11 @@ bool SystemManager::EntitySystemAddService(const msgs::EntityPlugin_V &_req,
 {
   std::lock_guard<std::mutex> lock(this->systemsMsgMutex);
   this->systemsToAdd.push_back(_req);
+
+  // The response is set to true to indicate that the service request is
+  // handled but it does not necessarily mean the system is added
+  // successfully
+  // \todo(iche033) Return false if system is not added successfully?
   _res.set_data(true);
   return true;
 }
@@ -398,8 +433,21 @@ void SystemManager::ProcessPendingEntitySystems()
 
     if (req.plugins().empty())
     {
-      gzwarn << "Unable to add plugins to Entity: '" << entity
-             << "'. No plugins specified." << std::endl;
+      gzerr << "Unable to add plugins to Entity: '" << entity
+            << "'. No plugins specified." << std::endl;
+       continue;
+    }
+
+    // set to world entity if entity id is not specified in the request.
+    if (entity == kNullEntity || entity == 0u)
+    {
+      entity = worldEntity(*this->entityCompMgr);
+    }
+    // otherwise check if entity exists before attempting to load the plugin.
+    else if (!this->entityCompMgr->HasEntity(entity))
+    {
+      gzerr << "Unable to add plugins to Entity: '" << entity
+            << "'. Entity does not exist." << std::endl;
        continue;
     }
 
@@ -495,20 +543,36 @@ void SystemManager::ProcessRemovedEntities(
       }
       return false;
     });
-  RemoveFromVectorIf(this->systemsPreupdate,
-    [&](const auto& system) {
-      if (preupdateSystemsToBeRemoved.count(system)) {
-        return true;
-      }
-      return false;
-    });
-  RemoveFromVectorIf(this->systemsUpdate,
-    [&](const auto& system) {
-      if (updateSystemsToBeRemoved.count(system)) {
-        return true;
-      }
-      return false;
-    });
+  for (auto it = this->systemsPreupdate.begin();
+            it != this->systemsPreupdate.end();)
+  {
+    RemoveFromVectorIf(it->second,
+      [&](const auto& system) {
+        if (preupdateSystemsToBeRemoved.count(system)) {
+          return true;
+        }
+        return false;
+      });
+    if (it->second.empty())
+      it = this->systemsPreupdate.erase(it);
+    else
+      ++it;
+  }
+  for (auto it = this->systemsUpdate.begin();
+            it != this->systemsUpdate.end();)
+  {
+    RemoveFromVectorIf(it->second,
+      [&](const auto& system) {
+        if (updateSystemsToBeRemoved.count(system)) {
+          return true;
+        }
+        return false;
+      });
+    if (it->second.empty())
+      it = this->systemsUpdate.erase(it);
+    else
+      ++it;
+  }
 
   RemoveFromVectorIf(this->systemsPostupdate,
     [&](const auto& system) {

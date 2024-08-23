@@ -776,6 +776,7 @@ TEST_P(ServerFixture, SigInt)
   EXPECT_TRUE(*server.Running(0));
 
   std::raise(SIGTERM);
+  GZ_SLEEP_MS(20);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -880,6 +881,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 
   // Stop the server
   std::raise(SIGTERM);
+  GZ_SLEEP_MS(20);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
