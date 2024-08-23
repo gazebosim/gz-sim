@@ -100,7 +100,7 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
-  this->worldName = transport::TopicUtils::AsValidTopic(_world->Name());
+  this->worldName = transport::TopicUtils::AsValidTopic(_world.Name());
 
   auto validWorldName = transport::TopicUtils::AsValidTopic(worldName);
   if (this->worldName.empty())
