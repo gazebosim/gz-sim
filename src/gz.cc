@@ -139,7 +139,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineGui,
     const char *_file, const char *_recordTopics, int _waitGui,
-    int _headless, float _recordPeriod)
+    int _headless, float _recordPeriod, int _waitForAssets)
 {
   std::string startingWorldPath{""};
   sim::ServerConfig serverConfig;
@@ -407,6 +407,8 @@ extern "C" int runServer(const char *_sdfString,
   {
     serverConfig.SetRenderEngineGui(_renderEngineGui);
   }
+
+  serverConfig.SetWaitForAssets(_waitForAssets);
 
   // Create the Gazebo server
   sim::Server server(serverConfig);

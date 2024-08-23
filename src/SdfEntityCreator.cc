@@ -343,7 +343,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     const sdf::Model *model = _world->ModelByIndex(modelIndex);
     if (levelEntityNames.empty() ||
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
-
     {
       Entity modelEntity = this->CreateEntities(model);
 

@@ -107,6 +107,10 @@ ServerPrivate::~ServerPrivate()
   {
     this->stopThread->join();
   }
+  if (this->downloadThread.joinable())
+  {
+    this->downloadThread.join();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -190,112 +194,28 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
-{
-  bool hasRecordResources {false};
-  bool hasRecordTopics {false};
-
-  bool sdfRecordResources;
-  std::vector<std::string> sdfRecordTopics;
-
-  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
-       ++worldIndex)
-  {
-    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
-    sdf::Plugins &plugins = world->Plugins();
-
-    for (sdf::Plugins::iterator iter = plugins.begin();
-         iter != plugins.end(); ++iter)
-    {
-      std::string fname = iter->Filename();
-      std::string name = iter->Name();
-      if (fname.find(
-            LoggingPlugin::LoggingPluginSuffix()) != std::string::npos &&
-          name == LoggingPlugin::RecordPluginName())
-      {
-        sdf::ElementPtr recordPluginElem = iter->ToElement();
-
-        std::tie(sdfRecordResources, hasRecordResources) =
-          recordPluginElem->Get<bool>("record_resources", false);
-
-        hasRecordTopics = recordPluginElem->HasElement("record_topic");
-        if (hasRecordTopics)
-        {
-          sdf::ElementPtr recordTopicElem =
-            recordPluginElem->GetElement("record_topic");
-          while (recordTopicElem)
-          {
-            auto topic = recordTopicElem->Get<std::string>();
-            sdfRecordTopics.push_back(topic);
-            recordTopicElem = recordTopicElem->GetNextElement();
-          }
-        }
-
-        // Remove the plugin, which will be added back in by ServerConfig.
-        plugins.erase(iter);
-        break;
-      }
-    }
-  }
-
-  // Set the config based on what is in the SDF:
-  if (hasRecordResources)
-    this->config.SetLogRecordResources(sdfRecordResources);
-
-  if (hasRecordTopics)
-  {
-    this->config.ClearLogRecordTopics();
-    for (auto topic : sdfRecordTopics)
-    {
-      this->config.AddLogRecordTopic(topic);
-    }
-  }
-
-  if (!_config.LogRecordPath().empty())
-  {
-    this->config.SetLogRecordPath(_config.LogRecordPath());
-  }
-
-  if (_config.LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
-  {
-    this->config.SetLogRecordPeriod(_config.LogRecordPeriod());
-  }
-
-  if (_config.LogRecordResources())
-    this->config.SetLogRecordResources(true);
-
-  if (_config.LogRecordCompressPath() != ".zip")
-  {
-    this->config.SetLogRecordCompressPath(_config.LogRecordCompressPath());
-  }
-
-  if (_config.LogRecordTopics().size())
-  {
-    this->config.ClearLogRecordTopics();
-    for (auto topic : _config.LogRecordTopics())
-    {
-      this->config.AddLogRecordTopic(topic);
-    }
-  }
-}
-
-//////////////////////////////////////////////////
-void ServerPrivate::CreateEntities()
+void ServerPrivate::CreateSimulationRunners()
 {
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
   {
     sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
-
+    if (world)
     {
-      std::lock_guard<std::mutex> lock(this->worldsMutex);
-      this->worldNames.push_back(world->Name());
+      {
+        std::lock_guard<std::mutex> lock(this->worldsMutex);
+        this->worldNames.push_back(world->Name());
+      }
+      auto runner = std::make_unique<SimulationRunner>(
+          *world, this->systemLoader, this->config, false);
+      runner->SetFuelUriMap(this->fuelUriMap);
+      this->simRunners.push_back(std::move(runner));
     }
-    auto runner = std::make_unique<SimulationRunner>(
-        *world, this->systemLoader, this->config);
-    runner->SetFuelUriMap(this->fuelUriMap);
-    this->simRunners.push_back(std::move(runner));
+    else
+    {
+      gzerr << "Failed to get SDF world. Can't start simulation runner.\n";
+    }
   }
 }
 
@@ -546,16 +466,19 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  auto path =
-      fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
-
-  if (!path.empty())
+  std::string path;
+  if (this->enableDownload)
   {
-    for (auto &runner : this->simRunners)
+    path = fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
+
+    if (!path.empty())
     {
-      runner->AddToFuelUriMap(path, _uri);
+      for (auto &runner : this->simRunners)
+      {
+        runner->AddToFuelUriMap(path, _uri);
+      }
+      fuelUriMap[path] = _uri;
     }
-    fuelUriMap[path] = _uri;
   }
   return path;
 }
@@ -564,4 +487,148 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
 std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 {
   return this->FetchResource(_uri.Str());
+}
+
+//////////////////////////////////////////////////
+sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
+    sdf::Root &_root, std::string &_outputMsgs)
+{
+  sdf::Errors errors;
+
+  switch (_config.Source())
+  {
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
+      {
+        _root = _config.SdfRoot()->Clone();
+        _outputMsgs += "Loading SDF world from SDF DOM.\n";
+        break;
+      }
+
+    case ServerConfig::SourceType::kSdfString:
+      {
+        std::string msg = "Loading SDF string. ";
+        if (_config.SdfFile().empty())
+        {
+          _outputMsgs += "File path not available.\n";
+        }
+        else
+        {
+          _outputMsgs += "File path [" + _config.SdfFile() + "].\n";
+        }
+        errors = _root.LoadSdfString(_config.SdfString());
+        break;
+      }
+
+    case ServerConfig::SourceType::kSdfFile:
+      {
+        std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+            _config.ResourceCache());
+
+        if (filePath.empty())
+        {
+          std::string errStr = "Failed to find world ["
+            + _config.SdfFile() + "]";
+          gzerr << errStr << std::endl;
+          errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
+          return errors;
+        }
+
+        _outputMsgs += "Loading SDF world file[" + filePath + "].\n";
+
+        errors = _root.Load(filePath);
+        break;
+      }
+
+    case ServerConfig::SourceType::kNone:
+    default:
+      {
+        _outputMsgs += "Loading default world.\n";
+
+        sdf::World defaultWorld;
+        defaultWorld.SetName("default");
+
+        // Load an empty world.
+        errors = _root.AddWorld(defaultWorld);
+        break;
+      }
+  }
+
+  // If the world only contains a model, load the default
+  // world and add the model to it.
+  if (_root.WorldCount() == 0)
+  {
+    sdf::World defaultWorld;
+    defaultWorld.SetName("default");
+    if (_root.Model())
+    {
+      defaultWorld.AddModel(*_root.Model());
+    }
+    if (_root.Actor())
+      defaultWorld.AddActor(*_root.Actor());
+    if (_root.Light())
+      defaultWorld.AddLight(*_root.Light());
+
+    _root.AddWorld(defaultWorld);
+
+    _root.WorldByIndex(0)->ToElement()->PrintValues("---");
+  }
+
+  return errors;
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::DownloadAssets(const ServerConfig &_config)
+{
+  std::mutex assetMutex;
+  std::condition_variable assetCv;
+  std::unique_lock assetLock(assetMutex);
+
+  // Enable simulation asset download
+  this->enableDownload = true;
+
+  // Download models in a separate thread.
+  this->downloadThread = std::thread([&]()
+  {
+    if (_config.WaitForAssets())
+      std::lock_guard threadLocalLock(assetMutex);
+
+    // Reload the SDF root, which will cause the models to download.
+    sdf::Root localRoot;
+    std::string ignoreMessages;
+    sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
+        localRoot, ignoreMessages);
+
+    // Output any errors.
+    if (!localErrors.empty())
+    {
+      for (auto &err : localErrors)
+        gzerr << err << "\n";
+    }
+
+    // Add the models back into the worlds.
+    for (auto &runner : this->simRunners)
+    {
+      // Get a pointer to the SDF world
+      sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
+      if (!world)
+      {
+        gzerr << "Unable to find world with name["
+          << runner->WorldSdf().Name() << "]. "
+          << "Downloaded models may not appear.\n";
+        return;
+      }
+
+      // Create the entities for the simulation runner.
+      runner->CreateEntities(*world);
+    }
+    if (_config.WaitForAssets())
+      assetCv.notify_one();
+  });
+
+  // Wait for assets to download.
+  if (_config.WaitForAssets())
+  {
+    assetCv.wait(assetLock);
+  }
 }
