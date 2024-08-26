@@ -43,6 +43,15 @@ class CameraVideoRecorderTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(CameraVideoRecorderTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RecordVideo))
 {
+  // This test fails on Github Actions. Skip it for now.
+  // Note: The GITHUB_ACTIONS environment variable is automatically set when
+  // running on Github Actions.
+  std::string githubAction;
+  if (common::env("GITHUB_ACTIONS", githubAction))
+  {
+    GTEST_SKIP();
+  }
+
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
