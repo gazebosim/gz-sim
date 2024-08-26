@@ -467,6 +467,65 @@
 
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.8.0 (2024-07-22)
+
+1. Added support for spacecraft thrusters
+    * [Pull request #2431](https://github.com/gazebosim/gz-sim/pull/2431)
+
+1. Disable rendering tests that are failing on github actions
+    * [Pull request #2480](https://github.com/gazebosim/gz-sim/pull/2480)
+
+1. Consolidate entity creation.
+    * [Pull request #2452](https://github.com/gazebosim/gz-sim/pull/2452)
+
+1. Set max contacts for collision pairs
+    * [Pull request #2270](https://github.com/gazebosim/gz-sim/pull/2270)
+
+1. Add GravityEnabled boolean component
+    * [Pull request #2451](https://github.com/gazebosim/gz-sim/pull/2451)
+
+1. Add support for no gravity link
+    * [Pull request #2398](https://github.com/gazebosim/gz-sim/pull/2398)
+
+1. Handle sdf::Geometry::EMPTY in conversions
+    * [Pull request #2430](https://github.com/gazebosim/gz-sim/pull/2430)
+
+1. Use topicFromScopedName in a few systems
+    * [Pull request #2427](https://github.com/gazebosim/gz-sim/pull/2427)
+
+1. Fix typo in a comment
+    * [Pull request #2429](https://github.com/gazebosim/gz-sim/pull/2429)
+
+1. Remove a few extra zeros from some sdf files
+    * [Pull request #2426](https://github.com/gazebosim/gz-sim/pull/2426)
+
+1. Use VERSION_GREATER_EQUAL in cmake logic
+    * [Pull request #2418](https://github.com/gazebosim/gz-sim/pull/2418)
+
+1. Rephrase cmake comment about CMP0077
+    * [Pull request #2419](https://github.com/gazebosim/gz-sim/pull/2419)
+
+1. ForceTorque system: improve readability
+    * [Pull request #2403](https://github.com/gazebosim/gz-sim/pull/2403)
+
+1. LTA Dynamics System
+    * [Pull request #2241](https://github.com/gazebosim/gz-sim/pull/2241)
+
+1. Fix namespace and class links in documentation references that use namespace `gz`
+    * [Pull request #2385](https://github.com/gazebosim/gz-sim/pull/2385)
+
+1. Fix ModelPhotoShootTest test failures
+    * [Pull request #2294](https://github.com/gazebosim/gz-sim/pull/2294)
+
+1. update sdf version
+    * [Pull request #2313](https://github.com/gazebosim/gz-sim/pull/2313)
+
+1. Fix Gazebo/White and refactored MaterialParser
+    * [Pull request #2302](https://github.com/gazebosim/gz-sim/pull/2302)
+
+1. Support for Gazebo materials
+    * [Pull request #2269](https://github.com/gazebosim/gz-sim/pull/2269)
+
 ### Gazebo Sim 7.7.0 (2024-01-17)
 
 1. Allow using plugin file names and environment variables compatible with Garden and later
@@ -3869,6 +3928,36 @@
     * [Github pull request 97](https://github.com/gazebosim/gz-sim/pull/97)
 
 ## Gazebo Sim 3.x
+
+### Gazebo Sim 3.15.1 (2024-01-05)
+
+1. Update github action workflows
+    * [Pull request #2237](https://github.com/gazebosim/gz-sim/pull/2237)
+    * [Pull request #1988](https://github.com/gazebosim/gz-sim/pull/1988)
+
+1. Fix macOS test failures by registering components in the core library
+    * [Pull request #2220](https://github.com/gazebosim/gz-sim/pull/2220)
+
+1. Bump Fuel model version in test
+    * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
+
+1. Fix a minor issue in the documentation of the server API
+    * [Pull request #2067](https://github.com/gazebosim/gz-sim/pull/2067)
+
+1. Use sdf::Element::FindElement instead of GetElement in ApplyLinkWrench
+    * [Pull request #2052](https://github.com/gazebosim/gz-sim/pull/2052)
+
+1. Adds a warning if the `Server` method of a `TestFixture` is called before `Finalize`
+    * [Pull request #2047](https://github.com/gazebosim/gz-sim/pull/2047)
+
+1. Protobuf: Do not require version 3 do support Protobuf 4.23.2 (23.2)
+    * [Pull request #2006](https://github.com/gazebosim/gz-sim/pull/2006)
+
+1. Print an error message when trying to load SDF files that don't contain a `<world>`
+    * [Pull request #1998](https://github.com/gazebosim/gz-sim/pull/1998)
+
+1.  Enable GzWeb visualization of markers by republishing service requests on a topic
+    * [Pull request #1994](https://github.com/gazebosim/gz-sim/pull/1994)
 
 ### Gazebo Sim 3.15.0 (2023-05-08)
 
