@@ -123,10 +123,20 @@ void ServerPrivate::OnSignal(int _sig)
 /////////////////////////////////////////////////
 void ServerPrivate::Stop()
 {
-  this->running = false;
-  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
+  // Stop might be called from the signal handler thread (new in Ionic) instead
+  // of the main thread, so we need to ensure that we keep `ServerPrivate` alive
+  // while the signal handler is still active. We do that by synchronizing on
+  // the `runMutex` here in ServerPrivate::Run right after the call
+  // SimulationRunner::Run returns. That way, `ServerPrivate::Run` cannot return
+  // before the signal handler is finished.
+  std::lock_guard<std::mutex> lock(this->runMutex);
+  if (this->running)
   {
-    runner->Stop();
+    this->running = false;
+    for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
+    {
+      runner->Stop();
+    }
   }
 }
 
@@ -196,6 +206,8 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     result = this->workerPool.WaitForResults();
   }
 
+  // See comments ServerPrivate::Stop() for why we lock this mutex here.
+  std::lock_guard<std::mutex> lock(this->runMutex);
   this->running = false;
   return result;
 }
