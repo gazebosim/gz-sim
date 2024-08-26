@@ -24,6 +24,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -426,7 +427,7 @@ class OdometryPublisherTest
 
     // Set an angular velocity command that would cause pitch to update from 0
     // to PI in 1 second, crossing the singularity when pitch is PI/2.
-    const math::Vector3d angVelCmd(0.0, M_PI, 0);
+    const math::Vector3d angVelCmd(0.0, GZ_PI, 0);
     msgs::Twist msg;
     msgs::Set(msg.mutable_linear(), math::Vector3d::Zero);
     msgs::Set(msg.mutable_angular(), angVelCmd);
