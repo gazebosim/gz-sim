@@ -21,7 +21,7 @@
     </scene>
 
     <gz:policies>
-      <no_default_gui_plugins>false</no_default_gui_plugins>
+      <include_default_gui_plugins>true</include_default_gui_plugins>
     </gz:policies>
     <gui fullscreen="0">
 
