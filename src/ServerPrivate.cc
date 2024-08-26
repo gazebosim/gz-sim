@@ -297,14 +297,14 @@ void ServerPrivate::CreateEntities()
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
   {
-    auto world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
 
     {
       std::lock_guard<std::mutex> lock(this->worldsMutex);
       this->worldNames.push_back(world->Name());
     }
     auto runner = std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->config);
+        *world, this->systemLoader, this->config);
     runner->SetFuelUriMap(this->fuelUriMap);
     this->simRunners.push_back(std::move(runner));
   }
