@@ -70,6 +70,30 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
+struct GiInitData
+{
+  math::Vector3d resolution{16, 16, 16};
+  math::Vector3d octantCount{1, 1, 1};
+  uint32_t bounceCount = 6;
+  bool highQuality = true;
+  bool anisotropic = true;
+  float thinWallCounter = 1.0f;
+  bool conserveMemory = false;
+  uint32_t debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
+};
+
+struct GiVctParameters
+{
+  uint32_t resolution[3];
+  uint32_t octantCount[3];
+  uint32_t bounceCount;
+  bool highQuality;
+  bool anisotropic;
+  float thinWallCounter;
+  bool conserveMemory;
+  uint32_t debugVisMode;
+};
+
 // Private data class.
 class gz::sim::systems::SensorsPrivate
 {
@@ -92,7 +116,13 @@ class gz::sim::systems::SensorsPrivate
 
   public: rendering::GlobalIlluminationVctPtr gi;
 
-  public: bool builtGi = false;
+  public: GiVctParameters giVctParameters;
+
+  public: GiInitData giInitData;
+
+  public: bool giEnabled = false;
+
+  public: bool giBuilt = false;
 
   /// \brief Temperature used by thermal camera. Defaults to temperature at
   /// sea level
@@ -294,23 +324,26 @@ void SensorsPrivate::WaitForInit()
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
 
-      // TODO: first check if GI enabled, 
-      this->gi = this->scene->CreateGlobalIlluminationVct();
-      this->gi->SetParticipatingVisuals(
-          rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
-          rendering::GlobalIlluminationBase::STATIC_VISUALS);
+      if (giEnabled)
+      {
+        this->gi = this->scene->CreateGlobalIlluminationVct();
+        this->gi->SetParticipatingVisuals(
+            rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
+            rendering::GlobalIlluminationBase::STATIC_VISUALS);
 
-      const uint32_t resolution[3]{ 16u, 16u, 16u };
-      const uint32_t octantCount[3]{ 1u, 1u, 1u };
-      const uint32_t bounceCount { 6u };
-      this->gi->SetResolution(resolution);
-      this->gi->SetOctantCount(octantCount);
-      this->gi->SetBounceCount(bounceCount);
-      this->gi->SetAnisotropic(true);
-      this->gi->SetHighQuality(false);
-      this->gi->SetConserveMemory(true);
-      this->gi->SetThinWallCounter(1.0f);
-      printf("GI params have been set!\n");
+        this->gi->SetResolution(this->giVctParameters.resolution);
+        this->gi->SetOctantCount(this->giVctParameters.octantCount);
+        this->gi->SetBounceCount(this->giVctParameters.bounceCount);
+        this->gi->SetAnisotropic(this->giVctParameters.anisotropic);
+        this->gi->SetHighQuality(this->giVctParameters.highQuality);
+        this->gi->SetConserveMemory(this->giVctParameters.conserveMemory);
+        this->gi->SetThinWallCounter(this->giVctParameters.thinWallCounter);
+
+        this->gi->SetDebugVisualization(
+          rendering::GlobalIlluminationVct::DVM_None);
+
+        this->scene->SetActiveGlobalIllumination(this->gi);
+      }
 
       this->initialized = true;
     }
@@ -384,12 +417,13 @@ void SensorsPrivate::RunOnce()
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
 
-      if (!this->builtGi)
+      if (this->giEnabled && !this->giBuilt)
       {       
         this->gi->Build();
-        this->scene->SetActiveGlobalIllumination(this->gi);
-        printf("gi has been built so will set flag to true now\n");
-        this->builtGi = true;
+        this->gi->SetDebugVisualization(
+            static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>
+            (this->giVctParameters.debugVisMode));
+        this->giBuilt = true;
       }
 
       this->scene->PreRender();
@@ -509,10 +543,7 @@ void SensorsPrivate::Stop()
 //////////////////////////////////////////////////
 void SensorsPrivate::ForceRender()
 {
-  printf("forced render is called!!!\n");
   this->forceUpdate = true;
-  // TODO: doesn't work?
-  this->builtGi = false;
 }
 
 //////////////////////////////////////////////////
@@ -557,6 +588,54 @@ Sensors::~Sensors()
   this->dataPtr->Stop();
 }
 
+//TODO: why does math::Vector3d work but not math::Vector3i?
+static void ConvertDoubleToUInt32x3(sdf::ElementConstPtr _parentElem,
+    const char* _childName, uint32_t _valueToSet[3], math::Vector3d _defaultValue)
+{
+  math::Vector3d parsedValues = (_parentElem == nullptr) ? 
+      _defaultValue : _parentElem->Get<math::Vector3d>(_childName, _defaultValue).first;
+
+  _valueToSet[0] = static_cast<uint32_t>(parsedValues[0]);
+  _valueToSet[1] = static_cast<uint32_t>(parsedValues[1]);
+  _valueToSet[2] = static_cast<uint32_t>(parsedValues[2]);
+}
+
+static void ConvertDoubleToUInt32x3(uint32_t _valueToSet[3], math::Vector3d _defaultValue)
+{
+  ConvertDoubleToUInt32x3(nullptr, "", _valueToSet, _defaultValue);
+}
+
+static void SetDebugVisMode(const std::string &_text,
+    uint32_t &_modeToSet, 
+    uint32_t _defaultMode)
+
+{
+  if (_text == "albedo")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Albedo;
+  }
+  else if (_text == "normal")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Normal;
+  }
+  else if (_text == "emissive")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Emissive;
+  }
+  else if (_text == "lighting")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Lighting;
+  } 
+  else if (_text == "none")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_None;
+  } 
+  else
+  {
+    _modeToSet = _defaultMode;
+  }
+}
+
 //////////////////////////////////////////////////
 void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -585,7 +664,51 @@ void Sensors::Configure(const Entity &/*_id*/,
   if (_sdf->HasElement("ambient_light"))
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
 
-  //TODO: add SDF for GI stuff here
+  // Get the global illumination technique and its parameters, if specified
+  if (_sdf->HasElement("global_illumination"))
+  {
+    if (engineName != "ogre2")
+    {
+      gzerr << "Global illumination is only supported by the ogre2 render engine" << std::endl;
+    }
+    else
+    {
+      //TODO: if get both vct and civct what happens? CAN ONLY USE ONE. for civct, check if vulkan is used as api backend?
+      auto giElem = _sdf->FindElement("global_illumination");
+      std::string giType = giElem->GetAttribute("type")->GetAsString();
+      if (giType == "vct")
+      {
+        this->dataPtr->giEnabled = giElem->Get<bool>("enabled", this->dataPtr->giEnabled).first;
+
+        //TODO: check that values are INT and not any other data type
+        if (giElem->HasElement("resolution"))
+          ConvertDoubleToUInt32x3(giElem, "resolution", this->dataPtr->giVctParameters.resolution, this->dataPtr->giInitData.resolution);
+        else 
+          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.resolution, this->dataPtr->giInitData.resolution);
+        
+        if (giElem->HasElement("octant_count"))
+          ConvertDoubleToUInt32x3(giElem, "octant_count", this->dataPtr->giVctParameters.octantCount, this->dataPtr->giInitData.octantCount);
+        else
+          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.octantCount, this->dataPtr->giInitData.octantCount);
+
+        this->dataPtr->giVctParameters.bounceCount = giElem->Get<uint32_t>("bounce_count", this->dataPtr->giVctParameters.bounceCount).first;
+        this->dataPtr->giVctParameters.highQuality = giElem->Get<bool>("high_quality", this->dataPtr->giVctParameters.highQuality).first;
+        this->dataPtr->giVctParameters.anisotropic = giElem->Get<bool>("anisotropic", this->dataPtr->giVctParameters.anisotropic).first;
+        this->dataPtr->giVctParameters.thinWallCounter = giElem->Get<float>("thin_wall_counter", this->dataPtr->giVctParameters.thinWallCounter).first;
+        this->dataPtr->giVctParameters.conserveMemory = giElem->Get<bool>("conserve_memory", this->dataPtr->giVctParameters.conserveMemory).first;
+
+        if (giElem->HasElement("debug_vis_mode"))
+        {
+          const std::string text = giElem->Get<std::string>("debug_vis_mode", "none").first;
+          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode, this->dataPtr->giInitData.debugVisMode);
+        }
+      }      
+      else if (giType == "civct")
+      {
+        //TODO: add CIVCT here
+      }
+    }
+  }
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
 #ifdef __APPLE__
