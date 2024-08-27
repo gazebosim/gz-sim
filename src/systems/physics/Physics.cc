@@ -93,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 // Components

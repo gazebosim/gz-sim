@@ -307,6 +307,7 @@ const std::vector<ISystemConfigure *>& SystemManager::SystemsConfigure()
   return this->systemsConfigure;
 }
 
+//////////////////////////////////////////////////
 const std::vector<ISystemConfigureParameters *>&
 SystemManager::SystemsConfigureParameters()
 {
