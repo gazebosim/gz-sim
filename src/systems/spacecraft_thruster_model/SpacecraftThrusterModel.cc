@@ -25,13 +25,15 @@
 
 #include "SpacecraftThrusterModel.hh"
 
-#include <mutex>
-#include <string>
-#include <optional>
 #include <chrono>
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <string>
 
 #include <gz/msgs/actuators.pb.h>
 
+#include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 
 #include <gz/plugin/Register.hh>
@@ -47,8 +49,11 @@
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
