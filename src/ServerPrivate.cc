@@ -115,9 +115,14 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
-  this->signalReceived = true;
-  gzdbg << "Server received signal[" << _sig  << "]\n";
-  this->Stop();
+  // There's a good chance that objects are being destructed from the previous
+  // signal, so it's not safe to call Stop if we've done it already.
+  if (!this->signalReceived)
+  {
+    this->signalReceived = true;
+    gzdbg << "Server received signal[" << _sig  << "]\n";
+    this->Stop();
+  }
 }
 
 /////////////////////////////////////////////////
@@ -130,13 +135,10 @@ void ServerPrivate::Stop()
   // SimulationRunner::Run returns. That way, `ServerPrivate::Run` cannot return
   // before the signal handler is finished.
   std::lock_guard<std::mutex> lock(this->runMutex);
-  if (this->running)
+  this->running = false;
+  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
-    this->running = false;
-    for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
-    {
-      runner->Stop();
-    }
+    runner->Stop();
   }
 }
 
