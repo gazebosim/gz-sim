@@ -70,27 +70,62 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
-struct GiInitData
+/// \brief GI parameters holding default data
+struct GiDefaultData
 {
+  /// \brief See rendering::GlobalIlluminationVct::SetResolution
   math::Vector3d resolution{16, 16, 16};
+
+  /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
   math::Vector3d octantCount{1, 1, 1};
+
+  /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
   uint32_t bounceCount = 6;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
   bool highQuality = true;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
   bool anisotropic = true;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
   float thinWallCounter = 1.0f;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
   bool conserveMemory = false;
+
+  /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
   uint32_t debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
 };
 
+/// \brief GI VCT flag and parameters
 struct GiVctParameters
 {
+  /// \brief VCT enabled flag
+  bool enabled = false;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetResolution
   uint32_t resolution[3];
+
+  /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
   uint32_t octantCount[3];
+
+  /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
   uint32_t bounceCount;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
   bool highQuality;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
   bool anisotropic;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
   float thinWallCounter;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
   bool conserveMemory;
+
+  /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
   uint32_t debugVisMode;
 };
 
@@ -114,14 +149,16 @@ class gz::sim::systems::SensorsPrivate
   /// generate sensor data
   public: rendering::ScenePtr scene;
 
-  public: rendering::GlobalIlluminationVctPtr gi;
+  /// \brief Pointer to GlobalIlluminationVct
+  public: rendering::GlobalIlluminationVctPtr giVct;
 
+  /// \brief GI VCT parameters passed to giVct
   public: GiVctParameters giVctParameters;
 
-  public: GiInitData giInitData;
+  /// \brief Default GI data
+  public: GiDefaultData giDefaultData;
 
-  public: bool giEnabled = false;
-
+  /// \brief GI built flag
   public: bool giBuilt = false;
 
   /// \brief Temperature used by thermal camera. Defaults to temperature at
@@ -324,25 +361,25 @@ void SensorsPrivate::WaitForInit()
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
 
-      if (giEnabled)
+      if (this->giVctParameters.enabled)
       {
-        this->gi = this->scene->CreateGlobalIlluminationVct();
-        this->gi->SetParticipatingVisuals(
+        this->giVct = this->scene->CreateGlobalIlluminationVct();
+        this->giVct->SetParticipatingVisuals(
             rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
             rendering::GlobalIlluminationBase::STATIC_VISUALS);
 
-        this->gi->SetResolution(this->giVctParameters.resolution);
-        this->gi->SetOctantCount(this->giVctParameters.octantCount);
-        this->gi->SetBounceCount(this->giVctParameters.bounceCount);
-        this->gi->SetAnisotropic(this->giVctParameters.anisotropic);
-        this->gi->SetHighQuality(this->giVctParameters.highQuality);
-        this->gi->SetConserveMemory(this->giVctParameters.conserveMemory);
-        this->gi->SetThinWallCounter(this->giVctParameters.thinWallCounter);
+        this->giVct->SetResolution(this->giVctParameters.resolution);
+        this->giVct->SetOctantCount(this->giVctParameters.octantCount);
+        this->giVct->SetBounceCount(this->giVctParameters.bounceCount);
+        this->giVct->SetAnisotropic(this->giVctParameters.anisotropic);
+        this->giVct->SetHighQuality(this->giVctParameters.highQuality);
+        this->giVct->SetConserveMemory(this->giVctParameters.conserveMemory);
+        this->giVct->SetThinWallCounter(this->giVctParameters.thinWallCounter);
 
-        this->gi->SetDebugVisualization(
+        this->giVct->SetDebugVisualization(
           rendering::GlobalIlluminationVct::DVM_None);
 
-        this->scene->SetActiveGlobalIllumination(this->gi);
+        this->scene->SetActiveGlobalIllumination(this->giVct);
       }
 
       this->initialized = true;
@@ -417,13 +454,16 @@ void SensorsPrivate::RunOnce()
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
 
-      if (this->giEnabled && !this->giBuilt)
-      {       
-        this->gi->Build();
-        this->gi->SetDebugVisualization(
+      if (!this->giBuilt)
+      {
+        if (this->giVctParameters.enabled)
+        {
+          this->giVct->Build();
+          this->giVct->SetDebugVisualization(
             static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>
             (this->giVctParameters.debugVisMode));
-        this->giBuilt = true;
+          this->giBuilt = true;
+        }
       }
 
       this->scene->PreRender();
@@ -606,9 +646,7 @@ static void ConvertDoubleToUInt32x3(uint32_t _valueToSet[3], math::Vector3d _def
 }
 
 static void SetDebugVisMode(const std::string &_text,
-    uint32_t &_modeToSet, 
-    uint32_t _defaultMode)
-
+    uint32_t &_modeToSet, uint32_t _defaultMode)
 {
   if (_text == "albedo")
   {
@@ -673,23 +711,21 @@ void Sensors::Configure(const Entity &/*_id*/,
     }
     else
     {
-      //TODO: if get both vct and civct what happens? CAN ONLY USE ONE. for civct, check if vulkan is used as api backend?
       auto giElem = _sdf->FindElement("global_illumination");
       std::string giType = giElem->GetAttribute("type")->GetAsString();
       if (giType == "vct")
       {
-        this->dataPtr->giEnabled = giElem->Get<bool>("enabled", this->dataPtr->giEnabled).first;
+        this->dataPtr->giVctParameters.enabled = giElem->Get<bool>("enabled", this->dataPtr->giVctParameters.enabled).first;
 
-        //TODO: check that values are INT and not any other data type
         if (giElem->HasElement("resolution"))
-          ConvertDoubleToUInt32x3(giElem, "resolution", this->dataPtr->giVctParameters.resolution, this->dataPtr->giInitData.resolution);
+          ConvertDoubleToUInt32x3(giElem, "resolution", this->dataPtr->giVctParameters.resolution, this->dataPtr->giDefaultData.resolution);
         else 
-          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.resolution, this->dataPtr->giInitData.resolution);
+          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.resolution, this->dataPtr->giDefaultData.resolution);
         
         if (giElem->HasElement("octant_count"))
-          ConvertDoubleToUInt32x3(giElem, "octant_count", this->dataPtr->giVctParameters.octantCount, this->dataPtr->giInitData.octantCount);
+          ConvertDoubleToUInt32x3(giElem, "octant_count", this->dataPtr->giVctParameters.octantCount, this->dataPtr->giDefaultData.octantCount);
         else
-          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.octantCount, this->dataPtr->giInitData.octantCount);
+          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.octantCount, this->dataPtr->giDefaultData.octantCount);
 
         this->dataPtr->giVctParameters.bounceCount = giElem->Get<uint32_t>("bounce_count", this->dataPtr->giVctParameters.bounceCount).first;
         this->dataPtr->giVctParameters.highQuality = giElem->Get<bool>("high_quality", this->dataPtr->giVctParameters.highQuality).first;
@@ -700,12 +736,16 @@ void Sensors::Configure(const Entity &/*_id*/,
         if (giElem->HasElement("debug_vis_mode"))
         {
           const std::string text = giElem->Get<std::string>("debug_vis_mode", "none").first;
-          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode, this->dataPtr->giInitData.debugVisMode);
+          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode, this->dataPtr->giDefaultData.debugVisMode);
         }
       }      
       else if (giType == "civct")
       {
-        //TODO: add CIVCT here
+        //todo: add CIVCT here. should also check if apiBackend is vulkan
+        gzerr << "GI CI VCT is not supported" << std::endl;
+      } else
+      {
+        gzerr << "GI method type [" << giType << "] is not supported." << std::endl;
       }
     }
   }
