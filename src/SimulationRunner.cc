@@ -18,7 +18,7 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
-#include "gz/sim/ServerConfig.hh"
+#include <unordered_set>
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
 #endif
@@ -52,6 +52,7 @@
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Events.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -1616,15 +1617,15 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     }
     else
     {
-      auto isPluginLoaded =
-          [&loadedWorldPlugins](const ServerConfig::PluginInfo &_pl)
+      std::unordered_set<std::string> loadedWorldPluginFileNames;
+      for (const auto &pl : loadedWorldPlugins)
       {
-        auto it = std::find_if(
-            loadedWorldPlugins.begin(), loadedWorldPlugins.end(),
-            [&_pl](const auto &_worldPlugin)
-            { return _worldPlugin.fname == _pl.Plugin().Filename(); });
-
-        return it != loadedWorldPlugins.end();
+        loadedWorldPluginFileNames.insert(pl.fname);
+      }
+      auto isPluginLoaded =
+          [&loadedWorldPluginFileNames](const ServerConfig::PluginInfo &_pl)
+      {
+          return loadedWorldPluginFileNames.count(_pl.Plugin().Filename()) != 0;
       };
 
       // Remove plugin if it's already loaded so as to not duplicate world
@@ -1635,7 +1636,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
       for (const auto &plugin : defaultPlugins)
       {
         gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename() << "\n";
-        /* gzdbg << plugin.Plugin().Element()->ToString("\t"); */
       }
     }
 

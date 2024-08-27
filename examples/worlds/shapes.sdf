@@ -9,16 +9,6 @@
                --timeout 300 --req 'name: "box", position: {z: 5.0}'
   ]]>
   <world name="shapes">
-    <gz:policies>
-      <no_default_gui_plugins>true</no_default_gui_plugins>
-    </gz:policies>
-    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics">
-      <gz:config_action>prepend_replace</gz:config_action>
-      <engine><filename>gz-physics-bullet-featherstone-plugin</filename></engine>
-    </plugin>
-    <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact">
-      <gz:config_action>append</gz:config_action>
-    </plugin>
     <scene>
       <ambient>1.0 1.0 1.0</ambient>
       <background>0.8 0.8 0.8</background>

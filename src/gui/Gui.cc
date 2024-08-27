@@ -405,11 +405,11 @@ std::unique_ptr<gz::gui::Application> createGui(
       result = false;
       gz::msgs::GUI res;
       service = transport::TopicUtils::AsValidTopic("/world/" + worldName +
-                                                    "/gui/info");
+          "/gui/info");
       if (service.empty())
       {
         gzerr << "Failed to generate valid service for world [" << worldName
-              << "]" << std::endl;
+               << "]" << std::endl;
       }
       else
       {
@@ -421,7 +421,7 @@ std::unique_ptr<gz::gui::Application> createGui(
         if (!executed)
         {
           gzerr << "Service call timed out for [" << service << "]"
-                << std::endl;
+                 << std::endl;
         }
         else if (!result)
         {
@@ -435,7 +435,6 @@ std::unique_ptr<gz::gui::Application> createGui(
       ++runnerCount;
 
       bool includeDefaultGuiPlugins = false;
-      std::cout << res.DebugString() << std::endl;
       for (const auto &data : res.header().data())
       {
         if (data.key() == "gz:policies")
