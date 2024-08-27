@@ -629,20 +629,22 @@ Sensors::~Sensors()
 }
 
 //TODO: why does math::Vector3d work but not math::Vector3i?
-static void ConvertDoubleToUInt32x3(sdf::ElementConstPtr _parentElem,
-    const char* _childName, uint32_t _valueToSet[3], math::Vector3d _defaultValue)
+static void convertVector3dToUInt32Array(uint32_t _valueToSet[3],
+    const math::Vector3d &_vecValues)
 {
-  math::Vector3d parsedValues = (_parentElem == nullptr) ? 
-      _defaultValue : _parentElem->Get<math::Vector3d>(_childName, _defaultValue).first;
-
-  _valueToSet[0] = static_cast<uint32_t>(parsedValues[0]);
-  _valueToSet[1] = static_cast<uint32_t>(parsedValues[1]);
-  _valueToSet[2] = static_cast<uint32_t>(parsedValues[2]);
+  _valueToSet[0] = static_cast<uint32_t>(_vecValues[0]);
+  _valueToSet[1] = static_cast<uint32_t>(_vecValues[1]);
+  _valueToSet[2] = static_cast<uint32_t>(_vecValues[2]);
 }
 
-static void ConvertDoubleToUInt32x3(uint32_t _valueToSet[3], math::Vector3d _defaultValue)
+static void parseVector3dAsUInt32Array(sdf::ElementConstPtr _parentElem,
+    const char *_childName, uint32_t _valueToSet[3],
+    const math::Vector3d &_defaultValue)
 {
-  ConvertDoubleToUInt32x3(nullptr, "", _valueToSet, _defaultValue);
+  math::Vector3d parsedValues = (_parentElem == nullptr) ? _defaultValue :
+      _parentElem->Get<math::Vector3d>(_childName, _defaultValue).first;
+
+  convertVector3dToUInt32Array(_valueToSet, parsedValues);
 }
 
 static void SetDebugVisMode(const std::string &_text,
