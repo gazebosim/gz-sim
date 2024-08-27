@@ -838,7 +838,7 @@ void LevelManager::UnloadLevel(const Entity &_entity,
     }
   }
 
-  if (entityNamesToUnload.size() > 0)
+  if (!entityNamesToUnload.empty())
   {
     this->UnloadInactiveEntities(entityNamesToUnload);
   }
