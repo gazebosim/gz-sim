@@ -18,6 +18,7 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include "gz/sim/ServerConfig.hh"
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
 #endif
@@ -264,17 +265,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   if (_world.Gui())
   {
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
-    auto worldElem = _world.Element();
-    if (worldElem)
-    {
-      auto policies = worldElem->FindElement("gz:policies");
-      if (policies)
-      {
-        auto headerData = this->guiMsg.mutable_header()->add_data();
-        headerData->set_key("gz:policies");
-        headerData->add_value(policies->ToString(""));
-      }
-    }
   }
 
   std::string infoService{"gui/info"};
@@ -1595,91 +1585,62 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   this->LoadLoggingPlugins(this->serverConfig);
 
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig.Plugins());
+
+  auto loadedWorldPlugins = this->systemMgr->TotalByEntity(worldEntity);
+  // If we have reached this point and no world systems have been loaded, then
+  // load a default set of systems.
+
   auto worldElem = this->sdfWorld.Element();
   bool includeDefaultServerPlugins = true;
-  bool includeDefaultGuiPlugins = true;
   if (worldElem)
   {
     auto policies = worldElem->FindElement(std::string(kPoliciesTag));
     if (policies)
     {
       includeDefaultServerPlugins =
-          policies
-              ->Get<bool>("include_default_server_plugins", includeDefaultServerPlugins)
-              .first;
-      includeDefaultGuiPlugins =
-          policies->Get<bool>("include_default_gui_plugins", includeDefaultGuiPlugins)
-              .first;
+        policies
+        ->Get<bool>("include_default_server_plugins", includeDefaultServerPlugins)
+        .first;
     }
-  }
-  auto getUserPlugins = [&]()
-  {
-    std::list<ServerConfig::PluginInfo> userPlugins;
-    for (const auto &plugin : this->sdfWorld.Plugins())
-    {
-      userPlugins.emplace_back("*", "world", plugin);
-    }
-    return userPlugins;
-  };
-  auto combineUserAndDefaultPlugins =
-      [](const auto &_userPlugins, const auto &_defaultPlugins, bool _includeDefaultPlugins)
-  {
-    // TODO(azeey) Handle serverConfigPlugins
-    /* auto serverConfigPlugins = this->serverConfig.Plugins(); */
-    if (_includeDefaultPlugins)
-    {
-      auto combinedPlugins = _defaultPlugins;
-      for (const auto &userPlugin : _userPlugins)
-      {
-        auto pluginElem = userPlugin.Plugin().Element();
-        assert(pluginElem);
-        auto configAction = pluginElem
-                                ->template Get<std::string>("gz:config_action",
-                                                            "append_replace")
-                                .first;
-        gzmsg << "Plugin: " << userPlugin.Plugin().Filename() << " act: " << configAction << "\n";
-        if (configAction == config_action::kPrependReplace ||
-            configAction == config_action::kAppendReplace)
-        {
-          // Remove all matching plugins
-          combinedPlugins.remove_if(
-              [&](const auto &_pl) {
-                return _pl.Plugin().Filename() ==
-                       userPlugin.Plugin().Filename();
-              });
-        }
-        if (configAction == config_action::kPrependReplace ||
-            configAction == config_action::kPrepend)
-        {
-          // Remove all matching plugins
-          combinedPlugins.push_front(userPlugin);
-        }
-        else if (configAction == config_action::kAppendReplace ||
-                  configAction == config_action::kAppend)
-        {
-          combinedPlugins.push_back(userPlugin);
-        }
-      }
-      return combinedPlugins;
-    }
-    return _userPlugins;
-  };
-  bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-  // TODO(azeey) Let's assume these are just default plugins. loadPluginInfo
-  // can also load from a custom config file, so we need to handle that
-  // differently
-  auto pluginsToLoad = combineUserAndDefaultPlugins(
-      getUserPlugins(), sim::loadPluginInfo(isPlayback),
-      includeDefaultServerPlugins);
-  gzdbg << "Loading plugins:\n";
-  for (const auto &plugin: pluginsToLoad) {
-    gzdbg << plugin.Plugin().Name() << "\n";
-    /* gzdbg << plugin.Plugin().Element()->ToString("\t"); */
   }
 
-  // Load server plugins from a combination of default and user specified
-  // plugins
-  this->LoadServerPlugins(pluginsToLoad);
+  if (includeDefaultServerPlugins || loadedWorldPlugins.empty())
+  {
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto defaultPlugins = gz::sim::loadPluginInfo(isPlayback);
+    if (loadedWorldPlugins.empty())
+    {
+      gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    }
+    else
+    {
+      auto isPluginLoaded =
+          [&loadedWorldPlugins](const ServerConfig::PluginInfo &_pl)
+      {
+        auto it = std::find_if(
+            loadedWorldPlugins.begin(), loadedWorldPlugins.end(),
+            [&_pl](const auto &_worldPlugin)
+            { return _worldPlugin.fname == _pl.Plugin().Filename(); });
+
+        return it != loadedWorldPlugins.end();
+      };
+
+      // Remove plugin if it's already loaded so as to not duplicate world
+      // plugins.
+      defaultPlugins.remove_if(isPluginLoaded);
+
+      gzdbg << "Also loading the following default jplugins:\n";
+      for (const auto &plugin : defaultPlugins)
+      {
+        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename() << "\n";
+        /* gzdbg << plugin.Plugin().Element()->ToString("\t"); */
+      }
+    }
+
+    this->LoadServerPlugins(defaultPlugins);
+  };
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
@@ -1687,5 +1648,16 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Publish empty GUI messages for worlds that have no GUI in the beginning.
   // In the future, support modifying GUI from the server at runtime.
   if (_world.Gui())
-    this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+  {
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement("gz:policies");
+      if (policies)
+      {
+        auto headerData = this->guiMsg.mutable_header()->add_data();
+        headerData->set_key("gz:policies");
+        headerData->add_value(policies->ToString(""));
+      }
+    }
+  }
 }
