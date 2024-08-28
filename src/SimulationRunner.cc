@@ -1635,7 +1635,8 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
       gzdbg << "Also loading the following default jplugins:\n";
       for (const auto &plugin : defaultPlugins)
       {
-        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename() << "\n";
+        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename()
+              << "\n";
       }
     }
 

@@ -18,7 +18,7 @@ There are a few places where the plugins can be defined:
    where `<#>` is Gazebo Sim's major version.
 
 The behavior of Gazebo when loading these plugins depends on the
-`<include_server_config_plugins>`policy set in `<gz:policies>`:
+`<include_server_config_plugins>` policy set in `<gz:policies>`:
 
 - `<include_server_config_plugins>true</include_server_config_plugins>`: Plugins
   in the SDF file are first loaded, followed by plugins from config files

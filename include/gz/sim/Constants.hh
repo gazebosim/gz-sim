@@ -32,7 +32,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     constexpr std::string_view kPrepend{"prepend"};
     constexpr std::string_view kAppendReplace{"append_replace"};
     constexpr std::string_view kAppend{"append"};
-
+    constexpr std::string_view kGuiDefaultAction{kAppendReplace};
   }
 
   constexpr std::string_view kPoliciesTag{"gz:policies"};

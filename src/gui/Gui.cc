@@ -50,6 +50,173 @@ namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
+namespace {
+
+std::unique_ptr<tinyxml2::XMLDocument> parseDefaultPlugins(
+    const std::string &_defaultConfig)
+{
+  const auto resolvedDefaultConfigPath =
+      gz::gui::App()->ResolveConfigFile(_defaultConfig);
+  auto pluginsDoc = std::make_unique<tinyxml2::XMLDocument>();
+  if (pluginsDoc->LoadFile(resolvedDefaultConfigPath.c_str()) ==
+      tinyxml2::XML_SUCCESS)
+  {
+    // Remove everything that's not a plugin
+    for (auto elem = pluginsDoc->FirstChildElement(); elem != nullptr;)
+    {
+      if (std::strcmp("plugin", elem->Value()) != 0)
+      {
+        auto tmp = elem;
+        elem = elem->NextSiblingElement();
+        pluginsDoc->DeleteChild(tmp);
+      }
+      else
+      {
+        elem = elem->NextSiblingElement();
+      }
+    }
+  }
+
+  return pluginsDoc;
+}
+
+auto combineUserAndDefaultPlugins(
+    std::unique_ptr<tinyxml2::XMLDocument> _userPlugins,
+    const tinyxml2::XMLDocument &_defaultPlugins, bool _includeDefaultPlugins)
+{
+  if (!_includeDefaultPlugins)
+  {
+    auto combinedPlugins = std::make_unique<tinyxml2::XMLDocument>();
+    _defaultPlugins.DeepCopy(combinedPlugins.get());
+
+    tinyxml2::XMLDocument prependList;
+    tinyxml2::XMLDocument appendList;
+    for (auto pluginElem = _userPlugins->FirstChildElement("plugin");
+         pluginElem != nullptr;
+         pluginElem = pluginElem->NextSiblingElement("plugin"))
+    {
+      const char *pluginFilename = pluginElem->Attribute("filename");
+      std::string configAction = "";
+
+      auto configActionElement =
+          pluginElem->FirstChildElement(config_action::kPluginAttribute.data());
+      if (configActionElement)
+      {
+        configAction = configActionElement->GetText();
+      }
+
+      if (configAction == "")
+      {
+        configAction = config_action::kGuiDefaultAction;
+      }
+
+      gzdbg << "Plugin: " << pluginFilename << " act: " << configAction << "\n";
+
+      if (configAction == config_action::kPrependReplace ||
+          configAction == config_action::kAppendReplace)
+      {
+        // Remove all matching plugins
+        for (auto elem = combinedPlugins->FirstChildElement("plugin");
+             elem != nullptr;)
+        {
+          if (elem->Attribute("filename", pluginFilename))
+          {
+            gzdbg << "\t Removing " << pluginFilename << "\n";
+            auto tmp = elem;
+            elem = elem->NextSiblingElement("plugin");
+            combinedPlugins->DeleteNode(tmp);
+          }
+          else
+          {
+            elem = elem->NextSiblingElement("plugin");
+          }
+        }
+      }
+      if (configAction == config_action::kPrependReplace ||
+          configAction == config_action::kPrepend)
+      {
+        auto clonedPlugin = pluginElem->DeepClone(&prependList);
+        prependList.InsertEndChild(clonedPlugin);
+      }
+      else if (configAction == config_action::kAppendReplace ||
+               configAction == config_action::kAppend)
+      {
+        auto clonedPlugin = pluginElem->DeepClone(&appendList);
+        appendList.InsertEndChild(clonedPlugin);
+      }
+      else
+      {
+        gzerr << "Unknown config action: " << configAction << std::endl;
+      }
+    }
+
+    // At this point, combinedPlugins has been cleared of duplicate plugins
+    // and prependList and appendList contain the list of plugins to be
+    // prepended and appended respectively in the correct order.
+    tinyxml2::XMLNode *lastInsertedNode = nullptr;
+    for (auto pluginElem = prependList.FirstChildElement();
+         pluginElem != nullptr; pluginElem = pluginElem->NextSiblingElement())
+    {
+      auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
+      if (lastInsertedNode == nullptr)
+      {
+        lastInsertedNode = combinedPlugins->InsertFirstChild(clonedPlugin);
+      }
+      else
+      {
+        combinedPlugins->InsertAfterChild(lastInsertedNode, clonedPlugin);
+      }
+    }
+
+    for (auto pluginElem = appendList.FirstChildElement();
+         pluginElem != nullptr; pluginElem = pluginElem->NextSiblingElement())
+    {
+      auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
+      combinedPlugins->InsertEndChild(clonedPlugin);
+    }
+
+    return combinedPlugins;
+  }
+  return _userPlugins;
+}
+
+/// \brief Various policies that affect the behavior of the GUI
+struct GuiPolicies
+{
+  /// \brief Whether to include default plugins
+  bool includeGuiDefaultPlugins{false};
+
+  /// \brief Parse policies from a GUI message
+  /// \param[in] _msg Input message
+  /// \return A GuiPolicies object populated from parsing the message.
+  static GuiPolicies ParsePolicies(const msgs::GUI &_msg)
+  {
+    GuiPolicies policies;
+    for (const auto &data : _msg.header().data())
+    {
+      if (data.key() == "gz:policies")
+      {
+        tinyxml2::XMLDocument doc;
+        if (data.value_size() > 0)
+        {
+          if (doc.Parse(data.value(0).c_str()) == tinyxml2::XML_SUCCESS)
+          {
+            tinyxml2::XMLHandle handle(doc);
+            auto elem = handle.FirstChildElement(kPoliciesTag.data())
+                            .FirstChildElement("include_gui_default_plugins")
+                            .ToElement();
+            if (elem)
+            {
+              elem->QueryBoolText(&policies.includeGuiDefaultPlugins);
+            }
+          }
+        }
+      }
+    }
+    return policies;
+  }
+};
+}
 namespace gui
 {
 /// \brief Get the path to the default config file. If the file doesn't exist
@@ -434,200 +601,67 @@ std::unique_ptr<gz::gui::Application> createGui(
       runner->setParent(gz::gui::App());
       ++runnerCount;
 
-      bool includeDefaultGuiPlugins = false;
-      for (const auto &data : res.header().data())
-      {
-        if (data.key() == "gz:policies")
-        {
-          tinyxml2::XMLDocument doc;
-          if (data.value_size() > 0)
-          {
-            if (doc.Parse(data.value(0).c_str()) == tinyxml2::XML_SUCCESS)
-            {
-              tinyxml2::XMLHandle handle(doc);
-              auto elem = handle.FirstChildElement(kPoliciesTag.data())
-                              .FirstChildElement("include_default_gui_plugins")
-                              .ToElement();
-              if (elem)
-              {
-                elem->QueryBoolText(&includeDefaultGuiPlugins);
-              }
-            }
-          }
-        }
-      }
-
-      gzmsg << "include_default_gui_plugins: " << includeDefaultGuiPlugins << "\n";
       // Load plugins after creating GuiRunner, so they can access worldName
       if (_loadPluginsFromSdf)
       {
-        auto getUserPlugins = [&]()
+        const auto guiPolicies = GuiPolicies::ParsePolicies(res);
+        auto userPlugins = std::make_unique<tinyxml2::XMLDocument>();
+        std::string pluginsXml = "";
+        for (int p = 0; p < res.plugin_size(); ++p)
         {
-          auto userPluginsDoc = std::make_unique<tinyxml2::XMLDocument>();
-          std::string pluginsXml = "";
-          for (int p = 0; p < res.plugin_size(); ++p)
+          const auto &plugin = res.plugin(p);
+          auto fileName = plugin.filename();
+
+          // Redirect GzScene3D to MinimalScene for backwards compatibility,
+          // with warnings
+          if (fileName == "GzScene3D")
           {
-            const auto &plugin = res.plugin(p);
-            auto fileName = plugin.filename();
-            // Redirect GzScene3D to MinimalScene for backwards compatibility,
-            // with warnings
-            if (fileName == "GzScene3D")
+            std::vector<std::string> extras{"GzSceneManager",
+              "InteractiveViewControl",
+              "CameraTracking",
+              "MarkerManager",
+              "SelectEntities",
+              "EntityContextMenuPlugin",
+              "Spawn",
+              "VisualizationCapabilities"};
+
+            std::string msg{
+              "The [GzScene3D] GUI plugin has been removed since Garden.\n"
+              "SDF code to replace GzScene3D is available at "
+              "https://github.com/gazebosim/gz-sim/blob/gz-sim7/Migration.md\n"
+              "Loading the following plugins instead:\n"};
+
+            for (auto extra : extras)
             {
-              std::vector<std::string> extras{
-                  "GzSceneManager", "InteractiveViewControl",
-                  "CameraTracking", "MarkerManager",
-                  "SelectEntities", "EntityContextMenuPlugin",
-                  "Spawn",          "VisualizationCapabilities"};
+              msg += "* " + extra + "\n";
 
-              std::string msg{
-                  "The [GzScene3D] GUI plugin has been removed since Garden.\n"
-                  "SDF code to replace GzScene3D is available at "
-                  "https://github.com/gazebosim/gz-sim/blob/gz-sim7/"
-                  "Migration.md\n"
-                  "Loading the following plugins instead:\n"};
-
-              for (auto extra : extras)
-              {
-                msg += "* " + extra + "\n";
-
-                auto newPlugin = res.add_plugin();
-                newPlugin->set_filename(extra);
-                newPlugin->set_innerxml(std::string(
-                    "<gz-gui>"
-                    "  <property key='state' type='string'>floating</property>"
-                    "  <property key='width' type='double'>5</property>"
-                    "  <property key='height' type='double'>5</property>"
-                    "  <property key='showTitleBar' "
-                    "type='bool'>false</property>"
-                    "  <property key='resizable' type='bool'>false</property>"
-                    "</gz-gui>"));
-              }
-
-              gzwarn << msg;
-
-              fileName = "MinimalScene";
+              auto newPlugin = res.add_plugin();
+              newPlugin->set_filename(extra);
+              newPlugin->set_innerxml(std::string(
+                "<gz-gui>"
+                "  <property key='state' type='string'>floating</property>"
+                "  <property key='width' type='double'>5</property>"
+                "  <property key='height' type='double'>5</property>"
+                "  <property key='showTitleBar' type='bool'>false</property>"
+                "  <property key='resizable' type='bool'>false</property>"
+                "</gz-gui>"));
             }
-            pluginsXml += "<plugin filename='" + fileName + "'>" +
-                          plugin.innerxml() + "</plugin>\n";
+
+            gzwarn << msg;
+
+            fileName = "MinimalScene";
           }
-          userPluginsDoc->Parse(pluginsXml.c_str());
-          return userPluginsDoc;
-        };
+          pluginsXml += "<plugin filename='" + fileName + "'>" +
+            plugin.innerxml() + "</plugin>\n";
+        }
+        userPlugins->Parse(pluginsXml.c_str());
 
-        auto getDefaultPlugins = [&]()
-        {
-          const auto resolvedDefaultConfigPath =
-              app->ResolveConfigFile(defaultConfig);
-          auto pluginsDoc = std::make_unique<tinyxml2::XMLDocument>();
-          if (pluginsDoc->LoadFile(resolvedDefaultConfigPath.c_str()) ==
-              tinyxml2::XML_SUCCESS)
-          {
-            // Remove everything that's not a plugin
-            for (auto elem = pluginsDoc->FirstChildElement(); elem != nullptr;)
-            {
-              if (std::strcmp("plugin", elem->Value()) != 0)
-              {
-                auto tmp = elem;
-                elem = elem->NextSiblingElement();
-                pluginsDoc->DeleteChild(tmp);
-              }
-              else
-              {
-                elem = elem->NextSiblingElement();
-              }
-            }
-          }
-
-          return pluginsDoc;
-        };
-
-        auto combineUserAndDefaultPlugins =
-            [](std::unique_ptr<tinyxml2::XMLDocument> _userPlugins,
-               const std::unique_ptr<tinyxml2::XMLDocument>& _defaultPlugins,
-               bool _includeDefaultPlugins)
-        {
-          if (!_includeDefaultPlugins)
-          {
-            auto combinedPlugins = std::make_unique<tinyxml2::XMLDocument>();
-            _defaultPlugins->DeepCopy(combinedPlugins.get());
-            for (auto pluginElem = _userPlugins->FirstChildElement("plugin");
-                 pluginElem != nullptr;
-                 pluginElem = pluginElem->NextSiblingElement("plugin"))
-            {
-              const char *pluginFilename = pluginElem->Attribute("filename");
-              std::string configAction = "";
-
-              auto configActionElement = pluginElem->FirstChildElement(config_action::kPluginAttribute.data());
-              if (configActionElement)
-              {
-                configAction = configActionElement->GetText();
-              }
-
-              if (configAction == "")
-              {
-                configAction = config_action::kAppendReplace;
-              }
-
-              gzmsg << "Plugin: " << pluginFilename << " act: " << configAction << "\n";
-
-              if (configAction == config_action::kPrependReplace ||
-                  configAction == config_action::kAppendReplace)
-              {
-                // Remove all matching plugins
-                for (auto elem = combinedPlugins->FirstChildElement("plugin");
-                     elem != nullptr;)
-                {
-                  if (elem->Attribute("filename", pluginFilename))
-                  {
-                    gzmsg << "\t Removing " << pluginFilename << "\n"; 
-                    auto tmp = elem;
-                    elem = elem->NextSiblingElement("plugin");
-                    combinedPlugins->DeleteNode(tmp);
-                  }
-                  else
-                  {
-                    elem = elem->NextSiblingElement("plugin");
-                  }
-                }
-              }
-              auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
-              if (configAction == config_action::kPrependReplace ||
-                  configAction == config_action::kPrepend)
-              {
-                combinedPlugins->InsertFirstChild(clonedPlugin);
-              }
-              else if (configAction == config_action::kAppendReplace ||
-                       configAction == config_action::kAppend)
-              {
-                combinedPlugins->InsertEndChild(clonedPlugin);
-              }
-              else {
-                gzerr << "Unknown config action: " << configAction << std::endl;
-              }
-            }
-            return combinedPlugins;
-          }
-          return _userPlugins;
-        };
-        auto printPlugins = [](const tinyxml2::XMLDocument &_plugins)
-        {
-            tinyxml2::XMLPrinter printer;
-            _plugins.Print( &printer );
-            gzdbg << printer.CStr() << std::endl;
-        };
-
-        auto userPlugins = getUserPlugins();
-        gzwarn << "User plugins:\n";
-        printPlugins(*userPlugins);
-        auto defaultPlugins = getDefaultPlugins();
-        gzwarn  << "Default plugins:\n";
-        printPlugins(*defaultPlugins);
+        const auto defaultPlugins = parseDefaultPlugins(defaultConfig);
         auto pluginsToLoad = combineUserAndDefaultPlugins(
-            std::move(userPlugins), defaultPlugins, includeDefaultGuiPlugins);
-        gzwarn  << "Plugins to load:\n";
-        printPlugins(*pluginsToLoad);
+            std::move(userPlugins), *defaultPlugins,
+            guiPolicies.includeGuiDefaultPlugins);
 
-        gzwarn  << "Loading plugins:\n";
+        gzdbg  << "Loading plugins:\n";
         for (auto pluginElem = pluginsToLoad->FirstChildElement("plugin");
              pluginElem != nullptr;
              pluginElem = pluginElem->NextSiblingElement("plugin"))
