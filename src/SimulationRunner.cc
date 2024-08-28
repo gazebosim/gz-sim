@@ -266,6 +266,18 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   if (_world.Gui())
   {
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+
+    auto worldElem = this->sdfWorld.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement("gz:policies");
+      if (policies)
+      {
+        auto headerData = this->guiMsg.mutable_header()->add_data();
+        headerData->set_key("gz:policies");
+        headerData->add_value(policies->ToString(""));
+      }
+    }
   }
 
   std::string infoService{"gui/info"};
@@ -1645,20 +1657,4 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
-
-  // Publish empty GUI messages for worlds that have no GUI in the beginning.
-  // In the future, support modifying GUI from the server at runtime.
-  if (_world.Gui())
-  {
-    if (worldElem)
-    {
-      auto policies = worldElem->FindElement("gz:policies");
-      if (policies)
-      {
-        auto headerData = this->guiMsg.mutable_header()->add_data();
-        headerData->set_key("gz:policies");
-        headerData->add_value(policies->ToString(""));
-      }
-    }
-  }
 }

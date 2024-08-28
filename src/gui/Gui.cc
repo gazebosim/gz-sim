@@ -85,7 +85,7 @@ auto combineUserAndDefaultPlugins(
     std::unique_ptr<tinyxml2::XMLDocument> _userPlugins,
     const tinyxml2::XMLDocument &_defaultPlugins, bool _includeDefaultPlugins)
 {
-  if (!_includeDefaultPlugins)
+  if (_includeDefaultPlugins)
   {
     auto combinedPlugins = std::make_unique<tinyxml2::XMLDocument>();
     _defaultPlugins.DeepCopy(combinedPlugins.get());
@@ -110,7 +110,8 @@ auto combineUserAndDefaultPlugins(
         configAction = config_action::kGuiDefaultAction;
       }
 
-      if (configAction != config_action::kAppend && configAction != config_action::kAppendReplace)
+      if (configAction != config_action::kAppend &&
+          configAction != config_action::kAppendReplace)
       {
         gzerr << "Unknown config action: " << configAction << ". Using "
               << config_action::kGuiDefaultAction << " instead." << std::endl;
@@ -129,7 +130,8 @@ auto combineUserAndDefaultPlugins(
             auto tmp = elem;
             // Insert the replacement
             auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
-            elem = combinedPlugins->InsertAfterChild(elem, clonedPlugin)->ToElement();
+            elem = combinedPlugins->InsertAfterChild(elem, clonedPlugin)
+                       ->ToElement();
             // Remove the original
             combinedPlugins->DeleteNode(tmp);
             replacedPlugin = true;

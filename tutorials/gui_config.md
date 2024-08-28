@@ -23,6 +23,11 @@ plugins in the `<gui>` element and the default configuration file.
 How Gazebo combines these plugins is determined by the
 `<include_gui_default_plugins>` policy set in `<gz:policies>`:
 
+- `<include_gui_default_plugins>false</include_gui_default_plugins>` (default): If
+  there are any plugins specified in the SDF file, plugins from the default
+  configuration file are ignored. This allows the user to have complete
+  control over which plugins are loaded.
+
 - `<include_gui_default_plugins>true</include_gui_default_plugins>`: Plugins
   from the default configuration file merged with plugins from the SDF file.
   Plugins from SDF files take precedence over plugins from
@@ -30,6 +35,7 @@ How Gazebo combines these plugins is determined by the
   both places, by default, only the one specified in the SDF file will be
   loaded. However, plugins in the SDF file can specify how they should be loaded
   by setting `<gz:config_action>` tag inside each `<plugin>`.
+
   Two options are available:
   - `append_replace` (default): The plugin from the SDF file is appended to the
   list of plugins to be loaded. Any plugin from the default configuration file
@@ -41,18 +47,16 @@ How Gazebo combines these plugins is determined by the
   file name will also be loaded. This is useful for some plugins where it makes sense
   to have two or more of (e.g. `ImageDispay`).
 
+  \warning `append` will have unexpected behavior if you save
+  the GUI configuration from Gazebo and rerun the same SDF file. This is because
+  the combined plugin list will be saved in as the default configuration file
+  and when you rerun the SDF file, plugins with `append` will be added in addition
+  to the ones already in the configuration file.
+
   The main use case for this policy is for users to rely on
   the default list of plugins and only add extra plugins they need for the
   application. This policy is also useful for overriding the parameters of a small
   subset of the default plugins.
-
-  This is the default setting of this policy in Gazebo Ionic and later.
-
-- `<include_gui_default_plugins>false</include_gui_default_plugins>`: If
-  there are any plugins specified in the SDF file, plugins from the default
-  configuration file are ignored. This allows the user to have complete
-  control over which plugins are loaded. This is the default setting in
-  Gazebo Harmonic and earlier.
 
 > \* For log-playback, the default file is
 > `$HOME/.gz/sim/<#>/playback_gui.config`
@@ -61,10 +65,9 @@ How Gazebo combines these plugins is determined by the
 
 ### Default configuration
 
-Let's try this in practice. First, let's open Gazebo without passing
-any arguments:
+Let's try this in practice. First, let's open the default Gazebo world:
 
-`gz sim`
+`gz sim default.sdf`
 
 You should see an empty world with several plugins loaded by default, such as the
 3D Scene, the play/pause button, etc.
@@ -108,7 +111,7 @@ will be created with default values:
 Let's try overriding the default configuration from an SDF file. Open your
 favorite editor and save this file as `fuel_preview.sdf`:
 
-```
+```xml
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="fuel_preview">
@@ -170,15 +173,81 @@ Now let's load this world:
 
 `gz sim <path to>/fuel_preview.sdf`
 
-With the default policy,
-
-Notice how the application has only one GUI plugin loaded, the 3D scene, as defined
+Notice how the application has only 3 GUI plugins loaded, as defined
 on the SDF file above.
 
 @image html files/gui_config/fuel_preview.png
 
 If you delete the `<gui>` element from the file above and reload it, you'll see
 the same model loaded into the default GUI layout.
+
+@image html files/gui_config/fuel_preview_no_gui.png
+
+Now, let's change the policy so that default plugins are included
+
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="fuel_preview">
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <gz:policies>
+      <include_gui_default_plugins>true</include_gui_default_plugins>
+    </gz:policies>
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
+        <background_color>0.4 0.6 1.0</background_color>
+        <camera_pose>8.3 7 7.8 0 0.5 -2.4</camera_pose>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+    </gui>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Gazebo</uri>
+    </include>
+
+  </world>
+</sdf>
+```
+
+You will now see the same model loaded in the default GUI layout
+similar to when you deleted the `<gui>` element altogether.
 
 @image html files/gui_config/fuel_preview_no_gui.png
 
