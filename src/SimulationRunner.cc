@@ -1594,20 +1594,20 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // load a default set of systems.
 
   auto worldElem = this->sdfWorld.Element();
-  bool includeDefaultServerPlugins = true;
+  bool includeServerConfigPlugins = true;
   if (worldElem)
   {
     auto policies = worldElem->FindElement(std::string(kPoliciesTag));
     if (policies)
     {
-      includeDefaultServerPlugins =
+      includeServerConfigPlugins =
         policies
-        ->Get<bool>("include_default_server_plugins", includeDefaultServerPlugins)
+        ->Get<bool>("include_server_config_plugins", includeServerConfigPlugins)
         .first;
     }
   }
 
-  if (includeDefaultServerPlugins || loadedWorldPlugins.empty())
+  if (includeServerConfigPlugins || loadedWorldPlugins.empty())
   {
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
     auto defaultPlugins = gz::sim::loadPluginInfo(isPlayback);

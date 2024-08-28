@@ -17,11 +17,26 @@ There are a few places where the plugins can be defined:
 3. The default configuration file at `$HOME/.gz/sim/<#>/server.config` \*,
    where `<#>` is Gazebo Sim's major version.
 
-Each of the items above takes precedence over the ones below it. For example,
-if a the SDF file has any `<plugin>` elements, then the
-`GZ_SIM_SERVER_CONFIG_PATH` variable is ignored. And the default configuration
-file is only loaded if no plugins are passed through the SDF file or the
-environment variable.
+The behavior of Gazebo when loading these plugins depends on the
+`<include_server_config_plugins>`policy set in `<gz:policies>`:
+
+- `<include_server_config_plugins>true</include_server_config_plugins>`: Plugins
+  in the SDF file are first loaded, followed by plugins from config files
+  (either `GZ_SIM_SERVER_CONFIG_PATH` or the default configuration file).
+  Plugins from SDF files take precedence over plugins from config files, this
+  means, if a plugin is specified in both places, only the one specified in the
+  SDF file will be loaded. The main use case for this is for users to rely on
+  the default list of plugins and only add extra plugins they need for the
+  application. This is the default setting in Gazebo Ionic and later.
+
+- `<include_server_config_plugins>false</include_server_config_plugins>`: If
+  there are any plugins specified in the SDF file, plugins from the config files
+  (either `GZ_SIM_SERVER_CONFIG_PATH` or the default configuration file) are
+  ignored. This allows the user to have complete control over which plugins are
+  loaded. This is the default setting in Gazebo Harmonic and earlier.
+
+In both policy settings, the default configuration file is only loaded if no
+plugins are passed through the `GZ_SIM_SERVER_CONFIG_PATH` environment variable.
 
 > \* For log-playback, the default file is
 > `$HOME/.gz/sim/<#>/playback_server.config`
@@ -85,7 +100,7 @@ will be created with default values:
 Let's try overriding the default configuration from an SDF file. Open your
 favorite editor and save this file as `fuel_preview.sdf`:
 
-```
+```xml
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="fuel_preview">
@@ -147,8 +162,84 @@ Now let's load this world:
 
 `gz sim -r <path to>/fuel_preview.sdf`
 
-Notice how the application has only one system plugin loaded, the scene
-broadcaster, as defined on the SDF file above. Physics is not loaded, so even
+Notice how the application has loaded the scene
+broadcaster, as defined on the SDF file above as well as the default plugins
+`Physics` and `UserCommands`. Since `SceneBroadcaster` is loaded from the SDF file,
+it's not loaded again. We see that the cone falls due to gravity since all the
+necessary plugins are loaded.
+
+@image html files/server_config/from_sdf_no_plugins.gif
+
+Now, let's modify the SDF file to change the policy `<include_server_config_plugins>false</include_server_config_plugins>`
+
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="fuel_preview">
+
+    <gz:policies>
+      <include_server_config_plugins>false</include_server_config_plugins>
+    <gz:policies>
+
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <!-- 3D scene -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
+        <background_color>0.4 0.6 1.0</background_color>
+        <camera_pose>8.3 7 7.8 0 0.5 -2.4</camera_pose>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+    </gui>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun</uri>
+    </include>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone</uri>
+    </include>
+
+  </world>
+</sdf>
+```
+Let's load this world again:
+
+`gz sim -r <path to>/fuel_preview.sdf`
+
+Notice how the application has only one system plugin loaded, the `SceneBroadcaster`,
+as defined on the SDF file above. `Physics` is not loaded, so even
 though the simulation is running (started with `-r`), the cone doesn't fall
 with gravity.
 
@@ -299,3 +390,8 @@ the background color is the default grey, instead of the blue color set on the
 GUI `GzScene` plugin.
 
 @image html files/server_config/camera_env.gif
+
+
+### Order of Execution of Plugins
+The order of execution of plugins can be controlled by setting
+the `<gz:system_priority>` tag inside `<plugin>`. See example in examples/plugin/priority_printer_plugin and the associated README.md file to learn more.
