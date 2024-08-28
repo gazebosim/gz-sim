@@ -28,8 +28,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   namespace  config_action {
     constexpr std::string_view kPluginAttribute{"gz:config_action"};
-    constexpr std::string_view kPrependReplace{"prepend_replace"};
-    constexpr std::string_view kPrepend{"prepend"};
     constexpr std::string_view kAppendReplace{"append_replace"};
     constexpr std::string_view kAppend{"append"};
     constexpr std::string_view kGuiDefaultAction{kAppendReplace};
