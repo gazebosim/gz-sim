@@ -621,7 +621,7 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 //////////////////////////////////////////////////
 System::PriorityType UserCommands::ConfigurePriority()
 {
-  // Use constant from SystemPriorityConstants.hh
+  // Use constant from System.hh
   return ::gz::sim::systems::kUserCommandsPriority;
 }
 
