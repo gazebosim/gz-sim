@@ -377,7 +377,7 @@ void SensorsPrivate::WaitForInit()
         this->giVct->SetThinWallCounter(this->giVctParameters.thinWallCounter);
 
         this->giVct->SetDebugVisualization(
-          rendering::GlobalIlluminationVct::DVM_None);
+            rendering::GlobalIlluminationVct::DVM_None);
 
         this->scene->SetActiveGlobalIllumination(this->giVct);
       }
@@ -459,9 +459,9 @@ void SensorsPrivate::RunOnce()
         if (this->giVctParameters.enabled)
         {
           this->giVct->Build();
-          this->giVct->SetDebugVisualization(
-            static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>
-            (this->giVctParameters.debugVisMode));
+          this->giVct->SetDebugVisualization(static_cast<
+              rendering::GlobalIlluminationVct::DebugVisualizationMode>
+              (this->giVctParameters.debugVisMode));
           this->giBuilt = true;
         }
       }
@@ -628,7 +628,9 @@ Sensors::~Sensors()
   this->dataPtr->Stop();
 }
 
-//TODO: why does math::Vector3d work but not math::Vector3i?
+/// \brief Helper to convert math::Vector3d to uint32_t array
+/// \param[in] _valueToSet Array values to set
+/// \param[in] _vecValues Vector values to convert
 static void convertVector3dToUInt32Array(uint32_t _valueToSet[3],
     const math::Vector3d &_vecValues)
 {
@@ -637,6 +639,11 @@ static void convertVector3dToUInt32Array(uint32_t _valueToSet[3],
   _valueToSet[2] = static_cast<uint32_t>(_vecValues[2]);
 }
 
+/// \brief Helper to parse math::Vector3d as uint32_t array
+/// \param[in] _parentElem Parent element to look through
+/// \param[in] _childName Child element name to look for
+/// \param[in] _valueToSet Array values to set
+/// \param[in] _defaultValue Default vector values to use
 static void parseVector3dAsUInt32Array(sdf::ElementConstPtr _parentElem,
     const char *_childName, uint32_t _valueToSet[3],
     const math::Vector3d &_defaultValue)
@@ -647,6 +654,10 @@ static void parseVector3dAsUInt32Array(sdf::ElementConstPtr _parentElem,
   convertVector3dToUInt32Array(_valueToSet, parsedValues);
 }
 
+/// \brief Helper to set debug visualization mode (DVM)
+/// \param[in] _text String text to parse
+/// \param[in] _modeToSet DVM to set
+/// \param[in] _defaultMode Default DVM to use
 static void SetDebugVisMode(const std::string &_text,
     uint32_t &_modeToSet, uint32_t _defaultMode)
 {
@@ -665,11 +676,11 @@ static void SetDebugVisMode(const std::string &_text,
   else if (_text == "lighting")
   {
     _modeToSet = rendering::GlobalIlluminationVct::DVM_Lighting;
-  } 
+  }
   else if (_text == "none")
   {
     _modeToSet = rendering::GlobalIlluminationVct::DVM_None;
-  } 
+  }
   else
   {
     _modeToSet = _defaultMode;
@@ -709,7 +720,8 @@ void Sensors::Configure(const Entity &/*_id*/,
   {
     if (engineName != "ogre2")
     {
-      gzerr << "Global illumination is only supported by the ogre2 render engine" << std::endl;
+      gzerr << "Global illumination is only supported by the ogre2 "
+            << "render engine" << std::endl;
     }
     else
     {
@@ -717,37 +729,71 @@ void Sensors::Configure(const Entity &/*_id*/,
       std::string giType = giElem->GetAttribute("type")->GetAsString();
       if (giType == "vct")
       {
-        this->dataPtr->giVctParameters.enabled = giElem->Get<bool>("enabled", this->dataPtr->giVctParameters.enabled).first;
+        this->dataPtr->giVctParameters.enabled = giElem->Get<bool>(
+            "enabled", this->dataPtr->giVctParameters.enabled).first;
 
+        // Use helper functions to parse the inputted set of values
+        // as a uint32_t array
         if (giElem->HasElement("resolution"))
-          ConvertDoubleToUInt32x3(giElem, "resolution", this->dataPtr->giVctParameters.resolution, this->dataPtr->giDefaultData.resolution);
-        else 
-          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.resolution, this->dataPtr->giDefaultData.resolution);
-        
-        if (giElem->HasElement("octant_count"))
-          ConvertDoubleToUInt32x3(giElem, "octant_count", this->dataPtr->giVctParameters.octantCount, this->dataPtr->giDefaultData.octantCount);
+        {
+          parseVector3dAsUInt32Array(giElem, "resolution",
+              this->dataPtr->giVctParameters.resolution,
+              this->dataPtr->giDefaultData.resolution);
+        }
         else
-          ConvertDoubleToUInt32x3(this->dataPtr->giVctParameters.octantCount, this->dataPtr->giDefaultData.octantCount);
+        {
+          convertVector3dToUInt32Array(
+              this->dataPtr->giVctParameters.resolution,
+              this->dataPtr->giDefaultData.resolution);
+        }
 
-        this->dataPtr->giVctParameters.bounceCount = giElem->Get<uint32_t>("bounce_count", this->dataPtr->giVctParameters.bounceCount).first;
-        this->dataPtr->giVctParameters.highQuality = giElem->Get<bool>("high_quality", this->dataPtr->giVctParameters.highQuality).first;
-        this->dataPtr->giVctParameters.anisotropic = giElem->Get<bool>("anisotropic", this->dataPtr->giVctParameters.anisotropic).first;
-        this->dataPtr->giVctParameters.thinWallCounter = giElem->Get<float>("thin_wall_counter", this->dataPtr->giVctParameters.thinWallCounter).first;
-        this->dataPtr->giVctParameters.conserveMemory = giElem->Get<bool>("conserve_memory", this->dataPtr->giVctParameters.conserveMemory).first;
+        if (giElem->HasElement("octant_count"))
+        {
+          parseVector3dAsUInt32Array(giElem, "octant_count",
+              this->dataPtr->giVctParameters.octantCount,
+              this->dataPtr->giDefaultData.octantCount);
+        }
+        else
+        {
+          convertVector3dToUInt32Array(
+              this->dataPtr->giVctParameters.octantCount,
+              this->dataPtr->giDefaultData.octantCount);
+        }
+
+        this->dataPtr->giVctParameters.bounceCount =
+            giElem->Get<uint32_t>("bounce_count",
+            this->dataPtr->giVctParameters.bounceCount).first;
+        this->dataPtr->giVctParameters.highQuality =
+            giElem->Get<bool>("high_quality",
+            this->dataPtr->giVctParameters.highQuality).first;
+        this->dataPtr->giVctParameters.anisotropic =
+            giElem->Get<bool>("anisotropic",
+            this->dataPtr->giVctParameters.anisotropic).first;
+        this->dataPtr->giVctParameters.thinWallCounter =
+            giElem->Get<float>("thin_wall_counter",
+            this->dataPtr->giVctParameters.thinWallCounter).first;
+        this->dataPtr->giVctParameters.conserveMemory =
+            giElem->Get<bool>("conserve_memory",
+            this->dataPtr->giVctParameters.conserveMemory).first;
 
         if (giElem->HasElement("debug_vis_mode"))
         {
-          const std::string text = giElem->Get<std::string>("debug_vis_mode", "none").first;
-          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode, this->dataPtr->giDefaultData.debugVisMode);
+          const std::string text = giElem->Get<std::string>(
+              "debug_vis_mode", "none").first;
+          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode,
+              this->dataPtr->giDefaultData.debugVisMode);
         }
-      }      
+      }
       else if (giType == "civct")
       {
-        //todo: add CIVCT here. should also check if apiBackend is vulkan
+        // todo: add CIVCT here. should also check if apiBackend is vulkan
+        // can use SetDebugVisMode when parsing DVM
         gzerr << "GI CI VCT is not supported" << std::endl;
-      } else
+      }
+      else
       {
-        gzerr << "GI method type [" << giType << "] is not supported." << std::endl;
+        gzerr << "GI method type [" << giType << "] is not supported."
+              << std::endl;
       }
     }
   }
