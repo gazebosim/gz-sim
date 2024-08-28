@@ -96,51 +96,25 @@ auto combineUserAndDefaultPlugins(
          pluginElem = pluginElem->NextSiblingElement("plugin"))
     {
       const char *pluginFilename = pluginElem->Attribute("filename");
-      std::string configAction = "";
-
-      auto configActionElement =
-          pluginElem->FirstChildElement(config_action::kPluginAttribute.data());
-      if (configActionElement)
-      {
-        configAction = configActionElement->GetText();
-      }
-
-      if (configAction == "")
-      {
-        configAction = config_action::kGuiDefaultAction;
-      }
-
-      if (configAction != config_action::kAppend &&
-          configAction != config_action::kAppendReplace)
-      {
-        gzerr << "Unknown config action: " << configAction << ". Using "
-              << config_action::kGuiDefaultAction << " instead." << std::endl;
-        configAction = config_action::kGuiDefaultAction;
-      }
 
       bool replacedPlugin{false};
-      if (configAction == config_action::kAppendReplace)
+      for (auto elem = combinedPlugins->FirstChildElement("plugin");
+           elem != nullptr && processedUserPlugins.count(elem) == 0;
+           elem = elem->NextSiblingElement("plugin"))
       {
-        for (auto elem = combinedPlugins->FirstChildElement("plugin");
-             elem != nullptr && processedUserPlugins.count(elem) == 0;
-            elem = elem->NextSiblingElement("plugin"))
+        if (elem->Attribute("filename", pluginFilename))
         {
-          if (elem->Attribute("filename", pluginFilename))
-          {
-            auto tmp = elem;
-            // Insert the replacement
-            auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
-            elem = combinedPlugins->InsertAfterChild(elem, clonedPlugin)
-                       ->ToElement();
-            // Remove the original
-            combinedPlugins->DeleteNode(tmp);
-            replacedPlugin = true;
-          }
+          auto tmp = elem;
+          // Insert the replacement
+          auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
+          elem = combinedPlugins->InsertAfterChild(elem, clonedPlugin)
+                     ->ToElement();
+          // Remove the original
+          combinedPlugins->DeleteNode(tmp);
+          replacedPlugin = true;
         }
       }
-
-      if (configAction == config_action::kAppend ||
-          (configAction == config_action::kAppendReplace && !replacedPlugin))
+      if (!replacedPlugin)
       {
         auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
         auto insertedElem = combinedPlugins->InsertEndChild(clonedPlugin);
@@ -157,7 +131,7 @@ auto combineUserAndDefaultPlugins(
 struct GuiPolicies
 {
   /// \brief Whether to include default plugins
-  bool includeGuiDefaultPlugins{false};
+  bool includeGuiDefaultPlugins{true};
 
   /// \brief Parse policies from a GUI message
   /// \param[in] _msg Input message

@@ -23,40 +23,26 @@ plugins in the `<gui>` element and the default configuration file.
 How Gazebo combines these plugins is determined by the
 `<include_gui_default_plugins>` policy set in `<gz:policies>`:
 
-- `<include_gui_default_plugins>false</include_gui_default_plugins>` (default): If
-  there are any plugins specified in the SDF file, plugins from the default
-  configuration file are ignored. This allows the user to have complete
-  control over which plugins are loaded.
-
 - `<include_gui_default_plugins>true</include_gui_default_plugins>`: Plugins
   from the default configuration file merged with plugins from the SDF file.
   Plugins from SDF files take precedence over plugins from
   the default configuration file. This means, if a plugin is specified in
   both places, by default, only the one specified in the SDF file will be
-  loaded. However, plugins in the SDF file can specify how they should be loaded
-  by setting `<gz:config_action>` tag inside each `<plugin>`.
-
-  Two options are available:
-  - `append_replace` (default): The plugin from the SDF file is appended to the
-  list of plugins to be loaded. Any plugin from the default configuration file
-  with the same file name will be replaced. If replacement occurs, the replacement
+  loaded. If replacement occurs, the replacement
   plugin will take the position of the replaced plugin in the order of plugins.
-  If replacement does not occur, this behaves as `append`.
-  - `append`: The plugin from the SDF file is appended to the list of plugins
-  to be loaded. Any plugin from the default configuration file with the same
-  file name will also be loaded. This is useful for some plugins where it makes sense
-  to have two or more of (e.g. `ImageDispay`).
-
-  \warning `append` will have unexpected behavior if you save
-  the GUI configuration from Gazebo and rerun the same SDF file. This is because
-  the combined plugin list will be saved in as the default configuration file
-  and when you rerun the SDF file, plugins with `append` will be added in addition
-  to the ones already in the configuration file.
+  If replacement does not occur, the plugin is appended to the end of the list.
 
   The main use case for this policy is for users to rely on
   the default list of plugins and only add extra plugins they need for the
   application. This policy is also useful for overriding the parameters of a small
-  subset of the default plugins.
+  subset of the default plugins.This is the default setting in
+  Gazebo Ionic and later.
+
+- `<include_gui_default_plugins>false</include_gui_default_plugins>`: If
+  there are any plugins specified in the SDF file, plugins from the default
+  configuration file are ignored. This allows the user to have complete
+  control over which plugins are loaded. This is the default setting in
+  Gazebo Harmonic and earlier.
 
 > \* For log-playback, the default file is
 > `$HOME/.gz/sim/<#>/playback_gui.config`
@@ -119,6 +105,10 @@ favorite editor and save this file as `fuel_preview.sdf`:
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
+
+    <gz:policies>
+      <include_gui_default_plugins>false</include_gui_default_plugins>
+    </gz:policies>
 
     <gui fullscreen="0">
 
@@ -247,7 +237,8 @@ Now, let's change the policy so that default plugins are included
 ```
 
 You will now see the same model loaded in the default GUI layout
-similar to when you deleted the `<gui>` element altogether.
+similar to when you deleted the `<gui>` element altogether. Note that this will also
+be the behavior if we removed `<include_gui_default_plugins>` tag.
 
 @image html files/gui_config/fuel_preview_no_gui.png
 

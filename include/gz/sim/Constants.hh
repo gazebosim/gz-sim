@@ -26,13 +26,6 @@ namespace gz::sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
-  namespace  config_action {
-    constexpr std::string_view kPluginAttribute{"gz:config_action"};
-    constexpr std::string_view kAppendReplace{"append_replace"};
-    constexpr std::string_view kAppend{"append"};
-    constexpr std::string_view kGuiDefaultAction{kAppendReplace};
-  }
-
   constexpr std::string_view kPoliciesTag{"gz:policies"};
 }
 }  // namespace gz::sim

@@ -26,7 +26,6 @@
     <gui fullscreen="0">
 
       <plugin filename="MinimalScene" name="3D View">
-        <gz:config_action>prepend_replace</gz:config_action>
         <gz-gui>
           <title>3D View</title>
           <property type="bool" key="showTitleBar">false</property>
@@ -40,7 +39,6 @@
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
-        <gz:config_action>append</gz:config_action>
         <gz-gui>
           <property key="state" type="string">docked</property>
         </gz-gui>
