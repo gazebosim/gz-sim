@@ -767,7 +767,7 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 //////////////////////////////////////////////////
 System::PriorityType Physics::ConfigurePriority()
 {
-  // Use constant from SystemPriorityConstants.hh
+  // Use constant from System.hh
   return ::gz::sim::systems::kPhysicsPriority;
 }
 
