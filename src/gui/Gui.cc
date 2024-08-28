@@ -30,6 +30,7 @@
 #include <gz/gui/Dialog.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
+#include <iostream>
 #include <memory>
 
 #include "gz/sim/Constants.hh"
@@ -89,8 +90,7 @@ auto combineUserAndDefaultPlugins(
     auto combinedPlugins = std::make_unique<tinyxml2::XMLDocument>();
     _defaultPlugins.DeepCopy(combinedPlugins.get());
 
-    tinyxml2::XMLDocument prependList;
-    tinyxml2::XMLDocument appendList;
+    std::set<tinyxml2::XMLNode *> processedUserPlugins;
     for (auto pluginElem = _userPlugins->FirstChildElement("plugin");
          pluginElem != nullptr;
          pluginElem = pluginElem->NextSiblingElement("plugin"))
@@ -110,69 +110,40 @@ auto combineUserAndDefaultPlugins(
         configAction = config_action::kGuiDefaultAction;
       }
 
-      gzdbg << "Plugin: " << pluginFilename << " act: " << configAction << "\n";
-
-      if (configAction == config_action::kPrependReplace ||
-          configAction == config_action::kAppendReplace)
+      if (configAction != config_action::kAppend && configAction != config_action::kAppendReplace)
       {
-        // Remove all matching plugins
+        gzerr << "Unknown config action: " << configAction << ". Using "
+              << config_action::kGuiDefaultAction << " instead." << std::endl;
+        configAction = config_action::kGuiDefaultAction;
+      }
+
+      bool replacedPlugin{false};
+      if (configAction == config_action::kAppendReplace)
+      {
         for (auto elem = combinedPlugins->FirstChildElement("plugin");
-             elem != nullptr;)
+             elem != nullptr && processedUserPlugins.count(elem) == 0;
+            elem = elem->NextSiblingElement("plugin"))
         {
           if (elem->Attribute("filename", pluginFilename))
           {
-            gzdbg << "\t Removing " << pluginFilename << "\n";
             auto tmp = elem;
-            elem = elem->NextSiblingElement("plugin");
+            // Insert the replacement
+            auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
+            elem = combinedPlugins->InsertAfterChild(elem, clonedPlugin)->ToElement();
+            // Remove the original
             combinedPlugins->DeleteNode(tmp);
-          }
-          else
-          {
-            elem = elem->NextSiblingElement("plugin");
+            replacedPlugin = true;
           }
         }
       }
-      if (configAction == config_action::kPrependReplace ||
-          configAction == config_action::kPrepend)
-      {
-        auto clonedPlugin = pluginElem->DeepClone(&prependList);
-        prependList.InsertEndChild(clonedPlugin);
-      }
-      else if (configAction == config_action::kAppendReplace ||
-               configAction == config_action::kAppend)
-      {
-        auto clonedPlugin = pluginElem->DeepClone(&appendList);
-        appendList.InsertEndChild(clonedPlugin);
-      }
-      else
-      {
-        gzerr << "Unknown config action: " << configAction << std::endl;
-      }
-    }
 
-    // At this point, combinedPlugins has been cleared of duplicate plugins
-    // and prependList and appendList contain the list of plugins to be
-    // prepended and appended respectively in the correct order.
-    tinyxml2::XMLNode *lastInsertedNode = nullptr;
-    for (auto pluginElem = prependList.FirstChildElement();
-         pluginElem != nullptr; pluginElem = pluginElem->NextSiblingElement())
-    {
-      auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
-      if (lastInsertedNode == nullptr)
+      if (configAction == config_action::kAppend ||
+          (configAction == config_action::kAppendReplace && !replacedPlugin))
       {
-        lastInsertedNode = combinedPlugins->InsertFirstChild(clonedPlugin);
+        auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
+        auto insertedElem = combinedPlugins->InsertEndChild(clonedPlugin);
+        processedUserPlugins.insert(insertedElem );
       }
-      else
-      {
-        combinedPlugins->InsertAfterChild(lastInsertedNode, clonedPlugin);
-      }
-    }
-
-    for (auto pluginElem = appendList.FirstChildElement();
-         pluginElem != nullptr; pluginElem = pluginElem->NextSiblingElement())
-    {
-      auto clonedPlugin = pluginElem->DeepClone(combinedPlugins.get());
-      combinedPlugins->InsertEndChild(clonedPlugin);
     }
 
     return combinedPlugins;

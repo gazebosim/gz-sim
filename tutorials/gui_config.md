@@ -30,27 +30,16 @@ How Gazebo combines these plugins is determined by the
   both places, by default, only the one specified in the SDF file will be
   loaded. However, plugins in the SDF file can specify how they should be loaded
   by setting `<gz:config_action>` tag inside each `<plugin>`.
-  Four options are available:
+  Two options are available:
   - `append_replace` (default): The plugin from the SDF file is appended to the
   list of plugins to be loaded. Any plugin from the default configuration file
-  with the same file name will be removed.
+  with the same file name will be replaced. If replacement occurs, the replacement
+  plugin will take the position of the replaced plugin in the order of plugins.
+  If replacement does not occur, this behaves as `append`.
   - `append`: The plugin from the SDF file is appended to the list of plugins
   to be loaded. Any plugin from the default configuration file with the same
   file name will also be loaded. This is useful for some plugins where it makes sense
   to have two or more of (e.g. `ImageDispay`).
-  - `prepend_replace`: The plugin from the SDF file is prepended to the
-  list of plugins to be loaded. Any plugin from the default configuration file
-  with the same file name will be removed. A typical use of this option is
-  when overriding the settings of `MinimalScene` plugin since it
-  needs to appear first in the list of plugins for the 3D scene to occupy the large
-  pane on the left side of the GUI.
-  - `append`: The plugin from the SDF file is prepended to the list of plugins
-  to be loaded. Any plugin from the default configuration file with the same
-  file name will also be loaded.
-
-  The four options can be classified into two categories based on whether
-  they append or prepend to the list. Within each category, the plugins
-  will keep the order in which they are specified in the SDF file.
 
   The main use case for this policy is for users to rely on
   the default list of plugins and only add extra plugins they need for the
