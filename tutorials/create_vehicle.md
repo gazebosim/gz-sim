@@ -1,4 +1,4 @@
-\page create_vehicle
+\page create_vehicle Create a maritime vehicle
 
 # Overview
 
