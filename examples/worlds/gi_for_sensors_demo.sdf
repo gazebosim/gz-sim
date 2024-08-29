@@ -1,4 +1,7 @@
 <?xml version="1.0" ?>
+<!--
+A demo showcasing global illumination (using VCT method) enabled for the camera sensor view.
+-->
 <sdf version="1.10">
     <world name="gi_demo">
         <!--sensor plugins-->
