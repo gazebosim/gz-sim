@@ -102,7 +102,7 @@ TEST_F(CameraSensorGlobalIlluminationTest,
   // Run server and verify that we are receiving a message
   // from the depth camera
   server.Run(true, 100, false);
-  
+
   int i = 0;
   while (i < 100 && cbCount == 0)
   {
