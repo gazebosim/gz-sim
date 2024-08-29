@@ -93,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 // Components
@@ -432,7 +433,7 @@ class gz::sim::systems::PhysicsPrivate
                       }
                       return true;
                     }};
-  /// \brief msgs::Contacts equality comparison function.
+  /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
           [](const msgs::Wrench &_a, const msgs::Wrench &_b)
