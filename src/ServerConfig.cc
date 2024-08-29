@@ -938,7 +938,7 @@ sim::loadPluginInfo(bool _isPlayback)
         gzwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+      gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
         "[" << envConfig << "]\n";
 
       return ret;
@@ -1018,7 +1018,7 @@ sim::loadPluginInfo(bool _isPlayback)
       << "], but no plugins found\n";
   }
 
-  gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+  gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
     "[" << defaultConfig << "]\n";
 
   return ret;

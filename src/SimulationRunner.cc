@@ -18,6 +18,7 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <unordered_set>
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
 #endif
@@ -36,6 +37,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -50,6 +52,7 @@
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Events.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
 #include "gz/transport/TopicUtils.hh"
@@ -263,6 +266,18 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   if (_world.Gui())
   {
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+
+    auto worldElem = this->sdfWorld.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement("gz:policies");
+      if (policies)
+      {
+        auto headerData = this->guiMsg.mutable_header()->add_data();
+        headerData->set_key("gz:policies");
+        headerData->add_value(policies->ToString(""));
+      }
+    }
   }
 
   std::string infoService{"gui/info"};
@@ -1586,21 +1601,60 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
+  auto loadedWorldPlugins = this->systemMgr->TotalByEntity(worldEntity);
   // If we have reached this point and no world systems have been loaded, then
   // load a default set of systems.
-  if (this->systemMgr->TotalByEntity(worldEntity).empty())
+
+  auto worldElem = this->sdfWorld.Element();
+  bool includeServerConfigPlugins = true;
+  if (worldElem)
   {
-    gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-    auto plugins = gz::sim::loadPluginInfo(isPlayback);
-    this->LoadServerPlugins(plugins);
+    auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+    if (policies)
+    {
+      includeServerConfigPlugins =
+        policies
+        ->Get<bool>("include_server_config_plugins", includeServerConfigPlugins)
+        .first;
+    }
   }
+
+  if (includeServerConfigPlugins || loadedWorldPlugins.empty())
+  {
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto defaultPlugins = gz::sim::loadPluginInfo(isPlayback);
+    if (loadedWorldPlugins.empty())
+    {
+      gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    }
+    else
+    {
+      std::unordered_set<std::string> loadedWorldPluginFileNames;
+      for (const auto &pl : loadedWorldPlugins)
+      {
+        loadedWorldPluginFileNames.insert(pl.fname);
+      }
+      auto isPluginLoaded =
+          [&loadedWorldPluginFileNames](const ServerConfig::PluginInfo &_pl)
+      {
+          return loadedWorldPluginFileNames.count(_pl.Plugin().Filename()) != 0;
+      };
+
+      // Remove plugin if it's already loaded so as to not duplicate world
+      // plugins.
+      defaultPlugins.remove_if(isPluginLoaded);
+
+      gzdbg << "Additional plugins to load:\n";
+      for (const auto &plugin : defaultPlugins)
+      {
+        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename()
+              << "\n";
+      }
+    }
+
+    this->LoadServerPlugins(defaultPlugins);
+  };
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
-
-  // Publish empty GUI messages for worlds that have no GUI in the beginning.
-  // In the future, support modifying GUI from the server at runtime.
-  if (_world.Gui())
-    this->guiMsg = convert<msgs::GUI>(*_world.Gui());
 }

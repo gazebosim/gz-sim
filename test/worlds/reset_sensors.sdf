@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
+    <gz:policies>
+      <include_server_config_plugins>false</include_server_config_plugins>
+    </gz:policies>
     <plugin
       filename="gz-sim-air-pressure-system"
       name="gz::sim::systems::AirPressure">
