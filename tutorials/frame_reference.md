@@ -1,4 +1,4 @@
-\page frame_reference
+\page frame_reference Frame of reference
 
 # Overview
 
@@ -7,7 +7,7 @@ the conventions used in Gazebo.
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/spherical_coordinates.html
+\ref spherical_coordinates
 
 # Gazebo world frame
 
