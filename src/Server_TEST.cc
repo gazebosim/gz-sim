@@ -511,7 +511,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
   EXPECT_EQ(3u, *server.EntityCount());
-  EXPECT_EQ(5u, *server.SystemCount());
+  EXPECT_EQ(2u, *server.SystemCount());
 }
 
 /////////////////////////////////////////////////
