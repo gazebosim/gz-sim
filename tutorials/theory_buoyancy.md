@@ -1,4 +1,4 @@
-\page theory_buoyancy
+\page theory_buoyancy Buoyancy
 
 # Overview
 

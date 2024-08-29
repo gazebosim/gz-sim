@@ -8,15 +8,11 @@ with the presence of waves and wind.
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/create_vehicle.html
-
-https://gazebosim.org/api/sim/8/adding_visuals.html
-
-https://gazebosim.org/api/sim/8/frame_reference.html
-
-https://gazebosim.org/api/sim/8/adding_system_plugins.html
-
-https://gazebosim.org/api/sim/8/theory_hydrodynamics.html
+\ref create_vehicle
+\ref adding_visuals
+\ref frame_reference
+\ref adding_system_plugins
+\ref theory_hydrodynamics
 
 # Adding an environment
 

@@ -1,4 +1,4 @@
-\page lander
+\page lander Create a lander vehicle
 
 # Overview
 
@@ -9,17 +9,12 @@ to the surface while they collect sensor measurements.
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/create_vehicle.html
-
-https://gazebosim.org/api/sim/8/adding_visuals.html
-
-https://gazebosim.org/api/sim/8/frame_reference.html
-
-https://gazebosim.org/api/sim/8/adding_system_plugins.html
-
-https://gazebosim.org/api/sim/8/theory_buoyancy.html
-
-https://gazebosim.org/api/sim/8/theory_hydrodynamics.html
+\ref create_vehicle
+\ref adding_visuals
+\ref frame_reference
+\ref adding_system_plugins
+\ref theory_buoyancy
+\ref theory_hydrodynamics
 
 # Create your vehicle
 
