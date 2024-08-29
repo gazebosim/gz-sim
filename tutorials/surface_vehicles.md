@@ -1,4 +1,4 @@
-\page surface_vehicles
+\page surface_vehicles Create a surface vehicle
 
 # Overview
 
