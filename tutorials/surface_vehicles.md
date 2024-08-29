@@ -9,9 +9,13 @@ with the presence of waves and wind.
 ## Related tutorials
 
 \ref create_vehicle
+
 \ref adding_visuals
+
 \ref frame_reference
+
 \ref adding_system_plugins
+
 \ref theory_hydrodynamics
 
 # Adding an environment

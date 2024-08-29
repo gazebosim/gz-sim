@@ -12,10 +12,15 @@ guide you through the setup of the [MBARI LRAUV](https://app.gazebosim.org/accur
 ## Related tutorials
 
 \ref create_vehicle
+
 \ref adding_visuals
+
 \ref frame_reference
+
 \ref adding_system_plugins
+
 \ref theory_buoyancy
+
 \ref theory_hydrodynamics
 
 # Create your vehicle
