@@ -35,7 +35,7 @@ using namespace gz;
 using namespace std::chrono_literals;
 
 std::mutex mutex;
-int cbCount = 0;
+int cbValue = 0;
 int giEnabled = false;
 
 //////////////////////////////////////////////////
@@ -73,9 +73,9 @@ void cameraCb(const msgs::Image & _msg)
   }
   std::lock_guard<std::mutex> lock(mutex);
   if (!giEnabled)
-    cbCount = 1;
+    cbValue = 1;
   else
-    cbCount = 2;
+    cbValue = 2;
 }
 
 /////////////////////////////////////////////////
@@ -95,7 +95,7 @@ TEST_F(CameraSensorGlobalIlluminationTest,
 
   // subscribe to the camera topic
   transport::Node node;
-  cbCount = 0;
+  cbValue = 0;
   giEnabled = false;
   node.Subscribe("/camera", &cameraCb);
 
@@ -104,14 +104,14 @@ TEST_F(CameraSensorGlobalIlluminationTest,
   server.Run(true, 100, false);
 
   int i = 0;
-  while (i < 100 && cbCount == 0)
+  while (i < 100 && cbValue == 0)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     i++;
   }
 
   std::lock_guard<std::mutex> lock(mutex);
-  EXPECT_EQ(cbCount, 1);
+  EXPECT_EQ(cbValue, 1);
 }
 
 /////////////////////////////////////////////////
@@ -131,7 +131,7 @@ TEST_F(CameraSensorGlobalIlluminationTest,
 
   // subscribe to the camera topic
   transport::Node node;
-  cbCount = 1;
+  cbValue = 0;
   giEnabled = true;
   node.Subscribe("/camera", &cameraCb);
 
@@ -140,12 +140,12 @@ TEST_F(CameraSensorGlobalIlluminationTest,
   server.Run(true, 100, false);
 
   int i = 0;
-  while (i < 100 && cbCount == 0)
+  while (i < 100 && cbValue == 0)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     i++;
   }
 
   std::lock_guard<std::mutex> lock(mutex);
-  EXPECT_EQ(cbCount, 2);
+  EXPECT_EQ(cbValue, 2);
 }
