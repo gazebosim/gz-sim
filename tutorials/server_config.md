@@ -179,7 +179,7 @@ Now, let's modify the SDF file to change the policy `<include_server_config_plug
 
     <gz:policies>
       <include_server_config_plugins>false</include_server_config_plugins>
-    <gz:policies>
+    </gz:policies>
 
     <plugin
       filename="gz-sim-scene-broadcaster-system"

@@ -1644,7 +1644,7 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
       // plugins.
       defaultPlugins.remove_if(isPluginLoaded);
 
-      gzdbg << "Also loading the following default jplugins:\n";
+      gzdbg << "Additional plugins to load:\n";
       for (const auto &plugin : defaultPlugins)
       {
         gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename()

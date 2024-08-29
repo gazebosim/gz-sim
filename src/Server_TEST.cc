@@ -442,8 +442,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
-    // Only the log record system is needed and therefore loaded.
-    EXPECT_EQ(1u, *server.SystemCount());
+    EXPECT_EQ(4u, *server.SystemCount());
 
     EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
     serverConfig.AddLogRecordTopic("test_topic1");
@@ -483,8 +482,7 @@ TEST_P(ServerFixture,
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
 
-    // Only the log record system is needed and therefore loaded.
-    EXPECT_EQ(1u, *server.SystemCount());
+    EXPECT_EQ(4u, *server.SystemCount());
   }
 
   EXPECT_FALSE(common::exists(logFile));

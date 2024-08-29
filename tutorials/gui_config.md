@@ -35,7 +35,7 @@ How Gazebo combines these plugins is determined by the
   The main use case for this policy is for users to rely on
   the default list of plugins and only add extra plugins they need for the
   application. This policy is also useful for overriding the parameters of a small
-  subset of the default plugins.This is the default setting in
+  subset of the default plugins. This is the default setting in
   Gazebo Ionic and later.
 
 - `<include_gui_default_plugins>false</include_gui_default_plugins>`: If
@@ -79,7 +79,7 @@ Let's try customizing it:
 
 3. Reload Gazebo:
 
-    `gz sim`
+    `gz sim default.sdf`
 
 Note how the UI is now in dark mode!
 
