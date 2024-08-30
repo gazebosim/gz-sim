@@ -13,7 +13,6 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
             filename="gz-sim-sensors-system"
             name="gz::sim::systems::Sensors">
             <render_engine>ogre2</render_engine>
-            
             <global_illumination type="vct">
                 <enabled>true</enabled>
                 <resolution>16 16 16</resolution>

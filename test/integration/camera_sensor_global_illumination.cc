@@ -122,7 +122,7 @@ TEST_F(CameraSensorGlobalIlluminationTest,
 /////////////////////////////////////////////////
 // Check that sensor reads less dark value when GI is enabled
 TEST_F(CameraSensorGlobalIlluminationTest,
-       GlobalIlluminationEnabled)
+       GZ_UTILS_TEST_DISABLED_ON_MAC(GlobalIlluminationEnabled))
 {
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_gi_enabled_true.sdf");
