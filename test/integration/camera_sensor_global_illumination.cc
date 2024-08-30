@@ -59,16 +59,21 @@ void cameraCb(const msgs::Image & _msg)
     for (unsigned int x = 0; x < _msg.width(); ++x)
     {
       unsigned char r = _msg.data()[y * _msg.step() + x*3];
-      if (!giEnabled)
-        ASSERT_LT(static_cast<int>(r), 10);
-      else
-        ASSERT_GT(static_cast<int>(r), 10);
-
       unsigned char g = _msg.data()[y * _msg.step() + x*3+1];
-      ASSERT_EQ(0, static_cast<int>(g));
-
       unsigned char b = _msg.data()[y * _msg.step() + x*3+2];
-      ASSERT_EQ(0, static_cast<int>(b));
+
+      if (!giEnabled)
+      {
+        ASSERT_LT(static_cast<int>(r), 2);
+        ASSERT_LT(static_cast<int>(g), 2);
+        ASSERT_LT(static_cast<int>(b), 2);
+      }
+      else
+      {
+        ASSERT_GT(static_cast<int>(r), 50);
+        ASSERT_LT(static_cast<int>(g), 25);
+        ASSERT_LT(static_cast<int>(g), 25);
+      }
     }
   }
   std::lock_guard<std::mutex> lock(mutex);

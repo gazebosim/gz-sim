@@ -42,8 +42,8 @@
 
     <gui>
       <plugin filename="MinimalScene" name="3D View">
-          <engine>ogre2</engine>
-          <camera_pose>0 2.5 1.25 0 0 -1.57</camera_pose>
+        <engine>ogre2</engine>
+        <camera_pose>0 2.5 1.25 0 0 -1.57</camera_pose>
       </plugin>
 
       <plugin filename="ImageDisplay" name="Image Display">
@@ -83,7 +83,7 @@
     <light type="point" name="ceiling_light">
     <pose>0 -0.5 2.5 0 0 0</pose>
     <diffuse>1 1 1 1</diffuse>
-    <specular>0.0 0.0 0.0 0</specular>
+    <specular>0 0 0 0</specular>
     <attenuation>
         <range>50</range>
         <linear>0</linear>
@@ -95,30 +95,161 @@
     <intensity>1.0</intensity>
     </light>
 
+    <!--wall models-->
+    <model name="wall_left">
+    <pose>0 5 4 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>10 1 10</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>10 1 10</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+
+    <model name="wall_right">
+    <pose>0 -5 4 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>10 1 10</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>10 1 10</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+
+    <model name="floor">
+    <pose>0 0 -0.5 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>10 10 1</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>10 10 1</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+
+    <model name="ceiling">
+    <pose>0 0 8.5 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>10 10 1</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>10 10 1</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+
+    <model name="wall_back">
+    <pose>4.5 0 4 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>1 10 10</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>1 10 10</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+
     <!--scene objects-->
     <model name="box">
     <pose>0 -0.5 0.5 0 0 0</pose>
     <link name="box_link">
-        <collision name="box_collision">
-        <geometry>
-            <box>
-            <size>1 1 1</size>
-            </box>
-        </geometry>
-        </collision>
+      <collision name="box_collision">
+      <geometry>
+        <box>
+        <size>1 1 1</size>
+        </box>
+      </geometry>
+      </collision>
 
-        <visual name="box_visual">
-        <geometry>
-            <box>
-            <size>1 1 1</size>
-            </box>
-        </geometry>
-        <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
-        </material>
-        </visual>
+      <visual name="box_visual">
+      <geometry>
+        <box>
+        <size>1 1 1</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>1 0 0 1</ambient>
+        <diffuse>1 0 0 1</diffuse>
+        <specular>1 1 1 1</specular>
+      </material>
+      </visual>
     </link>
     </model>
 
@@ -141,9 +272,9 @@
             </box>
           </geometry>
           <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <specular>1 0 0 1</specular>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+            <specular>1 1 1 1</specular>
           </material>
         </visual>
         <sensor name="camera" type="camera">

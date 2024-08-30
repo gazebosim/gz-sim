@@ -36,7 +36,7 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
                     <octant_count>
                     <thin_wall_counter>
                     <area_half_size>
-                </cascade> 
+                </cascade>
             </global_illumination> -->
         </plugin>
         <plugin
@@ -323,6 +323,6 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
             <topic>camera</topic>
             </sensor>
         </link>
-        </model>        
+        </model>
     </world>
 </sdf>
