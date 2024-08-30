@@ -209,7 +209,10 @@ class gz::sim::ServerConfigPrivate
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
             source(_cfg->source),
-            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors){ }
+            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
+            physicsStepSize(_cfg->physicsStepSize),
+            physicsRtf(_cfg->physicsRtf){ }
+
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -290,6 +293,12 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief Optional SDF root object.
   public: std::optional<sdf::Root> sdfRoot;
+
+  /// \brief Physics step size
+  public: std::optional<double> physicsStepSize;
+
+  /// \brief Physics RTF
+  public: std::optional<double> physicsRtf;
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
@@ -503,6 +512,36 @@ std::string ServerConfig::LogRecordCompressPath() const
 void ServerConfig::SetLogRecordCompressPath(const std::string &_path)
 {
   this->dataPtr->logRecordCompressPath = _path;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetPhysicsStepSize(double _dbl)
+{
+  if (_dbl > 0)
+  {
+    this->dataPtr->physicsStepSize = _dbl;
+  }
+}
+
+/////////////////////////////////////////////////
+std::optional<double> ServerConfig::PhysicsStepSize() const
+{
+  return this->dataPtr->physicsStepSize;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetPhysicsRtf(double _dbl)
+{
+  if (_dbl > 0)
+  {
+    this->dataPtr->physicsRtf = _dbl;
+  }
+}
+
+/////////////////////////////////////////////////
+std::optional<double> ServerConfig::PhysicsRtf() const
+{
+  return this->dataPtr->physicsRtf;
 }
 
 /////////////////////////////////////////////////

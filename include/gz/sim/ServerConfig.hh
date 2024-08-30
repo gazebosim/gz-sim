@@ -451,6 +451,12 @@ namespace gz
       /// \return The source type.
       public: SourceType Source() const;
 
+      public: void SetPhysicsRtf(double val);
+      public: std::optional<double> PhysicsRtf() const;
+
+      public: void SetPhysicsStepSize(double val);
+      public: std::optional<double> PhysicsStepSize() const;
+
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
     };

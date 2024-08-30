@@ -140,7 +140,8 @@ extern "C" int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, const char *_recordTopics, int _waitGui,
-    int _headless, float _recordPeriod, int _seed)
+    int _headless, float _recordPeriod, int _seed, double _physicsRtf,
+    double _physicsStepSize)
 {
   std::string startingWorldPath{""};
   sim::ServerConfig serverConfig;
@@ -375,6 +376,11 @@ extern "C" int runServer(const char *_sdfString,
     serverConfig.SetNetworkSecondaries(_networkSecondaries);
     serverConfig.SetUseLevels(true);
   }
+
+  gzerr << "Step size: " << _physicsStepSize << "\n";
+  serverConfig.SetPhysicsStepSize(_physicsStepSize);
+  gzerr << "RTF: " << _physicsRtf << "\n";
+  serverConfig.SetPhysicsRtf(_physicsRtf);
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
   {

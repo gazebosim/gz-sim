@@ -121,16 +121,34 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
     physics = _world.PhysicsDefault();
   }
 
-  // Step size
-  auto dur = std::chrono::duration<double>(physics->MaxStepSize());
-
-  this->stepSize =
-      std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-      dur);
-
   // Desired real time factor
-  this->desiredRtf = physics->RealTimeFactor();
+  if (!_config.PhysicsRtf().has_value())
+  {
+    // Desired real time factor
+    this->desiredRtf = physics->RealTimeFactor();
+  }
+  else
+  {
+    gzdbg << "Using CLI physics RTF" << "\n";
+    this->desiredRtf =_config.PhysicsRtf().value();
+  }
 
+  // Step size
+  if (!_config.PhysicsStepSize().has_value())
+  {
+    auto dur = std::chrono::duration<double>(physics->MaxStepSize());
+    this->stepSize =
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        dur);
+  }
+  else
+  {
+    gzdbg << "Using CLI physics StepSize" << "\n";
+    auto dur = std::chrono::duration<double>(_config.PhysicsStepSize().value());
+    this->stepSize =
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        dur);
+  }
   // The instantaneous real time factor is given as:
   //
   // RTF = sim_time / real_time
@@ -246,6 +264,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
       this->serverConfig.UseLevels());
 
   this->CreateEntities(_world);
+  if (_config.PhysicsRtf().has_value())
+  {
+    auto worldEntity =
+        this->entityCompMgr.EntityByComponents(components::World());
+    auto physicsComp =
+      this->entityCompMgr.Component<components::Physics>(worldEntity);
+    physicsComp->Data().SetRealTimeFactor(_config.PhysicsRtf().value());
+  }
+  if (_config.PhysicsStepSize().has_value())
+  {
+    auto worldEntity =
+        this->entityCompMgr.EntityByComponents(components::World());
+    auto physicsComp =
+      this->entityCompMgr.Component<components::Physics>(worldEntity);
+    physicsComp->Data().SetMaxStepSize(_config.PhysicsStepSize().value());
+  }
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
