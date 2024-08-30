@@ -398,12 +398,12 @@ namespace gz
 
       /// \brief Set the server behavior when SDF errors are encountered while
       //// loading the server.
-      /// \param[in] _behavior Server behavior when SDF errors are encounted.
+      /// \param[in] _behavior Server behavior when SDF errors are encountered.
       public: void SetBehaviorOnSdfErrors(SdfErrorBehavior _behavior);
 
       /// \brief Get the behavior when SDF errors are encountered while
       //// loading the server.
-      /// \return Server behavior when SDF errors are encounted.
+      /// \return Server behavior when SDF errors are encountered.
       public: SdfErrorBehavior BehaviorOnSdfErrors() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
@@ -451,10 +451,20 @@ namespace gz
       /// \return The source type.
       public: SourceType Source() const;
 
+      /// Set Desired Physics RTF. If value is zero or less, we don't
+      /// set anything.
       public: void SetPhysicsRtf(double val);
+
+      /// Get desired RTF value. If no value is set returns `std::nullopt`
+      /// Defaults to `std::nullopt`.
       public: std::optional<double> PhysicsRtf() const;
 
+      /// Set Desired Physics step size. If value is zero or less, we don't
+      /// set anything.
       public: void SetPhysicsStepSize(double val);
+
+      /// Get desired Step Size value. If no value is set returns `std::nullopt`
+      /// Defaults to `std::nullopt`.
       public: std::optional<double> PhysicsStepSize() const;
 
       /// \brief Private data pointer
