@@ -1,4 +1,4 @@
-\page adding_system_plugins
+\page adding_system_plugins Adding system plugins
 
 # Overview
 
@@ -10,11 +10,11 @@ capabilities to it.
 Make sure to go through the following tutorial first, where you'll learn how
 to create the vehicle used in this tutorial.
 
-https://gazebosim.org/api/sim/8/create_vehicle.html
+\ref create_vehicle
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/createsystemplugins.html
+\ref createsystemplugins
 
 # Adding a system plugin
 
