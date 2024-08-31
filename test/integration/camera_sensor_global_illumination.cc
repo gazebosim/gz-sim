@@ -85,45 +85,59 @@ void cameraCb(const msgs::Image & _msg)
 
 /////////////////////////////////////////////////
 // Check that sensor reads a very dark value when GI is not enabled
-// TEST_F(CameraSensorGlobalIlluminationTest,
-//        GlobalIlluminationNotEnabled)
-// {
-//   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-//     "test", "worlds", "camera_sensor_gi_enabled_false.sdf");
-//   // Start server
-//   sim::ServerConfig serverConfig;
-//   serverConfig.SetSdfFile(sdfFile);
+TEST_F(CameraSensorGlobalIlluminationTest,
+       GlobalIlluminationNotEnabled)
+{
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "camera_sensor_gi_enabled_false.sdf");
+  // Start server
+  sim::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfFile);
 
-//   sim::Server server(serverConfig);
-//   EXPECT_FALSE(server.Running());
-//   EXPECT_FALSE(*server.Running(0));
+  sim::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
 
-//   // subscribe to the camera topic
-//   transport::Node node;
-//   cbValue = 0;
-//   giEnabled = false;
-//   node.Subscribe("/camera", &cameraCb);
+  // subscribe to the camera topic
+  transport::Node node;
+  cbValue = 0;
+  giEnabled = false;
+  node.Subscribe("/camera", &cameraCb);
 
-//   // Run server and verify that we are receiving a message
-//   // from the depth camera
-//   server.Run(true, 100, false);
+  // Run server and verify that we are receiving a message
+  // from the depth camera
+  server.Run(true, 100, false);
 
-//   int i = 0;
-//   while (i < 100 && cbValue == 0)
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//     i++;
-//   }
+  int i = 0;
+  while (i < 100 && cbValue == 0)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    i++;
+  }
 
-//   std::lock_guard<std::mutex> lock(mutex);
-//   EXPECT_EQ(cbValue, 1);
-// }
+  std::lock_guard<std::mutex> lock(mutex);
+  EXPECT_EQ(cbValue, 1);
+}
 
 /////////////////////////////////////////////////
 // Check that sensor reads less dark value when GI is enabled
 TEST_F(CameraSensorGlobalIlluminationTest,
        GZ_UTILS_TEST_DISABLED_ON_MAC(GlobalIlluminationEnabled))
 {
+  // \todo(anyone) test fails on github action but pass on other
+  // ubuntu jenkins CI. Need to investigate further.
+  // Github action sets the MESA_GL_VERSION_OVERRIDE variable
+  // so check for this variable and disable test if it is set.
+#ifdef __linux__
+  std::string value;
+  bool result = common::env("MESA_GL_VERSION_OVERRIDE", value, true);
+  if (result && value == "3.3")
+  {
+    GTEST_SKIP() << "Test is run on machine with software rendering or mesa "
+                 << "driver. Skipping test. " << std::endl;
+  }
+#endif
+
   const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "camera_sensor_gi_enabled_true.sdf");
   // Start server
