@@ -1017,9 +1017,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
   std::string imagePath = _emitter->ColorRangeImage();
   if (!imagePath.empty())
   {
-    imagePath = common::findFile(asFullPath(imagePath,
+    std::string path = common::findFile(asFullPath(imagePath,
         _emitter->Element()->FilePath()));
-    particleEmitterMsg.mutable_color_range_image()->set_data(imagePath);
+    path = path.empty() ? imagePath : path;
+    particleEmitterMsg.mutable_color_range_image()->set_data(path);
   }
 
   // Components
