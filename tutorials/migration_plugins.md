@@ -1,7 +1,7 @@
 \page migrationplugins Migration from Gazebo Classic: Plugins
 
 Gazebo Classic supports
-[6 different C++ plugin types](http://gazebosim.org/tutorials?tut=plugins_hello_world&cat=write_plugin),
+[6 different C++ plugin types](https://classic.gazebosim.org/tutorials?tut=plugins_hello_world#PluginTypes),
 each providing access to different parts of the API, like physics, rendering,
 sensors, GUI, etc. Due to Gazebo Sim's architecture based on an
 [ECS](https://en.wikipedia.org/wiki/Entity_component_system)
