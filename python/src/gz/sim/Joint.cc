@@ -94,7 +94,7 @@ void defineSimJoint(py::object module)
       py::arg("ecm"),
       py::arg("limits"),
       "Set the effort limits on a joint axis.")
-  .def("set_position_imits", &gz::sim::Joint::SetPositionLimits,
+  .def("set_position_limits", &gz::sim::Joint::SetPositionLimits,
       py::arg("ecm"),
       py::arg("limits"),
       "Set the position limits on a joint axis.")
