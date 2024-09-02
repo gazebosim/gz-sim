@@ -114,7 +114,7 @@ block:
 And launch Gazebo to see the results:
 
 ```bash
-gz sim ~/my_models/my_lander/model.sdf
+gz sim ~/gazebo_maritime/models/my_lander/model.sdf
 ```
 
 Your box should now be replaced with a better looking mesh.
