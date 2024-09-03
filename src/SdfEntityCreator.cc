@@ -1013,7 +1013,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
   // an sdf so the sdf FilePath information is lost and rendering is not
   // able to construct the full path of the image.
   // \todo(iche033) Consider changing the ParticleEmitter component to
-  // store an sdf::ParticleEmitter object istead of msgs::ParticleEmitter
+  // store an sdf::ParticleEmitter object instead of msgs::ParticleEmitter.
   std::string imagePath = _emitter->ColorRangeImage();
   if (!imagePath.empty())
   {
