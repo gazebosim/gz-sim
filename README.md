@@ -32,9 +32,9 @@ Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and re
 
 [Folder Structure](#folder-structure)
 
-[Code of Conduct](#code-of-conduct)
-
 [Contributing](#contributing)
+
+[Code of Conduct](#code-of-conduct)
 
 [Versioning](#versioning)
 
@@ -154,7 +154,7 @@ gz-sim
 │   ├── performance              Performance tests.
 │   ├── plugins                  Plugins used in tests.
 │   ├── regression               Regression tests.
-│   └── tutorials                Tutorials, written in markdown.
+├── tutorials                    Tutorials, written in markdown.
 ├── Changelog.md                 Changelog.
 ├── CMakeLists.txt               CMake build script.
 ├── Migration.md                 Migration guide.
@@ -163,8 +163,8 @@ gz-sim
 
 # Contributing
 
-Please see
-[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
+Please see the
+[contribution guide](https://gazebosim.org/docs/all/contributing/).
 
 # Code of Conduct
 

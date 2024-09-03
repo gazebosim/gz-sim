@@ -10,7 +10,7 @@ It uses the odometer created on this example:
 From the root of the `gz-sim` repository, do the following to build the example:
 
 ~~~
-cd examples/plugins/custom_sensor_system
+cd examples/plugin/custom_sensor_system
 mkdir build
 cd build
 cmake ..
@@ -27,7 +27,7 @@ the `odometer.sdf` file that's going to be loaded.
 Before starting Gazebo, we must make sure it can find the plugin by doing:
 
 ~~~
-cd examples/plugins/custom_sensor_system
+cd examples/plugin/custom_sensor_system
 export GZ_SIM_SYSTEM_PLUGIN_PATH=`pwd`/build
 ~~~
 

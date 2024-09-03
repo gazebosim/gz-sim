@@ -13,7 +13,7 @@ Gazebo that already has this plugin included in the GUI.
 gz sim -v 4 video_record_dbl_pendulum.sdf
 ```
 
-In this demo world, you should see a video recorder icon positioned on the top.
+In this demo world, you should see a video recorder icon positioned on the top
 left area of the window along with other buttons. Clicking on the video
 recorder button gives you the video format options that are available.
 
@@ -107,5 +107,5 @@ generated video. The default bitrate is 2Mbps.
 
 Since Gazebo Common 3.10.2, there is support for utilizing the power of GPUs
 to speed up the video encoding process. See the
-[Hardware-accelerated Video Encoding tutorial](https://gazebosim.org/api/common/5/hw-encoding.html)
+[Hardware-accelerated Video Encoding tutorial](https://gazebosim.org/api/common/6/hw-encoding.html)
 for more details.
