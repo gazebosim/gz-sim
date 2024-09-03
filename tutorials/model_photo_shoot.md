@@ -37,7 +37,7 @@ contains a good example of the different options and other related plugins:
   filename="gz-sim-sensors-system"
   name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
-  <background_color>1, 1, 1</background_color>
+  <background_color>1.0, 1.0, 1.0</background_color>
 </plugin>
    ```
    A render plugin is needed to render the image. If `ogre2` is used, as shown in
@@ -53,7 +53,7 @@ contains a good example of the different options and other related plugins:
     filename="gz-sim-model-photo-shoot-system"
     name="gz::sim::systems::ModelPhotoShoot">
     <translation_data_file>poses.txt</translation_data_file>
-    <random_joints_pose>true</random_joints_pose>
+    <random_joints_pose>false</random_joints_pose>
   </plugin>
 </include>
    ```
