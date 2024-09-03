@@ -108,7 +108,7 @@ Download the example world file and launch it to see what it looks like.
 gz sim -v 4 -r particle_emitter_scatter_effects.sdf
 ```
 
-Navigate to the Visualize Lidar plugin and click on the refresh button to set the lidar topic. You should see the sensor images and lidar visualization like below:
+Navigate to the Visualize Lidar plugin on the right and click on the refresh button to set the lidar topic. You should see the sensor images and lidar visualization like below:
 
 
 @image html files/particle_emitter/sensor_scatter_tutorial.gif
