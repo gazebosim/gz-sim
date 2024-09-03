@@ -21,22 +21,9 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
                 <high_quality>true</high_quality>
                 <anisotropic>true</anisotropic>
                 <thin_wall_counter>1.0</thin_wall_counter>
-                <conserve_memory>true</conserve_memory>
+                <conserve_memory>false</conserve_memory>
                 <debug_vis_mode>none</debug_vis_mode>
             </global_illumination>
-            <!-- <global_illumination type="civct">
-                <enabled>
-                <bounce_count>
-                <high_quality>
-                <anisotropic>
-                <debug_vis_mode>
-                <cascade>
-                    <resolution>
-                    <octant_count>
-                    <thin_wall_counter>
-                    <area_half_size>
-                </cascade>
-            </global_illumination> -->
         </plugin>
         <plugin
             filename="gz-sim-user-commands-system"
@@ -49,7 +36,7 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
 
         <!--scene description for system view-->
         <scene>
-            <ambient>0.4 0.4 0.4</ambient>
+            <ambient>0.1 0.1 0.1</ambient>
             <background>0 0 0</background>
         </scene>
 
@@ -97,7 +84,6 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
             </gz-gui>
         </plugin>
         </gui>
-
 
         <!--lighting-->
         <light type="point" name="ceiling_light">
@@ -275,8 +261,6 @@ A demo showcasing global illumination (using VCT method) enabled for the camera 
                     <roughness_map>https://fuel.gazebosim.org/1.0/openrobotics/models/pump/1/files/materials/textures/pump_roughness.png</roughness_map>
                     <metalness_map>https://fuel.gazebosim.org/1.0/openrobotics/models/pump/1/files/materials/textures/pump_metallic.png</metalness_map>
                     <normal_map>https://fuel.gazebosim.org/1.0/openrobotics/models/pump/1/files/materials/textures/pump_normal.png</normal_map>
-                    <!-- <roughness>1</roughness>
-                    <metalness>0</metalness> -->
                     </metal>
                 </pbr>
             </material>
