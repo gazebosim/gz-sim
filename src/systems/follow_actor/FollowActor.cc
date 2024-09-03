@@ -210,8 +210,8 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
 
   // Is there a follow target?
   if (this->dataPtr->targetEntity == kNullEntity ||
-    _ecm.HasEntity(this->dataPtr->targetEntity) ||
-    _ecm.HasEntity(this->dataPtr->actorEntity))
+    !_ecm.HasEntity(this->dataPtr->targetEntity) ||
+    !_ecm.HasEntity(this->dataPtr->actorEntity))
     return;
 
   // Current world pose
