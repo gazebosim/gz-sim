@@ -7,7 +7,7 @@ This tutorial gives an introduction to Gazebo's service `/gui/move_to/model`. Th
 1. Load the **View Angle** plugin. This service is only available when the **View Angle** plugin is loaded.
 2. Call the service using the request message type `gz.msgs.GUICamera` and the response message type `gz.msgs.Boolean`. The distance to the object is defined as the z coordinate, and the direction of the camera with a quaternion. It's possible to select the projection type.
 
-For example, Let's move the camera to the `box` model looking down from 5 meters away.
+For example, Let's move the camera to the `box` model looking down from 5 meters away. This example uses the `shapes.sdf` world.
 
 ```bash
 gz service  -s /gui/move_to/model --reqtype gz.msgs.GUICamera  --reptype gz.msgs.Boolean -r 'name: "box", pose: {position: {z:5}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000

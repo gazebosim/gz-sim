@@ -128,8 +128,9 @@ void LensFlare::Configure(
   }
 
   // Get Camera Name
-  this->dataPtr->cameraName = scopedName(this->dataPtr->entity,
-                      _ecm, "::", false);
+  this->dataPtr->cameraName =
+      removeParentScope(scopedName(this->dataPtr->entity,
+                      _ecm, "::", false), "::");
 
   // call function that connects to post render event
   this->dataPtr->postRenderConn =
