@@ -45,6 +45,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;

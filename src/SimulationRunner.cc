@@ -18,6 +18,8 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <memory>
+#include <ostream>
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
 #endif
@@ -32,6 +34,7 @@
 #include <gz/msgs/world_control_state.pb.h>
 #include <gz/msgs/world_stats.pb.h>
 
+#include <sdf/Physics.hh>
 #include <sdf/Root.hh>
 #include <vector>
 
@@ -49,11 +52,14 @@
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/Events.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
+#include "LevelManager.hh"
 #include "SdfGenerator.hh"
 
 using namespace gz;
