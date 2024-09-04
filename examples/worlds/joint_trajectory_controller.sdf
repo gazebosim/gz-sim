@@ -479,10 +479,10 @@
         <child>RR_velocity_control_link1</child>
         <axis>
           <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.02</damping>
+          </dynamics>
         </axis>
-        <dynamics>
-          <damping>0.02</damping>
-        </dynamics>
       </joint>
       <joint name="RR_velocity_control_joint2" type="revolute">
         <pose relative_to="RR_velocity_control_link1">0 0 0.1 0 0 0</pose>
@@ -490,10 +490,10 @@
         <child>RR_velocity_control_link2</child>
         <axis>
           <xyz>1 0 0</xyz>
+          <dynamics>
+            <damping>0.01</damping>
+          </dynamics>
         </axis>
-        <dynamics>
-          <damping>0.01</damping>
-        </dynamics>
       </joint>
       <!-- Controller -->
       <plugin
