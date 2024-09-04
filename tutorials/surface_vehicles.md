@@ -6,6 +6,10 @@ This tutorial explains how to create and load a maritime surface vehicle in
 Gazebo. This type of vehicle usually has multiple thrusters and navigate
 with the presence of waves and wind.
 
+## Fatal bug: ``libSurface.so``` undefined symbol triggers SIGKILL
+
+I have opened a public repository for easily reproducing this error here [gazebo_ionic_surface_vehicle](https://github.com/Mechazo11/gazebo_ionic_surface_vehicle?tab=readme-ov-file)
+
 ## Related tutorials
 
 https://gazebosim.org/api/sim/8/create_vehicle.html
