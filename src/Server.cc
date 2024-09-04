@@ -24,6 +24,11 @@
 #include <gz/common/SystemPaths.hh>
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/transport/log/Log.hh>
+
+#include "gz/sim/components/World.hh"
+#include "gz/sim/components/Name.hh"
+
 #include <sdf/Root.hh>
 #include <sdf/Error.hh>
 #include <sdf/ParserConfig.hh>
@@ -57,6 +62,87 @@ struct DefaultWorld
     return world;
   }
 };
+
+
+namespace {
+// A slow and ugly hack to restore Log playback
+std::optional<std::string>
+  WorldFromLog(std::string logPath)
+{
+  if (common::isFile(logPath))
+  {
+    // TODO(arjo): Restore Zip-file
+    return std::nullopt;
+  }
+
+  std::string dbPath = common::joinPaths(logPath,
+    "state.tlog");
+  gzmsg << "Loading log file [" + dbPath + "]\n";
+  if (!common::exists(dbPath))
+  {
+    gzerr << "Log path invalid. File [" << dbPath << "] "
+      << "does not exist. Nothing to play.\n";
+    return std::nullopt;
+  }
+
+  auto log = std::make_unique<transport::log::Log>();
+  if (!log->Open(dbPath))
+  {
+    gzerr << "Failed to open log file [" << dbPath << "]" << std::endl;
+    return std::nullopt;
+  }
+
+  auto batch = log->QueryMessages();
+  auto iter = batch.begin();
+
+  if (iter == batch.end())
+  {
+    gzerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+  }
+
+  EntityComponentManager tempEcm;
+  // Look for the first SerializedState message and use it to set the initial
+  // state of the world. Messages received before this are ignored.
+  for (; iter != batch.end(); ++iter)
+  {
+    auto msgType = iter->Type();
+    if (msgType == "gz.msgs.SerializedState")
+    {
+      msgs::SerializedState msg;
+      msg.ParseFromString(iter->Data());
+      tempEcm.SetState(msg);
+      break;
+    }
+    else if (msgType == "gz.msgs.SerializedStateMap")
+    {
+      msgs::SerializedStateMap msg;
+      msg.ParseFromString(iter->Data());
+      tempEcm.SetState(msg);
+      break;
+    }
+  }
+  auto worldEntity = tempEcm.EntityByComponents(components::World());
+  if (kNullEntity == worldEntity)
+  {
+    gzerr << "Missing world entity." << std::endl;
+    return std::nullopt;
+  }
+
+  auto name = tempEcm.ComponentData<components::Name>(worldEntity);
+  if (!name.has_value())
+  {
+    return std::nullopt;
+  }
+
+  std::stringstream worldTemplate;
+  worldTemplate << "<sdf version='1.6'>"
+        << "<world name='"<< name.value() <<"'>"
+        << "</world>"
+        << "</sdf>";
+  return worldTemplate.str();
+}
+
+}
 
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
@@ -190,10 +276,20 @@ Server::Server(const ServerConfig &_config)
     case ServerConfig::SourceType::kNone:
     default:
     {
-      gzmsg << "Loading default world.\n";
-      // Load an empty world.
-      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+      if (_config.LogPlaybackPath() == "")
+      {
+        // Load an empty world.
+        /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+        errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
+      }
+      else
+      {
+        auto world = WorldFromLog(_config.LogPlaybackPath());
+        if (world.has_value())
+          this->dataPtr->sdfRoot.LoadSdfString(world.value());
+        else
+          return;
+      }
       break;
     }
   }
