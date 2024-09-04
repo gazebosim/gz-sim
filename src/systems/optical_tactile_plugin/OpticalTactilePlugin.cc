@@ -530,6 +530,7 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   int contactSensorCounter = 0;
   sdf::Sensor depthCameraSdf;
   components::Pose depthCameraPose = components::Pose();
+  std::string depthCameraTopic;
   for (const Entity &sensor : sensorsInsideLink)
   {
     if (_ecm.EntityHasComponentType(sensor, components::DepthCamera::typeId))
@@ -538,6 +539,10 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
       depthCameraSdf =
         _ecm.Component<components::DepthCamera>(sensor)->Data();
       depthCameraPose = *(_ecm.Component<components::Pose>(sensor));
+      auto depthCameraTopicComp =
+          _ecm.Component<components::SensorTopic>(sensor);
+      if (depthCameraTopicComp)
+        depthCameraTopic = depthCameraTopicComp->Data();
     }
 
     if (_ecm.EntityHasComponentType(sensor, components::ContactSensor::typeId))
@@ -558,16 +563,6 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   }
 
   // Store depth camera update rate
-  if (!depthCameraSdf.Element()->HasElement("update_rate"))
-  {
-    if (!this->initErrorPrinted)
-    {
-      gzerr << "Depth camera should have an <update_rate> value "
-        << "(only printed once)" << std::endl;
-      this->initErrorPrinted = true;
-    }
-    return;
-  }
   this->cameraUpdateRate = depthCameraSdf.UpdateRate();
 
   // Depth camera data is float, so convert Pose3d to Pose3f
@@ -581,20 +576,27 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
     depthCameraPose.Data().Rot().Z());
 
   // Configure subscriber for depth camera images
-  if (!depthCameraSdf.Element()->HasElement("topic"))
+  if (depthCameraTopic.empty())
   {
-    gzwarn << "Depth camera publishing to __default__ topic. "
-      << "It's possible that two depth cameras are publishing into the same "
-      << "topic" << std::endl;
-  }
-  else
-  {
-    gzdbg << "Depth camera publishing to "
-      << depthCameraSdf.Topic() << " topic" << std::endl;
+    // get the topic from sdf if the one in sensor topic component is empty
+    depthCameraTopic = depthCameraSdf.Topic();
   }
 
+  if (depthCameraTopic.empty())
+  {
+    if (!this->initErrorPrinted)
+    {
+      gzerr << "Depth camera topic is empty. " << std::endl;
+      this->initErrorPrinted = true;
+    }
+    return;
+  }
+
+  gzdbg << "Depth camera publishing to "
+    << depthCameraTopic << " topic" << std::endl;
+
   std::string topic =
-    "/" + depthCameraSdf.Topic() + "/points";
+    "/" + depthCameraTopic + "/points";
   if (!this->node.Subscribe(topic,
       &OpticalTactilePluginPrivate::DepthCameraCallback, this))
   {

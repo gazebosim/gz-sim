@@ -458,16 +458,6 @@ has properly set the DYLD_LIBRARY_PATH environment variables."
         else
           resourcePathEnv = ENV['GZ_SIM_RESOURCE_PATH']
 
-          if resourcePathEnv.nil?
-            resourcePathEnv = ENV['IGN_GAZEBO_RESOURCE_PATH']
-
-            if !resourcePathEnv.nil?
-              puts "
-Using deprecated environment variable [IGN_GAZEBO_RESOURCE_PATH].
-Please use [GZ_SIM_RESOURCE_PATH] instead."
-            end
-          end
-
           if !resourcePathEnv.nil?
             resourcePaths = resourcePathEnv.split(':')
             for resourcePath in resourcePaths

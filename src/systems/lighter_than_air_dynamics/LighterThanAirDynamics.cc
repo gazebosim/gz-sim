@@ -457,8 +457,3 @@ GZ_ADD_PLUGIN(
 GZ_ADD_PLUGIN_ALIAS(
   LighterThanAirDynamics,
   "gz::sim::systems::LighterThanAirDynamics")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(
-  LighterThanAirDynamics,
-  "ignition::gazebo::systems::LighterThanAirDynamics")

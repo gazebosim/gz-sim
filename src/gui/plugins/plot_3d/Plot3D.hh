@@ -24,6 +24,16 @@
 
 #include "gz/gui/qt.h"
 
+#ifndef _WIN32
+#  define Plot3D_EXPORTS_API __attribute__ ((visibility ("default")))
+#else
+#  if (defined(Plot3D_EXPORTS))
+#    define Plot3D_EXPORTS_API __declspec(dllexport)
+#  else
+#    define Plot3D_EXPORTS_API __declspec(dllimport)
+#  endif
+#endif
+
 namespace gz
 {
 namespace sim
@@ -59,7 +69,7 @@ namespace gui
   /// After this number is reached, the older points start being deleted.
   /// Defaults to 1000.
   ///
-  class Plot3D : public gz::sim::GuiSystem
+  class Plot3D_EXPORTS_API Plot3D : public gz::sim::GuiSystem
   {
     Q_OBJECT
 

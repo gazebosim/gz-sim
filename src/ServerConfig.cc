@@ -924,19 +924,6 @@ sim::loadPluginInfo(bool _isPlayback)
                                envConfig,
                                true);
 
-  if (!configSet)
-  {
-    configSet = common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
-                            envConfig,
-                            true);
-    if (configSet)
-    {
-      gzwarn << "Config path found using deprecated environment variable "
-             << "[IGN_GAZEBO_SERVER_CONFIG_PATH]. Please use "
-             << "[GZ_SIM_SERVER_CONFIG_PATH] instead" << std::endl;
-    }
-  }
-
   if (configSet)
   {
     if (common::exists(envConfig))
@@ -951,7 +938,7 @@ sim::loadPluginInfo(bool _isPlayback)
         gzwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+      gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
         "[" << envConfig << "]\n";
 
       return ret;
@@ -1031,7 +1018,7 @@ sim::loadPluginInfo(bool _isPlayback)
       << "], but no plugins found\n";
   }
 
-  gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+  gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
     "[" << defaultConfig << "]\n";
 
   return ret;

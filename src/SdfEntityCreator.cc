@@ -15,7 +15,8 @@
  *
 */
 
-#include <set>
+
+#include <cstdint>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
@@ -239,7 +240,6 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -322,9 +322,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
-  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
-      _world->Plugins());
-
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -334,7 +331,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
     {
-      Entity modelEntity = this->CreateEntities(model);
+      Entity modelEntity = this->CreateEntities(model, false);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -384,7 +381,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
-        Entity modelEntity = this->CreateEntities(model);
+        Entity modelEntity = this->CreateEntities(model, false);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
       }
@@ -420,32 +417,51 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
 
   // Populate physics options that aren't accessible outside the Element()
   // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
+  if (physics->Element())
   {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
+    if (auto dartElem = physics->Element()->FindElement("dart"))
     {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
+      if (dartElem->HasElement("collision_detector"))
+      {
+        auto collisionDetector =
+            dartElem->Get<std::string>("collision_detector");
 
-      this->dataPtr->ecm->CreateComponent(_worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
+        this->dataPtr->ecm->CreateComponent(_worldEntity,
+            components::PhysicsCollisionDetector(collisionDetector));
+      }
+      if (auto solverElem = dartElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("solver_type"))
+        {
+          auto solver = solverElem->Get<std::string>("solver_type");
+          this->dataPtr->ecm->CreateComponent(_worldEntity,
+              components::PhysicsSolver(solver));
+        }
+      }
     }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
+    if (auto bulletElem = physics->Element()->FindElement("bullet"))
     {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->dataPtr->ecm->CreateComponent(_worldEntity,
-          components::PhysicsSolver(solver));
+      if (auto solverElem = bulletElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("iters"))
+        {
+          uint32_t solverIterations = solverElem->Get<uint32_t>("iters");
+          this->dataPtr->ecm->CreateComponent(_worldEntity,
+              components::PhysicsSolverIterations(solverIterations));
+        }
+      }
     }
   }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
+
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
+      _world->Plugins());
+
+  // Load model plugins after the world plugin.
+  this->LoadModelPlugins();
 }
 
 //////////////////////////////////////////////////

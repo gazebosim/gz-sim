@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8)
-Ubuntu Jammy  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-jammy-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-jammy-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-8-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-8-win/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim9/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim9)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim9-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim9-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim9-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim9-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-9-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-9-win/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -32,9 +32,9 @@ Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and re
 
 [Folder Structure](#folder-structure)
 
-[Code of Conduct](#code-of-conduct)
-
 [Contributing](#contributing)
+
+[Code of Conduct](#code-of-conduct)
 
 [Versioning](#versioning)
 
@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/sim/8/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 # Usage
 
@@ -115,7 +115,7 @@ line is using symbolic links to each library's YAML file.
 mkdir ~/.gz/tools/configs -p
 cd ~/.gz/tools/configs/
 ln -s /usr/local/share/gz/fuel8.yaml .
-ln -s /usr/local/share/gz/transport13.yaml .
+ln -s /usr/local/share/gz/transport14.yaml .
 ln -s /usr/local/share/gz/transportlog13.yaml .
 ...
 export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
@@ -125,11 +125,11 @@ This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
 
 # Documentation
 
-See the [installation tutorial](https://gazebosim.org/api/sim/8/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 # Testing
 
-See the [installation tutorial](https://gazebosim.org/api/sim/8/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
 
@@ -154,7 +154,7 @@ gz-sim
 │   ├── performance              Performance tests.
 │   ├── plugins                  Plugins used in tests.
 │   ├── regression               Regression tests.
-│   └── tutorials                Tutorials, written in markdown.
+├── tutorials                    Tutorials, written in markdown.
 ├── Changelog.md                 Changelog.
 ├── CMakeLists.txt               CMake build script.
 ├── Migration.md                 Migration guide.
@@ -163,8 +163,8 @@ gz-sim
 
 # Contributing
 
-Please see
-[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
+Please see the
+[contribution guide](https://gazebosim.org/docs/all/contributing/).
 
 # Code of Conduct
 

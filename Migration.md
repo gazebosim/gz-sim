@@ -5,6 +5,25 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 8.x to 9.0
+
+ * **Modified**:
+   + In the Physics system, all `*VelocityCmd` components are now deleted after
+     each time step, whereas previously the component values were set to `0`
+     after each time step. Persistent velocity commands should be reapplied at
+     each time step.
+   + Default priority values are specified for the `Physics` and `UserCommands`
+     systems to ensure that `Physics::Update` and `UserCommands::PreUpdate`
+     execute before systems with default execution priority. Several constants
+     for system priority are defined in `gz/sim/System.hh`.
+   + The ForceTorque system has been changed from updating sensor data during
+     the parallelized `PostUpdate` phase to use the sequential `Update` phase
+     and writing directly to the ECM if a sensor entity has a `WrenchMeasured`
+     component. The ForceTorque system priority is specified to use the
+     `gz::sim::systems::kPostPhysicsSensorPriority` constant to ensure that its
+     `Update` phase executes after `Physics::Update` and before systems with
+     default priority.
+
 ## Gazebo Sim 7.x to 8.0
 * **Deprecated**
     + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and

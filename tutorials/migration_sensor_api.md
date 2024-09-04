@@ -61,24 +61,24 @@ Classic | Gazebo
 -- | --
 Category | TODO
 FillMsg | TODO
-Id | `ignition::gazebo::Sensor::Entity`
+Id | `gz::sim::Sensor::Entity`
 IsActive | TODO
 LastMeasurementTime | TODO
 LastUpdateTime | TODO
-Name | `ignition::gazebo::Sensor::Name`
+Name | `gz::sim::Sensor::Name`
 NextRequiredTimestamp | TODO
 Noise | TODO
-Pose | `ignition::gazebo::Sensor::Pose`
+Pose | `gz::sim::Sensor::Pose`
 ResetLastUpdateTime | TODO
-ScopedName | `ignition::gazebo::scopedName`
+ScopedName | `gz::sim::scopedName`
 SetActive | TODO
 SetPose | TODO
 SetUpdateRate | TODO
-Topic | `ignition::gazebo::Sensor::Topic`
-Type | `ignition::gazebo::entityType`
+Topic | `gz::sim::Sensor::Topic`
+Type | `gz::sim::entityType`
 UpdateRate | TODO
 Visualize | TODO
-WorldName | `ignition::gazebo::worldEntity`
+WorldName | `gz::sim::worldEntity`
 
 ---
 
@@ -94,8 +94,8 @@ they deal with entity IDs.
 
 Classic | Gazebo
 -- | --
-ParentId | `ignition::gazebo::Sensor::Parent`
-ParentName | `ignition::gazebo::Sensor::Parent`
+ParentId | `gz::sim::Sensor::Parent`
+ParentName | `gz::sim::Sensor::Parent`
 
 ---
 
@@ -124,6 +124,6 @@ Classic | Gazebo
 ConnectUpdated | TODO
 Fini | N/A
 Init | N/A
-Load | `ignition::gazebo::SdfEntityCreator::CreateEntities`
+Load | `gz::sim::SdfEntityCreator::CreateEntities`
 Update | Entities are updated by systems
 ---
