@@ -29,7 +29,7 @@
           <property type="string" key="state">docked</property>
         </gz-gui>
 
-        <engine>ogre</engine>
+        <engine>ogre2</engine>
         <scene>scene</scene>
         <ambient_light>0 0 0</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
