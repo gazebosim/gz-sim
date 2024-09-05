@@ -394,7 +394,7 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in render thread, so it's safe to make
     // rendering calls here
 
     if (!this->dataPtr->initialized)
