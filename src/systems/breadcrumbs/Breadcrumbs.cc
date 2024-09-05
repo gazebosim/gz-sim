@@ -400,7 +400,7 @@ bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
         auto comp = _ecm.Component<components::ModelCanonicalLink>(ent);
         if (comp)
         {
-          return comp->Data();;
+          return comp->Data();
         }
         else
         {
