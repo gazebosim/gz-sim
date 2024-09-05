@@ -14,9 +14,7 @@ The default shadow texture size for all lights is 2K. The default max texture si
 
 ## Changing shadow texture size
 
-> **Note:** Changing shadow texture size is only supported for the GUI.
-
-The shadow texture size can be changed for the GUI with the usage of the Minimal Scene GUI plugin in the SDF. 
+The shadow texture size can be changed for the GUI with the usage of the Minimal Scene GUI plugin in the SDF.
 
 ### Example usage for the GUI
 
@@ -45,7 +43,7 @@ Let's change the shadow texture size for directional light with the SDF file bel
     </gui>
 
     <!--lighting-->
-    <light type="directional" name="sun"> 
+    <light type="directional" name="sun">
       <pose>0 0 8 0 0 0</pose>
       <diffuse>1 1 1 1</diffuse>
       <specular>0 0 0 0</specular>
@@ -115,4 +113,4 @@ gz sim shadow_texsize_demo.sdf
 
 ## Impact on VRAM usage
 
-Keep in mind that the larger the shadow texture size, the more VRAM is used. Thus, in a scene populated with many lights, changing the directional light's shadow texture size should be fine because there is typically only one directional light in a scene. But if the scene has many point lights and the point light's shadow texture size is increased, the VRAM consumption goes up significantly. 
+Keep in mind that the larger the shadow texture size, the more VRAM is used. Thus, in a scene populated with many lights, changing the directional light's shadow texture size should be fine because there is typically only one directional light in a scene. But if the scene has many point lights and the point light's shadow texture size is increased, the VRAM consumption goes up significantly.
