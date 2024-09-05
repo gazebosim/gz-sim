@@ -75,6 +75,7 @@ namespace serializers
         }
       }
 
+      // Why bother even sending this. Wouldn't a blank string work?
       _out << "<?xml version=\"1.0\" ?>"
            << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
            << (skip ? std::string() : modelElem->ToString(""))
@@ -91,11 +92,17 @@ namespace serializers
     {
       sdf::Root root;
       std::string sdf(std::istreambuf_iterator<char>(_in), {});
+      if (sdf.find("model") == std::string::npos)
+      {
+        gzwarn << "No model was sent\n";
+        return _in;
+      }
+      // Its super expensive to create an SDFElement for some reason
 
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-        gzwarn << "Unable to deserialize sdf::Model" << std::endl;
+        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
         return _in;
       }
 
