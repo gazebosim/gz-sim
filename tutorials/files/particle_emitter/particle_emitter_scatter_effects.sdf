@@ -1,0 +1,309 @@
+<?xml version="1.0" ?>
+
+<sdf version="1.6">
+  <world name="particle_emitters">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="gz-sim-particle-emitter-system"
+      name="gz::sim::systems::ParticleEmitter">
+    </plugin>
+
+    <gui fullscreen="0">
+
+      <plugin filename="ImageDisplay" name="Image Display">
+        <gz-gui>
+          <title>RGB camera</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+        </gz-gui>
+        <topic>camera</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Image Display 2">
+        <gz-gui>
+          <title>Depth camera</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+          <property type="double" key="x">500</property>
+        </gz-gui>
+        <topic>depth_camera</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Image Display 3">
+        <gz-gui>
+          <title>RGBD: image</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+          <property type="double" key="y">320</property>
+        </gz-gui>
+        <topic>rgbd_camera/image</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Image Display 3">
+        <gz-gui>
+          <title>RGBD: depth</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+          <property type="double" key="x">500</property>
+          <property type="double" key="y">320</property>
+        </gz-gui>
+        <topic>rgbd_camera/depth_image</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Image Display 5">
+        <gz-gui>
+          <title>Thermal camera</title>
+          <property key="state" type="string">floating</property>
+          <property type="double" key="width">350</property>
+          <property type="double" key="height">315</property>
+          <property type="double" key="x">500</property>
+          <property type="double" key="y">640</property>
+        </gz-gui>
+        <topic>thermal_camera</topic>
+        <topic_picker>false</topic_picker>
+      </plugin>
+
+      <plugin filename="VisualizeLidar" name="Visualize Lidar">
+      </plugin>
+
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/fog generator</uri>
+    </include>
+
+    <model name="camera_with_lidar">
+      <pose>8 0 0.5 0 0.0 3.14</pose>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+
+        <sensor name="camera" type="camera">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>camera</topic>
+        </sensor>
+
+        <sensor name="depth_camera1" type="depth_camera">
+          <update_rate>10</update_rate>
+          <topic>depth_camera</topic>
+          <camera>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100.0</far>
+            </clip>
+          </camera>
+        </sensor>
+
+        <sensor name='gpu_lidar' type='gpu_lidar'>"
+          <topic>lidar</topic>
+          <update_rate>10</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>640</samples>
+                <resolution>1</resolution>
+                <min_angle>-1.396263</min_angle>
+                <max_angle>1.396263</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.08</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <always_on>1</always_on>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+
+      <static>true</static>
+    </model>
+
+    <model name="rgbd_camera">
+      <pose>8 0 0.5 0 0.0 3.14</pose>
+      <static>true</static>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="rgbd_camera" type="rgbd_camera">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>rgbd_camera</topic>
+        </sensor>
+      </link>
+      <static>true</static>
+    </model>
+
+    <model name="thermal_camera">
+      <pose>8 0 0.5 0 0.0 3.14</pose>
+      <static>true</static>
+      <link name="link">
+        <pose>0.05 0.05 0.05 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="thermal_camera" type="thermal_camera">
+          <camera>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>thermal_camera</topic>
+        </sensor>
+      </link>
+    </model>
+
+    <include>
+      <pose>0 0 0 0 0 1.570796</pose>
+      <name>rescue_randy</name>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy</uri>
+    </include>
+
+  </world>
+</sdf>

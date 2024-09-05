@@ -23,6 +23,7 @@
 
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
@@ -67,7 +68,7 @@
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
-#include <gz/sim/components/ParticleEmitter.hh>
+#include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
@@ -1004,9 +1005,27 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
   // Entity
   Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
 
+  auto particleEmitterMsg = convert<msgs::ParticleEmitter>(*_emitter);
+
+  // Update image path
+  // Ideally this is done by gz/sim/src/SceneManager.cc when creating
+  // the particle emitter. However the component stores a msg instead of
+  // an sdf so the sdf FilePath information is lost and rendering is not
+  // able to construct the full path of the image.
+  // \todo(iche033) Consider changing the ParticleEmitter component to
+  // store an sdf::ParticleEmitter object instead of msgs::ParticleEmitter.
+  std::string imagePath = _emitter->ColorRangeImage();
+  if (!imagePath.empty())
+  {
+    std::string path = common::findFile(asFullPath(imagePath,
+        _emitter->Element()->FilePath()));
+    path = path.empty() ? imagePath : path;
+    particleEmitterMsg.mutable_color_range_image()->set_data(path);
+  }
+
   // Components
   this->dataPtr->ecm->CreateComponent(emitterEntity,
-      components::ParticleEmitter(convert<msgs::ParticleEmitter>(*_emitter)));
+      components::ParticleEmitter(particleEmitterMsg));
   this->dataPtr->ecm->CreateComponent(emitterEntity,
       components::Pose(ResolveSdfPose(_emitter->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(emitterEntity,
