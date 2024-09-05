@@ -166,13 +166,13 @@ GlobalIlluminationVct::~GlobalIlluminationVct()
 }
 
 /////////////////////////////////////////////////
-void GlobalIlluminationVct::LoadGlobalIlluminationVct()
+bool GlobalIlluminationVct::LoadGlobalIlluminationVct()
   REQUIRES(this->dataPtr->serviceMutex)
 {
   auto loadedEngNames = rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
-    return;
+    return false;
   }
 
   // assume there is only one engine loaded
@@ -188,11 +188,11 @@ void GlobalIlluminationVct::LoadGlobalIlluminationVct()
   {
     gzerr << "Internal error: failed to load engine [" << engineName
           << "]. GlobalIlluminationVct plugin won't work." << std::endl;
-    return;
+    return false;
   }
 
   if (engine->SceneCount() == 0)
-    return;
+    return false;
 
   // assume there is only one scene
   // load scene
@@ -200,15 +200,16 @@ void GlobalIlluminationVct::LoadGlobalIlluminationVct()
   if (!scene)
   {
     gzerr << "Internal error: scene is null." << std::endl;
-    return;
+    return false;
   }
 
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  if (!scene->IsInitialized() || scene->VisualCount() == 0 ||
+      scene->LightCount() ==  0)
   {
-    return;
+    return false;
   }
 
-  // Create lidar visual
+  // Create GI
   gzdbg << "Creating GlobalIlluminationVct" << std::endl;
 
   auto root = scene->RootVisual();
@@ -219,6 +220,7 @@ void GlobalIlluminationVct::LoadGlobalIlluminationVct()
            << std::endl;
 
     gz::gui::App()->findChild<gz::gui::MainWindow *>()->removeEventFilter(this);
+    return false;
   }
   else
   {
@@ -228,6 +230,7 @@ void GlobalIlluminationVct::LoadGlobalIlluminationVct()
     this->dataPtr->scene = scene;
     this->dataPtr->initialized = true;
   }
+  return true;
 }
 
 /// \brief XML helper to retrieve values and handle errors
@@ -319,8 +322,6 @@ void GlobalIlluminationVct::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
   if (this->title.empty())
     this->title = "Global Illumination (VCT)";
 
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-
   if (auto elem = _pluginElem->FirstChildElement("enabled"))
   {
     GetXmlBool(elem, this->dataPtr->enabled);
@@ -394,15 +395,35 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in render thread, so it's safe to make
     // rendering calls here
 
-    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
     if (!this->dataPtr->initialized)
     {
-      this->LoadGlobalIlluminationVct();
+      if (this->LoadGlobalIlluminationVct())
+      {
+        // update properties and notify QML
+        this->SetEnabled(this->dataPtr->enabled);
+        this->SetResolutionX(this->dataPtr->resolution[0]);
+        this->SetResolutionY(this->dataPtr->resolution[1]);
+        this->SetResolutionZ(this->dataPtr->resolution[2]);
+        this->SetOctantCountX(this->dataPtr->octantCount[0]);
+        this->SetOctantCountY(this->dataPtr->octantCount[1]);
+        this->SetOctantCountZ(this->dataPtr->octantCount[2]);
+        this->SetBounceCount(this->dataPtr->bounceCount);
+        this->SetHighQuality(this->dataPtr->highQuality);
+        this->SetAnisotropic(this->dataPtr->anisotropic);
+        this->SetConserveMemory(this->dataPtr->conserveMemory);
+        this->SetThinWallCounter(this->dataPtr->thinWallCounter);
+        this->SetDebugVisualizationMode(this->dataPtr->debugVisMode);
+        this->EnabledChanged();
+        this->LightingChanged();
+        this->SettingsChanged();
+        this->DebugVisualizationModeChanged();
+      }
     }
 
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
     if (this->dataPtr->gi)
     {
       if (this->dataPtr->resetVisual)
@@ -496,10 +517,6 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
         }
         this->dataPtr->debugVisualizationDirty = false;
       }
-    }
-    else
-    {
-      gzerr << "GI pointer is not set" << std::endl;
     }
   }
 

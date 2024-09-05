@@ -156,7 +156,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: bool eventFilter(QObject *_obj, QEvent *_event) override;
 
     /// \brief Load the scene and attach LidarVisual to the scene
-    public: void LoadGlobalIlluminationVct();
+    /// \return True if GI VCT is loaded successfully, false otherwise.
+    public: bool LoadGlobalIlluminationVct();
 
     /// \brief Set debug visualization mode GlogbalIllumination
     /// \param[in] _mode Index of selected debug visualization mode
