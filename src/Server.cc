@@ -98,6 +98,7 @@ std::optional<std::string>
   if (iter == batch.end())
   {
     gzerr << "No messages found in log file [" << dbPath << "]" << std::endl;
+    return std::nullopt;
   }
 
   EntityComponentManager tempEcm;
@@ -124,14 +125,16 @@ std::optional<std::string>
   auto worldEntity = tempEcm.EntityByComponents(components::World());
   if (kNullEntity == worldEntity)
   {
-    gzerr << "Missing world entity." << std::endl;
-    return std::nullopt;
+    // Seems like levels logs can start without a world component
+    gzwarn << "Log file has no initial world component.\n";
+    return DefaultWorld::World();
   }
 
   auto name = tempEcm.ComponentData<components::Name>(worldEntity);
   if (!name.has_value())
   {
-    return std::nullopt;
+    gzwarn << "Log file world has no name component.\n";
+    return DefaultWorld::World();
   }
 
   std::stringstream worldTemplate;

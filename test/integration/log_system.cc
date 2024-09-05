@@ -904,7 +904,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControl))
   msgs::Boolean res;
   bool result{false};
   unsigned int timeout = 1000;
-  std::string service{"/world/default/playback/control"};
+  std::string service{"/world/shapes/playback/control"};
   for (auto i : secs)
   {
     req.mutable_seek()->set_sec(i);
