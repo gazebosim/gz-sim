@@ -203,7 +203,8 @@ bool GlobalIlluminationVct::LoadGlobalIlluminationVct()
     return false;
   }
 
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  if (!scene->IsInitialized() || scene->VisualCount() == 0 ||
+      scene->LightCount() ==  0)
   {
     return false;
   }
