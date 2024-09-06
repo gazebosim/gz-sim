@@ -8,7 +8,7 @@ This tutorial showcases how to change the texture size of shadows casted by ligh
 
 ## Texture size options
 
-Supported texture sizes include: 512 px, 1024 px, 2048 px, 4096 px, 8192 px, 16384 px.
+Supported texture sizes include: 512px, 1024px, 2048px, 4096px, 8192px, 16384px.
 
 The default shadow texture size for all lights is 2K. The default max texture size is 16K, but for less powerful computers, it may be a lower value, like 8K.
 
@@ -20,7 +20,7 @@ The shadow texture size can be changed for the GUI with the usage of the Minimal
 
 Let's change the shadow texture size for directional light with the SDF file below. (The finished SDF file can be viewed [here](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/shadow_texture_size.sdf).)
 
-1) Save the below in an SDF file named `shadow_texsize_demo.sdf`:
+1) Save the below in an SDF file named `shadow_texture_size.sdf`:
 
 ```xml
 <?xml version="1.0" ?>
@@ -108,7 +108,7 @@ The `<texture_size>` value can be changed as per the Texture size options sectio
 3) Open the `shadow_texsize_demo.sdf` world with
 
 ```bash
-gz sim shadow_texsize_demo.sdf
+gz sim shadow_texture_size.sdf
 ```
 
 ## Impact on VRAM usage
