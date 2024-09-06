@@ -127,6 +127,12 @@ that path to the environment variable as described above.
 There was some problem loading that file. Check that it exists, that you have
 permissions to access it, and that it's acually a physics engine plugin.
 
+> No physics plugins implementing required interface found in library
+> [/home/physics_engines/libCustomEngine.so]
+
+The library was found but none of the plugins in the library implement the
+required interface to be considered a physics plugin.
+
 > No plugins with all required features found in library
 > [/home/physics_engines/libCustomEngine.so]
 
