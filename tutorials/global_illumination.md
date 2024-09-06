@@ -8,7 +8,7 @@ This tutorial showcases how to enable real-time global illumination in Gazebo.
 
 ## About global illumination
 
-Global illumination (GI) techniques account for illumination from indirect light reflections. When GI is enabled, objects not only receive direct light from light sources, but also from indirect light bouncing off of other surfaces, ensuring nice reflections and soft shadows.
+Global illumination (GI) techniques account for illumination from indirect light reflections. When GI is enabled, objects not only receive direct light from light sources, but also from indirect light bouncing off of other surfaces, ensuring nice reflections and a more natural appearance.
 
 Gazebo supports two GI methods through the Ogre2 rendering engine, Voxel Cone Tracing (VCT) and Cascaded Image Voxel Cone Tracing (CI VCT).
 
@@ -28,7 +28,7 @@ VCT parameters include:
 
 ### Cascaded Image Voxel Cone Tracing
 
-Compared to VCT, a scene rendered with CI VCT is slightly lower resolution, but the scene can be re-voxelized every frame, so it’s much faster when dealing with very large scenes. However, it is more memory-intensive than VCT.
+Compared to VCT, a scene rendered with CI VCT is slightly lower quality, but the scene can be re-voxelized every frame, so it’s much faster when dealing with very large scenes. However, it is more memory-intensive than VCT.
 
 CI VCT parameters include:
 * **Bounce count**
@@ -45,7 +45,7 @@ CI VCT parameters include:
 
 During simulation, the GUI and the camera sensor view are two different scenes. The GUI scene is rendered on the frontend client process, and the camera sensor scene is rendered on the backend server process. Thus, GI can be enabled on either or both of these processes.
 
-> **Note:** GI solutions require hardware that uses DX11 or GL4. <br>
+> **Note:** GI solutions require hardware that uses OpenGL4. <br>
 > **Note:** CI VCT must be run with Vulkan as the render engine API backend.
 
 ### How to enable global illumination for the GUI
