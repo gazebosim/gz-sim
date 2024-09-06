@@ -16,6 +16,8 @@ The default shadow texture size for all lights is 2K. The default max texture si
 
 The shadow texture size can be changed for the GUI with the usage of the Minimal Scene GUI plugin in the SDF.
 
+Currently, light type is restricted to only directional light. As a scene should typically have at most one directional light (representing the sun), this will ensure that an increase in shadow texture size does not increase VRAM too much.
+
 ### Example usage for the GUI
 
 Let's change the shadow texture size for directional light with the SDF file below. (The finished SDF file can be viewed [here](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/shadow_texture_size.sdf).)
