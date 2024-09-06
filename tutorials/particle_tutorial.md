@@ -97,7 +97,18 @@ The particles are not only a visual effect in simulation, they also have an effe
 * `gpu_lidar`: The particles have a scattering effect on the lidar range readings.
 * `thermal_camera`: The particles are not visible in the thermal camera image.
 
-The gif below shows an [example world](https://gist.github.com/iche033/bcd3b7d3f4874e1e707e392d6dbb0aa0) with six different sensors looking at the fog generator with a rescue randy model inside the fog.
+
+The [particle_emitter_scatter_effects.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim9/tutorials/files/particle_emitter/particle_emitter_scatter_effects.sdf)
+demo world shows six different sensors looking at the fog generator with a rescue randy model inside the fog.
+
+Download the example world file and launch it to see what it looks like.
+
+```bash
+gz sim -v 4 -r particle_emitter_scatter_effects.sdf
+```
+
+Navigate to the Visualize Lidar plugin on the right and click on the refresh button to set the lidar topic. You should see the sensor images and lidar visualization like below:
+
 
 @image html files/particle_emitter/sensor_scatter_tutorial.gif
 
