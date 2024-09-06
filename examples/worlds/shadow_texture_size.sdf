@@ -12,7 +12,7 @@
         <engine>ogre2</engine>
         <camera_pose>-10 0 7 0 0.5 0</camera_pose>
         <shadows>
-          <texture_size light_type="directional">16384</texture_size>
+          <texture_size light_type="directional">8192</texture_size>
         </shadows>
       </plugin>
 
