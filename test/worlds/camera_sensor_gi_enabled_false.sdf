@@ -1,10 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="sensors">
-    <!-- <physics name="1ms" type="ignored">
-      <max_step_size>.001</max_step_size>
-      <real_time_factor>0</real_time_factor>
-    </physics> -->
     <plugin
       filename="gz-sim-physics-system"
       name="gz::sim::systems::Physics">
@@ -30,55 +26,12 @@
       filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">
     </plugin>
-    <!-- <plugin
-      filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster">
-    </plugin> -->
 
     <scene>
       <ambient>0 0 0</ambient>
       <background>0.1 0.1 0.1</background>
     </scene>
-
-    <gui>
-      <plugin filename="MinimalScene" name="3D View">
-        <engine>ogre2</engine>
-        <camera_pose>0 2.5 1.25 0 0 -1.57</camera_pose>
-      </plugin>
-
-      <plugin filename="ImageDisplay" name="Image Display">
-          <topic>camera</topic>
-      </plugin>
-
-      <!-- <plugin filename="GlobalIlluminationVct" name="Global Illumination Vct">
-      </plugin> -->
-
-      <plugin filename="GzSceneManager" name="Scene Manager"/>
-      <plugin filename="InteractiveViewControl" name="Interactive view control"/>
-
-      <plugin filename="TransformControl" name="Transform control">
-          <gz-gui>
-              <property key="resizable" type="bool">false</property>
-              <property key="x" type="double">0</property>
-              <property key="y" type="double">50</property>
-              <property key="width" type="double">250</property>
-              <property key="height" type="double">50</property>
-              <property key="state" type="string">docked</property>
-              <property key="showTitleBar" type="bool">true</property>
-              <property key="cardBackground" type="string">#777777</property>
-          </gz-gui>
-      </plugin>
-      <plugin filename="SelectEntities" name="Select Entities">
-          <gz-gui>
-              <property key="resizable" type="bool">false</property>
-              <property key="width" type="double">5</property>
-              <property key="height" type="double">5</property>
-              <property key="state" type="string">floating</property>
-              <property key="showTitleBar" type="bool">false</property>
-          </gz-gui>
-      </plugin>
-    </gui>
-
+    
     <!--lighting-->
     <light type="point" name="ceiling_light">
     <pose>0 -0.5 2.5 0 0 0</pose>
