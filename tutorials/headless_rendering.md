@@ -69,7 +69,7 @@ here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-hea
   DISPLAY= gz sim -v 4 -s -r --headless-rendering sensors_demo.sdf
   ```
 17. Check that simulation is producing sensor data by ssh'ing into the EC2
-    instance from a new terminal and testing the frequency of a sensor topic.  
+    instance from a new terminal and testing the frequency of a sensor topic.
   ```
   ssh -i SSH_PEM_FILE_USED_DURING_LAUNCH ubuntu@EC_INSTANCE_PUBLIC_IP
   gz topic -ft /thermal_camera
