@@ -23,6 +23,10 @@ release will remove the deprecated code.
      `gz::sim::systems::kPostPhysicsSensorPriority` constant to ensure that its
      `Update` phase executes after `Physics::Update` and before systems with
      default priority.
+ * **Deprecated**
+   + In the Hydrodynamics system, added mass has been deprecated in favour of
+     the builtin sdformat `<fuel_added_mass>` tag that offers better stability
+     guarantees.
 
 ## Gazebo Sim 7.x to 8.0
 * **Deprecated**
