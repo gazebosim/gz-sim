@@ -71,7 +71,7 @@
 
     <include>
       <pose>0 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
 
       <!-- Acoustic comms endpoint -->
       <plugin
@@ -148,12 +148,6 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
-        <xDotU>-4.876161</xDotU>
-        <yDotV>-126.324739</yDotV>
-        <zDotW>-126.324739</zDotW>
-        <kDotP>0</kDotP>
-        <mDotQ>-33.46</mDotQ>
-        <nDotR>-33.46</nDotR>
         <xUU>-6.2282</xUU>
         <xU>0</xU>
         <yVV>-601.27</yVV>
@@ -172,7 +166,7 @@
 
     <include>
       <pose>15 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
       <name>triton</name>
 
       <!-- Acoustic comms endpoint -->
@@ -250,12 +244,6 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
-        <xDotU>-4.876161</xDotU>
-        <yDotV>-126.324739</yDotV>
-        <zDotW>-126.324739</zDotW>
-        <kDotP>0</kDotP>
-        <mDotQ>-33.46</mDotQ>
-        <nDotR>-33.46</nDotR>
         <xUU>-6.2282</xUU>
         <xU>0</xU>
         <yVV>-601.27</yVV>
@@ -274,7 +262,7 @@
 
     <include>
       <pose>-15 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/accurrent/models/MBARI Tethys LRAUV</uri>
+      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
       <name>daphne</name>
 
       <!-- Acoustic comms endpoint -->
@@ -352,12 +340,6 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
-        <xDotU>-4.876161</xDotU>
-        <yDotV>-126.324739</yDotV>
-        <zDotW>-126.324739</zDotW>
-        <kDotP>0</kDotP>
-        <mDotQ>-33.46</mDotQ>
-        <nDotR>-33.46</nDotR>
         <xUU>-6.2282</xUU>
         <xU>0</xU>
         <yVV>-601.27</yVV>
