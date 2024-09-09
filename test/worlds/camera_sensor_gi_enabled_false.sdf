@@ -31,7 +31,7 @@
       <ambient>0 0 0</ambient>
       <background>0.1 0.1 0.1</background>
     </scene>
-    
+
     <!--lighting-->
     <light type="point" name="ceiling_light">
     <pose>0 -0.5 2.5 0 0 0</pose>
