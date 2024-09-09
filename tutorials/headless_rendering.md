@@ -63,14 +63,23 @@ here](https://www.ogre3d.org/2021/02/06/ogre-2-2-5-cerberus-released-and-egl-hea
   ```
   sudo reboot
   ```
-11. [Install Gazebo](https://gazebosim.org/docs/latest/install).
-12. Run a Gazebo world that uses OGRE2 with camera sensors using headless rendering. This will enable EGL.
+15. [Install Gazebo](https://gazebosim.org/docs/latest/install).
+16. Run a Gazebo world that uses OGRE2 with camera sensors using headless rendering. This will enable EGL.
   ```
   DISPLAY= gz sim -v 4 -s -r --headless-rendering sensors_demo.sdf
   ```
-13. Check that simulation is producing sensor data by ssh'ing into the EC2
-    instance from a new terminal and testing the frequency of a sensor topic.
+17. Check that simulation is producing sensor data by ssh'ing into the EC2
+    instance from a new terminal and testing the frequency of a sensor topic.  
   ```
   ssh -i SSH_PEM_FILE_USED_DURING_LAUNCH ubuntu@EC_INSTANCE_PUBLIC_IP
   gz topic -ft /thermal_camera
+  ```
+18. To verify that the EGL backend was used, try the following command:
+  ```
+  grep -R "EGL Subsystem" ~/.gz/rendering/ogre2.log
+  ```
+  Its output should not be empty, e.g.:
+  ```
+  *** Starting EGL Subsystem ***
+  *** Stopping EGL Subsystem ***
   ```
