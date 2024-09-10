@@ -24,6 +24,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage headless_rendering "Headless rendering": Access the GPU on a remote machine to produce sensor data without an X server.
 * \subpage apply_force_torque "Apply Force and Torque": Applying forces and/or torques to models during simulation through the GUI.
 * \subpage mouse_drag "Mouse Drag": Move models by dragging them in the scene using forces and torques.
+* \subpage global_illumination "Global illumination": Enable global illumination for the GUI and for the sensor view.
 
 ### Migration from Gazebo classic
 
