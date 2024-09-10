@@ -1596,8 +1596,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   this->entityCompMgr.ProcessRemoveEntityRequests();
   this->entityCompMgr.ClearRemovedComponents();
 
-  this->LoadLoggingPlugins(this->serverConfig);
-
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
@@ -1653,6 +1651,8 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     }
 
     this->LoadServerPlugins(defaultPlugins);
+    this->LoadLoggingPlugins(this->serverConfig);
+
   };
 
   // Store the initial state of the ECM;
