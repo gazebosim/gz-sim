@@ -203,12 +203,6 @@ Uncomment the following block from `buoyant_lrauv.sdf` to enable hydrodynamics.
 filename="gz-sim-hydrodynamics-system"
 name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-4.876161</xDotU>
-  <yDotV>-126.324739</yDotV>
-  <zDotW>-126.324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-33.46</mDotQ>
-  <nDotR>-33.46</nDotR>
   <xUabsU>-6.2282</xUabsU>
   <xU>0</xU>
   <yVabsV>-601.27</yVabsV>

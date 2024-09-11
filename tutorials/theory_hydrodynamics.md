@@ -50,12 +50,6 @@ The next table summarizes all the available SDF parameters.
 
 Parameter         | Description
 ------------------| -------------
-<xDotU>           | Added mass in surge
-<yDotV>           | Added mass in sway
-<zDotW>           | Added mass in heave
-<kDotP>           | Added mass in roll
-<mDotQ>           | Added mass in pitch
-<nDotR>           | Added mass in yaw
 <xUabsU>          | Quadratic drag in surge
 <xU>              | Linear drag in surge
 <yVabsV>          | Quadratic drag in sway
@@ -70,10 +64,9 @@ Parameter         | Description
 <nR>              | Linear drag in yaw
 <default_current> | Default ocean current vector
 
-**Note about added mass**: SDFormat also supports added mass natively. Until we
-deprecate the added mass parameters of this plugin, do not set the added mass
-parameters in both places, choose one (either in this plugin or under
-`<inertial>` of your link).
+
+For added mass we recommend setting the added mass directly on the
+link via SDF. This can be done via the sdformat [`fluid_added_mass`](http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass) tag.
 
 # A simple example
 
