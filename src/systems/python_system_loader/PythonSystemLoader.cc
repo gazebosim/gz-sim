@@ -194,14 +194,21 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args &&..._args)
 void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
                                    EntityComponentManager &_ecm)
 {
+  // Add explicit scoped acquire and release of GIL, so that Python
+  // Systems can be executed.This acquire and release is only required
+  // from the PythonSystem code
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->preUpdateMethod, _info, &_ecm);
+  py::gil_scoped_release gilr;
 }
 
 //////////////////////////////////////////////////
 void PythonSystemLoader::Update(const UpdateInfo &_info,
                                 EntityComponentManager &_ecm)
 {
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->updateMethod, _info, &_ecm);
+  py::gil_scoped_release gilr;
 }
 
 //////////////////////////////////////////////////
@@ -210,6 +217,7 @@ void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
 {
   py::gil_scoped_acquire gil;
   CallPythonMethod(this->postUpdateMethod, _info, &_ecm);
+  py::gil_scoped_release gilr;
 }
 //////////////////////////////////////////////////
 void PythonSystemLoader::Reset(const UpdateInfo &_info,
