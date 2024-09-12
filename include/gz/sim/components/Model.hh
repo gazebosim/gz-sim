@@ -75,8 +75,7 @@ namespace serializers
         }
       }
 
-      // Why bother even sending this. Wouldn't a blank string work?
-      if (skip)
+      if (!skip)
       {
       _out << "<?xml version=\"1.0\" ?>"
            << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
