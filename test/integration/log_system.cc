@@ -776,7 +776,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 
   // Simulate a client
   gz::transport::Node node;
-  std::size_t numMsgs = 0;
+  std::atomic<std::size_t> numMsgs = 0;
   std::function<void(const msgs::SerializedStepMap &)> mockClient =
     [&](const msgs::SerializedStepMap &/*_res*/)
   {
