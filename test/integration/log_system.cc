@@ -849,7 +849,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   // checked in the playbackPoseTester
   playServer.Run(true, 500, false);
 
-  // The client should have recieved some messages.
+  // The client should have received some messages.
   EXPECT_NE(numMsgs, 0);
 
   // Count the total number of state messages in the log file
