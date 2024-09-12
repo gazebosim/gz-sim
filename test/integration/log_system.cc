@@ -774,6 +774,18 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   // Start server
   Server playServer(playServerConfig);
 
+  // Simulate a client
+  gz::transport::Node node;
+  std::atomic<std::size_t> numMsgs = 0;
+  std::function<void(const msgs::SerializedStepMap &)> mockClient =
+    [&](const msgs::SerializedStepMap &/*_res*/)
+  {
+    numMsgs++;
+  };
+  using namespace std::placeholders;
+  EXPECT_TRUE(node.Subscribe(
+    "/world/default/state", mockClient));
+
   // Callback function for entities played back
   // Compare current pose being played back with the pose from the stateMsg
   test::Relay playbackPoseTester;
@@ -836,6 +848,9 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   // Playback a subset of the log file and check for poses. Note: the poses are
   // checked in the playbackPoseTester
   playServer.Run(true, 500, false);
+
+  // The client should have received some messages.
+  EXPECT_NE(numMsgs, 0);
 
   // Count the total number of state messages in the log file
   int nTotal{0};
