@@ -1651,6 +1651,9 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     }
 
     this->LoadServerPlugins(defaultPlugins);
+    // Load logging plugins after all server plugins so that necessary
+    // plugins such as SceneBroadcaster are loaded first. This might be
+    // a bug or an assumption made in the logging plugins.
     this->LoadLoggingPlugins(this->serverConfig);
 
   };
