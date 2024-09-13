@@ -32,6 +32,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/components/AirFlowSensor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Altimeter.hh"
@@ -906,6 +907,12 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
         if (altimeterComp)
         {
           sensorMsg->set_type("altimeter");
+        }
+        auto airFlowComp = _manager.Component<
+          components::AirFlowSensor>(_entity);
+        if (airFlowComp)
+        {
+          sensorMsg->set_type("air_flow");
         }
         auto airPressureComp = _manager.Component<
           components::AirPressureSensor>(_entity);
