@@ -53,24 +53,24 @@ installing Gazebo from source.
 
 ### Windows
 
-First, follow the [gz-cmake](https://gazebosim.org/api/cmake/4/install.html) tutorial for installing Conda, Visual Studio, CMake, and other prerequisites, and also for creating a Conda environment.
+1. First, follow the steps 1-4 of [Gazebo source install](https://gazebosim.org/docs/ionic/install_windows_src/#install-dependencies)
+  tutorial to install Conda, Visual Studio and set up a Conda environment (we'll call it `gz-ws`).
 
-Navigate to ``condabin`` if necessary to use the ``conda`` command (i.e., if Conda is not in your `PATH` environment variable. You can find the location of ``condabin`` in Anaconda Prompt, ``where conda``).
+  Do not forget to activate the Conda env (if not already activated)
+  inside the Visual Studio Command Prompt:
 
-Create if necessary, and activate a Conda environment:
-```
-conda create -n gz-ws
-conda activate gz-ws
-```
+  ```
+  conda activate gz-ws
+  ```
 
-Now install Gazebo.
+2. Now install Gazebo.
 
-```
-conda install gz-sim<#> --channel conda-forge
-```
+  ```
+  conda install gz-sim<#> --channel conda-forge
+  ```
 
-Be sure to replace `<#>` with a number value, such as 8 or 9, depending on
-which version you need.
+  Be sure to replace `<#>` with a number value, such as 8 or 9, depending on
+  which version you need.
 
 ## Source Install
 
@@ -139,10 +139,17 @@ feature which hasn't been released yet.
 
 ### Windows
 
-This assumes you have created and activated a Conda environment (the same way as in the
-binary install).
+1. First, follow the steps 1-4 of [Gazebo source install](https://gazebosim.org/docs/ionic/install_windows_src/#install-dependencies)
+  tutorial to install Conda, Visual Studio and set up a Conda environment (we'll call it `gz-ws`).
 
-1. Install Gazebo dependencies:
+  Do not forget to activate the Conda env (if not already activated)
+  inside the Visual Studio Command Prompt:
+
+  ```
+  conda activate gz-ws
+  ```
+
+2. Install Gazebo dependencies:
 
   You can view available versions and their dependencies:
   ```
@@ -154,13 +161,13 @@ binary install).
   conda install gz-cmake<#> gz-common<#> gz-fuel-tools<#> gz-gui<#> gz-math<#> gz-msgs<#> gz-physics<#> gz-plugin<#> gz-rendering<#> gz-sensors<#> gz-tools<#> gz-transport<#> gz-utils<#> sdformat<#> --channel conda-forge
   ```
 
-2. Navigate to where you would like to build the library, and clone the repository.
+3. Navigate to where you would like to build the library, and clone the repository.
   ```
   # Optionally, append `-b gz-sim#` (replace # with a number) to check out a specific version
   git clone https://github.com/gazebosim/gz-sim.git
   ```
 
-3. Configure and build
+4. Configure and build
   ```
   cd gz-sim
   mkdir build
@@ -169,7 +176,7 @@ binary install).
   cmake --build . --config Release
   ```
 
-4. Optionally, install
+5. Optionally, install
   ```
   cmake --install . --config Release
   ```
