@@ -106,7 +106,13 @@ where the YAML files for the packages are found, such as
 export GZ_CONFIG_PATH=/usr/local/share/gz:$HOME/ws/install/share/gz
 ```
 
-where `$HOME/ws` is an example colcon workspace used to build Gazebo
+where `$HOME/ws` is an example colcon workspace used to build Gazebo.
+
+On Windows, `gz sim` (i.e. running both server and GUI in one command) doesn't yet work.
+To run Gazebo Sim on Windows, you need to run the server in one terminal (`gz sim -s <other args>`)
+and the GUI in another terminal (`gz sim -g <other args>`). Remember this when reading through
+all Gazebo Sim tutorials. Also remember that Conda and `install\setup.bat` need to be sourced
+in both terminals (as well as any changes to `GZ_PARTITION` and other environment variables).
 
 # Documentation
 
@@ -116,7 +122,7 @@ See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
-See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://gazebosim.org/docs/all/contributing/#writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
