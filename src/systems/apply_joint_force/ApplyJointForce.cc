@@ -156,23 +156,14 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
 
   // Update joint force
   //! [jointForceComponent]
-  auto force = _ecm.Component<components::JointForceCmd>(
-      this->dataPtr->jointEntity);
+  auto force = _ecm.ComponentDefault<components::JointForceCmd>(
+      this->dataPtr->jointEntity, {0.0});
   //! [jointForceComponent]
 
   std::lock_guard<std::mutex> lock(this->dataPtr->jointForceCmdMutex);
 
   //! [modifyComponent]
-  if (force == nullptr)
-  {
-    _ecm.CreateComponent(
-        this->dataPtr->jointEntity,
-        components::JointForceCmd({this->dataPtr->jointForceCmd}));
-  }
-  else
-  {
-    force->Data()[0] += this->dataPtr->jointForceCmd;
-  }
+  force->Data()[0] += this->dataPtr->jointForceCmd;
   //! [modifyComponent]
 }
 
