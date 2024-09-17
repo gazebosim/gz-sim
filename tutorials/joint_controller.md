@@ -385,7 +385,7 @@ Let’s set up a new model for this example. A two-linked manipulator arm which 
 - SDF file:
 
 ```xml
-<?xml version="1.0"
+<?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
     <scene>
@@ -653,7 +653,7 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
         sec: 1
         nsec: 0
       }
-    }
+    }'
 ```
 
 <div style="text-align:center;">
