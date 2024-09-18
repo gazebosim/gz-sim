@@ -108,14 +108,14 @@
               <near>0.1</near>
               <far>100</far>
             </clip>
+            <plugin
+              filename="gz-sim-lens-flare-system"
+              name="gz::sim::systems::LensFlare">
+            </plugin>
           </camera>
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <topic>camera_lens_flare</topic>
-          <plugin
-            filename="gz-sim-lens-flare-system"
-            name="gz::sim::systems::LensFlare">
-          </plugin>
         </sensor>
       </link>
     </model>
