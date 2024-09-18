@@ -176,15 +176,15 @@ void LensFlarePrivate::OnPostRender()
     auto sensor = this->scene->SensorByName(this->cameraName);
     if (!sensor)
     {
-      gzerr << "Unable to find sensor: " << this->cameraName
-          << std::endl;
+      gzerr << "[lensflare] Unable to find a camera sensor parent for lensflare "
+            << "in the context of " << this->cameraName << std::endl;
       return;
     }
 
     this->camera = std::dynamic_pointer_cast<rendering::Camera>(sensor);
     if (!this->camera)
     {
-      gzerr << "Sensor: " << this->cameraName << " is not a Camera sensor"
+      gzerr << "[lensflare] Sensor: " << this->cameraName << " is not a Camera sensor"
           << std::endl;
       return;
     }
