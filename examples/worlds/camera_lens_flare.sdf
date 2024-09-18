@@ -337,10 +337,10 @@
               <scale_to_hfov>true</scale_to_hfov>
               <cutoff_angle>1.5707</cutoff_angle>
               <env_texture_size>512</env_texture_size>
-             </lens>
-             <plugin
-               filename="gz-sim-lens-flare-system"
-               name="gz::sim::systems::LensFlare">
+            </lens>
+            <plugin
+              filename="gz-sim-lens-flare-system"
+              name="gz::sim::systems::LensFlare">
             </plugin>
           </camera>
           <always_on>1</always_on>
