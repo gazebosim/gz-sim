@@ -554,6 +554,9 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
   if (_uri == kClassicMaterialScriptUri)
     return _uri;
 
+  if (_uri.find("material") != std::string::npos)
+    return _uri;
+
   // Fetch resource from fuel
   auto path =
       fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());

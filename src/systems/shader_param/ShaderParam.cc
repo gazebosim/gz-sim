@@ -35,6 +35,7 @@
 
 #include <sdf/Element.hh>
 
+#include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/rendering/Events.hh"
@@ -144,6 +145,12 @@ void ShaderParam::Configure(const Entity &_entity,
                EventManager &_eventMgr)
 {
   GZ_PROFILE("ShaderParam::Configure");
+
+  auto materialComp = _ecm.Component<components::Material>(_entity);
+  sdf::Material matSdf = materialComp->Data();
+  std::cout << "script name: " <<  matSdf.ScriptName() << std::endl;
+  std::cout << "script uri: " <<  matSdf.ScriptUri() << std::endl;
+
 
   if (_sdf->HasElement("param"))
   {

@@ -478,6 +478,12 @@ msgs::Material gz::sim::convert(const sdf::Material &_in)
   out.set_lighting(_in.Lighting());
   out.set_double_sided(_in.DoubleSided());
 
+  if (!_in.ScriptName().empty())
+  {
+    out.mutable_script()->set_name(_in.ScriptName());
+    out.mutable_script()->add_uri(_in.ScriptUri());
+  }
+
   auto pbr = _in.PbrMaterial();
   if (pbr)
   {
@@ -537,6 +543,14 @@ sdf::Material gz::sim::convert(const msgs::Material &_in)
   out.SetRenderOrder(_in.render_order());
   out.SetLighting(_in.lighting());
   out.SetDoubleSided(_in.double_sided());
+
+  if (_in.has_script())
+  {
+    auto script = _in.script();
+    if (_in.script().uri_size() > 0)
+      out.SetScriptUri(_in.script().uri(0));
+    out.SetScriptName(_in.script().name());
+  }
 
   if (_in.has_pbr())
   {
