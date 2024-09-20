@@ -54,6 +54,7 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage logicalaudiosensor "Logical Audio Sensor": Using the LogicalAudioSensor system to mimic logical audio emission and detection in simulation.
 * \subpage auto_inertia_calculation "Automatic Inertia Calculation": Automatically compute inertia values(mass, mass matrix, center of mass) for SDFormat links.
 * \subpage jointcontrollers "Joint Controllers": Using available joint controller plugins to control joints.
+* \subpage shadow_texture_size "Shadow texture size": Change the texture size of shadows casted by lights.
 
 ### Advanced
 

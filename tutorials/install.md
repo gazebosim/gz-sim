@@ -1,7 +1,8 @@
 \page install Installation
 
-These instructions are for installing only Gazebo. If you're interested
-in using all the Gazebo libraries, not only Igniton Gazebo, check out this
+These instructions are for installing only Gazebo Sim. If you're interested
+in using all the Gazebo libraries including gz-launch, or to install all
+libraries from source, check out
 [Gazebo installation](https://gazebosim.org/docs/latest/install).
 
 We recommend following the binary install instructions to get up and running as
@@ -49,6 +50,27 @@ installing Gazebo from source.
   ```
   brew install gz-sim<#>
   ```
+
+### Windows
+
+1. First, follow the steps 1-4 of [Gazebo source install](https://gazebosim.org/docs/ionic/install_windows_src/#install-dependencies)
+  tutorial to install Conda, Visual Studio and set up a Conda environment (we'll call it `gz-ws`).
+
+  Do not forget to activate the Conda env (if not already activated)
+  inside the Visual Studio Command Prompt:
+
+  ```
+  conda activate gz-ws
+  ```
+
+2. Now install Gazebo.
+
+  ```
+  conda install gz-sim<#> --channel conda-forge
+  ```
+
+  Be sure to replace `<#>` with a number value, such as 8 or 9, depending on
+  which version you need.
 
 ## Source Install
 
@@ -115,6 +137,50 @@ feature which hasn't been released yet.
   sudo make install
   ```
 
+### Windows
+
+1. First, follow the steps 1-4 of [Gazebo source install](https://gazebosim.org/docs/ionic/install_windows_src/#install-dependencies)
+  tutorial to install Conda, Visual Studio and set up a Conda environment (we'll call it `gz-ws`).
+
+  Do not forget to activate the Conda env (if not already activated)
+  inside the Visual Studio Command Prompt:
+
+  ```
+  conda activate gz-ws
+  ```
+
+2. Install Gazebo dependencies:
+
+  You can view available versions and their dependencies:
+  ```
+  conda search libgz-sim* --channel conda-forge --info
+  ```
+
+  Install the dependencies, replacing `<#>` with the required versions:
+  ```
+  conda install gz-cmake<#> gz-common<#> gz-fuel-tools<#> gz-gui<#> gz-math<#> gz-msgs<#> gz-physics<#> gz-plugin<#> gz-rendering<#> gz-sensors<#> gz-tools<#> gz-transport<#> gz-utils<#> sdformat<#> --channel conda-forge
+  ```
+
+3. Navigate to where you would like to build the library, and clone the repository.
+  ```
+  # Optionally, append `-b gz-sim#` (replace # with a number) to check out a specific version
+  git clone https://github.com/gazebosim/gz-sim.git
+  ```
+
+4. Configure and build
+  ```
+  cd gz-sim
+  mkdir build
+  cd build
+  cmake .. -DBUILD_TESTING=OFF  # Optionally, -DCMAKE_INSTALL_PREFIX=path\to\install
+  cmake --build . --config Release
+  ```
+
+5. Optionally, install
+  ```
+  cmake --install . --config Release
+  ```
+
 ## Documentation
 
 API documentation and tutorials can be accessed at [https://gazebosim.org/libs/gazebo](https://gazebosim.org/libs/gazebo)
@@ -123,7 +189,10 @@ You can also generate the documentation from a clone of this repository by follo
 
 1. You will need [Doxygen](http://www.doxygen.org/). On Ubuntu Doxygen can be installed using
   ```
+  # Linux
   sudo apt-get install doxygen
+  # Windows
+  conda install doxygen --channel conda-forge
   ```
 
 2. Clone the repository
@@ -137,7 +206,7 @@ You can also generate the documentation from a clone of this repository by follo
   mkdir build
   cd build
   cmake ../
-  make doc
+  cmake --build . --target doc
   ```
 
 4. View the documentation by running the following command from the `build` directory.
