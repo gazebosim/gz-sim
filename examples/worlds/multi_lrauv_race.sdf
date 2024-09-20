@@ -59,7 +59,7 @@
 
     <include>
       <pose>0 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/LRAUV Post-Ionic</uri>
 
       <!-- Joint controllers -->
       <plugin
@@ -146,7 +146,7 @@
 
     <include>
       <pose>5 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/LRAUV Post-Ionic</uri>
       <name>triton</name>
 
       <!-- Joint controllers -->
@@ -233,7 +233,7 @@
 
     <include>
       <pose>-5 0 1 0 0 1.57</pose>
-      <uri>https://fuel.gazebosim.org/1.0/arjo129/models/LRAUV-PostIonic</uri>
+      <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/LRAUV Post-Ionic</uri>
       <name>daphne</name>
 
       <!-- Joint controllers -->
