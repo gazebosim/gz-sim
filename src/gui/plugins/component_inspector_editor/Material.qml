@@ -14,15 +14,13 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.0
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Dialogs
+import QtQuick.Layouts
 import "qrc:/ComponentInspectorEditor"
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 // Item displaying material color information
 Rectangle {
@@ -40,28 +38,28 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded items for ambient red, green, blue, alpha
-  property var rAmbientItem: {}
-  property var gAmbientItem: {}
-  property var bAmbientItem: {}
-  property var aAmbientItem: {}
+  property var rAmbientItem: ({})
+  property var gAmbientItem: ({})
+  property var bAmbientItem: ({})
+  property var aAmbientItem: ({})
 
   // Loaded items for diffuse red, green, blue, alpha
-  property var rDiffuseItem: {}
-  property var gDiffuseItem: {}
-  property var bDiffuseItem: {}
-  property var aDiffuseItem: {}
+  property var rDiffuseItem: ({})
+  property var gDiffuseItem: ({})
+  property var bDiffuseItem: ({})
+  property var aDiffuseItem: ({})
 
   // Loaded items for specular red, green, blue, alpha
-  property var rSpecularItem: {}
-  property var gSpecularItem: {}
-  property var bSpecularItem: {}
-  property var aSpecularItem: {}
+  property var rSpecularItem: ({})
+  property var gSpecularItem: ({})
+  property var bSpecularItem: ({})
+  property var aSpecularItem: ({})
 
   // Loaded items for emissive red, green, blue, alpha
-  property var rEmissiveItem: {}
-  property var gEmissiveItem: {}
-  property var bEmissiveItem: {}
-  property var aEmissiveItem: {}
+  property var rEmissiveItem: ({})
+  property var gEmissiveItem: ({})
+  property var bEmissiveItem: ({})
+  property var aEmissiveItem: ({})
 
   // send new material color data to C++
   function sendMaterialColor(_type, _currColor) {
