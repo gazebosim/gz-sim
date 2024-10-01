@@ -46,8 +46,8 @@ Create a `model.sdf` file that contains the Simulator Description Format of the
 model. You can find more information on the [SDF website](http://sdformat.org/).
 
 ```xml
-<?xml version='1.0'?>
-<sdf version='1.6'>
+<?xml version="1.0"?>
+<sdf version="1.6">
   <model name="my_turtle">
     <static>true</static>
     <link name='base_link'>
@@ -65,7 +65,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
         </inertia>
       </inertial>
 
-      <collision name='collision'>
+      <collision name="collision">
         <geometry>
           <box>
             <size>1 1 0.009948450858321252</size>
@@ -73,7 +73,7 @@ model. You can find more information on the [SDF website](http://sdformat.org/).
         </geometry>
       </collision>
 
-      <visual name='visual'>
+      <visual name="visual">
         <pose>0.08 0 0.05 0 0 0</pose>
         <geometry>
           <cylinder>

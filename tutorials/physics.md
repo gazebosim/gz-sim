@@ -10,7 +10,7 @@ by default.
 
 Downstream developers may also integrate other physics engines by creating new
 Gazebo Physics engine plugins. See
-[Gazebo Physics](https://gazebosim.org/api/physics/7/tutorials.html)'s
+[Gazebo Physics](https://gazebosim.org/api/physics/8/tutorials.html)'s
 tutorials to learn how to integrate a new engine.
 
 ## How Gazebo finds engines
@@ -25,24 +25,32 @@ If you've created a custom engine plugin, you can tell Gazebo where to find it
 by setting the `GZ_SIM_PHYSICS_ENGINE_PATH` environment variable to the
 directory where the plugin's shared library can be found.
 
-For example, if you've created the following physics engine shared library on
-Linux:
+For example, if you've created the following physics engine shared library:
 
 ```
+# Linux
 /home/physics_engines/libCustomEngine.so
+# Windows
+C:\Users\Robot\physics_engines\CustomEngine.dll
 ```
 
 You should set the variable as follows:
 
 ```
+# Linux
 export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines
+# Windows
+set GZ_SIM_PHYSICS_ENGINE_PATH=C:\Users\Robot\physics_engines
 ```
 
 If you have several libraries installed in different paths, you can add more
 paths, for example:
 
 ```
+# Linux, separate with :
 export GZ_SIM_PHYSICS_ENGINE_PATH=/home/physics_engines:/home/more_engines
+# Windows, separate with ;
+set GZ_SIM_PHYSICS_ENGINE_PATH=C:\Users\Robot\physics_engines;C:\MoreEngines
 ```
 
 ## Tell Gazebo what engine to load
@@ -52,6 +60,7 @@ There are a few different ways of telling Gazebo which engine to load.
 For any method, you should provide the name of your plugin's shared library,
 but the `lib` prefix and the file extension are optional. So in this example,
 the file is `libCustomEngine.so` but it's enough to set `CustomEngine`.
+That is also prefered to support multiple operating systems.
 
 ### From SDF
 
@@ -103,10 +112,10 @@ Gazebo supports the following physics engine configurations through SDF.
 These options are available to all physics engines, but not all engines
 may support them. The default physics engine, DART, supports all these options.
 
-* [//physics/dart/collision_detector](http://sdformat.org/spec?ver=1.8&elem=physics#dart_collision_detector)
+* [//physics/dart/collision_detector](http://sdformat.org/spec?ver=1.11&elem=physics#dart_collision_detector)
     * Options supported by DART: `ode` (default), `bullet`, `fcl`, `dart`.
 
-* [//physics/dart/solver/solver_type](http://sdformat.org/spec?ver=1.8&elem=physics#solver_solver_type)
+* [//physics/dart/solver/solver_type](http://sdformat.org/spec?ver=1.11&elem=physics#solver_solver_type)
     * Options supported by DART: `dantzig` (default), `pgs`
 
 ## Troubleshooting
@@ -114,18 +123,24 @@ may support them. The default physics engine, DART, supports all these options.
 > Failed to find plugin [libCustomEngine.so]. Have you checked the
 > GZ_SIM_PHYSICS_ENGINE_PATH environment variable?
 
-Gazebo can't find out where `libCustomEngine.so` is located.
+Gazebo can't find out where `libCustomEngine.so` or `CustomEngine.dll` is located.
 
 If that's an engine you believe should be installed with Gazebo Physics,
 check if the relevant plugin is installed.
 
-If that's a 3rd party engine, find where the `.so` file is installed and add
+If that's a 3rd party engine, find where the `.so` or `.dll` file is installed and add
 that path to the environment variable as described above.
 
 > Unable to load the [/home/physics_engines/libCustomEngine.so] library.
 
 There was some problem loading that file. Check that it exists, that you have
 permissions to access it, and that it's acually a physics engine plugin.
+
+> No physics plugins implementing required interface found in library
+> [/home/physics_engines/libCustomEngine.so]
+
+The library was found but none of the plugins in the library implement the
+required interface to be considered a physics plugin.
 
 > No plugins with all required features found in library
 > [/home/physics_engines/libCustomEngine.so]
