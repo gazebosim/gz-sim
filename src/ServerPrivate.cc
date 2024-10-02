@@ -41,24 +41,6 @@ using namespace sim;
 const char ServerPrivate::kClassicMaterialScriptUri[] =
     "file://media/materials/scripts/gazebo.material";
 
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
-
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -669,10 +651,12 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
         }
         else
         {
+          sdf::World defaultWorld;
+          defaultWorld.SetName("default");
+
           // If the specified file only contains a model, load the default
           // world and add the model to it.
-          errors = this->sdfRoot.LoadSdfString(
-            DefaultWorld::World(), sdfParserConfig);
+          errors = this->sdfRoot.AddWorld(defaultWorld);
           sdf::World *world = this->sdfRoot.WorldByIndex(0);
           if (world == nullptr) {
             errors.push_back({sdf::ErrorCode::FATAL_ERROR,
@@ -696,9 +680,12 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
     default:
     {
       gzmsg << "Loading default world.\n";
+
+      sdf::World defaultWorld;
+      defaultWorld.SetName("default");
+
       // Load an empty world.
-      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->sdfRoot.LoadSdfString(DefaultWorld::World());
+      errors = this->sdfRoot.AddWorld(defaultWorld);
       break;
     }
   }
