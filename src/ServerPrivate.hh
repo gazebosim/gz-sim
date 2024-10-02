@@ -99,6 +99,12 @@ namespace gz
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
 
+      /// \brief Helper function that loads an SDF root object based on
+      /// values in a ServerConfig object.
+      /// \param[in] _config Server config to read from.
+      /// \return Set of SDF errors.
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);

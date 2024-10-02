@@ -574,3 +574,111 @@ std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 {
   return this->FetchResource(_uri.Str());
 }
+
+//////////////////////////////////////////////////
+sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
+{
+  sdf::Errors errors;
+
+  switch (_config.Source())
+  {
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
+    {
+      this->sdfRoot = _config.SdfRoot()->Clone();
+      gzmsg << "Loading SDF world from SDF DOM.\n";
+      break;
+    }
+
+    case ServerConfig::SourceType::kSdfString:
+    {
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
+      {
+        msg += "File path not available.\n";
+      }
+      else
+      {
+        msg += "File path [" + _config.SdfFile() + "].\n";
+      }
+      gzmsg << msg;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
+      sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+      errors = this->sdfRoot.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
+
+    case ServerConfig::SourceType::kSdfFile:
+    {
+      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+          _config.ResourceCache());
+
+      if (filePath.empty())
+      {
+        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
+               << std::endl;
+        return errors;
+      }
+
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
+
+      sdf::Root sdfRoot;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
+      sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+
+      MeshInertiaCalculator meshInertiaCalculator;
+      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+      // \todo(nkoenig) Async resource download.
+      // This call can block for a long period of time while
+      // resources are downloaded. Blocking here causes the GUI to block with
+      // a black screen (search for "Async resource download" in
+      // 'src/gui_main.cc'.
+      errors = sdfRoot.Load(filePath, sdfParserConfig);
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
+        if (sdfRoot.Model() == nullptr) {
+          this->sdfRoot = std::move(sdfRoot);
+        }
+        else
+        {
+          // If the specified file only contains a model, load the default
+          // world and add the model to it.
+          errors = this->sdfRoot.LoadSdfString(
+            DefaultWorld::World(), sdfParserConfig);
+          sdf::World *world = this->sdfRoot.WorldByIndex(0);
+          if (world == nullptr) {
+            return errors;
+          }
+          world->AddModel(*sdfRoot.Model());
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
+            errors = this->sdfRoot.UpdateGraphs();
+          }
+        }
+      }
+
+      this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
+
+    case ServerConfig::SourceType::kNone:
+    default:
+    {
+      gzmsg << "Loading default world.\n";
+      // Load an empty world.
+      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
+      errors = this->sdfRoot.LoadSdfString(DefaultWorld::World());
+      break;
+    }
+  }
+
+  return errors;
+}
