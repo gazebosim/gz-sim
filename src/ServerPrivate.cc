@@ -197,6 +197,96 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
+void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
+{
+  bool hasRecordResources {false};
+  bool hasRecordTopics {false};
+
+  bool sdfRecordResources;
+  std::vector<std::string> sdfRecordTopics;
+
+  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
+       ++worldIndex)
+  {
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::Plugins &plugins = world->Plugins();
+
+    for (sdf::Plugins::iterator iter = plugins.begin();
+         iter != plugins.end(); ++iter)
+    {
+      std::string fname = iter->Filename();
+      std::string name = iter->Name();
+      if (fname.find(
+            LoggingPlugin::LoggingPluginSuffix()) != std::string::npos &&
+          name == LoggingPlugin::RecordPluginName())
+      {
+        sdf::ElementPtr recordPluginElem = iter->ToElement();
+
+        std::tie(sdfRecordResources, hasRecordResources) =
+          recordPluginElem->Get<bool>("record_resources", false);
+
+        hasRecordTopics = recordPluginElem->HasElement("record_topic");
+        if (hasRecordTopics)
+        {
+          sdf::ElementPtr recordTopicElem =
+            recordPluginElem->GetElement("record_topic");
+          while (recordTopicElem)
+          {
+            auto topic = recordTopicElem->Get<std::string>();
+            sdfRecordTopics.push_back(topic);
+            recordTopicElem = recordTopicElem->GetNextElement();
+          }
+        }
+
+        // Remove the plugin, which will be added back in by ServerConfig.
+        plugins.erase(iter);
+        break;
+      }
+    }
+  }
+
+  // Set the config based on what is in the SDF:
+  if (hasRecordResources)
+    this->config.SetLogRecordResources(sdfRecordResources);
+
+  if (hasRecordTopics)
+  {
+    this->config.ClearLogRecordTopics();
+    for (auto topic : sdfRecordTopics)
+    {
+      this->config.AddLogRecordTopic(topic);
+    }
+  }
+
+  if (!_config.LogRecordPath().empty())
+  {
+    this->config.SetLogRecordPath(_config.LogRecordPath());
+  }
+
+  if (_config.LogRecordPeriod() > std::chrono::steady_clock::duration::zero())
+  {
+    this->config.SetLogRecordPeriod(_config.LogRecordPeriod());
+  }
+
+  if (_config.LogRecordResources())
+    this->config.SetLogRecordResources(true);
+
+  if (_config.LogRecordCompressPath() != ".zip")
+  {
+    this->config.SetLogRecordCompressPath(_config.LogRecordCompressPath());
+  }
+
+  if (_config.LogRecordTopics().size())
+  {
+    this->config.ClearLogRecordTopics();
+    for (auto topic : _config.LogRecordTopics())
+    {
+      this->config.AddLogRecordTopic(topic);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 void ServerPrivate::CreateSimulationRunners()
 {
   // Create a simulation runner for each world.
