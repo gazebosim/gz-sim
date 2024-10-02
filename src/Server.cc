@@ -33,30 +33,11 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
 
-#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;
 using namespace sim;
-
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
 
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
@@ -96,6 +77,7 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
+  // Loads the SDF root object based on values in a ServerConfig object.
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config);
 
   if (!errors.empty())

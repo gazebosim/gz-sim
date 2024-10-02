@@ -32,6 +32,7 @@
 #include <gz/fuel_tools/Interface.hh>
 
 #include "gz/sim/Util.hh"
+#include "MeshInertiaCalculator.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;
@@ -39,6 +40,24 @@ using namespace sim;
 
 const char ServerPrivate::kClassicMaterialScriptUri[] =
     "file://media/materials/scripts/gazebo.material";
+
+/// \brief This struct provides access to the default world.
+struct DefaultWorld
+{
+  /// \brief Get the default world as a string.
+  /// Plugins will be loaded from the server.config file.
+  /// \return An SDF string that contains the default world.
+  public: static std::string &World()
+  {
+    static std::string world = std::string("<?xml version='1.0'?>"
+      "<sdf version='1.6'>"
+        "<world name='default'>") +
+        "</world>"
+      "</sdf>";
+
+    return world;
+  }
+};
 
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
@@ -619,14 +638,16 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
 
       if (filePath.empty())
       {
-        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
-               << std::endl;
+        std::string errStr =  "Failed to find world ["
+          + _config.SdfFile() + "]";
+        gzerr << errStr << std::endl;
+        errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
         return errors;
       }
 
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
-      sdf::Root sdfRoot;
+      sdf::Root sdfRootLocal;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
       sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
@@ -639,12 +660,12 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
       // resources are downloaded. Blocking here causes the GUI to block with
       // a black screen (search for "Async resource download" in
       // 'src/gui_main.cc'.
-      errors = sdfRoot.Load(filePath, sdfParserConfig);
+      errors = sdfRootLocal.Load(filePath, sdfParserConfig);
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
           ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
       {
-        if (sdfRoot.Model() == nullptr) {
-          this->sdfRoot = std::move(sdfRoot);
+        if (sdfRootLocal.Model() == nullptr) {
+          this->sdfRoot = std::move(sdfRootLocal);
         }
         else
         {
@@ -654,9 +675,11 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
             DefaultWorld::World(), sdfParserConfig);
           sdf::World *world = this->sdfRoot.WorldByIndex(0);
           if (world == nullptr) {
+            errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+              "sdf::World pointer is null"});
             return errors;
           }
-          world->AddModel(*sdfRoot.Model());
+          world->AddModel(*sdfRootLocal.Model());
           if (errors.empty() || _config.BehaviorOnSdfErrors() !=
               ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
           {
