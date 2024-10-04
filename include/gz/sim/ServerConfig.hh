@@ -447,13 +447,15 @@ namespace gz
       public: const std::chrono::time_point<std::chrono::system_clock> &
               Timestamp() const;
 
-      /// \brief Set whether asset download should block simulation start.
+      /// \brief Set whether asset download should block the start of
+      /// simulation.
       /// The default value is true.
       /// \param[in] _set True to wait while assets download. False will
       /// download assets in a background thread.
       public: void SetWaitForAssets(bool _set);
 
-      /// \brief Get whether asset download should block simulation start.
+      /// \brief Get whether asset download should block the start of
+      /// simulation.
       /// The default value is true.
       /// \return True if simulation should wait while assets download. False
       /// indicates assets should be downloaded in a separate thread.
