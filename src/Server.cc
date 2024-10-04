@@ -33,7 +33,6 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
 
-#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 

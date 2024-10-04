@@ -18,6 +18,9 @@
 
 #include <tinyxml2.h>
 
+#include <string>
+#include <utility>
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/server_control.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
@@ -32,6 +35,7 @@
 #include <gz/fuel_tools/Interface.hh>
 
 #include "gz/sim/Util.hh"
+#include "MeshInertiaCalculator.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;
@@ -615,29 +619,72 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
         {
           _outputMsgs += "File path [" + _config.SdfFile() + "].\n";
         }
-        errors = _root.LoadSdfString(_config.SdfString());
+        sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+        sdfParserConfig.SetStoreResolvedURIs(true);
+        sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+        errors = _root.LoadSdfString(
+          _config.SdfString(), sdfParserConfig);
+        _root.ResolveAutoInertials(errors, sdfParserConfig);
         break;
       }
 
     case ServerConfig::SourceType::kSdfFile:
-      {
-        std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-            _config.ResourceCache());
+     {
+      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+          _config.ResourceCache());
 
-        if (filePath.empty())
-        {
-          std::string errStr = "Failed to find world ["
-            + _config.SdfFile() + "]";
-          gzerr << errStr << std::endl;
-          errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
-          return errors;
-        }
+      if (filePath.empty())
+      {
+        std::string errStr = "Failed to find world ["
+          + _config.SdfFile() + "]";
+        gzerr << errStr << std::endl;
+        errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
+        return errors;
+      }
 
         _outputMsgs += "Loading SDF world file[" + filePath + "].\n";
 
-        errors = _root.Load(filePath);
-        break;
+      sdf::Root sdfRootLocal;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
+      sdfParserConfig.SetCalculateInertialConfiguration(
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+      MeshInertiaCalculator meshInertiaCalculator;
+      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+      errors = sdfRootLocal.Load(filePath, sdfParserConfig);
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
+        if (sdfRootLocal.Model() == nullptr) {
+          _root = std::move(sdfRootLocal);
+        }
+        else
+        {
+          sdf::World defaultWorld;
+          defaultWorld.SetName("default");
+
+          // If the specified file only contains a model, load the default
+          // world and add the model to it.
+          errors = _root.AddWorld(defaultWorld);
+          sdf::World *world = _root.WorldByIndex(0);
+          if (world == nullptr) {
+            errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+              "sdf::World pointer is null"});
+            return errors;
+          }
+          world->AddModel(*sdfRootLocal.Model());
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
+            errors = _root.UpdateGraphs();
+          }
+        }
       }
+
+      _root.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
 
     case ServerConfig::SourceType::kNone:
     default:
