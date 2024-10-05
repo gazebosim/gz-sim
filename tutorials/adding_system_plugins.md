@@ -103,12 +103,6 @@ Uncomment the following block from `buoyant_turtle.sdf`:
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-0.04876161</xDotU>
-  <yDotV>-1.26324739</yDotV>
-  <zDotW>-1.26324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-0.3346</mDotQ>
-  <nDotR>-0.3346</nDotR>
   <xUabsU>-0.62282</xUabsU>
   <xU>-5</xU>
   <yVabsV>-60.127</yVabsV>
