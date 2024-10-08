@@ -48,8 +48,6 @@
 #include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SystemLoader.hh"
 
-using namespace std::chrono_literals;
-
 namespace gz
 {
   namespace sim
