@@ -15,6 +15,7 @@
  *
 */
 #include "ServerPrivate.hh"
+#include "MeshInertiaCalculator.hh"
 
 #include <tinyxml2.h>
 
@@ -35,7 +36,6 @@
 #include <gz/fuel_tools/Interface.hh>
 
 #include "gz/sim/Util.hh"
-#include "MeshInertiaCalculator.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;
