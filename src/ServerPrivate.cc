@@ -14,8 +14,8 @@
  * limitations under the License.
  *
 */
-#include "ServerPrivate.hh"
 #include "MeshInertiaCalculator.hh"
+#include "ServerPrivate.hh"
 
 #include <tinyxml2.h>
 
