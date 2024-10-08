@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="default">
+    <scene>
+      <background>0.1 0.1 0.1</background>
+      <ambient>0.0 0.0 0.0</ambient>
+    </scene>
+
+    <!--GUI plugins-->
+    <gui>
+      <plugin filename="MinimalScene" name="3D View">
+        <engine>ogre2</engine>
+        <camera_pose>-10 0 7 0 0.5 0</camera_pose>
+        <shadows>
+          <texture_size light_type="directional">8192</texture_size>
+        </shadows>
+      </plugin>
+
+      <plugin filename="GzSceneManager" name="Scene Manager"/>
+      <plugin filename="InteractiveViewControl" name="Interactive view control"/>
+    </gui>
+
+    <!--lighting-->
+    <light type="directional" name="sun">
+      <pose>0 0 8 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0 0 0 0</specular>
+      <attenuation>
+        <range>50</range>
+        <constant>0</constant>
+        <linear>0</linear>
+        <quadratic>0</quadratic>
+      </attenuation>
+      <cast_shadows>true</cast_shadows>
+      <direction>-2 2 -1.5</direction>
+      <intensity>1.0</intensity>
+    </light>
+
+    <!--scene objects-->
+    <include>
+      <pose>0 0 0 0 0 -1.57</pose>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Garden Mascot
+      </uri>
+    </include>
+
+    <model name="floor">
+    <pose>-5 0 -0.5 0 0 0</pose>
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+      <geometry>
+        <box>
+        <size>15 15 1</size>
+        </box>
+      </geometry>
+      </collision>
+      <visual name="visual">
+      <geometry>
+        <box>
+        <size>15 15 1</size>
+        </box>
+      </geometry>
+      <material>
+        <ambient>0.8 0.8 0.8 1</ambient>
+        <diffuse>0.8 0.8 0.8 1</diffuse>
+        <specular>0.8 0.8 0.8 1</specular>
+      </material>
+      </visual>
+    </link>
+    </model>
+  </world>
+</sdf>
