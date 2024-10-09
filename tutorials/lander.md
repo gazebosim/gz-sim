@@ -37,7 +37,7 @@ mkdir -p ~/gazebo_maritime/models/my_lander && cd ~/gazebo_maritime/models/my_la
 Download the `model.config` file and copy it within that directory:
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
 ```
 
 In its simple version, the lander does not have any moving pieces, so the SDF
@@ -95,7 +95,7 @@ Let's now add nicer-looking visuals to our lander. Download the following
 
 ```bash
 mkdir ~/gazebo_maritime/models/my_lander/meshes
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
 ```
 
 Replace the `chassis_visual` element in your `model.sdf` with the following
@@ -153,7 +153,7 @@ Let's start with the world. Download the following world:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 
