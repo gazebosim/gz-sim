@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8)
-Ubuntu Jammy  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-jammy-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-jammy-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-8-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-8-win/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/main)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-main-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-main-win/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -32,9 +32,9 @@ Gazebo Sim is derived from [Gazebo Classic](http://classic.gazebosim.org) and re
 
 [Folder Structure](#folder-structure)
 
-[Code of Conduct](#code-of-conduct)
-
 [Contributing](#contributing)
+
+[Code of Conduct](#code-of-conduct)
 
 [Versioning](#versioning)
 
@@ -99,29 +99,20 @@ gz sim -h
 In the event that the installation is a mix of Debian and from source, command
 line tools from `gz-tools` may not work correctly.
 
-A workaround for a single package is to define the environment variable
-`GZ_CONFIG_PATH` to point to the location of the Gazebo library installation,
-where the YAML file for the package is found, such as
+A workaround is to define the environment variable
+`GZ_CONFIG_PATH` to point to the different locations of the Gazebo libraries installations,
+where the YAML files for the packages are found, such as
 ```
-export GZ_CONFIG_PATH=/usr/local/share/gz
-```
-
-However, that environment variable only takes a single path, which means if the
-installations from source are in different locations, only one can be specified.
-
-Another workaround for working with multiple Gazebo libraries on the command
-line is using symbolic links to each library's YAML file.
-```
-mkdir ~/.gz/tools/configs -p
-cd ~/.gz/tools/configs/
-ln -s /usr/local/share/gz/fuel8.yaml .
-ln -s /usr/local/share/gz/transport14.yaml .
-ln -s /usr/local/share/gz/transportlog13.yaml .
-...
-export GZ_CONFIG_PATH=$HOME/.gz/tools/configs
+export GZ_CONFIG_PATH=/usr/local/share/gz:$HOME/ws/install/share/gz
 ```
 
-This issue is tracked [here](https://github.com/gazebosim/gz-tools/issues/8).
+where `$HOME/ws` is an example colcon workspace used to build Gazebo.
+
+On Windows, `gz sim` (i.e. running both server and GUI in one command) doesn't yet work.
+To run Gazebo Sim on Windows, you need to run the server in one terminal (`gz sim -s <other args>`)
+and the GUI in another terminal (`gz sim -g <other args>`). Remember this when reading through
+all Gazebo Sim tutorials. Also remember that Conda and `install\setup.bat` need to be sourced
+in both terminals (as well as any changes to `GZ_PARTITION` and other environment variables).
 
 # Documentation
 
@@ -131,7 +122,7 @@ See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
 See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
 
-See the [Writing Tests section of the contributor guide](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md#writing-tests) for help creating or modifying tests.
+See the [Writing Tests section of the contributor guide](https://gazebosim.org/docs/all/contributing/#writing-tests) for help creating or modifying tests.
 
 # Folder Structure
 
@@ -154,7 +145,7 @@ gz-sim
 │   ├── performance              Performance tests.
 │   ├── plugins                  Plugins used in tests.
 │   ├── regression               Regression tests.
-│   └── tutorials                Tutorials, written in markdown.
+├── tutorials                    Tutorials, written in markdown.
 ├── Changelog.md                 Changelog.
 ├── CMakeLists.txt               CMake build script.
 ├── Migration.md                 Migration guide.
@@ -163,8 +154,8 @@ gz-sim
 
 # Contributing
 
-Please see
-[CONTRIBUTING.md](https://github.com/gazebosim/gz-sim/blob/main/CONTRIBUTING.md).
+Please see the
+[contribution guide](https://gazebosim.org/docs/all/contributing/).
 
 # Code of Conduct
 

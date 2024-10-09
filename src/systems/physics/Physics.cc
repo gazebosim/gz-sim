@@ -851,8 +851,8 @@ void Physics::Configure(const Entity &_entity,
       physics::FeaturePolicy3d>>();
   if (classNames.empty())
   {
-    gzerr << "No physics plugins found in library [" << pathToLib << "]."
-           << std::endl;
+    gzerr << "No physics plugins implementing required interface found in "
+          << "library [" << pathToLib << "]." << std::endl;
     return;
   }
 
