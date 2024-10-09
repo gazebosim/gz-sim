@@ -98,7 +98,7 @@ The particles are not only a visual effect in simulation, they also have an effe
 * `thermal_camera`: The particles are not visible in the thermal camera image.
 
 
-The [particle_emitter_scatter_effects.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim10/tutorials/files/particle_emitter/particle_emitter_scatter_effects.sdf)
+The [particle_emitter_scatter_effects.sdf](https://github.com/gazebosim/gz-sim/blob/main/tutorials/files/particle_emitter/particle_emitter_scatter_effects.sdf)
 demo world shows six different sensors looking at the fog generator with a rescue randy model inside the fog.
 
 Download the example world file and launch it to see what it looks like.
