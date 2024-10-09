@@ -1,2 +1,6 @@
+.git
+.github
+.vscode
 build
 build_*
+

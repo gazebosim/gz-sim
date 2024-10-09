@@ -17,6 +17,8 @@ use the Gazebo code found in the current source tree.
 
 1. [Install Docker](#Install-Docker)
 
+    You need at least 10Gb or free space on a hard drive.
+
 1. *Optional:* [Install NVidia Docker](#Install-Nvidia-Docker)
 
     Nvidia docker will be needed if you plan to run the GUI and/or sensors
@@ -46,7 +48,7 @@ use the Gazebo code found in the current source tree.
 3. Run the docker image with a bash shell.
 
     ```
-    docker run -it gz-sim:nightly /bin/bash
+    docker run --rm -it gz-sim:nightly /bin/bash
     ```
 
 4. Alternatively, you can directly run Gazebo using
@@ -73,21 +75,21 @@ distribution using debians.
    image of Gazebo Garden:
 
     ```
-    ./build.bash gz-garden ./Dockerfile.gz
+    ./build.bash gz ./Dockerfile.gz
     ```
 
 2. Run the docker image using `run.bash`, and pass in the name of the docker
    image (first argument to the build.bash script).
 
     ```
-    ./run.bash gz-garden
+    ./run.bash gz
     ```
 
 3. You can pass arguments to Gazebo by appending them the
    `run.bash` command. For example, to load the shapes.sdf file:
 
     ```
-    ./run.bash gz-garden -f shapes.sdf
+    ./run.bash gz -f shapes.sdf
     ```
 
 ## Appendix

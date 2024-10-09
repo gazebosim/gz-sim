@@ -10,7 +10,7 @@ COPY docker/scripts/enable_nightly.sh scripts/enable_nightly.sh
 RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
- && apt-get install -y \
+ && apt-get install --no-install-recommends -y \
     libgz-cmake4-dev \
     libgz-common6-dev \
     libgz-fuel-tools10-dev \
@@ -23,7 +23,9 @@ RUN apt-get update \
     libgz-gui9-dev \
     libgz-msgs11-dev \
     libgz-sensors9-dev \
-    libsdformat15-dev
+    libsdformat15-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY . gz-sim
 RUN cd gz-sim \
