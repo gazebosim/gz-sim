@@ -32,13 +32,13 @@ target_link_libraries(${GUI_PLUGIN}
 set(SERVER_PLUGIN RenderingServerPlugin)
 
 find_package(gz-plugin3 REQUIRED COMPONENTS register)
-find_package(gz-sim9 REQUIRED)
+find_package(gz-sim10 REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
 set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)
 target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
     gz-plugin3::gz-plugin3
-    gz-sim9::gz-sim9
+    gz-sim10::gz-sim10
     gz-rendering9::gz-rendering9
 )

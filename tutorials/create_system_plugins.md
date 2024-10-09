@@ -10,7 +10,7 @@ following entity types:
 * Actor
 
 To create a system plugin for use in the simulation environment, follow the
-steps below. The fully working example is available [here](https://github.com/gazebosim/gz-sim/tree/gz-sim9/examples/plugin/system_plugin).
+steps below. The fully working example is available [here](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/system_plugin).
 
 ## Decide on interfaces to implement
 
@@ -93,7 +93,7 @@ add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
-  PRIVATE gz-sim9::gz-sim9)
+  PRIVATE gz-sim10::gz-sim10)
 ```
 
 ## Loading your plugin

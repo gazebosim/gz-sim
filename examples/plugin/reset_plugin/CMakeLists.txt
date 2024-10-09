@@ -5,8 +5,8 @@ project(ResetPlugins)
 find_package(gz-plugin3 REQUIRED COMPONENTS register)
 set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
-find_package(gz-sim9 REQUIRED)
-set(GZ_SIM_VER ${gz-sim9_VERSION_MAJOR})
+find_package(gz-sim10 REQUIRED)
+set(GZ_SIM_VER ${gz-sim10_VERSION_MAJOR})
 
 add_library(JointPositionRandomizer SHARED JointPositionRandomizer.cc)
 target_link_libraries(JointPositionRandomizer
