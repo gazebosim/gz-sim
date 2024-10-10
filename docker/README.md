@@ -17,7 +17,7 @@ use the Gazebo code found in the current source tree.
 
 1. [Install Docker](#Install-Docker)
 
-    You need at least 10Gb or free space on a hard drive.
+    You need at least 10GB or free space on a hard drive.
 
 1. *Optional:* [Install NVidia Docker](#Install-Nvidia-Docker)
 
