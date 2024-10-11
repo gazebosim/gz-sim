@@ -226,7 +226,6 @@ TestFixture &TestFixture::OnReset(std::function<void(
   return *this;
 }
 
-
 //////////////////////////////////////////////////
 std::shared_ptr<Server> TestFixture::Server() const
 {
