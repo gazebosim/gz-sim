@@ -26,7 +26,7 @@ to developers touching the source code.
 
 * **System**: Logic that operates on all entities that have a given set of
     components. Systems are plugins that can be loaded at runtime.
-    Gazebo ships with various systems, and downstream develpers can
+    Gazebo ships with various systems, and downstream developers can
     [create their own systems](createsystemplugins.html).
 
 * **Entity-component manager** (**ECM**): Provides functions for

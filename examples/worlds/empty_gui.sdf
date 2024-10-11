@@ -37,6 +37,10 @@ This example helps illustrate the interaction of the MinimalScene with other GUI
 
   <world name="empty_gui">
 
+    <gz:policies>
+      <include_gui_default_plugins>false</include_gui_default_plugins>
+    </gz:policies>
+
     <gui fullscreen="0">
       <plugin filename="MinimalScene" name="3D View">
         <gz-gui>

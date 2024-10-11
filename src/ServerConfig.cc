@@ -168,9 +168,13 @@ class gz::sim::ServerConfigPrivate
 
     this->timestamp = GZ_SYSTEM_TIME();
 
+    std::string timeInIso = common::timeToIso(this->timestamp);
+    #ifdef _WIN32
+      std::replace(timeInIso.begin(), timeInIso.end(), ':', '-');
+    #endif
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
-        ".gz", "sim", "log", common::timeToIso(this->timestamp));
+        ".gz", "sim", "log", timeInIso);
 
     // If directory already exists, do not overwrite. This could potentially
     // happen if multiple simulation instances are started in rapid
