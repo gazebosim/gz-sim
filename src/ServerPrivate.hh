@@ -103,10 +103,9 @@ namespace gz
       /// values in a ServerConfig object.
       /// \param[in] _config Server config to read from.
       /// \param[out] _root SDF root object.
-      /// \param[out] _outputMsgs Informational output strings.
       /// \return Set of SDF errors.
       public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config,
-                  sdf::Root &_root, std::string &_outputMsgs);
+                                            sdf::Root &_root);
 
       /// \brief Download simulation assets.
       /// \param[in] _config Server configuration parameters. This function

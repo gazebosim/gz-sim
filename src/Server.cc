@@ -82,12 +82,10 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  std::string outputMsgs;
   // Ignore the sdf::Errors returned by this function. The errors will be
   // displayed later in the downloadThread.
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
-      this->dataPtr->sdfRoot, outputMsgs);
-  gzmsg << outputMsgs;
+      this->dataPtr->sdfRoot);
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.

@@ -594,7 +594,7 @@ std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 
 //////////////////////////////////////////////////
 sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
-    sdf::Root &_root, std::string &_outputMsgs)
+  sdf::Root &_root)
 {
   sdf::Errors errors;
 
@@ -602,35 +602,36 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
   {
     // Load a world if specified. Check SDF string first, then SDF file
     case ServerConfig::SourceType::kSdfRoot:
-      {
-        _root = _config.SdfRoot()->Clone();
-        _outputMsgs += "Loading SDF world from SDF DOM.\n";
-        break;
-      }
+    {
+      _root = _config.SdfRoot()->Clone();
+      gzmsg << "Loading SDF world from SDF DOM.\n";
+      break;
+    }
 
     case ServerConfig::SourceType::kSdfString:
+    {
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
       {
-        std::string msg = "Loading SDF string. ";
-        if (_config.SdfFile().empty())
-        {
-          _outputMsgs += "File path not available.\n";
-        }
-        else
-        {
-          _outputMsgs += "File path [" + _config.SdfFile() + "].\n";
-        }
-        sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-        sdfParserConfig.SetStoreResolvedURIs(true);
-        sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
-        errors = _root.LoadSdfString(
-          _config.SdfString(), sdfParserConfig);
-        _root.ResolveAutoInertials(errors, sdfParserConfig);
-        break;
+        msg += "File path not available.\n";
       }
+      else
+      {
+        msg += "File path [" + _config.SdfFile() + "].\n";
+      }
+      gzmsg << msg;
+      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+      sdfParserConfig.SetStoreResolvedURIs(true);
+      sdfParserConfig.SetCalculateInertialConfiguration(
+      sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+      errors = _root.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      _root.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
 
     case ServerConfig::SourceType::kSdfFile:
-     {
+    {
       std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
           _config.ResourceCache());
 
@@ -643,7 +644,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
         return errors;
       }
 
-        _outputMsgs += "Loading SDF world file[" + filePath + "].\n";
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
@@ -688,16 +689,16 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 
     case ServerConfig::SourceType::kNone:
     default:
-      {
-        _outputMsgs += "Loading default world.\n";
+    {
+      gzmsg << "Loading default world.\n";
 
-        sdf::World defaultWorld;
-        defaultWorld.SetName("default");
+      sdf::World defaultWorld;
+      defaultWorld.SetName("default");
 
-        // Load an empty world.
-        errors = _root.AddWorld(defaultWorld);
-        break;
-      }
+      // Load an empty world.
+      errors = _root.AddWorld(defaultWorld);
+      break;
+    }
   }
 
   // If the world only contains a model, load the default
