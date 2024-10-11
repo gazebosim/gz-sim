@@ -95,6 +95,7 @@ struct MaybeGilScopedRelease
 #endif
 }
 
+
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
