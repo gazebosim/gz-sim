@@ -77,10 +77,10 @@ namespace serializers
 
       if (!skip)
       {
-      _out << "<?xml version=\"1.0\" ?>"
-           << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-           << (skip ? std::string() : modelElem->ToString(""))
-           << "</sdf>";
+        _out << "<?xml version=\"1.0\" ?>"
+              << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
+              << modelElem->ToString("")
+              << "</sdf>";
 
       }
       else
