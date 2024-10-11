@@ -338,7 +338,7 @@ namespace gz
       /// \brief Stop the server. This will stop all running simulations.
       public: void Stop();
 
-      /// \brief Reset All runners in this simulation
+      /// \brief Reset all runners in this simulation
       public: void ResetAll();
 
       /// \brief Private data
