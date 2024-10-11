@@ -95,7 +95,6 @@ struct MaybeGilScopedRelease
 #endif
 }
 
-
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
@@ -1660,4 +1659,18 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool all,
+  const bool time, const bool model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = all || time;
+  if (model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
 }

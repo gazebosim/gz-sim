@@ -338,6 +338,9 @@ namespace gz
       /// \brief Stop the server. This will stop all running simulations.
       public: void Stop();
 
+      /// \brief Reset All runners in this simulation
+      public: void ResetAll();
+
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };

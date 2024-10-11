@@ -369,6 +369,9 @@ namespace gz
       /// \brief Set the next step to be blocking and paused.
       public: void SetNextStepAsBlockingPaused(const bool value);
 
+      /// \brief Reset the current simulation runner
+      public: void Reset(const bool all, const bool time, const bool model);
+
       /// \brief Updates the physics parameters of the simulation based on the
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
