@@ -1662,13 +1662,13 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::Reset(const bool all,
-  const bool time, const bool model)
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
 {
   WorldControl control;
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
-  control.rewind = all || time;
-  if (model)
+  control.rewind = _all || _time;
+  if (_model)
   {
     gzwarn << "Model reset not supported" <<std::endl;
   }
