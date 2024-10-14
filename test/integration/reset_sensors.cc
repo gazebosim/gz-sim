@@ -23,6 +23,7 @@
 #include <gz/msgs/world_control.pb.h>
 
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <sdf/Element.hh>
@@ -336,6 +337,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   imageReceiver.msgReceived = false;
 
   server.Run(true, 2000 - server.IterationCount().value(), false);
+  std::this_thread::sleep_for(20ms);
 
   // Check iterator state
   EXPECT_EQ(2000u, server.IterationCount().value());

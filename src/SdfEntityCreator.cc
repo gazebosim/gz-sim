@@ -15,12 +15,15 @@
  *
 */
 
+#include <cstdint>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <sdf/Types.hh>
 
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
@@ -65,7 +68,7 @@
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
-#include <gz/sim/components/ParticleEmitter.hh>
+#include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
@@ -235,7 +238,6 @@ SdfEntityCreator &SdfEntityCreator::operator=(SdfEntityCreator &&_creator)
 //////////////////////////////////////////////////
 Entity SdfEntityCreator::CreateEntities(const sdf::World *_world)
 {
-
   // World entity
   Entity worldEntity = this->dataPtr->ecm->CreateEntity();
 
@@ -318,9 +320,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         components::SphericalCoordinates(*_world->SphericalCoordinates()));
   }
 
-  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
-      _world->Plugins());
-
   // Models
   for (uint64_t modelIndex = 0; modelIndex < _world->ModelCount();
       ++modelIndex)
@@ -330,7 +329,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
     {
-      Entity modelEntity = this->CreateEntities(model);
+      Entity modelEntity = this->CreateEntities(model, false);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -380,7 +379,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
-        Entity modelEntity = this->CreateEntities(model);
+        Entity modelEntity = this->CreateEntities(model, false);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
       }
@@ -416,32 +415,51 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
 
   // Populate physics options that aren't accessible outside the Element()
   // See https://github.com/osrf/sdformat/issues/508
-  if (physics->Element() && physics->Element()->HasElement("dart"))
+  if (physics->Element())
   {
-    auto dartElem = physics->Element()->GetElement("dart");
-
-    if (dartElem->HasElement("collision_detector"))
+    if (auto dartElem = physics->Element()->FindElement("dart"))
     {
-      auto collisionDetector =
-          dartElem->Get<std::string>("collision_detector");
+      if (dartElem->HasElement("collision_detector"))
+      {
+        auto collisionDetector =
+            dartElem->Get<std::string>("collision_detector");
 
-      this->dataPtr->ecm->CreateComponent(_worldEntity,
-          components::PhysicsCollisionDetector(collisionDetector));
+        this->dataPtr->ecm->CreateComponent(_worldEntity,
+            components::PhysicsCollisionDetector(collisionDetector));
+      }
+      if (auto solverElem = dartElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("solver_type"))
+        {
+          auto solver = solverElem->Get<std::string>("solver_type");
+          this->dataPtr->ecm->CreateComponent(_worldEntity,
+              components::PhysicsSolver(solver));
+        }
+      }
     }
-    if (dartElem->HasElement("solver") &&
-        dartElem->GetElement("solver")->HasElement("solver_type"))
+    if (auto bulletElem = physics->Element()->FindElement("bullet"))
     {
-      auto solver =
-          dartElem->GetElement("solver")->Get<std::string>("solver_type");
-
-      this->dataPtr->ecm->CreateComponent(_worldEntity,
-          components::PhysicsSolver(solver));
+      if (auto solverElem = bulletElem->FindElement("solver"))
+      {
+        if (solverElem->HasElement("iters"))
+        {
+          uint32_t solverIterations = solverElem->Get<uint32_t>("iters");
+          this->dataPtr->ecm->CreateComponent(_worldEntity,
+              components::PhysicsSolverIterations(solverIterations));
+        }
+      }
     }
   }
 
   // Store the world's SDF DOM to be used when saving the world to file
   this->dataPtr->ecm->CreateComponent(
       _worldEntity, components::WorldSdf(*_world));
+
+  this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(_worldEntity,
+      _world->Plugins());
+
+  // Load model plugins after the world plugin.
+  this->LoadModelPlugins();
 }
 
 //////////////////////////////////////////////////
@@ -987,9 +1005,27 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
   // Entity
   Entity emitterEntity = this->dataPtr->ecm->CreateEntity();
 
+  auto particleEmitterMsg = convert<msgs::ParticleEmitter>(*_emitter);
+
+  // Update image path
+  // Ideally this is done by gz/sim/src/SceneManager.cc when creating
+  // the particle emitter. However the component stores a msg instead of
+  // an sdf so the sdf FilePath information is lost and rendering is not
+  // able to construct the full path of the image.
+  // \todo(iche033) Consider changing the ParticleEmitter component to
+  // store an sdf::ParticleEmitter object instead of msgs::ParticleEmitter.
+  std::string imagePath = _emitter->ColorRangeImage();
+  if (!imagePath.empty())
+  {
+    std::string path = common::findFile(asFullPath(imagePath,
+        _emitter->Element()->FilePath()));
+    path = path.empty() ? imagePath : path;
+    particleEmitterMsg.mutable_color_range_image()->set_data(path);
+  }
+
   // Components
   this->dataPtr->ecm->CreateComponent(emitterEntity,
-      components::ParticleEmitter(convert<msgs::ParticleEmitter>(*_emitter)));
+      components::ParticleEmitter(particleEmitterMsg));
   this->dataPtr->ecm->CreateComponent(emitterEntity,
       components::Pose(ResolveSdfPose(_emitter->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(emitterEntity,

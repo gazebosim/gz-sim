@@ -376,7 +376,7 @@ A detailed description and related parameter of JointTrajectoryController can be
 
 The trajectory message can be published or subscribed at `/model/${MODEL_NAME}/joint_trajectory` by default.
 
-Message type: [`JointTrajectory`](https://gazebosim.org/api/msgs/7.2/classignition_1_1msgs_1_1JointTrajectory.html)
+Message type: [`JointTrajectory`](https://github.com/gazebosim/gz-msgs/blob/gz-msgs10/proto/gz/msgs/joint_trajectory.proto)
 
 ### Example usage:
 
@@ -385,7 +385,7 @@ Let’s set up a new model for this example. A two-linked manipulator arm which 
 - SDF file:
 
 ```xml
-<?xml version="1.0"
+<?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
     <scene>
@@ -653,7 +653,7 @@ gz topic -t "topic_name" -m gz.msgs.JointTrajectory -p '
         sec: 1
         nsec: 0
       }
-    }
+    }'
 ```
 
 <div style="text-align:center;">

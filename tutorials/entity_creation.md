@@ -55,7 +55,7 @@ gz service --list
 /world/world_name/state_async
 ```
 
-# Factory message
+## Factory message
 
 To create new entities in the world we need to use the
 [gz::msgs::EntityFactory](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1EntityFactory.html)
@@ -65,7 +65,7 @@ This message allows us to create entities from strings, files,
 [Lights](https://gazebosim.org/api/msgs/9/classgz_1_1msgs_1_1Light.html) or even clone models.
 This tutorial introduces how to create entities from SDF strings and light messages.
 
-## Insert an entity based on a string
+### Insert an entity based on a string
 
 We will open an empty Gazebo world, let's start creating a sphere in the world.
 In the next snippet you can see how to create models based on strings.
@@ -87,7 +87,7 @@ happen. You may see some traces in the console showing this information.
 There is an option to create a new entity every time that the message is sent by setting
 `allow_renaming` to true (you can use the method `set_allow_renaming()`).
 
-## Insert a light
+### Insert a light
 
 To insert a light in the world we have two options:
 

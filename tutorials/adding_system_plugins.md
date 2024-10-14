@@ -1,4 +1,4 @@
-\page adding_system_plugins
+\page adding_system_plugins Adding system plugins
 
 # Overview
 
@@ -10,15 +10,15 @@ capabilities to it.
 Make sure to go through the following tutorial first, where you'll learn how
 to create the vehicle used in this tutorial.
 
-https://gazebosim.org/api/sim/8/create_vehicle.html
+\ref create_vehicle
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/createsystemplugins.html
+\ref createsystemplugins
 
 # Adding a system plugin
 
-[This Gazebo tutorial](https://gazebosim.org/api/sim/8/createsystemplugins.html)
+[This Gazebo tutorial](https://gazebosim.org/api/sim/9/createsystemplugins.html)
 describes what is a system plugin in depth. Intuitively, you can envision a
 system plugin as a piece of code that modifies the behavior of the simulation
 when the general physics engine does not exactly capture your needs.
@@ -46,7 +46,7 @@ your turtle does not sink anymore.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -O ~/gazebo_maritime/worlds/buoyant_turtle.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -O ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
@@ -130,7 +130,7 @@ And run Gazebo:
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```
 
-Now, when our simple trajectory controller reaches its target and stops appling
+Now, when our simple trajectory controller reaches its target and stops applying
 force, the turtle stops moving acting like the fluid decelerates its motion.
 Additionally you can notice how the up and down oscillations are also damped by
 the effect of the hydrodynamics.

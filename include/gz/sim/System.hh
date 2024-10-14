@@ -103,6 +103,31 @@ namespace gz
       public: virtual ~System() = default;
     };
 
+    /// \brief Define constant priority values for specific systems.
+    namespace systems
+    {
+      /// \brief Default priority value for the UserCommands system, with a very
+      /// negative value to indicate that it should run before most systems in
+      /// order to modify the ECM in response to user commands received over
+      /// gz-transport. This is especially important for user commands that add
+      /// objects to the world.
+      constexpr System::PriorityType kUserCommandsPriority = -16384;
+
+      /// \brief A suggested priority value for a system that should execute
+      /// before the Physics system.
+      constexpr System::PriorityType kPrePhysicsPriority = -128;
+
+      /// \brief Default priority value for the Physics system, with a negative
+      /// value ensuring that it will run before systems with priority
+      /// System::kDefaultPriority.
+      constexpr System::PriorityType kPhysicsPriority = -64;
+
+      /// \brief A suggested priority value for sensor systems that should
+      /// execute after the Physics system but before the systems with priority
+      /// System::kDefaultPriority.
+      constexpr System::PriorityType kPostPhysicsSensorPriority = -32;
+    }
+
     /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that implements optional configuration
     ///
@@ -122,6 +147,20 @@ namespace gz
                   const std::shared_ptr<const sdf::Element> &_sdf,
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;
+    };
+
+    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
+    /// \brief Interface for a system that implements optional configuration
+    /// of the default priority value.
+    ///
+    /// ConfigurePriority is called before the system is instantiated to
+    /// override System::kDefaultPriority. It can still be overridden by the
+    /// XML priority element.
+    class ISystemConfigurePriority {
+      /// \brief Configure the default priority of the system, which can still
+      /// be overridden by the XML priority element.
+      /// \return The default priority for the system.
+      public: virtual System::PriorityType ConfigurePriority() = 0;
     };
 
     /// \class ISystemConfigureParameters ISystem.hh gz/sim/System.hh

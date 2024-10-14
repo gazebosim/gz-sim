@@ -18,6 +18,7 @@
 #include "LevelManager.hh"
 
 #include <algorithm>
+#include <cstdint>
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>

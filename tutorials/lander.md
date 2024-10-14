@@ -1,4 +1,4 @@
-\page lander
+\page lander Create a lander vehicle
 
 # Overview
 
@@ -9,17 +9,17 @@ to the surface while they collect sensor measurements.
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/create_vehicle.html
+\ref create_vehicle
 
-https://gazebosim.org/api/sim/8/adding_visuals.html
+\ref adding_visuals
 
-https://gazebosim.org/api/sim/8/frame_reference.html
+\ref frame_reference
 
-https://gazebosim.org/api/sim/8/adding_system_plugins.html
+\ref adding_system_plugins
 
-https://gazebosim.org/api/sim/8/theory_buoyancy.html
+\ref theory_buoyancy
 
-https://gazebosim.org/api/sim/8/theory_hydrodynamics.html
+\ref theory_hydrodynamics
 
 # Create your vehicle
 
@@ -37,7 +37,7 @@ mkdir -p ~/gazebo_maritime/models/my_lander && cd ~/gazebo_maritime/models/my_la
 Download the `model.config` file and copy it within that directory:
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
 ```
 
 In its simple version, the lander does not have any moving pieces, so the SDF
@@ -95,7 +95,7 @@ Let's now add nicer-looking visuals to our lander. Download the following
 
 ```bash
 mkdir ~/gazebo_maritime/models/my_lander/meshes
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
 ```
 
 Replace the `chassis_visual` element in your `model.sdf` with the following
@@ -114,7 +114,7 @@ block:
 And launch Gazebo to see the results:
 
 ```bash
-gz sim ~/my_models/my_lander/model.sdf
+gz sim ~/gazebo_maritime/models/my_lander/model.sdf
 ```
 
 Your box should now be replaced with a better looking mesh.
@@ -153,7 +153,7 @@ Let's start with the world. Download the following world:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 

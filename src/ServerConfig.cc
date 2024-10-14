@@ -168,9 +168,13 @@ class gz::sim::ServerConfigPrivate
 
     this->timestamp = GZ_SYSTEM_TIME();
 
+    std::string timeInIso = common::timeToIso(this->timestamp);
+    #ifdef _WIN32
+      std::replace(timeInIso.begin(), timeInIso.end(), ':', '-');
+    #endif
     // Set a default log record path
     this->logRecordPath = common::joinPaths(home,
-        ".gz", "sim", "log", common::timeToIso(this->timestamp));
+        ".gz", "sim", "log", timeInIso);
 
     // If directory already exists, do not overwrite. This could potentially
     // happen if multiple simulation instances are started in rapid
@@ -924,19 +928,6 @@ sim::loadPluginInfo(bool _isPlayback)
                                envConfig,
                                true);
 
-  if (!configSet)
-  {
-    configSet = common::env("IGN_GAZEBO_SERVER_CONFIG_PATH",
-                            envConfig,
-                            true);
-    if (configSet)
-    {
-      gzwarn << "Config path found using deprecated environment variable "
-             << "[IGN_GAZEBO_SERVER_CONFIG_PATH]. Please use "
-             << "[GZ_SIM_SERVER_CONFIG_PATH] instead" << std::endl;
-    }
-  }
-
   if (configSet)
   {
     if (common::exists(envConfig))
@@ -951,7 +942,7 @@ sim::loadPluginInfo(bool _isPlayback)
         gzwarn << kServerConfigPathEnv
                 << " set but no plugins found\n";
       }
-      gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+      gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
         "[" << envConfig << "]\n";
 
       return ret;
@@ -1031,7 +1022,7 @@ sim::loadPluginInfo(bool _isPlayback)
       << "], but no plugins found\n";
   }
 
-  gzdbg << "Loaded (" << ret.size() << ") plugins from file " <<
+  gzdbg << "Loading (" << ret.size() << ") plugins from file " <<
     "[" << defaultConfig << "]\n";
 
   return ret;

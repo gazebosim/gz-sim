@@ -711,12 +711,15 @@ std::optional<math::Vector3d> sphericalCoordinates(Entity _entity,
 
   // lat / lon / elevation in rad / rad / m
   auto rad = sphericalCoordinatesComp->Data().PositionTransform(
-      xyzPose.Pos(),
-      math::SphericalCoordinates::LOCAL2,
+      math::CoordinateVector3::Metric(xyzPose.Pos()),
+      math::SphericalCoordinates::LOCAL,
       math::SphericalCoordinates::SPHERICAL);
 
+  if (!rad.has_value() || !rad->IsSpherical())
+    return std::nullopt;
+
   // Return degrees
-  return math::Vector3d(GZ_RTOD(rad.X()), GZ_RTOD(rad.Y()), rad.Z());
+  return math::Vector3d(rad->Lat()->Degree(), rad->Lon()->Degree(), *rad->Z());
 }
 
 //////////////////////////////////////////////////
@@ -747,15 +750,31 @@ std::optional<math::Vector3d> getGridFieldCoordinates(
     }
   }
   auto position = origin->Data().PositionTransform(
-      _worldPosition, math::SphericalCoordinates::LOCAL2,
+      math::CoordinateVector3::Metric(_worldPosition),
+      math::SphericalCoordinates::LOCAL,
       _gridField->reference);
+  if (!position.has_value())
+    return std::nullopt;
+
+  if (position->IsMetric())
+    return position->AsMetricVector();
+
+  math::Vector3d out;
   if (_gridField->reference == math::SphericalCoordinates::SPHERICAL &&
     _gridField->units == components::EnvironmentalData::ReferenceUnits::DEGREES)
   {
-    position.X(GZ_RTOD(position.X()));
-    position.Y(GZ_RTOD(position.Y()));
+    out.X(position->Lat()->Degree());
+    out.Y(position->Lon()->Degree());
   }
-  return position;
+  else
+  {
+    out.X(position->Lat()->Radian());
+    out.Y(position->Lon()->Radian());
+  }
+  out.Z(*position->Z());
+
+  // \todo(iche033) Change the return type to math::CoordinateVector3
+  return out;
 }
 
 //////////////////////////////////////////////////
