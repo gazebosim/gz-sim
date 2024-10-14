@@ -291,6 +291,14 @@
             <iyz>0</iyz>
             <izz>0.61250000000000006</izz>
           </inertia>
+          <fluid_added_mass>
+            <xx>0.04876161</xx>
+            <yy>1.26324739</yy>
+            <zz>1.26324739</zz>
+            <pp>0</pp>
+            <qq>0.3346</qq>
+            <rr>0.3346</rr>
+          </fluid_added_mass>
         </inertial>
 
         <collision name='collision'>
@@ -329,12 +337,6 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
-        <xDotU>-0.04876161</xDotU>
-        <yDotV>-1.26324739</yDotV>
-        <zDotW>-1.26324739</zDotW>
-        <kDotP>0</kDotP>
-        <mDotQ>-0.3346</mDotQ>
-        <nDotR>-0.3346</nDotR>
         <xUabsU>-0.62282</xUabsU>
         <xU>-5</xU>
         <yVabsV>-60.127</yVabsV>
