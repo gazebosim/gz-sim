@@ -594,7 +594,7 @@ std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 
 //////////////////////////////////////////////////
 sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
-  sdf::Root &_root)
+  sdf::Root &_root, bool suppressConsole)
 {
   sdf::Errors errors;
 
@@ -604,7 +604,8 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     case ServerConfig::SourceType::kSdfRoot:
     {
       _root = _config.SdfRoot()->Clone();
-      gzmsg << "Loading SDF world from SDF DOM.\n";
+      if (!suppressConsole)
+        gzmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
 
@@ -619,11 +620,12 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
       {
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
-      gzmsg << msg;
+      if (!suppressConsole)
+        gzmsg << msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
       sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
-      sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = _root.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       _root.ResolveAutoInertials(errors, sdfParserConfig);
@@ -637,20 +639,23 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 
       if (filePath.empty())
       {
-        std::string errStr = "Failed to find world ["
+        std::string errStr =  "Failed to find world ["
           + _config.SdfFile() + "]";
-        gzerr << errStr << std::endl;
+        if (!suppressConsole)
+          gzerr << errStr << std::endl;
         errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
         return errors;
       }
 
-      gzmsg << "Loading SDF world file[" << filePath << "].\n";
+      if (!suppressConsole)
+        gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
       sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+
       MeshInertiaCalculator meshInertiaCalculator;
       sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
       errors = sdfRootLocal.Load(filePath, sdfParserConfig);
@@ -690,7 +695,8 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     case ServerConfig::SourceType::kNone:
     default:
     {
-      gzmsg << "Loading default world.\n";
+      if (!suppressConsole)
+        gzmsg << "Loading default world.\n";
 
       sdf::World defaultWorld;
       defaultWorld.SetName("default");
@@ -708,17 +714,14 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     sdf::World defaultWorld;
     defaultWorld.SetName("default");
     if (_root.Model())
-    {
       defaultWorld.AddModel(*_root.Model());
-    }
     if (_root.Actor())
       defaultWorld.AddActor(*_root.Actor());
     if (_root.Light())
       defaultWorld.AddLight(*_root.Light());
 
     _root.AddWorld(defaultWorld);
-
-    _root.WorldByIndex(0)->ToElement()->PrintValues("---");
+    _root.ClearActorLightModel();
   }
 
   return errors;
@@ -742,9 +745,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
-    std::string ignoreMessages;
     sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
-        localRoot, ignoreMessages);
+        localRoot, true);
 
     // Output any errors.
     if (!localErrors.empty())
