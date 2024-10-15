@@ -15,14 +15,14 @@
  *
 */
 
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Layouts 1.3
-import QtQml.Models 2.3
-import Qt.labs.folderlistmodel 2.1
-import QtQuick.Window 2.2
-import "qrc:/qml"
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
+import QtQml.Models
+import Qt.labs.folderlistmodel
+import QtQuick.Window
+import "qrc:/gz/gui/qml"
 
 Rectangle {
 
@@ -36,7 +36,7 @@ Rectangle {
 
   id: quickStart
   anchors.fill: parent
-  property var selectedWorld: ""
+  property string selectedWorld: ""
 
   function changeDefault(checked) {
     QuickStartHandler.SetShowAgain(checked);
@@ -79,7 +79,7 @@ Rectangle {
   }
 
   function getColor(fileName){
-    if(fileName == selectedWorld)
+    if(fileName === selectedWorld)
       return Material.primary;
     return "#e0e0e0";
   }

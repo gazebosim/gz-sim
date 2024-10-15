@@ -14,13 +14,12 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
 import "qrc:/ComponentInspector"
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 // Item displaying 3D vector information.
 Rectangle {
@@ -98,7 +97,7 @@ Rectangle {
           id: gzVectorInstance
           Layout.fillWidth: true
           Layout.preferredWidth: parent.width
-          gzUnit: model && model.unit != undefined ? model.unit : 'm'
+          gzUnit: model && model.unit !== undefined ? model.unit : 'm'
 
           xValue: model.data[0]
           yValue: model.data[1]

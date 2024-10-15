@@ -14,13 +14,12 @@
  * limitations under the License.
  *
  */
-import QtQuick 2.9
-import QtQuick.Window 2.2
-import QtQuick.Controls 2.1
-import QtQuick.Controls.Material 2.2
-import QtQuick.Controls.Material.impl 2.2
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Window
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Controls.Material.impl
+import QtQuick.Layouts
 
 GridLayout {
   id: playbackScrubber
@@ -35,22 +34,22 @@ GridLayout {
   /**
    * True if the playback scrubber is currently being pressed/dragged.
    */
-  property var isPressed: false
+  property bool isPressed: false
 
   /**
    * The current time the playback scrubber is at.
    */
-  property var currentTime: ""
+  property string currentTime: ""
 
   /**
    * The start time of the log playback file.
    */
-  property var startTime: ""
+  property string startTime: ""
 
   /**
    * The end time of the log playback file.
    */
-  property var endTime: ""
+  property string endTime: ""
 
   /**
    * Update the slider to the new values if it is currently being dragged.

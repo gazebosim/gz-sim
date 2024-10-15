@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.0
-import QtQuick.Controls 1.4
-import QtQuick.Layouts 1.3
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 PlottingInterface {
   Layout.minimumWidth: 600

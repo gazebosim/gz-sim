@@ -14,11 +14,11 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.1
-import QtQuick.Layouts 1.3
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Dialogs
+import QtQuick.Layouts
 
 /**
  * Custom drawer
@@ -132,10 +132,10 @@ Rectangle {
   FileDialog {
     id: saveWorldDialog
     title: "Save world"
-    folder: shortcuts.home
+    currentFolder: shortcuts.home
     nameFilters: [ "SDF files (*.sdf)" ]
-    selectMultiple: false
-    selectExisting: false
+    // selectMultiple: false
+    // selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
     }
@@ -204,8 +204,8 @@ Rectangle {
           id: saveWorldFileText
           text: "file:///"
           selectByMouse: true
-          validator: RegExpValidator {
-            regExp: fileValidator
+          validator: RegularExpressionValidator {
+            regularExpression: fileValidator
           }
           onTextChanged: {
             var valid = saveWorldFileText.text.match(fileValidator)

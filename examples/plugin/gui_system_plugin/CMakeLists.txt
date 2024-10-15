@@ -10,7 +10,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(gz-sim9 REQUIRED COMPONENTS gui)
 
-QT5_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
+qt_add_resources(resources_RCC ${PROJECT_NAME}.qrc)
 
 add_library(${PROJECT_NAME} SHARED
   ${PROJECT_NAME}.cc
