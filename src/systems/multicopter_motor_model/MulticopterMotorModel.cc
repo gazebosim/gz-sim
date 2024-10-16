@@ -411,7 +411,8 @@ void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
 
     const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
         this->dataPtr->jointEntity);
-    this->dataPtr->parentLinkName = parentLinkName->Data();
+    if (parentLinkName)
+      this->dataPtr->parentLinkName = parentLinkName->Data();
   }
 
   if (this->dataPtr->linkEntity == kNullEntity)
