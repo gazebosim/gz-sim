@@ -207,7 +207,7 @@ namespace gz
       /// material.
       public: static const char kClassicMaterialScriptUri[];
 
-      /// \brief Used to set whether models should be downloaded from Fuel.
+      /// \brief Used to set whether models should be downloaded.
       public: bool enableDownload = false;
 
       /// \brief Thread used to download models in the background.

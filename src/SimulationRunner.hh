@@ -382,12 +382,6 @@ namespace gz
       /// \return Reference to the SDF world for this runner.
       public: const sdf::World &WorldSdf() const;
 
-      /// \brief Create an asset (actor, light, model). This will add the
-      /// asset to a queue that will be processed on the next preupdate.
-      /// \param[in] _asset Model to create.
-      public: void CreateEntity(const std::variant<
-                  sdf::Actor, sdf::Light, sdf::Model> &_asset);
-
       /// \brief Set whether the paused state of true should be enforced.
       /// Setting this to true will force simulation to pause, and it can only
       /// be unpaused if this function is called with a false parameter value.
@@ -417,10 +411,6 @@ namespace gz
       /// \brief Process the new world state message, if it is present.
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
-
-      /// \brief Create all of the assets listed in the `assetsToCreate`
-      /// list.
-      private: void UpdateAssetCreation();
 
       /// \brief This is used to indicate that a stop event has been received.
       private: std::atomic<bool> stopReceived{false};
@@ -550,10 +540,6 @@ namespace gz
       private: std::mutex stepMutex;
       private: std::condition_variable creationCv;
 
-      /// \brief Set of assets to create during the next preupdate.
-      private: std::vector<
-               std::variant<sdf::Actor, sdf::Light, sdf::Model>> assetsToCreate;
-
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
 
@@ -593,7 +579,7 @@ namespace gz
       /// \brief Set if we need to remove systems due to entity removal
       private: bool threadsNeedCleanUp{false};
 
-      /// \brief On start, the server will download models in the
+      /// \brief On start, the server may download models in the
       /// background. The simulation runner must remain paused while this
       /// takes place. This flag can be used to make sure simulation stays
       /// paused.

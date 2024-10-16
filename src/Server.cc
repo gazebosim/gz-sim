@@ -82,6 +82,7 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
+  // Loads the SDF root object based on values in a ServerConfig object.
   // Ignore the sdf::Errors returned by this function. The errors will be
   // displayed later in the downloadThread.
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config,
@@ -89,7 +90,6 @@ Server::Server(const ServerConfig &_config)
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
-  // Do this before the `CreateEntities` function call.
   for (uint64_t i = 0; i < this->dataPtr->sdfRoot.WorldCount(); ++i)
   {
     this->dataPtr->sdfRoot.WorldByIndex(i)->ClearModels();
@@ -110,14 +110,11 @@ Server::Server(const ServerConfig &_config)
   this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in
-  // the world file which was parsed by CreateEntities.
+  // the world file which was parsed by LoadSdfRootHelper.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
-
-  // Establish publishers and subscribers.
-  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////
