@@ -692,11 +692,11 @@ void TrackedVehiclePrivate::UpdateVelocity(
 
     // radius of the turn the robot is doing
     this->desiredRotationRadiusSigned =
-      (fabs(angVel) < 0.1) ?
+      (fabs(angVel) < 1e-6) ?
       // is driving straight
       math::INF_D :
       (
-        (fabs(linVel) < 0.1) ?
+        (fabs(linVel) < 1e-6) ?
         // is rotating about a single point
         0 :
         // general movement
