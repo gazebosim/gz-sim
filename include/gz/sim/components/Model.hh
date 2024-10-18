@@ -75,10 +75,18 @@ namespace serializers
         }
       }
 
-      _out << "<?xml version=\"1.0\" ?>"
-           << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-           << (skip ? std::string() : modelElem->ToString(""))
-           << "</sdf>";
+      if (!skip)
+      {
+        _out << "<?xml version=\"1.0\" ?>"
+              << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
+              << modelElem->ToString("")
+              << "</sdf>";
+
+      }
+      else
+      {
+        _out << "";
+      }
       return _out;
     }
 
@@ -89,13 +97,18 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
                 sdf::Model &_model)
     {
-      sdf::Root root;
       std::string sdf(std::istreambuf_iterator<char>(_in), {});
+      if (sdf.empty())
+      {
+        return _in;
+      }
 
+      // Its super expensive to create an SDFElement for some reason
+      sdf::Root root;
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-        gzwarn << "Unable to deserialize sdf::Model" << std::endl;
+        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
         return _in;
       }
 
