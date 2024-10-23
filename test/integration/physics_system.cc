@@ -2834,6 +2834,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
                                          "joints_in_world.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
+  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
   Server server(serverConfig);
   server.SetUpdatePeriod(1ns);
 
@@ -2851,13 +2852,29 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
               return true;
             });
 
+        auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
+                                                   components::Joint());
+        ASSERT_NE(jointEntity, kNullEntity);
+
+        const uint64_t kItersFirstQuarter = kIters / 4;
+        if (_info.iterations < kItersFirstQuarter)
+        {
+          const double velCmd = 0.1 * _info.iterations / kItersFirstQuarter;
+          _ecm.SetComponentData<components::JointVelocityCmd>(jointEntity,
+                                                              {velCmd});
+        }
+        else
+        {
+          // JointVelocityCmd component should be removed at each time step
+          ASSERT_FALSE(
+            _ecm.EntityHasComponentType(jointEntity,
+                                        components::JointVelocityCmd::typeId));
+        }
+
         if (_info.iterations == kIters / 2)
         {
           // After half the iterations, reset the joint position and velocity so
           // that the bob at its equilibrium point and at rest.
-          auto jointEntity = _ecm.EntityByComponents(components::Name("j1"),
-                                                     components::Joint());
-          ASSERT_NE(jointEntity, kNullEntity);
           _ecm.SetComponentData<components::JointVelocityReset>(jointEntity,
                                                                 {0});
           _ecm.SetComponentData<components::JointPositionReset>(jointEntity,
@@ -2882,6 +2899,16 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
         ASSERT_TRUE(jointPos.has_value());
         ASSERT_EQ(1u, jointPos->size());
 
+        auto jointVel =
+            _ecm.ComponentData<components::JointVelocity>(jointEntity);
+        ASSERT_TRUE(jointVel.has_value());
+        ASSERT_EQ(1u, jointVel->size());
+
+        if (_info.iterations > kIters / 8 && _info.iterations < kIters / 4)
+        {
+          EXPECT_GT(jointVel->data()[0], 0.02);
+        }
+
         if (_info.iterations < kIters / 2)
         {
           // If the joint is properly working, the position of the model can be
@@ -2898,6 +2925,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
         else
         {
           EXPECT_NEAR((*jointPos)[0], GZ_PI_2, 1e-2);
+          EXPECT_NEAR((*jointVel)[0], 0.0, 1e-6);
         }
       });
 
