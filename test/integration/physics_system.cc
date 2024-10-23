@@ -2834,7 +2834,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
                                          "joints_in_world.sdf");
 
   serverConfig.SetSdfFile(sdfFile);
-  serverConfig.SetPhysicsEngine("gz-physics-dartsim-plugin");
+  serverConfig.SetPhysicsEngine("gz-physics-bullet-featherstone-plugin");
   Server server(serverConfig);
   server.SetUpdatePeriod(1ns);
 

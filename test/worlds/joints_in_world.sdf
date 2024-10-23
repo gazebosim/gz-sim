@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.10">
   <world name="joints_in_world">
+    <model name="wrapper">
     <joint name="fix_to_world" type="fixed">
       <parent>world</parent>
       <child>m1</child>
@@ -39,6 +40,6 @@
         </visual>
       </link>
     </model>
-
+    </model>
   </world>
 </sdf>
