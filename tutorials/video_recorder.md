@@ -19,6 +19,12 @@ recorder button gives you the video format options that are available.
 
 @image html files/video_recorder/video_recorder.png
 
+> **NOTE**
+> The OGV format might not be supported by the underlying libavcodec implementation.
+> This is especially true on Windows with the conda-installed dependencies.
+> There is no easy way to add the VP8 codec support except for building
+> libavcodec manually and enabling the support.
+
 Once an option is selected, recording starts immediately as indicated by
 a flashing video recorder icon. At anytime that you wish to stop recording,
 click on the flashing icon and select `Stop`. A file dialog window should pop up
