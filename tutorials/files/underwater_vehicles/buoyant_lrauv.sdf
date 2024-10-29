@@ -271,7 +271,7 @@
         </plugin>
 
         <!-- Uncomment to add hydrodynamics -->
-        <plugin
+        <!--<plugin
           filename="gz-sim-hydrodynamics-system"
           name="gz::sim::systems::Hydrodynamics">
           <link_name>base_link</link_name>
@@ -287,7 +287,7 @@
           <mQ>0</mQ>
           <nRabsR>-632.698957</nRabsR>
           <nR>0</nR>
-        </plugin>
+        </plugin>-->
       </include>
     </model>
 

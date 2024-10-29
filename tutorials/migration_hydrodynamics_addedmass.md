@@ -1,7 +1,7 @@
 # Migrating Added Mass from the Hydrodynamics to the Fluid Added Mass tag
 
 Historically, we used the specify added mass in the parameters of the hydrodynamics plugin.
-Starting with GazeboIonic, we have deprecated that in favour of using the SDF `<fluid_added_mass>` tag directly. This guarantees better numerical stability. That being said, in order to actually simulate added mass your underlying physics engine must be able to support the added mass tag. So far that only includes the DART physics engine.
+Starting with Gazebo Ionic, we have deprecated that in favour of using the SDF `<fluid_added_mass>` tag directly. This guarantees better numerical stability. That being said, in order to actually simulate added mass your underlying physics engine must be able to support the added mass tag. So far that only includes the DART physics engine.
 
 # Example migration
 
