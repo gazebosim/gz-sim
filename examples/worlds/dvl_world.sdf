@@ -138,7 +138,7 @@
       <pose>0 0 -80 0 0 1.57</pose>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/LRAUV Post-Ionic</uri>
 
-      <experimental:params>U
+      <experimental:params>
         <sensor
             element_id="base_link" action="add"
             name="teledyne_pathfinder_dvl"
