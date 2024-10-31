@@ -113,6 +113,10 @@ size_t SystemManager::ActivatePendingSystems()
     this->systems.push_back(system);
 
     PriorityType p {System::kDefaultPriority};
+    if (system.configurePriority)
+    {
+      p = system.configurePriority->ConfigurePriority();
+    }
     const std::string kPriorityElementName
         {gz::sim::System::kPriorityElementName};
     if (system.configureSdf &&
@@ -120,6 +124,9 @@ size_t SystemManager::ActivatePendingSystems()
     {
       PriorityType newPriority =
           system.configureSdf->Get<PriorityType>(kPriorityElementName);
+      gzdbg << "Changing priority for system [" << system.name
+            << "] from {" << p
+            << "} to {" << newPriority << "}\n";
       p = newPriority;
     }
 
