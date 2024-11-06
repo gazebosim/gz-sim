@@ -26,6 +26,7 @@
 // Features need to be defined ahead of entityCast
 #include <gz/physics/BoxShape.hh>
 #include <gz/physics/CapsuleShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/EllipsoidShape.hh>
 #include <gz/physics/ForwardStep.hh>
@@ -86,6 +87,7 @@ namespace systems
   class Physics:
     public System,
     public ISystemConfigure,
+    public ISystemConfigurePriority,
     public ISystemReset,
     public ISystemUpdate
   {
@@ -100,6 +102,9 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: System::PriorityType ConfigurePriority() final;
 
     // Documentation inherited
     public: void Reset(const UpdateInfo &_info,

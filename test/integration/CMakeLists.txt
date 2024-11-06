@@ -44,6 +44,7 @@ set(tests
   level_manager.cc
   level_manager_runtime_performers.cc
   light.cc
+  lighter_than_air_dynamics.cc
   link.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
@@ -71,6 +72,7 @@ set(tests
   reset.cc
   reset_detachable_joint.cc
   save_world.cc
+  spacecraft.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc

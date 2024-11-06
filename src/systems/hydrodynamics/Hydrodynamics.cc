@@ -340,7 +340,11 @@ void Hydrodynamics::Configure(
       << "\thttps://github.com/gazebosim/gz-sim/pull/1888" << std::endl;
   }
 
+
   // Added mass according to Fossen's equations (p 37)
+  // Note: Adding added mass here is deprecated and will be removed in
+  // Gazebo J as this formulation has instabilities.
+  bool addedMassSpecified = false;
   this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
   for(auto i = 0; i < 6; i++)
   {
@@ -350,12 +354,25 @@ void Hydrodynamics::Configure(
       prefix += "Dot";
       prefix += snameConventionVel[j];
       this->dataPtr->Ma(i, j) = SdfParamDouble(_sdf, prefix, 0);
+      addedMassSpecified = (std::abs(this->dataPtr->Ma(i, j)) > 1e-6)
+        || addedMassSpecified;
     }
   }
 
   _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
-  _sdf->Get<bool>("disable_added_mass", this->dataPtr->disableAddedMass, false);
-
+  _sdf->Get<bool>("disable_added_mass",
+    this->dataPtr->disableAddedMass, false);
+  if (!this->dataPtr->disableAddedMass && addedMassSpecified)
+  {
+    gzwarn << "The use of added mass through this plugin is deprecated and "
+      << "will be removed in Gazebo J* as this formulation has instabilities. "
+      << "We recommend using the SDF `<fluid_added_mass>` tag based method "
+      << "[http://sdformat.org/spec?ver=1.11&elem=link"
+      << "#inertial_fluid_added_mass]"
+      << "To get rid of this warning we recommend setting "
+      << "`<disable_added_mass>` to true and updating your model"
+      << std::endl;
+  }
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
 

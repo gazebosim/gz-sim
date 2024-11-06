@@ -1,4 +1,4 @@
-\page theory_hydrodynamics
+\page theory_hydrodynamics Hydrodynamics
 
 # Overview
 

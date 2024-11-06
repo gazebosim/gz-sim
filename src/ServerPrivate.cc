@@ -37,6 +37,9 @@
 using namespace gz;
 using namespace sim;
 
+const char ServerPrivate::kClassicMaterialScriptUri[] =
+    "file://media/materials/scripts/gazebo.material";
+
 /// \brief This struct provides access to the record plugin SDF string
 struct LoggingPlugin
 {
@@ -112,13 +115,26 @@ ServerPrivate::~ServerPrivate()
 //////////////////////////////////////////////////
 void ServerPrivate::OnSignal(int _sig)
 {
-  gzdbg << "Server received signal[" << _sig  << "]\n";
-  this->Stop();
+  // There's a good chance that objects are being destructed from the previous
+  // signal, so it's not safe to call Stop if we've done it already.
+  if (!this->signalReceived)
+  {
+    this->signalReceived = true;
+    gzdbg << "Server received signal[" << _sig  << "]\n";
+    this->Stop();
+  }
 }
 
 /////////////////////////////////////////////////
 void ServerPrivate::Stop()
 {
+  // Stop might be called from the signal handler thread (new in Ionic) instead
+  // of the main thread, so we need to ensure that we keep `ServerPrivate` alive
+  // while the signal handler is still active. We do that by synchronizing on
+  // the `runMutex` here in ServerPrivate::Run right after the call
+  // SimulationRunner::Run returns. That way, `ServerPrivate::Run` cannot return
+  // before the signal handler is finished.
+  std::lock_guard<std::mutex> lock(this->runMutex);
   this->running = false;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
@@ -130,6 +146,13 @@ void ServerPrivate::Stop()
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {
+  // Return early if we've received a signal right before.
+  // The ServerPrivate signal handler would set `running=false`,
+  // but we immediately would set it to true here, which will essentially ignore
+  // the signal. Since we can't reliably use the `running` variable, we return
+  // if `signalReceived` is true
+  if (this->signalReceived)
+    return false;
   this->runMutex.lock();
   this->running = true;
   if (_cond)
@@ -185,6 +208,8 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     result = this->workerPool.WaitForResults();
   }
 
+  // See comments ServerPrivate::Stop() for why we lock this mutex here.
+  std::lock_guard<std::mutex> lock(this->runMutex);
   this->running = false;
   return result;
 }
@@ -286,14 +311,14 @@ void ServerPrivate::CreateEntities()
   for (uint64_t worldIndex = 0; worldIndex <
        this->sdfRoot.WorldCount(); ++worldIndex)
   {
-    auto world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
 
     {
       std::lock_guard<std::mutex> lock(this->worldsMutex);
       this->worldNames.push_back(world->Name());
     }
     auto runner = std::make_unique<SimulationRunner>(
-        world, this->systemLoader, this->config);
+        *world, this->systemLoader, this->config);
     runner->SetFuelUriMap(this->fuelUriMap);
     this->simRunners.push_back(std::move(runner));
   }
@@ -546,6 +571,12 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
+  // Handle gazebo classic material URIs.
+  // Return original URI string as the SdfEntityCreator checks for this URI
+  if (_uri == kClassicMaterialScriptUri)
+    return _uri;
+
+  // Fetch resource from fuel
   auto path =
       fuel_tools::fetchResourceWithClient(_uri, *this->fuelClient.get());
 

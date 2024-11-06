@@ -77,7 +77,7 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
-      public: explicit SimulationRunner(const sdf::World *_world,
+      public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
                                 const ServerConfig &_config = ServerConfig());
 
@@ -151,8 +151,8 @@ namespace gz
           const sdf::Plugins &_plugins);
 
       /// \brief Load server plugins for a given entity.
-      /// \param[in] _config Configuration to load plugins from.
-      ///     plugins based on the _config contents
+      /// \param[in] _plugins Load any additional plugins from the
+      /// Server Configuration
       public: void LoadServerPlugins(
           const std::list<ServerConfig::PluginInfo> &_plugins);
 
@@ -373,6 +373,11 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Create entities for the world simulated by this runner based
+      /// on the provided SDF Root object.
+      /// \param[in] _world SDF world created entities from.
+      public: void CreateEntities(const sdf::World &_world);
+
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
       private: void ProcessRecreateEntitiesRemove();
@@ -477,8 +482,8 @@ namespace gz
       /// \brief Connection to the load plugins event.
       private: common::ConnectionPtr loadPluginsConn;
 
-      /// \brief Pointer to the sdf::World object of this runner
-      private: const sdf::World *sdfWorld;
+      /// \brief The sdf::World object of this runner
+      private: sdf::World sdfWorld;
 
       /// \brief The real time factor calculated based on sim and real time
       /// averages.
@@ -542,6 +547,9 @@ namespace gz
       /// \brief Holds new world state information so that it can be processed
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
+
+      /// \brief Set if we need to remove systems due to entity removal
+      private: bool threadsNeedCleanUp{false};
 
       private: bool resetInitiated{false};
       friend class LevelManager;

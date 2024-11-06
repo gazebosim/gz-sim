@@ -8,6 +8,11 @@
           <solver_type>pgs</solver_type>
         </solver>
       </dart>
+      <bullet>
+        <solver>
+          <iters>100</iters>
+        </solver>
+      </bullet>
       <real_time_factor>0</real_time_factor>
     </physics>
     <plugin

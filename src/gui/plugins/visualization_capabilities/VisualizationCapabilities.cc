@@ -21,6 +21,7 @@
 #include <gz/msgs/stringmsg.pb.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 #include <map>
 #include <set>
@@ -39,6 +40,7 @@
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/common/StringUtils.hh>
+#include <gz/common/SubMesh.hh>
 #include <gz/common/Uuid.hh>
 
 #include <gz/gui/Application.hh>
@@ -63,6 +65,7 @@
 #include <gz/transport/Node.hh>
 
 #include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
 #include <sdf/Ellipsoid.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Heightmap.hh>
@@ -1191,6 +1194,13 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     capsule->SetLength(_geom.CapsuleShape()->Length());
     geom = capsule;
   }
+  else if (_geom.Type() == sdf::GeometryType::CONE)
+  {
+    geom = this->scene->CreateCone();
+    scale.X() = _geom.ConeShape()->Radius() * 2;
+    scale.Y() = scale.X();
+    scale.Z() = _geom.ConeShape()->Length();
+  }
   else if (_geom.Type() == sdf::GeometryType::CYLINDER)
   {
     geom = this->scene->CreateCylinder();
@@ -1239,14 +1249,25 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
 
     // Assume absolute path to mesh file
     descriptor.meshName = fullPath;
-    descriptor.subMeshName = _geom.MeshShape()->Submesh();
-    descriptor.centerSubMesh = _geom.MeshShape()->CenterSubmesh();
-
     gz::common::MeshManager *meshManager =
         gz::common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     if (descriptor.mesh)
     {
+      if (_geom.MeshShape()->Optimization() != sdf::MeshOptimization::NONE)
+      {
+        const common::Mesh *optimizedMesh =
+            optimizeMesh(*_geom.MeshShape(), *descriptor.mesh);
+        if (optimizedMesh)
+        {
+          descriptor.mesh = optimizedMesh;
+          // if submesh is requested, it should be handled in the optimizeMesh
+          // function so we do not need need to pass these flags to
+          // gz-rendering
+          descriptor.subMeshName = "";
+          descriptor.centerSubMesh = false;
+        }
+      }
       geom = this->scene->CreateMesh(descriptor);
     }
     else

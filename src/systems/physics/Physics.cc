@@ -53,6 +53,7 @@
 #include <gz/physics/RequestEngine.hh>
 
 #include <gz/physics/BoxShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ForwardStep.hh>
@@ -92,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 // Components
@@ -99,6 +101,7 @@
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/CanonicalLink.hh"
@@ -126,6 +129,7 @@
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -433,7 +437,7 @@ class gz::sim::systems::PhysicsPrivate
                       }
                       return true;
                     }};
-  /// \brief msgs::Contacts equality comparison function.
+  /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
           [](const msgs::Wrench &_a, const msgs::Wrench &_b)
@@ -449,8 +453,6 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "GZ_SIM_PHYSICS_ENGINE_PATH";
-  public: std::string pluginPathEnvDeprecated = \
-    "IGN_GAZEBO_PHYSICS_ENGINE_PATH";
 
   //////////////////////////////////////////////////
   ////////////// Optional Features /////////////////
@@ -624,8 +626,15 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
-  // Nested Models
+  // CollisionPairMaxContacts
+  /// \brief Feature list for setting and getting the max total contacts for
+  /// collision pairs
+  public: struct CollisionPairMaxContactsFeatureList :
+            gz::physics::FeatureList<
+            gz::physics::CollisionPairMaxContacts>{};
 
+  //////////////////////////////////////////////////
+  // Nested Models
   /// \brief Feature list to construct nested models
   public: struct NestedModelFeatureList : physics::FeatureList<
             MinimumFeatureList,
@@ -648,7 +657,8 @@ class gz::sim::systems::PhysicsPrivate
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
           SolverFeatureList,
-          WorldModelFeatureList
+          WorldModelFeatureList,
+          CollisionPairMaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -757,6 +767,13 @@ Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 }
 
 //////////////////////////////////////////////////
+System::PriorityType Physics::ConfigurePriority()
+{
+  // Use constant from System.hh
+  return ::gz::sim::systems::kPhysicsPriority;
+}
+
+//////////////////////////////////////////////////
 void Physics::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -836,8 +853,8 @@ void Physics::Configure(const Entity &_entity,
       physics::FeaturePolicy3d>>();
   if (classNames.empty())
   {
-    gzerr << "No physics plugins found in library [" << pathToLib << "]."
-           << std::endl;
+    gzerr << "No physics plugins implementing required interface found in "
+          << "library [" << pathToLib << "]." << std::endl;
     return;
   }
 
@@ -1024,6 +1041,57 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           else
           {
             solverFeature->SetSolver(solverComp->Data());
+          }
+        }
+        auto solverItersComp =
+            _ecm.Component<components::PhysicsSolverIterations>(_entity);
+        if (solverItersComp)
+        {
+          auto solverFeature =
+              this->entityWorldMap.EntityCast<SolverFeatureList>(
+              _entity);
+          if (!solverFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[SolverFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            solverFeature->SetSolverIterations(solverItersComp->Data());
+          }
+        }
+
+        auto physicsComp =
+            _ecm.Component<components::Physics>(_entity);
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<
+              CollisionPairMaxContactsFeatureList>(_entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[CollisionPairMaxContacts]. "
+                     << "Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetCollisionPairMaxContacts(
+              physicsComp->Data().MaxContacts());
           }
         }
 
@@ -1286,6 +1354,15 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         if (inertial)
         {
           link.SetInertial(inertial->Data());
+        }
+
+        // get link gravity
+        const components::GravityEnabled *gravityEnabled =
+            _ecm.Component<components::GravityEnabled>(_entity);
+        if (nullptr != gravityEnabled)
+        {
+          // gravityEnabled set in SdfEntityCreator::CreateEntities()
+          link.SetEnableGravity(gravityEnabled->Data());
         }
 
         auto constructLinkFeature =
@@ -2645,6 +2722,122 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Reset link linear velocity in world frame
+  _ecm.Each<components::Link, components::WorldLinearVelocityReset>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::WorldLinearVelocityReset *_worldlinearvelocityreset)
+      {
+        if (!this->entityLinkMap.HasEntity(_entity))
+        {
+          gzwarn << "Failed to find link [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        auto rootLinkPtr = freeGroup->RootLink();
+        if (rootLinkPtr != linkPtrPhys)
+        {
+          gzdbg << "Attempting to set linear velocity for link [ " << _entity
+                 << " ] which is not root link of the FreeGroup."
+                 << "Velocity won't be set."
+                 << std::endl;
+
+          return true;
+        }
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto worldLinearVelFeature = this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+        if (!worldLinearVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+
+        // Linear velocity in world frame
+        math::Vector3d worldLinearVel = _worldlinearvelocityreset->Data();
+
+        worldLinearVelFeature->SetWorldLinearVelocity(
+            math::eigen3::convert(worldLinearVel));
+
+        return true;
+      });
+
+  // Reset link angular velocity in world frame
+  _ecm.Each<components::Link, components::WorldAngularVelocityReset>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::WorldAngularVelocityReset
+          *_worldangularvelocityreset)
+      {
+        if (!this->entityLinkMap.HasEntity(_entity))
+        {
+          gzwarn << "Failed to find link [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        auto rootLinkPtr = freeGroup->RootLink();
+        if(rootLinkPtr != linkPtrPhys)
+        {
+          gzdbg << "Attempting to set angular velocity for link [ " << _entity
+                 << " ] which is not root link of the FreeGroup."
+                 << "Velocity won't be set."
+                 << std::endl;
+
+          return true;
+        }
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto worldAngularVelFeature = this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link angular velocity, but the "
+                  << "physics engine doesn't support velocity commands. "
+                  << "Velocity won't be set."
+                  << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        // Angular velocity in world frame
+        math::Vector3d worldAngularVel = _worldangularvelocityreset->Data();
+
+        worldAngularVelFeature->SetWorldAngularVelocity(
+            math::eigen3::convert(worldAngularVel));
+
+        return true;
+      });
 
   // Populate bounding box info
   // Only compute bounding box if component exists to avoid unnecessary
@@ -3581,6 +3774,34 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
     _ecm.RemoveComponent<components::JointVelocityReset>(entity);
   }
 
+  std::vector<Entity> entitiesLinearVelocityReset;
+  _ecm.Each<components::WorldLinearVelocityReset>(
+      [&](const Entity &_entity,
+      components::WorldLinearVelocityReset *) -> bool
+      {
+        entitiesLinearVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesLinearVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesAngularVelocityReset;
+  _ecm.Each<components::WorldAngularVelocityReset>(
+      [&](const Entity &_entity,
+      components::WorldAngularVelocityReset *) -> bool
+      {
+        entitiesAngularVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesAngularVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
+  }
+
   std::vector<Entity> entitiesCustomContactSurface;
   _ecm.Each<components::EnableContactSurfaceCustomization>(
       [&](const Entity &_entity,
@@ -3631,12 +3852,20 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  _ecm.Each<components::JointVelocityCmd>(
-      [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
-      {
-        std::fill(_vel->Data().begin(), _vel->Data().end(), 0.0);
-        return true;
-      });
+  {
+    std::vector<Entity> entitiesJointVelocityCmd;
+    _ecm.Each<components::JointVelocityCmd>(
+        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
+        {
+          entitiesJointVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesJointVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
+    }
+  }
 
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
@@ -3644,21 +3873,37 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
         return true;
       });
+
+  {
+    std::vector<Entity> entitiesAngularVelocityCmd;
+    _ecm.Each<components::AngularVelocityCmd>(
+        [&](const Entity &_entity, components::AngularVelocityCmd *) -> bool
+        {
+          entitiesAngularVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesAngularVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::AngularVelocityCmd>(entity);
+    }
+  }
+
+  {
+    std::vector<Entity> entitiesLinearVelocityCmd;
+    _ecm.Each<components::LinearVelocityCmd>(
+        [&](const Entity &_entity, components::LinearVelocityCmd *) -> bool
+        {
+          entitiesLinearVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesLinearVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::LinearVelocityCmd>(entity);
+    }
+  }
   GZ_PROFILE_END();
-
-  _ecm.Each<components::AngularVelocityCmd>(
-      [&](const Entity &, components::AngularVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
-
-  _ecm.Each<components::LinearVelocityCmd>(
-      [&](const Entity &, components::LinearVelocityCmd *_vel) -> bool
-      {
-        _vel->Data() = math::Vector3d::Zero;
-        return true;
-      });
 
   // Update joint positions
   GZ_PROFILE_BEGIN("Joints");
@@ -3765,6 +4010,18 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
+    return;
+
+  // Also check if any entity currently has a ContactSensorData component.
+  bool needContactSensorData = false;
+  _ecm.Each<components::Collision, components::ContactSensorData>(
+      [&](const Entity &/*unused*/, components::Collision *,
+          components::ContactSensorData */*unused*/) -> bool
+      {
+        needContactSensorData = true;
+        return false;
+      });
+  if (!needContactSensorData)
     return;
 
   // TODO(addisu) If systems are assumed to only have one world, we should

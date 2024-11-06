@@ -1,4 +1,4 @@
-\page adding_visuals
+\page adding_visuals Adding visuals
 
 # Overview
 
@@ -8,7 +8,7 @@ mesh to our turtle, making it look much better.
 
 ## Related tutorials
 
-https://gazebosim.org/api/sim/8/meshtofuel.html
+\ref meshtofuel
 
 The next tutorials, although still relevant, are from an older version of Gazebo
 and some details might be different than the current versions:

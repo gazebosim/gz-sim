@@ -481,6 +481,7 @@ TEST_P(ServerFixture,
     sim::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
+
     EXPECT_EQ(4u, *server.SystemCount());
   }
 
@@ -776,6 +777,7 @@ TEST_P(ServerFixture, SigInt)
   EXPECT_TRUE(*server.Running(0));
 
   std::raise(SIGTERM);
+  GZ_SLEEP_MS(20);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -880,6 +882,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 
   // Stop the server
   std::raise(SIGTERM);
+  GZ_SLEEP_MS(20);
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -1012,8 +1015,11 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
           if (mesh)
           {
-            EXPECT_EQ("model://scheme_resource_uri/meshes/box.dae",
-                mesh->Uri());
+            // StoreResolvedURIs is set to true so expect full path
+            EXPECT_NE(std::string::npos,
+                mesh->Uri().find("scheme_resource_uri/meshes/box.dae"));
+            EXPECT_FALSE(common::isRelativePath(mesh->Uri()));
+            EXPECT_TRUE(common::isFile(mesh->Uri()));
           }
 
           eachCount++;

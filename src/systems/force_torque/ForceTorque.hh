@@ -41,8 +41,9 @@ namespace systems
   /// quantites are expressed, not the point of application.
   class ForceTorque:
     public System,
+    public ISystemConfigurePriority,
     public ISystemPreUpdate,
-    public ISystemPostUpdate
+    public ISystemUpdate
   {
     /// \brief Constructor
     public: ForceTorque();
@@ -51,12 +52,15 @@ namespace systems
     public: ~ForceTorque() override;
 
     /// Documentation inherited
+    public: System::PriorityType ConfigurePriority() final;
+
+    /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
-    public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) final;
+    public: void Update(const UpdateInfo &_info,
+                        EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ForceTorquePrivate> dataPtr;

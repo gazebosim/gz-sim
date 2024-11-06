@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
-#include <gtest/gtest.h>
+#ifndef GZ_SIM_CONSTANTS_HH_
+#define GZ_SIM_CONSTANTS_HH_
 
-#include "gz/sim/System.hh"
+#include "gz/sim/config.hh"
+#include <string_view>
 
-using namespace gz;
-
-/////////////////////////////////////////////////
-TEST(System, Constructor)
+namespace gz::sim
 {
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+  constexpr std::string_view kPoliciesTag{"gz:policies"};
 }
+}  // namespace gz::sim
+
+#endif
