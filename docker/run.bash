@@ -31,6 +31,7 @@ docker run -it \
   -v "/etc/localtime:/etc/localtime:ro" \
   -v "/dev/input:/dev/input" \
   --rm \
+  --gpus all \
   --security-opt seccomp=unconfined \
   $IMG \
   ${@:2}
