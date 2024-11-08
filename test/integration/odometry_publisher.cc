@@ -24,6 +24,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -382,6 +383,86 @@ class OdometryPublisherTest
 
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
+  protected: void TestMovement3dAtSingularity(const std::string &_sdfFile,
+                                              const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    // Create a system that records the body poses
+    test::Relay testSystem;
+
+    std::vector<math::Pose3d> poses;
+    testSystem.OnPostUpdate([&poses](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
+      {
+        auto id = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("test_body"));
+        EXPECT_NE(kNullEntity, id);
+
+        auto poseComp = _ecm.Component<components::Pose>(id);
+        ASSERT_NE(nullptr, poseComp);
+        poses.push_back(poseComp->Data());
+      });
+    server.AddSystem(testSystem.systemPtr);
+
+    std::vector<math::Vector3d> odomAngVels;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
+      };
+
+    // Create node for publishing twist messages
+    transport::Node node;
+    auto cmdVel = node.Advertise<msgs::Twist>("/model/test_body/cmd_vel");
+    node.Subscribe(_odomTopic, odomCb);
+
+    // Set an angular velocity command that would cause pitch to update from 0
+    // to PI in 1 second, crossing the singularity when pitch is PI/2.
+    const math::Vector3d angVelCmd(0.0, GZ_PI, 0);
+    msgs::Twist msg;
+    msgs::Set(msg.mutable_linear(), math::Vector3d::Zero);
+    msgs::Set(msg.mutable_angular(), angVelCmd);
+    cmdVel.Publish(msg);
+
+    // Run server while the model moves with the velocities set earlier
+    server.Run(true, 1000, false);
+
+    // Poses for 1s
+    ASSERT_EQ(1000u, poses.size());
+
+    int sleep = 0;
+    int maxSleep = 30;
+    // Default publishing frequency for odometryPublisher is 50Hz.
+    for (; (odomAngVels.size() < 50) &&
+        sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    EXPECT_NE(maxSleep, sleep);
+
+    // Odom for 1s
+    ASSERT_FALSE(odomAngVels.empty());
+    EXPECT_EQ(50u, odomAngVels.size());
+
+    // Check accuracy of velocities published in the odometry message
+    for (size_t i = 1; i < odomAngVels.size(); ++i) {
+      EXPECT_NEAR(odomAngVels[i].X(), angVelCmd[0], 1e-1);
+      EXPECT_NEAR(odomAngVels[i].Y(), angVelCmd[1], 1e-1);
+      EXPECT_NEAR(odomAngVels[i].Z(), angVelCmd[2], 1e-1);
+    }
+  }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
   /// \param[in] _frameId Name of the world-fixed coordinate frame
   /// for the odometry message.
   /// \param[in] _childFrameId Name of the coordinate frame rigidly
@@ -622,6 +703,16 @@ TEST_P(OdometryPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3d))
       gz::common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "odometry_publisher_3d.sdf"),
       "/model/X3/odometry", "/model/X3/pose", "X3/odom", "X3/base_footprint");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement3dAtSingularity))
+{
+  TestMovement3dAtSingularity(
+      gz::common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "odometry_publisher_3d_singularity.sdf"),
+      "/model/test_body/odometry");
 }
 
 /////////////////////////////////////////////////

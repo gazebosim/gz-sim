@@ -221,6 +221,18 @@ std::unique_ptr<gz::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
+  // check for wayland and force to use X for rendering
+  if (QString::fromLocal8Bit(qgetenv("XDG_SESSION_TYPE")) == "wayland")
+  {
+    if (QString::fromLocal8Bit(qgetenv("QT_QPA_PLATFORM")).isEmpty())
+    {
+      gzmsg << "Detected Wayland. Setting Qt to use the xcb plugin: "
+            << "'QT_QPA_PLATFORM=xcb'." << std::endl;
+      qputenv("QT_QPA_PLATFORM", "xcb");
+    }
+  }
+
+
   bool isPlayback = (nullptr != _guiConfig &&
       std::string(_guiConfig) == "_playback_");
   auto defaultConfig = defaultGuiConfigFile(isPlayback, _defaultGuiConfig);

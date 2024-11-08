@@ -677,6 +677,11 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
   // Nothing left to do if paused.
   if (_info.paused)
     return;
+
+  if (this->dataPtr->leftSteeringJoints.empty() ||
+      this->dataPtr->rightSteeringJoints.empty())
+    return;
+
   if (this->dataPtr->steeringOnly)
   {
     this->dataPtr->UpdateAngle(_info, _ecm);

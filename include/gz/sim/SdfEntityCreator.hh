@@ -93,6 +93,13 @@ namespace gz
       /// \return World entity.
       public: Entity CreateEntities(const sdf::World *_world);
 
+      /// \brief Create all entities that exist in the sdf::World object and
+      /// load their plugins.
+      /// \param[in] _world SDF world object.
+      /// \param[in] _worldEntity The world entity object.
+      public: void CreateEntities(const sdf::World *_world,
+                  Entity _worldEntity);
+
       /// \brief Create all entities that exist in the sdf::Model object and
       /// load their plugins. Also loads plugins of child sensors.
       /// \param[in] _model SDF model object.
@@ -185,6 +192,9 @@ namespace gz
       /// \return Model entity.
       private: Entity CreateEntities(const sdf::Model *_model,
                                      bool _staticParent);
+
+      /// \brief Load plugins for all models
+      private: void LoadModelPlugins();
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;

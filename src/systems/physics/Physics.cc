@@ -93,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 // Components
@@ -432,7 +433,7 @@ class gz::sim::systems::PhysicsPrivate
                       }
                       return true;
                     }};
-  /// \brief msgs::Contacts equality comparison function.
+  /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
           [](const msgs::Wrench &_a, const msgs::Wrench &_b)
@@ -2403,6 +2404,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                  << std::endl;
           return true;
         }
+        math::Pose3d worldPoseCmd = _poseCmd->Data();
+        if (!worldPoseCmd.Pos().IsFinite() || !worldPoseCmd.Rot().IsFinite() ||
+            worldPoseCmd.Rot() == math::Quaterniond::Zero)
+        {
+          gzerr << "Unable to set world pose. Invalid pose value: "
+                << worldPoseCmd << std::endl;
+          return true;
+        }
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
@@ -2422,7 +2431,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
 
-        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+        freeGroup->SetWorldPose(math::eigen3::convert(worldPoseCmd *
                                 linkPose));
 
         // Process pose commands for static models here, as one-time changes
@@ -2431,7 +2440,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           auto worldPoseComp = _ecm.Component<components::Pose>(_entity);
           if (worldPoseComp)
           {
-            auto state = worldPoseComp->SetData(_poseCmd->Data(),
+            auto state = worldPoseComp->SetData(worldPoseCmd,
                 this->pose3Eql) ?
                 ComponentState::OneTimeChange :
                 ComponentState::NoChange;

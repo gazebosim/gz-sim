@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEM_HH_
 #define GZ_SIM_SYSTEM_HH_
 
+#include <cstdint>
 #include <memory>
 
 #include <gz/sim/config.hh>
@@ -64,6 +65,14 @@ namespace gz
     ///    * Used to read out results at the end of a simulation step to be used
     ///      for sensor or controller updates.
     ///
+    /// The PreUpdate and Update phases are executed sequentially in the same
+    /// thread, while the PostUpdate phase is executed in parallel in multiple
+    /// threads. The order of execution of PreUpdate and Update phases can be
+    /// controlled by specifying a signed integer Priority value for the System
+    /// in its XML configuration. The default Priority value is zero, and
+    /// smaller values are executed earlier. Systems with the same Priority
+    /// value are executed in the order in which they are loaded.
+    ///
     /// It's important to note that UpdateInfo::simTime does not refer to the
     /// current time, but the time reached after the PreUpdate and Update calls
     /// have finished. So, if any of the *Update functions are called with
@@ -74,6 +83,19 @@ namespace gz
     /// simulation is started un-paused.
     class System
     {
+      /// \brief Signed integer type used for specifying priority of the
+      /// execution order of PreUpdate and Update phases.
+      public: using PriorityType = int32_t;
+
+      /// \brief Default priority value for execution order of the PreUpdate
+      /// and Update phases.
+      public: constexpr static PriorityType kDefaultPriority = {0};
+
+      /// \brief Name of the XML element from which the priority value will be
+      /// parsed.
+      public: constexpr static std::string_view kPriorityElementName =
+          {"gz:system_priority"};
+
       /// \brief Constructor
       public: System() = default;
 
@@ -100,6 +122,20 @@ namespace gz
                   const std::shared_ptr<const sdf::Element> &_sdf,
                   EntityComponentManager &_ecm,
                   EventManager &_eventMgr) = 0;
+    };
+
+    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
+    /// \brief Interface for a system that implements optional configuration
+    /// of the default priority value.
+    ///
+    /// ConfigurePriority is called before the system is instantiated to
+    /// override System::kDefaultPriority. It can still be overridden by the
+    /// XML priority element.
+    class ISystemConfigurePriority {
+      /// \brief Configure the default priority of the system, which can still
+      /// be overridden by the XML priority element.
+      /// \return The default priority for the system.
+      public: virtual System::PriorityType ConfigurePriority() = 0;
     };
 
     /// \class ISystemConfigureParameters ISystem.hh gz/sim/System.hh

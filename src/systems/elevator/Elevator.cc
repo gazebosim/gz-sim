@@ -421,6 +421,9 @@ void ElevatorPrivate::UpdateState(const gz::sim::UpdateInfo &_info,
 void ElevatorPrivate::OnLidarMsg(size_t _floorLevel,
                                  const msgs::LaserScan &_msg)
 {
+  if (_msg.ranges_size() <= 0)
+    return;
+
   bool isDoorwayBlocked = _msg.ranges(0) < _msg.range_max() - 0.005;
   if (isDoorwayBlocked == this->isDoorwayBlockedStates[_floorLevel]) return;
   std::lock_guard<std::recursive_mutex> lock(this->mutex);

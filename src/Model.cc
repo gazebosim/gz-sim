@@ -149,6 +149,16 @@ Entity Model::LinkByName(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+Entity Model::ModelByName(const EntityComponentManager &_ecm,
+    const std::string &_name) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Name(_name),
+      components::Model());
+}
+
+//////////////////////////////////////////////////
 std::vector<Entity> Model::Joints(const EntityComponentManager &_ecm) const
 {
   return _ecm.EntitiesByComponents(
@@ -182,6 +192,12 @@ uint64_t Model::JointCount(const EntityComponentManager &_ecm) const
 uint64_t Model::LinkCount(const EntityComponentManager &_ecm) const
 {
   return this->Links(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+uint64_t Model::ModelCount(const EntityComponentManager &_ecm) const
+{
+  return this->Models(_ecm).size();
 }
 
 //////////////////////////////////////////////////

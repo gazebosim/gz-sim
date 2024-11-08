@@ -43,7 +43,7 @@ class ForceTorqueTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
+TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightTopic))
 {
   using namespace std::chrono_literals;
   // Start server
@@ -59,8 +59,8 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeight))
 
   // Having iters exactly in sync with update rate can lead to a race condition
   // in the test between simulation and transport
-  size_t iters = 999u;
-  size_t updates = 100u;
+  const size_t iters = 999u;
+  const size_t updates = 100u;
 
   std::vector<msgs::Wrench> wrenches;
   wrenches.reserve(updates);
