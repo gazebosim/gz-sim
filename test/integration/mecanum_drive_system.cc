@@ -44,7 +44,7 @@ using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test MecanumDrive system
-class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
+class MecanumDriveTest : public InternalFixture<::testing::Test>
 {
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
