@@ -201,7 +201,8 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
+void ServerPrivate::AddRecordPlugin(const ServerConfig &_config,
+                                    sdf::Root &_root)
 {
   bool hasRecordResources {false};
   bool hasRecordTopics {false};
@@ -209,10 +210,10 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
   bool sdfRecordResources;
   std::vector<std::string> sdfRecordTopics;
 
-  for (uint64_t worldIndex = 0; worldIndex < this->sdfRoot.WorldCount();
+  for (uint64_t worldIndex = 0; worldIndex < _root.WorldCount();
        ++worldIndex)
   {
-    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    sdf::World *world = _root.WorldByIndex(worldIndex);
     sdf::Plugins &plugins = world->Plugins();
 
     for (sdf::Plugins::iterator iter = plugins.begin();
@@ -291,13 +292,13 @@ void ServerPrivate::AddRecordPlugin(const ServerConfig &_config)
 }
 
 //////////////////////////////////////////////////
-void ServerPrivate::CreateSimulationRunners()
+void ServerPrivate::CreateSimulationRunners(const sdf::Root &_sdfRoot)
 {
   // Create a simulation runner for each world.
   for (uint64_t worldIndex = 0; worldIndex <
-       this->sdfRoot.WorldCount(); ++worldIndex)
+       _sdfRoot.WorldCount(); ++worldIndex)
   {
-    sdf::World *world = this->sdfRoot.WorldByIndex(worldIndex);
+    const sdf::World *world = _sdfRoot.WorldByIndex(worldIndex);
     if (world)
     {
       {
@@ -594,7 +595,7 @@ std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 
 //////////////////////////////////////////////////
 sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
-  sdf::Root &_root, bool suppressConsole)
+  sdf::Root &_root, bool _suppressConsole)
 {
   sdf::Errors errors;
 
@@ -604,7 +605,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     case ServerConfig::SourceType::kSdfRoot:
     {
       _root = _config.SdfRoot()->Clone();
-      if (!suppressConsole)
+      if (!_suppressConsole)
         gzmsg << "Loading SDF world from SDF DOM.\n";
       break;
     }
@@ -620,7 +621,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
       {
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
-      if (!suppressConsole)
+      if (!_suppressConsole)
         gzmsg << msg;
       sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
       sdfParserConfig.SetStoreResolvedURIs(true);
@@ -641,13 +642,13 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
       {
         std::string errStr =  "Failed to find world ["
           + _config.SdfFile() + "]";
-        if (!suppressConsole)
+        if (!_suppressConsole)
           gzerr << errStr << std::endl;
         errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
-        return errors;
+        break;
       }
 
-      if (!suppressConsole)
+      if (!_suppressConsole)
         gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
@@ -677,7 +678,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
           if (world == nullptr) {
             errors.push_back({sdf::ErrorCode::FATAL_ERROR,
               "sdf::World pointer is null"});
-            return errors;
+            break;
           }
           world->AddModel(*sdfRootLocal.Model());
           if (errors.empty() || _config.BehaviorOnSdfErrors() !=
@@ -687,7 +688,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
           }
         }
       }
-
       _root.ResolveAutoInertials(errors, sdfParserConfig);
       break;
     }
@@ -695,7 +695,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     case ServerConfig::SourceType::kNone:
     default:
     {
-      if (!suppressConsole)
+      if (!_suppressConsole)
         gzmsg << "Loading default world.\n";
 
       sdf::World defaultWorld;
@@ -705,6 +705,12 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
       errors = _root.AddWorld(defaultWorld);
       break;
     }
+  }
+
+  // Add record plugin
+  if (_config.UseLogRecord())
+  {
+    this->AddRecordPlugin(_config, _root);
   }
 
   // If the world only contains a model, load the default
@@ -745,7 +751,10 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
-    sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
+    ServerConfig cfg = _config;
+    cfg.SetBehaviorOnSdfErrors(
+      ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
+    sdf::Errors localErrors = this->LoadSdfRootHelper(cfg,
         localRoot, true);
 
     // Output any errors.
@@ -775,7 +784,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       assetCv.notify_one();
   });
 
-  // Wait for assets to download.
+  // Wait for assets to download if configured to do so.
   if (_config.WaitForAssets())
   {
     assetCv.wait(assetLock);

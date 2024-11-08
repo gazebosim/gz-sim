@@ -76,10 +76,12 @@ namespace gz
 
       /// \brief Add logging record plugin.
       /// \param[in] _config Server configuration parameters.
-      public: void AddRecordPlugin(const ServerConfig &_config);
+      /// \param[out] _root SDF Root reference.
+      public: void AddRecordPlugin(const ServerConfig &_config,
+                                   sdf::Root &_root);
 
       /// \brief Create the simulation runners, one for each world.
-      public: void CreateSimulationRunners();
+      public: void CreateSimulationRunners(const sdf::Root &_sdfRoot);
 
       /// \brief Stop server.
       public: void Stop();

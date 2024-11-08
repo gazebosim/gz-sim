@@ -36,7 +36,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include <sdf/World.hh>
@@ -537,7 +536,6 @@ namespace gz
 
       /// \brief Asset creation mutex.
       private: std::mutex assetCreationMutex;
-      private: std::mutex stepMutex;
       private: std::condition_variable creationCv;
 
       /// \brief Keep the latest GUI message.

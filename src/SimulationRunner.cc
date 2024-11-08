@@ -778,12 +778,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   uint64_t processedIterations{0};
 
   // Force a wait on asset creation if the number of requested iterations
-  // is greater than zero and 
+  // is greater than zero and forcedPause is true. The forcedPause variable
+  // default value is true, which means simulation is waiting for assets
+  // to download.
   {
     std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
     if (_iterations > 0 && this->forcedPause)
     {
-      this->creationCv.wait(createLock);
+      this->creationCv.wait(createLock, [this]{return !this->forcedPause;});
     }
   }
 
@@ -837,7 +839,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
 
     {
-      std::scoped_lock stepLock(this->stepMutex);
       // If network, wait for network step, otherwise do our own step
       if (this->networkMgr)
       {
@@ -1595,7 +1596,6 @@ const sdf::World &SimulationRunner::WorldSdf() const
 void SimulationRunner::CreateEntities(const sdf::World &_world)
 {
   std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
-  std::scoped_lock<std::mutex> stepLock(this->stepMutex);
 
   this->sdfWorld = _world;
 
