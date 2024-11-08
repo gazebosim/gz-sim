@@ -10,7 +10,7 @@ COPY docker/scripts/enable_nightly.sh scripts/enable_nightly.sh
 RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
- && apt-get install --no-install-recommends -y \
+ && apt-get install -y \
     libgz-cmake4-dev \
     libgz-common6-dev \
     libgz-fuel-tools10-dev \
