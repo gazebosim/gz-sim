@@ -1578,7 +1578,7 @@ void SimulationRunner::SetForcedPause(bool _p)
   // before this function call and the new forced pause state is true,
   // then make sure the simulation runner is in a pause state.
   //
-  // Cases where the prior forcedPause value equals the passed in 
+  // Cases where the prior forcedPause value equals the passed in
   // forced pause state is a no-op.
   if (setRequested)
     this->SetPaused(this->requestedPause);
