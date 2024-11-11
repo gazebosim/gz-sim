@@ -19,6 +19,12 @@ Lets install our dependencies
 ```
 pip install stable-baselines3[extra]
 ```
+For visuallization to work you will also need to:
+```
+pip uninstall opencv-python
+pip install opencv-python-headless
+```
+This is because `opencv-python` brings in Qt5 by default.
 
 In the same terminal you should add your gazebo python install directory to the `PYTHONPATH`
 If you built gazebo from source in the current working directory this would be:
@@ -31,6 +37,7 @@ mis-matches.
 ```
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 ```
+
 
 ## Exploring the environment
 

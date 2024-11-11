@@ -32,6 +32,7 @@
 #include "UpdateInfo.hh"
 #include "Util.hh"
 #include "World.hh"
+#include "Gui.hh"
 
 PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
@@ -50,4 +51,5 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   gz::sim::python::defineSimUpdateInfo(m);
   gz::sim::python::defineSimWorld(m);
   gz::sim::python::defineSimUtil(m);
+  gz::sim::python::defineGuiClient(m);
 }

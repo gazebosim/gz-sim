@@ -4,14 +4,15 @@ import gymnasium as gym
 import numpy as np
 
 from gz.common6 import set_verbosity
-from gz.sim9 import TestFixture, World, world_entity, Model, Link
+from gz.sim9 import TestFixture, World, world_entity, Model, Link, run_gui
 from gz.math8 import Vector3d
 from gz.transport14 import Node
 from gz.msgs11.world_control_pb2 import WorldControl
 from gz.msgs11.world_reset_pb2 import WorldReset
 from gz.msgs11.boolean_pb2 import Boolean
 
-from stable_baselines3 import A2C
+from stable_baselines3 import PPO
+import time
 
 file_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -36,9 +37,9 @@ class GzRewardScorer:
         self.chassis = Link(self.chassis_entity)
         self.chassis.enable_velocity_checks(ecm)
         if self.command == 1:
-            self.chassis.add_world_force(Vector3d(0, 100, 0))
+            self.chassis.add_world_force(ecm, Vector3d(2000, 0, 0))
         elif self.command == 0:
-            self.chassis.add_world_force(Vector3d(0, -100, 0))
+            self.chassis.add_world_force(ecm, Vector3d(-2000, 0, 0))
 
     def on_post_update(self, info, ecm):
         pole_pose = self.pole.world_pose(ecm).rot().euler().y()
@@ -58,7 +59,7 @@ class GzRewardScorer:
 
         self.state = np.array([cart_pose, cart_vel, pole_pose, pole_angular_vel], dtype=np.float32)
         if not self.terminated:
-            self.terminated = pole_pose > 0.24 or pole_pose < -0.24 or cart_pose > 4.8 or cart_pose < -4.8
+            self.terminated = pole_pose > 0.48 or pole_pose < -0.48 or cart_pose > 4.8 or cart_pose < -4.8
 
         if self.terminated:
             self.reward = 0.0
@@ -66,8 +67,8 @@ class GzRewardScorer:
             self.reward = 1.0
 
     def step(self, action, paused=False):
-        self.action = action
-        self.server.run(True, 1, paused)
+        self.command = action
+        self.server.run(True, 5, paused)
         obs = self.state
         reward = self.reward
         return obs, reward, self.terminated, False, {}
@@ -100,12 +101,14 @@ class CustomCartPole(gym.Env):
 
 
 env = CustomCartPole({})
-model = A2C("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10_000)
+model = PPO("MlpPolicy", env, verbose=1)
+model.learn(total_timesteps=25_000)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
-for i in range(5000):
+run_gui()
+time.sleep(10)
+for i in range(50000):
     action, _state = model.predict(obs, deterministic=True)
     obs, reward, done, info = vec_env.step(action)
     # Nice to have spawn a gz sim client
