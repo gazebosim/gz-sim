@@ -20,25 +20,21 @@ class GzRewardScorer:
         self.fixture = TestFixture(os.path.join(file_path, 'cart_pole.sdf'))
         self.fixture.on_pre_update(self.on_pre_update)
         self.fixture.on_post_update(self.on_post_update)
-        #self.fixture.on_configure(self.on_configure)
         self.command = None
-        self.first_time = True # Hack cause configure does not work well
         self.fixture.finalize()
         self.server = self.fixture.server()
         self.terminated = False
 
     def on_pre_update(self, info, ecm):
-        if self.first_time:
-            print("Enabling checks")
-            world = World(world_entity(ecm))
-            self.model = Model(world.model_by_name(ecm, "vehicle_green"))
-            self.pole_entity = self.model.link_by_name(ecm, "pole")
-            self.chassis_entity = self.model.link_by_name(ecm, "chassis")
-            self.pole = Link(self.pole_entity)
-            self.pole.enable_velocity_checks(ecm)
-            self.chassis = Link(self.chassis_entity)
-            self.chassis.enable_velocity_checks(ecm)
-            self.first_time = False
+
+        world = World(world_entity(ecm))
+        self.model = Model(world.model_by_name(ecm, "vehicle_green"))
+        self.pole_entity = self.model.link_by_name(ecm, "pole")
+        self.chassis_entity = self.model.link_by_name(ecm, "chassis")
+        self.pole = Link(self.pole_entity)
+        self.pole.enable_velocity_checks(ecm)
+        self.chassis = Link(self.chassis_entity)
+        self.chassis.enable_velocity_checks(ecm)
         if self.command == 1:
             self.chassis.add_world_force(Vector3d(0, 100, 0))
         elif self.command == 0:
@@ -60,9 +56,6 @@ class GzRewardScorer:
             cart_vel = 0
             print("Warning failed to get cart velocity")
 
-        #print("pole", pole_pose)
-        #print("cart", cart_pose)
-        #print("Pole angvel ", pole_angular_vel)
         self.state = np.array([cart_pose, cart_vel, pole_pose, pole_angular_vel], dtype=np.float32)
         if not self.terminated:
             self.terminated = pole_pose > 0.24 or pole_pose < -0.24 or cart_pose > 4.8 or cart_pose < -4.8
@@ -80,9 +73,7 @@ class GzRewardScorer:
         return obs, reward, self.terminated, False, {}
 
     def reset(self):
-        print("Resetting")
         self.server.reset_all()
-        self.first_time = True
         self.command = None
         self.terminated = False
         obs, reward_, term_, tunc_, other_= self.step(None, paused=False)

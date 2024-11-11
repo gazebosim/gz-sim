@@ -17,7 +17,7 @@ Lets activate it and install rayrllib and pytorch.
 
 Lets install our dependencies
 ```
-pip install "ray[rllib]" torch
+pip install stable-baselines3[extra]
 ```
 
 In the same terminal you should add your gazebo python install directory to the `PYTHONPATH`
