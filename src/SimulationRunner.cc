@@ -1132,8 +1132,9 @@ void SimulationRunner::SetPaused(const bool _paused)
   // downloaded in the background. We must remain paused while downloading.
   if (!_paused && this->forcedPause)
   {
-    gzmsg << "Received an unpause request while simulation assets are downloading. "
-      << "Simulation will start running once all the assets are downloaded.\n";
+    gzmsg << "Received an unpause request while simulation assets are "
+          << "downloading. Simulation will start running once all the "
+          << "assets are downloaded.\n";
     this->requestedPause = _paused;
     return;
   }
