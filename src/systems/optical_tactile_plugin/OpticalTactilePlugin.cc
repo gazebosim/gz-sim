@@ -631,7 +631,7 @@ void OpticalTactilePluginPrivate::Enable(const ignition::msgs::Boolean &_req)
 
   this->enabled = _req.data();
 
-  if (!_req.data())
+  if (!_req.data() && this->visualizePtr)
   {
     this->visualizePtr->RemoveNormalForcesAndContactsMarkers();
   }
