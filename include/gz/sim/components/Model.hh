@@ -71,13 +71,13 @@ namespace serializers
                     << std::endl;
             warned = true;
           }
-          skip = true;
+         return _out;
         }
       }
 
       _out << "<?xml version=\"1.0\" ?>"
            << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-           << (skip ? std::string() : modelElem->ToString(""))
+           <<  modelElem->ToString("")
            << "</sdf>";
       return _out;
     }
