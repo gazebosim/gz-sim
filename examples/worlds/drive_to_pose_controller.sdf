@@ -44,7 +44,7 @@
 
 -->
 <sdf version="1.9">
-  <world name="drive-to-pose-controller">
+  <world name="drive_to_pose_controller">
 
     <gui fullscreen="0">
       <plugin filename="MinimalScene" name="3D View">
@@ -148,6 +148,11 @@
       <real_time_factor>1</real_time_factor>
       <real_time_update_rate>100</real_time_update_rate>
     </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
 
     <model name="aws_robomaker_warehouse_ShelfF_01_001">
       <include>
