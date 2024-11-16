@@ -19,6 +19,7 @@
 #define GZ_SIM_SYSTEMS_DRIVETOPOSECONTROLLER_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
