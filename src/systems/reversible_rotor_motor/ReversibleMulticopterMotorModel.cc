@@ -10,15 +10,25 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include <gz/math/Helpers.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/msgs/Utility.hh>
 
 #include <sdf/sdf.hh>
 
 #include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -26,62 +36,35 @@ using namespace systems;
 
 class gz::sim::systems::ReversibleMulticopterMotorModelPrivate
 {
-  /// \brief Callback for actuator commands.
   public: void OnActuatorMsg(const msgs::Actuators &_msg);
-
-  /// \brief Apply link forces and moments based on propeller state.
   public: void UpdateForcesAndMoments(EntityComponentManager &_ecm);
-
-  /// \brief Joint Entity
   public: Entity jointEntity;
-
-  /// \brief Link Entity
   public: Entity linkEntity;
-
-  /// \brief Model interface
+  public: Entity parentLinkEntity; 
+  public: std::string jointName = ""; 
+  public: std::string linkName = "";
+  public: std::string parentLinkName = "";
   public: Model model{kNullEntity};
-
-  /// \brief Name of the robot.
   public: std::string robot_name = "";
-
-  /// \brief Topic for actuator commands.
   public: std::string commandSubTopic = "";
-
-  /// \brief Motor number for reference in the message
   public: int motorNumber = 0;
-
-  /// \brief Maximum rotational velocity command with units of rad/s.
   public: double maxRotVelocity = 838.0;
+  public: double motorInputVel = 0.0;
+  public: double simVelSlowDown = 10.0;
 
-  /// \brief Thrust coefficient for propeller with units of N / (rad/s)^2.
-  public: double motorConstant = 8.54858e-06;
+  public: std::vector<double> TorquePolynomial = {0.0, 0.0, 0.0, 0.0};
+  public: std::vector<double> ThrustPolynomial = {0.0, 0.0, 0.0, 0.0};
 
-  /// \brief Moment constant for computing drag torque with units of N*m / (rad/s)^2.
-  public: double momentConstant = 1.6e-3;
-
-  /// \brief Reference input to motor, normalized between -1 and 1.
-  public: double refMotorInput = 0.0;
-
-  /// \brief Rotor drag coefficient for drag torque with units of N*m / (rad/s) * (m/s).
-  public: double rotorDragCoefficient = 0.02;
-
-  /// \brief Received Actuators message. This is nullopt if no message has been
   public: std::optional<msgs::Actuators> recvdActuatorsMsg;
-
-  /// \brief Mutex to protect recvdActuatorsMsg.
   public: std::mutex recvdActuatorsMsgMutex;
-  
-  /// \brief Gazebo communication node.
   public: transport::Node node;
 };
 
-//////////////////////////////////////////////////
 ReversibleMulticopterMotorModel::ReversibleMulticopterMotorModel()
   : dataPtr(std::make_unique<ReversibleMulticopterMotorModelPrivate>())
 {
 }
 
-//////////////////////////////////////////////////
 void ReversibleMulticopterMotorModel::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -106,17 +89,16 @@ void ReversibleMulticopterMotorModel::Configure(const Entity &_entity,
     gzerr << "robotName not specified, using default_robot.\n";
   }
 
-  // Get params from SDF
   if (sdfClone->HasElement("jointName"))
   {
-    std::string jointName = sdfClone->Get<std::string>("jointName");
-    this->dataPtr->jointEntity = this->dataPtr->model.JointByName(_ecm, jointName);
+    dataPtr->jointName = sdfClone->Get<std::string>("jointName");
+    dataPtr->jointEntity = this->dataPtr->model.JointByName(_ecm, dataPtr->jointName);
   }
 
   if (sdfClone->HasElement("linkName"))
   {
-    std::string linkName = sdfClone->Get<std::string>("linkName");
-    this->dataPtr->linkEntity = this->dataPtr->model.LinkByName(_ecm, linkName);
+    dataPtr->linkName = sdfClone->Get<std::string>("linkName");
+    dataPtr->linkEntity = this->dataPtr->model.LinkByName(_ecm, dataPtr->linkName);
   }
 
   if (sdfClone->HasElement("commandSubTopic"))
@@ -132,14 +114,30 @@ void ReversibleMulticopterMotorModel::Configure(const Entity &_entity,
     gzerr << "motorNumber not specified, using 0.\n";
   }
 
-  sdfClone->Get<double>("maxRotVelocity", this->dataPtr->maxRotVelocity, this->dataPtr->maxRotVelocity);
-  sdfClone->Get<double>("motorConstant", this->dataPtr->motorConstant, this->dataPtr->motorConstant);
-  sdfClone->Get<double>("momentConstant", this->dataPtr->momentConstant, this->dataPtr->momentConstant);
-  sdfClone->Get<double>("rotorDragCoefficient", this->dataPtr->rotorDragCoefficient, this->dataPtr->rotorDragCoefficient);
+  if (this->dataPtr->jointName != "") {
+    dataPtr->parentLinkName = _ecm.Component<components::ParentLinkName>(dataPtr->jointEntity)->Data();
+    dataPtr->parentLinkEntity  = dataPtr->model.LinkByName(_ecm, dataPtr->parentLinkName);
+  }
 
-  // Subscribe to actuator command messages
+  auto a0Thrust = sdfClone->Get<double>("a0ThrustConstant");
+  auto a1Thrust = sdfClone->Get<double>("a1ThrustConstant");
+  auto a2Thrust = sdfClone->Get<double>("a2ThrustConstant");
+  auto a3Thrust = sdfClone->Get<double>("a3ThrustConstant");
+
+  this->dataPtr->ThrustPolynomial = {a0Thrust, a1Thrust, a2Thrust, a3Thrust};
+
+  auto a0Torque = sdfClone->Get<double>("a0TorqueConstant");
+  auto a1Torque = sdfClone->Get<double>("a1TorqueConstant");
+  auto a2Torque = sdfClone->Get<double>("a2TorqueConstant");
+  auto a3Torque = sdfClone->Get<double>("a3TorqueConstant");
+
+  this->dataPtr->TorquePolynomial = {a0Torque, a1Torque, a2Torque, a3Torque};
+
+
+  dataPtr->simVelSlowDown = sdfClone->Get<double>("simVelSlowDown");
+
   std::string topic = transport::TopicUtils::AsValidTopic( 
-    this->dataPtr->robot_name + "/" + this->dataPtr->commandSubTopic
+    "/" +  this->dataPtr->robot_name + "/" + this->dataPtr->commandSubTopic
   );
   if (topic.empty())
   {
@@ -154,23 +152,29 @@ void ReversibleMulticopterMotorModel::Configure(const Entity &_entity,
       &ReversibleMulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
 }
 
-//////////////////////////////////////////////////
 void ReversibleMulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("ReversibleMulticopterMotorModel::PreUpdate");
 
-  if (_info.paused)
+  if (_info.paused) {
     return;
+  }
 
   if (this->dataPtr->jointEntity == kNullEntity ||
-      this->dataPtr->linkEntity == kNullEntity)
+      this->dataPtr->linkEntity == kNullEntity) {
+    gzerr << "Joint or link entity is null." << std::endl;
     return;
+  }
+
+  if (!_ecm.Component<components::JointVelocityCmd>(this->dataPtr->jointEntity))
+  {
+    _ecm.CreateComponent(this->dataPtr->jointEntity, components::JointVelocityCmd({0}));
+  }
 
   this->dataPtr->UpdateForcesAndMoments(_ecm);
 }
 
-//////////////////////////////////////////////////
 void ReversibleMulticopterMotorModelPrivate::OnActuatorMsg(
     const msgs::Actuators &_msg)
 {
@@ -178,12 +182,11 @@ void ReversibleMulticopterMotorModelPrivate::OnActuatorMsg(
   this->recvdActuatorsMsg = _msg;
 }
 
-//////////////////////////////////////////////////
 void ReversibleMulticopterMotorModelPrivate::UpdateForcesAndMoments(
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("ReversibleMulticopterMotorModelPrivate::UpdateForcesAndMoments");
-
+  
   auto actuatorMsgComp = _ecm.Component<components::Actuators>(this->model.Entity());
   std::optional<msgs::Actuators> msg;
 
@@ -200,60 +203,42 @@ void ReversibleMulticopterMotorModelPrivate::UpdateForcesAndMoments(
     }
   }
 
-  // Check if message has value
-  if (msg.has_value()) {
 
-    // Check if message has velocity field
-    if (msg->velocity_size() != 0) {
-      
-      if (this->motorNumber > msg->velocity_size() - 1) {
-        gzerr << "You tried to access index " << this->motorNumber
-          << " of the Actuator velocity array which is of size "
-          << msg->velocity_size() << std::endl;
-        return;
-      } else {
-        auto speed = msg->velocity(this->motorNumber);
-        this->refMotorInput = std::max(
-          std::min(speed, this->maxRotVelocity), 
-          -this->maxRotVelocity
-        );
-      }
-    // Check if message has normalized field
-    } else if (msg->normalized_size() != 0) {
-      if (this->motorNumber > msg->normalized_size() - 1) {
-        gzerr << "You tried to access index " << this->motorNumber
-          << " of the Actuator normalized array which is of size "
-          << msg->normalized_size() << std::endl;
-        return;
-      } else {
-        auto speed = msg->normalized(this->motorNumber);
-        this->refMotorInput = this->maxRotVelocity * std::max(
-          std::min(speed, 1.0), 
-          -1.0
-        );
-      } 
+  if (msg.has_value()) {
+    if (msg->velocity_size() > this->motorNumber) {
+      this->motorInputVel = std::clamp(
+        msg->velocity(this->motorNumber),
+        -this->maxRotVelocity, 
+        this->maxRotVelocity
+      );
+    } else if (msg->normalized_size() > this->motorNumber) {
+      this->motorInputVel = std::clamp(msg->normalized(this->motorNumber), -1.0, 1.0) * this->maxRotVelocity;  
     }
   }
+  
+  sim::Link link(this->linkEntity);
+  const auto worldPose = link.WorldPose(_ecm);
+  using Vector3 = math::Vector3d;
 
-  // Calculate thrust and torque based on motor input
-  double motorRotVel = this->refMotorInput * this->maxRotVelocity;
-  double thrust = motorRotVel * motorRotVel * this->motorConstant;
-  double torque = motorRotVel * motorRotVel * this->momentConstant;
-
-
-  // Reverse thrust and torque if motor is spinning in reverse
-  if (motorRotVel < 0)
-  {
-    thrust = -thrust;
-    torque = -torque;
+  // Compute thrust according to the polynomial we have defined
+  double thrust = 0.0;
+  for (unsigned int i = 0; i < this->ThrustPolynomial.size(); i++) {
+    thrust += this->ThrustPolynomial[i] * std::pow(this->motorInputVel, i);
   }
 
-  // Calculate rotor drag torque based on velocity and rotor drag coefficient
-  double dragTorque = -motorRotVel * this->rotorDragCoefficient;
+  link.AddWorldForce(_ecm, worldPose->Rot().RotateVector(Vector3(0, 0, thrust)));
 
-  sim::Link link(this->linkEntity);
-  link.AddWorldForce(_ecm, gz::math::Vector3d(0, 0, thrust));
-  link.AddWorldForce(_ecm, gz::math::Vector3d(0, 0, torque + dragTorque));
+  double torque = 0.0;
+
+  for (unsigned int i = 0; i < this->TorquePolynomial.size(); i++) {
+    torque += this->TorquePolynomial[i] * std::pow(this->motorInputVel, i);
+  }
+
+  link.AddWorldForce(_ecm, worldPose->Rot().RotateVector(Vector3(0, 0, torque)));
+
+  const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
+      this->jointEntity); 
+  *jointVelCmd = components::JointVelocityCmd({this->motorInputVel / this->simVelSlowDown});
 }
 
 GZ_ADD_PLUGIN(ReversibleMulticopterMotorModel,
