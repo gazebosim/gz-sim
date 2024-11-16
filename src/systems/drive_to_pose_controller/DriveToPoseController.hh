@@ -18,6 +18,8 @@
 #ifndef GZ_SIM_SYSTEMS_DRIVETOPOSECONTROLLER_HH_
 #define GZ_SIM_SYSTEMS_DRIVETOPOSECONTROLLER_HH_
 
+#include <memory>
+
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -39,17 +41,17 @@ namespace systems
   ///
   /// The plugin has the following tags:
   ///
-  /// - `<linear_p_gain>`: (Optional) Proportional gain for the linear velocity controller
-  ///                       Default: 1.0
+  /// - `<linear_p_gain>`: (Optional) Proportional gain for the linear
+  ///                      velocity controller | Default: 1.0
   ///
-  /// - `<angular_p_gain>`: (Optional) Proportional gain for the angular velocity controller
-  ///                       Default: 2.0
+  /// - `<angular_p_gain>`: (Optional) Proportional gain for the angular
+  ///                       velocity controller | Default: 2.0
   ///
-  /// - `<linear_deviation>`: (Optional) Allowable linear deviation (in meters) from the desired coordinate
-  ///                         Default: 0.1
+  /// - `<linear_deviation>`: (Optional) Allowable linear deviation (in meters)
+  ///                         from the desired coordinate | Default: 0.1
   ///
-  /// - `<angular_deviation>`: (Optional) Allowable angular deviation (in radians) from the desired orientation.
-  ///                          Default: 0.05
+  /// - `<angular_deviation>`: (Optional) Allowable angular deviation (in rad)
+  ///                          from the desired orientation | Default: 0.05
   class DriveToPoseController
       : public System,
         public ISystemConfigure,

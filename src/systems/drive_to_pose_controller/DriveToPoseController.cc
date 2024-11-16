@@ -219,8 +219,14 @@ void DriveToPoseControllerPrivate::CalculateVelocity()
 //////////////////////////////////////////////////
 void DriveToPoseControllerPrivate::NormalizeAngle(double &_angle)
 {
-  if (_angle > GZ_PI) { _angle -= 2 * GZ_PI; }
-  else if (_angle < -GZ_PI) { _angle += 2 * GZ_PI; }
+  if (_angle > GZ_PI)
+  {
+    _angle -= 2 * GZ_PI;
+  }
+  else if (_angle < -GZ_PI)
+  {
+    _angle += 2 * GZ_PI;
+  }
 }
 
 //////////////////////////////////////////////////
