@@ -108,11 +108,8 @@ namespace serializers
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
       {
-<<<<<<< HEAD
-        ignwarn << "Unable to deserialize sdf::Model" << std::endl;
-=======
-        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
->>>>>>> 1a881310c (Improve load times by skipping serialization of entities when unecessary. (#2596))
+        ignwarn << "Unable to deserialize sdf::Model: " << sdf
+          << std::endl;
         return _in;
       }
 
