@@ -139,6 +139,7 @@ gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
   # component order is important
   COMPONENTS
     # non-rendering
+    air_flow
     air_pressure
     air_speed
     altimeter

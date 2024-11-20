@@ -46,6 +46,7 @@
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
+#include <sdf/AirFlow.hh>
 #include <sdf/AirPressure.hh>
 #include <sdf/AirSpeed.hh>
 #include <sdf/Altimeter.hh>

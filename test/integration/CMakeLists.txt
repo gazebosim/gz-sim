@@ -4,6 +4,7 @@ set(tests
   ackermann_steering_system.cc
   actor.cc
   acoustic_comms.cc
+  air_flow_system.cc
   air_pressure_system.cc
   air_speed_system.cc
   altimeter_system.cc
