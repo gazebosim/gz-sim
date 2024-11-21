@@ -30,6 +30,11 @@
 #include <gz/transport/Node.hh>
 #include <gz/transport/TopicUtils.hh>
 
+#include <cmath>
+#include <mutex>
+#include <optional>
+#include <string>
+
 using namespace gz;
 using namespace sim;
 using namespace systems;
@@ -135,22 +140,47 @@ void DriveToPoseController::Configure(
   // Topic namespace for publish and subscribe
   std::string topicNamespace = "/model/" + this->dataPtr->model.Name(_ecm);
 
-  // Subscribe to pose topics
-  this->dataPtr->node.Subscribe(
-    topicNamespace + "/cmd_pose", &DriveToPoseControllerPrivate::OnCmdPose,
-    this->dataPtr.get());
-
+  // Subscribe to odometry pose publisher
   this->dataPtr->node.Subscribe(
     topicNamespace + "/pose", &DriveToPoseControllerPrivate::OnCurrentPose,
     this->dataPtr.get());
 
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  this->dataPtr->node.TopicInfo(
+    topicNamespace + "/pose", publishers, subscribers);
+  if (publishers.size() < 1)
+  {
+    gzwarn << "Unable to find publisher on /pose topic!" << std::endl;
+    gzwarn << "Make sure OdometryPublisher plugin "
+           << "is loaded through the SDF." << std::endl;
+  }
+
+  // Subscribe to command pose topic
+  this->dataPtr->node.Subscribe(
+    topicNamespace + "/cmd_pose", &DriveToPoseControllerPrivate::OnCmdPose,
+    this->dataPtr.get());
+
+
   // Create velocity publisher
   this->dataPtr->velocityPublisher =
     this->dataPtr->node.Advertise<msgs::Twist>(topicNamespace + "/cmd_vel");
+  if (!this->dataPtr->velocityPublisher.HasConnections())
+  {
+    gzwarn << "Unable to find a subscriber on /cmd_vel topic!" << std::endl;
+    gzwarn << "Make sure DiffDrive plugin "
+           << "is loaded through the SDF." << std::endl;
+  }
 
   // Create pose reached publisher
   this->dataPtr->poseReachedPublisher =
     this->dataPtr->node.Advertise<msgs::Pose>(topicNamespace + "/reached_pose");
+
+  gzdbg << "DriveToPoseController initialized with the following parameters:" << std::endl;
+  gzdbg << "linear_p_gain: " << this->dataPtr->linearPGain << std::endl;
+  gzdbg << "angular_p_gain: " << this->dataPtr->angularPGain << std::endl;
+  gzdbg << "linear_deviation: " << this->dataPtr->linearDeviation << std::endl;
+  gzdbg << "angular_deviation: " << this->dataPtr->angularDeviation << std::endl;
 }
 
 //////////////////////////////////////////////////

@@ -18,10 +18,14 @@
 #ifndef GZ_SIM_SYSTEMS_DRIVETOPOSECONTROLLER_HH_
 #define GZ_SIM_SYSTEMS_DRIVETOPOSECONTROLLER_HH_
 
-#include <memory>
-#include <string>
-
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
+
+#include <sdf/Element.hh>
+
+#include <memory>
 
 namespace gz
 {

@@ -24,6 +24,10 @@
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
 
+#include <chrono>
+#include <functional>
+#include <string>
+
 #include "gz/sim/Server.hh"
 
 #include "../helpers/EnvTestFixture.hh"
@@ -64,8 +68,6 @@ class DriveToPoseControllerTest
       [&](const msgs::Pose &_msg)
       {
         reachedPose = msgs::Convert(_msg);
-        std::cout << "reached pose: " << reachedPose.X() << ", "
-                  << reachedPose.Y() << std::endl;
       };
 
     // Get the odom pose message
@@ -132,8 +134,9 @@ TEST_F(DriveToPoseControllerTest, CurrentPosePublish)
   math::Pose3d pose(0, 0, 0, 0, 0, 0);
 
   TestPublishCmd(
-    std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/drive_to_pose_controller.sdf",
+    gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/drive_to_pose_controller.sdf"),
     "/model/DeliveryBot",
     pose);
 }
@@ -144,9 +147,10 @@ TEST_F(DriveToPoseControllerTest, XCoordinatePublish)
   math::Pose3d pose(1.5, 0, 0, 0, 0, 0);
 
   TestPublishCmd(
-    std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/drive_to_pose_controller.sdf",
-    "/model/DeliveryBot",
+    gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/drive_to_pose_controller.sdf"),
+   "/model/DeliveryBot",
     pose);
 }
 
@@ -156,9 +160,10 @@ TEST_F(DriveToPoseControllerTest, YCoordinatePublish)
   math::Pose3d pose(0, 1.5, 0, 0, 0, 0);
 
   TestPublishCmd(
-    std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/drive_to_pose_controller.sdf",
-    "/model/DeliveryBot",
+    gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/drive_to_pose_controller.sdf"),
+   "/model/DeliveryBot",
     pose);
 }
 
@@ -168,9 +173,10 @@ TEST_F(DriveToPoseControllerTest, YawPublish)
   math::Pose3d pose(0, 0, 0, 0, 0, -1.57);
 
   TestPublishCmd(
-    std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/drive_to_pose_controller.sdf",
-    "/model/DeliveryBot",
+    gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/drive_to_pose_controller.sdf"),
+   "/model/DeliveryBot",
     pose);
 }
 
@@ -180,8 +186,9 @@ TEST_F(DriveToPoseControllerTest, XYCoordinateYawPublish)
   math::Pose3d pose(1.5, -1.5, 0, 0, 0, 1.57);
 
   TestPublishCmd(
-    std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/drive_to_pose_controller.sdf",
-    "/model/DeliveryBot",
+    gz::common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH),
+      "/test/worlds/drive_to_pose_controller.sdf"),
+   "/model/DeliveryBot",
     pose);
 }
