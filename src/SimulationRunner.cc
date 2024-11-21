@@ -1661,3 +1661,17 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 }
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = _all || _time;
+  if (_model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
+}
