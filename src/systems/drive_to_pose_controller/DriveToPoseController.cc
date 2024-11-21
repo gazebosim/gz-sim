@@ -34,6 +34,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <vector>
 
 using namespace gz;
 using namespace sim;
@@ -176,11 +177,16 @@ void DriveToPoseController::Configure(
   this->dataPtr->poseReachedPublisher =
     this->dataPtr->node.Advertise<msgs::Pose>(topicNamespace + "/reached_pose");
 
-  gzdbg << "DriveToPoseController initialized with the following parameters:" << std::endl;
-  gzdbg << "linear_p_gain: " << this->dataPtr->linearPGain << std::endl;
-  gzdbg << "angular_p_gain: " << this->dataPtr->angularPGain << std::endl;
-  gzdbg << "linear_deviation: " << this->dataPtr->linearDeviation << std::endl;
-  gzdbg << "angular_deviation: " << this->dataPtr->angularDeviation << std::endl;
+  gzdbg << "DriveToPoseController initialized with "
+        << "the following parameters:" << std::endl;
+  gzdbg << "linear_p_gain: "
+        << this->dataPtr->linearPGain << std::endl;
+  gzdbg << "angular_p_gain: "
+        << this->dataPtr->angularPGain << std::endl;
+  gzdbg << "linear_deviation: "
+        << this->dataPtr->linearDeviation << std::endl;
+  gzdbg << "angular_deviation: "
+        << this->dataPtr->angularDeviation << std::endl;
 }
 
 //////////////////////////////////////////////////
