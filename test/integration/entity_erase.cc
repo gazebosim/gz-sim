@@ -94,8 +94,8 @@ TEST_F(PhysicsSystemFixture,
 {
   ServerConfig serverConfig;
 
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-    "/examples/worlds/detachable_joint.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "examples", "worlds", "detachable_joint.sdf"));
 
   Server server(serverConfig);
 
