@@ -263,7 +263,6 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     // Here the scoped name starts with "wheel_slip."
     // In `ConfigureParameters()` that doesn't happen!
     auto paramName = std::string("systems.") + scopedName;
-    //transport::parameters::ParameterResult value;
     msgs::WheelSlipParametersCmd msg;
 
     auto result = this->registry->Parameter(paramName, msg);
