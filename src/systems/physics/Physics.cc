@@ -2003,6 +2003,43 @@ void PhysicsPrivate::CreateBatteryEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 {
+  // Remove detachable joints. Do this before removing models otherwise the
+  // physics engine may not find the links associated with the detachable
+  // joints.
+  _ecm.EachRemoved<components::DetachableJoint>(
+      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
+      {
+        if (!this->entityJointMap.HasEntity(_entity))
+        {
+          gzwarn << "Failed to find joint [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto castEntity =
+            this->entityJointMap.EntityCast<DetachableJointFeatureList>(
+                _entity);
+        if (!castEntity)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to detach a joint, but the physics "
+                   << "engine doesn't support feature "
+                   << "[DetachJointFeature]. Joint won't be detached."
+                   << std::endl;
+            informed = true;
+          }
+
+          // Break Each call since no DetachableJoints can be processed
+          return false;
+        }
+
+        gzdbg << "Detaching joint [" << _entity << "]" << std::endl;
+        castEntity->Detach();
+        return true;
+      });
+
   // Assume the world will not be erased
   // Only removing models is supported by gz-physics right now so we only
   // remove links, joints and collisions if they are children of the removed
@@ -2061,40 +2098,6 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           this->staticEntities.erase(_entity);
           this->modelWorldPoses.erase(_entity);
         }
-        return true;
-      });
-
-  _ecm.EachRemoved<components::DetachableJoint>(
-      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
-      {
-        if (!this->entityJointMap.HasEntity(_entity))
-        {
-          gzwarn << "Failed to find joint [" << _entity
-                  << "]." << std::endl;
-          return true;
-        }
-
-        auto castEntity =
-            this->entityJointMap.EntityCast<DetachableJointFeatureList>(
-                _entity);
-        if (!castEntity)
-        {
-          static bool informed{false};
-          if (!informed)
-          {
-            gzdbg << "Attempting to detach a joint, but the physics "
-                   << "engine doesn't support feature "
-                   << "[DetachJointFeature]. Joint won't be detached."
-                   << std::endl;
-            informed = true;
-          }
-
-          // Break Each call since no DetachableJoints can be processed
-          return false;
-        }
-
-        gzdbg << "Detaching joint [" << _entity << "]" << std::endl;
-        castEntity->Detach();
         return true;
       });
 }
