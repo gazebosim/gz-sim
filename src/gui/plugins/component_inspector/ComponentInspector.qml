@@ -14,12 +14,11 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.1
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Dialogs
+import QtQuick.Layouts
 import GzSim 1.0 as GzSim
 
 Rectangle {
@@ -72,7 +71,7 @@ Rectangle {
     Material.accent.b, 0.3)
 
   function delegateQml(_model) {
-    if (_model === null || _model.dataType == undefined)
+    if (_model === null || _model.dataType === undefined)
       return 'NoData.qml'
 
     return _model.dataType + '.qml'

@@ -14,15 +14,13 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.0
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Dialogs
+import QtQuick.Layouts
 import "qrc:/ComponentInspectorEditor"
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 // Item displaying light information.
 Rectangle {
@@ -40,64 +38,64 @@ Rectangle {
   property int iconHeight: 20
 
   // Loaded item for specular red
-  property var rSpecularItem: {}
+  property var rSpecularItem: ({})
 
   // Loaded item for specular green
-  property var gSpecularItem: {}
+  property var gSpecularItem: ({})
 
   // Loaded item for specular blue
-  property var bSpecularItem: {}
+  property var bSpecularItem: ({})
 
   // Loaded item for specular alpha
-  property var aSpecularItem: {}
+  property var aSpecularItem: ({})
 
   // Loaded item for diffuse red
-  property var rDiffuseItem: {}
+  property var rDiffuseItem: ({})
 
   // Loaded item for diffuse green
-  property var gDiffuseItem: {}
+  property var gDiffuseItem: ({})
 
   // Loaded item for diffuse blue
-  property var bDiffuseItem: {}
+  property var bDiffuseItem: ({})
 
   // Loaded item for diffuse alpha
-  property var aDiffuseItem: {}
+  property var aDiffuseItem: ({})
 
   // Loaded item for attenuation range
-  property var attRangeItem: {}
+  property var attRangeItem: ({})
 
   // Loaded item for attenuation linear
-  property var attLinearItem: {}
+  property var attLinearItem: ({})
 
   // Loaded item for attenuation constant
-  property var attConstantItem: {}
+  property var attConstantItem: ({})
 
   // Loaded item for attenuation quadratic
-  property var attQuadraticItem: {}
+  property var attQuadraticItem: ({})
 
   // Loaded item for cast shadows
-  property var castShadowsItem: {}
+  property var castShadowsItem: ({})
 
   // Loaded item for direction X (spotlight or directional)
-  property var directionXItem: {}
+  property var directionXItem: ({})
 
   // Loaded item for direction Y (spotlight or directional)
-  property var directionYItem: {}
+  property var directionYItem: ({})
 
   // Loaded item for direction Z (spotlight or directional)
-  property var directionZItem: {}
+  property var directionZItem: ({})
 
   // Loaded item for inner angle (spotlight)
-  property var innerAngleItem: {}
+  property var innerAngleItem: ({})
 
   // Loaded item for inner angle (spotlight)
-  property var outerAngleItem: {}
+  property var outerAngleItem: ({})
 
   // Loaded item for falloff (spotlight)
-  property var falloffItem: {}
+  property var falloffItem: ({})
 
   // Loaded item for intensity
-  property var intensityItem: {}
+  property var intensityItem: ({})
 
   // Send new light data to C++
   function sendLight() {

@@ -14,13 +14,12 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 2.1
-import QtQuick.Controls.Material 2.2
-import QtQuick.Controls.Material.impl 2.2
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Dialogs 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Controls.Material.impl
+import QtQuick.Layouts
+import QtQuick.Dialogs
 
 ToolBar {
   Layout.minimumWidth: 200
@@ -35,10 +34,10 @@ ToolBar {
     FileDialog {
         id: fileDialog
         title: "Save the recorded video"
-        folder: shortcuts.home
-        selectExisting: false
-        property var fileFormat: ""
-        property var selectedFormat: ""
+        currentFolder: shortcuts.home
+        //selectExisting: false
+        property string fileFormat: ""
+        property string selectedFormat: ""
 
         function getFormat(url) {
           return (url.slice(url.lastIndexOf(".") + 1))
@@ -46,7 +45,7 @@ ToolBar {
 
         onAccepted: {
           fileFormat = getFormat(fileUrl.toString())
-          if (fileFormat == fileUrl.toString()) {
+          if (fileFormat === fileUrl.toString()) {
             // no format specified
             VideoRecorder.OnSave(fileFormat + "." + selectedFormat)
             close()

@@ -14,14 +14,12 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
 import "qrc:/ComponentInspector"
-import "qrc:/qml"
+import "qrc:/gz/gui/qml"
 
 Rectangle {
   id: numberComponent
@@ -39,7 +37,7 @@ Rectangle {
   property double spinMax: 1000000
 
   // Unit
-  property string unit: model && model.unit != undefined ? model.unit : ''
+  property string unit: model && model.unit !== undefined ? model.unit : ''
 
   RowLayout {
     anchors.fill: parent

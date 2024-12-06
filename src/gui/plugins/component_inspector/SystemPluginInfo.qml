@@ -14,12 +14,10 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
-import QtQuick.Controls.Material 2.1
-import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Controls.Material
+import QtQuick.Layouts
 import "qrc:/ComponentInspector"
 
 Rectangle {
@@ -217,7 +215,7 @@ Rectangle {
               TextEdit {
                 id: innerXmlText
                 width: parent.width
-                text: modelData[2].length == 0 ? "N/A" : modelData[2].trim()
+                text: modelData[2].length === 0 ? "N/A" : modelData[2].trim()
                 color: valueColor
                 textFormat: TextEdit.PlainText
                 font.pointSize: 10
