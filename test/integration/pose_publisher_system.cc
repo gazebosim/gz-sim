@@ -778,8 +778,7 @@ TEST_F(PosePublisherTest,
 
   poseMsgs.clear();
 
-  // test that the pose publisher plugin can be loaded by a nested model
-  // by subscribe to the its topic
+  // subscribe to the pose publisher
   transport::Node node;
   node.Subscribe(std::string("/model/test_publish_only_model_pose/pose"),
                  &poseCb);
