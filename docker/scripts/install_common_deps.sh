@@ -17,16 +17,17 @@ sudo apt-get install --no-install-recommends -y \
   cppcheck \
   curl \
   git \
-  g++-8 \
-  pkg-config \
+  g++ \
+  lcov \
+  pkg-config
 
 sudo apt-get install --no-install-recommends -y \
-  clang-tidy-6.0 \
-  python-yaml \
-  libclang-6.0-dev
+  clang-tidy \
+  python3-yaml
 
 sudo apt-get install --no-install-recommends -y \
   libbenchmark-dev \
-  libbenchmark1
+  libbenchmark1.8.3
 
-sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+sudo apt-get clean
+sudo rm -rf /var/lib/apt/lists/*
