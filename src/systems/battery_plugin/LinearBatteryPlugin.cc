@@ -723,7 +723,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
         + this->dataPtr->r * this->dataPtr->ismooth;
   else
     voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
-      1 - this->dataPtr->q / this->c)
+      1 - this->dataPtr->q / this->dataPtr->c)
         - this->dataPtr->r * this->dataPtr->ismooth;
 
   // Estimate state of charge
