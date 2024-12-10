@@ -204,6 +204,8 @@ void PosePublisher::Configure(const Entity &_entity,
 
   // for backward compatibility, publish_model_pose will be set to the
   // same value as publish_nested_model_pose if it is not specified.
+  // todo(iche033) Remove backward compatibility and decouple model and
+  // nested model pose parameter value in gz-sim10
   this->dataPtr->publishModelPose =
     _sdf->Get<bool>("publish_model_pose",
         this->dataPtr->publishNestedModelPose).first;
@@ -394,9 +396,6 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
         (collision && this->publishCollisionPose) ||
         (sensor && this->publishSensorPose);
 
-    // for backward compatibility, top level model pose will be published
-    // if publishNestedModelPose is set to true unless the user explicity
-    // disables this by setting publishModelPose to false
     if (isModel)
     {
       if (parent)
@@ -404,10 +403,8 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
         auto nestedModel = _ecm.Component<components::Model>(parent->Data());
         if (nestedModel)
           fillPose = this->publishNestedModelPose;
-      }
-      if (!fillPose)
-      {
-        fillPose = this->publishNestedModelPose && this->publishModelPose;
+        else
+          fillPose = this->publishModelPose;
       }
     }
 
