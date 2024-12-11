@@ -179,8 +179,8 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Initial power load set trough config
   public: double initialPowerLoad = 0.0;
 
-  /// \brief Adjusts the sign of the current to align with ROS conventions.
-  public: bool adjustCurrentSignForROS{false};
+  /// \brief Flag to invert the current sign
+  public: bool invertCurrentSign{false};
 };
 
 /////////////////////////////////////////////////
@@ -276,9 +276,9 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   if (_sdf->HasElement("fix_issue_225"))
     this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
 
-  if (_sdf->HasElement("adjust_current_sign_for_ros"))
-    this->dataPtr->adjustCurrentSignForROS =
-      _sdf->Get<bool>("adjust_current_sign_for_ros");
+  if (_sdf->HasElement("invert_current_sign"))
+    this->dataPtr->invertCurrentSign =
+      _sdf->Get<bool>("invert_current_sign");
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
@@ -676,7 +676,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
       totalpower += powerLoad.second;
   }
 
-  if (this->dataPtr->adjustCurrentSignForROS)
+  if (this->dataPtr->invertCurrentSign)
     this->dataPtr->iraw = -totalpower / _battery->Voltage();
   else
     this->dataPtr->iraw = totalpower / _battery->Voltage();
@@ -687,7 +687,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   // add charging current to battery
   if (this->dataPtr->startCharging && this->dataPtr->StateOfCharge() < 0.9)
   {
-    if (this->dataPtr->adjustCurrentSignForROS)
+    if (this->dataPtr->invertCurrentSign)
       this->dataPtr->iraw += iCharge;
     else
       this->dataPtr->iraw -= iCharge;
@@ -708,7 +708,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   }
 
   // Convert dt to hours
-  if (this->dataPtr->adjustCurrentSignForROS)
+  if (this->dataPtr->invertCurrentSign)
     this->dataPtr->q = this->dataPtr->q + ((dt * this->dataPtr->ismooth) /
       3600.0);
   else
@@ -717,7 +717,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
 
   // open circuit voltage
   double voltage;
-  if (this->dataPtr->adjustCurrentSignForROS)
+  if (this->dataPtr->invertCurrentSign)
     voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
       1 - this->dataPtr->q / this->dataPtr->c)
         + this->dataPtr->r * this->dataPtr->ismooth;
@@ -734,7 +734,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     double isum = 0.0;
     for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
       isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
-    if (this->dataPtr->adjustCurrentSignForROS)
+    if (this->dataPtr->invertCurrentSign)
       this->dataPtr->soc = this->dataPtr->soc + isum / this->dataPtr->c;
     else
       this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
