@@ -17,7 +17,12 @@
 
 #include <gtest/gtest.h>
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Link.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Sensor.hh"
 
 /////////////////////////////////////////////////
 TEST(LinkTest, Constructor)
@@ -73,4 +78,64 @@ TEST(LinkTest, MoveAssignmentOperator)
   gz::sim::Link linkMoved;
   linkMoved = std::move(link);
   EXPECT_EQ(id, linkMoved.Entity());
+}
+
+/////////////////////////////////////////////////
+TEST(LinkTest, Sensors)
+{
+  // linkA
+  //  - sensorAA
+  //  - sensorAB
+  //
+  // linkC
+
+  gz::sim::EntityComponentManager ecm;
+
+  // Link A
+  auto linkAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkAEntity, gz::sim::components::Link());
+  ecm.CreateComponent(linkAEntity,
+      gz::sim::components::Name("linkA_name"));
+
+  // Sensor AA - Child of Link A
+  auto sensorAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(sensorAAEntity, gz::sim::components::Sensor());
+  ecm.CreateComponent(sensorAAEntity,
+      gz::sim::components::Name("sensorAA_name"));
+  ecm.CreateComponent(sensorAAEntity,
+      gz::sim::components::ParentEntity(linkAEntity));
+
+  // Sensor AB - Child of Link A
+  auto sensorABEntity = ecm.CreateEntity();
+  ecm.CreateComponent(sensorABEntity, gz::sim::components::Sensor());
+  ecm.CreateComponent(sensorABEntity,
+      gz::sim::components::Name("sensorAB_name"));
+  ecm.CreateComponent(sensorABEntity,
+      gz::sim::components::ParentEntity(linkAEntity));
+
+  // Link C
+  auto linkCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkCEntity, gz::sim::components::Link());
+  ecm.CreateComponent(linkCEntity,
+      gz::sim::components::Name("linkC_name"));
+
+  std::size_t foundSensors = 0;
+
+  gz::sim::Link linkA(linkAEntity);
+  auto sensors = linkA.Sensors(ecm);
+  EXPECT_EQ(2u, sensors.size());
+  for (const auto &sensor : sensors)
+  {
+    if (sensor == sensorAAEntity || sensor == sensorABEntity)
+      foundSensors++;
+  }
+  EXPECT_EQ(foundSensors, sensors.size());
+
+  EXPECT_EQ(sensorAAEntity, linkA.SensorByName(ecm, "sensorAA_name"));
+  EXPECT_EQ(sensorABEntity, linkA.SensorByName(ecm, "sensorAB_name"));
+  EXPECT_EQ(gz::sim::kNullEntity, linkA.SensorByName(ecm, "invalid"));
+
+  gz::sim::Link linkC(linkCEntity);
+  EXPECT_EQ(0u, linkC.Sensors(ecm).size());
+  EXPECT_EQ(gz::sim::kNullEntity, linkC.SensorByName(ecm, "invalid"));
 }
