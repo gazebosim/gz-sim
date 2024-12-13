@@ -1,5 +1,13 @@
 ## Gazebo Sim 3.x
 
+### Gazebo Sim 3.15.2 (2024-12-12)
+
+1. Fix bug where iterator was used after the underlying item was erased from the container
+    * [Pull request #2412](https://github.com/gazebosim/gz-sim/pull/2412)
+
+1. Setup rendering environment before cmake runs
+    * [Pull request #1965](https://github.com/gazebosim/gz-sim/pull/1965)
+
 ### Gazebo Sim 3.15.1 (2024-01-05)
 
 1. Update github action workflows
