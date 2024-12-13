@@ -25,9 +25,5 @@ sudo apt-get install --no-install-recommends -y \
   clang-tidy \
   python3-yaml
 
-sudo apt-get install --no-install-recommends -y \
-  libbenchmark-dev \
-  libbenchmark1.8.3
-
 sudo apt-get clean
 sudo rm -rf /var/lib/apt/lists/*
