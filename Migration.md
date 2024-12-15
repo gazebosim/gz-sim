@@ -5,6 +5,34 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 9.x to 10.0
+
+### Removals
+
+- **config.hh**:
+   + The macro `GZ_SIM_GUI_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getGUIConfigPath()` instead.
+
+   + The macro `GZ_SIM_SYSTEM_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getSystemConfigPath()` instead.
+
+   + The macro `GZ_SIM_SERVER_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getServerConfigPath()` instead.
+
+   + The macro `GZ_SIM_GUI_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getGUIPluginInstallDir()` instead.
+
+   + The macro `GZ_SIM_WORLD_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getWorldInstallDir()` instead.
+
+  **components/Factory.hh**:
+    + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and
+      `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)`
+       have been removed. Instead, please use
+       `gz::sim::components::Factory::Register(const char *_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId  _regObjId)`
+    + `gz::sim::components::Factory::Unregister()` has been removed. Instead, please use
+       `gz::sim::components::Factory::Unregister(RegistrationObjectId  _regObjId)`.
+
 ## Gazebo Sim 8.x to 9.0
 
  * **Modified**:
