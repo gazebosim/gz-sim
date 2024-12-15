@@ -193,7 +193,6 @@
           <update_rate>30</update_rate>
           <visualize>true</visualize>
           <topic>camera</topic>
-          <gz_frame_id>camera_optical</gz_frame_id>
         </sensor>
       </link>
     </model>
