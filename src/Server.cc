@@ -486,6 +486,17 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void Server::ResetAll()
+{
+  for (auto worldId = 0u;
+    worldId < this->dataPtr->simRunners.size();
+    worldId++)
+  {
+    this->dataPtr->simRunners[worldId]->Reset(true, false, false);
+  }
+}
+
+//////////////////////////////////////////////////
 void Server::Stop()
 {
   this->dataPtr->Stop();

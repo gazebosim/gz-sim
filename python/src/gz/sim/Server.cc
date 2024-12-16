@@ -46,7 +46,9 @@ void defineSimServer(pybind11::object module)
   .def(
     "is_running",
     pybind11::overload_cast<>(&gz::sim::Server::Running, pybind11::const_),
-    "Get whether the server is running.");
+    "Get whether the server is running.")
+  .def("reset_all", &gz::sim::Server::ResetAll,
+    "Resets all simulation runners under this server.");
 }
 }  // namespace python
 }  // namespace sim
