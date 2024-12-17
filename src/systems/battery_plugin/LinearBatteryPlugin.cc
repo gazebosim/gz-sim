@@ -178,6 +178,9 @@ class ignition::gazebo::systems::LinearBatteryPluginPrivate
 
   /// \brief Initial power load set trough config
   public: double initialPowerLoad = 0.0;
+
+  /// \brief Flag to invert the current sign
+  public: bool invertCurrentSign{false};
 };
 
 /////////////////////////////////////////////////
@@ -272,6 +275,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("fix_issue_225"))
     this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
+
+  if (_sdf->HasElement("invert_current_sign"))
+    this->dataPtr->invertCurrentSign =
+      _sdf->Get<bool>("invert_current_sign");
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
@@ -615,7 +622,10 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
   msg.set_voltage(this->dataPtr->battery->Voltage());
-  msg.set_current(this->dataPtr->ismooth);
+  if (this->dataPtr->invertCurrentSign)
+    msg.set_current(-this->dataPtr->ismooth);
+  else
+    msg.set_current(this->dataPtr->ismooth);
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
 
