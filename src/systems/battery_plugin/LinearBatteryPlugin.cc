@@ -631,7 +631,10 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
   msg.set_voltage(this->dataPtr->battery->Voltage());
-  msg.set_current(this->dataPtr->ismooth);
+  if (this->dataPtr->invertCurrentSign)
+    msg.set_current(-this->dataPtr->ismooth);
+  else
+    msg.set_current(this->dataPtr->ismooth);
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
 
@@ -676,22 +679,14 @@ double LinearBatteryPlugin::OnUpdateVoltage(
       totalpower += powerLoad.second;
   }
 
-  if (this->dataPtr->invertCurrentSign)
-    this->dataPtr->iraw = -totalpower / _battery->Voltage();
-  else
-    this->dataPtr->iraw = totalpower / _battery->Voltage();
+  this->dataPtr->iraw = totalpower / _battery->Voltage();
 
   // compute charging current
   auto iCharge = this->dataPtr->c / this->dataPtr->tCharge;
 
   // add charging current to battery
   if (this->dataPtr->startCharging && this->dataPtr->StateOfCharge() < 0.9)
-  {
-    if (this->dataPtr->invertCurrentSign)
-      this->dataPtr->iraw += iCharge;
-    else
-      this->dataPtr->iraw -= iCharge;
-  }
+    this->dataPtr->iraw -= iCharge;
 
   this->dataPtr->ismooth = this->dataPtr->ismooth + k *
     (this->dataPtr->iraw - this->dataPtr->ismooth);
@@ -708,23 +703,13 @@ double LinearBatteryPlugin::OnUpdateVoltage(
   }
 
   // Convert dt to hours
-  if (this->dataPtr->invertCurrentSign)
-    this->dataPtr->q = this->dataPtr->q + ((dt * this->dataPtr->ismooth) /
-      3600.0);
-  else
-    this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
-      3600.0);
+  this->dataPtr->q = this->dataPtr->q - ((dt * this->dataPtr->ismooth) /
+    3600.0);
 
   // open circuit voltage
-  double voltage;
-  if (this->dataPtr->invertCurrentSign)
-    voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
-      1 - this->dataPtr->q / this->dataPtr->c)
-        + this->dataPtr->r * this->dataPtr->ismooth;
-  else
-    voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
-      1 - this->dataPtr->q / this->dataPtr->c)
-        - this->dataPtr->r * this->dataPtr->ismooth;
+  double voltage = this->dataPtr->e0 + this->dataPtr->e1 * (
+    1 - this->dataPtr->q / this->dataPtr->c)
+      - this->dataPtr->r * this->dataPtr->ismooth;
 
   // Estimate state of charge
   if (this->dataPtr->fixIssue225)
@@ -734,10 +719,7 @@ double LinearBatteryPlugin::OnUpdateVoltage(
     double isum = 0.0;
     for (size_t i = 0; i < this->dataPtr->iList.size(); ++i)
       isum += (this->dataPtr->iList[i] * this->dataPtr->dtList[i] / 3600.0);
-    if (this->dataPtr->invertCurrentSign)
-      this->dataPtr->soc = this->dataPtr->soc + isum / this->dataPtr->c;
-    else
-      this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
+    this->dataPtr->soc = this->dataPtr->soc - isum / this->dataPtr->c;
   }
 
   // Throttle debug messages
