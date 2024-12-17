@@ -40,7 +40,7 @@ namespace systems
   class DriveToPoseControllerPrivate;
 
   /// \brief DriveToPoseController is a simple proportional controller that
-  /// is attached to a model to move it in the  y giving a pose in Gazebo's
+  /// is attached to a model to move it by giving a pose in Gazebo's
   /// world coordinate system. This is not a standalone plugin, and requires
   /// the DiffDrive and OdometryPublisher plugins respectively.
   ///

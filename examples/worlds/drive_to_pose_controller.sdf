@@ -38,7 +38,7 @@
       gz topic -t "/model/DeliveryBot/cmd_pose" -m gz.msgs.Pose_V \
         -p "pose:[{position: {x: -5.9, y: 9.18, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.99, w: 0.0}}]"
 
-  This plugin is loosely base on the control schemes introduced in Chapter 4 (pp. 130-142) of
+  This plugin is loosely based on the control schemes introduced in Chapter 4 (pp. 130-142) of
   Robotics, Vision and Control by Corke, Jachimczyk and Pillat and it can be found at:
   https://link.springer.com/chapter/10.1007/978-3-031-07262-8_4
 
@@ -153,7 +153,6 @@
       name="gz::sim::systems::Physics">
     </plugin>
 
-
     <model name="aws_robomaker_warehouse_ShelfF_01_001">
       <include>
         <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfF_01</uri>
@@ -222,7 +221,6 @@
       <pose>0 0 -4 0 0 0</pose>
     </model>
 
-
     <model name="aws_robomaker_warehouse_Bucket_01_020">
       <include>
         <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_Bucket_01</uri>
@@ -264,7 +262,6 @@
       </include>
       <pose>-1.491287 5.222435 -0.017477 0 0 -1.583185</pose>
     </model>
-
 
     <model name="aws_robomaker_warehouse_ClutteringC_01_027">
       <include>
@@ -321,7 +318,6 @@
       </include>
       <pose>-1.592441 7.715420 0 0 0 0</pose>
     </model>
-
 
     <light name="Warehouse_CeilingLight_003" type="point">
       <pose>0 0 8.5 0 0 0</pose>

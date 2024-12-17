@@ -136,7 +136,7 @@ TEST_F(DriveToPoseControllerTest, CurrentPosePublish)
   TestPublishCmd(
     gz::common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/drive_to_pose_controller.sdf"),
+      "test", "worlds", "drive_to_pose_controller.sdf"),
     "/model/DeliveryBot",
     pose);
 }
@@ -149,7 +149,7 @@ TEST_F(DriveToPoseControllerTest, XCoordinatePublish)
   TestPublishCmd(
     gz::common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/drive_to_pose_controller.sdf"),
+      "test", "worlds", "drive_to_pose_controller.sdf"),
    "/model/DeliveryBot",
     pose);
 }
@@ -162,7 +162,7 @@ TEST_F(DriveToPoseControllerTest, YCoordinatePublish)
   TestPublishCmd(
     gz::common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/drive_to_pose_controller.sdf"),
+      "test", "worlds", "drive_to_pose_controller.sdf"),
    "/model/DeliveryBot",
     pose);
 }
@@ -175,7 +175,7 @@ TEST_F(DriveToPoseControllerTest, YawPublish)
   TestPublishCmd(
     gz::common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/drive_to_pose_controller.sdf"),
+      "test", "worlds", "drive_to_pose_controller.sdf"),
    "/model/DeliveryBot",
     pose);
 }
@@ -188,7 +188,8 @@ TEST_F(DriveToPoseControllerTest, XYCoordinateYawPublish)
   TestPublishCmd(
     gz::common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "/test/worlds/drive_to_pose_controller.sdf"),
+      "test", "worlds", "drive_to_pose_controller.sdf"),
    "/model/DeliveryBot",
     pose);
 }
+
