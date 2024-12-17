@@ -192,4 +192,3 @@ TEST_F(DriveToPoseControllerTest, XYCoordinateYawPublish)
    "/model/DeliveryBot",
     pose);
 }
-
