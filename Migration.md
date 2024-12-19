@@ -19,6 +19,9 @@ release will remove the deprecated code.
    + The macro `GZ_SIM_SERVER_CONFIG_PATH` has been removed.
      Please use `gz::sim::getServerConfigPath()` instead.
 
+   + The macro `GZ_SIM_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getPluginInstallDir()` instead.
+
    + The macro `GZ_SIM_GUI_PLUGIN_INSTALL_DIR` has been removed.
      Please use `gz::sim::getGUIPluginInstallDir()` instead.
 
