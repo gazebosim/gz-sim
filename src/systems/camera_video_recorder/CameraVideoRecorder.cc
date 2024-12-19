@@ -183,7 +183,7 @@ bool CameraVideoRecorderPrivate::OnRecordVideo(const msgs::VideoRecord &_msg,
     // create filename with timestamped suffix if path is not specified
     if (this->recordVideoSavePath.empty())
     {
-      std::string str = common::systemTimeISO();
+      std::string str = common::systemTimeIso();
       std::string prefix = this->cameraName;
       prefix = std::regex_replace(prefix, std::regex("::"), "_");
       this->recordVideoSavePath = prefix + "_" + str + "." +
