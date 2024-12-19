@@ -95,69 +95,6 @@ TEST_F(ComponentFactoryTest, Register)
 }
 
 /////////////////////////////////////////////////
-TEST_F(ComponentFactoryTest, DeprecatedRegister)
-{
-  auto factory = components::Factory::Instance();
-
-  // Create a custom component.
-  using MyDeprecatedCustom =
-      components::Component<components::NoData, class MyDeprecatedCustomTag>;
-
-  // Check it has no type id yet
-  EXPECT_EQ(0u, MyDeprecatedCustom::typeId);
-  EXPECT_EQ(nullptr, MyDeprecatedCustom::typeName);
-  EXPECT_EQ("", factory->Name(MyDeprecatedCustom::typeId));
-
-  // Store number of registered component types
-  auto registeredCount = factory->TypeIds().size();
-
-GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  factory->Register<MyDeprecatedCustom>("gz_sim_components.MyDeprecatedCustom",
-      new components::ComponentDescriptor<MyDeprecatedCustom>());
-GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  // Check now it has type id
-  EXPECT_NE(0u, MyDeprecatedCustom::typeId);
-  EXPECT_STREQ("gz_sim_components.MyDeprecatedCustom",
-               MyDeprecatedCustom::typeName);
-  EXPECT_EQ("gz_sim_components.MyDeprecatedCustom",
-            factory->Name(MyDeprecatedCustom::typeId));
-
-  // Check factory knows id
-  auto ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
-  EXPECT_NE(ids.end(),
-            std::find(ids.begin(), ids.end(), MyDeprecatedCustom::typeId));
-
-  // Registering the component twice doesn't change the number of type ids.
-GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  factory->Register<MyDeprecatedCustom>("gz_sim_components.MyDeprecatedCustom",
-      new components::ComponentDescriptor<MyDeprecatedCustom>());
-GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Fail to register 2 components with same name
-  using Duplicate = components::Component<components::NoData,
-      class DuplicateTag>;
-
-GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  factory->Register<Duplicate>("gz_sim_components.MyDeprecatedCustom",
-      new components::ComponentDescriptor<Duplicate>());
-GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Unregister
-GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-  factory->Unregister<MyDeprecatedCustom>();
-GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
-
-  ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
-}
-
-/////////////////////////////////////////////////
 TEST_F(ComponentFactoryTest, New)
 {
   auto factory = components::Factory::Instance();
