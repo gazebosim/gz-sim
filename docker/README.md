@@ -17,6 +17,8 @@ use the Gazebo code found in the current source tree.
 
 1. [Install Docker](#Install-Docker)
 
+    You need at least 10GB or free space on a hard drive.
+
 1. *Optional:* [Install NVidia Docker](#Install-Nvidia-Docker)
 
     Nvidia docker will be needed if you plan to run the GUI and/or sensors
@@ -46,13 +48,13 @@ use the Gazebo code found in the current source tree.
 3. Run the docker image with a bash shell.
 
     ```
-    docker run -it gz-sim:nightly /bin/bash
+    docker run --rm -it gz-sim:nightly /bin/bash
     ```
 
 4. Alternatively, you can directly run Gazebo using
 
     ```
-    ./docker/run.bash gz-sim:nightly gz-sim-server -v 4
+    ./docker/run.bash gz-sim:nightly gz sim -v 4
     ```
 
 ## Gazebo Using Debians In Docker
