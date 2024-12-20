@@ -83,6 +83,17 @@ defineSimTestFixture(pybind11::object module)
     ),
     pybind11::return_value_policy::reference,
     "Wrapper around a system's post-update callback"
+  )
+  .def(
+    "on_reset", WrapCallbacks(
+      [](TestFixture* self, std::function<void(
+          const UpdateInfo &, EntityComponentManager &)> _cb)
+      {
+        self->OnReset(_cb);
+      }
+    ),
+    pybind11::return_value_policy::reference,
+    "Wrapper around a system's reset callback"
   );
   // TODO(ahcorde): This method is not compiling for the following reason:
   // The EventManager class has an unordered_map which holds a unique_ptr

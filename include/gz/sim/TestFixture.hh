@@ -96,6 +96,12 @@ class GZ_SIM_VISIBLE TestFixture
   public: TestFixture &OnPostUpdate(std::function<void(
       const UpdateInfo &, const EntityComponentManager &)> _cb);
 
+  /// \brief Wrapper around a system's update callback
+  /// \param[in] _cb Function to be called every reset
+  /// \return Reference to self.
+  public: TestFixture &OnReset(std::function<void(
+      const UpdateInfo &, EntityComponentManager &)> _cb);
+
   /// \brief Finalize all the functions and add fixture to server.
   /// Finalize must be called before running the server, otherwise none of the
   /// `On*` functions will be called.
