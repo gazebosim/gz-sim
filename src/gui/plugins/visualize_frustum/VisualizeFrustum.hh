@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
                         EntityComponentManager &_ecm) override;
 
     /// \brief Callback function to get data from the message
-    /// \param[in]_msg FrustumSensor message
+    /// \param[in] _msg FrustumSensor message
     public: void OnScan(const msgs::LogicalCameraSensor &_msg);
 
     /// \brief Load the scene and attach FrustumVisual to the scene

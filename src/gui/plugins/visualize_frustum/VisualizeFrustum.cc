@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -362,8 +362,6 @@ void VisualizeFrustum::DisplayVisual(bool _value)
 /////////////////////////////////////////////////
 void VisualizeFrustum::OnRefresh()
 {
-  gzmsg << "Refreshing topic list for Logical Camera Sensor messages." << std::endl;
-
   // Clear
   this->dataPtr->topicList.clear();
 
