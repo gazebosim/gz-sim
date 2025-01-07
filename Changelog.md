@@ -1,8 +1,81 @@
 ## Gazebo Sim 9.x
 
-### Gazebo Sim 9.0.0 (2024-09-XX)
+### Gazebo Sim 9.0.0 (2024-09-25)
 
 1. **Baseline:** this includes all changes from 8.6.0 and earlier.
+
+1. Miscellaneous documentation fixes
+    * [Pull request #2634](https://github.com/gazebosim/gz-sim/pull/2634)
+    * [Pull request #2632](https://github.com/gazebosim/gz-sim/pull/2632)
+    * [Pull request #2628](https://github.com/gazebosim/gz-sim/pull/2628)
+    * [Pull request #2631](https://github.com/gazebosim/gz-sim/pull/2631)
+    * [Pull request #2627](https://github.com/gazebosim/gz-sim/pull/2627)
+    * [Pull request #2625](https://github.com/gazebosim/gz-sim/pull/2625)
+    * [Pull request #2622](https://github.com/gazebosim/gz-sim/pull/2622)
+    * [Pull request #2607](https://github.com/gazebosim/gz-sim/pull/2607)
+    * [Pull request #2606](https://github.com/gazebosim/gz-sim/pull/2606)
+    * [Pull request #2602](https://github.com/gazebosim/gz-sim/pull/2602)
+    * [Pull request #2601](https://github.com/gazebosim/gz-sim/pull/2601)
+    * [Pull request #2603](https://github.com/gazebosim/gz-sim/pull/2603)
+    * [Pull request #2578](https://github.com/gazebosim/gz-sim/pull/2578)
+    * [Pull request #2592](https://github.com/gazebosim/gz-sim/pull/2592)
+    * [Pull request #2582](https://github.com/gazebosim/gz-sim/pull/2582)
+    * [Pull request #2585](https://github.com/gazebosim/gz-sim/pull/2585)
+    * [Pull request #2576](https://github.com/gazebosim/gz-sim/pull/2576)
+    * [Pull request #2573](https://github.com/gazebosim/gz-sim/pull/2573)
+    * [Pull request #2571](https://github.com/gazebosim/gz-sim/pull/2571)
+    * [Pull request #2574](https://github.com/gazebosim/gz-sim/pull/2574)
+    * [Pull request #2564](https://github.com/gazebosim/gz-sim/pull/2564)
+    * [Pull request #2563](https://github.com/gazebosim/gz-sim/pull/2563)
+    * [Pull request #2562](https://github.com/gazebosim/gz-sim/pull/2562)
+    * [Pull request #2553](https://github.com/gazebosim/gz-sim/pull/2553)
+
+1. Fix log playback GUI display
+    * [Pull request #2611](https://github.com/gazebosim/gz-sim/pull/2611)
+    * [Pull request #2619](https://github.com/gazebosim/gz-sim/pull/2619)
+
+1. Add tutorial + example SDF for shadow texture size
+    * [Pull request #2597](https://github.com/gazebosim/gz-sim/pull/2597)
+
+1. Fix making breadcrumb static if it's a nested model
+    * [Pull request #2593](https://github.com/gazebosim/gz-sim/pull/2593)
+
+1. Update physics system error msg when plugin can not be loaded
+    * [Pull request #2604](https://github.com/gazebosim/gz-sim/pull/2604)
+
+1. Fix configuring global illumination GUI plugin parameters
+    * [Pull request #2594](https://github.com/gazebosim/gz-sim/pull/2594)
+
+1. Fix particle emitter color range image path warning
+    * [Pull request #2560](https://github.com/gazebosim/gz-sim/pull/2560)
+
+1. Fix empty gui world file
+    * [Pull request #2591](https://github.com/gazebosim/gz-sim/pull/2591)
+
+1. Fix crash on windows due to invalid log directory path
+    * [Pull request #2589](https://github.com/gazebosim/gz-sim/pull/2589)
+
+1. Use ogre2 for DEM worlds
+    * [Pull request #2586](https://github.com/gazebosim/gz-sim/pull/2586)
+
+1. Fix crash when running the optical tactile sensor world
+    * [Pull request #2561](https://github.com/gazebosim/gz-sim/pull/2561)
+
+1. Prevent follow actor plugin from crashing when actor is removed
+    * [Pull request #2577](https://github.com/gazebosim/gz-sim/pull/2577)
+    * [Pull request #2584](https://github.com/gazebosim/gz-sim/pull/2584)
+
+1. Fix hydrodynamics deprecation warning.
+    * [Pull request #2579](https://github.com/gazebosim/gz-sim/pull/2579)
+
+1. Removed actor population world due to bad merge
+    * [Pull request #2581](https://github.com/gazebosim/gz-sim/pull/2581)
+
+1. Fixed warning joint trayectory sdf
+    * [Pull request #2580](https://github.com/gazebosim/gz-sim/pull/2580)
+
+1. Fix looking up camera name in camera lens system
+    * [Pull request #2559](https://github.com/gazebosim/gz-sim/pull/2559)
 
 1. Add a flexible mechanism to combine user and default plugins
     * [Pull request #2497](https://github.com/gazebosim/gz-sim/pull/2497)

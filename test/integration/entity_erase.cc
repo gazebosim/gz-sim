@@ -21,9 +21,11 @@
 
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/DetachableJoint.hh"
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -83,4 +85,68 @@ TEST_F(PhysicsSystemFixture,
   EXPECT_TRUE(server.HasEntity("capsule"));
   EXPECT_TRUE(server.HasEntity("ellipsoid"));
   EXPECT_FALSE(server.HasEntity("sphere"));
+}
+
+/////////////////////////////////////////////////
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveModelWithDetachableJoints))
+{
+  ServerConfig serverConfig;
+
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "examples", "worlds", "detachable_joint.sdf"));
+
+  Server server(serverConfig);
+
+  unsigned int detachableJointCount = 0u;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::DetachableJoint>(
+              [&](const Entity &,
+                  const components::DetachableJoint *) -> bool
+              {
+                detachableJointCount++;
+                return true;
+              });
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 1, false);
+  EXPECT_TRUE(server.HasEntity("vehicle_blue"));
+  EXPECT_TRUE(server.HasEntity("chassis"));
+  EXPECT_TRUE(server.HasEntity("front_left_wheel"));
+  EXPECT_TRUE(server.HasEntity("front_right_wheel"));
+  EXPECT_TRUE(server.HasEntity("rear_left_wheel"));
+  EXPECT_TRUE(server.HasEntity("rear_right_wheel"));
+  EXPECT_TRUE(server.HasEntity("front_left_wheel_joint"));
+  EXPECT_TRUE(server.HasEntity("front_right_wheel_joint"));
+  EXPECT_TRUE(server.HasEntity("rear_left_wheel_joint"));
+  EXPECT_TRUE(server.HasEntity("rear_right_wheel_joint"));
+  EXPECT_TRUE(server.HasEntity("B1"));
+  EXPECT_TRUE(server.HasEntity("B2"));
+  EXPECT_TRUE(server.HasEntity("B3"));
+  EXPECT_EQ(3u, detachableJointCount);
+
+  EXPECT_TRUE(server.RequestRemoveEntity("vehicle_blue"));
+  server.Run(true, 1, false);
+
+  detachableJointCount = 0u;
+  server.Run(true, 1, false);
+  EXPECT_FALSE(server.HasEntity("vehicle_blue"));
+  EXPECT_FALSE(server.HasEntity("chassis"));
+  EXPECT_FALSE(server.HasEntity("front_left_wheel"));
+  EXPECT_FALSE(server.HasEntity("front_right_wheel"));
+  EXPECT_FALSE(server.HasEntity("rear_left_wheel"));
+  EXPECT_FALSE(server.HasEntity("rear_right_wheel"));
+  EXPECT_FALSE(server.HasEntity("front_left_wheel_joint"));
+  EXPECT_FALSE(server.HasEntity("front_right_wheel_joint"));
+  EXPECT_FALSE(server.HasEntity("rear_left_wheel_joint"));
+  EXPECT_FALSE(server.HasEntity("rear_right_wheel_joint"));
+  EXPECT_TRUE(server.HasEntity("B1"));
+  EXPECT_TRUE(server.HasEntity("B2"));
+  EXPECT_TRUE(server.HasEntity("B3"));
+  EXPECT_EQ(0u, detachableJointCount);
 }
