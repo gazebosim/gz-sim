@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2024 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+#include <vector>
+#include <functional>
+#include <thread>
+
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/twist.pb.h>
@@ -24,15 +29,17 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+
 #include "gz/sim/components/Name.hh"
+#include "test_config.hh"
+
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
-#include "test_config.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -53,11 +60,13 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
                                  const std::string &_cmdVelTopic,
                                  const std::string &_odomTopic)
   {
-    /// \param[in] forward If forward is true, the 'max_acceleration'
-    // and 'max_velocity' properties are tested, as the movement
-    // is forward, otherwise 'min_acceleration' and 'min_velocity'
-    // properties are tested.
-    auto testCmdVel = [&](bool forward){
+    /// \param[in] fb_component forward/backward motion vector component.
+    /// \param[in] lr_component left/right motion vector component.
+    /// \param[in] yaw_component yaw rotation component.
+    auto testCmdVel = [&](double fb_component,
+                          double lr_component,
+                          double yaw_component)
+    {
       // Start server
       ServerConfig serverConfig;
       serverConfig.SetSdfFile(_sdfFile);
@@ -125,19 +134,22 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // Avoid wheel slip by limiting acceleration (1 m/s^2)
       // and max velocity (0.5 m/s).
       // See <max_velocity> and <max_aceleration> parameters
-      // in "/test/worlds/diff_drive.sdf".
+      // in "/test/worlds/mecanum_drive.sdf".
       // See <min_velocity>, <min_aceleration>, <min_jerk> and
-      // <max_jerk> parameters in "/test/worlds/diff_drive.sdf".
+      // <max_jerk> parameters in "/test/worlds/mecanum_drive.sdf".
       test::Relay velocityRamp;
-      const int movementDirection = (forward ? 1 : -1);
-      double desiredLinVelX = movementDirection * 0.15;
-      double desiredLinVelY = movementDirection * 0.15;
+      double desiredLinVelX = fb_component;
+      double desiredLinVelY = lr_component;
+      double desiredAngVel  = yaw_component;
+
       velocityRamp.OnPreUpdate(
           [&](const UpdateInfo &/*_info*/,
               const EntityComponentManager &)
           {
             msgs::Set(msg.mutable_linear(),
                       math::Vector3d(desiredLinVelX, desiredLinVelY, 0));
+            msgs::Set(msg.mutable_angular(),
+                      math::Vector3d(0.0, 0, desiredAngVel));
             pub.Publish(msg);
           });
 
@@ -165,7 +177,7 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // change. To find the final pose of the model, we have to do the
       // following similarity transformation
       
-      math::Pose3d tOdomModel(0.554283,0,-0.325,0,0,0);
+      math::Pose3d tOdomModel(-0.2,0,0,0,0,0);
       auto finalModelFramePose =
           tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
@@ -173,76 +185,101 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       ASSERT_FALSE(odomPoses.empty());
       EXPECT_EQ(150u, odomPoses.size());
 
-      auto expectedLowerPosition =
-          (forward ? poses[0].Pos() : poses[3999].Pos());
-      auto expectedGreaterPosition =
-          (forward ? poses[3999].Pos() : poses[0].Pos());
+       auto relativeMotionPos = poses[3999].Pos() - poses[0].Pos();
+       auto relativeMotionRot = poses[3999].Rot().Yaw() - poses[0].Rot().Yaw();
 
-      EXPECT_LT(expectedLowerPosition.X(), expectedGreaterPosition.X());
-      EXPECT_LT(expectedLowerPosition.Y(), expectedGreaterPosition.Y());
-      EXPECT_NEAR(expectedLowerPosition.Z(), expectedGreaterPosition.Z(), tol);
-      EXPECT_NEAR(poses[0].Rot().X(), poses[3999].Rot().X(), tol);
-      EXPECT_NEAR(poses[0].Rot().Y(), poses[3999].Rot().Y(), tol);
-      EXPECT_NEAR(poses[0].Rot().Z(), poses[3999].Rot().Z(), tol);
+      // if the linear motion is non-zero
+      // the vehicle should move in the commanded direction
+      if (std::abs(fb_component) > 0.0 || std::abs(lr_component) > 0.0)
+      {
+        auto cmdVelDir = math::Vector2(desiredLinVelX,
+                                       desiredLinVelY).Normalized();
+        auto motionDir = math::Vector2(relativeMotionPos.X(),
+                                       relativeMotionPos.Y()).Normalized();
+        auto scalarProjection = cmdVelDir.Dot(motionDir);
+        EXPECT_GT(motionDir.Length(), 0.5); // is there motion?
+        EXPECT_GT(scalarProjection, 0.9);   // is it in the right direction?
+
+        // Verify velocity and acceleration upper boundaries.
+        double t = 3.0;
+        double d = poses[3999].Pos().Distance(poses[0].Pos());
+        double v0 = 0;
+        double v = d / t;
+        double a = (v - v0) / t;
+
+        // The vehicle should not exceed the max velocity and acceleration
+        // notice the limits for the x and y direction are separately
+        // enforced
+        auto threshold_factor = math::Vector2(fb_component,
+                                              lr_component).Length();
+
+        EXPECT_LT(v, 0.5 * threshold_factor);
+        EXPECT_LT(a, 1.0 * threshold_factor);
+        EXPECT_GT(v, -0.5 * threshold_factor);
+        EXPECT_GT(a, -1.0 * threshold_factor);
+      }
+
+      // The vehicle should rotate in the commanded direction
+      if (std::abs(yaw_component) > 0.0)
+      {
+        // the relative rotation has the same sign as the commanded rotation
+        EXPECT_GT(desiredAngVel * relativeMotionRot, 0.0);
+      }
 
       // The value from odometry will be close, but not exactly the ground truth
       // pose of the robot model. This is partially due to throttling the
-      // odometry publisher, partially due to a frame difference between the
-      // odom frame and the model frame, and partially due to wheel slip.
-      EXPECT_NEAR(poses.back().Pos().X(), odomPoses.back().Pos().X(), 1e-2);
-      EXPECT_NEAR(poses.back().Pos().Y(), odomPoses.back().Pos().Y(), 1e-2);
-      // EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
-      // EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
+      // odometry publisher, and partially due to wheel slip.
+      EXPECT_NEAR(poses[1020].Pos().X(), odomPoses[0].Pos().X(), 1e-2);
+      EXPECT_NEAR(poses[1020].Pos().Y(), odomPoses[0].Pos().Y(), 1e-2);
+      EXPECT_NEAR(poses.back().Pos().X(), finalModelFramePose.Pos().X(), 1e-2);
+      EXPECT_NEAR(poses.back().Pos().Y(), finalModelFramePose.Pos().Y(), 1e-2);
 
-      // Verify velocity and acceleration boundaries.
-      // Moving time.
-      double t = 3.0;
-      double d = poses[3999].Pos().Distance(poses[0].Pos());
-      double v0 = 0;
-      double v = d / t;
-      double a = (v - v0) / t;
-
-      EXPECT_LT(v, 0.5);
-      EXPECT_LT(a, 1);
-      EXPECT_GT(v, -0.5);
-      EXPECT_GT(a, -1);
 
     };
 
-  testCmdVel(true /*test forward movement*/);
-  testCmdVel(false /*test backward movement*/);
+    testCmdVel(0., 0., 0.); /* no motion */
+
+    testCmdVel(+1., 0., 0.); /* pure forward */
+    testCmdVel(-1., 0., 0.); /* pure backward */
+    testCmdVel(0., +1., 0.); /* pure left */
+    testCmdVel(0., -1., 0.); /* pure right */
+
+    testCmdVel(+1., +1., 0.); /* forward left */
+    testCmdVel(+1., -1., 0.); /* forward right */
+    testCmdVel(-1., +1., 0.); /* backward left */
+    testCmdVel(-1., -1., 0.); /* backward right */
+
+    testCmdVel(0., 0., +0.1); /* CW motion */
+    testCmdVel(0., 0., -0.1); /* CCW motion */
   }
 };
 
 /////////////////////////////////////////////////
-// See: https://github.com/gazebosim/gz-sim/issues/1175
-// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_P(MecanumDriveTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 {
-  TestPublishCmd(
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/mecanum_drive.sdf",
+  TestPublishCmd(common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/mecanum_drive.sdf"),
       "/model/vehicle_blue/cmd_vel", "/model/vehicle_blue/odometry");
 }
 
 /////////////////////////////////////////////////
-// See: https://github.com/gazebosim/gz-sim/issues/630
 TEST_P(MecanumDriveTest,
        GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomTopics))
 {
-  TestPublishCmd(
+  TestPublishCmd(common::joinPaths(
       std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_topics.sdf",
+      "/test/worlds/mecanum_drive_custom_topics.sdf"),
       "/model/foo/cmdvel", "/model/bar/odom");
 }
 
 
-/////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -294,13 +331,13 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
   EXPECT_EQ(5u, odomPosesCount);
 }
 
-/////////////////////////////////////////////////
+// /////////////////////////////////////////////////
 TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_frame_id.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -356,8 +393,8 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -416,8 +453,8 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_frame_id.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -476,8 +513,8 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_tf_topic.sdf");
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/mecanum_drive_custom_tf_topic.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

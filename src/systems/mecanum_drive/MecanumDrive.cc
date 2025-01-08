@@ -26,6 +26,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/MecanumDriveOdometry.hh>
@@ -521,7 +522,10 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     return;
   }
 
-  if (this->frontLeftJoints.empty() || this->frontRightJoints.empty() || this->backLeftJoints.empty() || this->backRightJoints.empty())
+  if (this->frontLeftJoints.empty()  || 
+      this->frontRightJoints.empty() || 
+      this->backLeftJoints.empty()   || 
+      this->backRightJoints.empty())
     return;
 
   // Get the first joint positions for each wheel joint.
@@ -537,7 +541,11 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     return;
   }
 
-  this->odom.Update(frontLeftPos->Data()[0],frontRightPos->Data()[0],backLeftPos->Data()[0],backRightPos->Data()[0],std::chrono::steady_clock::time_point(_info.simTime)); 
+  this->odom.Update(frontLeftPos->Data()[0],
+                    frontRightPos->Data()[0],
+                    backLeftPos->Data()[0],
+                    backRightPos->Data()[0],
+                    std::chrono::steady_clock::time_point(_info.simTime)); 
 
   // Throttle publishing
   auto diff = _info.simTime - this->lastOdomPubTime;

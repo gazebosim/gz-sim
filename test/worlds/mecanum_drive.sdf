@@ -120,11 +120,9 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!-- scale mesh to radius == 0.3 -->
-            <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_left.STL</uri>
-              <scale>0.006 0.006 0.006</scale>
-            </mesh>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -166,11 +164,9 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!-- scale mesh to radius == 0.3 -->
-            <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_right.STL</uri>
-              <scale>0.006 0.006 0.006</scale>
-            </mesh>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -212,11 +208,9 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!-- scale mesh to radius == 0.3 -->
-            <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_right.STL</uri>
-              <scale>0.006 0.006 0.006</scale>
-            </mesh>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -258,11 +252,9 @@
         <visual name='visual'>
           <pose>0 0 0 1.5707 0 0</pose>
           <geometry>
-            <!-- scale mesh to radius == 0.3 -->
-            <mesh>
-              <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Mecanum lift/tip/files/meshes/mecanum_wheel_left.STL</uri>
-              <scale>0.006 0.006 0.006</scale>
-            </mesh>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.2 0.2 0.2 1</ambient>
@@ -287,7 +279,6 @@
           </surface>
         </collision>
       </link>
-
 
       <joint name='front_left_wheel_joint' type='revolute'>
         <parent>chassis</parent>
@@ -347,8 +338,10 @@
         <wheel_separation>1.25</wheel_separation>
         <wheelbase>1.511</wheelbase>
         <wheel_radius>0.3</wheel_radius>
-        <min_acceleration>-5</min_acceleration>
-        <max_acceleration>5</max_acceleration>
+        <min_acceleration>-1</min_acceleration>
+        <max_acceleration>1</max_acceleration>
+        <min_velocity>-0.5</min_velocity>
+        <max_velocity>0.5</max_velocity>
       </plugin>
 
     </model>
