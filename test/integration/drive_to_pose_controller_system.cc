@@ -23,6 +23,7 @@
 
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include <chrono>
 #include <functional>
@@ -142,7 +143,9 @@ TEST_F(DriveToPoseControllerTest, CurrentPosePublish)
 }
 
 /////////////////////////////////////////////////
-TEST_F(DriveToPoseControllerTest, XCoordinatePublish)
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(DriveToPoseControllerTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(XCoordinatePublish))
 {
   math::Pose3d pose(1.5, 0, 0, 0, 0, 0);
 
@@ -155,7 +158,8 @@ TEST_F(DriveToPoseControllerTest, XCoordinatePublish)
 }
 
 /////////////////////////////////////////////////
-TEST_F(DriveToPoseControllerTest, YCoordinatePublish)
+TEST_F(DriveToPoseControllerTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(YCoordinatePublish))
 {
   math::Pose3d pose(0, 1.5, 0, 0, 0, 0);
 
@@ -168,7 +172,8 @@ TEST_F(DriveToPoseControllerTest, YCoordinatePublish)
 }
 
 /////////////////////////////////////////////////
-TEST_F(DriveToPoseControllerTest, YawPublish)
+TEST_F(DriveToPoseControllerTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(YawPublish))
 {
   math::Pose3d pose(0, 0, 0, 0, 0, -1.57);
 
@@ -181,7 +186,8 @@ TEST_F(DriveToPoseControllerTest, YawPublish)
 }
 
 /////////////////////////////////////////////////
-TEST_F(DriveToPoseControllerTest, XYCoordinateYawPublish)
+TEST_F(DriveToPoseControllerTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(XYCoordinateYawPublish))
 {
   math::Pose3d pose(1.5, -1.5, 0, 0, 0, 1.57);
 
