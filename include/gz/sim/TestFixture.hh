@@ -97,7 +97,7 @@ class GZ_SIM_VISIBLE TestFixture
       const UpdateInfo &, const EntityComponentManager &)> _cb);
 
   /// \brief Wrapper around a system's update callback
-  /// \param[in] _cb Function to be called every update
+  /// \param[in] _cb Function to be called every reset
   /// \return Reference to self.
   public: TestFixture &OnReset(std::function<void(
       const UpdateInfo &, EntityComponentManager &)> _cb);

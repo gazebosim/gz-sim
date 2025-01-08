@@ -1,3 +1,7 @@
+## Gazebo Sim 10.x
+
+### Gazebo Sim 10.0.0 (20XX-XX-XX)
+
 ## Gazebo Sim 9.x
 
 ### Gazebo Sim 9.0.0 (2024-09-25)
