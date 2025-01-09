@@ -214,7 +214,7 @@ bool VisualizeFrustum::eventFilter(QObject *_obj, QEvent *_event)
     // rendering calls here
 
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-    if (!this->dataPtr->initialized)	   
+    if (!this->dataPtr->initialized)
     {
       this->LoadFrustum();
     }
