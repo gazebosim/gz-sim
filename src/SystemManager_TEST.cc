@@ -28,6 +28,8 @@
 
 using namespace gz::sim;
 
+constexpr System::PriorityType kPriority = 64;
+
 /////////////////////////////////////////////////
 class SystemWithConfigure:
   public System,
@@ -67,6 +69,16 @@ class SystemWithUpdates:
   // Documentation inherited
   public: void PostUpdate(const UpdateInfo &,
                 const EntityComponentManager &) override {};
+};
+
+/////////////////////////////////////////////////
+class SystemWithPrioritizedUpdates:
+  public SystemWithUpdates,
+  public ISystemConfigurePriority
+{
+  // Documentation inherited
+  public: System::PriorityType ConfigurePriority() override
+                { return kPriority; }
 };
 
 /////////////////////////////////////////////////
@@ -127,26 +139,40 @@ TEST(SystemManager, AddSystemNoEcm)
   EXPECT_EQ(1u, systemMgr.TotalByEntity(configEntity).size());
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
+  auto prioritizedSystem =
+      std::make_shared<SystemWithPrioritizedUpdates>();
   Entity updateEntity{456u};
   systemMgr.AddSystem(updateSystem, updateEntity, nullptr);
+  systemMgr.AddSystem(prioritizedSystem, updateEntity, nullptr);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
-  EXPECT_EQ(1u, systemMgr.PendingCount());
-  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(2u, systemMgr.PendingCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
   EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
+  EXPECT_EQ(2u, systemMgr.TotalByEntity(updateEntity).size());
 
   systemMgr.ActivatePendingSystems();
-  EXPECT_EQ(2u, systemMgr.ActiveCount());
+  EXPECT_EQ(3u, systemMgr.ActiveCount());
   EXPECT_EQ(0u, systemMgr.PendingCount());
-  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
   EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
-  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
-  EXPECT_EQ(1u, systemMgr.TotalByEntity(updateEntity).size());
+  // Expect PreUpdate and Update to contain two map entries:
+  // 1. Priority {0} and a vector of length 1.
+  // 2. Priority {kPriority} and a vector of length 1.
+  EXPECT_EQ(2u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsPostUpdate().size());
+  EXPECT_EQ(2u, systemMgr.TotalByEntity(updateEntity).size());
 }
 
 /////////////////////////////////////////////////
@@ -195,23 +221,116 @@ TEST(SystemManager, AddSystemEcm)
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
   auto updateSystem = std::make_shared<SystemWithUpdates>();
+  auto prioritizedSystem =
+      std::make_shared<SystemWithPrioritizedUpdates>();
   systemMgr.AddSystem(updateSystem, kNullEntity, nullptr);
+  systemMgr.AddSystem(prioritizedSystem, kNullEntity, nullptr);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
-  EXPECT_EQ(1u, systemMgr.PendingCount());
-  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(2u, systemMgr.PendingCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
   EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
   EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
   EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 
   systemMgr.ActivatePendingSystems();
-  EXPECT_EQ(2u, systemMgr.ActiveCount());
+  EXPECT_EQ(3u, systemMgr.ActiveCount());
   EXPECT_EQ(0u, systemMgr.PendingCount());
-  EXPECT_EQ(2u, systemMgr.TotalCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
   EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
-  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsUpdate().size());
-  EXPECT_EQ(1u, systemMgr.SystemsPostUpdate().size());
+  // Expect PreUpdate and Update to contain two map entries:
+  // 1. Priority {0} and a vector of length 1.
+  // 2. Priority {kPriority} and a vector of length 1.
+  EXPECT_EQ(2u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsPostUpdate().size());
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, AddAndRemoveSystemEcm)
+{
+  auto loader = std::make_shared<SystemLoader>();
+
+  auto ecm = EntityComponentManager();
+  auto eventManager = EventManager();
+
+  auto paramRegistry = std::make_unique<
+    gz::transport::parameters::ParametersRegistry>("SystemManager_TEST");
+  SystemManager systemMgr(
+    loader, &ecm, &eventManager, std::string(), paramRegistry.get());
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(0u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  auto configSystem = std::make_shared<SystemWithConfigure>();
+  systemMgr.AddSystem(configSystem, kNullEntity, nullptr);
+
+  auto entity = ecm.CreateEntity();
+
+  auto updateSystemWithChild = std::make_shared<SystemWithUpdates>();
+  auto prioritizedSystemWithChild =
+      std::make_shared<SystemWithPrioritizedUpdates>();
+  systemMgr.AddSystem(updateSystemWithChild, entity, nullptr);
+  systemMgr.AddSystem(prioritizedSystemWithChild, entity, nullptr);
+
+  // Configure called during AddSystem
+  EXPECT_EQ(1, configSystem->configured);
+  EXPECT_EQ(1, configSystem->configuredParameters);
+
+  EXPECT_EQ(0u, systemMgr.ActiveCount());
+  EXPECT_EQ(3u, systemMgr.PendingCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
+  EXPECT_EQ(0u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
+
+  systemMgr.ActivatePendingSystems();
+  EXPECT_EQ(3u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(3u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  // Expect PreUpdate and Update to contain two map entries:
+  // 1. Priority {0} and a vector of length 1.
+  // 2. Priority {kPriority} and a vector of length 1.
+  EXPECT_EQ(2u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsPreUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(0));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().count(kPriority));
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(0).size());
+  EXPECT_EQ(1u, systemMgr.SystemsUpdate().at(kPriority).size());
+  EXPECT_EQ(2u, systemMgr.SystemsPostUpdate().size());
+
+  // Remove the entity
+  ecm.RequestRemoveEntity(entity);
+  bool needsCleanUp;
+  systemMgr.ProcessRemovedEntities(ecm, needsCleanUp);
+
+  EXPECT_TRUE(needsCleanUp);
+  EXPECT_EQ(1u, systemMgr.ActiveCount());
+  EXPECT_EQ(0u, systemMgr.PendingCount());
+  EXPECT_EQ(1u, systemMgr.TotalCount());
+  EXPECT_EQ(1u, systemMgr.SystemsConfigure().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPreUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsUpdate().size());
+  EXPECT_EQ(0u, systemMgr.SystemsPostUpdate().size());
 }
 
 /////////////////////////////////////////////////

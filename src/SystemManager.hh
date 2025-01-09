@@ -19,6 +19,8 @@
 
 #include <gz/msgs/entity_plugin_v.pb.h>
 
+#include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -29,6 +31,7 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 
@@ -44,6 +47,13 @@ namespace gz
     /// \brief Used to load / unload sysetms as well as iterate over them.
     class GZ_SIM_VISIBLE SystemManager
     {
+      /// \brief Ordered map of priority values to a vector of System
+      /// interfaces.
+      using PriorityType = System::PriorityType;
+      template<typename S>
+      class PrioritizedSystems : public std::map<PriorityType, std::vector<S>>
+      {};
+
       /// \brief Constructor
       /// \param[in] _systemLoader A pointer to a SystemLoader to load plugins
       ///  from files
@@ -116,34 +126,44 @@ namespace gz
       /// \return Vector of systems' configure interfaces.
       public: const std::vector<ISystemConfigure *>& SystemsConfigure();
 
-      /// \brief Get an vector of all active systems implementing
+      /// \brief Get a vector of all active systems implementing
       ///   "ConfigureParameters"
       /// \return Vector of systems's configure interfaces.
       public: const std::vector<ISystemConfigureParameters *>&
       SystemsConfigureParameters();
 
-      /// \brief Get an vector of all active systems implementing "Reset"
+      /// \brief Get a vector of all active systems implementing "Reset"
       /// \return Vector of systems' reset interfaces.
       public: const std::vector<ISystemReset *>& SystemsReset();
 
-      /// \brief Get an vector of all active systems implementing "PreUpdate"
-      /// \return Vector of systems's pre-update interfaces.
-      public: const std::vector<ISystemPreUpdate *>& SystemsPreUpdate();
+      /// \brief Get an ordered map of systems by priority that implement
+      /// "PreUpdate"
+      /// \return Priortized map of systems's pre-update interfaces.
+      public: const PrioritizedSystems<ISystemPreUpdate *>& SystemsPreUpdate();
 
-      /// \brief Get an vector of all active systems implementing "Update"
-      /// \return Vector of systems's update interfaces.
-      public: const std::vector<ISystemUpdate *>& SystemsUpdate();
+      /// \brief Get an ordered map of systems by priority that implement
+      /// "Update"
+      /// \return Priortized map of systems's update interfaces.
+      public: const PrioritizedSystems<ISystemUpdate *>& SystemsUpdate();
 
-      /// \brief Get an vector of all active systems implementing "PostUpdate"
+      /// \brief Get a vector of all active systems implementing "PostUpdate"
       /// \return Vector of systems's post-update interfaces.
       public: const std::vector<ISystemPostUpdate *>& SystemsPostUpdate();
 
-      /// \brief Get an vector of all systems attached to a given entity.
+      /// \brief Get a vector of all systems attached to a given entity.
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
       /// \brief Process system messages and add systems to entities
       public: void ProcessPendingEntitySystems();
+
+      /// \brief Remove systems that are attached to removed entities
+      /// \param[in] _entityCompMgr - ECM with entities marked for removal
+      /// \param[out] _needsCleanUp - Set to true if a system with a
+      /// PostUpdate was removed, and its thread needs to be terminated
+      public: void ProcessRemovedEntities(
+        const EntityComponentManager &_entityCompMgr,
+        bool &_needsCleanUp);
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.
@@ -197,10 +217,10 @@ namespace gz
       private: std::vector<ISystemReset *> systemsReset;
 
       /// \brief Systems implementing PreUpdate
-      private: std::vector<ISystemPreUpdate *> systemsPreupdate;
+      private: PrioritizedSystems<ISystemPreUpdate *> systemsPreupdate;
 
       /// \brief Systems implementing Update
-      private: std::vector<ISystemUpdate *> systemsUpdate;
+      private: PrioritizedSystems<ISystemUpdate *> systemsUpdate;
 
       /// \brief Systems implementing PostUpdate
       private: std::vector<ISystemPostUpdate *> systemsPostupdate;

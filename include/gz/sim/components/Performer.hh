@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_PERFORMER_HH_
 #define GZ_SIM_COMPONENTS_PERFORMER_HH_
 
+#include <string>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 
@@ -34,6 +35,11 @@ namespace components
   /// \brief This component identifies an entity as being a performer.
   using Performer = Component<NoData, class PerformerTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Performer", Performer)
+
+  /// \brief This component contains the performer reference name.
+  using PerformerRef = Component<std::string, class PerformerRefTag,
+      serializers::StringSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PerformerRef", PerformerRef)
 }
 }
 }

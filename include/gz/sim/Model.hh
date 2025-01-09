@@ -137,6 +137,14 @@ namespace gz
       public: sim::Entity LinkByName(const EntityComponentManager &_ecm,
           const std::string &_name) const;
 
+      /// \brief Get the ID of a nested model entity which is an immediate
+      /// child of this model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _name Nested model name.
+      /// \return Nested model entity.
+      public: sim::Entity ModelByName(const EntityComponentManager &_ecm,
+          const std::string &_name) const;
+
       /// \brief Get all joints which are immediate children of this model.
       /// \param[in] _ecm Entity-component manager.
       /// \return All joints in this model.
@@ -166,6 +174,12 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \return Number of links in this model.
       public: uint64_t LinkCount(const EntityComponentManager &_ecm) const;
+
+      /// \brief Get the number of nested models which are immediate children
+      /// of this model.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Number of nested models in this model.
+      public: uint64_t ModelCount(const EntityComponentManager &_ecm) const;
 
       /// \brief Set a command to change the model's pose.
       /// \param[in] _ecm Entity-component manager.

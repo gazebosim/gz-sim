@@ -74,7 +74,7 @@ void thermalCb(const msgs::Image &_msg)
 
 /////////////////////////////////////////////////
 TEST_F(ThermalSensorTest,
-    GZ_UTILS_TEST_DISABLED_ON_MAC(ThermalSensorSystemInvalidConfig))
+       ThermalSensorSystemInvalidConfig)
 {
   // Start server
   ServerConfig serverConfig;

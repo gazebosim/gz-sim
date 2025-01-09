@@ -41,6 +41,7 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/Visual.hh>
 
 #include <gz/sim/EntityComponentManager.hh>
@@ -168,6 +169,30 @@ TEST_F(LinkIntegrationTest, VisualByName)
   // Check link
   EXPECT_EQ(eVisual, link.VisualByName(ecm, "visual_name"));
   EXPECT_EQ(1u, link.VisualCount(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, SensorByName)
+{
+  EntityComponentManager ecm;
+
+  // Link
+  auto eLink = ecm.CreateEntity();
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+  EXPECT_EQ(0u, link.SensorCount(ecm));
+
+  // Sensor
+  auto eSensor = ecm.CreateEntity();
+  ecm.CreateComponent<components::Sensor>(eSensor, components::Sensor());
+  ecm.CreateComponent<components::ParentEntity>(eSensor,
+      components::ParentEntity(eLink));
+  ecm.CreateComponent<components::Name>(eSensor,
+      components::Name("sensor_name"));
+
+  // Check link
+  EXPECT_EQ(eSensor, link.SensorByName(ecm, "sensor_name"));
+  EXPECT_EQ(1u, link.SensorCount(ecm));
 }
 
 //////////////////////////////////////////////////

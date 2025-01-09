@@ -178,6 +178,9 @@ class gz::sim::systems::LinearBatteryPluginPrivate
 
   /// \brief Initial power load set trough config
   public: double initialPowerLoad = 0.0;
+
+  /// \brief Flag to invert the current sign
+  public: bool invertCurrentSign{false};
 };
 
 /////////////////////////////////////////////////
@@ -272,6 +275,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("fix_issue_225"))
     this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
+
+  if (_sdf->HasElement("invert_current_sign"))
+    this->dataPtr->invertCurrentSign =
+      _sdf->Get<bool>("invert_current_sign");
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
@@ -480,6 +487,9 @@ void LinearBatteryPlugin::PreUpdate(
 {
   GZ_PROFILE("LinearBatteryPlugin::PreUpdate");
 
+  if (!this->dataPtr->battery)
+    return;
+
   // Recalculate the total power load among consumers
   double total_power_load = this->dataPtr->initialPowerLoad;
   _ecm.Each<components::BatteryPowerLoad>(
@@ -546,12 +556,15 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
 {
   GZ_PROFILE("LinearBatteryPlugin::Update");
 
+  if (!this->dataPtr->battery)
+    return;
+
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   if (_info.paused)
@@ -610,12 +623,18 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   if (_info.paused || !this->dataPtr->statePub)
     return;
 
+  if (!this->dataPtr->battery)
+    return;
+
   // Publish battery state
   msgs::BatteryState msg;
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
   msg.set_voltage(this->dataPtr->battery->Voltage());
-  msg.set_current(this->dataPtr->ismooth);
+  if (this->dataPtr->invertCurrentSign)
+    msg.set_current(-this->dataPtr->ismooth);
+  else
+    msg.set_current(this->dataPtr->ismooth);
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
 

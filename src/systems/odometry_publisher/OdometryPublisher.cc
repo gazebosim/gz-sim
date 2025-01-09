@@ -55,11 +55,22 @@ class gz::sim::systems::OdometryPublisherPrivate
   public: void UpdateOdometry(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm);
 
+  /// \brief Calculates angular velocity in body frame from world frame poses.
+  /// \param[in] _lastPose Pose at last timestep in world frame.
+  /// \param[in] _currentPose Pose at current timestep in world frame.
+  /// \param[in] _dt Time elapsed from last to current timestep.
+  /// \return Angular velocity computed in body frame at current timestep.
+  public: static math::Vector3d CalculateAngularVelocity(
+    const math::Pose3d &_lastPose, const math::Pose3d &_currentPose,
+    std::chrono::duration<double> _dt);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
   /// \brief Model interface
+  //! [modelDeclaration]
   public: Model model{kNullEntity};
+  //! [modelDeclaration]
 
   /// \brief Name of the world-fixed coordinate frame for the odometry message.
   public: std::string odomFrame;
@@ -117,28 +128,24 @@ OdometryPublisher::OdometryPublisher()
   std::get<0>(this->dataPtr->linearMean).SetWindowSize(10);
   std::get<1>(this->dataPtr->linearMean).SetWindowSize(10);
   std::get<2>(this->dataPtr->angularMean).SetWindowSize(10);
-  std::get<0>(this->dataPtr->linearMean).Clear();
-  std::get<1>(this->dataPtr->linearMean).Clear();
-  std::get<2>(this->dataPtr->angularMean).Clear();
 
   if (this->dataPtr->dimensions == 3)
   {
     std::get<2>(this->dataPtr->linearMean).SetWindowSize(10);
     std::get<0>(this->dataPtr->angularMean).SetWindowSize(10);
     std::get<1>(this->dataPtr->angularMean).SetWindowSize(10);
-    std::get<2>(this->dataPtr->linearMean).Clear();
-    std::get<0>(this->dataPtr->angularMean).Clear();
-    std::get<1>(this->dataPtr->angularMean).Clear();
   }
 }
 
 //////////////////////////////////////////////////
+//! [Configure]
 void OdometryPublisher::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = Model(_entity);
+  //! [Configure]
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
@@ -233,8 +240,10 @@ void OdometryPublisher::Configure(const Entity &_entity,
   }
   else
   {
+    //! [definePub]
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
         odomTopicValid);
+    //! [definePub]
     gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
            << "]" << std::endl;
   }
@@ -297,17 +306,8 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
-  }
-
-  // Create the pose component if it does not exist.
-  auto pos = _ecm.Component<components::Pose>(
-      this->dataPtr->model.Entity());
-  if (!pos)
-  {
-    _ecm.CreateComponent(this->dataPtr->model.Entity(),
-        components::Pose());
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 }
 
@@ -333,6 +333,26 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
+    const math::Pose3d &_lastPose, const math::Pose3d &_currentPose,
+    std::chrono::duration<double> _dt)
+{
+  // Compute the first order finite difference between current and previous
+  // rotation as quaternion.
+  const math::Quaterniond rotationDiff =
+    _currentPose.Rot() * _lastPose.Rot().Inverse();
+
+  math::Vector3d rotationAxis;
+  double rotationAngle;
+  rotationDiff.AxisAngle(rotationAxis, rotationAngle);
+
+  const math::Vector3d angularVelocity =
+    (rotationAngle / _dt.count()) * rotationAxis;
+
+  return _currentPose.Rot().RotateVectorReverse(angularVelocity);
+}
+
+//////////////////////////////////////////////////
 void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
@@ -347,7 +367,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 
   // Construct the odometry message and publish it.
+  //! [declarePoseMsg]
   msgs::Odometry msg;
+  //! [declarePoseMsg]
 
   const std::chrono::duration<double> dt =
     std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
@@ -357,7 +379,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
     return;
 
   // Get and set robotBaseFrame to odom transformation.
+  //! [worldPose]
   const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
+  //! [worldPose]
+  //! [setPoseMsg]
   math::Pose3d pose = rawPose * this->offset;
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
@@ -366,16 +391,15 @@ void OdometryPublisherPrivate::UpdateOdometry(
   {
     msg.mutable_pose()->mutable_position()->set_z(pose.Pos().Z());
   }
+  //! [setPoseMsg]
 
   // Get linear and angular displacements from last updated pose.
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
   double linearDisplacementY = pose.Pos().Y() - this->lastUpdatePose.Pos().Y();
 
   double currentYaw = pose.Rot().Yaw();
-  const double lastYaw = this->lastUpdatePose.Rot().Yaw();
-  while (currentYaw < lastYaw - GZ_PI) currentYaw += 2 * GZ_PI;
-  while (currentYaw > lastYaw + GZ_PI) currentYaw -= 2 * GZ_PI;
-  const float yawDiff = currentYaw - lastYaw;
+  const math::Vector3d angularVelocityBody = CalculateAngularVelocity(
+    this->lastUpdatePose, pose, dt);
 
   // Get velocities assuming 2D
   if (this->dimensions == 2)
@@ -403,18 +427,6 @@ void OdometryPublisherPrivate::UpdateOdometry(
   // Get velocities and roll/pitch rates assuming 3D
   else if (this->dimensions == 3)
   {
-    double currentRoll = pose.Rot().Roll();
-    const double lastRoll = this->lastUpdatePose.Rot().Roll();
-    while (currentRoll < lastRoll - GZ_PI) currentRoll += 2 * GZ_PI;
-    while (currentRoll > lastRoll + GZ_PI) currentRoll -= 2 * GZ_PI;
-    const float rollDiff = currentRoll - lastRoll;
-
-    double currentPitch = pose.Rot().Pitch();
-    const double lastPitch = this->lastUpdatePose.Rot().Pitch();
-    while (currentPitch < lastPitch - GZ_PI) currentPitch += 2 * GZ_PI;
-    while (currentPitch > lastPitch + GZ_PI) currentPitch -= 2 * GZ_PI;
-    const float pitchDiff = currentPitch - lastPitch;
-
     double linearDisplacementZ =
       pose.Pos().Z() - this->lastUpdatePose.Pos().Z();
     math::Vector3 linearDisplacement(linearDisplacementX, linearDisplacementY,
@@ -424,8 +436,8 @@ void OdometryPublisherPrivate::UpdateOdometry(
     std::get<0>(this->linearMean).Push(linearVelocity.X());
     std::get<1>(this->linearMean).Push(linearVelocity.Y());
     std::get<2>(this->linearMean).Push(linearVelocity.Z());
-    std::get<0>(this->angularMean).Push(rollDiff / dt.count());
-    std::get<1>(this->angularMean).Push(pitchDiff / dt.count());
+    std::get<0>(this->angularMean).Push(angularVelocityBody.X());
+    std::get<1>(this->angularMean).Push(angularVelocityBody.Y());
     msg.mutable_twist()->mutable_linear()->set_x(
       std::get<0>(this->linearMean).Mean() +
       gz::math::Rand::DblNormal(0, this->gaussianNoise));
@@ -444,7 +456,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
   }
 
   // Set yaw rate
-  std::get<2>(this->angularMean).Push(yawDiff / dt.count());
+  std::get<2>(this->angularMean).Push(angularVelocityBody.Z());
   msg.mutable_twist()->mutable_angular()->set_z(
     std::get<2>(this->angularMean).Mean() +
     gz::math::Rand::DblNormal(0, this->gaussianNoise));
@@ -476,7 +488,9 @@ void OdometryPublisherPrivate::UpdateOdometry(
   this->lastOdomPubTime = _info.simTime;
   if (this->odomPub.Valid())
   {
+    //! [publishMsg]
     this->odomPub.Publish(msg);
+    //! [publishMsg]
   }
 
   // Generate odometry with covariance message and publish it.

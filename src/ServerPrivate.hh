@@ -99,6 +99,12 @@ namespace gz
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
 
+      /// \brief Helper function that loads an SDF root object based on
+      /// values in a ServerConfig object.
+      /// \param[in] _config Server config to read from.
+      /// \return Set of SDF errors.
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -186,6 +192,11 @@ namespace gz
       /// \brief Map from file paths to fuel URIs. This is set and updated by
       /// Server. It is used in the SDFormat world generator when saving worlds
       public: std::unordered_map<std::string, std::string> fuelUriMap;
+
+      /// \brief Gazebo classic material URI string
+      /// A URI matching this string indicates that it is a gazebo classic
+      /// material.
+      public: static const char kClassicMaterialScriptUri[];
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

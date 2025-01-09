@@ -53,6 +53,7 @@
 #include <gz/physics/RequestEngine.hh>
 
 #include <gz/physics/BoxShape.hh>
+#include <gz/physics/ConeShape.hh>
 #include <gz/physics/ContactProperties.hh>
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ForwardStep.hh>
@@ -92,6 +93,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 
 // Components
@@ -431,7 +433,7 @@ class gz::sim::systems::PhysicsPrivate
                       }
                       return true;
                     }};
-  /// \brief msgs::Contacts equality comparison function.
+  /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
           [](const msgs::Wrench &_a, const msgs::Wrench &_b)
@@ -622,6 +624,14 @@ class gz::sim::systems::PhysicsPrivate
             gz::physics::Solver>{};
 
   //////////////////////////////////////////////////
+  // CollisionPairMaxContacts
+  /// \brief Feature list for setting and getting the max total contacts for
+  /// collision pairs
+  public: struct CollisionPairMaxContactsFeatureList :
+            gz::physics::FeatureList<
+            gz::physics::CollisionPairMaxContacts>{};
+
+  //////////////////////////////////////////////////
   // Nested Models
 
   /// \brief Feature list to construct nested models
@@ -646,7 +656,8 @@ class gz::sim::systems::PhysicsPrivate
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
           SolverFeatureList,
-          WorldModelFeatureList
+          WorldModelFeatureList,
+          CollisionPairMaxContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -1025,6 +1036,33 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           }
         }
 
+        auto physicsComp =
+            _ecm.Component<components::Physics>(_entity);
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<
+              CollisionPairMaxContactsFeatureList>(_entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "phyiscs engine doesn't support feature "
+                     << "[CollisionPairMaxContacts]. "
+                     << "Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetCollisionPairMaxContacts(
+              physicsComp->Data().MaxContacts());
+          }
+        }
+
         // World Model proxy (used for joints directly under <world> in SDF)
         auto worldModelFeature =
             this->entityWorldMap.EntityCast<WorldModelFeatureList>(_entity);
@@ -1284,6 +1322,15 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         if (inertial)
         {
           link.SetInertial(inertial->Data());
+        }
+
+        // get link gravity
+        const components::GravityEnabled *gravityEnabled =
+            _ecm.Component<components::GravityEnabled>(_entity);
+        if (nullptr != gravityEnabled)
+        {
+          // gravityEnabled set in SdfEntityCreator::CreateEntities()
+          link.SetEnableGravity(gravityEnabled->Data());
         }
 
         auto constructLinkFeature =
@@ -2357,6 +2404,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                  << std::endl;
           return true;
         }
+        math::Pose3d worldPoseCmd = _poseCmd->Data();
+        if (!worldPoseCmd.Pos().IsFinite() || !worldPoseCmd.Rot().IsFinite() ||
+            worldPoseCmd.Rot() == math::Quaterniond::Zero)
+        {
+          gzerr << "Unable to set world pose. Invalid pose value: "
+                << worldPoseCmd << std::endl;
+          return true;
+        }
 
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
@@ -2376,7 +2431,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
 
-        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+        freeGroup->SetWorldPose(math::eigen3::convert(worldPoseCmd *
                                 linkPose));
 
         // Process pose commands for static models here, as one-time changes
@@ -2385,7 +2440,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           auto worldPoseComp = _ecm.Component<components::Pose>(_entity);
           if (worldPoseComp)
           {
-            auto state = worldPoseComp->SetData(_poseCmd->Data(),
+            auto state = worldPoseComp->SetData(worldPoseCmd,
                 this->pose3Eql) ?
                 ComponentState::OneTimeChange :
                 ComponentState::NoChange;
@@ -3746,6 +3801,18 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
   if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
+    return;
+
+  // Also check if any entity currently has a ContactSensorData component.
+  bool needContactSensorData = false;
+  _ecm.Each<components::Collision, components::ContactSensorData>(
+      [&](const Entity &/*unused*/, components::Collision *,
+          components::ContactSensorData */*unused*/) -> bool
+      {
+        needContactSensorData = true;
+        return false;
+      });
+  if (!needContactSensorData)
     return;
 
   // TODO(addisu) If systems are assumed to only have one world, we should

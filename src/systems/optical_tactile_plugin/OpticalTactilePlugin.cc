@@ -630,7 +630,7 @@ void OpticalTactilePluginPrivate::Enable(const gz::msgs::Boolean &_req)
 
   this->enabled = _req.data();
 
-  if (!_req.data())
+  if (!_req.data() && this->visualizePtr)
   {
     this->visualizePtr->RemoveNormalForcesAndContactsMarkers();
   }
@@ -752,6 +752,15 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   // Nothing left to do if failed to initialize.
   if (!this->initialized)
     return;
+
+  // sanity check to make sure point cloud data size matches other fields
+  if (_msg.data().size() !=  _msg.row_step() * _msg.height())
+  {
+    gzerr << "Invalid point cloud message. "
+          << "Point cloud data size != row_step * height."
+          << std::endl;
+    return;
+  }
 
   // Get data from the message
   const char *msgBuffer = _msg.data().data();

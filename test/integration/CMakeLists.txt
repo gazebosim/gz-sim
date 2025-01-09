@@ -73,6 +73,7 @@ set(tests
   reset.cc
   reset_detachable_joint.cc
   save_world.cc
+  spacecraft.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
@@ -108,6 +109,7 @@ set(tests_needing_display
   dvl_system.cc
   dvl_system_bottom_tracking.cc
   dvl_system_water_mass_tracking.cc
+  camera_sensor_global_illumination.cc
   gpu_lidar.cc
   markers.cc
   mesh_uri.cc
@@ -246,5 +248,5 @@ endif()
 
 if (TARGET INTEGRATION_python_system_loader)
   set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/")
+    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
 endif()
