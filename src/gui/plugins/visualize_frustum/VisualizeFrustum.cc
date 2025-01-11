@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 
 #include "VisualizeFrustum.hh"
 
+#include <cstddef>
+#include <mutex>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -356,7 +359,8 @@ void VisualizeFrustum::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->frustum->SetVisible(_value);
-  gzerr << "Frustum Visual Display " << ((_value) ? "ON." : "OFF.") << std::endl;
+  gzerr << "Frustum Visual Display " << ((_value) ? "ON." : "OFF.")
+        << std::endl;
 }
 
 /////////////////////////////////////////////////
