@@ -712,7 +712,8 @@ void TransformControlPrivate::HandleMouseEvents()
       {
         this->transformControl.Node()->SetUserData(
           "pause-update", static_cast<int>(1));
-      } catch (std::bad_variant_access &)
+      }
+      catch (std::bad_variant_access &)
       {
         // It's ok to get here
       }
@@ -744,13 +745,9 @@ void TransformControlPrivate::HandleMouseEvents()
       {
         auto visual = this->scene->VisualByIndex(i);
         auto entityId = kNullEntity;
-        try
+        if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
         {
           entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
-        }
-        catch (std::bad_variant_access &)
-        {
-          // It's ok to get here
         }
         if (entityId == nodeId)
         {

@@ -47,12 +47,12 @@
 using namespace gz;
 using namespace gz::sim;
 
-/// Sensor prefix to be used. All envionment_sensors are to be prefixed by
+/// Sensor prefix to be used. All enviornment_sensors are to be prefixed by
 /// "environment_sensor/" in their gz:type field.
 constexpr char SENSOR_TYPE_PREFIX[] =  "environmental_sensor/";
 
 ////////////////////////////////////////////////////////////////
-/// \brief Envirtonment Sensor used for looking up environment values in our
+/// \brief Environment Sensor used for looking up environment values in our
 /// CSV file.
 class EnvironmentalSensor : public gz::sensors::Sensor
 {
@@ -199,7 +199,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     std::optional<double> dataPoints[3];
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
-      if (this->fieldName[i] == "")
+      if (this->fieldName[i].empty())
       {
         // Empty field name means the column should default to zero.
         dataPoints[i] = 0;
@@ -225,7 +225,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
       auto frame = msg.mutable_header()->add_data();
       frame->set_key("frame_id");
-      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
+      frame->add_value((this->frameId.empty()) ? this->Name() : this->frameId);
       auto data = dataPoints[0];
       if (!data.has_value())
       {
@@ -242,7 +242,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
       *msg.mutable_header()->mutable_stamp() = gz::msgs::Convert(_now);
       auto frame = msg.mutable_header()->add_data();
       frame->set_key("frame_id");
-      frame->add_value((this->frameId == "") ? this->Name() : this->frameId);
+      frame->add_value((this->frameId.empty()) ? this->Name() : this->frameId);
 
       if (!dataPoints[0].has_value() || !dataPoints[1].has_value()
         || !dataPoints[2].has_value())
@@ -291,7 +291,7 @@ class EnvironmentalSensor : public gz::sensors::Sensor
     this->gridField = data;
     for (std::size_t i = 0; i < this->numberOfFields; ++i)
     {
-      if (this->fieldName[i] == "")
+      if (this->fieldName[i].empty())
         continue;
 
       this->session[i] =
