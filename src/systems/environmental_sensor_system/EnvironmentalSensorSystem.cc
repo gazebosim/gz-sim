@@ -47,7 +47,7 @@
 using namespace gz;
 using namespace gz::sim;
 
-/// Sensor prefix to be used. All enviornment_sensors are to be prefixed by
+/// Sensor prefix to be used. All environment_sensors are to be prefixed by
 /// "environment_sensor/" in their gz:type field.
 constexpr char SENSOR_TYPE_PREFIX[] =  "environmental_sensor/";
 
