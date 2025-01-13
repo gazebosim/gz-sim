@@ -11,7 +11,7 @@
 1. Improve load times by skipping serialization of entities when unecessary
     * [Pull request #2596](https://github.com/gazebosim/gz-sim/pull/2596)
 
-1. check valid pointer (#2674)
+1. Fix crash in OpticalTactilePlugin by checking for valid visualize pointer
     * [Pull request #2674](https://github.com/gazebosim/gz-sim/pull/2674)
 
 1. Disable detachable_joint integration test case on Windows
