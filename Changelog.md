@@ -2,8 +2,6 @@
 
 ### Gazebo Sim 6.17.0 (2025-01-10)
 
-1. **Baseline:** this includes all changes from 6.16.0 and earlier.
-
 1. Add parameter for adjust current sign in battery plugin
     * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
 
