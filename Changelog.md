@@ -8,7 +8,7 @@
 1. Fix uncontrolled cast of size_t to uint
     * [Pull request #2687](https://github.com/gazebosim/gz-sim/pull/2687)
 
-1. Improve load times by skipping serialization of entities when unecessary. (backport #2596)
+1. Improve load times by skipping serialization of entities when unecessary
     * [Pull request #2596](https://github.com/gazebosim/gz-sim/pull/2596)
 
 1. check valid pointer (#2674)
