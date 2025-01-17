@@ -4183,8 +4183,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
-  // Quit early if the MultiRayIntersections component hasn't been created. This means
-  // there are no systems that need contact information
+  // Quit early if the MultiRayIntersections component hasn't been created.
+  // This means there are no systems that need contact information
   if (!_ecm.HasComponentType(components::MultiRayIntersections::typeId))
     return;
 
@@ -4200,9 +4200,9 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
-  // Go through each entity that has a MultiRay and MultiRayIntersections components,
-  // trace the rays and set the MultiRayIntersections component value to the list of
-  // intersections that correspond to the ray entity
+  // Go through each entity that has a MultiRay and MultiRayIntersections
+  // components, trace the rays and set the MultiRayIntersections component
+  // value to the list of intersections that correspond to the ray entity
   _ecm.Each<components::MultiRay,
             components::MultiRayIntersections>(
       [&](const Entity &/*_entity*/,
@@ -4212,7 +4212,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
         // Retrieve the rays from the MultiRay component
         const auto &rays = _multiRay->Data();
 
-        // Retrieve and clear the results from the MultiRayIntersections component
+        // Retrieve and clear results from MultiRayIntersections component
         auto &rayIntersections = _multiRayIntersections->Data();
         rayIntersections.clear();
 
@@ -4221,10 +4221,12 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           // Compute the ray intersections
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
-              math::eigen3::convert(ray.start), math::eigen3::convert(ray.end));
+              math::eigen3::convert(ray.start),
+              math::eigen3::convert(ray.end));
 
           const auto result =
-            rayIntersection.Get<physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
+            rayIntersection.Get<
+              physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
           // Store the results into the MultiRayIntersections component
           components::RayIntersectionInfo info;
