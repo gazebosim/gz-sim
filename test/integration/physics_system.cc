@@ -2909,7 +2909,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
 }
 
 //////////////////////////////////////////////////
-/// This test verifies that ray intersections are computed by physics system during Update loop.
+/// Test ray intersections computed by physics system during Update loop.
 TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
 {
   ServerConfig serverConfig;
@@ -2930,9 +2930,10 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
   testSystem.OnPreUpdate(
       [&](const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
       {
-        // Set the physics collision detector to bullet (that supports ray intersections).
+        // Set collision detector to bullet (supports ray intersections).
         auto worldEntity = _ecm.EntityByComponents(components::World());
-        _ecm.CreateComponent(worldEntity, components::PhysicsCollisionDetector("bullet"));
+        _ecm.CreateComponent(
+          worldEntity, components::PhysicsCollisionDetector("bullet"));
 
         // Create MultiRay and MultiRayIntersections components for testEntity1
         testEntity1 = _ecm.CreateEntity();
@@ -2945,7 +2946,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         _ecm.CreateComponent(testEntity2, components::MultiRayIntersections());
 
         // Add 5 rays to testEntity1 that intersect with the ground plane
-        auto &rays1 = _ecm.Component<components::MultiRay>(testEntity1)->Data();
+        auto &rays1 =
+          _ecm.Component<components::MultiRay>(testEntity1)->Data();
         for (size_t i = 0; i < 5; ++i)
         {
           components::RayInfo ray;
@@ -2954,7 +2956,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
           rays1.push_back(ray);
         }
 
-        // Add 2 rays to testEntity2 that does not intersect with the ground plane
+        // Add 2 rays to testEntity2 that don't intersect with the ground plane
         auto &rays2 = _ecm.Component<components::MultiRay>(testEntity2)->Data();
         for (size_t i = 0; i < 2; ++i)
         {
@@ -2964,13 +2966,15 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
           rays2.push_back(ray);
         }
       });
-  // During PostUpdate, check the ray intersections for testEntity1 and testEntity2
+  // Check ray intersections for testEntity1 and testEntity2
   testSystem.OnPostUpdate(
       [&](const UpdateInfo &/*_info*/, const EntityComponentManager &_ecm)
       {
         // check the raycasting results for testEntity1
         auto &rays1 = _ecm.Component<components::MultiRay>(testEntity1)->Data();
-        auto &results1 = _ecm.Component<components::MultiRayIntersections>(testEntity1)->Data();
+        auto &results1 =
+          _ecm.Component<components::MultiRayIntersections>(
+            testEntity1)->Data();
         ASSERT_EQ(rays1.size(), results1.size());
 
         for (size_t i = 0; i < results1.size(); ++i) {
@@ -2983,14 +2987,20 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         }
 
         // check the raycasting results for testEntity2
-        auto &rays2 = _ecm.Component<components::MultiRay>(testEntity2)->Data();
-        auto &results2 = _ecm.Component<components::MultiRayIntersections>(testEntity2)->Data();
+        auto &rays2 =
+          _ecm.Component<components::MultiRay>(testEntity2)->Data();
+        auto &results2 =
+          _ecm.Component<components::MultiRayIntersections>(
+            testEntity2)->Data();
         ASSERT_EQ(rays2.size(), results2.size());
 
         for (size_t i = 0; i < results2.size(); ++i) {
-          ASSERT_TRUE(math::eigen3::convert(results2[i].point).array().isNaN().all());
-          ASSERT_TRUE(math::eigen3::convert(results2[i].normal).array().isNaN().all());
-          ASSERT_TRUE(std::isnan(results2[i].fraction));
+          ASSERT_TRUE(
+            math::eigen3::convert(results2[i].point).array().isNaN().all());
+          ASSERT_TRUE(
+            math::eigen3::convert(results2[i].normal).array().isNaN().all());
+          ASSERT_TRUE(
+            std::isnan(results2[i].fraction));
         }
       });
 

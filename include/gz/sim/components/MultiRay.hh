@@ -65,9 +65,11 @@ GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MultiRay", MultiRay)
 /// \brief A component type that contains the raycasting results from multiple
 // rays from an entity into a physics world.
 using MultiRayIntersections =
-  gz::sim::components::Component<std::vector<RayIntersectionInfo>, class MultiRayIntersectionsTag>;
+  gz::sim::components::Component<std::vector<RayIntersectionInfo>,
+  class MultiRayIntersectionsTag>;
 
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MultiRayIntersections", MultiRayIntersections)
+GZ_SIM_REGISTER_COMPONENT(
+  "gz_sim_components.MultiRayIntersections", MultiRayIntersections)
 }
 }
 }
