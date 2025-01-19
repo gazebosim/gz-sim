@@ -42,10 +42,12 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/UpdateInfo.cc
   src/gz/sim/Util.cc
   src/gz/sim/World.cc
+  src/gz/sim/Gui.cc
 )
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
+  ${PROJECT_LIBRARY_TARGET_NAME}-gui
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
 
