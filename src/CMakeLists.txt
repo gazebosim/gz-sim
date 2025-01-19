@@ -57,7 +57,7 @@ set(gui_sources
 
 set(cli_sources
   gz.cc
-  cmd/ModelCommandAPI.cc
+  cmd/gz.cc
 )
 
 set(material_sources
