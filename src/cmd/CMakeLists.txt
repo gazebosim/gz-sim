@@ -36,6 +36,10 @@ target_compile_definitions(UNIT_ModelCommandAPI_TEST
   PRIVATE
     "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
+target_compile_definitions(UNIT_ModelCommandAPI_TEST
+  PRIVATE
+    "BREW_RUBY=\"${BREW_RUBY} \"")
+
 #===============================================================================
 # Generate the ruby script.
 # Note that the major version of the library is included in the name.
