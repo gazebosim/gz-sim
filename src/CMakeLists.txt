@@ -57,7 +57,6 @@ set(gui_sources
 
 set(cli_sources
   gz.cc
-  cmd/gz.cc
 )
 
 set(material_sources
@@ -141,15 +140,10 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
   list(APPEND gtest_sources gz_TEST.cc)
 endif()
 
-
 # Tests that require a valid display
 set(tests_needing_display
   Server_Rendering_TEST.cc
 )
-
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND tests_needing_display ModelCommandAPI_TEST.cc)
-endif()
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
@@ -160,7 +154,6 @@ else()
   message(STATUS
     "Skipping these UNIT tests because a valid display was not found:")
   foreach(test ${tests_needing_display})
-    message(STATUS " ${test}")
   endforeach(test)
 endif()
 
@@ -267,8 +260,7 @@ endif()
 
 # Command line tests need extra settings
 foreach(CMD_TEST
-  UNIT_gz_TEST
-  UNIT_ModelCommandAPI_TEST)
+  UNIT_gz_TEST)
 
   if(NOT TARGET ${CMD_TEST})
     continue()

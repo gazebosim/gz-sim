@@ -2,10 +2,6 @@
 # "gtest_sources" variable.
 gz_get_libsources_and_unittests(sources gtest_sources)
 
-if (NOT HAVE_GZ_TOOLS)
-  list(REMOVE_ITEM gtest_sources ModelCommandAPI_TEST.cc)
-endif()
-
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   PUBLIC
@@ -24,24 +20,21 @@ install(
   TARGETS ${model_executable}
   DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
 
-if (FALSE AND BUILD_TESTING)
-  # Build the unit tests.
-  gz_build_tests(TYPE UNIT SOURCES ${gtest_sources}
-    TEST_LIST test_list
-    LIB_DEPS
-      gz
-      gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-      ${EXTRA_TEST_LIB_DEPS} test_config)
+# Build the unit tests.
+gz_build_tests(TYPE UNIT
+  SOURCES
+    ../ModelCommandAPI_TEST.cc
+  LIB_DEPS
+    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+    ${EXTRA_TEST_LIB_DEPS}
+    gz-sim${PROJECT_VERSION_MAJOR}
+  ENVIRONMENT
+      GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
 
-  if (TARGET UNIT_ModelCommandAPI_TEST)
-    set_tests_properties(
-      UNIT_ModelCommandAPI_TEST
-      PROPERTIES
-      ENVIRONMENT
-        "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>"
-    )
-  endif()
-endif()
+target_compile_definitions(UNIT_ModelCommandAPI_TEST
+  PRIVATE
+    "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
 #===============================================================================
 # Generate the ruby script.
