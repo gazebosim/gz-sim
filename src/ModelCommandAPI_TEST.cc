@@ -25,7 +25,8 @@
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
-static const std::string kGzModelCommand(std::string(GZ_PATH) + " model ");
+static const std::string kGzModelCommand(
+    std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
@@ -75,7 +76,6 @@ std::string customExecStr(std::string _cmd)
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kGzModelCommand + "--list ";
-  std::cout << "############################\n" << cmd << std::endl;
   const std::string output = customExecStr(cmd);
   const std::string expectedOutput =
         "\nService call to [/gazebo/worlds] timed out\n"
