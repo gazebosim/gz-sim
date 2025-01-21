@@ -393,7 +393,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
     components::BatterySoC::typeId));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
-  // Check state of charge should be 1, since the batery has not drained
+  // Check state of charge should be 1, since the battery has not drained
   // and the <initial_charge> is equivalent to the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
@@ -407,7 +407,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   // Run the server again.
   server.Run(true, 100, false);
 
-  // The state of charge should be <1, since the batery has started
+  // The state of charge should be <1, since the battery has started
   // draining.
   double stateOfCharge = batComp->Data();
   EXPECT_LT(batComp->Data(), 1.0);

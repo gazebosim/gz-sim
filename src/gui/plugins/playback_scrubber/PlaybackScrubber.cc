@@ -145,7 +145,7 @@ void PlaybackScrubber::Update(const UpdateInfo &_info,
   }
 
   // Populate the world name
-  if (this->dataPtr->worldName == "")
+  if (this->dataPtr->worldName.empty())
   {
     // TODO(anyone) Only one world is supported for now
     auto worldNames = gz::gui::worldNames();
