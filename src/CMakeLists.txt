@@ -147,6 +147,7 @@ else()
   message(STATUS
     "Skipping these UNIT tests because a valid display was not found:")
   foreach(test ${tests_needing_display})
+    message(STATUS " ${test}")
   endforeach(test)
 endif()
 
