@@ -20,7 +20,7 @@ RUN apt-get update \
     libgz-rendering9-dev \
     libgz-tools2-dev \
     libgz-transport14-dev \
-    libgz-gui9-dev \
+    libgz-gui10-dev \
     libgz-msgs11-dev \
     libgz-sensors9-dev \
     libsdformat15-dev
