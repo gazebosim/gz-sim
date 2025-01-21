@@ -81,23 +81,6 @@ foreach(CMD_TEST
 
 endforeach()
 
-# if(TARGET UNIT_gz_TEST)
-#
-#   add_dependencies(UNIT_gz_TEST
-#     ${gz_lib_target}
-#     TestModelSystem
-#     TestSensorSystem
-#     TestWorldSystem
-#   )
-#
-#   set(_env_vars)
-#   list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
-#   list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
-#
-#   set_tests_properties(UNIT_gz_TEST PROPERTIES
-#     ENVIRONMENT "${_env_vars}")
-# endif()
-
 #===============================================================================
 # Generate the ruby script.
 # Note that the major version of the library is included in the name.
