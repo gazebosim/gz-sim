@@ -222,7 +222,7 @@ class gz::sim::systems::ColladaWorldExporterPrivate
 
         const auto subMeshName = _geom->Data().MeshShape()->Submesh();
         scale = _geom->Data().MeshShape()->Scale();
-        if(subMeshName == "")
+        if (subMeshName.empty())
         {
           for (unsigned int k = 0; k < mesh->SubMeshCount(); k++)
           {

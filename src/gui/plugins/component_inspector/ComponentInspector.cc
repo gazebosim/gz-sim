@@ -967,7 +967,7 @@ bool ComponentInspector::eventFilter(QObject *_obj, QEvent *_event)
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
       {
-        this->SetEntity(*event->Data().begin());
+        this->SetEntity(event->Data().front());
       }
     }
 

@@ -221,7 +221,7 @@
       </link>
 
       <link name='front_right_wheel'>
-        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+        <pose>0.554283 -0.625029 -0.025 -1.5707 0 0</pose>
         <inertial>
           <mass>2</mass>
           <inertia>

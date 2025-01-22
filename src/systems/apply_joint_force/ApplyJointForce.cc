@@ -96,7 +96,7 @@ void ApplyJointForce::Configure(const Entity &_entity,
     this->dataPtr->jointName = sdfElem->Get<std::string>();
   }
 
-  if (this->dataPtr->jointName == "")
+  if (this->dataPtr->jointName.empty())
   {
     gzerr << "ApplyJointForce found an empty jointName parameter. "
            << "Failed to initialize.";

@@ -562,8 +562,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
   // create new wireframe visuals
   for (const auto &link : this->newWireframeVisualLinks)
   {
-    std::vector<Entity> visEntities =
-        this->linkToVisualEntities[link];
+    const auto &visEntities = this->linkToVisualEntities[link];
 
     for (const auto &visEntity : visEntities)
     {
@@ -592,8 +591,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
   // create new transparent visuals
   for (const auto &link : this->newTransparentVisualLinks)
   {
-    std::vector<Entity> visEntities =
-        this->linkToVisualEntities[link];
+    const auto &visEntities = this->linkToVisualEntities[link];
 
     for (const auto &visEntity : visEntities)
     {
@@ -1737,7 +1735,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
   {
     auto visual = this->scene->VisualByIndex(i);
 
-    try
+    if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
     {
       Entity visualEntity = std::get<uint64_t>(
         visual->UserData("gazebo-entity"));
@@ -1746,10 +1744,6 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
       {
         return visual;
       }
-    }
-    catch (std::bad_variant_access &)
-    {
-      // It's ok to get here
     }
   }
   return nullptr;
