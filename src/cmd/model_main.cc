@@ -157,7 +157,10 @@ int main(int argc, char** argv)
   app.add_flag_callback("-v,--version", [](){
       std::cout << GZ_SIM_VERSION_FULL << std::endl;
       throw CLI::Success();
-    });
+    },
+    "Print the current library version");
+  app.add_flag("--force-version", "Use a specific library version.");
+  app.add_flag("--versions", "Show the available versions.");
 
   addModelFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));
