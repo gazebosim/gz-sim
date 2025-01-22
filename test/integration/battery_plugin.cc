@@ -400,22 +400,25 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   // Send a message on one of the <power_draining_topic> topics, which will
   // start the battery draining when the server starts again.
   gz::transport::Node node;
-  auto pub = node.Advertise<msgs::StringMsg>("/battery/discharge");
+  auto discharge_pub = node.Advertise<msgs::StringMsg>("/battery/discharge");
   msgs::StringMsg msg;
-  pub.Publish(msg);
+  discharge_pub.Publish(msg);
 
   // Run the server again.
   server.Run(true, 100, false);
 
-  // The state of charge should be <1, since the battery has started
-  // draining.
-  double stateOfCharge = batComp->Data();
-  EXPECT_LT(batComp->Data(), 1.0);
-
   // Send a message on one of the <stop_power_draining_topic> topics, which
   // will stop the battery draining when the server starts again.
-  auto pub2 = node.Advertise<msgs::StringMsg>("/battery/stop_discharge");
-  pub2.Publish(msg);
+  auto stop_pub = node.Advertise<msgs::StringMsg>("/battery/stop_discharge");
+  stop_pub.Publish(msg);
+
+  // Run the server a little bit to allow msg be propagated inside plugin
+  server.Run(true, 50, false);
+
+  // The state of charge should be <1, since the battery has started
+  // draining.
+  const double stateOfCharge = batComp->Data();
+  EXPECT_LT(batComp->Data(), 1.0);
 
   // Run the server again.
   server.Run(true, 100, false);
