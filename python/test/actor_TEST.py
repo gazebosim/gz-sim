@@ -18,8 +18,8 @@ import datetime
 import unittest
 
 from gz_test_deps.common import set_verbosity
-from gz_test_deps.sim import (Actor, K_NULL_ENTITY,
-                              TestFixture, World, world_entity)
+from gz.sim import (Actor, K_NULL_ENTITY,
+                    TestFixture, World, world_entity)
 from gz_test_deps.math import Pose3d
 
 
