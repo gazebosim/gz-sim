@@ -73,25 +73,6 @@ function(gz_add_system system_name)
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
   install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
-
-  # The library created by `gz_add_component` includes the gz-sim version
-  # (i.e. libgz-sim1-name-system.so), but for portability of SDF
-  # files, we also install an unversioned symlink into the same versioned folder.
-  #
-  # NOTE(CH3): On migration of the CMake project name, ignition-gazebo -> gz-sim
-  # so the generated library target WILL CHANGE
-  set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  if(WIN32)
-    # symlinks on Windows require admin priviledges, fallback to copy
-    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy
-      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${versioned}
-      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${unversioned})")
-  else()
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
-  endif()
 endfunction()
 
 add_subdirectory(ackermann_steering)
