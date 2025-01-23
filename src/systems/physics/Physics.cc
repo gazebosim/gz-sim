@@ -4184,7 +4184,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
   // Quit early if the MultiRayIntersections component hasn't been created.
-  // This means there are no systems that need contact information
+  // This means there are no systems that need raycasting information
   if (!_ecm.HasComponentType(components::MultiRayIntersections::typeId))
     return;
 
