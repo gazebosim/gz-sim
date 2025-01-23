@@ -72,7 +72,7 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${gui_target}
     ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   ENVIRONMENT

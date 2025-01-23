@@ -25,7 +25,7 @@ function(configure_build_install_location _library_name)
   )
 endfunction()
 
-set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
+set(BINDINGS_MODULE_NAME "sim")
 pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/_gz_sim_pybind11.cc
   src/gz/sim/Actor.cc
