@@ -47,9 +47,7 @@ struct LoggingPlugin
   /// \return A string that contains the record plugin file name.
   public: static std::string &LoggingPluginFileName()
   {
-    static std::string recordPluginFileName =
-      std::string("gz-sim") +
-      GZ_SIM_MAJOR_VERSION_STR + "-log-system";
+    static std::string recordPluginFileName = "gz-sim-log-system";
     return recordPluginFileName;
   }
 
