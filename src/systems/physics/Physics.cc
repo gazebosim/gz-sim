@@ -4200,6 +4200,20 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
+  if (!worldRayIntersectionFeature)
+  {
+    static bool informed{false};
+    if (!informed)
+    {
+      gzdbg << "Attempting process ray intersections, but the physics "
+             << "engine doesn't support ray intersection features. "
+             << "Ray intersections won't be computed."
+             << std::endl;
+      informed = true;
+    }
+    return;
+  }
+
   // Go through each entity that has a MultiRay and MultiRayIntersections
   // components, trace the rays and set the MultiRayIntersections component
   // value to the list of intersections that correspond to the ray entity

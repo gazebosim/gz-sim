@@ -2980,10 +2980,10 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         for (size_t i = 0; i < results1.size(); ++i) {
           ASSERT_EQ(results1[i].point, math::Vector3d::Zero);
           ASSERT_EQ(results1[i].normal, math::Vector3d(0, 0, 1));
-          double exp_fraction =
+          const double expFraction =
             (rays1[i].start - results1[i].point).Length() /
               (rays1[i].start - rays1[i].end).Length();
-          ASSERT_NEAR(results1[i].fraction, exp_fraction, 1e-6);
+          ASSERT_NEAR(results1[i].fraction, expFraction, 1e-6);
         }
 
         // check the raycasting results for testEntity2
