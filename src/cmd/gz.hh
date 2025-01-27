@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  *
 */
+
+#ifndef GZ_SIM_GZ_HH_
+#define GZ_SIM_GZ_HH_
 
 #include "gz/sim/gz/Export.hh"
 
@@ -30,3 +33,5 @@ extern "C" GZ_SIM_GZ_VISIBLE void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName,
     const char *_sensorName);
+
+#endif
