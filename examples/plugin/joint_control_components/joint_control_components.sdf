@@ -1,11 +1,29 @@
 <sdf version="1.11">
-  <!-- This example uses the ResetJointVelocityNearPosition to reset the joint
-       velocity to a positive value when it is near the stable equilibrium
-       position. The joint appears to bounce upward near the bottom of its
-       swing.
+  <!--
+    This example world demonstrates two plugins for joint control:
 
+    * ResetJointVelocityNearPosition sets the JointVelocityReset component
+      to a fixed value when the measured joint position is near a trigger
+      position. This can create a bouncing behavior of a pendulum if the
+      trigger position is the bottom stable equilibrium.
       To adjust the bounce height, modify the velocity_after_reset parameter
-      in the plugin at the end of this file.
+      in the plugin definition.
+    * PulseJointVelocityCommand applies pulses of joint velocity commands
+      as a square wave with a specified time period between pulses.
+      To adjust the velocity pulses, modify the velocity_command and
+      pulse_seconds parameters in the plugin definition.
+
+    The world contains three pendulum models:
+
+    * Model pendulum_bounce_at_bottom is on the far left and has only the
+      ResetJointVelocityNearPosition with a trigger position at the downward
+      stable eqilibrium point. This exhibits a bouncing behavior.
+    * Model pendulum_with_velocity_pulses is on the far right and has only the
+      PulseJointVelocityCommand. It starts out stationary, then alternates
+      between moving at constant velocity and swinging passively.
+    * Model pendulum_reset_and_pulse_velocity is in the center and has both
+      plugins enabled and experiences pulses of constant velocity alternating
+      with passive swinging and bouncing at the bottom.
   -->
 
   <world name="default">
