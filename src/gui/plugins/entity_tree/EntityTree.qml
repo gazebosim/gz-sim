@@ -164,7 +164,7 @@ Rectangle {
           id: loadFileDialog
           title: "Load mesh"
           folder: shortcuts.home
-          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          nameFilters: [ "Collada files (*.dae)", "STL (*.stl)", "Wavefront OBJ (*.obj)" ]
           selectMultiple: false
           selectExisting: true
           onAccepted: {
