@@ -15,6 +15,7 @@
  *
  */
 
+#include <memory>
 #include <gz/sim/Joint.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/System.hh>

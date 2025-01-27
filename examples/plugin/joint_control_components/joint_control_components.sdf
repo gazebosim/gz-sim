@@ -45,8 +45,6 @@
       </link>
     </model>
 
-
-
     <model name="pendulum_bounce_at_bottom">
       <pose degrees="true">0 3 0 0 0 180</pose>
       <frame name="base_plate_center" attached_to="base">
@@ -208,8 +206,6 @@
         <velocity_after_reset>2.0</velocity_after_reset>
       </plugin>
     </model>
-
-
 
     <model name="pendulum_reset_and_pulse_velocity">
       <pose degrees="true">0 0 0 0 0 180</pose>
@@ -378,8 +374,6 @@
         <velocity_command>1.0</velocity_command>
       </plugin>
     </model>
-
-
 
     <model name="pendulum_with_velocity_pulses">
       <pose degrees="true">0 -3 0 0 0 180</pose>

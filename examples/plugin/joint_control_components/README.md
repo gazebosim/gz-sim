@@ -24,7 +24,7 @@ These components are demonstrated with the following plugins:
 ## Build
 
 ~~~
-cd examples/plugin/reset_plugin
+cd examples/plugin/joint_control_components
 mkdir build
 cd build
 cmake ..
