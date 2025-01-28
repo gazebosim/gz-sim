@@ -179,7 +179,12 @@ void VisualizeFrustum::LoadFrustum()
   gzdbg << "Creating frustum visual" << std::endl;
   auto root = scene->RootVisual();
 
-  this->dataPtr->frustum = scene->CreateFrustumVisual();
+  // Create a frustum visual
+  // \todo(iche033) uncomment and use official API in gz-rendering10
+  // this->dataPtr->frustum = scene->CreateFrustumVisual();
+    this->dataPtr->frustum =
+      std::dynamic_pointer_cast<rendering::FrustumVisual>(
+      scene->Extension()->CreateExt("frustum_visual"));
   if (!this->dataPtr->frustum)
   {
     gzwarn << "Failed to create frustum, visualize frustum plugin won't work."
