@@ -33,10 +33,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class VisualizeFrustumPrivate;
 
-  /// \brief Visualize the LaserScan message returned by the sensors. Use the
-  /// checkbox to turn visualization of non-hitting rays on or off and
-  /// the textfield to select the message to be visualised. The combobox is
-  /// used to select the type of visual for the sensor data.
+  /// \brief Visualize the frustum from a LogicalCameraSensor message.
   class VisualizeFrustum : public gz::sim::GuiSystem
   {
     Q_OBJECT
