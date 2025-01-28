@@ -414,9 +414,9 @@ void VisualizeFrustum::OnScan(const msgs::LogicalCameraSensor &_msg)
   {
     this->dataPtr->msg = std::move(_msg);
 
-    this->dataPtr->frustum->SetNear(this->dataPtr->msg.near_clip());
-    this->dataPtr->frustum->SetFar(this->dataPtr->msg.far_clip());
-    this->dataPtr->frustum->SetFOV(this->dataPtr->msg.horizontal_fov());
+    this->dataPtr->frustum->SetNearClipPlane(this->dataPtr->msg.near_clip());
+    this->dataPtr->frustum->SetFarClipPlane(this->dataPtr->msg.far_clip());
+    this->dataPtr->frustum->SetHFOV(this->dataPtr->msg.horizontal_fov());
     this->dataPtr->frustum->SetAspectRatio(this->dataPtr->msg.aspect_ratio());
 
     this->dataPtr->visualDirty = true;
