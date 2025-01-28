@@ -66,7 +66,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
                         EntityComponentManager &_ecm) override;
 
     /// \brief Callback function to get data from the message
-    /// \param[in] _msg FrustumSensor message
+    /// \param[in] _msg LogicalCameraSensor message with frustum information
     public: void OnScan(const msgs::LogicalCameraSensor &_msg);
 
     /// \brief Load the scene and attach FrustumVisual to the scene
