@@ -91,7 +91,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Topic name to subscribe
     public: std::string topicName{""};
 
-    /// \brief List of topics publishing LaserScan messages.
+    /// \brief List of topics publishing LogicalCameraSensor messages.
     public: QStringList topicList;
 
     /// \brief Entity representing the sensor in the world
