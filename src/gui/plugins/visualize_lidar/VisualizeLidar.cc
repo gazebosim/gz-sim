@@ -17,12 +17,10 @@
 
 #include "VisualizeLidar.hh"
 
+#include <mutex>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <sdf/Link.hh>
-#include <sdf/Model.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
@@ -78,18 +76,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Pointer to LidarVisual
     public: rendering::LidarVisualPtr lidar;
 
-    /// \brief Visual type for lidar visual
-    public: rendering::LidarVisualType visualType{
-                            rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
-
-    /// \brief LaserScan message from sensor
-    public: msgs::LaserScan msg;
-
     /// \brief Pose of the lidar visual
     public: math::Pose3d lidarPose{math::Pose3d::Zero};
 
     /// \brief Topic name to subscribe
-    public: std::string topicName{""};
+    public: std::string topicName;
 
     /// \brief List of topics publishing LaserScan messages.
     public: QStringList topicList;
@@ -108,6 +99,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// The variables are: msg, visualType, minVisualRange and
     /// maxVisualRange
     public: std::mutex serviceMutex;
+
+    /// \brief Visual type for lidar visual
+    public: rendering::LidarVisualType visualType{
+                            rendering::LidarVisualType::LVT_TRIANGLE_STRIPS};
 
     /// \brief Initialization flag
     public: bool initialized{false};
@@ -150,18 +145,18 @@ void VisualizeLidar::LoadLidar()
     return;
 
   // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
+  const auto& engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
     gzdbg << "More than one engine is available. "
-      << "VisualizeLidar plugin will use engine ["
-        << engineName << "]" << std::endl;
+          << "VisualizeLidar plugin will use engine ["
+          << engineName << "]" << std::endl;
   }
   auto engine = rendering::engine(engineName);
   if (!engine)
   {
     gzerr << "Internal error: failed to load engine [" << engineName
-      << "]. VisualizeLidar plugin won't work." << std::endl;
+          << "]. VisualizeLidar plugin won't work." << std::endl;
     return;
   }
 
@@ -190,7 +185,7 @@ void VisualizeLidar::LoadLidar()
   if (!this->dataPtr->lidar)
   {
     gzwarn << "Failed to create lidar, visualize lidar plugin won't work."
-            << std::endl;
+           << std::endl;
 
     scene->DestroyVisual(this->dataPtr->lidar);
 
@@ -363,7 +358,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     gzerr << "Unable to unsubscribe from topic ["
-           << this->dataPtr->topicName <<"]" <<std::endl;
+          << this->dataPtr->topicName <<"]" <<std::endl;
   }
   this->dataPtr->topicName = topic;
 
@@ -376,7 +371,7 @@ void VisualizeLidar::OnTopic(const QString &_topicName)
                             &VisualizeLidar::OnScan, this))
   {
     gzerr << "Unable to subscribe to topic ["
-           << this->dataPtr->topicName << "]\n";
+          << this->dataPtr->topicName << "]\n";
     return;
   }
   this->dataPtr->visualDirty = false;
@@ -398,7 +393,7 @@ void VisualizeLidar::DisplayVisual(bool _value)
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->lidar->SetVisible(_value);
   gzmsg << "Lidar Visual Display " << ((_value) ? "ON." : "OFF.")
-         << std::endl;
+        << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -412,12 +407,12 @@ void VisualizeLidar::OnRefresh()
   // Get updated list
   std::vector<std::string> allTopics;
   this->dataPtr->node.TopicList(allTopics);
-  for (auto topic : allTopics)
+  for (const auto &topic : allTopics)
   {
     std::vector<transport::MessagePublisher> publishers;
     std::vector<transport::MessagePublisher> subscribers;
     this->dataPtr->node.TopicInfo(topic, publishers, subscribers);
-    for (auto pub : publishers)
+    for (const auto &pub : publishers)
     {
       if (pub.MsgTypeName() == "gz.msgs.LaserScan")
       {
@@ -426,7 +421,7 @@ void VisualizeLidar::OnRefresh()
       }
     }
   }
-  if (this->dataPtr->topicList.size() > 0)
+  if (!this->dataPtr->topicList.empty())
   {
     this->OnTopic(this->dataPtr->topicList.at(0));
   }
@@ -453,35 +448,26 @@ void VisualizeLidar::OnScan(const msgs::LaserScan &_msg)
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->initialized)
   {
-    this->dataPtr->msg = std::move(_msg);
-    this->dataPtr->lidar->SetVerticalRayCount(
-                                  this->dataPtr->msg.vertical_count());
-    this->dataPtr->lidar->SetHorizontalRayCount(
-                                  this->dataPtr->msg.count());
-    this->dataPtr->lidar->SetMinHorizontalAngle(
-                                  this->dataPtr->msg.angle_min());
-    this->dataPtr->lidar->SetMaxHorizontalAngle(
-                                  this->dataPtr->msg.angle_max());
-    this->dataPtr->lidar->SetMinVerticalAngle(
-                                  this->dataPtr->msg.vertical_angle_min());
-    this->dataPtr->lidar->SetMaxVerticalAngle(
-                                  this->dataPtr->msg.vertical_angle_max());
+    this->dataPtr->lidar->SetVerticalRayCount(_msg.vertical_count());
+    this->dataPtr->lidar->SetHorizontalRayCount(_msg.count());
+    this->dataPtr->lidar->SetMinHorizontalAngle(_msg.angle_min());
+    this->dataPtr->lidar->SetMaxHorizontalAngle(_msg.angle_max());
+    this->dataPtr->lidar->SetMinVerticalAngle(_msg.vertical_angle_min());
+    this->dataPtr->lidar->SetMaxVerticalAngle(_msg.vertical_angle_max());
 
     this->dataPtr->lidar->SetPoints(std::vector<double>(
-                                  this->dataPtr->msg.ranges().begin(),
-                                  this->dataPtr->msg.ranges().end()));
+                                  _msg.ranges().begin(),
+                                  _msg.ranges().end()));
 
-    if (!math::equal(this->dataPtr->maxVisualRange,
-        this->dataPtr->msg.range_max()))
+    if (!math::equal(this->dataPtr->maxVisualRange, _msg.range_max()))
     {
-      this->dataPtr->maxVisualRange = this->dataPtr->msg.range_max();
+      this->dataPtr->maxVisualRange = _msg.range_max();
       this->dataPtr->lidar->SetMaxRange(this->dataPtr->maxVisualRange);
       this->MaxRangeChanged();
     }
-    if (!math::equal(this->dataPtr->minVisualRange,
-        this->dataPtr->msg.range_min()))
+    if (!math::equal(this->dataPtr->minVisualRange, _msg.range_min()))
     {
-      this->dataPtr->minVisualRange = this->dataPtr->msg.range_min();
+      this->dataPtr->minVisualRange = _msg.range_min();
       this->dataPtr->lidar->SetMinRange(this->dataPtr->minVisualRange);
       this->MinRangeChanged();
     }
