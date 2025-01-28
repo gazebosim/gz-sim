@@ -97,7 +97,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Entity representing the sensor in the world
     public: sim::Entity frustumEntity;
 
-    /// \brief Mutex for variable mutated by the checkbox and spinboxes
+    /// \brief Mutex for variable mutated by the checkbox 
     /// callbacks.
     /// The variables are: msg
     public: std::mutex serviceMutex;
