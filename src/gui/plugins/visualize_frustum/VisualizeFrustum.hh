@@ -72,11 +72,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Load the scene and attach FrustumVisual to the scene
     public: void LoadFrustum();
 
-    /// \brief Get the topic list as a string
+    /// \brief Get the list of topics as a string
     /// \return Message type
     public: Q_INVOKABLE QStringList TopicList() const;
 
-    /// \brief Set the topic list from a string, for example
+    /// \brief Set the list of topics from a string, for example
     /// 'gz.msgs.StringMsg'
     /// \param[in] _topicList Message type
     public: Q_INVOKABLE void SetTopicList(const QStringList &_topicList);
