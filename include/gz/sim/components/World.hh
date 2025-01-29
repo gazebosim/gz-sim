@@ -29,6 +29,29 @@ namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
+
+namespace serializers
+{
+/// \brief Specialize the DefaultSerializer on sdf::World so we can
+/// skip serialization
+/// TODO(azeey) Do we ever want to serialize this component?
+template <>
+class DefaultSerializer<sdf::World>
+{
+  public:
+  static std::ostream &Serialize(std::ostream &_out, const sdf::World &)
+  {
+    return _out;
+  }
+
+  public:
+  static std::istream &Deserialize(std::istream &_in, sdf::World &)
+  {
+    return _in;
+  }
+};
+}
+
 namespace components
 {
   /// \brief A component that identifies an entity as being a world.
