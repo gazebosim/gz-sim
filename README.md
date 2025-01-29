@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
+See the [installation tutorial](https://gazebosim.org/docs/latest/getstarted/).
 
 # Usage
 
