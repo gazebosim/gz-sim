@@ -19,6 +19,9 @@
 
 #include <sdf/World.hh>
 
+#include <istream>
+#include <ostream>
+
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
