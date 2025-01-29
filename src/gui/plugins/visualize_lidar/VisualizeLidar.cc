@@ -145,7 +145,7 @@ void VisualizeLidar::LoadLidar()
     return;
 
   // assume there is only one engine loaded
-  const auto& engineName = loadedEngNames[0];
+  const auto &engineName = loadedEngNames[0];
   if (loadedEngNames.size() > 1)
   {
     gzdbg << "More than one engine is available. "
