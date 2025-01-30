@@ -560,7 +560,7 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
         end
 
-        Signal.trap("INT") { 
+        Signal.trap("INT") {
           handle_signal(guiPid, serverPid)
           return 1
         }
