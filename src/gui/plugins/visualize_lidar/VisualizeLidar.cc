@@ -140,42 +140,9 @@ VisualizeLidar::~VisualizeLidar()
 /////////////////////////////////////////////////
 void VisualizeLidar::LoadLidar()
 {
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-    return;
-
-  // assume there is only one engine loaded
-  const auto &engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    gzdbg << "More than one engine is available. "
-          << "VisualizeLidar plugin will use engine ["
-          << engineName << "]" << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-  if (!engine)
-  {
-    gzerr << "Internal error: failed to load engine [" << engineName
-          << "]. VisualizeLidar plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-    return;
-
-  // assume there is only one scene
-  // load scene
-  auto scene = engine->SceneByIndex(0);
+  auto scene = rendering::sceneFromFirstRenderEngine();
   if (!scene)
-  {
-    gzerr << "Internal error: scene is null." << std::endl;
     return;
-  }
-
-  if (!scene->IsInitialized())
-  {
-    return;
-  }
 
   // Create lidar visual
   gzdbg << "Creating lidar visual" << std::endl;
