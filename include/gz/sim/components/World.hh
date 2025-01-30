@@ -33,8 +33,26 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 
+// The following is only needed to keep ABI compatibility
+// TODO(azeey) Remove in main
+namespace traits
+{
+template<>
+class IsOutStreamable<std::ostream, sdf::World>
+{
+    public: static constexpr bool value = false; // NOLINT
+};
+
+template<>
+class IsInStreamable<std::istream, sdf::World>
+{
+    public: static constexpr bool value = false; // NOLINT
+};
+}
+
 namespace serializers
 {
+
 /// \brief Specialize the DefaultSerializer on sdf::World so we can
 /// skip serialization
 /// TODO(azeey) Do we ever want to serialize this component?
