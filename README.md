@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
+For installing Gazebo, see the [getting started guide](https://gazebosim.org/docs/latest/getstarted/). If you want to use `libgz-sim` as a library, see the [installation tutorial](https://gazebosim.org/api/sim/9/install.html)
 
 # Usage
 
