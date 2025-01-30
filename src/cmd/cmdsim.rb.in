@@ -565,7 +565,7 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           return 1
         }
 
-        Signal.trap("TERM") { 
+        Signal.trap("TERM") {
           handle_signal(guiPid, serverPid)
           return 1
         }
