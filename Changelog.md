@@ -1,5 +1,13 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.8.1 (2025-01-30)
+
+1. Fix illegal anchor warnings
+    * [Pull request #2741](https://github.com/gazebosim/gz-sim/pull/2741)
+
+1. Fix mesh import filters not displaying correctly on KDE
+    * [Pull request #2736](https://github.com/gazebosim/gz-sim/pull/2736)
+
 ### Gazebo Sim 8.8.0 (2025-01-16)
 
 1. Add parameter for adjusting current sign in battery plugin
