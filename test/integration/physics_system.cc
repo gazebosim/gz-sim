@@ -73,12 +73,12 @@
 #include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
-#include "gz/sim/components/MultiRay.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
@@ -2935,19 +2935,17 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         _ecm.CreateComponent(
           worldEntity, components::PhysicsCollisionDetector("bullet"));
 
-        // Create MultiRay and MultiRayIntersections components for testEntity1
+        // Create RaycastData component for testEntity1
         testEntity1 = _ecm.CreateEntity();
-        _ecm.CreateComponent(testEntity1, components::MultiRay());
-        _ecm.CreateComponent(testEntity1, components::MultiRayIntersections());
+        _ecm.CreateComponent(testEntity1, components::RaycastData());
 
-        // Create MultiRay and MultiRayIntersections components for testEntity2
+        // Create RaycastData component for testEntity2
         testEntity2 = _ecm.CreateEntity();
-        _ecm.CreateComponent(testEntity2, components::MultiRay());
-        _ecm.CreateComponent(testEntity2, components::MultiRayIntersections());
+        _ecm.CreateComponent(testEntity2, components::RaycastData());
 
         // Add 5 rays to testEntity1 that intersect with the ground plane
         auto &rays1 =
-          _ecm.Component<components::MultiRay>(testEntity1)->Data();
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().rays;
         for (size_t i = 0; i < 5; ++i)
         {
           components::RayInfo ray;
@@ -2957,7 +2955,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         }
 
         // Add 2 rays to testEntity2 that don't intersect with the ground plane
-        auto &rays2 = _ecm.Component<components::MultiRay>(testEntity2)->Data();
+        auto &rays2 =
+           _ecm.Component<components::RaycastData>(testEntity2)->Data().rays;
         for (size_t i = 0; i < 2; ++i)
         {
           components::RayInfo ray;
@@ -2971,10 +2970,10 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
       [&](const UpdateInfo &/*_info*/, const EntityComponentManager &_ecm)
       {
         // check the raycasting results for testEntity1
-        auto &rays1 = _ecm.Component<components::MultiRay>(testEntity1)->Data();
+        auto &rays1 =
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().rays;
         auto &results1 =
-          _ecm.Component<components::MultiRayIntersections>(
-            testEntity1)->Data();
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().results;
         ASSERT_EQ(rays1.size(), results1.size());
 
         for (size_t i = 0; i < results1.size(); ++i) {
@@ -2988,10 +2987,9 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
 
         // check the raycasting results for testEntity2
         auto &rays2 =
-          _ecm.Component<components::MultiRay>(testEntity2)->Data();
+          _ecm.Component<components::RaycastData>(testEntity2)->Data().rays;
         auto &results2 =
-          _ecm.Component<components::MultiRayIntersections>(
-            testEntity2)->Data();
+          _ecm.Component<components::RaycastData>(testEntity2)->Data().results;
         ASSERT_EQ(rays2.size(), results2.size());
 
         for (size_t i = 0; i < results2.size(); ++i) {

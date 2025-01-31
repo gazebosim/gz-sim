@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_SIM_COMPONENTS_MULTIRAY_HH_
-#define GZ_SIM_COMPONENTS_MULTIRAY_HH_
+#ifndef GZ_SIM_COMPONENTS_RAYCASTDATA_HH_
+#define GZ_SIM_COMPONENTS_RAYCASTDATA_HH_
 
 #include <gz/math/Vector3.hh>
 #include <gz/sim/components/Factory.hh>
@@ -43,8 +43,8 @@ struct RayInfo
   gz::math::Vector3d end;
 };
 
-/// \brief A struct that holds the results of raycasting.
-struct RayIntersectionInfo
+/// \brief A struct that holds the result of a raycasting operation.
+struct RaycastResultInfo
 {
   /// \brief The hit point in the world coordinates
   gz::math::Vector3d point;
@@ -56,22 +56,23 @@ struct RayIntersectionInfo
   gz::math::Vector3d normal;
 };
 
-/// \brief A component type that contains multiple rays from an entity.
-using MultiRay =
-  gz::sim::components::Component<std::vector<RayInfo>, class MultiRayTag>;
+/// @brief A struct that holds the raycasting data, including ray and results
+struct RaycastDataInfo
+{
+  /// @brief The rays to cast from the entity.
+  std::vector<RayInfo> rays;
 
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MultiRay", MultiRay)
+  /// @brief The results of the raycasting.
+  std::vector<RaycastResultInfo> results;
+};
 
-/// \brief A component type that contains the raycasting results from multiple
-// rays from an entity into a physics world.
-using MultiRayIntersections =
-  gz::sim::components::Component<std::vector<RayIntersectionInfo>,
-  class MultiRayIntersectionsTag>;
+/// \brief A component type that contains the raycasting results from
+// multiple rays from an entity into a physics world.
+using RaycastData = Component<RaycastDataInfo, class RaycastDataTag>;
 
-GZ_SIM_REGISTER_COMPONENT(
-  "gz_sim_components.MultiRayIntersections", MultiRayIntersections)
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RaycastData", RaycastData)
 }
 }
 }
 }
-#endif  // GZ_SIM_COMPONENTS_MULTIRAY_HH_
+#endif  // GZ_SIM_COMPONENTS_RAYCASTDATA_HH_

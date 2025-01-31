@@ -130,10 +130,10 @@
 #include "gz/sim/components/LinearVelocityReset.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
-#include "gz/sim/components/MultiRay.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointTransmittedWrench.hh"
 #include "gz/sim/components/JointForceCmd.hh"
@@ -4183,9 +4183,9 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
-  // Quit early if the MultiRayIntersections component hasn't been created.
+  // Quit early if the RaycastData component hasn't been created.
   // This means there are no systems that need raycasting information
-  if (!_ecm.HasComponentType(components::MultiRayIntersections::typeId))
+  if (!_ecm.HasComponentType(components::RaycastData::typeId))
     return;
 
   // Assume that there is only one world entity
@@ -4214,40 +4214,37 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Go through each entity that has a MultiRay and MultiRayIntersections
-  // components, trace the rays and set the MultiRayIntersections component
-  // value to the list of intersections that correspond to the ray entity
-  _ecm.Each<components::MultiRay,
-            components::MultiRayIntersections>(
+  // Go through each entity that has a RaycastData components, trace the
+  // rays and store the results
+  _ecm.Each<components::RaycastData>(
       [&](const Entity &/*_entity*/,
-          components::MultiRay *_multiRay,
-          components::MultiRayIntersections *_multiRayIntersections) -> bool
+          components::RaycastData *_raycastData) -> bool
       {
-        // Retrieve the rays from the MultiRay component
-        const auto &rays = _multiRay->Data();
+        // Retrieve the rays from the RaycastData component
+        const auto &rays = _raycastData->Data().rays;
 
-        // Retrieve and clear results from MultiRayIntersections component
-        auto &rayIntersections = _multiRayIntersections->Data();
-        rayIntersections.clear();
+        // Clear the previous results
+        auto &results = _raycastData->Data().results;
+        results.clear();
 
         for (const auto &ray : rays)
         {
-          // Compute the ray intersections
+          // Compute the raycasting
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
               math::eigen3::convert(ray.start),
               math::eigen3::convert(ray.end));
 
-          const auto result =
+          const auto rayIntersectionResult =
             rayIntersection.Get<
               physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
-          // Store the results into the MultiRayIntersections component
-          components::RayIntersectionInfo info;
-          info.point = math::eigen3::convert(result.point);
-          info.fraction = result.fraction;
-          info.normal = math::eigen3::convert(result.normal);
-          rayIntersections.push_back(info);
+          // Store the result of raycasting
+          components::RaycastResultInfo result;
+          result.point = math::eigen3::convert(rayIntersectionResult.point);
+          result.fraction = rayIntersectionResult.fraction;
+          result.normal = math::eigen3::convert(rayIntersectionResult.normal);
+          results.push_back(result);
         }
         return true;
       });
