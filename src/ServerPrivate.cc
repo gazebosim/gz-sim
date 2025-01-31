@@ -610,6 +610,10 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
       sdfParserConfig.SetStoreResolvedURIs(true);
       sdfParserConfig.SetCalculateInertialConfiguration(
         sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+
+      MeshInertiaCalculator meshInertiaCalculator;
+      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+
       errors = this->sdfRoot.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
