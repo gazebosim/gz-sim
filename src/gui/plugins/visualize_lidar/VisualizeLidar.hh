@@ -35,7 +35,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   /// \brief Visualize the LaserScan message returned by the sensors. Use the
   /// checkbox to turn visualization of non-hitting rays on or off and
-  /// the textfield to select the message to be visualised. The combobox is
+  /// the textfield to select the message to be visualized. The combobox is
   /// used to select the type of visual for the sensor data.
   class VisualizeLidar : public gz::sim::GuiSystem
   {
