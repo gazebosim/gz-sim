@@ -54,7 +54,7 @@ namespace serializers
       if (modelElem->HasElement("pose"))
       {
         sdf::ElementPtr poseElem = modelElem->GetElement("pose");
-        if (poseElem->HasAttribute("relative_to"))
+        if (poseElem->GetAttribute("relative_to")->GetSet())
         {
           // Skip serializing models with //pose/@relative_to attribute
           // since deserialization will fail. This could be a nested model.
