@@ -336,11 +336,12 @@ bool ViewAngle::OnMoveToModelService(const gz::msgs::GUICamera &_msg,
     return false;
   }
   Entity entityId = kNullEntity;
-  try
+  if (std::holds_alternative<uint64_t>(
+    visualToMove->UserData("gazebo-entity")))
   {
     entityId = std::get<uint64_t>(visualToMove->UserData("gazebo-entity"));
   }
-  catch(std::bad_variant_access &_e)
+  else
   {
     gzerr << "Failed to get gazebo-entity user data ["
           << visualToMove->Name() << "]" << std::endl;
@@ -452,13 +453,9 @@ void ViewAnglePrivate::OnRender()
       if (cam)
       {
         bool isUserCamera = false;
-        try
+        if (std::holds_alternative<bool>(cam->UserData("user-camera")))
         {
           isUserCamera = std::get<bool>(cam->UserData("user-camera"));
-        }
-        catch (std::bad_variant_access &)
-        {
-          continue;
         }
         if (isUserCamera)
         {
@@ -496,14 +493,15 @@ void ViewAnglePrivate::OnRender()
             if (!vis)
               continue;
 
-            try
+            if (std::holds_alternative<uint64_t>(
+              vis->UserData("gazebo-entity")))
             {
               if (std::get<uint64_t>(vis->UserData("gazebo-entity")) != entity)
               {
                 continue;
               }
             }
-            catch (std::bad_variant_access &)
+            else
             {
               continue;
             }
