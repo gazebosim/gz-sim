@@ -51,12 +51,12 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 };
 
 /// \brief Load an SDF world and run mesh inertia tests. Two tests are run
-/// one after another: 1) the server is launch with path to SDF file, and
-/// 2) ther server is launch from an sdf string.
+/// one after another: 1) the server is launched with path to SDF file, and
+/// 2) ther server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
 void loadSdfAndTest(const std::string &_path,
-                    std::function<void(const gz::sim::ServerConfig &)> _testFunc)
+    std::function<void(const gz::sim::ServerConfig &)> _testFunc)
 {
   // Test mesh inertial calculator with sdf loaded from file
   gz::sim::ServerConfig serverConfig;
