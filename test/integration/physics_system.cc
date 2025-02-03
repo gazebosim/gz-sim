@@ -2938,29 +2938,31 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         // Create RaycastData component for testEntity1
         testEntity1 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity1, components::RaycastData());
+        _ecm.CreateComponent(testEntity1, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Create RaycastData component for testEntity2
         testEntity2 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity2, components::RaycastData());
+        _ecm.CreateComponent(testEntity2, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Add 5 rays to testEntity1 that intersect with the ground plane
         auto &rays1 =
           _ecm.Component<components::RaycastData>(testEntity1)->Data().rays;
-        for (size_t i = 0; i < 5; ++i)
+        for (int i = 0; i < 5; ++i)
         {
           components::RayInfo ray;
-          ray.start = math::Vector3d(0, 0, 10 - i);
-          ray.end = math::Vector3d(0, 0, -10);
+          ray.start = math::Vector3d(0, 0, -i);
+          ray.end = math::Vector3d(0, 0, -20);
           rays1.push_back(ray);
         }
 
         // Add 2 rays to testEntity2 that don't intersect with the ground plane
         auto &rays2 =
            _ecm.Component<components::RaycastData>(testEntity2)->Data().rays;
-        for (size_t i = 0; i < 2; ++i)
+        for (int i = 0; i < 2; ++i)
         {
           components::RayInfo ray;
-          ray.start = math::Vector3d(0, 0, 10 - i);
+          ray.start = math::Vector3d(0, 0, -i);
           ray.end = math::Vector3d(0, 0, 5);
           rays2.push_back(ray);
         }
@@ -2977,7 +2979,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         ASSERT_EQ(rays1.size(), results1.size());
 
         for (size_t i = 0; i < results1.size(); ++i) {
-          ASSERT_EQ(results1[i].point, math::Vector3d::Zero);
+          ASSERT_EQ(results1[i].point, math::Vector3d(0, 0, -10));
           ASSERT_EQ(results1[i].normal, math::Vector3d(0, 0, 1));
           const double expFraction =
             (rays1[i].start - results1[i].point).Length() /

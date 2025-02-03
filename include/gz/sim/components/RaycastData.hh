@@ -36,23 +36,23 @@ namespace components
 /// \brief A struct that holds the information of a ray.
 struct RayInfo
 {
-  /// \brief Starting point of the ray in world coordinates
+  /// \brief Starting point of the ray in entity frame
   gz::math::Vector3d start;
 
-  /// \brief Ending point of the ray in world coordinates
+  /// \brief Ending point of the ray in entity frame
   gz::math::Vector3d end;
 };
 
 /// \brief A struct that holds the result of a raycasting operation.
 struct RaycastResultInfo
 {
-  /// \brief The hit point in the world coordinates
+  /// \brief The hit point in entity frame
   gz::math::Vector3d point;
 
   /// \brief The fraction of the ray length at the intersection/hit point.
   double fraction;
 
-  /// \brief The normal at the hit point in the world coordinates
+  /// \brief The normal at the hit point in entity frame
   gz::math::Vector3d normal;
 };
 

@@ -4216,9 +4216,11 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 
   // Go through each entity that has a RaycastData components, trace the
   // rays and store the results
-  _ecm.Each<components::RaycastData>(
-      [&](const Entity &/*_entity*/,
-          components::RaycastData *_raycastData) -> bool
+  _ecm.Each<components::RaycastData,
+            components::Pose>(
+      [&](const Entity &_entity,
+          components::RaycastData *_raycastData,
+          components::Pose */*_pose*/) -> bool
       {
         // Retrieve the rays from the RaycastData component
         const auto &rays = _raycastData->Data().rays;
@@ -4227,23 +4229,41 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
         auto &results = _raycastData->Data().results;
         results.clear();
 
+        // Get the entity's world pose
+        const auto &entityWorldPose = worldPose(_entity, _ecm);
+
         for (const auto &ray : rays)
         {
-          // Compute the raycasting
+          // Convert ray to world frame
+          const math::Vector3d rayStart =
+            entityWorldPose.Pos() + entityWorldPose.Rot().RotateVector(ray.start);
+          const math::Vector3d rayEnd =
+            entityWorldPose.Pos() + entityWorldPose.Rot().RotateVector(ray.end);
+
+          // Perform ray intersection
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
-              math::eigen3::convert(ray.start),
-              math::eigen3::convert(ray.end));
+              math::eigen3::convert(rayStart),
+              math::eigen3::convert(rayEnd));
 
           const auto rayIntersectionResult =
             rayIntersection.Get<
               physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
-          // Store the result of raycasting
+          // Convert result to entity frame and store
           components::RaycastResultInfo result;
-          result.point = math::eigen3::convert(rayIntersectionResult.point);
+
+          const math::Vector3d intersectionPoint =
+            math::eigen3::convert(rayIntersectionResult.point);
+          result.point = entityWorldPose.Rot().RotateVectorReverse(
+            intersectionPoint - entityWorldPose.Pos());
+
           result.fraction = rayIntersectionResult.fraction;
-          result.normal = math::eigen3::convert(rayIntersectionResult.normal);
+
+          const math::Vector3d normal =
+            math::eigen3::convert(rayIntersectionResult.normal);
+          result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+
           results.push_back(result);
         }
         return true;
