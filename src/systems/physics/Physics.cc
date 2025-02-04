@@ -4228,6 +4228,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
         // Clear the previous results
         auto &results = _raycastData->Data().results;
         results.clear();
+        results.reserve(rays.size());
 
         // Get the entity's world pose
         const auto &entityWorldPose = worldPose(_entity, _ecm);
@@ -4250,9 +4251,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             rayIntersection.Get<
               physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
-          // Convert result to entity frame and store
-          components::RaycastResultInfo result;
+          results.emplace_back();
+          auto &result = results.back();
 
+          // Convert result to entity frame and store
           const math::Vector3d intersectionPoint =
             math::eigen3::convert(rayIntersectionResult.point);
           result.point = entityWorldPose.Rot().RotateVectorReverse(
@@ -4263,8 +4265,6 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           const math::Vector3d normal =
             math::eigen3::convert(rayIntersectionResult.normal);
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
-
-          results.push_back(result);
         }
         return true;
       });
