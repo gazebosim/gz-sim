@@ -66,8 +66,12 @@ struct RaycastDataInfo
   std::vector<RaycastResultInfo> results;
 };
 
-/// \brief A component type that contains the raycasting results from
-// multiple rays from an entity into a physics world.
+/// \brief A component type that contains the rays traced from an entity
+/// into a physics world, along with the results of the raycasting operation.
+///
+/// This component is primarily used for applications that require raycasting.
+/// The target application defines the rays, and the physics system plugin
+/// updates the raycasting results during each update loop.
 using RaycastData = Component<RaycastDataInfo, class RaycastDataTag>;
 
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RaycastData", RaycastData)
