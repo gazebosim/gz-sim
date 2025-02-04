@@ -21,8 +21,11 @@
 #include <gz/math/Vector3.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
+#include <istream>
+#include <ostream>
 #include <vector>
 
 namespace gz
@@ -65,14 +68,37 @@ struct RaycastDataInfo
   /// @brief The results of the raycasting.
   std::vector<RaycastResultInfo> results;
 };
+}
 
+namespace serializers
+{
+  /// \brief Specialization of DefaultSerializer for RaycastDataInfo
+  template<> class DefaultSerializer<components::RaycastDataInfo>
+  {
+    public: static std::ostream &Serialize(
+      std::ostream &_out, const components::RaycastDataInfo &)
+    {
+      return _out;
+    }
+
+    public: static std::istream &Deserialize(
+      std::istream &_in, components::RaycastDataInfo &)
+    {
+      return _in;
+    }
+  };
+}
+
+namespace components
+{
 /// \brief A component type that contains the rays traced from an entity
 /// into a physics world, along with the results of the raycasting operation.
 ///
 /// This component is primarily used for applications that require raycasting.
 /// The target application defines the rays, and the physics system plugin
 /// updates the raycasting results during each update loop.
-using RaycastData = Component<RaycastDataInfo, class RaycastDataTag>;
+using RaycastData = Component<RaycastDataInfo, class RaycastDataTag,
+                              serializers::DefaultSerializer<RaycastDataInfo>>;
 
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RaycastData", RaycastData)
 }
