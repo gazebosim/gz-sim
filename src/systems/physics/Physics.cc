@@ -4235,10 +4235,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
         for (const auto &ray : rays)
         {
           // Convert ray to world frame
-          const math::Vector3d rayStart =
-            entityWorldPose.Pos() + entityWorldPose.Rot().RotateVector(ray.start);
-          const math::Vector3d rayEnd =
-            entityWorldPose.Pos() + entityWorldPose.Rot().RotateVector(ray.end);
+          const math::Vector3d rayStart = entityWorldPose.Pos() +
+            entityWorldPose.Rot().RotateVector(ray.start);
+          const math::Vector3d rayEnd = entityWorldPose.Pos() +
+            entityWorldPose.Rot().RotateVector(ray.end);
 
           // Perform ray intersection
           auto rayIntersection =
