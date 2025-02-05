@@ -25,6 +25,7 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
   # Add systems that need a valid display here.
   # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
   # or Xdummy instead of skipping them
+  set(VALID_DRI_DISPLAY TRUE)
   if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
     list(APPEND test_sources ModelCommandAPI_TEST.cc)
   else()
@@ -58,13 +59,29 @@ foreach(CMD_TEST
     find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
   endif()
 
+  add_dependencies(${CMD_TEST}
+    ${gz_lib_target}
+    TestModelSystem
+    TestSensorSystem
+    TestWorldSystem
+  )
+
   target_compile_definitions(${CMD_TEST}
     PRIVATE
       "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
   target_compile_definitions(${CMD_TEST}
     PRIVATE
-      "BREW_RUBY=\"${BREW_RUBY} \"")
+      "BREW_RUBY=\"${BREW_RUBY}\"")
+
+  if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+    list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endif()
 
   # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
   # in build directory in necessary. For regular tests, the trick is to place all libraries
