@@ -15,7 +15,7 @@
  *
 */
 
-#include "gz.hh"
+#include "ModelCommandAPI.hh"
 
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>

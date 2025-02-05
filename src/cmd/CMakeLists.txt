@@ -2,16 +2,9 @@
 # "gtest_sources" variable.
 gz_get_libsources_and_unittests(sources gtest_sources)
 
-add_library(gz STATIC gz.cc)
-target_link_libraries(gz
-  PUBLIC
-    ${PROJECT_LIBRARY_TARGET_NAME}
-)
-
 set(model_executable gz-sim-model)
-add_executable(${model_executable} model_main.cc)
+add_executable(${model_executable} model_main.cc ModelCommandAPI.cc)
 target_link_libraries(${model_executable}
-  gz
   gz-utils${GZ_UTILS_VER}::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
@@ -27,10 +20,17 @@ set(test_sources)
 # CMake generators, see also cmd/CMakeLists.txt
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND test_sources
-    ../gz_TEST.cc
-    ../ModelCommandAPI_TEST.cc
-  )
+  list(APPEND test_sources gz_TEST.cc)
+
+  # Add systems that need a valid display here.
+  # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+  # or Xdummy instead of skipping them
+  if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+    list(APPEND test_sources ModelCommandAPI_TEST.cc)
+  else()
+    message(WARNING
+      "Skipping ModelCommandAPI tests because a valid display was not found")
+  endif()
 endif()
 
 gz_build_tests(TYPE UNIT
@@ -54,10 +54,9 @@ foreach(CMD_TEST
   # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
   # due to System Integrity Protection (SIP). Try to find ruby from
   # homebrew as a workaround.
-  if (APPLE)
+  if (${CMD_TEST} STREQUAL UNIT_gz_TEST AND APPLE)
     find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
   endif()
-
 
   target_compile_definitions(${CMD_TEST}
     PRIVATE
@@ -66,7 +65,6 @@ foreach(CMD_TEST
   target_compile_definitions(${CMD_TEST}
     PRIVATE
       "BREW_RUBY=\"${BREW_RUBY} \"")
-
 
   # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
   # in build directory in necessary. For regular tests, the trick is to place all libraries

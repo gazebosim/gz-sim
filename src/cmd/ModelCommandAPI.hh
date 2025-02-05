@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef GZ_SIM_GZ_HH_
-#define GZ_SIM_GZ_HH_
+#ifndef GZ_SIM_MODELCOMMANDAPI_HH_
+#define GZ_SIM_MODELCOMMANDAPI_HH_
 
 #include "gz/sim/gz/Export.hh"
 

@@ -22,7 +22,7 @@
 #include <gz/utils/cli/GzFormatter.hpp>
 
 #include "gz/sim/config.hh"
-#include "gz.hh"
+#include "ModelCommandAPI.hh"
 
 //////////////////////////////////////////////////
 /// \brief Enumeration of available model commands
