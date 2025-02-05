@@ -79,7 +79,7 @@ namespace gz
       /// \param[in] _useLevels Whether to use levles or not. False by default.
       /// \param[in] _createEntities True to create entities. Use false if
       /// you'd like to delay entity creation. False is used to support
-      /// background simulation asset download.
+      /// simulation asset download in a background thread.
       public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
                                 const ServerConfig &_config = ServerConfig(),
@@ -536,6 +536,8 @@ namespace gz
 
       /// \brief Asset creation mutex.
       private: std::mutex assetCreationMutex;
+
+      /// \brief Asset creation condition variable.
       private: std::condition_variable creationCv;
 
       /// \brief Keep the latest GUI message.

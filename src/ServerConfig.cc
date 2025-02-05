@@ -208,9 +208,9 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
-            sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
+            sdfRoot(_cfg->sdfRoot),
             waitForAssets(_cfg->waitForAssets) { }
 
   // \brief The SDF file that the server should load

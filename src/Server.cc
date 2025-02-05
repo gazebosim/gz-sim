@@ -102,7 +102,7 @@ Server::Server(const ServerConfig &_config)
     sdfRoot.WorldByIndex(i)->ClearLights();
   }
 
-  // This will create the simulation runners.
+  // This will create the simulation runners, but not entities.
   this->dataPtr->CreateSimulationRunners(sdfRoot);
 
   // Storing the sdf root. The ServerPrivate.hh header file mentions

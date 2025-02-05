@@ -1,5 +1,28 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.8.0 (2025-01-16)
+
+1. Add parameter for adjusting current sign in battery plugin
+    * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
+
+1. Extend shapes plugin width to include the ellipsoid button
+    * [Pull request #2699](https://github.com/gazebosim/gz-sim/pull/2699)
+
+1. Use same FP limits for TrackedVehicle to avoid self-moving
+    * [Pull request #2651](https://github.com/gazebosim/gz-sim/pull/2651)
+
+1. Link.hh: add Sensor accessor APIs
+    * [Pull request #2693](https://github.com/gazebosim/gz-sim/pull/2693)
+
+1. Improve load times by skipping serialization of entities when unnecessary.
+    * [Pull request #2683](https://github.com/gazebosim/gz-sim/pull/2683)
+
+1. Prepend to `PYTHONPATH` in tests
+    * [Pull request #2681](https://github.com/gazebosim/gz-sim/pull/2681)
+
+1. Fix crash in `OpticalTactilePlugin` by checking for valid visualize pointer
+    * [Pull request #2674](https://github.com/gazebosim/gz-sim/pull/2674)
+
 ### Gazebo Sim 8.7.0 (2024-11-08)
 
 1. Fix crash when multicopter motor system is attached to an empty model

@@ -26,6 +26,7 @@
 
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
+#include "gz/sim/Util.hh"
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AirPressureSensor.hh"
@@ -523,6 +524,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
+
+    if (link->AutoInertia())
+    {
+      gzdbg << "Link has auto-inertial enabled: "
+            << scopedName(linkEntity, *this->dataPtr->ecm, "::", false) << "\n";
+      gzdbg << "  pose: " << link->Inertial().Pose() << "\n";
+      gzdbg << "  mass: " << link->Inertial().MassMatrix().Mass() << "\n";
+      gzdbg << "  ixx iyy izz: "
+            << link->Inertial().MassMatrix().DiagonalMoments() << "\n";
+      gzdbg << "  ixy ixz iyz: "
+            << link->Inertial().MassMatrix().OffDiagonalMoments()
+            << std::endl;
+    }
 
     if (canonicalLink == link)
     {

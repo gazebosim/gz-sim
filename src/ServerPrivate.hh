@@ -80,7 +80,10 @@ namespace gz
       public: void AddRecordPlugin(const ServerConfig &_config,
                                    sdf::Root &_root);
 
-      /// \brief Create the simulation runners, one for each world.
+      /// \brief Create the simulation runners, on for each world in then
+      /// provided sdf::Root object. Entities within in the provided
+      /// sdf::Root object are not created. 
+      /// \param[in] _sdfRoot The sdf root object.
       public: void CreateSimulationRunners(const sdf::Root &_sdfRoot);
 
       /// \brief Stop server.

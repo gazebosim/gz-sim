@@ -305,6 +305,7 @@ void ServerPrivate::CreateSimulationRunners(const sdf::Root &_sdfRoot)
         std::lock_guard<std::mutex> lock(this->worldsMutex);
         this->worldNames.push_back(world->Name());
       }
+      // Create the simulation runner without creating entities.
       auto runner = std::make_unique<SimulationRunner>(
           *world, this->systemLoader, this->config, false);
       runner->SetFuelUriMap(this->fuelUriMap);
@@ -599,6 +600,13 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 {
   sdf::Errors errors;
 
+  sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+  sdfParserConfig.SetStoreResolvedURIs(true);
+  sdfParserConfig.SetCalculateInertialConfiguration(
+    sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+  MeshInertiaCalculator meshInertiaCalculator;
+  sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+
   switch (_config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file
@@ -623,10 +631,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
       }
       if (!_suppressConsole)
         gzmsg << msg;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = _root.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       _root.ResolveAutoInertials(errors, sdfParserConfig);
@@ -652,13 +656,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
         gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
-
-      MeshInertiaCalculator meshInertiaCalculator;
-      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
       errors = sdfRootLocal.Load(filePath, sdfParserConfig);
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
           ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
