@@ -82,7 +82,7 @@ namespace gz
 
       /// \brief Create the simulation runners, on for each world in then
       /// provided sdf::Root object. Entities within in the provided
-      /// sdf::Root object are not created. 
+      /// sdf::Root object are not created.
       /// \param[in] _sdfRoot The sdf root object.
       public: void CreateSimulationRunners(const sdf::Root &_sdfRoot);
 
