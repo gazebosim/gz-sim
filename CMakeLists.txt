@@ -113,8 +113,8 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui9 REQUIRED)
-set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
+gz_find_package(gz-gui10 REQUIRED)
+set(GZ_GUI_VER ${gz-gui10_VERSION_MAJOR})
 gz_find_package (Qt5
   COMPONENTS
     Core
