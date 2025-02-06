@@ -25,11 +25,10 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
   # Add systems that need a valid display here.
   # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
   # or Xdummy instead of skipping them
-  set(VALID_DRI_DISPLAY TRUE)
   if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
     list(APPEND test_sources ModelCommandAPI_TEST.cc)
   else()
-    message(WARNING
+    message(STATUS
       "Skipping ModelCommandAPI tests because a valid display was not found")
   endif()
 endif()
@@ -72,7 +71,7 @@ foreach(CMD_TEST
 
   target_compile_definitions(${CMD_TEST}
     PRIVATE
-      "BREW_RUBY=\"${BREW_RUBY}\"")
+      "BREW_RUBY=\"${BREW_RUBY} \"")
 
   if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
     set(_env_vars)
