@@ -7,8 +7,8 @@ project(OdometerSystem)
 gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
 set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
-gz_find_package(gz-sim9 REQUIRED)
-set(GZ_SIM_VER ${gz-sim9_VERSION_MAJOR})
+gz_find_package(gz-sim10 REQUIRED)
+set(GZ_SIM_VER ${gz-sim10_VERSION_MAJOR})
 
 find_package(gz-sensors9 REQUIRED)
 set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
@@ -20,7 +20,7 @@ include(FetchContent)
 FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
-  GIT_TAG main
+  GIT_TAG gz-sensors${GZ_SENSORS_VER}
 )
 FetchContent_Populate(sensors_clone)
 add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})

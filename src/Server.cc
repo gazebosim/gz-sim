@@ -497,6 +497,17 @@ void Server::ResetAll()
 }
 
 //////////////////////////////////////////////////
+bool Server::Reset(const std::size_t _runnerId)
+{
+  if (_runnerId >= this->dataPtr->simRunners.size())
+  {
+    return false;
+  }
+  this->dataPtr->simRunners[_runnerId]->Reset(true, false, false);
+  return true;
+}
+
+//////////////////////////////////////////////////
 void Server::Stop()
 {
   this->dataPtr->Stop();
