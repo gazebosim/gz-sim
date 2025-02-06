@@ -665,7 +665,8 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
-TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
+TEST(ModelCommandAPI,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
 {
   // Flags in help message
   std::string helpOutput = customExecStr(kGzModelCommand + " --help");
