@@ -1,7 +1,4 @@
-# Collect source files into the "sources" variable and unit test files into the
-# "gtest_sources" variable.
-gz_get_libsources_and_unittests(sources gtest_sources)
-
+# Create model executable
 set(model_executable gz-sim-model)
 add_executable(${model_executable} model_main.cc ModelCommandAPI.cc)
 target_link_libraries(${model_executable}
@@ -33,29 +30,25 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
   endif()
 endif()
 
-gz_build_tests(TYPE UNIT
-  SOURCES
-    ${test_sources}
-  LIB_DEPS
-    gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
-  ENVIRONMENT
-      GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
+# Build unit tests if Gazebo tools is installed
+if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
+  gz_build_tests(TYPE UNIT
+    SOURCES
+      ${test_sources}
+    LIB_DEPS
+      gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+      ${EXTRA_TEST_LIB_DEPS}
+      gz-sim${PROJECT_VERSION_MAJOR}
+    ENVIRONMENT
+        GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  )
+endif()
 
 foreach(CMD_TEST
   UNIT_gz_TEST UNIT_ModelCommandAPI_TEST)
 
   if(NOT TARGET ${CMD_TEST})
     continue()
-  endif()
-
-  # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
-  # due to System Integrity Protection (SIP). Try to find ruby from
-  # homebrew as a workaround.
-  if (${CMD_TEST} STREQUAL UNIT_gz_TEST AND APPLE)
-    find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
   endif()
 
   add_dependencies(${CMD_TEST}
@@ -69,11 +62,18 @@ foreach(CMD_TEST
     PRIVATE
       "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
 
-  target_compile_definitions(${CMD_TEST}
-    PRIVATE
-      "BREW_RUBY=\"${BREW_RUBY} \"")
-
   if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
+    # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
+    # due to System Integrity Protection (SIP). Try to find ruby from
+    # homebrew as a workaround.
+    if(APPLE)
+      find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
+    endif()
+
+    target_compile_definitions(${CMD_TEST}
+      PRIVATE
+        "BREW_RUBY=\"${BREW_RUBY} \"")
+
     set(_env_vars)
     list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
     list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
@@ -92,7 +92,6 @@ foreach(CMD_TEST
     set_tests_properties(${CMD_TEST} PROPERTIES
       ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   endif()
-
 endforeach()
 
 #===============================================================================

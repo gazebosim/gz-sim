@@ -25,8 +25,7 @@
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
-static const std::string kGzModelCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
+static const std::string kGzModelCommand(std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
