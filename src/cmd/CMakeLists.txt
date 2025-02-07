@@ -164,16 +164,16 @@ file(GENERATE
 # Install the ruby command line library in an unversioned location.
 install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/gz)
 
-# Used for the installed version.
-set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
-
-set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
-configure_file(
-  "model.yaml.in"
-  ${model_configured}
-  @ONLY)
-
-install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
+# # Used for the installed version.
+# set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
+#
+# set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
+# configure_file(
+#   "model.yaml.in"
+#   ${model_configured}
+#   @ONLY)
+#
+# install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
 
 #===============================================================================
 # Generate the ruby script for internal testing.
@@ -212,7 +212,7 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
 endif()
 
 #===============================================================================
-# Generate the ruby script for internal testing.
+# Generate the ruby script for internal testing of model command.
 # Note that the major version of the library is included in the name.
 # The logic is valid only for single-config CMake generators, so no script is
 # generated if a multiple-config CMake geneator is used
@@ -237,22 +237,22 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
     INPUT "${cmd_model_script_configured_test}"
   )
 
-  # Used for internal testing.
-  set(gz_model_ruby_path "${cmd_model_script_generated_test}")
+  # # Used for internal testing.
+  # set(gz_model_ruby_path "${cmd_model_script_generated_test}")
 
-  # Generate a configuration file for internal testing.
-  # Note that the major version of the library is included in the name.
-  # Ex: model0.yaml
-  configure_file(
-    "model.yaml.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
-    @ONLY
-  )
+  # # Generate a configuration file for internal testing.
+  # # Note that the major version of the library is included in the name.
+  # # Ex: model0.yaml
+  # configure_file(
+  #   "model.yaml.in"
+  #   "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
+  #   @ONLY
+  # )
 
-  file(GENERATE
-    OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/model${PROJECT_VERSION_MAJOR}.yaml"
-    INPUT "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
-  )
+  # file(GENERATE
+  #   OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/model${PROJECT_VERSION_MAJOR}.yaml"
+  #   INPUT "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
+  # )
 endif()
 
 #===============================================================================
