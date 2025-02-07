@@ -56,14 +56,7 @@ defineSimTestFixture(pybind11::object module)
       [](TestFixture* self, std::function<void(
           const UpdateInfo &, EntityComponentManager &)> _cb)
       {
-        // Add explicit scoped acquire and release of GIL, so that Python Systems
-        // can be executed
-        // This acquire and release is only required from the PythonSystem code
-        // However, adding this here may prevent undefined or unintended behaviors
-        // in future
-        pybind11::gil_scoped_acquire gil;
         self->OnPreUpdate(_cb);
-        pybind11::gil_scoped_release gilr;
       }
     ),
     pybind11::return_value_policy::reference,
@@ -74,9 +67,7 @@ defineSimTestFixture(pybind11::object module)
       [](TestFixture* self, std::function<void(
           const UpdateInfo &, EntityComponentManager &)> _cb)
       {
-        pybind11::gil_scoped_acquire gil;
         self->OnUpdate(_cb);
-        pybind11::gil_scoped_release gilr;
       }
     ),
     pybind11::return_value_policy::reference,
@@ -87,9 +78,7 @@ defineSimTestFixture(pybind11::object module)
       [](TestFixture* self, std::function<void(
           const UpdateInfo &, const EntityComponentManager &)> _cb)
       {
-        pybind11::gil_scoped_acquire gil;
         self->OnPostUpdate(_cb);
-        pybind11::gil_scoped_release gilr;
       }
     ),
     pybind11::return_value_policy::reference,
