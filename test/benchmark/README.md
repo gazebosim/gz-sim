@@ -14,7 +14,7 @@
 
 Given a set of changes to the codebase, it is often useful to see the difference in performance.
 
-Once two (or more) benchmarks have been executed, compare the results by downloading the [benchmark tools](https://github.com/google/benchmark/tree/master/tools), and then run the following command:
+Once two (or more) benchmarks have been executed, compare the results by downloading the [benchmark tools](https://github.com/google/benchmark/tree/main/tools), and then run the following command:
 
 ```
 # From the downloaded "tools" folder
