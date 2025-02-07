@@ -42,6 +42,11 @@ namespace systems
   ///
   /// ## System Parameters
   ///
+  /// - `<body_link>`: Name of the link that should be considered the center
+  ///   of rotation. This plugin cannot correctly simulate the effect of CoM
+  ///   on rotation center. Instead, the rotation center is always in the CoM
+  ///   of this specified link. If not specified, the canonical link is used.
+  ///
   /// - `<left_track>`: Configuration of a left track link. This element can
   ///   appear multiple times, and must appear at least once.
   ///
