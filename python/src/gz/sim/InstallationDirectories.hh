@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 
 
-#ifndef GZ_SIM_PYTHON___HH_
-#define GZ_SIM_PYTHON__SERVER_HH_
+#ifndef GZ_SIM_PYTHON__INSTALLATION_DIRECTORIES_HH_
+#define GZ_SIM_PYTHON__INSTALLATION_DIRECTORIES_HH_
 
 #include <pybind11/pybind11.h>
 
@@ -31,9 +31,9 @@ namespace python
  * \param[in] module a pybind11 module to add the definition to
  */
 void
-defineGuiClient(pybind11::module &_module);
+defineSimInstallationDirectories(pybind11::module &_module);
 }  // namespace python
 }  // namespace sim
 }  // namespace gz
 
-#endif  // GZ_SIM_PYTHON__SERVER_HH_
+#endif  // GZ_SIM_PYTHON__INSTALLATION_DIRECTORIES_HH_
