@@ -170,7 +170,7 @@ TEST_F(ContactSystemTest,
     {
       ASSERT_EQ(1, contact.position_size());
       bool entityNameEmpty =
-        contact.collision1().name() == "";
+        contact.collision1().name().empty();
       EXPECT_TRUE(entityNameEmpty);
     }
   }
