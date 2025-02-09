@@ -140,42 +140,6 @@ install( FILES
   ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
 
 #===============================================================================
-# Used for the installed model command version.
-# Generate the ruby script that gets installed.
-# Note that the major version of the library is included in the name.
-# Ex: cmdmodel0.rb
-set(cmd_model_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdmodel${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_model_script_configured "${cmd_model_script_generated}.configured")
-
-# Set the library_location variable to the relative path to the library file
-# within the install directory structure.
-set(model_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${model_executable}>")
-
-configure_file(
-  "cmdmodel.rb.in"
-  "${cmd_model_script_configured}"
-  @ONLY
-)
-
-file(GENERATE
-  OUTPUT "${cmd_model_script_generated}"
-  INPUT "${cmd_model_script_configured}"
-)
-# Install the ruby command line library in an unversioned location.
-install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/gz)
-
-# # Used for the installed version.
-# set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
-#
-# set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
-# configure_file(
-#   "model.yaml.in"
-#   ${model_configured}
-#   @ONLY)
-#
-# install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
-
-#===============================================================================
 # Generate the ruby script for internal testing.
 # Note that the major version of the library is included in the name.
 # Ex: cmdsim0.rb
@@ -237,23 +201,59 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
     INPUT "${cmd_model_script_configured_test}"
   )
 
-  # # Used for internal testing.
-  # set(gz_model_ruby_path "${cmd_model_script_generated_test}")
+  # Used for internal testing.
+  set(gz_model_ruby_path "${cmd_model_script_generated_test}")
 
-  # # Generate a configuration file for internal testing.
-  # # Note that the major version of the library is included in the name.
-  # # Ex: model0.yaml
-  # configure_file(
-  #   "model.yaml.in"
-  #   "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
-  #   @ONLY
-  # )
+  # Generate a configuration file for internal testing.
+  # Note that the major version of the library is included in the name.
+  # Ex: model0.yaml
+  configure_file(
+    "model.yaml.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
+    @ONLY
+  )
 
-  # file(GENERATE
-  #   OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/model${PROJECT_VERSION_MAJOR}.yaml"
-  #   INPUT "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
-  # )
+  file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/model${PROJECT_VERSION_MAJOR}.yaml"
+    INPUT "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml.configured"
+  )
 endif()
+
+#===============================================================================
+# Used for the installed model command version.
+# Generate the ruby script that gets installed.
+# Note that the major version of the library is included in the name.
+# Ex: cmdmodel0.rb
+set(cmd_model_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdmodel${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_model_script_configured "${cmd_model_script_generated}.configured")
+
+# Set the library_location variable to the relative path to the library file
+# within the install directory structure.
+set(model_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${model_executable}>")
+
+configure_file(
+  "cmdmodel.rb.in"
+  "${cmd_model_script_configured}"
+  @ONLY
+)
+
+file(GENERATE
+  OUTPUT "${cmd_model_script_generated}"
+  INPUT "${cmd_model_script_configured}"
+)
+# Install the ruby command line library in an unversioned location.
+install(FILES ${cmd_model_script_generated} DESTINATION lib/ruby/gz)
+
+# Used for the installed version.
+set(gz_model_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
+
+set(model_configured "${CMAKE_CURRENT_BINARY_DIR}/model${PROJECT_VERSION_MAJOR}.yaml")
+configure_file(
+  "model.yaml.in"
+  ${model_configured}
+  @ONLY)
+
+install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
 
 #===============================================================================
 # Bash completion
