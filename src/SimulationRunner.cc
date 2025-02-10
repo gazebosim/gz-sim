@@ -1914,3 +1914,17 @@ void SimulationRunner::Reset(const bool _all,
   }
   this->worldControls.push_back(control);
 }
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = _all || _time;
+  if (_model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
+}

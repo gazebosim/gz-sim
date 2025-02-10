@@ -355,6 +355,7 @@ namespace gz
       /// \brief Reset all runners in this simulation
       public: void ResetAll();
       /// \brief Reset a specific runner in this server
+<<<<<<< HEAD
       /// \param[in] _runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
@@ -363,6 +364,12 @@ namespace gz
       /// \return The current status (EXITED, STOPPED, or RUNNING).
       public: Status GetStatus() const;
 
+=======
+      /// \param[in] runnerId - The runner which you want to reset
+      /// \ return False if the runner does not exist, true otherwise.
+      public: bool Reset(const std::size_t _runnerId);
+
+>>>>>>> 6b7df499 (Add support for simulation reset via a publicly callable API (#2648))
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;
     };
