@@ -1,5 +1,28 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.9.0 (2025-02-10)
+
+1. Physics: Add components to request and receive Ray intersections
+    * [Pull request #2514](https://github.com/gazebosim/gz-sim/pull/2514)
+
+1. Also handle SIGTERM gracefully
+    * [Pull request #2747](https://github.com/gazebosim/gz-sim/pull/2747)
+
+1. Register MeshInertialCalculator when loading sim from an SDF string
+    * [Pull request #2754](https://github.com/gazebosim/gz-sim/pull/2754)
+
+1. Add debug msg to log auto computed inertial values
+    * [Pull request #2749](https://github.com/gazebosim/gz-sim/pull/2749)
+
+1. Reduce/Eliminate `sdf::Model` and `sdf::World` serialization warnings
+    * [Pull request #2742](https://github.com/gazebosim/gz-sim/pull/2742)
+
+1. Fix illegal anchor warnings
+    * [Pull request #2741](https://github.com/gazebosim/gz-sim/pull/2741)
+
+1. Fix mesh import filters not displaying correctly on KDE #2731 (#2732)
+    * [Pull request #2736](https://github.com/gazebosim/gz-sim/pull/2736)
+
 ### Gazebo Sim 8.8.0 (2025-01-16)
 
 1. Add parameter for adjusting current sign in battery plugin
