@@ -136,7 +136,6 @@ TEST_F(TestFixtureTest, Callbacks)
   EXPECT_EQ(1u, resets);
 }
 
-
 /////////////////////////////////////////////////
 TEST_F(TestFixtureTest, LoadConfig)
 {
