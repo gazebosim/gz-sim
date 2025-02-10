@@ -181,8 +181,9 @@ endif()
 # The logic is valid only for single-config CMake generators, so no script is
 # generated if a multiple-config CMake geneator is used
 if(NOT GENERATOR_IS_MULTI_CONFIG)
-  set(cmd_model_script_generated_test
-    "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}.rb")
+  set(gz_model_ruby_path
+    "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdmodel${PROJECT_VERSION_MAJOR}")
+  set(cmd_model_script_generated_test "${gz_model_ruby_path}.rb")
   set(cmd_model_script_configured_test
     "${CMAKE_CURRENT_BINARY_DIR}/test_cmdmodel${PROJECT_VERSION_MAJOR}.rb.configured")
 
@@ -200,9 +201,6 @@ if(NOT GENERATOR_IS_MULTI_CONFIG)
     OUTPUT "${cmd_model_script_generated_test}"
     INPUT "${cmd_model_script_configured_test}"
   )
-
-  # Used for internal testing.
-  set(gz_model_ruby_path "${cmd_model_script_generated_test}")
 
   # Generate a configuration file for internal testing.
   # Note that the major version of the library is included in the name.
