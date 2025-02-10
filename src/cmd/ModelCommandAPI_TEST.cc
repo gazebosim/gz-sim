@@ -17,7 +17,9 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <gz/utils/ExtraTestMacros.hh>
