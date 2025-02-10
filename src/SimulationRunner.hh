@@ -370,9 +370,9 @@ namespace gz
       public: void SetNextStepAsBlockingPaused(const bool value);
 
       /// \brief Reset the current simulation runner
-      /// \param[in] _all - Reset all parameters
-      /// \param[in] _time - Reset the time
-      /// \param[in] _model - Reset the model only [currently unsupported]
+      /// \param[in] _all Reset all parameters
+      /// \param[in] _time Reset the time
+      /// \param[in] _model Reset the model only [currently unsupported]
       public: void Reset(const bool _all, const bool _time, const bool _model);
 
       /// \brief Updates the physics parameters of the simulation based on the
