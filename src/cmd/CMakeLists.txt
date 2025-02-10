@@ -60,7 +60,13 @@ foreach(CMD_TEST
 
   target_compile_definitions(${CMD_TEST}
     PRIVATE
-      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
+      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
+  )
+
+  if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST)
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+  endif()
 
   if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
     # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
@@ -72,7 +78,8 @@ foreach(CMD_TEST
 
     target_compile_definitions(${CMD_TEST}
       PRIVATE
-        "BREW_RUBY=\"${BREW_RUBY} \"")
+        "BREW_RUBY=\"${BREW_RUBY} \""
+    )
 
     set(_env_vars)
     list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
