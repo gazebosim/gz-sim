@@ -13,21 +13,21 @@ install(
 # Build the unit tests.
 set(test_sources)
 
-# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
+# Add systems that need a valid display here.
+# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+# or Xdummy instead of skipping them
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND test_sources ModelCommandAPI_TEST.cc)
+else()
+  message(STATUS
+    "Skipping ModelCommandAPI tests because a valid display was not found")
+endif()
+
+# gz_TEST is not supported with multi config
 # CMake generators, see also cmd/CMakeLists.txt
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT GENERATOR_IS_MULTI_CONFIG)
   list(APPEND test_sources gz_TEST.cc)
-
-  # Add systems that need a valid display here.
-  # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-  # or Xdummy instead of skipping them
-  if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-    list(APPEND test_sources ModelCommandAPI_TEST.cc)
-  else()
-    message(STATUS
-      "Skipping ModelCommandAPI tests because a valid display was not found")
-  endif()
 endif()
 
 # Build unit tests if Gazebo tools is installed
@@ -37,7 +37,6 @@ if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
       ${test_sources}
     LIB_DEPS
       gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-      ${EXTRA_TEST_LIB_DEPS}
       gz-sim${PROJECT_VERSION_MAJOR}
     ENVIRONMENT
         GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
