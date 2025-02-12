@@ -324,6 +324,9 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief Current wind velocity seed and global enable/disable state.
   /// This is set by a transport message.
   public: msgs::Wind currentWindInfo;
+
+  // wind pub
+  private: transport::Node::Publisher wind_pub;
 };
 
 /////////////////////////////////////////////////
@@ -482,6 +485,10 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   // Wind info service
   this->node.Advertise("/world/" + validWorldName + "/wind_info",
                        &WindEffectsPrivate::WindInfoService, this);
+
+  // Wind info topic
+  this->wind_pub = this->node.Advertise<msgs::Wind>
+  ("/world/" + validWorldName + "/wind_info");
 }
 
 //////////////////////////////////////////////////
@@ -563,6 +570,13 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Update component
   windLinVel->Data() = windVel;
+
+  // gz pub (ENU)
+  msgs::Wind windInfo_gz;
+  windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
+  windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
+  windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
+  this->wind_pub.Publish(windInfo_gz);
 }
 
 //////////////////////////////////////////////////
