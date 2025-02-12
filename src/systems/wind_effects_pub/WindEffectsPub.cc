@@ -65,7 +65,7 @@
 
 #include "gz/sim/Link.hh"
 
-// ros 
+// ros
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/float32_multi_array.hpp>
 #include <iostream>
@@ -228,13 +228,12 @@ class gz::sim::systems::WindEffectsPrivate
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
   /// \param[in] _sdf Pointer to sdf::Element that contains configuration
   /// parameters for the system.
-    
   /// \brief Constructor
   public: WindEffectsPrivate();
 
   /// \brief Destructor
   public: ~WindEffectsPrivate();
-  
+
   public: void Load(EntityComponentManager &_ecm,
                     const std::shared_ptr<const sdf::Element> &_sdf);
 
@@ -336,22 +335,24 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief Current wind velocity seed and global enable/disable state.
   /// This is set by a transport message.
   public: msgs::Wind currentWindInfo;
-  
+
   // wind pub
   private: transport::Node::Publisher wind_pub;
   // ros2
   private: rclcpp::Node::SharedPtr g_node = nullptr;
-  
-  private: rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr wind_publisher_;
+
+  private: rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
+   wind_publisher_;
 };
 
 WindEffectsPrivate::WindEffectsPrivate()
-{	
-	int argc = 0;
-  	char **argv = NULL;
-     	rclcpp::init(argc, argv);
-     	g_node = rclcpp::Node::make_shared("gz_wind");
-	wind_publisher_ = g_node->create_publisher<std_msgs::msg::Float32MultiArray>("/data/wind_true", 10);
+{
+    int argc = 0;
+    char **argv = NULL;
+    rclcpp::init(argc, argv);
+    g_node = rclcpp::Node::make_shared("gz_wind");
+    wind_publisher_ = g_node->create_publisher<std_msgs::msg::Float32MultiArray>
+    ("/data/wind_true", 10);
 }
 
 //////////////////////////////////////////////////
@@ -513,9 +514,10 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   // Wind info service
   this->node.Advertise("/world/" + validWorldName + "/wind_info",
                        &WindEffectsPrivate::WindInfoService, this);
-                       
+
   // Wind info topic
-  this->wind_pub = this->node.Advertise<msgs::Wind>("/world/" + validWorldName + "/wind_info");
+  this->wind_pub = this->node.Advertise<msgs::Wind>
+  ("/world/" + validWorldName + "/wind_info");
 }
 
 //////////////////////////////////////////////////
@@ -597,23 +599,23 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Update component
   windLinVel->Data() = windVel;
-  
+
   // gz pub (ENU)
   msgs::Wind windInfo_gz;
   windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
   windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
   windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
   this->wind_pub.Publish(windInfo_gz);
-  
-  
+
+
   // ros pub
   std_msgs::msg::Float32MultiArray windInfo{};
-  windInfo.layout.data_offset = this->g_node->get_clock()->now().nanoseconds()/1000;
+  windInfo.layout.data_offset =
+      this->g_node->get_clock()->now().nanoseconds()/1000;
   windInfo.data.push_back(windVel.X());
   windInfo.data.push_back(windVel.Y());
   windInfo.data.push_back(windVel.Z());
   this->wind_publisher_->publish(windInfo);
-  
 }
 
 //////////////////////////////////////////////////

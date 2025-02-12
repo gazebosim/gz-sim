@@ -21,7 +21,7 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-// ros 
+// ros
 // #include <rclcpp/rclcpp.hpp>
 // #include <std_msgs/msg/float32_multi_array.hpp>
 
@@ -153,8 +153,8 @@ namespace systems
                            EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
-    private: 
-    	std::unique_ptr<WindEffectsPrivate> dataPtr;
+    private:
+        std::unique_ptr<WindEffectsPrivate> dataPtr;
   };
   }
 }
