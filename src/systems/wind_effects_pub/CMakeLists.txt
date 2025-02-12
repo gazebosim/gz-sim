@@ -1,11 +1,3 @@
-# find ros
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-# find_package(self_msg REQUIRED)
-include_directories(${rclcpp_INCLUDE_DIRS})
-include_directories(${std_msgs_INCLUDE_DIRS})
-# include_directories(${self_msg_INCLUDE_DIRS})
-
 gz_add_system(wind-effects-pub
   SOURCES
     WindEffectsPub.cc

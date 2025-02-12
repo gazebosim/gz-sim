@@ -21,10 +21,6 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
-// ros
-// #include <rclcpp/rclcpp.hpp>
-// #include <std_msgs/msg/float32_multi_array.hpp>
-
 namespace gz
 {
 namespace sim

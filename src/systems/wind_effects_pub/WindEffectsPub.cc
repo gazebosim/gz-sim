@@ -65,11 +65,6 @@
 
 #include "gz/sim/Link.hh"
 
-// ros
-#include <rclcpp/rclcpp.hpp>
-#include <std_msgs/msg/float32_multi_array.hpp>
-#include <iostream>
-
 using namespace gz;
 using namespace sim;
 using namespace systems;
@@ -338,22 +333,7 @@ class gz::sim::systems::WindEffectsPrivate
 
   // wind pub
   private: transport::Node::Publisher wind_pub;
-  // ros2
-  private: rclcpp::Node::SharedPtr g_node = nullptr;
-
-  private: rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr
-   wind_publisher_;
 };
-
-WindEffectsPrivate::WindEffectsPrivate()
-{
-    int argc = 0;
-    char **argv = NULL;
-    rclcpp::init(argc, argv);
-    g_node = rclcpp::Node::make_shared("gz_wind");
-    wind_publisher_ = g_node->create_publisher<std_msgs::msg::Float32MultiArray>
-    ("/data/wind_true", 10);
-}
 
 //////////////////////////////////////////////////
 WindEffectsPrivate::~WindEffectsPrivate() = default;
@@ -607,15 +587,6 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
   this->wind_pub.Publish(windInfo_gz);
 
-
-  // ros pub
-  std_msgs::msg::Float32MultiArray windInfo{};
-  windInfo.layout.data_offset =
-      this->g_node->get_clock()->now().nanoseconds()/1000;
-  windInfo.data.push_back(windVel.X());
-  windInfo.data.push_back(windVel.Y());
-  windInfo.data.push_back(windVel.Z());
-  this->wind_publisher_->publish(windInfo);
 }
 
 //////////////////////////////////////////////////
