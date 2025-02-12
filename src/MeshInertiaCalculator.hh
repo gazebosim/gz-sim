@@ -28,9 +28,7 @@
 #include <gz/sim/Util.hh>
 #include <gz/sim/config.hh>
 
-#include <gz/common/graphics.hh>
-#include <gz/common/Mesh.hh>
-#include <gz/common/MeshManager.hh>
+#include <gz/common/SubMesh.hh>
 
 #include <gz/math/Vector3.hh>
 #include <gz/math/Pose3.hh>
@@ -88,7 +86,7 @@ namespace gz
         public: void GetMeshTriangles(
           std::vector<Triangle> &_triangles,
           const gz::math::Vector3d &_meshScale,
-          const gz::common::Mesh* _mesh);
+          const gz::common::SubMesh* _mesh);
 
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
