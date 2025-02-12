@@ -278,12 +278,12 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   // For values more closer to the ideal, a higher number convex decomposition
   // paramers would be required in the mesh sdf.
   double ixxyyzzTol = meshInertial.MassMatrix().DiagonalMoments().Max() * 0.1;
-  gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(*ecm).value()(0,0),
-                                   link.WorldInertiaMatrix(*ecm).value()(1,1),
-                                   link.WorldInertiaMatrix(*ecm).value()(2,2));
-  gz::math::Vector3d actualIxyxzyz(link.WorldInertiaMatrix(*ecm).value()(0,1),
-                                   link.WorldInertiaMatrix(*ecm).value()(0,2),
-                                   link.WorldInertiaMatrix(*ecm).value()(1,2));
+  gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(*ecm).value()(0, 0),
+                                   link.WorldInertiaMatrix(*ecm).value()(1, 1),
+                                   link.WorldInertiaMatrix(*ecm).value()(2, 2));
+  gz::math::Vector3d actualIxyxzyz(link.WorldInertiaMatrix(*ecm).value()(0, 1),
+                                   link.WorldInertiaMatrix(*ecm).value()(0, 2),
+                                   link.WorldInertiaMatrix(*ecm).value()(1, 2));
   EXPECT_TRUE(actualIxxyyzz.Equal(meshInertial.MassMatrix().DiagonalMoments(),
               ixxyyzzTol));
   EXPECT_TRUE(actualIxyxzyz.Equal(meshInertial.MassMatrix().OffDiagonalMoments(),
