@@ -231,6 +231,14 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   {
     return meshInertial;
   }
+  else
+  {
+    gzerr << "Failed to computed valid inertia in MeshInertiaCalculator. "
+          << "Ensure that the mesh is water tight, or try optimizing the mesh "
+          << "by setting the //mesh/@optimization attribute in SDF to "
+          << "`convex_hull` or `convex_decomposition`."
+          << std::endl;
+  }
 
   return std::nullopt;
 }
