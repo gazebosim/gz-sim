@@ -33,8 +33,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                 math::Vector3d::Zero);
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_TRUE(massMatrix.IsPositive());
-  bool result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
 
   // Verify a mass matrix with non-zero off-diagonal moments can be corrected
@@ -43,8 +42,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                   math::Vector3d(-1, 0, -0.1));
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_TRUE(massMatrix.IsPositive());
-  result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
 
   // Verify a mass matrix with a large error can not be corrected.
@@ -53,8 +51,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                   math::Vector3d::Zero);
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_TRUE(massMatrix.IsPositive());
-  result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
-  EXPECT_FALSE(result);
+  EXPECT_FALSE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_FALSE(massMatrix.IsValid());
 
   // Verify a mass matrix with non positive-definite inertia matrix can not
@@ -64,8 +61,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                   math::Vector3d::Zero);
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_FALSE(massMatrix.IsPositive());
-  result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
-  EXPECT_FALSE(result);
+  EXPECT_FALSE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_FALSE(massMatrix.IsPositive());
   EXPECT_FALSE(massMatrix.IsValid());
 
@@ -76,8 +72,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                   math::Vector3d::Zero);
   math::MassMatrix3d originalMassMatrix = massMatrix;
   EXPECT_TRUE(massMatrix.IsValid());
-  result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
-  EXPECT_TRUE(result);
+  EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
   EXPECT_DOUBLE_EQ(originalMassMatrix.Mass(),
               massMatrix.Mass());
