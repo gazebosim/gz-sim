@@ -70,6 +70,7 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
       principalMoments[1] * scale,
       principalMoments[2]);
 
+  // Recompute mass matrx with corrected principal moments.
   math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),
       correctedPrincipalMoments, math::Vector3d::Zero);
   math::Inertiald correctedPrincipalMassMatrixWithAxesOffset(
@@ -281,7 +282,6 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     }
     meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
   }
-
 
   if (meshInertial.MassMatrix().Mass() > 0.0 &&
       meshInertial.MassMatrix().IsValid())
