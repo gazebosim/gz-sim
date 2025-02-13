@@ -37,6 +37,50 @@
 using namespace gz;
 using namespace sim;
 
+constexpr double MeshInertiaCalculator::kPrincipalMomentPercentTol;
+
+//////////////////////////////////////////////////
+bool MeshInertiaCalculator::CorrectMassMatrix(
+    math::MassMatrix3d &_massMatrix, double _tol)
+{
+  if (_massMatrix.IsValid())
+    return true;
+
+  if (!_massMatrix.IsPositive())
+    return false;
+
+  math::Quaterniond principalAxesOffset = _massMatrix.PrincipalAxesOffset();
+  math::Vector3d principalMoments = _massMatrix.PrincipalMoments();
+  math::sort3(principalMoments[0], principalMoments[1], principalMoments[2]);
+
+  // Check if principal moments are within tol of satisfying the
+  // triangle inequality
+  double ratio = (principalMoments[0] + principalMoments[1])
+                 / principalMoments[2];
+  if (ratio < (1 - _tol))
+  {
+    // The inertia values are way off so do not attempt to correct them.
+    return false;
+  }
+  double scale = 1.0 / ratio;
+  math::Vector3d correctedPrincipalMoments(
+      principalMoments[0] * scale,
+      principalMoments[1] * scale,
+      principalMoments[2]);
+ // std::cerr << "corrected principal moments " << correctedPrincipalMoments << std::endl;
+ // std::cerr << " valid " << math::MassMatrix3d::ValidMoments(correctedPrincipalMoments) << std::endl;
+
+  math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),
+      correctedPrincipalMoments, math::Vector3d::Zero);
+  math::Inertiald correctedPrincipalMassMatrixWithAxesOffset(
+      correctedPrincipalMassMatrix,
+      math::Pose3d(math::Vector3d::Zero, principalAxesOffset));
+  _massMatrix.SetMoi(correctedPrincipalMassMatrixWithAxesOffset.Moi());
+
+//  std::cerr << _massMatrix.DiagonalMoments() << " vs " << _massMatrix.OffDiagonalMoments() << std::endl;
+  return true;
+}
+
 //////////////////////////////////////////////////
 void MeshInertiaCalculator::GetMeshTriangles(
   std::vector<Triangle> &_triangles,
@@ -222,9 +266,23 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     this->CalculateMassProperties(meshTriangles, density,
       meshMassMatrix, centreOfMass);
 
-    if (meshMassMatrix.IsValid())
-      meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
+    if (!meshMassMatrix.IsValid())
+    {
+      gzwarn << "Auto-calculated mass matrix is invalid for mesh: "
+             << mesh->Name() << ", submesh index: " << i << ". "
+             << std::endl;
+      if (!this->CorrectMassMatrix(meshMassMatrix))
+      {
+        gzwarn << "  Unable to correct mass matrix. Skipping submesh."
+               << std::endl;
+        continue;
+      }
+      gzwarn << "  Successfully corrected mass matrix."
+             << std::endl;
+    }
+    meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
   }
+
 
   if (meshInertial.MassMatrix().Mass() > 0.0 &&
       meshInertial.MassMatrix().IsValid())
