@@ -32,8 +32,9 @@ namespace systems
   // Forward declarations.
   class WindEffectsPrivate;
 
-  /// \brief A system that simulates a simple wind model
-  /// and publish the wind information.
+  /// \brief A system that simulates a simple wind model.
+  /// The groundtruth wind information is published on
+  /// the topic "/world/{world_name}/wind_info".
   /// The wind is described as a uniform worldwide model.
   /// Its components are computed separately:
   /// - Horizontal amplitude:
