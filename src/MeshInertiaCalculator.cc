@@ -58,11 +58,12 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
   // triangle inequality
   const double ratio = (principalMoments[0] + principalMoments[1])
                  / principalMoments[2];
-  if (ratio < (1 - _tol))
+  if ((1.0 - ratio) > _tol)
   {
     // The error is outside of tol so do not attempt to correct the mass matrix.
     return false;
   }
+  // Scale the principal moments to satisfy the triangle inequality
   const double scale = 1.0 / ratio;
   math::Vector3d correctedPrincipalMoments(
       principalMoments[0] * scale,

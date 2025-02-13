@@ -86,4 +86,3 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
   EXPECT_EQ(originalMassMatrix.OffDiagonalMoments(),
             massMatrix.OffDiagonalMoments());
 }
-
