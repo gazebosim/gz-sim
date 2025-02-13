@@ -325,7 +325,7 @@ class gz::sim::systems::WindEffectsPrivate
   /// This is set by a transport message.
   public: msgs::Wind currentWindInfo;
 
-  // wind pub
+  /// \brief Wind information publisher
   private: transport::Node::Publisher wind_pub;
 };
 
@@ -571,7 +571,7 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   // Update component
   windLinVel->Data() = windVel;
 
-  // gz pub (ENU)
+  // Publish wind information (ENU)
   msgs::Wind windInfo_gz;
   windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
   windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
