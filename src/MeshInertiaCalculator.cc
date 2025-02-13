@@ -31,6 +31,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/MassMatrix3.hh>
+#include <gz/math/Helpers.hh>
 #include <gz/math/Inertial.hh>
 #include <gz/math/Quaternion.hh>
 
@@ -55,20 +56,18 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
 
   // Check if principal moments are within tol of satisfying the
   // triangle inequality
-  double ratio = (principalMoments[0] + principalMoments[1])
+  const double ratio = (principalMoments[0] + principalMoments[1])
                  / principalMoments[2];
   if (ratio < (1 - _tol))
   {
-    // The inertia values are way off so do not attempt to correct them.
+    // The error is outside of tol so do not attempt to correct the mass matrix.
     return false;
   }
-  double scale = 1.0 / ratio;
+  const double scale = 1.0 / ratio;
   math::Vector3d correctedPrincipalMoments(
       principalMoments[0] * scale,
       principalMoments[1] * scale,
       principalMoments[2]);
- // std::cerr << "corrected principal moments " << correctedPrincipalMoments << std::endl;
- // std::cerr << " valid " << math::MassMatrix3d::ValidMoments(correctedPrincipalMoments) << std::endl;
 
   math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),
       correctedPrincipalMoments, math::Vector3d::Zero);
@@ -77,7 +76,6 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
       math::Pose3d(math::Vector3d::Zero, principalAxesOffset));
   _massMatrix.SetMoi(correctedPrincipalMassMatrixWithAxesOffset.Moi());
 
-//  std::cerr << _massMatrix.DiagonalMoments() << " vs " << _massMatrix.OffDiagonalMoments() << std::endl;
   return true;
 }
 
@@ -269,7 +267,7 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     if (!meshMassMatrix.IsValid())
     {
       gzwarn << "Auto-calculated mass matrix is invalid for mesh: "
-             << mesh->Name() << ", submesh index: " << i << ". "
+             << mesh->Name() << ", submesh index: " << i << "."
              << std::endl;
       if (!this->CorrectMassMatrix(meshMassMatrix))
       {

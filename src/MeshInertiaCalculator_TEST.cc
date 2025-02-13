@@ -66,6 +66,7 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
   EXPECT_FALSE(massMatrix.IsPositive());
   result = MeshInertiaCalculator::CorrectMassMatrix(massMatrix);
   EXPECT_FALSE(result);
+  EXPECT_FALSE(massMatrix.IsPositive());
   EXPECT_FALSE(massMatrix.IsValid());
 
   // Verify a mass matrix with no error can be corrected. The mass
