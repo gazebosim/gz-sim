@@ -99,9 +99,6 @@ void addModelFlags(CLI::App &_app)
 {
   auto opt = std::make_shared<ModelOptions>();
 
-  _app.add_flag("-p,--pose", opt->pose,
-                "Print the pose of the model.");
-
   auto command = _app.add_option_group("command", "Command to be executed.");
 
   command->add_flag_callback("--list",
@@ -147,6 +144,10 @@ void addModelFlags(CLI::App &_app)
     ->needs(modelCmd)
     ->expected(0, 1)
     ->default_val("");
+
+  command->add_flag("-p,--pose", opt->pose,
+                "Print the pose of the model.")
+                ->needs(modelCmd);
 
   _app.callback([opt](){ runModelCommand(*opt); });
 }
