@@ -162,6 +162,8 @@ int main(int argc, char** argv)
       throw CLI::Success();
     },
     "Print the current library version");
+
+  // Dummy flags handled by gz-tools
   app.add_flag("--force-version", "Use a specific library version.");
   app.add_flag("--versions", "Show the available versions.");
 
