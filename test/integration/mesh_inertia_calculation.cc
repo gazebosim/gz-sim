@@ -286,8 +286,8 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
                                    link.WorldInertiaMatrix(*ecm).value()(1, 2));
   EXPECT_TRUE(actualIxxyyzz.Equal(meshInertial.MassMatrix().DiagonalMoments(),
               ixxyyzzTol));
-  EXPECT_TRUE(actualIxyxzyz.Equal(meshInertial.MassMatrix().OffDiagonalMoments(),
-              3.0));
+  EXPECT_TRUE(actualIxyxzyz.Equal(
+              meshInertial.MassMatrix().OffDiagonalMoments(), 3.0));
   // Check the Inertial Pose and Link Pose
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
