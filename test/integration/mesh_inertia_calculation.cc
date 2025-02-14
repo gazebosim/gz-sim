@@ -25,6 +25,7 @@
 #include <gz/sim/Model.hh>
 #include <gz/sim/Entity.hh>
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Util.hh>
 
 #include <gz/sim/components/Inertial.hh>
 #include <gz/sim/components/Model.hh>
@@ -121,9 +122,11 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
   EXPECT_TRUE(
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
-  EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
+  // Check the Inertial Pose and Link Pose. Their world poses should be the
+  // same since the inertial pose relative to the link is zero.
+  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
+  EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
+    worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero);
 }
 
 TEST(MeshInertiaCalculationTest,
@@ -200,10 +203,10 @@ TEST(MeshInertiaCalculationTest,
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
   // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
+  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
 
   // Since the height of cylinder is 2m and origin is at center of bottom face
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
-    gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+    worldPose(linkEntity, *ecm) * gz::math::Pose3d(0, 0, 1, 0, 0, 0));
 }
