@@ -213,7 +213,7 @@ if(WIN32)
 			set(MINGW_MSVCR_LIBRARY "msvcr90$<$<CONFIG:DEBUG>:d>" CACHE STRING "Mingw MSVC runtime import library")
 			list(APPEND _BACKWARD_LIBRARIES ${MINGW_MSVCR_LIBRARY})
 		endif()
-	endif()	
+	endif()
 endif()
 
 set(BACKWARD_INCLUDE_DIR

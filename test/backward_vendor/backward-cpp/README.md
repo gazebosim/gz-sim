@@ -37,7 +37,7 @@ errors (segfault, abort, un-handled exception...), simply add a copy of
 `backward.cpp` to your project, and don't forget to tell your build system.
 
 The code in `backward.cpp` is trivial anyway, you can simply copy what it's
-doing at your convenience. 
+doing at your convenience.
 
 Note for [folly](https://github.com/facebook/folly) library users: must define `backward::SignalHandling sh;` after `folly::init(&argc, &argv);`.
 
@@ -383,7 +383,7 @@ class Printer { public:
 		FILE* print(StackTrace& st, FILE* fp = stderr);
 
 	// Resolve and print a stack trace to the given std::ostream object.
-	// Color will only be used if color_mode is set to always. 
+	// Color will only be used if color_mode is set to always.
 	template <typename ST>
 		std::ostream& print(ST& st, std::ostream& os);
 ```
@@ -474,3 +474,4 @@ MIT License.
 
 Although this project is owned by Google Inc. this is not a Google supported or
 affiliated project.
+
