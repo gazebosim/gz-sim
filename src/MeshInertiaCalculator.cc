@@ -17,6 +17,8 @@
 
 #include "MeshInertiaCalculator.hh"
 
+#include <algorithm>
+#include <numeric>
 #include <optional>
 #include <vector>
 
@@ -38,8 +40,6 @@
 using namespace gz;
 using namespace sim;
 
-constexpr double MeshInertiaCalculator::kPrincipalMomentPercentTol;
-
 //////////////////////////////////////////////////
 bool MeshInertiaCalculator::CorrectMassMatrix(
     math::MassMatrix3d &_massMatrix, double _tol)
@@ -52,23 +52,32 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
 
   math::Quaterniond principalAxesOffset = _massMatrix.PrincipalAxesOffset();
   math::Vector3d principalMoments = _massMatrix.PrincipalMoments();
-  math::sort3(principalMoments[0], principalMoments[1], principalMoments[2]);
+
+  // Track elements in principalMoments in acending order using a sorted
+  // indices array, i.e. sortedIndices[0] should point to the index in
+  // principalMoments containing the smallest value, while sortedIndices[2]
+  // should point to the index in principalMoments containing the largest value.
+  std::vector<int> sortedIndices(3);
+  std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
+  std::sort(sortedIndices.begin(), sortedIndices.end(), [&](int i,int j)
+      { return principalMoments[i] < principalMoments[j]; } );
 
   // Check if principal moments are within tol of satisfying the
-  // triangle inequality
-  const double ratio = (principalMoments[0] + principalMoments[1])
-                 / principalMoments[2];
+  // triangle inequality.
+  const double ratio =
+      (principalMoments[sortedIndices[0]] + principalMoments[sortedIndices[1]])
+      / principalMoments[sortedIndices[2]];
   if ((1.0 - ratio) > _tol)
   {
     // The error is outside of tol so do not attempt to correct the mass matrix.
     return false;
   }
-  // Scale the principal moments to satisfy the triangle inequality
+  // Scale the 2 smaller elements in principalMoments so that they
+  // satisfies the triangle inequality
   const double scale = 1.0 / ratio;
-  math::Vector3d correctedPrincipalMoments(
-      principalMoments[0] * scale,
-      principalMoments[1] * scale,
-      principalMoments[2]);
+  math::Vector3d correctedPrincipalMoments = principalMoments;
+  correctedPrincipalMoments[sortedIndices[0]] *= scale;
+  correctedPrincipalMoments[sortedIndices[1]] *= scale;
 
   // Recompute mass matrx with corrected principal moments.
   math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),

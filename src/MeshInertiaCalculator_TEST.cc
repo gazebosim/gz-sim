@@ -36,6 +36,19 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
   EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
 
+  // Verify a mass matrix with unordered diagonal moments and a small error
+  // can be corrected, and that the elements in the corrected principal moments
+  // maintain the same order.
+  massMatrix = math::MassMatrix3d(55.0,
+                                  math::Vector3d(15, 7, 23),
+                                  math::Vector3d::Zero);
+  EXPECT_FALSE(massMatrix.IsValid());
+  EXPECT_TRUE(massMatrix.IsPositive());
+  EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
+  EXPECT_TRUE(massMatrix.IsValid());
+  EXPECT_LT(massMatrix.PrincipalMoments()[1], massMatrix.PrincipalMoments()[0]);
+  EXPECT_LT(massMatrix.PrincipalMoments()[0], massMatrix.PrincipalMoments()[2]);
+
   // Verify a mass matrix with non-zero off-diagonal moments can be corrected
   massMatrix = math::MassMatrix3d(1.0,
                                   math::Vector3d(2.0, 2.0, 2.0),
@@ -65,8 +78,8 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
   EXPECT_FALSE(massMatrix.IsPositive());
   EXPECT_FALSE(massMatrix.IsValid());
 
-  // Verify a mass matrix with no error can be corrected. The mass
-  // matrix should keep the original values.
+  // Verify that CorrectMassMatrix returns true when given a valid mass matrix
+  // and does not change the mass matrix data.
   massMatrix = math::MassMatrix3d(15.0,
                                   math::Vector3d(12, 15, 23),
                                   math::Vector3d::Zero);

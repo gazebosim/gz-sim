@@ -43,6 +43,10 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE
     {
+      /// \brief Relative error tolerance allowed when testing if principal
+      /// moments of a mass matrix satify the triangle inequality.
+      constexpr double kPrincipalMomentRelativeTol = 0.05;
+
       /// \struct Triangle gz/sim/MeshInertiaCalculator.hh
       /// \brief A struct to represent a triangle of the mesh
       /// An instance of the struct holds 3 Vector3D instances
@@ -78,10 +82,13 @@ namespace gz
         /// tolerance of satisfying the triangle inequality test. If the above
         /// conditions are not satisfied, the mass matrix will not be corrected.
         /// \param[in, out] _massMatrix Mass matrix to correct
-        /// \return True if the mass matrix is corrected, false otherwise.
+        /// \param[in] _tol Relative error tolerance allowed when testing if
+        /// principal moments of a mass matrix satify the triangle inequality.
+        /// \return True if the mass matrix is already valid or successfully
+        /// corrected, false otherwise.
         public: static bool CorrectMassMatrix(
             gz::math::MassMatrix3d &_massMatrix,
-            double tol = kPrincipalMomentPercentTol);
+            double tol = kPrincipalMomentRelativeTol);
 
         /// \brief Function to get the vertices & indices of the given mesh
         /// & convert them into instances of the Triangle struct
@@ -124,10 +131,6 @@ namespace gz
         public: std::optional<gz::math::Inertiald> operator()(
           sdf::Errors& _errors,
           const sdf::CustomInertiaCalcProperties& _calculatorParams);
-
-        /// \brief Percentage error tolerance allowed when testing if principal
-        /// moments of a mass matrix satify the triangle inequality.
-        public: static constexpr double kPrincipalMomentPercentTol = 0.05;
       };
     }
   }
