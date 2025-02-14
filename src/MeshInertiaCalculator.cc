@@ -196,14 +196,21 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   if (sdfMesh == std::nullopt)
   {
     gzerr << "Could not calculate inertia for mesh "
-    "as it std::nullopt" << std::endl;
+              "as mesh SDF is std::nullopt" << std::endl;
     _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
-        "Could not calculate mesh inertia as mesh object is"
+        "Could not calculate mesh inertia as mesh SDF is"
         "std::nullopt"});
     return std::nullopt;
   }
 
   const common::Mesh *mesh = loadMesh(*sdfMesh);
+  if (!mesh)
+  {
+    gzerr << "Failed to load mesh: " << sdfMesh->Uri() << std::endl;
+    _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+        "Could not calculate mesh inertia as mesh is not loaded."});
+    return std::nullopt;
+  }
 
   // Compute inertia for each submesh then sum up to get the final inertia
   // values.
@@ -226,19 +233,18 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
       meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
   }
 
-  if (meshInertial.MassMatrix().Mass() > 0.0 &&
-      meshInertial.MassMatrix().IsValid())
-  {
-    return meshInertial;
-  }
-  else
+  if (meshInertial.MassMatrix().Mass() <= 0.0 ||
+      !meshInertial.MassMatrix().IsValid())
   {
     gzerr << "Failed to computed valid inertia in MeshInertiaCalculator. "
           << "Ensure that the mesh is water tight, or try optimizing the mesh "
           << "by setting the //mesh/@optimization attribute in SDF to "
           << "`convex_hull` or `convex_decomposition`."
           << std::endl;
+    _errors.push_back({sdf::ErrorCode::WARNING,
+        "Could not calculate valid mesh inertia"});
+    return std::nullopt;
   }
 
-  return std::nullopt;
+  return meshInertial;
 }
