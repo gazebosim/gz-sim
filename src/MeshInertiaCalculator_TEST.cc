@@ -39,13 +39,15 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
   // Verify a mass matrix with unordered diagonal moments and a small error
   // can be corrected, and that the elements in the corrected principal moments
   // maintain the same order.
+  math::Vector3d ixxyyzz(15, 7, 23);
   massMatrix = math::MassMatrix3d(55.0,
-                                  math::Vector3d(15, 7, 23),
+                                  ixxyyzz,
                                   math::Vector3d::Zero);
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_TRUE(massMatrix.IsPositive());
   EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
+  EXPECT_NE(ixxyyzz, massMatrix.DiagonalMoments());
   EXPECT_LT(massMatrix.PrincipalMoments()[1], massMatrix.PrincipalMoments()[0]);
   EXPECT_LT(massMatrix.PrincipalMoments()[0], massMatrix.PrincipalMoments()[2]);
 
