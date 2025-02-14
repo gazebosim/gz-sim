@@ -59,7 +59,7 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
   // should point to the index in principalMoments containing the largest value.
   std::vector<int> sortedIndices(3);
   std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
-  std::sort(sortedIndices.begin(), sortedIndices.end(), [&](int i,int j)
+  std::sort(sortedIndices.begin(), sortedIndices.end(), [&](int i, int j)
       { return principalMoments[i] < principalMoments[j]; } );
 
   // Check if principal moments are within tol of satisfying the
