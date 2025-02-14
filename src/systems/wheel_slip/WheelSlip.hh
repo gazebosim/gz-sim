@@ -118,6 +118,7 @@ namespace systems
   class WheelSlip
       : public System,
         public ISystemConfigure,
+        public ISystemConfigureParameters,
         public ISystemPreUpdate
   {
     /// \brief Constructor
@@ -131,6 +132,11 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
+
+    public: void ConfigureParameters(
+                gz::transport::parameters::ParametersRegistry &
+                  _registry,
+                EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PreUpdate(
