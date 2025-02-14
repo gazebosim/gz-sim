@@ -53,7 +53,7 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
   math::Quaterniond principalAxesOffset = _massMatrix.PrincipalAxesOffset();
   math::Vector3d principalMoments = _massMatrix.PrincipalMoments();
 
-  // Track elements in principalMoments in acending order using a sorted
+  // Track elements in principalMoments in ascending order using a sorted
   // indices array, i.e. sortedIndices[0] should point to the index in
   // principalMoments containing the smallest value, while sortedIndices[2]
   // should point to the index in principalMoments containing the largest value.
@@ -73,7 +73,7 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
     return false;
   }
   // Scale the 2 smaller elements in principalMoments so that they
-  // satisfies the triangle inequality
+  // satisfy the triangle inequality
   const double scale = 1.0 / ratio;
   math::Vector3d correctedPrincipalMoments = principalMoments;
   correctedPrincipalMoments[sortedIndices[0]] *= scale;
