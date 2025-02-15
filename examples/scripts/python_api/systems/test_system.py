@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from gz.math8 import Vector3d
-from gz.sim10 import Model, Link
+from gz.sim import Model, Link
 import random
 
 
