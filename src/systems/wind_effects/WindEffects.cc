@@ -326,7 +326,7 @@ class gz::sim::systems::WindEffectsPrivate
   public: msgs::Wind currentWindInfo;
 
   /// \brief Wind information publisher
-  private: transport::Node::Publisher wind_pub;
+  private: transport::Node::Publisher windPub;
 };
 
 /////////////////////////////////////////////////
@@ -487,7 +487,7 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
                        &WindEffectsPrivate::WindInfoService, this);
 
   // Wind info topic
-  this->wind_pub = this->node.Advertise<msgs::Wind>
+  this->windPub = this->node.Advertise<msgs::Wind>
   ("/world/" + validWorldName + "/wind_info");
 }
 
@@ -576,7 +576,10 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
   windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
   windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
-  this->wind_pub.Publish(windInfo_gz);
+  if (this->windPub.HasConnections()){
+    this->windPub.Publish(windInfo_gz);
+  }
+
 }
 
 //////////////////////////////////////////////////
