@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI
     steps:
+      - name: Debug tools
+        run: sudo apt install -y binutils-dev libdw-dev libdwarf-dev
       - name: Checkout
         uses: actions/checkout@v4
       - uses: actions/setup-python@v3
