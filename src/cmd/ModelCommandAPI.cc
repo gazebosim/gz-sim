@@ -779,7 +779,7 @@ void printJoints(const uint64_t _modelEntity,
 }
 
 //////////////////////////////////////////////////
-extern "C" void cmdModelList()
+void cmdModelList()
 {
   EntityComponentManager ecm{};
   if (!populateECM(ecm))
@@ -813,7 +813,7 @@ extern "C" void cmdModelList()
 }
 
 //////////////////////////////////////////////////
-extern "C" void cmdModelInfo(
+void cmdModelInfo(
     const char *_modelName, int _pose, const char *_linkName,
     const char *_jointName, const char *_sensorName)
 {
