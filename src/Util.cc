@@ -989,6 +989,34 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
   return optimizedMesh;
 }
 
+math::AxisAlignedBox meshAxisAlignedBox(sdf::Mesh _sdfMesh)
+{
+  auto mesh = loadMesh(_sdfMesh);
+  if (!mesh)
+  {
+    gzwarn << "Mesh could not be loaded. Invalidating its bounding box."
+           << std::endl;
+
+    return math::AxisAlignedBox();
+  }
+
+  // Get the mesh's bounding box
+  math::Vector3d meshCenter, meshMin, meshMax;
+  mesh->AABB(meshCenter, meshMin, meshMax);
+
+  return math::AxisAlignedBox(meshMin, meshMax);
+}
+
+math::AxisAlignedBox transformAxisAlignedBox(
+  const math::AxisAlignedBox & _aabb,
+  const math::Pose3d & _pose)
+{
+  return math::AxisAlignedBox(
+    _pose.CoordPositionAdd(_aabb.Min()),
+    _pose.CoordPositionAdd(_aabb.Max())
+  );
+}
+
 }
 }
 }
