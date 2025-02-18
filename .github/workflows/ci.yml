@@ -27,7 +27,7 @@ jobs:
           extra_args: --all-files
       - name: Compile and test
         id: ci
-        uses: gazebo-tooling/action-gz-ci@jammy
+        uses: arjo129/action-gz-ci@jammy # Temporary for testing
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
@@ -38,8 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI
     steps:
-      - name: Debug tools
-        run: sudo apt install -y binutils-dev libdw-dev libdwarf-dev
       - name: Checkout
         uses: actions/checkout@v4
       - uses: actions/setup-python@v3
