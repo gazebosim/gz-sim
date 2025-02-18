@@ -534,3 +534,57 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
       msgs::Convert(linkWrenchComp->Data().torque()) + torqueWithOffset);
   }
 }
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
+  const gz::sim::EntityComponentManager & ecm) const
+{
+  math::AxisAlignedBox linkAabb;
+  auto collisions = this->Collisions(ecm);
+
+  if (collisions.empty())
+  {
+    return std::nullopt;
+  }
+
+  for (auto & entity : collisions)
+  {
+    auto collision = ecm.ComponentData<components::CollisionElement>(entity);
+    auto geom = collision.value().Geom();
+    auto geomAabb = geom->AxisAlignedBox(&sim::meshAxisAlignedBox);
+
+    if (!geomAabb.has_value() || geomAabb == math::AxisAlignedBox())
+    {
+      gzwarn << "Failed to get bounding box for collision entity ["
+             << entity << "]. It will be ignored in the computation "
+             << "of the link bounding box." << std::endl;
+      continue;
+    }
+
+    // Merge geometry AABB (expressed in link frame) into link AABB
+    linkAabb += sim::transformAxisAlignedBox(
+      geomAabb.value(),
+      ecm.ComponentData<components::Pose>(entity).value()
+    );
+  }
+
+  return linkAabb;
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
+  const gz::sim::EntityComponentManager & ecm) const
+{
+  auto linkAabb = this->AxisAlignedBox(ecm);
+
+  if (!linkAabb.has_value())
+  {
+    return std::nullopt;
+  }
+
+  // Return the link AABB in the world frame
+  return sim::transformAxisAlignedBox(
+    linkAabb.value(),
+    this->WorldPose(ecm).value()
+  );
+}
