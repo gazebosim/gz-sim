@@ -474,4 +474,3 @@ MIT License.
 
 Although this project is owned by Google Inc. this is not a Google supported or
 affiliated project.
-
