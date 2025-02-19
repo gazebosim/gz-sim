@@ -18,7 +18,7 @@ import unittest
 
 from gz_test_deps.common import set_verbosity
 from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
-from gz_test_deps.math import Inertiald, Matrix3d, Vector3d, Pose3d
+from gz_test_deps.math import AxisAlignedBox, Inertiald, Matrix3d, Vector3d, Pose3d
 
 class TestModel(unittest.TestCase):
     post_iterations = 0
@@ -88,6 +88,18 @@ class TestModel(unittest.TestCase):
             self.assertEqual(0, link.world_kinetic_energy(_ecm))
             link.enable_velocity_checks(_ecm, False)
             link.enable_acceleration_checks(_ecm, False)
+            # Axis Aligned Box Test
+            # Offset of 0.5 meters along z-axis
+            self.assertEqual(
+                AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
+                link.axis_aligned_box(_ecm)
+            )
+            # World Axis Aligned Box Test
+            # Same as above since the link is at the origin
+            self.assertEqual(
+                AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
+                link.world_axis_aligned_box(_ecm)
+            )
 
 
         def on_udpate_cb(_info, _ecm):

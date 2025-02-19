@@ -191,6 +191,12 @@ void defineSimLink(py::object module)
       "Add a wrench expressed in world coordinates and applied to "
       "the link at an offset from the link's origin. This wrench is applied "
       "for one simulation step.")
+  .def("axis_aligned_box", &gz::sim::Link::AxisAlignedBox,
+      py::arg("ecm"),
+      "Get the Link's axis-aligned box represented in the link frame.")
+  .def("world_axis_aligned_box", &gz::sim::Link::WorldAxisAlignedBox,
+      py::arg("ecm"),
+      "Get the Link's axis-aligned box represented in the world frame.")
   .def("__copy__",
       [](const gz::sim::Link &self)
       {
