@@ -284,16 +284,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
-  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
-      _enable);
+  auto defaultWorldPose = math::Pose3d::Zero;
+  if (_enable)
+  {
+    defaultWorldPose = sim::worldPose(this->dataPtr->id, _ecm);
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::LinearVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::AngularVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldPose(defaultWorldPose));
+
+  auto defaultWorldLinVel = math::Vector3d::Zero;
+  auto defaultWorldAngVel = math::Vector3d::Zero;
+  if (_enable)
+  {
+    // The WorldPose component is guaranteed to exist at this point
+    auto worldPose = this->WorldPose(_ecm).value();
+
+    // Compute the default world linear and angular velocities
+    defaultWorldLinVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::LinearVelocity>(this->dataPtr->id)->Data());
+    defaultWorldAngVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::AngularVelocity>(this->dataPtr->id)->Data());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldLinearVelocity(defaultWorldLinVel));
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldAngularVelocity(defaultWorldAngVel));
 }
 
 //////////////////////////////////////////////////
