@@ -255,18 +255,15 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
   GZ_PROFILE("LogicalCameraPrivate::UpdateLogicalCameras");
   std::map<std::string, math::Pose3d> modelPoses;
 
-  _ecm.Each<components::Model, components::Name, components::Pose>(
-      [&](const Entity &,
-        const components::Model *,
-        const components::Name *_name,
-        const components::Pose *_pose)->bool
-      {
-        /// todo(anyone) We currently assume there are only top level models
-        /// Update to retrieve world pose when nested models are supported.
-        modelPoses[_name->Data()] = _pose->Data();
-        return true;
-      });
-
+  _ecm.Each<components::Model, components::Name>(
+    [&](const Entity &_entity,
+      const components::Model *,
+      const components::Name *_name)->bool
+    {
+      math::Pose3d modelWorldPose = worldPose(_entity, _ecm);
+      modelPoses[_name->Data()] = modelWorldPose;
+      return true;
+    });
 
   _ecm.Each<components::LogicalCamera, components::WorldPose>(
     [&](const Entity &_entity,
