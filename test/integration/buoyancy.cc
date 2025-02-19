@@ -47,9 +47,6 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 {
-  // Purposely segfault the test to check if it works.
-  int some_var[1];
-  free(some_var);
   // This test checks if the restoring moments are correctly calculated accross
   // both uniform and graded modes when the vehicle is fully submerged.
   std::size_t iterations{10000};
