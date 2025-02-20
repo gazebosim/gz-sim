@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@ namespace systems
     /// ## Websocket Server
     ///
     /// 1. Add the following to the top of an SDF file to include the websocket
-    /// system when launching a world.
+    /// server system when launching a world.
     ///
     ///  <plugin name="gz::sim::WebsocketServer"
     ///      filename="gz-sim-websocket-server-system">
@@ -155,9 +155,10 @@ namespace systems
     ///
     /// 2. Launch your SDF world file, e.g.
     ///
-    /// `gz sim -v 4 websocket.sdf`
+    /// `gz sim -v 4 -s websocket.sdf`
     ///
-    /// 3. Open the [index.html](https://github.com/gazebosim/gz-sim/blob/main/src/systems/websocket_server/index.html) webpage.
+    /// 3. Connect gzweb to the websocket server for web visualization.
+    ///    An example is provided in `examples/scripts/websocket_server`
     ///
     class WebsocketServer
         : public System,
@@ -166,12 +167,8 @@ namespace systems
       /// \brief Constructor
       public: WebsocketServer() = default;
 
-//      /// \brief Destructor
+      /// \brief Destructor
       public: virtual ~WebsocketServer();
-
-      // Documentation inherited
-      // public: virtual bool Load(
-      //             const tinyxml2::XMLElement *_elem) override final;
 
       /// Documentation inherited
       public: void Configure(const Entity &_entity,
@@ -359,8 +356,5 @@ namespace systems
 }
 }
 }
-
-// Register the plugin
-//GZ_ADD_PLUGIN(gz::launch::WebsocketServer, gz::launch::Plugin)
 
 #endif

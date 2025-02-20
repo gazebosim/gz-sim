@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Open Source Robotics Foundation
+ * Copyright (C) 2019 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,8 @@ using namespace systems;
 /// \param[in] _topic The topic name string.
 /// \param[in] _type The message type string.
 /// \return A string that is the frame header.
-#define BUILD_HEADER(_op, _topic, _type) ((_op)+","+(_topic)+","+(_type)+",")
+#define BUILD_HEADER(_op, _topic, _type) \
+    ((_op)+","+(_topic)+","+(_type)+",")
 
 /// \brief Construction a complete websocket frame.
 /// \param[in] _op The operation string.
@@ -54,7 +55,8 @@ using namespace systems;
 /// \param[in] _type The message type string.
 /// \param[in] _payload The complete payload string.
 /// \return A string that is the frame header.
-#define BUILD_MSG(_op, _topic, _type, _payload) (BUILD_HEADER(_op, _topic, _type) + _payload)
+#define BUILD_MSG(_op, _topic, _type, _payload) \
+    (BUILD_HEADER(_op, _topic, _type) + _payload)
 
 /// \brief Gets the websocket server from the lws connection passed to a
 /// handler.
