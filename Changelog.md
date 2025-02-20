@@ -1,5 +1,69 @@
 ## Gazebo Sim 7.x
 
+### Gazebo Sim 7.9.0 (2024-08-21)
+
+1. Revert behavior change introduced in #2452
+    * [Pull request #2527](https://github.com/gazebosim/gz-sim/pull/2527)
+
+### Gazebo Sim 7.8.0 (2024-07-22)
+
+1. Added support for spacecraft thrusters
+    * [Pull request #2431](https://github.com/gazebosim/gz-sim/pull/2431)
+
+1. Disable rendering tests that are failing on github actions
+    * [Pull request #2480](https://github.com/gazebosim/gz-sim/pull/2480)
+
+1. Consolidate entity creation.
+    * [Pull request #2452](https://github.com/gazebosim/gz-sim/pull/2452)
+
+1. Set max contacts for collision pairs
+    * [Pull request #2270](https://github.com/gazebosim/gz-sim/pull/2270)
+
+1. Add GravityEnabled boolean component
+    * [Pull request #2451](https://github.com/gazebosim/gz-sim/pull/2451)
+
+1. Add support for no gravity link
+    * [Pull request #2398](https://github.com/gazebosim/gz-sim/pull/2398)
+
+1. Handle sdf::Geometry::EMPTY in conversions
+    * [Pull request #2430](https://github.com/gazebosim/gz-sim/pull/2430)
+
+1. Use topicFromScopedName in a few systems
+    * [Pull request #2427](https://github.com/gazebosim/gz-sim/pull/2427)
+
+1. Fix typo in a comment
+    * [Pull request #2429](https://github.com/gazebosim/gz-sim/pull/2429)
+
+1. Remove a few extra zeros from some sdf files
+    * [Pull request #2426](https://github.com/gazebosim/gz-sim/pull/2426)
+
+1. Use VERSION_GREATER_EQUAL in cmake logic
+    * [Pull request #2418](https://github.com/gazebosim/gz-sim/pull/2418)
+
+1. Rephrase cmake comment about CMP0077
+    * [Pull request #2419](https://github.com/gazebosim/gz-sim/pull/2419)
+
+1. ForceTorque system: improve readability
+    * [Pull request #2403](https://github.com/gazebosim/gz-sim/pull/2403)
+
+1. LTA Dynamics System
+    * [Pull request #2241](https://github.com/gazebosim/gz-sim/pull/2241)
+
+1. Fix namespace and class links in documentation references that use namespace `gz`
+    * [Pull request #2385](https://github.com/gazebosim/gz-sim/pull/2385)
+
+1. Fix ModelPhotoShootTest test failures
+    * [Pull request #2294](https://github.com/gazebosim/gz-sim/pull/2294)
+
+1. update sdf version
+    * [Pull request #2313](https://github.com/gazebosim/gz-sim/pull/2313)
+
+1. Fix Gazebo/White and refactored MaterialParser
+    * [Pull request #2302](https://github.com/gazebosim/gz-sim/pull/2302)
+
+1. Support for Gazebo materials
+    * [Pull request #2269](https://github.com/gazebosim/gz-sim/pull/2269)
+
 ### Gazebo Sim 7.7.0 (2024-01-17)
 
 1. Allow using plugin file names and environment variables compatible with Garden and later
