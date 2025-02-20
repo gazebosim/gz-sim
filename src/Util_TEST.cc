@@ -15,6 +15,10 @@
  *
 */
 
+#include <string>
+#include <cstdlib>
+#include <ctime>
+
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <sdf/Actor.hh>
