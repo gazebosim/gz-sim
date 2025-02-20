@@ -383,7 +383,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   int port = 9002;
   if (sdf::ElementConstPtr elem = _sdf->FindElement("port"))
   {
-    port = elem->Get<int>("port");
+    port = elem->Get<int>();
   }
   gzdbg << "Using port[" << port << "]\n";
 
@@ -396,7 +396,8 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   }
 
   // Get the msg count per connection.
-  if (sdf::ElementConstPtr elem = _sdf->FindElement("queue_size_per_connection"))
+  if (sdf::ElementConstPtr elem =
+      _sdf->FindElement("queue_size_per_connection"))
   {
     int size = elem->Get<int>();
     if (size >= 0)
@@ -406,7 +407,8 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   }
 
   // Get the msg type subscription limit
-  if (sdf::ElementConstPtr elem = _sdf->FindElement("subscription_limit_per_connection"))
+  if (sdf::ElementConstPtr elem =
+      _sdf->FindElement("subscription_limit_per_connection"))
   {
     sdf::ElementConstPtr childElem = elem->FindElement("subscription");
     while (childElem)
@@ -510,7 +512,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   }
   else if (sslCertFile.empty() || sslPrivateKeyFile.empty())
   {
-    gzwarn << "Partial SSL configuration specified. Please specify: "
+    gzwarn << "Partial SSL configuration specified. Please specify:\n"
     << "\t<ssl>\n"
     << "\t  <cert_file>PATH_TO_CERT_FILE</cert_file>\n"
     << "\t  <private_key_file>PATH_TO_KEY_FILE</private_key_file>\n"
@@ -544,7 +546,9 @@ void WebsocketServer::QueueMessage(Connection *_connection,
     memcpy(buf.get() + LWS_PRE, _data, _size);
 
     std::lock_guard<std::mutex> lock(_connection->mutex);
-    if (static_cast<int>(_connection->buffer.size()) < this->queueSizePerConnection)
+    if (this->queueSizePerConnection == -1 ||
+        (static_cast<int>(_connection->buffer.size()) <
+        this->queueSizePerConnection))
     {
       _connection->buffer.push_back(std::move(buf));
       _connection->len.push_back(_size);
@@ -648,26 +652,30 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
   }
 
   // Check authorization
-  if (frameParts[0] == "auth" &&
-      (!this->authorizationKey.empty() || !this->adminAuthorizationKey.empty()))
+  if (frameParts[0] == "auth")
   {
-    std::string key = "";
-    if (frameParts.size() > 1)
-      key = frameParts.back();
-
-    // Only check if the key is not empty.
-    if (!key.empty())
+    std::string result = "invalid";
+    if (!this->authorizationKey.empty() || !this->adminAuthorizationKey.empty())
     {
-      this->connections[_socketId]->authorized =
-        key == this->authorizationKey ||
-        key == this->adminAuthorizationKey;
-    }
+      std::string key = "";
+      if (frameParts.size() > 1)
+      {
+        key = frameParts.back();
+      }
 
+      // Only check if the key is not empty.
+      if (!key.empty())
+      {
+        this->connections[_socketId]->authorized =
+          key == this->authorizationKey ||
+          key == this->adminAuthorizationKey;
+      }
+    }
     gzdbg << "Authorization request received on socket[" << _socketId << "]. "
       << "Authorized[" << this->connections[_socketId]->authorized << "]\n";
 
-    std::string result =
-      this->connections[_socketId]->authorized ? "authorized": "invalid";
+    result = this->connections[_socketId]->authorized ?
+             "authorized": "invalid";
 
     this->QueueMessage(this->connections[_socketId].get(),
         result.c_str(), result.size());

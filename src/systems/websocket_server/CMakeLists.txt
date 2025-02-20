@@ -9,6 +9,7 @@ gz_add_system(websocket-server
   SOURCES
     WebsocketServer.cc
   PUBLIC_LINK_LIBS
+    websockets_shared
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-common${GZ_COMMON_VER}::graphics
     gz-msgs${GZ_MSGS_VER}::core
@@ -16,5 +17,4 @@ gz_add_system(websocket-server
     gz-transport${GZ_TRANSPORT_VER}::core
   PRIVATE_INCLUDE_DIRS
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/>
-
 )
