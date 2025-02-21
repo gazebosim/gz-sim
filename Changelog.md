@@ -1,5 +1,79 @@
 ## Gazebo Sim 9.x
 
+### Gazebo Sim 9.1.0 (2025-02-12)
+
+1. Physics: Ray intersections
+    * [Pull request #2514](https://github.com/gazebosim/gz-sim/pull/2514)
+
+1. Improvement for Visualize lidar plugin
+    * [Pull request #2739](https://github.com/gazebosim/gz-sim/pull/2739)
+
+1. Also handle SIGTERM gracefully
+    * [Pull request #2747](https://github.com/gazebosim/gz-sim/pull/2747)
+
+1. Add debug msg to log auto computed inertial values
+    * [Pull request #2749](https://github.com/gazebosim/gz-sim/pull/2749)
+
+1. Reduce/Eliminate `sdf::Model` and `sdf::World` serialization warnings
+    * [Pull request #2742](https://github.com/gazebosim/gz-sim/pull/2742)
+
+1. Visualize Frustum
+    * [Pull request #2707](https://github.com/gazebosim/gz-sim/pull/2707)
+
+1. Update install link
+    * [Pull request #2745](https://github.com/gazebosim/gz-sim/pull/2745)
+
+1. Fix illegal anchor warnings
+    * [Pull request #2741](https://github.com/gazebosim/gz-sim/pull/2741)
+
+1. Fix mesh import filters not displaying correctly on KDE #2731
+    * [Pull request #2732](https://github.com/gazebosim/gz-sim/pull/2732)
+
+1. LinearBatteryPlugin stability improvement
+    * [Pull request #2725](https://github.com/gazebosim/gz-sim/pull/2725)
+
+1. Better use of std::variant
+    * [Pull request #2714](https://github.com/gazebosim/gz-sim/pull/2714)
+
+1. apply_joint_force: Simplified using ComponentDefault
+    * [Pull request #2630](https://github.com/gazebosim/gz-sim/pull/2630)
+
+1. Fix docker nightly build
+    * [Pull request #2643](https://github.com/gazebosim/gz-sim/pull/2643)
+
+1. Fix publishing only top level model pose in pose publisher
+    * [Pull request #2697](https://github.com/gazebosim/gz-sim/pull/2697)
+
+1. Add parameter for adjust current sign in battery plugin
+    * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
+
+1. Extend shapes plugin width to include the ellipsoid button
+    * [Pull request #2699](https://github.com/gazebosim/gz-sim/pull/2699)
+
+1. Use same FP limits for TrackedVehicle to avoid self-moving
+    * [Pull request #2651](https://github.com/gazebosim/gz-sim/pull/2651)
+
+1. Link.hh: add Sensor accessor APIs
+    * [Pull request #2693](https://github.com/gazebosim/gz-sim/pull/2693)
+
+1. Remove detachable joints when a model is removed
+    * [Pull request #2686](https://github.com/gazebosim/gz-sim/pull/2686)
+
+1. Improve load times by skipping serialization of entities when unecessary. (#2596)
+    * [Pull request #2682](https://github.com/gazebosim/gz-sim/pull/2682)
+
+1. check valid pointer
+    * [Pull request #2674](https://github.com/gazebosim/gz-sim/pull/2674)
+
+1. Prepend to PYTHONPATH in tests
+    * [Pull request #2673](https://github.com/gazebosim/gz-sim/pull/2673)
+
+1. Fix crash when multicopter motor system is attached to an empty model
+    * [Pull request #2653](https://github.com/gazebosim/gz-sim/pull/2653)
+
+1. fix custom sensor system example build
+    * [Pull request #2649](https://github.com/gazebosim/gz-sim/pull/2649)
+
 ### Gazebo Sim 9.0.0 (2024-09-25)
 
 1. **Baseline:** this includes all changes from 8.6.0 and earlier.
