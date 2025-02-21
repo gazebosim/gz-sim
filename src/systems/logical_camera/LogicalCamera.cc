@@ -260,8 +260,7 @@ void LogicalCameraPrivate::UpdateLogicalCameras(
       const components::Model *,
       const components::Name *_name)->bool
     {
-      math::Pose3d modelWorldPose = worldPose(_entity, _ecm);
-      modelPoses[_name->Data()] = modelWorldPose;
+      modelPoses[_name->Data()] = worldPose(_entity, _ecm);
       return true;
     });
 
