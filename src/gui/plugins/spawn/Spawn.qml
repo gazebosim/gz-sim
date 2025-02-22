@@ -17,7 +17,7 @@
 
 import QtQuick 2.9
 import QtQuick.Controls 2.2
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
 
 ColumnLayout {
@@ -30,7 +30,7 @@ ColumnLayout {
       'via events and drag and drop'
 
   Connections {
-    target: Spawn
+    target: _Spawn
     onPopupError: errorPopup.open()
   }
 
@@ -45,7 +45,7 @@ ColumnLayout {
     y: (parent.height - height) / 2
     title: "Error"
     Text {
-      text: Spawn.errorPopupText
+      text: _Spawn.errorPopupText
     }
     standardButtons: Dialog.Ok
   }
