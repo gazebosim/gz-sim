@@ -24,15 +24,11 @@
 #include <utility>
 #include <vector>
 
-#include <sdf/Link.hh>
-#include <sdf/Model.hh>
-
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 
 #include <gz/plugin/Register.hh>
 
-#include <gz/math/Vector3.hh>
 #include <gz/math/Pose3.hh>
 
 #include <gz/transport/Node.hh>
@@ -43,7 +39,7 @@
 #include <gz/gui/MainWindow.hh>
 
 #include "gz/sim/components/Name.hh"
-#include "gz/sim/components/World.hh"
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
@@ -54,11 +50,6 @@
 #include "gz/rendering/Scene.hh"
 #include "gz/rendering/FrustumVisual.hh"
 
-#include "gz/sim/components/Link.hh"
-#include "gz/sim/components/Sensor.hh"
-#include "gz/sim/components/Model.hh"
-#include "gz/sim/components/ParentEntity.hh"
-#include "gz/sim/components/Pose.hh"
 #include "gz/sim/Util.hh"
 
 namespace gz
@@ -80,16 +71,13 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: rendering::FrustumVisualPtr frustum;
 
     /// \brief URI sequence to the frustum link
-    public: std::string frustumString{""};
-
-    /// \brief LaserScan message from sensor
-    public: msgs::LogicalCameraSensor msg;
+    public: std::string frustumString;
 
     /// \brief Pose of the frustum visual
     public: math::Pose3d frustumPose{math::Pose3d::Zero};
 
     /// \brief Topic name to subscribe
-    public: std::string topicName{""};
+    public: std::string topicName;
 
     /// \brief List of topics publishing LogicalCameraSensor messages.
     public: QStringList topicList;
@@ -99,7 +87,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Mutex for variable mutated by the checkbox
     /// callbacks.
-    /// The variables are: msg
     public: std::mutex serviceMutex;
 
     /// \brief Initialization flag
@@ -125,7 +112,6 @@ using namespace sim;
 VisualizeFrustum::VisualizeFrustum()
   : GuiSystem(), dataPtr(new VisualizeFrustumPrivate)
 {
-  // no ops
 }
 
 /////////////////////////////////////////////////
@@ -138,40 +124,10 @@ VisualizeFrustum::~VisualizeFrustum()
 /////////////////////////////////////////////////
 void VisualizeFrustum::LoadFrustum()
 {
-  auto loadedEngNames = rendering::loadedEngines();
-  if (loadedEngNames.empty())
-    return;
-
-  // assume there is only one engine loaded
-  auto engineName = loadedEngNames[0];
-  if (loadedEngNames.size() > 1)
-  {
-    gzdbg << "More than one engine is available. "
-          << "VisualizeFrustum plugin will use engine ["
-          << engineName << "]" << std::endl;
-  }
-  auto engine = rendering::engine(engineName);
-  if (!engine)
-  {
-    gzerr << "Internal error: failed to load engine [" << engineName
-          << "]. VisualizeFrustum plugin won't work." << std::endl;
-    return;
-  }
-
-  if (engine->SceneCount() == 0)
-    return;
-
-  // assume there is only one scene
-  // load scene
-  auto scene = engine->SceneByIndex(0);
+  auto scene = rendering::sceneFromFirstRenderEngine();
   if (!scene)
   {
     gzerr << "Internal error: scene is null." << std::endl;
-    return;
-  }
-
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
-  {
     return;
   }
 
@@ -254,17 +210,17 @@ bool VisualizeFrustum::eventFilter(QObject *_obj, QEvent *_event)
 void VisualizeFrustum::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("VisualizeFrusum::Update");
+  GZ_PROFILE("VisualizeFrustum::Update");
 
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
   if (this->dataPtr->frustumEntityDirty)
   {
-    auto frustumURIVec = common::split(common::trimmed(
+    const auto frustumURIVec = common::split(common::trimmed(
                   this->dataPtr->frustumString), "::");
-    if (frustumURIVec.size() > 0)
+    if (!frustumURIVec.empty())
     {
-      auto baseEntity = _ecm.EntityByComponents(
+      const auto baseEntity = _ecm.EntityByComponents(
           components::Name(frustumURIVec[0]));
       if (!baseEntity)
       {
@@ -277,22 +233,21 @@ void VisualizeFrustum::Update(const UpdateInfo &,
       {
         auto parent = baseEntity;
         bool success = false;
-        for (size_t i = 0u; i < frustumURIVec.size()-1; i++)
+        for (size_t i = 0u; i < frustumURIVec.size()-1; ++i)
         {
-          auto children = _ecm.EntitiesByComponents(
+          const auto children = _ecm.EntitiesByComponents(
                             components::ParentEntity(parent));
           bool foundChild = false;
-          for (auto child : children)
+          for (const auto child : children)
           {
-            std::string nextstring = frustumURIVec[i+1];
+            const auto &nextstring = frustumURIVec[i+1];
             auto comp = _ecm.Component<components::Name>(child);
             if (!comp)
             {
               continue;
             }
-            std::string childname = std::string(
-                            comp->Data());
-            if (nextstring.compare(childname) == 0)
+            const auto &childname = comp->Data();
+            if (nextstring == childname)
             {
               parent = child;
               foundChild = true;
@@ -322,7 +277,7 @@ void VisualizeFrustum::Update(const UpdateInfo &,
   // Only update frustumPose if the frustumEntity exists and the frustum is
   // initialized and the sensor message is yet to arrive.
   //
-  // If we update the worldpose on the physics thread **after** the sensor
+  // If we update the worldPose on the physics thread **after** the sensor
   // data arrives, the visual is offset from the obstacle if the sensor is
   // moving fast.
   if (!this->dataPtr->frustumEntityDirty && this->dataPtr->initialized &&
@@ -364,7 +319,7 @@ void VisualizeFrustum::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->frustum->SetVisible(_value);
-  gzerr << "Frustum Visual Display " << ((_value) ? "ON." : "OFF.")
+  gzdbg << "Frustum Visual Display " << (_value ? "ON." : "OFF.")
         << std::endl;
 }
 
@@ -377,12 +332,12 @@ void VisualizeFrustum::OnRefresh()
   // Get updated list
   std::vector<std::string> allTopics;
   this->dataPtr->node.TopicList(allTopics);
-  for (auto topic : allTopics)
+  for (const auto &topic : allTopics)
   {
     std::vector<transport::MessagePublisher> publishers;
     std::vector<transport::MessagePublisher> subscribers;
     this->dataPtr->node.TopicInfo(topic, publishers, subscribers);
-    for (auto pub : publishers)
+    for (const auto &pub : publishers)
     {
       if (pub.MsgTypeName() == "gz.msgs.LogicalCameraSensor")
       {
@@ -391,7 +346,7 @@ void VisualizeFrustum::OnRefresh()
       }
     }
   }
-  if (this->dataPtr->topicList.size() > 0)
+  if (!this->dataPtr->topicList.empty())
   {
     this->OnTopic(this->dataPtr->topicList.at(0));
   }
@@ -418,21 +373,19 @@ void VisualizeFrustum::OnScan(const msgs::LogicalCameraSensor &_msg)
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->initialized)
   {
-    this->dataPtr->msg = std::move(_msg);
-
-    this->dataPtr->frustum->SetNearClipPlane(this->dataPtr->msg.near_clip());
-    this->dataPtr->frustum->SetFarClipPlane(this->dataPtr->msg.far_clip());
-    this->dataPtr->frustum->SetHFOV(this->dataPtr->msg.horizontal_fov());
-    this->dataPtr->frustum->SetAspectRatio(this->dataPtr->msg.aspect_ratio());
+    this->dataPtr->frustum->SetNearClipPlane(_msg.near_clip());
+    this->dataPtr->frustum->SetFarClipPlane(_msg.far_clip());
+    this->dataPtr->frustum->SetHFOV(_msg.horizontal_fov());
+    this->dataPtr->frustum->SetAspectRatio(_msg.aspect_ratio());
 
     this->dataPtr->visualDirty = true;
 
-    for (auto data_values : this->dataPtr->msg.header().data())
+    for (const auto &data_values : _msg.header().data())
     {
       if (data_values.key() == "frame_id")
       {
-        if (this->dataPtr->frustumString.compare(
-                common::trimmed(data_values.value(0))) != 0)
+        if (this->dataPtr->frustumString !=
+            common::trimmed(data_values.value(0)))
         {
           this->dataPtr->frustumString = common::trimmed(data_values.value(0));
           this->dataPtr->frustumEntityDirty = true;
