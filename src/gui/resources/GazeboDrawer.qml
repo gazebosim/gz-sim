@@ -47,7 +47,7 @@ Rectangle {
       // Handle custom actions
       case "saveWorld":
         if (lastSaveSuccess)
-          GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
+          _GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
         else
           sdfGenConfigDialog.open();
         break
@@ -183,7 +183,7 @@ Rectangle {
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
     onAccepted: {
-      GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
+      _GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
     }
     Component.onCompleted: {
       dialogButtons.standardButton(Dialog.Ok).enabled = false
@@ -240,7 +240,7 @@ Rectangle {
   }
 
   Connections {
-    target: GuiFileHandler
+    target: _GuiFileHandler
     onNewSaveWorldStatus: {
       console.log(_msg);
       lastSaveSuccess = _status
@@ -252,7 +252,7 @@ Rectangle {
   }
 
   /**
-   * Message dialogs for failure messages emitted by GuiFileHandler
+   * Message dialogs for failure messages emitted by _GuiFileHandler
    */
   Dialog {
     id: fileSaveFailure
