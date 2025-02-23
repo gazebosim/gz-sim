@@ -27,7 +27,7 @@ jobs:
           extra_args: --all-files
       - name: Compile and test
         id: ci
-        uses: gazebo-tooling/action-gz-ci@jammy # Temporary for testing
+        uses: gazebo-tooling/action-gz-ci@jammy
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
