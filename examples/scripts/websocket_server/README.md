@@ -7,14 +7,14 @@ web visualization with [gzweb](https://github.com/gazebo-web/gzweb).
 from other Gazebo worlds except it includes the
 `gz-sim-websocket-server-system`.
 
-```
+```bash
 gz sim -v 4 -s websocket_server.sdf
 ```
 1. View Gazebo simulation in the web
 
    1. Option 1: Open `index.html` in a web browser.
 
-    ```
+    ```bash
     firefox index.html
     ```
       * The `index.html` web page is a simple demo that integrates a snapshot
@@ -44,7 +44,7 @@ access.
 1. Use the `localhost.cert` and `localhost.key` files for testing purposes.
 Configure the websocket server system using:
 
-```
+```xml
   <ssl>
     <cert_file>PATH_TO_localhost.cert</cert_file>
     <private_key_file>PATH_TO_localhost.key</private_key_file>
@@ -54,7 +54,7 @@ Configure the websocket server system using:
    * You can create your own self-signed certificates using the following
    command. Use "localhost" for the  "Common Name" question.
 
-   ```
+   ```bash
    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.cert
    ```
 
@@ -62,7 +62,7 @@ Configure the websocket server system using:
 
 3. Run a browser, such as firefox, with the `index.html` file.
 
-```
+```bash
 firefox index.html
 ```
 

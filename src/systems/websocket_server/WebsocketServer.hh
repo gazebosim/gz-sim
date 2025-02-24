@@ -14,14 +14,23 @@
  * limitations under the License.
  *
  */
+
+// This WebsocketServer.cc and WebsocketServer.hh files were taken from:
+// https://github.com/gazebosim/gz-launch/blob/main/plugins/websocket_server
+// and converted to a gz-sim system.
+
 #ifndef GZ_SIM_SYSTEMS_WEBSOCKETSERVER_HH_
 #define GZ_SIM_SYSTEMS_WEBSOCKETSERVER_HH_
 
+#include <chrono>
+#include <cstddef>
 #include <list>
 #include <map>
 #include <memory>
+#include <string>
 #include <thread>
-//#include <gz/plugin/Register.hh>
+#include <vector>
+
 #include <gz/transport/MessageInfo.hh>
 #include <gz/transport/Node.hh>
 #include <gz/common/Util.hh>
