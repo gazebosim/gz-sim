@@ -15,7 +15,24 @@
  *
 */
 
+// This file was ported from:
+// https://github.com/gazebosim/gz-launch/blob/main/plugins/websocket_server
+// and converted to a gz-sim system.
+
 #include <algorithm>
+#include <chrono>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <set>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include <gz/msgs/bytes.pb.h>
 #include <gz/msgs/empty.pb.h>
@@ -33,6 +50,7 @@
 #include <gz/msgs/Factory.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Publisher.hh>
+#include <gz/transport/TopicUtils.hh>
 
 #include "MessageDefinitions.hh"
 #include "WebsocketServer.hh"
@@ -816,14 +834,22 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
     bool result;
     unsigned int timeout = 2000;
 
-    std::string serviceName = std::string("/world/") + frameParts[1] +
-      "/scene/info";
-
-    bool executed = this->node.Request(serviceName, req, timeout, rep, result);
-    if (!executed || !result)
+    std::string serviceName = transport::TopicUtils::AsValidTopic(
+        std::string("/world/") + frameParts[1] + "/scene/info");
+    if (serviceName.empty())
     {
-      gzerr << "Failed to get the scene information for " << frameParts[1]
-        << " world.\n";
+      gzerr << "Unable to construct scene info service topic from world name: "
+            << frameParts[1] << std::endl;
+    }
+    else
+    {
+      bool executed =
+          this->node.Request(serviceName, req, timeout, rep, result);
+      if (!executed || !result)
+      {
+        gzerr << "Failed to get the scene information for " << frameParts[1]
+          << " world.\n";
+      }
     }
 
     std::string data = BUILD_MSG(this->operations[PUBLISH], frameParts[0],
@@ -846,14 +872,22 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
     bool result;
     unsigned int timeout = 2000;
 
-    std::string serviceName = std::string("/world/") + frameParts[1] +
-      "/particle_emitters";
-
-    bool executed = this->node.Request(serviceName, req, timeout, rep, result);
-    if (!executed || !result)
+    std::string serviceName = transport::TopicUtils::AsValidTopic(
+        std::string("/world/") + frameParts[1] + "/particle_emitters");
+    if (serviceName.empty())
     {
-      gzerr << "Failed to get the particle emitter information for "
-        << frameParts[1] << " world.\n";
+      gzerr << "Unable to construct particle emitter service topic from "
+            << "world name: " << frameParts[1] << std::endl;
+    }
+    else
+    {
+      bool executed =
+          this->node.Request(serviceName, req, timeout, rep, result);
+      if (!executed || !result)
+      {
+        gzerr << "Failed to get the particle emitter information for "
+          << frameParts[1] << " world.\n";
+      }
     }
 
     std::string data = BUILD_MSG(this->operations[PUBLISH], frameParts[0],
@@ -1009,8 +1043,8 @@ void WebsocketServer::OnRequest(int _socketId,
 
   if (publishers.empty())
   {
-    std::cerr << "Node::RequestRaw(): Error getting response type for "
-      << "service [" << service << "]\n";
+    gzerr << "Node::RequestRaw(): Error getting response type for "
+          << "service [" << service << "]\n";
 
     gz::msgs::StringMsg msg;
     msg.set_data("service_not_found");

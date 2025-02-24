@@ -15,7 +15,7 @@
  *
  */
 
-// This WebsocketServer.cc and WebsocketServer.hh files were taken from:
+// This file was ported from:
 // https://github.com/gazebosim/gz-launch/blob/main/plugins/websocket_server
 // and converted to a gz-sim system.
 

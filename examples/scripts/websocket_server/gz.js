@@ -15,6 +15,11 @@
  *
  */
 
+// This file was ported from:
+// https://github.com/gazebosim/gz-launch/blob/main/plugins/websocket_server
+// Part of the code is taken from gzweb:
+// https://github.com/gazebo-web/gzweb.
+
 /// \brief Construct a complete websocket message.
 /// \param[in] _frameParts This must be an array of four strings:
 ///   1. operation,
