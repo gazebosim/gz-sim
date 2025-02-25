@@ -408,7 +408,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   gzdbg << "Using port[" << port << "]\n";
 
   // Get the maximum connection count, if present.
-  if (sdf::ElementConstPtr elem = elem->FindElement("max_connections"))
+  if (sdf::ElementConstPtr elem = _sdf->FindElement("max_connections"))
   {
     this->maxConnections = elem->Get<int>();
     gzdbg << "Using maximum connection count of "
