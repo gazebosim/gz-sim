@@ -236,7 +236,7 @@ message Model
   /// \brief An array of nested models.
   repeated Model model         = 12;
 
-  /// \brief Axis aligned bounding box for the model. The center of the 
+  /// \brief Axis aligned bounding box for the model. The center of the
   /// bounding box should coincide with the model's pose.
   AxisAlignedBox bounding_box   = 13;
 }
@@ -361,7 +361,7 @@ message Axis
   double friction             = 8;
   bool use_parent_model_frame = 9;
 
-  /// \brief Position of the joint. For angular joints, such as revolute 
+  /// \brief Position of the joint. For angular joints, such as revolute
   /// joints, the units are radians. For linear joints, such as prismatic
   /// joints, the units are meters.
   double position             = 10;
