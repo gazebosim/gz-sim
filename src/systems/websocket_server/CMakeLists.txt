@@ -5,11 +5,17 @@ configure_file("MessageDefinitions.hh.in"
 # combinded.proto file and `make` will rebuild the plugin.
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS combined.proto)
 
+if (WIN32)
+  set(websockets_lib websockets)
+else()
+  set(websockets_lib websockets_shared)
+endif()
+
 gz_add_system(websocket-server
   SOURCES
     WebsocketServer.cc
   PUBLIC_LINK_LIBS
-    websockets_shared
+    ${websockets_lib}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-common${GZ_COMMON_VER}::graphics
     gz-msgs${GZ_MSGS_VER}::core
