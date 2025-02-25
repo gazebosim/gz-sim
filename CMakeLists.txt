@@ -193,6 +193,14 @@ set(GZ_TOOLS_VER 2)
 gz_find_package(gz-utils3 REQUIRED COMPONENTS cli)
 set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
 
+
+#--------------------------------------
+# Find libwebsockets
+gz_find_package(libwebsockets)
+if (NOT libwebsockets_FOUND)
+  gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+endif()
+
 #--------------------------------------
 # Find protobuf
 gz_find_package(GzProtobuf
