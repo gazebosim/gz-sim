@@ -51,6 +51,7 @@
 
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
+#include <gz/sim/Link.hh>
 
 namespace gz
 {
