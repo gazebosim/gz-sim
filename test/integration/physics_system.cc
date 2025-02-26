@@ -1493,7 +1493,8 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 }
 
 /////////////////////////////////////////////////
-TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GetModelBoundingBox))
 {
   ServerConfig serverConfig;
 
@@ -1561,6 +1562,138 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(GetBoundingBox))
       bbox.begin()->second);
 }
 
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GetLinkBoundingBox))
+{
+  const auto sdfFile = std::string(PROJECT_BINARY_PATH) +
+    "/test/worlds/bounding_boxes.sdf";
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  auto gravity = world->Gravity();
+
+  // The server update period
+  auto dt = 1ms;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfFile);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(dt);
+
+  // Create a map of link scoped name to its world axis aligned box
+  std::map<std::string, math::AxisAlignedBox> worldLinkBbox;
+
+  // Create a map of link scoped name to its initial world axis aligned box
+  std::map<std::string, math::AxisAlignedBox> initialWorldLinkBbox;
+
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+    [&](const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Link, components::Name>(
+        [&](const Entity &_entity, const components::Link *,
+        const components::Name *_name)->bool
+        {
+          auto link = Link(_entity);
+          auto model = link.ParentModel(_ecm);
+          EXPECT_TRUE(model.has_value());
+
+          if (_name->Data() == "link" && !model->Static(_ecm))
+          {
+            // The component should be null in the first iteration only
+            if (_info.iterations <= 1)
+            {
+              EXPECT_FALSE(link.AxisAlignedBox(_ecm).has_value());
+              link.EnableBoundingBoxChecks(_ecm);
+
+              // Store initial world bounding boxes for post-simulation checks
+              initialWorldLinkBbox[scopedName(_entity, _ecm, "/", false)] =
+                link.WorldAxisAlignedBox(_ecm).value();
+
+              return true;
+            }
+            auto linkAabb = link.AxisAlignedBox(_ecm);
+            auto worldAabb = link.WorldAxisAlignedBox(_ecm);
+
+            EXPECT_TRUE(linkAabb.has_value());
+            EXPECT_TRUE(worldAabb.has_value());
+
+            // Links are not initialized at the world origin
+            // and their models are free-falling.
+            EXPECT_NE(linkAabb, worldAabb);
+          }
+          return true;
+        });
+    });
+
+  testSystem.OnPostUpdate(
+    [&](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      // store links that have axis aligned box computed
+      _ecm.Each<components::Link, components::AxisAlignedBox>(
+        [&](const Entity & _entity, const components::Link *,
+        const components::AxisAlignedBox *)->bool
+        {
+          auto link = Link(_entity);
+          auto aabbSdf = link.ComputeAxisAlignedBox(_ecm).value();
+          auto aabbPhysics = link.AxisAlignedBox(_ecm).value();
+
+          // The bounding box computed by the physics engine should be
+          // close-enough to the one computed from the SDF collisions.
+          EXPECT_TRUE(aabbPhysics.Min().Equal(aabbSdf.Min(), 5e-3));
+          EXPECT_TRUE(aabbPhysics.Max().Equal(aabbSdf.Max(), 5e-3));
+
+          // Store final world bounding boxes for post-simulation checks
+          worldLinkBbox[scopedName(_entity, _ecm, "/", false)] =
+            link.WorldAxisAlignedBox(_ecm).value();
+
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  size_t iters = 100;
+  const double tf = std::chrono::duration<double>(dt).count() * iters;
+  server.Run(true, iters, false);
+  EXPECT_EQ(2u, worldLinkBbox.size());
+
+  // Check that final world bound boxes are close to the initial ones
+  // plus the expected free-fall displacement.
+  for (const auto &[name, bbox] : worldLinkBbox)
+  {
+    auto expectedBbox = initialWorldLinkBbox[name] +
+      0.5 * gravity * tf * tf;
+
+    // 5mm tolerance is used since actual dt is variable
+    EXPECT_TRUE(expectedBbox.Min().Equal(bbox.Min(), 5e-3));
+    EXPECT_TRUE(expectedBbox.Max().Equal(bbox.Max(), 5e-3));
+  }
+
+  // Simulate until t=1.5s which is enough for models to reach the ground.
+  server.Run(true, 1500 - iters, false);
+  EXPECT_EQ(2u, worldLinkBbox.size());
+
+  // Collisions link starts at (2, 2, 2) and it is trivial to obtain its
+  // bounding box'es min and max points.
+  auto collisionsBbox = worldLinkBbox["bounding_boxes/collisions/link"];
+  EXPECT_EQ(math::Vector3d(2 - 1.5, 2 - 1.5, 0), collisionsBbox.Min());
+  EXPECT_EQ(math::Vector3d(2 + 1.5, 2 + 1.5, 1), collisionsBbox.Max());
+
+  // Duck link starts at (0, 0, 3) and its bounding box can be qualitatively
+  // checked since the displacement is along the z-axis only.
+  auto duckBbox = worldLinkBbox["bounding_boxes/duck/link"];
+  EXPECT_NEAR(duckBbox.Min().Z(), 0, 1e-3);
+  EXPECT_NEAR(duckBbox.Max().Z(), duckBbox.ZLength(), 1e-3);
+  EXPECT_LT(duckBbox.Min().X(), 0);
+  EXPECT_GT(duckBbox.Max().X(), 0);
+  EXPECT_LT(duckBbox.Min().Y(), 0);
+  EXPECT_GT(duckBbox.Max().Y(), 0);
+}
 
 /////////////////////////////////////////////////
 // This tests whether nested models can be loaded correctly
