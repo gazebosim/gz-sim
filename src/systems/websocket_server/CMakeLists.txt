@@ -11,13 +11,20 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS combined.proto)
 #  set(websockets_lib websockets_shared)
 #endif()
 
-message("libwebsockets ============ ${websockets_shared}")
+find_package(OpenSSL REQUIRED)
+
+get_target_property(websockets_shared_libs websockets_shared LINK_LIBRARIES)
+
+message("libwebsockets shared ============ ${websockets_shared_libs}")
 message("libwebsockets_dep_libs  ============ ${LIBWEBSOCKETS_DEP_LIBS}")
+message("openssl  ============ ${OPENSSL_LIBRARIES}")
+
 
 gz_add_system(websocket-server
   SOURCES
     WebsocketServer.cc
   PUBLIC_LINK_LIBS
+    OpenSSL::SSL
     websockets_shared
     ${LIBWEBSOCKETS_DEP_LIBS}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
