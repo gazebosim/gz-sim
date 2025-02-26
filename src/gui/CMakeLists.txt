@@ -24,9 +24,9 @@ set(CMAKE_AUTORCC ON)
 
 # CMake AUTOMOC does not generate moc_*.cpp files automatically for headers
 # located in different directories than the containing .cc file. For Qt header
-# files in `include/gz/sim/gui`, we use qt5_wrap_cpp instead. There is
+# files in `include/gz/sim/gui`, we use qt_wrap_cpp instead. There is
 # no need to add entries for Qt header files in `src/gui/`.
-qt5_wrap_cpp(gui_sources
+qt_wrap_cpp(gui_sources
   ${PROJECT_SOURCE_DIR}/include/gz/sim/gui/GuiSystem.hh
 )
 
@@ -51,8 +51,11 @@ target_link_libraries(${gui_target}
     gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    ${Qt5Core_LIBRARIES}
-    ${Qt5Widgets_LIBRARIES}
+    Qt::Core
+    Qt::Qml
+    Qt::Quick
+    Qt::QuickControls2
+    Qt::Widgets
 )
 
 set(CMAKE_AUTOMOC OFF)
