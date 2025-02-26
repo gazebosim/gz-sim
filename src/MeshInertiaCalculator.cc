@@ -78,7 +78,7 @@ bool MeshInertiaCalculator::CorrectMassMatrix(
   correctedPrincipalMoments[sortedIndices[0]] *= scale;
   correctedPrincipalMoments[sortedIndices[1]] *= scale;
 
-  // Recompute mass matrx with corrected principal moments.
+  // Recompute mass matrix with corrected principal moments.
   math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),
       correctedPrincipalMoments, math::Vector3d::Zero);
   math::Inertiald correctedPrincipalMassMatrixWithAxesOffset(

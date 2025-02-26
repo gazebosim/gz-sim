@@ -33,6 +33,10 @@ TEST(MeshInertiaCalculator, CorrectMassMatrix)
                                 math::Vector3d::Zero);
   EXPECT_FALSE(massMatrix.IsValid());
   EXPECT_TRUE(massMatrix.IsPositive());
+  // Set a small tolerance for the triangle inequality test and expect that
+  // the mass matrix can not be corrected.
+  EXPECT_FALSE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix, 0.01));
+  // Verify successful correction with default tolerance.
   EXPECT_TRUE(MeshInertiaCalculator::CorrectMassMatrix(massMatrix));
   EXPECT_TRUE(massMatrix.IsValid());
 
