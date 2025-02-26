@@ -17,6 +17,8 @@
 
 #include "MeshInertiaCalculator.hh"
 
+#include <algorithm>
+#include <numeric>
 #include <optional>
 #include <vector>
 
@@ -38,10 +40,60 @@ using namespace gz;
 using namespace sim;
 
 //////////////////////////////////////////////////
+bool MeshInertiaCalculator::CorrectMassMatrix(
+    math::MassMatrix3d &_massMatrix, double _tol)
+{
+  if (_massMatrix.IsValid())
+    return true;
+
+  if (!_massMatrix.IsPositive())
+    return false;
+
+  math::Quaterniond principalAxesOffset = _massMatrix.PrincipalAxesOffset();
+  math::Vector3d principalMoments = _massMatrix.PrincipalMoments();
+
+  // Track elements in principalMoments in ascending order using a sorted
+  // indices array, i.e. sortedIndices[0] should point to the index in
+  // principalMoments containing the smallest value, while sortedIndices[2]
+  // should point to the index in principalMoments containing the largest value.
+  std::vector<int> sortedIndices(3);
+  std::iota(sortedIndices.begin(), sortedIndices.end(), 0);
+  std::sort(sortedIndices.begin(), sortedIndices.end(), [&](int i, int j)
+      { return principalMoments[i] < principalMoments[j]; } );
+
+  // Check if principal moments are within tol of satisfying the
+  // triangle inequality.
+  const double ratio =
+      (principalMoments[sortedIndices[0]] + principalMoments[sortedIndices[1]])
+      / principalMoments[sortedIndices[2]];
+  if ((1.0 - ratio) > _tol)
+  {
+    // The error is outside of tol so do not attempt to correct the mass matrix.
+    return false;
+  }
+  // Scale the 2 smaller elements in principalMoments so that they
+  // satisfy the triangle inequality
+  const double scale = 1.0 / ratio;
+  math::Vector3d correctedPrincipalMoments = principalMoments;
+  correctedPrincipalMoments[sortedIndices[0]] *= scale;
+  correctedPrincipalMoments[sortedIndices[1]] *= scale;
+
+  // Recompute mass matrix with corrected principal moments.
+  math::MassMatrix3d correctedPrincipalMassMatrix(_massMatrix.Mass(),
+      correctedPrincipalMoments, math::Vector3d::Zero);
+  math::Inertiald correctedPrincipalMassMatrixWithAxesOffset(
+      correctedPrincipalMassMatrix,
+      math::Pose3d(math::Vector3d::Zero, principalAxesOffset));
+  _massMatrix.SetMoi(correctedPrincipalMassMatrixWithAxesOffset.Moi());
+
+  return true;
+}
+
+//////////////////////////////////////////////////
 void MeshInertiaCalculator::GetMeshTriangles(
   std::vector<Triangle> &_triangles,
   const gz::math::Vector3d &_meshScale,
-  const gz::common::SubMesh* _subMesh)
+  const gz::common::SubMesh *_subMesh)
 {
   // Get the vertices & indices of the mesh
   double* vertArray = nullptr;
@@ -204,13 +256,6 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   }
 
   const common::Mesh *mesh = loadMesh(*sdfMesh);
-  if (!mesh)
-  {
-    gzerr << "Failed to load mesh: " << sdfMesh->Uri() << std::endl;
-    _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
-        "Could not calculate mesh inertia as mesh is not loaded."});
-    return std::nullopt;
-  }
 
   // Compute inertia for each submesh then sum up to get the final inertia
   // values.
@@ -229,8 +274,21 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     this->CalculateMassProperties(meshTriangles, density,
       meshMassMatrix, centreOfMass);
 
-    if (meshMassMatrix.IsValid())
-      meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
+    if (!meshMassMatrix.IsValid())
+    {
+      gzwarn << "Auto-calculated mass matrix is invalid for mesh: "
+             << mesh->Name() << ", submesh index: " << i << "."
+             << std::endl;
+      if (!this->CorrectMassMatrix(meshMassMatrix))
+      {
+        gzwarn << "  Unable to correct mass matrix. Skipping submesh."
+               << std::endl;
+        continue;
+      }
+      gzwarn << "  Successfully corrected mass matrix."
+             << std::endl;
+    }
+    meshInertial += gz::math::Inertiald(meshMassMatrix, centreOfMass);
   }
 
   if (meshInertial.MassMatrix().Mass() <= 0.0 ||
