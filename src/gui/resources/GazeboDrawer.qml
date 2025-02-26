@@ -132,10 +132,10 @@ Rectangle {
   FileDialog {
     id: saveWorldDialog
     title: "Save world"
-    folder: shortcuts.home
+    //folder: shortcuts.home
     nameFilters: [ "SDF files (*.sdf)" ]
-    selectMultiple: false
-    selectExisting: false
+    //selectMultiple: false
+    //selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
     }
@@ -156,7 +156,7 @@ Rectangle {
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
-    standardButtons: StandardButton.Ok
+    standardButtons: Dialog.Ok
 
     Text {
       anchors.fill: parent
@@ -165,8 +165,8 @@ Rectangle {
       verticalAlignment: Text.AlignVCenter
       color: Material.theme == Material.Light ? "black" : "white"
       textFormat: Text.RichText
-      text: AboutDialogHandler.getVersionInformation()
-      onLinkActivated: AboutDialogHandler.openURL(link)
+      text: _AboutDialogHandler.getVersionInformation()
+      onLinkActivated: _AboutDialogHandler.openURL(link)
     }
   }
 
@@ -204,9 +204,9 @@ Rectangle {
           id: saveWorldFileText
           text: "file:///"
           selectByMouse: true
-          validator: RegExpValidator {
-            regExp: fileValidator
-          }
+          //validator: RegExpValidator {
+          //  regExp: fileValidator
+          //}
           onTextChanged: {
             var valid = saveWorldFileText.text.match(fileValidator)
             dialogButtons.standardButton(Dialog.Ok).enabled = valid
@@ -266,7 +266,7 @@ Rectangle {
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
-    standardButtons: StandardButton.Cancel | StandardButton.Retry
+    standardButtons: Dialog.Cancel | Dialog.Retry
 
     Label {
       anchors.fill: parent
