@@ -256,6 +256,14 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   }
 
   const common::Mesh *mesh = loadMesh(*sdfMesh);
+  if (!mesh)
+  {
+    gzerr << "Failed to load mesh: " << sdfMesh->Uri() << std::endl;
+    _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+        "Could not calculate mesh inertia as mesh is not loaded."});
+    return std::nullopt;
+  }
+  std::cerr << " loaded mesh " << std::endl;
 
   // Compute inertia for each submesh then sum up to get the final inertia
   // values.
@@ -268,7 +276,9 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
 
     // Create a list of Triangle objects from the mesh vertices and indices
     auto submesh = mesh->SubMeshByIndex(i).lock();
+
     this->GetMeshTriangles(meshTriangles, sdfMesh->Scale(), submesh.get());
+    std::cerr << " got mesh triangles " << std::endl;
 
     // Calculate mesh mass properties
     this->CalculateMassProperties(meshTriangles, density,
@@ -304,5 +314,6 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
     return std::nullopt;
   }
 
+    std::cerr << " done mesh calc " << std::endl;
   return meshInertial;
 }

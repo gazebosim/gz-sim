@@ -75,6 +75,8 @@ void loadSdfAndTest(const std::string &_path,
   gz::sim::ServerConfig serverConfigSdfStr;
   serverConfigSdfStr.SetSdfString(buffer.str());
   _testFunc(serverConfigSdfStr);
+
+    std::cerr << " ==== done test func " << std::endl;
 }
 
 void cylinderColladaMeshInertiaCalculation(
