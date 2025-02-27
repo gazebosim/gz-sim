@@ -250,18 +250,22 @@ namespace gz
     /// \param[in] _entity Entity whose component is being enabled
     /// \param[in] _enable True to enable (create), false to disable (remove).
     /// Defaults to true.
+    /// \param[in] _comp The component to create if neeeded. Defaults to a
+    /// default-constructed component.
     /// \return True if a component was created or removed, false if nothing
     /// changed.
     template <class ComponentType>
     bool enableComponent(EntityComponentManager &_ecm,
-        Entity _entity, bool _enable = true)
+        Entity _entity,
+        bool _enable = true,
+        const ComponentType &_comp = ComponentType())
     {
       bool changed{false};
 
       auto exists = _ecm.Component<ComponentType>(_entity);
       if (_enable && !exists)
       {
-        _ecm.CreateComponent(_entity, ComponentType());
+        _ecm.CreateComponent(_entity, _comp);
         changed = true;
       }
       else if (!_enable && exists)
