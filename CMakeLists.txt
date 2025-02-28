@@ -196,7 +196,8 @@ set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find libwebsockets
-gz_find_package(libwebsockets)
+gz_pkg_check_modules(libwebsockets libwebsockets)
+#gz_find_package(libwebsockets)
 if (NOT libwebsockets_FOUND)
   gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
 endif()

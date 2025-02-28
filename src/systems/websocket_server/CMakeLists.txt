@@ -15,8 +15,9 @@ endif()
 #
 #get_target_property(websockets_shared_libs websockets_shared LINK_LIBRARIES)
 #message("libwebsockets shared ============ ${websockets_shared_libs}")
-message("libwebsockets_dep_libs  ============ ${LIBWEBSOCKETS_DEP_LIBS}")
+#message("libwebsockets_dep_libs  ============ ${LIBWEBSOCKETS_DEP_LIBS}")
 #message("openssl  ============ ${OPENSSL_LIBRARIES}")
+message("libwebsockets_libraries ============ ${libwebsockets_LIBRARIES}")
 
 
 gz_add_system(websocket-server
@@ -25,8 +26,9 @@ gz_add_system(websocket-server
   PUBLIC_LINK_LIBS
 #    OpenSSL::SSL
 #    websockets_shared
-    ${websockets_lib}
-    ${LIBWEBSOCKETS_DEP_LIBS}
+#    ${websockets_lib}
+#    ${LIBWEBSOCKETS_DEP_LIBS}
+    ${libwebsockets_LIBRARIES}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-common${GZ_COMMON_VER}::graphics
     gz-msgs${GZ_MSGS_VER}::core
