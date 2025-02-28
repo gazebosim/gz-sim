@@ -59,14 +59,9 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 void loadSdfAndTest(const std::string &_path,
     std::function<void(const gz::sim::ServerConfig &)> _testFunc)
 {
-  // Test mesh inertial calculator with sdf loaded from file
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(_path);
   common::setenv(
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
-  _testFunc(serverConfig);
-
 
   // Test mesh inertial calculator with sdf loaded from string
   std::ifstream sdfFile(_path);
@@ -75,6 +70,15 @@ void loadSdfAndTest(const std::string &_path,
   gz::sim::ServerConfig serverConfigSdfStr;
   serverConfigSdfStr.SetSdfString(buffer.str());
   _testFunc(serverConfigSdfStr);
+
+    std::cerr << " ====    finished str based test func " << std::endl;
+
+
+  // Test mesh inertial calculator with sdf loaded from file
+  gz::sim::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(_path);
+  _testFunc(serverConfig);
+
 
     std::cerr << " ==== done test func " << std::endl;
 }
