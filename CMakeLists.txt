@@ -196,9 +196,13 @@ set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find libwebsockets
-gz_find_package(libwebsockets)
-if (NOT libwebsockets_FOUND)
-  gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+# Disable on windows as there is an issue linking against websockets_shared,
+# see #2802
+if (NOT WIN32)
+  gz_find_package(libwebsockets)
+  if (NOT libwebsockets_FOUND)
+    gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+  endif()
 endif()
 
 #--------------------------------------
