@@ -59,9 +59,16 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 void loadSdfAndTest(const std::string &_path,
     std::function<void(const gz::sim::ServerConfig &)> _testFunc)
 {
+    std::cerr << " ====    finished str based test func " << std::endl;
+
   common::setenv(
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
+
+  // Test mesh inertial calculator with sdf loaded from file
+  gz::sim::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(_path);
+  _testFunc(serverConfig);
 
   // Test mesh inertial calculator with sdf loaded from string
   std::ifstream sdfFile(_path);
@@ -72,13 +79,6 @@ void loadSdfAndTest(const std::string &_path,
   _testFunc(serverConfigSdfStr);
   sdfFile.close();
 
-    std::cerr << " ====    finished str based test func " << std::endl;
-
-
-  // Test mesh inertial calculator with sdf loaded from file
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(_path);
-  _testFunc(serverConfig);
 
 
     std::cerr << " ==== done test func " << std::endl;
@@ -153,6 +153,8 @@ void cylinderColladaMeshInertiaCalculation(
   // Check the Inertial Pose and Link Pose
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
+
+  server.Stop();
   std::cerr << " ==== done test  " << std::endl;
 }
 
