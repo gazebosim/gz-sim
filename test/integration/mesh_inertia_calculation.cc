@@ -82,10 +82,12 @@ void loadSdfAndTest(const std::string &_path,
 void cylinderColladaMeshInertiaCalculation(
     const gz::sim::ServerConfig &_serverConfig)
 {
+  std::cerr << " ==== starting test  " << std::endl;
   size_t kIter = 100u;
 
   // Start server and run.
   gz::sim::Server server(_serverConfig);
+  std::cerr << " ==== started server  " << std::endl;
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -146,6 +148,7 @@ void cylinderColladaMeshInertiaCalculation(
   // Check the Inertial Pose and Link Pose
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
+  std::cerr << " ==== done test  " << std::endl;
 }
 
 TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
@@ -158,10 +161,12 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
 void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
     const gz::sim::ServerConfig &_serverConfig)
 {
+  std::cerr << " ==== starting test  " << std::endl;
   size_t kIter = 100u;
 
   // Start server and run.
   gz::sim::Server server(_serverConfig);
+  std::cerr << " ==== started server  " << std::endl;
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -227,7 +232,7 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
     gz::math::Pose3d(0, 0, 1, 0, 0, 0));
-
+  std::cerr << " ==== done test  " << std::endl;
 }
 
 TEST(MeshInertiaCalculationTest,
@@ -241,6 +246,7 @@ TEST(MeshInertiaCalculationTest,
 
 TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
 {
+  std::cerr << " ==== starting test  " << std::endl;
   size_t kIter = 100u;
 
   // Start server and run.
@@ -253,6 +259,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
   gz::sim::Server server(serverConfig);
+  std::cerr << " ==== started server  " << std::endl;
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -323,4 +330,5 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
               gz::math::Pose3d::Zero, 1e-2));
+  std::cerr << " ==== done test  " << std::endl;
 }
