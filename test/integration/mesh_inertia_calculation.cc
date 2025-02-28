@@ -70,6 +70,7 @@ void loadSdfAndTest(const std::string &_path,
   gz::sim::ServerConfig serverConfigSdfStr;
   serverConfigSdfStr.SetSdfString(buffer.str());
   _testFunc(serverConfigSdfStr);
+  sdfFile.close();
 
     std::cerr << " ====    finished str based test func " << std::endl;
 
