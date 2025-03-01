@@ -56,33 +56,38 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 /// 2) ther server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
+/// \param[in] _loadFromSdfStr Load from from SDF string instead of file
 void loadSdfAndTest(const std::string &_path,
-    std::function<void(const gz::sim::ServerConfig &)> _testFunc)
+    std::function<void(const gz::sim::ServerConfig &)> _testFunc,
+    bool _loadFromSdfStr)
 {
   common::setenv(
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
-  // Test mesh inertial calculator with sdf loaded from file
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(_path);
-  _testFunc(serverConfig);
-
-
+  if (_loadFromSdfStr)
+  {
+    // Test mesh inertial calculator with sdf loaded from string
+    std::ifstream sdfFile(_path);
+    std::stringstream buffer;
+    buffer << sdfFile.rdbuf();
+    gz::sim::ServerConfig serverConfigSdfStr;
+    serverConfigSdfStr.SetSdfString(buffer.str());
+    _testFunc(serverConfigSdfStr);
+      std::cerr << " ====    closing file  " << std::endl;
+    sdfFile.close();
     std::cerr << " ====    finished str based test func " << std::endl;
+  }
+  else
+  {
+    // Test mesh inertial calculator with sdf loaded from file
+    gz::sim::ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_path);
+    _testFunc(serverConfig);
+    std::cerr << " ====    finished file based test func " << std::endl;
+  }
 
-  // Test mesh inertial calculator with sdf loaded from string
-  std::ifstream sdfFile(_path);
-  std::stringstream buffer;
-  buffer << sdfFile.rdbuf();
-  gz::sim::ServerConfig serverConfigSdfStr;
-  serverConfigSdfStr.SetSdfString(buffer.str());
-  _testFunc(serverConfigSdfStr);
-  sdfFile.close();
-
-
-
-    std::cerr << " ==== done test func " << std::endl;
+  std::cerr << " ==== done test func " << std::endl;
 }
 
 void cylinderColladaMeshInertiaCalculation(
@@ -163,7 +168,14 @@ TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
 {
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation);
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, false);
+}
+
+TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculationSdfStr)
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, true);
 }
 
 void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
@@ -249,7 +261,16 @@ TEST(MeshInertiaCalculationTest,
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
 
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation);
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, false);
+}
+
+TEST(MeshInertiaCalculationTest,
+  CylinderColladaMeshWithNonCenterOriginInertiaCalculationSdfStr)
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, true);
 }
 
 TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
