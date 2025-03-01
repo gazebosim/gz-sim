@@ -67,7 +67,6 @@ void loadSdfAndTest(const std::string &_path,
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
   _testFunc(serverConfig);
 
-
   // Test mesh inertial calculator with sdf loaded from string
   std::ifstream sdfFile(_path);
   std::stringstream buffer;
@@ -75,6 +74,7 @@ void loadSdfAndTest(const std::string &_path,
   gz::sim::ServerConfig serverConfigSdfStr;
   serverConfigSdfStr.SetSdfString(buffer.str());
   _testFunc(serverConfigSdfStr);
+  sdfFile.close();
 }
 
 void cylinderColladaMeshInertiaCalculation(
@@ -144,6 +144,7 @@ void cylinderColladaMeshInertiaCalculation(
   // Check the Inertial Pose and Link Pose
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
+  server.Stop();
 }
 
 TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
