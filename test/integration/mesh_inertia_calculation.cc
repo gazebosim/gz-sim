@@ -39,6 +39,8 @@
 #include <gz/math/Matrix3.hh>
 #include <gz/math/Vector3.hh>
 
+#include <gz/utils/ExtraTestMacros.hh>
+
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
@@ -51,30 +53,38 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 {
 };
 
-/// \brief Load an SDF world and run mesh inertia tests. Two tests are run
-/// one after another: 1) the server is launched with path to SDF file, and
+/// \brief Load an SDF world and run mesh inertia tests. Two options for
+/// runnint the test:
+/// 1) the server is launched with path to SDF file, or
 /// 2) ther server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
+/// \param[in] _loadFromSdfStr True to load from SDF string instead of file
 void loadSdfAndTest(const std::string &_path,
-    std::function<void(const gz::sim::ServerConfig &)> _testFunc)
+    std::function<void(const gz::sim::ServerConfig &)> _testFunc,
+    bool _loadFromSdfStr)
 {
-  // Test mesh inertial calculator with sdf loaded from file
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(_path);
   common::setenv(
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
-  _testFunc(serverConfig);
 
-  // Test mesh inertial calculator with sdf loaded from string
-  std::ifstream sdfFile(_path);
-  std::stringstream buffer;
-  buffer << sdfFile.rdbuf();
-  gz::sim::ServerConfig serverConfigSdfStr;
-  serverConfigSdfStr.SetSdfString(buffer.str());
-  _testFunc(serverConfigSdfStr);
-  sdfFile.close();
+  gz::sim::ServerConfig serverConfig;
+  if (_loadFromSdfStr)
+  {
+    // Test mesh inertial calculator with sdf loaded from string
+    std::ifstream sdfFile(_path);
+    std::stringstream buffer;
+    buffer << sdfFile.rdbuf();
+    serverConfig.SetSdfString(buffer.str());
+    sdfFile.close();
+  }
+  else
+  {
+    // Test mesh inertial calculator with sdf loaded from file
+    serverConfig.SetSdfFile(_path);
+  }
+
+  _testFunc(serverConfig);
 }
 
 void cylinderColladaMeshInertiaCalculation(
@@ -144,14 +154,26 @@ void cylinderColladaMeshInertiaCalculation(
   // Check the Inertial Pose and Link Pose
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
-  server.Stop();
 }
 
-TEST(MeshInertiaCalculationTest, CylinderColladaMeshInertiaCalculation)
+// Tests are disabled on Windows
+// See https://github.com/gazebosim/gz-sim/issues/2801
+TEST(MeshInertiaCalculationTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaMeshInertiaCalculation))
 {
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation);
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, false);
+}
+
+TEST(MeshInertiaCalculationTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaMeshInertiaCalculationSdfStr))
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, true);
 }
 
 void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
@@ -226,32 +248,39 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
     gz::math::Pose3d(0, 0, 1, 0, 0, 0));
-
 }
 
+// Tests are disabled on Windows
+// See https://github.com/gazebosim/gz-sim/issues/2801
 TEST(MeshInertiaCalculationTest,
-  CylinderColladaMeshWithNonCenterOriginInertiaCalculation)
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaMeshWithNonCenterOriginInertiaCalculation))
 {
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
-
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation);
+  loadSdfAndTest(sdfFilePath,
+                 cylinderColladaMeshWithNonCenterOriginInertiaCalculation,
+                 false);
 }
 
-TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
+TEST(MeshInertiaCalculationTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaMeshWithNonCenterOriginInertiaCalculationSdfStr))
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath,
+                 cylinderColladaMeshWithNonCenterOriginInertiaCalculation,
+                 true);
+}
+
+void cylinderColladaOptimizedMeshInertiaCalculation(
+    const gz::sim::ServerConfig &_serverConfig)
 {
   size_t kIter = 100u;
 
   // Start server and run.
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(
-      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf"));
-
-  common::setenv(
-      "GZ_SIM_RESOURCE_PATH",
-      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
-
-  gz::sim::Server server(serverConfig);
+  gz::sim::Server server(_serverConfig);
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -322,4 +351,26 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
               gz::math::Pose3d::Zero, 1e-2));
+}
+
+// Tests are disabled on Windows
+// See https://github.com/gazebosim/gz-sim/issues/2801
+TEST(MeshInertiaCalculationTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaOptimizedMeshInertiaCalculation))
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaOptimizedMeshInertiaCalculation,
+                 false);
+}
+
+TEST(MeshInertiaCalculationTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(
+  CylinderColladaOptimizedMeshInertiaCalculationSdfStr))
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaOptimizedMeshInertiaCalculation,
+                 true);
 }
