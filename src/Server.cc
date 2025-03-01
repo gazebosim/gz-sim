@@ -43,7 +43,6 @@ using namespace sim;
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
 {
-  std::cerr << "  --- server constructor " << std::endl;
 #ifdef HAVE_PYBIND11
   if (Py_IsInitialized() == 0)
   {
@@ -69,21 +68,17 @@ Server::Server(const ServerConfig &_config)
   if (!_config.ResourceCache().empty())
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
-  std::cerr << "  --- server constructor  0 " << std::endl;
 
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
   common::addFindFileURICallback(std::bind(&ServerPrivate::FetchResourceUri,
       this->dataPtr.get(), std::placeholders::_1));
-  std::cerr << "  --- server constructor  1 " << std::endl;
 
   addResourcePaths();
-  std::cerr << "  --- server constructor  2 " << std::endl;
 
   // Loads the SDF root object based on values in a ServerConfig object.
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config);
-  std::cerr << "  --- server constructor  3 " << std::endl;
 
   if (!errors.empty())
   {
@@ -95,7 +90,6 @@ Server::Server(const ServerConfig &_config)
       return;
     }
   }
-  std::cerr << "  --- server constructor  4 " << std::endl;
 
   // Add record plugin
   if (_config.UseLogRecord())
@@ -103,9 +97,7 @@ Server::Server(const ServerConfig &_config)
     this->dataPtr->AddRecordPlugin(_config);
   }
 
-  std::cerr << "  --- server constructor  5 " << std::endl;
   this->dataPtr->CreateEntities();
-  std::cerr << "  --- server constructor  6 " << std::endl;
 
   // Set the desired update period, this will override the desired RTF given in
   // the world file which was parsed by CreateEntities.
@@ -113,11 +105,9 @@ Server::Server(const ServerConfig &_config)
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
-  std::cerr << "  --- server constructor  7 " << std::endl;
 
   // Establish publishers and subscribers.
   this->dataPtr->SetupTransport();
-  std::cerr << "  --- server constructor  8 " << std::endl;
 }
 
 /////////////////////////////////////////////////

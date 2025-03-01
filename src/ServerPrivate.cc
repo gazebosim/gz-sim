@@ -105,15 +105,26 @@ ServerPrivate::ServerPrivate()
 //////////////////////////////////////////////////
 ServerPrivate::~ServerPrivate()
 {
+  std::cerr << " ServerPrivate destructor " << std::endl;
   this->Stop();
+  std::cerr << " ServerPrivate destructor run thread joinable "
+            << this->runThread.joinable() << std::endl;
   if (this->runThread.joinable())
   {
     this->runThread.join();
   }
+
+  if (this->stopThread)
+  {
+    std::cerr << " ServerPrivate destructor stop thread joinable "
+              << this->stopThread->joinable() << std::endl;
+  }
+
   if (this->stopThread && this->stopThread->joinable())
   {
     this->stopThread->join();
   }
+  std::cerr << " ServerPrivate destructor done " << std::endl;
 }
 
 //////////////////////////////////////////////////
