@@ -160,7 +160,8 @@ void cylinderColladaMeshInertiaCalculation(
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
 
-  server.Stop();
+  //server.Stop();
+  testSystem.systemPtr.reset();
   std::cerr << " ==== done test  " << std::endl;
 }
 
@@ -252,6 +253,8 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
     gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+
+  testSystem.systemPtr.reset();
   std::cerr << " ==== done test  " << std::endl;
 }
 
@@ -260,8 +263,9 @@ TEST(MeshInertiaCalculationTest,
 {
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
-
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, false);
+  loadSdfAndTest(sdfFilePath,
+                 cylinderColladaMeshWithNonCenterOriginInertiaCalculation,
+                 false);
 }
 
 TEST(MeshInertiaCalculationTest,
@@ -269,26 +273,19 @@ TEST(MeshInertiaCalculationTest,
 {
   std::string sdfFilePath = common::joinPaths(
       PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
-
-  loadSdfAndTest(sdfFilePath, cylinderColladaMeshInertiaCalculation, true);
+  loadSdfAndTest(sdfFilePath,
+                 cylinderColladaMeshWithNonCenterOriginInertiaCalculation,
+                 true);
 }
 
-TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
+void cylinderColladaOptimizedMeshInertiaCalculation(
+    const gz::sim::ServerConfig &_serverConfig)
 {
   std::cerr << " ==== starting test  " << std::endl;
   size_t kIter = 100u;
 
   // Start server and run.
-  gz::sim::ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(
-      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf"));
-
-  common::setenv(
-      "GZ_SIM_RESOURCE_PATH",
-      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
-
-  gz::sim::Server server(serverConfig);
-  std::cerr << " ==== started server  " << std::endl;
+  gz::sim::Server server(_serverConfig);
 
   // Create a system just to get the ECM
   EntityComponentManager *ecm;
@@ -359,5 +356,24 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
               gz::math::Pose3d::Zero, 1e-2));
+  testSystem.systemPtr.reset();
   std::cerr << " ==== done test  " << std::endl;
+}
+
+TEST(MeshInertiaCalculationTest,
+  CylinderColladaOptimizedMeshInertiaCalculation)
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaOptimizedMeshInertiaCalculation,
+                 false);
+}
+
+TEST(MeshInertiaCalculationTest,
+  CylinderColladaOptimizedMeshInertiaCalculationSdfStr)
+{
+  std::string sdfFilePath = common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "mesh_inertia_calculation.sdf");
+  loadSdfAndTest(sdfFilePath, cylinderColladaOptimizedMeshInertiaCalculation,
+                 true);
 }
