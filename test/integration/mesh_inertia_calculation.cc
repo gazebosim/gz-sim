@@ -16,6 +16,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <chrono>
 #include <cstddef>
 #include <optional>
 #include <string>
@@ -51,12 +52,13 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 {
 };
 
-/// \brief Load an SDF world and run mesh inertia tests. Two tests are run
-/// one after another: 1) the server is launched with path to SDF file, and
+/// \brief Load an SDF world and run mesh inertia tests. Two options for
+/// runnint the test:
+/// 1) the server is launched with path to SDF file, or
 /// 2) ther server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
-/// \param[in] _loadFromSdfStr Load from from SDF string instead of file
+/// \param[in] _loadFromSdfStr True to load from SDF string instead of file
 void loadSdfAndTest(const std::string &_path,
     std::function<void(const gz::sim::ServerConfig &)> _testFunc,
     bool _loadFromSdfStr)
@@ -65,29 +67,28 @@ void loadSdfAndTest(const std::string &_path,
       "GZ_SIM_RESOURCE_PATH",
       common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "models"));
 
+  gz::sim::ServerConfig serverConfig;
   if (_loadFromSdfStr)
   {
     // Test mesh inertial calculator with sdf loaded from string
     std::ifstream sdfFile(_path);
     std::stringstream buffer;
     buffer << sdfFile.rdbuf();
-    gz::sim::ServerConfig serverConfigSdfStr;
-    serverConfigSdfStr.SetSdfString(buffer.str());
-    _testFunc(serverConfigSdfStr);
-      std::cerr << " ====    closing file  " << std::endl;
+    serverConfig.SetSdfString(buffer.str());
     sdfFile.close();
-    std::cerr << " ====    finished str based test func " << std::endl;
   }
   else
   {
     // Test mesh inertial calculator with sdf loaded from file
-    gz::sim::ServerConfig serverConfig;
     serverConfig.SetSdfFile(_path);
-    _testFunc(serverConfig);
-    std::cerr << " ====    finished file based test func " << std::endl;
   }
 
+  _testFunc(serverConfig);
   std::cerr << " ==== done test func " << std::endl;
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  std::cerr << " ==== done load sdf and test " << std::endl;
 }
 
 void cylinderColladaMeshInertiaCalculation(
