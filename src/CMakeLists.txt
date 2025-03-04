@@ -55,9 +55,9 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-set(cli_sources
-  gz.cc
-)
+# set(cli_sources
+#   gz.cc
+# )
 
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
@@ -161,21 +161,21 @@ if (MSVC)
 endif()
 
 # CLI
-gz_add_component(gz
-  SOURCES
-    ${cli_sources}
-  GET_TARGET_NAME gz_lib_target)
-target_link_libraries(${gz_lib_target}
-  PUBLIC
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-gui
-)
+# gz_add_component(gz
+#   SOURCES
+#     ${cli_sources}
+#   GET_TARGET_NAME gz_lib_target)
+# target_link_libraries(${gz_lib_target}
+#   PUBLIC
+#     ${PROJECT_LIBRARY_TARGET_NAME}
+#     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+#     gz-sim${PROJECT_VERSION_MAJOR}
+#     gz-sim${PROJECT_VERSION_MAJOR}-gui
+# )
 
 # Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui cmd/runGui_main.cc)
-target_link_libraries(runGui PRIVATE ${gz_lib_target})
+# add_executable(runGui cmd/runGui_main.cc)
+# target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
