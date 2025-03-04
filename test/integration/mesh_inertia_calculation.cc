@@ -26,6 +26,7 @@
 #include <gz/sim/Model.hh>
 #include <gz/sim/Entity.hh>
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/Util.hh>
 
 #include <gz/sim/components/Inertial.hh>
 #include <gz/sim/components/Model.hh>
@@ -151,9 +152,11 @@ void cylinderColladaMeshInertiaCalculation(
   EXPECT_TRUE(
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
-  EXPECT_EQ(link.WorldInertialPose(*ecm).value(), gz::math::Pose3d::Zero);
+  // Check the Inertial Pose and Link Pose. Their world poses should be the
+  // same since the inertial pose relative to the link is zero.
+  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
+  EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
+    worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero);
 }
 
 // Tests are disabled on Windows
@@ -242,12 +245,12 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
   // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
+  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
 
   // Since the height of cylinder is 2m and origin is at center of bottom face
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
-    gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+    worldPose(linkEntity, *ecm) * gz::math::Pose3d(0, 0, 1, 0, 0, 0));
 }
 
 // Tests are disabled on Windows
@@ -348,9 +351,9 @@ void cylinderColladaOptimizedMeshInertiaCalculation(
   EXPECT_TRUE(actualIxyxzyz.Equal(
               meshInertial.MassMatrix().OffDiagonalMoments(), 3.5));
   // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), gz::math::Pose3d::Zero);
+  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
-              gz::math::Pose3d::Zero, 1e-2));
+              worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero, 1e-2));
 }
 
 // Tests are disabled on Windows
