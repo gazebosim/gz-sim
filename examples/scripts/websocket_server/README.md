@@ -20,8 +20,10 @@ gz sim -v 4 -s websocket_server.sdf
       * The `index.html` web page is a simple demo that integrates a snapshot
         version of gzweb for communicating with the local websocket server.
         It illustrates how gzweb connects to the websocket server
-        the events that it listens to in order to create the scene. For a more
-        up-to-date gzweb visualization, see Option 2.
+        the events that it listens to in order to create the scene. It is
+        hardcoded to connect to the `websocket_server` world and has limited
+        support for materials. For a more up-to-date gzweb visualization,
+        see Option 2.
 
     1. Option 2: In a web browser, go to https://app.gazebosim.org/visualization,
        and connect to the local websocket server on `ws://localhost:9002`.

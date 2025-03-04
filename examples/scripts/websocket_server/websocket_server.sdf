@@ -33,7 +33,7 @@
       <!-- SSL configuration -->
       <!-- Specify the path to both the certificate and private key. -->
       <!-- Sample self-signed SSL certifacts are located in the
-           `examples/standalone/websocket_server/` directory with the
+           `examples/scripts/websocket_server/` directory with the
            names `localhost.cert` and `localhost.key`. -->
       <!--<ssl>
         <cert_file>PATH_TO_CERT_FILE</cert_file>
