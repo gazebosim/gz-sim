@@ -1,6 +1,6 @@
 # Example for Reinforcement Learning (RL) With Gazebo
 
-This demo world shows you an example of how you can use SDFormat, Ray-RLLIB and Gazebo to perform RL with python.
+This demo world shows you an example of how you can use SDFormat, Stable Baselines 3 and Gazebo to perform RL with python.
 We start with a very simple cart-pole world. This world is defined in our sdf file `cart_pole.sdf`. It is analogous to
 the
 
@@ -10,7 +10,7 @@ First create a virtual environment using python,
 ```
 python3 -m venv venv
 ```
-Lets activate it and install rayrllib and pytorch.
+Lets activate it and install stablebaselines3 and pytorch.
 ```
 . venv/bin/activate
 ```

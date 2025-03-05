@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 
 from gz.common6 import set_verbosity
-from gz.sim9 import TestFixture, World, world_entity, Model, Link, run_gui
+from gz.sim10 import TestFixture, World, world_entity, Model, Link, get_install_prefix
 from gz.math8 import Vector3d
 from gz.transport14 import Node
 from gz.msgs11.world_control_pb2 import WorldControl
@@ -13,8 +13,16 @@ from gz.msgs11.boolean_pb2 import Boolean
 
 from stable_baselines3 import PPO
 import time
+import subprocess
 
 file_path = os.path.dirname(os.path.realpath(__file__))
+
+def run_gui():
+    if os.name == 'nt':
+        base = os.path.join(get_install_prefix(), "libexec", "runGui.exe")
+    else:
+        base = os.path.join(get_install_prefix(), "libexec", "runGui")
+    subprocess.Popen(base)
 
 class GzRewardScorer:
     def __init__(self):
@@ -99,13 +107,13 @@ class CustomCartPole(gym.Env):
         obs, reward, done, truncated, info = self.env.step(action)
         return  obs, reward, done, truncated, info
 
-
 env = CustomCartPole({})
 model = PPO("MlpPolicy", env, verbose=1)
 model.learn(total_timesteps=25_000)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
+
 run_gui()
 time.sleep(10)
 for i in range(50000):
