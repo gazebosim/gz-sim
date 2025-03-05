@@ -8,8 +8,7 @@ Gazebo visualization tool, [gzweb](https://github.com/gazebo-web/gzweb).
 The websocket server system can be included in an world SDF file inside the
 `<world>` SDF element like other systems.
 
-An simple example is shown below :
-
+A simple example is shown below:
 
 ```xml
     <plugin
@@ -52,7 +51,6 @@ websocket server system
 
     Check the console output in the terminal that you used to launch gz sim
     and verify that the websocket server is started.
-
 
 ## Migrating from gz-launch
 
