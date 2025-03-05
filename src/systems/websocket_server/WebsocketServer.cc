@@ -52,7 +52,6 @@
 #include <gz/transport/Publisher.hh>
 #include <gz/transport/TopicUtils.hh>
 
-#include "MessageDefinitions.hh"
 #include "WebsocketServer.hh"
 
 using namespace gz;
