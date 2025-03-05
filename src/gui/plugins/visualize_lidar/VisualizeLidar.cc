@@ -127,7 +127,6 @@ using namespace sim;
 VisualizeLidar::VisualizeLidar()
   : GuiSystem(), dataPtr(new VisualizeLidarPrivate)
 {
-  // no ops
 }
 
 /////////////////////////////////////////////////

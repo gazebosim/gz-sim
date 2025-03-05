@@ -113,6 +113,7 @@ set (gtest_sources
   Joint_TEST.cc
   Light_TEST.cc
   Link_TEST.cc
+  MeshInertiaCalculator_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
