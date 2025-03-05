@@ -55,10 +55,6 @@ set(gui_sources
   PARENT_SCOPE
 )
 
-# set(cli_sources
-#   gz.cc
-# )
-
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
   rendering/MaterialParser/ConfigLoader.cc
@@ -157,25 +153,8 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
-
-# CLI
-# gz_add_component(gz
-#   SOURCES
-#     ${cli_sources}
-#   GET_TARGET_NAME gz_lib_target)
-# target_link_libraries(${gz_lib_target}
-#   PUBLIC
-#     ${PROJECT_LIBRARY_TARGET_NAME}
-#     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-#     gz-sim${PROJECT_VERSION_MAJOR}
-#     gz-sim${PROJECT_VERSION_MAJOR}-gui
-# )
-
-# Executable target that runs the GUI without ruby for debugging purposes.
-# add_executable(runGui cmd/runGui_main.cc)
-# target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)

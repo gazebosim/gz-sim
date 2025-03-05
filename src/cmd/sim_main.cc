@@ -100,20 +100,8 @@ void runSimCommand(const SimOptions &_opt)
   switch(_opt.command)
   {
     case SimCommand::kSimServer:
-      {
-        std::cout << "Sim command" << std::endl;
-      }
-      break;
     case SimCommand::kSimGui:
-      {
-        std::cout << "Gui command" << std::endl;
-      }
-      break;
     case SimCommand::kSimComplete:
-      {
-        std::cout << "Complete command" << std::endl;
-      }
-      break;
     case SimCommand::kNone:
     default:
       throw CLI::CallForHelp();
@@ -145,7 +133,7 @@ void addSimFlags(CLI::App &_app)
                 "The default is false which loads all models. \n"
                 "It is always true with --network-role.");
 
-  _app.add_option_function<std::string>("--network-role",
+  auto networkRoleOpt = _app.add_option_function<std::string>("--network-role",
     [opt](const std::string &_networkRole){
       opt->levels = 1;
       opt->networkRole = _networkRole;
@@ -153,10 +141,18 @@ void addSimFlags(CLI::App &_app)
     "Participant role used in distributed simulation environment.\n")
     ->check(CLI::IsMember({"primary", "secondary"}));
 
-  // TODO: Add a validator to make sure the network role is primary
-  _app.add_option("--network-secondaries", opt->networkSecondaries,
-                  "Number of secondary participants expected\n"
-                  "to join a distributed simulation environment.");
+  _app.add_option_function<int>("--network-secondaries",
+    [opt](const int _networkSecondaries){
+      if(opt->networkRole != "primary") {
+        throw CLI::ValidationError(
+          "--network-secondaries",
+          "Can only be used when --network-role primary.");
+      }
+      opt->networkSecondaries = _networkSecondaries;
+    },
+    "Number of secondary participants expected\n"
+    "to join a distributed simulation environment.")
+    ->needs(networkRoleOpt);
 
   auto recordCmd = _app.add_flag("--record", opt->record,
                 "Use logging system to record states and console\n"
@@ -181,10 +177,10 @@ void addSimFlags(CLI::App &_app)
     "states and console messages.\n"
     "Note: Implicitly invokes --record");
 
-  _app.add_option_function<std::string>("--record-topic",
-    [opt](const std::string &_recordTopic){
+  _app.add_option_function<std::vector<std::string>>("--record-topic",
+    [opt](const std::vector<std::string> &_recordTopics){
       opt->record = 1;
-      opt->recordTopics.push_back(_recordTopic);
+      opt->recordTopics = _recordTopics;
     },
     "Specify the name of an additional topic to record. Zero or\n"
     "more topics can be specified by using multiple --record-topic\n"
@@ -230,7 +226,6 @@ void addSimFlags(CLI::App &_app)
   _app.add_flag("-r", opt->runOnStart,
                 "Run simulation on start.");
 
-
   auto command = _app.add_option_group("command", "Command to be executed");
 
   auto runGuiCmd = command->add_flag_callback("-g",
@@ -254,7 +249,7 @@ int main(int argc, char** argv)
 {
   CLI::App app{"Run and manage Gazebo simulations."};
 
-  app.add_flag_callback("-v,--version",
+  app.add_flag_callback("--version",
     [](){
       std::cout << GZ_SIM_VERSION_FULL << std::endl;
       throw CLI::Success();
@@ -263,7 +258,6 @@ int main(int argc, char** argv)
   app.add_option_function<int>("-v,--verbose",
     [](const int _verbosity){
       cmdVerbosity(_verbosity);
-      throw CLI::Success();
     },
     "Adjust the level of console output (0~4).\n"
     "The default verbosity level is 1. Use -v\n"
