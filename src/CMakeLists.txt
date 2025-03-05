@@ -189,6 +189,7 @@ target_link_libraries(${gz_lib_target}
 # Executable target that runs the GUI without ruby for debugging purposes.
 add_executable(runGui cmd/runGui_main.cc)
 target_link_libraries(runGui PRIVATE ${gz_lib_target})
+install(TARGETS runGui DESTINATION ${CMAKE_INSTALL_PREFIX}/libexec)
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
