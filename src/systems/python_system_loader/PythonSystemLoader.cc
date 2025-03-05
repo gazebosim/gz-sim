@@ -43,6 +43,7 @@ PythonSystemLoader::~PythonSystemLoader()
 {
   if (this->pythonSystem)
   {
+    py::gil_scoped_acquire gil;
     if (py::hasattr(this->pythonSystem, "shutdown"))
     {
       this->pythonSystem.attr("shutdown")();
@@ -54,6 +55,7 @@ void PythonSystemLoader::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
 {
+  py::gil_scoped_acquire gil;
   auto [moduleName, hasModule] = _sdf->Get<std::string>("module_name", "");
   if (!hasModule)
   {
@@ -194,6 +196,10 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args &&..._args)
 void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
                                    EntityComponentManager &_ecm)
 {
+  // Add explicit scoped acquire and release of GIL, so that Python
+  // Systems can be executed.This acquire and release is only required
+  // from the PythonSystem code
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->preUpdateMethod, _info, &_ecm);
 }
 
@@ -201,6 +207,7 @@ void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
 void PythonSystemLoader::Update(const UpdateInfo &_info,
                                 EntityComponentManager &_ecm)
 {
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->updateMethod, _info, &_ecm);
 }
 
@@ -215,6 +222,7 @@ void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
 void PythonSystemLoader::Reset(const UpdateInfo &_info,
                                EntityComponentManager &_ecm)
 {
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->resetMethod, _info, &_ecm);
 }
 

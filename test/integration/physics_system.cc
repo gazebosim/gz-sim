@@ -37,6 +37,8 @@
 #include <sdf/Sphere.hh>
 #include <sdf/World.hh>
 
+#include <gz/math/eigen3/Conversions.hh>
+
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Link.hh"
@@ -76,6 +78,7 @@
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/PoseCmd.hh"
+#include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
@@ -2903,4 +2906,106 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(JointsInWorld))
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1000, false);
+}
+
+//////////////////////////////////////////////////
+/// Test ray intersections computed by physics system during Update loop.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile =
+    common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "empty.sdf");
+
+  serverConfig.SetSdfFile(sdfFile);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ns);
+
+  Entity testEntity1;
+  Entity testEntity2;
+
+  test::Relay testSystem;
+
+  // During PreUpdate, add rays to testEntity1 and testEntity2
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
+      {
+        // Set collision detector to bullet (supports ray intersections).
+        auto worldEntity = _ecm.EntityByComponents(components::World());
+        _ecm.CreateComponent(
+          worldEntity, components::PhysicsCollisionDetector("bullet"));
+
+        // Create RaycastData component for testEntity1
+        testEntity1 = _ecm.CreateEntity();
+        _ecm.CreateComponent(testEntity1, components::RaycastData());
+        _ecm.CreateComponent(
+          testEntity1, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+
+        // Create RaycastData component for testEntity2
+        testEntity2 = _ecm.CreateEntity();
+        _ecm.CreateComponent(testEntity2, components::RaycastData());
+        _ecm.CreateComponent(
+          testEntity2, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+
+        // Add 5 rays to testEntity1 that intersect with the ground plane
+        auto &rays1 =
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().rays;
+        for (int i = 0; i < 5; ++i)
+        {
+          components::RayInfo ray;
+          ray.start = math::Vector3d(0, 0, -i);
+          ray.end = math::Vector3d(0, 0, -20);
+          rays1.push_back(ray);
+        }
+
+        // Add 2 rays to testEntity2 that don't intersect with the ground plane
+        auto &rays2 =
+           _ecm.Component<components::RaycastData>(testEntity2)->Data().rays;
+        for (int i = 0; i < 2; ++i)
+        {
+          components::RayInfo ray;
+          ray.start = math::Vector3d(0, 0, -i);
+          ray.end = math::Vector3d(0, 0, 5);
+          rays2.push_back(ray);
+        }
+      });
+  // Check ray intersections for testEntity1 and testEntity2
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &/*_info*/, const EntityComponentManager &_ecm)
+      {
+        // check the raycasting results for testEntity1
+        auto &rays1 =
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().rays;
+        auto &results1 =
+          _ecm.Component<components::RaycastData>(testEntity1)->Data().results;
+        ASSERT_EQ(rays1.size(), results1.size());
+
+        for (size_t i = 0; i < results1.size(); ++i) {
+          ASSERT_EQ(results1[i].point, math::Vector3d(0, 0, -10));
+          ASSERT_EQ(results1[i].normal, math::Vector3d(0, 0, 1));
+          const double expFraction =
+            (rays1[i].start - results1[i].point).Length() /
+              (rays1[i].start - rays1[i].end).Length();
+          ASSERT_NEAR(results1[i].fraction, expFraction, 1e-6);
+        }
+
+        // check the raycasting results for testEntity2
+        auto &rays2 =
+          _ecm.Component<components::RaycastData>(testEntity2)->Data().rays;
+        auto &results2 =
+          _ecm.Component<components::RaycastData>(testEntity2)->Data().results;
+        ASSERT_EQ(rays2.size(), results2.size());
+
+        for (size_t i = 0; i < results2.size(); ++i) {
+          ASSERT_TRUE(
+            math::eigen3::convert(results2[i].point).array().isNaN().all());
+          ASSERT_TRUE(
+            math::eigen3::convert(results2[i].normal).array().isNaN().all());
+          ASSERT_TRUE(
+            std::isnan(results2[i].fraction));
+        }
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1, false);
 }
