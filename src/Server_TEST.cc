@@ -343,7 +343,8 @@ TEST_P(ServerFixture,
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
-  gzdbg << "Shutting down" << std::endl;
+  server.Stop();
+  gzdbg << "Stopping server and shutting down" << std::endl;
 }
 
 /////////////////////////////////////////////////
