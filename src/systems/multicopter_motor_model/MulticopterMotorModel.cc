@@ -110,13 +110,15 @@ using namespace systems;
 namespace turning_direction {
 static const int kCcw = 1;
 static const int kCw = -1;
+static const int kBidirectional = 1;
 }  // namespace turning_direction
 
 /// \brief Type of input command to motor.
 enum class MotorType {
   kVelocity,
   kPosition,
-  kForce
+  kForce,
+  kForcePolynomial
 };
 
 class gz::sim::systems::MulticopterMotorModelPrivate
@@ -218,6 +220,10 @@ class gz::sim::systems::MulticopterMotorModelPrivate
   /// \brief Mutex to protect recvdActuatorsMsg.
   public: std::mutex recvdActuatorsMsgMutex;
 
+  /// \brief Polynomial for RPM to Thrust conversion - admits 5 degrees.
+  public: std::vector<double> TorquePolynomial = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  public: std::vector<double> ThrustPolynomial = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 };
@@ -308,8 +314,10 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->turningDirection = turning_direction::kCw;
     else if (turningDirection == "ccw")
       this->dataPtr->turningDirection = turning_direction::kCcw;
+    else if (turningDirection == "bidirectional")
+      this->dataPtr->turningDirection = turning_direction::kBidirectional;
     else
-      gzerr << "Please only use 'cw' or 'ccw' as turningDirection.\n";
+      gzerr << "Please only use 'cw', 'ccw', or 'bidirectional' as turningDirection.\n";
   }
   else
   {
@@ -331,10 +339,58 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
       this->dataPtr->motorType = MotorType::kForce;
       gzerr << "motorType 'force' not supported" << std::endl;
     }
+    else if (motorType == "force_polynomial")
+    {
+      this->dataPtr->motorType = MotorType::kForcePolynomial;
+
+      if (sdfClone->HasElement("a0ThrustConstant") &&
+          sdfClone->HasElement("a1ThrustConstant") &&
+          sdfClone->HasElement("a2ThrustConstant") &&
+          sdfClone->HasElement("a3ThrustConstant") &&
+          sdfClone->HasElement("a0TorqueConstant") &&
+          sdfClone->HasElement("a1TorqueConstant") &&
+          sdfClone->HasElement("a2TorqueConstant") &&
+          sdfClone->HasElement("a3TorqueConstant"))
+      {
+        // Add polynomial coefficients
+        if (this->dataPtr->jointName != "") {
+          dataPtr->parentLinkName = _ecm.Component<components::ParentLinkName>(dataPtr->jointEntity)->Data();
+          dataPtr->parentLinkEntity  = dataPtr->model.LinkByName(_ecm, dataPtr->parentLinkName);
+        }
+      
+        auto a0Thrust = sdfClone->Get<double>("a0ThrustConstant");
+        auto a1Thrust = sdfClone->Get<double>("a1ThrustConstant");
+        auto a2Thrust = sdfClone->Get<double>("a2ThrustConstant");
+        auto a3Thrust = sdfClone->Get<double>("a3ThrustConstant");
+      
+        this->dataPtr->ThrustPolynomial = {a0Thrust, a1Thrust, a2Thrust, a3Thrust};
+      
+        auto a0Torque = sdfClone->Get<double>("a0TorqueConstant");
+        auto a1Torque = sdfClone->Get<double>("a1TorqueConstant");
+        auto a2Torque = sdfClone->Get<double>("a2TorqueConstant");
+        auto a3Torque = sdfClone->Get<double>("a3TorqueConstant");
+      
+        this->dataPtr->TorquePolynomial = {a0Torque, a1Torque, a2Torque, a3Torque};
+      }
+      else
+      {
+        gzerr << "Please specify the thrust and torque polynomial coefficients.\n";
+      }
+
+      // Check for optional higher order coefficients
+      if(auto a4Thrust = sdfClone->GetElement("a4ThrustConstant"))
+        this->dataPtr->ThrustPolynomial.push_back(a4Thrust->Get<double>());
+      if(auto a5Thrust = sdfClone->GetElement("a5ThrustConstant"))
+        this->dataPtr->ThrustPolynomial.push_back(a5Thrust->Get<double>());
+      if(auto a4Torque = sdfClone->GetElement("a4TorqueConstant"))
+        this->dataPtr->TorquePolynomial.push_back(a4Torque->Get<double>());
+      if(auto a5Torque = sdfClone->GetElement("a5TorqueConstant"))
+        this->dataPtr->TorquePolynomial.push_back(a5Torque->Get<double>());
+    }
     else
     {
-      gzerr << "Please only use 'velocity', 'position' or "
-               "'force' as motorType.\n";
+      gzerr << "Please only use 'velocity', 'position', "
+               "'force' or 'force_polynomial' as motorType.\n";
     }
   }
   else
@@ -399,8 +455,8 @@ void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
-        << std::chrono::duration_cast<std::chrono::seconds>(_info.dt).count()
-        << "s]. System may not work properly." << std::endl;
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
   }
 
   // If the joint or links haven't been identified yet, look for them
@@ -411,7 +467,8 @@ void MulticopterMotorModel::PreUpdate(const UpdateInfo &_info,
 
     const auto parentLinkName = _ecm.Component<components::ParentLinkName>(
         this->dataPtr->jointEntity);
-    this->dataPtr->parentLinkName = parentLinkName->Data();
+    if (parentLinkName)
+      this->dataPtr->parentLinkName = parentLinkName->Data();
   }
 
   if (this->dataPtr->linkEntity == kNullEntity)
@@ -523,15 +580,16 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
 
   if (msg.has_value())
   {
-    if (this->actuatorNumber > msg->velocity_size() - 1)
+    if (this->actuatorNumber > msg->velocity_size() - 1 ||
+        this->actuatorNumber > msg->normalized_size() - 1)
     {
       gzerr << "You tried to access index " << this->actuatorNumber
-        << " of the Actuator velocity array which is of size "
-        << msg->velocity_size() << std::endl;
+        << " of the Actuator array which is of size "
+        << std::max(msg->velocity_size(), msg->normalized_size()) << std::endl;
       return;
     }
 
-    if (this->motorType == MotorType::kVelocity)
+    if (this->motorType == MotorType::kVelocity || this->motorType == MotorType::kForcePolynomial)
     {
       this->refMotorInput = std::min(
           static_cast<double>(msg->velocity(this->actuatorNumber)),
@@ -556,6 +614,32 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
     case (MotorType::kForce):
     {
       // joint_->SetForce(0, this->refMotorInput);
+      break;
+    }
+    case (MotorType::kForcePolynomial):
+    {
+      sim::Link link(this->linkEntity);
+      const auto worldPose = link.WorldPose(_ecm);
+      using Vector3 = math::Vector3d;
+
+      // Compute thrust
+      double thrust = 0.0;
+      for (unsigned int i = 0; i < this->ThrustPolynomial.size(); i++) {
+        thrust += this->ThrustPolynomial[i] * std::pow(this->refMotorInput, i);
+      }
+      link.AddWorldForce(_ecm, worldPose->Rot().RotateVector(Vector3(0, 0, thrust)));
+
+      // Compute torques
+      double torque = 0.0;
+      for (unsigned int i = 0; i < this->TorquePolynomial.size(); i++) {
+        torque += this->TorquePolynomial[i] * std::pow(this->refMotorInput, i);
+      }
+      link.AddWorldForce(_ecm, worldPose->Rot().RotateVector(Vector3(0, 0, torque)));
+
+      // Set joint velocities
+      const auto jointVelCmd = _ecm.Component<components::JointVelocityCmd>(
+          this->jointEntity); 
+      *jointVelCmd = components::JointVelocityCmd({this->refMotorInput / this->rotorVelocitySlowdownSim});
       break;
     }
     default:  // MotorType::kVelocity
@@ -698,7 +782,3 @@ GZ_ADD_PLUGIN(MulticopterMotorModel,
 
 GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
                           "gz::sim::systems::MulticopterMotorModel")
-
-// TODO(CH3): Deprecated, remove on version 8
-GZ_ADD_PLUGIN_ALIAS(MulticopterMotorModel,
-                          "ignition::gazebo::systems::MulticopterMotorModel")
