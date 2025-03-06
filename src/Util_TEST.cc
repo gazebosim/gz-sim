@@ -726,6 +726,16 @@ TEST_F(UtilTest, EnableComponent)
   // Disabling again makes no changes
   EXPECT_FALSE(enableComponent<components::Name>(ecm, entity1, false));
   EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
+
+  // Creates a component with a specified value
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, true,
+      components::Name("name")));
+  EXPECT_EQ("name", ecm.Component<components::Name>(entity1)->Data());
+
+  // Disabling with a dedicated value should have the same effect
+  EXPECT_TRUE(enableComponent<components::Name>(ecm, entity1, false,
+      components::Name("name")));
+  EXPECT_EQ(nullptr, ecm.Component<components::Name>(entity1));
 }
 
 /////////////////////////////////////////////////
