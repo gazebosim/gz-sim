@@ -444,28 +444,18 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
 void Link::AddLinkForce(EntityComponentManager &_ecm,
                         const math::Vector3d &_force) const
 {
-  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
   auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
-  // Can't apply force if the inertial's pose is not found
-  if (!inertial)
-    return;
+  
 
   // The force is expressed in terms of the link coordinates, but
-  // ExternalWorldWrenchCmd applies the force expressed in world coordinates
+  // ExternalWorldForcecmd applies the force expressed in world coordinates
   // so we need to compute the force expressed in world coordinates
   math::Vector3d worldForce = worldPose.Rot() * _force;
 
-  // We want the force to be applied at the center of mass, but
-  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
-  // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord =
-    worldPose.Rot().RotateVector(inertial->Data().Pose().Pos());
-
-  math::Vector3d torque = posComWorldCoord.Cross(worldForce);
-
-  this->AddWorldWrench(_ecm, worldForce, torque);
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce);
 
 }
 
@@ -474,28 +464,20 @@ void Link::AddLinkForce(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_position) const
 {
-  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+
   auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
                     .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
-  // Can't apply force if the inertial's pose is not found
-  if (!inertial)
-    return;
+  
 
   // The force is expressed in terms of the link coordinates, but
-  // ExternalWorldWrenchCmd applies the force expressed in world coordinates
+  // ExternalWorldForceCmd applies the force expressed in world coordinates
   // so we need to compute the force expressed in world coordinates
   math::Vector3d worldForce = worldPose.Rot() * _force;
 
-  // We want the force to be applied at an offset from the center of mass, but
-  // ExternalWorldWrenchCmd applies the force at the link origin so we need to
-  // compute the resulting force and torque on the link origin.
-  auto posComWorldCoord = worldPose.Rot().RotateVector(
-    _position + inertial->Data().Pose().Pos());
-
-  math::Vector3d torque = posComWorldCoord.Cross(worldForce);
-
-  this->AddWorldWrench(_ecm, worldForce, torque);
+  
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce, _position);
 
 }
 
