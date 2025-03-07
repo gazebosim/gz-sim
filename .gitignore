@@ -21,5 +21,3 @@ build_*
 __pycache__
 *.pyc
 
-# IDE and editor files
-.vscode/
