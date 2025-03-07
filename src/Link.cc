@@ -445,9 +445,7 @@ void Link::AddLinkForce(EntityComponentManager &_ecm,
                         const math::Vector3d &_force) const
 {
   auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
-                      .value_or(sim::worldPose(this->dataPtr->id, _ecm));
-
-  
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
   // The force is expressed in terms of the link coordinates, but
   // ExternalWorldForcecmd applies the force expressed in world coordinates
@@ -456,7 +454,6 @@ void Link::AddLinkForce(EntityComponentManager &_ecm,
 
   // Apply Force using AddWorldForce method
   this->AddWorldForce(_ecm, worldForce);
-
 }
 
 //////////////////////////////////////////////////
@@ -464,21 +461,16 @@ void Link::AddLinkForce(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_position) const
 {
-
   auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
-                    .value_or(sim::worldPose(this->dataPtr->id, _ecm));
-
-  
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
 
   // The force is expressed in terms of the link coordinates, but
   // ExternalWorldForceCmd applies the force expressed in world coordinates
   // so we need to compute the force expressed in world coordinates
   math::Vector3d worldForce = worldPose.Rot() * _force;
 
-  
   // Apply Force using AddWorldForce method
   this->AddWorldForce(_ecm, worldForce, _position);
-
 }
 
 //////////////////////////////////////////////////
