@@ -137,7 +137,7 @@ int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
-    const char *_file, const char *_recordTopics, int _waitGui,
+    const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
     int _headless, float _recordPeriod, int _seed)
 {
   std::string startingWorldPath{""};
@@ -186,7 +186,7 @@ int runServer(const char *_sdfString,
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
     _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
-    (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
+    (_recordTopics.size() > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -315,9 +315,7 @@ int runServer(const char *_sdfString,
     }
     serverConfig.SetLogRecordPath(recordPathMod);
 
-    std::vector<std::string> topics = common::split(
-        _recordTopics, ":");
-    for (const std::string &topic : topics)
+    for (const std::string &topic : _recordTopics)
     {
       serverConfig.AddLogRecordTopic(topic);
     }

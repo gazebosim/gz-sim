@@ -17,6 +17,9 @@
 #ifndef GZ_SIM_GZ_HH_
 #define GZ_SIM_GZ_HH_
 
+#include <string>
+#include <vector>
+
 #include "gz/sim/gz/Export.hh"
 
 /// \brief External hook to read the library version.
@@ -69,7 +72,7 @@ int runServer(const char *_sdfString,
     int _logCompress, const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
-    const char *_file, const char *_recordTopics, int _waitGui, int _headless,
+    const char *_file, std::vector<std::string> _recordTopics, int _waitGui, int _headless,
     float _recordPeriod, int _seed);
 
 /// \brief External hook to run simulation GUI.

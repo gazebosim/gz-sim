@@ -100,6 +100,18 @@ void runSimCommand(const SimOptions &_opt)
   switch(_opt.command)
   {
     case SimCommand::kSimServer:
+      runServer(nullptr, _opt.iterations, _opt.runOnStart, _opt.rate,
+                _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
+                _opt.networkSecondaries, _opt.record, _opt.recordPath.c_str(),
+                _opt.recordResources, _opt.logOverwrite, _opt.logCompress,
+                _opt.playback.c_str(), _opt.physicsEngine.c_str(),
+                _opt.renderEngineServer.c_str(),
+                _opt.renderEngineServerApiBackend.c_str(),
+                _opt.renderEngineGui.c_str(),
+                _opt.renderEngineGuiApiBackend.c_str(), _opt.filename.c_str(),
+                _opt.recordTopics, _opt.waitGui, _opt.headlessRendering,
+                _opt.recordPeriod, _opt.seed);
+      break;
     case SimCommand::kSimGui:
     case SimCommand::kSimComplete:
     case SimCommand::kNone:
@@ -225,6 +237,9 @@ void addSimFlags(CLI::App &_app)
 
   _app.add_flag("-r", opt->runOnStart,
                 "Run simulation on start.");
+
+  _app.add_flag("-z", opt->rate,
+                "Update rate in hertz.");
 
   auto command = _app.add_option_group("command", "Command to be executed");
 
