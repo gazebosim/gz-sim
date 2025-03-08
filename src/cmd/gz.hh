@@ -21,24 +21,24 @@
 
 /// \brief External hook to read the library version.
 /// \return C-string representing the version. Ex.: 0.1.2
-extern "C" GZ_SIM_GZ_VISIBLE char *gzSimVersion();
+char *gzSimVersion();
 
 /// \brief Get the Gazebo version header.
 /// \return C-string containing the Gazebo version information.
-extern "C" GZ_SIM_GZ_VISIBLE char *simVersionHeader();
+char *simVersionHeader();
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
-extern "C" GZ_SIM_GZ_VISIBLE void cmdVerbosity(
-    const char *_verbosity);
+void cmdVerbosity(const int _verbosity);
 
-extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
+const char *worldInstallDir();
 
 /// \brief External hook to run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
 /// \param[in] _iterations --iterations option
 /// \param[in] _run -r option
 /// \param[in] _hz -z option
+/// \param[in] _initialSimTime --initial_sim_time option
 /// \param[in] _levels --levels option
 /// \param[in] _networkRole --network-role option
 /// \param[in] _networkSecondaries --network-secondaries option
@@ -62,12 +62,11 @@ extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
 /// \return 0 if successful, 1 if not.
-extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
+int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
     const char *_networkRole, int _networkSecondaries, int _record,
     const char *_recordPath, int _recordResources, int _logOverwrite,
-    int _logCompress, const char *_playback,
-    const char *_physicsEngine,
+    int _logCompress, const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, const char *_recordTopics, int _waitGui, int _headless,
@@ -82,7 +81,6 @@ extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
 /// \param[in] _renderEngine --render-engine-gui option
 /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend option
 /// \return 0 if successful, 1 if not.
-extern "C" GZ_SIM_GZ_VISIBLE
 int runGui(const char *_guiConfig, const char *_file,
            int _waitGui,
            const char *_renderEngine,
@@ -92,7 +90,7 @@ int runGui(const char *_guiConfig, const char *_file,
 /// \param[in] _pathToResource Path to the fuel world resource, ie,
 /// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
 /// \return C-string containing the path to the local world sdf file
-extern "C" GZ_SIM_GZ_VISIBLE const char *findFuelResource(
+const char *findFuelResource(
     char *_pathToResource);
 
 #endif

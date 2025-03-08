@@ -42,41 +42,39 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-extern "C" char *gzSimVersion()
+char *gzSimVersion()
 {
   return strdup(GZ_SIM_VERSION_FULL);
 }
 
 //////////////////////////////////////////////////
-extern "C" char *simVersionHeader()
+char *simVersionHeader()
 {
   return strdup(GZ_SIM_VERSION_HEADER);
 }
 
 //////////////////////////////////////////////////
-extern "C" void cmdVerbosity(
-    const char *_verbosity)
+void cmdVerbosity(const int _verbosity)
 {
-  int verbosity = std::atoi(_verbosity);
-  common::Console::SetVerbosity(verbosity);
+  common::Console::SetVerbosity(_verbosity);
 
   // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
   // console output with zero verbosity.
-  if (verbosity == 0)
+  if (_verbosity == 0)
   {
     sdf::Console::Instance()->SetQuiet(true);
   }
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *worldInstallDir()
+const char *worldInstallDir()
 {
   static std::string worldInstallDir = gz::sim::getWorldInstallDir();
   return worldInstallDir.c_str();
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *findFuelResource(
+const char *findFuelResource(
     char *_pathToResource)
 {
   std::string path;
@@ -131,7 +129,7 @@ extern "C" const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
-extern "C" int runServer(const char *_sdfString,
+int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime,
     int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
@@ -436,7 +434,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+int runGui(const char *_guiConfig, const char *_file, int _waitGui,
                       const char *_renderEngine,
                       const char *_renderEngineGuiApiBackend)
 {
