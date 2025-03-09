@@ -15,8 +15,10 @@
  *
 */
 
+#include <csignal>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <gz/utils/cli/CLI.hpp>
@@ -101,19 +103,64 @@ void runSimCommand(const SimOptions &_opt)
   {
     case SimCommand::kSimServer:
       runServer(nullptr, _opt.iterations, _opt.runOnStart, _opt.rate,
-                _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
-                _opt.networkSecondaries, _opt.record, _opt.recordPath.c_str(),
-                _opt.recordResources, _opt.logOverwrite, _opt.logCompress,
-                _opt.playback.c_str(), _opt.physicsEngine.c_str(),
-                _opt.renderEngineServer.c_str(),
-                _opt.renderEngineServerApiBackend.c_str(),
-                _opt.renderEngineGui.c_str(),
-                _opt.renderEngineGuiApiBackend.c_str(), _opt.filename.c_str(),
-                _opt.recordTopics, _opt.waitGui, _opt.headlessRendering,
-                _opt.recordPeriod, _opt.seed);
+          _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
+          _opt.networkSecondaries, _opt.record, _opt.recordPath.c_str(),
+          _opt.recordResources, _opt.logOverwrite, _opt.logCompress,
+          _opt.playback.c_str(), _opt.physicsEngine.c_str(),
+          _opt.renderEngineServer.c_str(),
+          _opt.renderEngineServerApiBackend.c_str(),
+          _opt.renderEngineGui.c_str(),
+          _opt.renderEngineGuiApiBackend.c_str(), _opt.filename.c_str(),
+          _opt.recordTopics, _opt.waitGui, _opt.headlessRendering,
+          _opt.recordPeriod, _opt.seed);
       break;
     case SimCommand::kSimGui:
+        runGui(_opt.guiConfig.c_str(), _opt.filename.c_str(), _opt.waitGui,
+               _opt.renderEngineGui.c_str(),
+               _opt.renderEngineGuiApiBackend.c_str());
+        break;
     case SimCommand::kSimComplete:
+      {
+        std::thread serverThread([_opt]{
+          runServer(nullptr, _opt.iterations, _opt.runOnStart, _opt.rate,
+              _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
+              _opt.networkSecondaries, _opt.record, _opt.recordPath.c_str(),
+              _opt.recordResources, _opt.logOverwrite, _opt.logCompress,
+              _opt.playback.c_str(), _opt.physicsEngine.c_str(),
+              _opt.renderEngineServer.c_str(),
+              _opt.renderEngineServerApiBackend.c_str(),
+              _opt.renderEngineGui.c_str(),
+              _opt.renderEngineGuiApiBackend.c_str(), _opt.filename.c_str(),
+              _opt.recordTopics, _opt.waitGui, _opt.headlessRendering,
+              _opt.recordPeriod, _opt.seed);
+
+          // Server and GUI handle SIGINT independently.
+          // When the first SIGINT is received, only one of the two processes
+          // may handle it and exit while the other continues waiting.
+          // To ensure both processes terminate properly, a second SIGINT is sent.
+          // A short delay is added to prevent overwhelming the signal handler.
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          kill(getpid(), SIGINT);
+        });
+
+        std::thread guiThread([_opt]{
+          runGui(_opt.guiConfig.c_str(), _opt.filename.c_str(), _opt.waitGui,
+                _opt.renderEngineGui.c_str(),
+                _opt.renderEngineGuiApiBackend.c_str());
+
+          // Server and GUI handle SIGINT independently.
+          // When the first SIGINT is received, only one of the two processes
+          // may handle it and exit while the other continues waiting.
+          // To ensure both processes terminate properly, a second SIGINT is sent.
+          // A short delay is added to prevent overwhelming the signal handler.
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          kill(getpid(), SIGINT);
+        });
+
+        if(guiThread.joinable()) { guiThread.join(); }
+        if(serverThread.joinable()) { serverThread.join(); }
+      }
+      break;
     case SimCommand::kNone:
     default:
       throw CLI::CallForHelp();
@@ -228,9 +275,22 @@ void addSimFlags(CLI::App &_app)
                   "Pass a custom seed value to the random\n"
                   "number generator.");
 
-  _app.add_option("--playback", opt->playback,
-                  "Use the logging system to play back states.\n"
-                  "Argument is the path to recorded states.");
+  _app.add_option("--gui-config", opt->guiConfig,
+                  "Gazebo GUI configuration file to load.\n"
+                  "If no file is provided then the configuration in\n"
+                  "SDF file is used. If that is also missing then\n"
+                  "the default installed configuration is used.");
+
+  _app.add_option_function<std::string>("--playback",
+    [opt](const std::string &_playback){
+      if(opt->guiConfig.empty())
+      {
+        opt->guiConfig = "_playback_";
+      }
+      opt->playback = _playback;
+    },
+    "Use the logging system to play back states.\n"
+    "Argument is the path to recorded states.");
 
   _app.add_flag("--headless-rendering", opt->headlessRendering,
                 "Run rendering in headless mode.");
