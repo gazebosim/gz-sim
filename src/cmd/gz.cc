@@ -67,10 +67,10 @@ void cmdVerbosity(const int _verbosity)
 }
 
 //////////////////////////////////////////////////
-const char *worldInstallDir()
+const std::string worldInstallDir()
 {
   static std::string worldInstallDir = gz::sim::getWorldInstallDir();
-  return worldInstallDir.c_str();
+  return worldInstallDir;
 }
 
 //////////////////////////////////////////////////

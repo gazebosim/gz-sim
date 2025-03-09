@@ -34,7 +34,7 @@ char *simVersionHeader();
 /// \param[in] _verbosity 0 to 4
 void cmdVerbosity(const int _verbosity);
 
-const char *worldInstallDir();
+const std::string worldInstallDir();
 
 /// \brief External hook to run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
