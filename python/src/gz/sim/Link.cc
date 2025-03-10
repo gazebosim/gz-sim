@@ -191,6 +191,14 @@ void defineSimLink(py::object module)
       "Add a wrench expressed in world coordinates and applied to "
       "the link at an offset from the link's origin. This wrench is applied "
       "for one simulation step.")
+  .def("enable_bounding_box_checks", &gz::sim::Link::EnableBoundingBoxChecks,
+      py::arg("ecm"),
+      py::arg("enable") = true,
+      "By default, Gazebo will not report bounding box for a link, so "
+      "functions like `axis_aligned_box` and `world_axis_aligned_box` will "
+      "return nullopt. This function can be used to enable bounding box checks "
+      "and it also initializes the bounding box based on the link's collision "
+      "shapes.")
   .def("axis_aligned_box", &gz::sim::Link::AxisAlignedBox,
       py::arg("ecm"),
       "Get the Link's axis-aligned box represented in the link frame.")

@@ -89,6 +89,7 @@ class TestModel(unittest.TestCase):
             link.enable_velocity_checks(_ecm, False)
             link.enable_acceleration_checks(_ecm, False)
             # Axis Aligned Box Test
+            link.enable_bounding_box_checks(_ecm, True)
             # Offset of 0.5 meters along z-axis
             self.assertEqual(
                 AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
