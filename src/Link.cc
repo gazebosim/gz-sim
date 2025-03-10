@@ -24,6 +24,7 @@
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
@@ -536,11 +537,53 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
-  const gz::sim::EntityComponentManager & ecm) const
+void Link::EnableBoundingBoxChecks(
+  gz::sim::EntityComponentManager & _ecm,
+  bool _enable) const
 {
   math::AxisAlignedBox linkAabb;
-  auto collisions = this->Collisions(ecm);
+  if (_enable)
+  {
+    // Compute link's AABB from its collision shapes for proper initialization
+    linkAabb = this->ComputeAxisAlignedBox(_ecm).value_or(
+      math::AxisAlignedBox());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id, _enable,
+    components::AxisAlignedBox(linkAabb));
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
+  const gz::sim::EntityComponentManager & _ecm) const
+{
+  return _ecm.ComponentData<components::AxisAlignedBox>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
+  const gz::sim::EntityComponentManager & _ecm) const
+{
+  auto linkAabb = this->AxisAlignedBox(_ecm);
+
+  if (!linkAabb.has_value())
+  {
+    return std::nullopt;
+  }
+
+  // Return the link AABB in the world frame
+  return sim::transformAxisAlignedBox(
+    linkAabb.value(),
+    this->WorldPose(_ecm).value()
+  );
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::ComputeAxisAlignedBox(
+  const gz::sim::EntityComponentManager & _ecm) const
+{
+  math::AxisAlignedBox linkAabb;
+  auto collisions = this->Collisions(_ecm);
 
   if (collisions.empty())
   {
@@ -549,7 +592,7 @@ std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
 
   for (auto & entity : collisions)
   {
-    auto collision = ecm.ComponentData<components::CollisionElement>(entity);
+    auto collision = _ecm.ComponentData<components::CollisionElement>(entity);
     auto geom = collision.value().Geom();
     auto geomAabb = geom->AxisAlignedBox(&sim::meshAxisAlignedBox);
 
@@ -564,27 +607,9 @@ std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
     // Merge geometry AABB (expressed in link frame) into link AABB
     linkAabb += sim::transformAxisAlignedBox(
       geomAabb.value(),
-      ecm.ComponentData<components::Pose>(entity).value()
+      _ecm.ComponentData<components::Pose>(entity).value()
     );
   }
 
   return linkAabb;
-}
-
-//////////////////////////////////////////////////
-std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
-  const gz::sim::EntityComponentManager & ecm) const
-{
-  auto linkAabb = this->AxisAlignedBox(ecm);
-
-  if (!linkAabb.has_value())
-  {
-    return std::nullopt;
-  }
-
-  // Return the link AABB in the world frame
-  return sim::transformAxisAlignedBox(
-    linkAabb.value(),
-    this->WorldPose(ecm).value()
-  );
 }
