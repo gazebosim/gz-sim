@@ -584,6 +584,13 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
 {
   sdf::Errors errors;
 
+  sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+  sdfParserConfig.SetStoreResolvedURIs(true);
+  sdfParserConfig.SetCalculateInertialConfiguration(
+    sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+  MeshInertiaCalculator meshInertiaCalculator;
+  sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+
   switch (_config.Source())
   {
     // Load a world if specified. Check SDF string first, then SDF file
@@ -606,10 +613,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
         msg += "File path [" + _config.SdfFile() + "].\n";
       }
       gzmsg << msg;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
       errors = this->sdfRoot.LoadSdfString(
         _config.SdfString(), sdfParserConfig);
       this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
@@ -633,13 +636,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
       gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
-
-      MeshInertiaCalculator meshInertiaCalculator;
-      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
       // \todo(nkoenig) Async resource download.
       // This call can block for a long period of time while
       // resources are downloaded. Blocking here causes the GUI to block with
