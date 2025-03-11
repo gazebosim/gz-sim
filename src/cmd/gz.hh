@@ -22,21 +22,26 @@
 
 #include "gz/sim/gz/Export.hh"
 
-/// \brief External hook to read the library version.
-/// \return C-string representing the version. Ex.: 0.1.2
-char *gzSimVersion();
-
-/// \brief Get the Gazebo version header.
-/// \return C-string containing the Gazebo version information.
-char *simVersionHeader();
-
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
 void cmdVerbosity(const int _verbosity);
 
+/// \brief Get the install directory of world SDFormat files
+/// \return String containing the relative path
 const std::string worldInstallDir();
 
-/// \brief External hook to run simulation server.
+/// \brief Check if the file exists
+/// \param[in] _file Name of the SDFormat file
+/// \return 0 if exists, -1 in case of error
+int checkFile(std::string &_file);
+
+/// \brief Parse the SDFormat file into a string
+/// \param[in] _file Name of the SDFormat file
+/// \param[in] _parsedSdfFile Assign the parsed string
+/// \return 0 if successful, -1 in case of error
+int parseSdfFile(const std::string &_file, std::string &_parsedSdfFile);
+
+/// \brief Run simulation server.
 /// \param[in] _sdfString SDF file to run, as a string.
 /// \param[in] _iterations --iterations option
 /// \param[in] _run -r option
@@ -64,18 +69,20 @@ const std::string worldInstallDir();
 /// \param[in] _headless True if server rendering should run headless
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
-/// \return 0 if successful, 1 if not.
-int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
-    const char *_networkRole, int _networkSecondaries, int _record,
-    const char *_recordPath, int _recordResources, int _logOverwrite,
-    int _logCompress, const char *_playback, const char *_physicsEngine,
-    const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
-    const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
-    const char *_file, std::vector<std::string> _recordTopics, int _waitGui, int _headless,
-    float _recordPeriod, int _seed);
+/// \return 0 if successful, -1 in case of failure
+int runServer(const char *_sdfString, int _iterations, int _run, float _hz,
+              double _initialSimTime, int _levels, const char *_networkRole,
+              int _networkSecondaries, int _record, const char *_recordPath,
+              int _recordResources, int _logOverwrite, int _logCompress,
+              const char *_playback, const char *_physicsEngine,
+              const char *_renderEngineServer,
+              const char *_renderEngineServerApiBackend,
+              const char *_renderEngineGui,
+              const char *_renderEngineGuiApiBackend,
+              const char *_file, std::vector<std::string> _recordTopics,
+              int _waitGui, int _headless, float _recordPeriod, int _seed);
 
-/// \brief External hook to run simulation GUI.
+/// \brief Run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.
 /// \param[in] _file The world file path passed as a command line argument.
 /// If set, QuickStart Dialog will not be shown.
@@ -83,17 +90,15 @@ int runServer(const char *_sdfString,
 /// it receives a world path from GUI.
 /// \param[in] _renderEngine --render-engine-gui option
 /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend option
-/// \return 0 if successful, 1 if not.
+/// \return 0 if successful, -1 in case of failure
 int runGui(const char *_guiConfig, const char *_file,
-           int _waitGui,
-           const char *_renderEngine,
+           int _waitGui, const char *_renderEngine,
            const char *_renderEngineGuiApiBackend);
 
-/// \brief External hook to find or download a fuel world provided a URL.
+/// \brief Find or download a fuel world provided a URL.
 /// \param[in] _pathToResource Path to the fuel world resource, ie,
 /// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
-/// \return C-string containing the path to the local world sdf file
-const char *findFuelResource(
-    char *_pathToResource);
+/// \return String containing the path to the local world sdf file
+std::string findFuelResource(const std::string &_pathToResource);
 
 #endif

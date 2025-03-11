@@ -18,6 +18,9 @@
 #include "gz.hh"
 
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -37,21 +40,10 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
+#include "gz/sim/Util.hh"
 #include "gz/sim/gui/Gui.hh"
 
 using namespace gz;
-
-//////////////////////////////////////////////////
-char *gzSimVersion()
-{
-  return strdup(GZ_SIM_VERSION_FULL);
-}
-
-//////////////////////////////////////////////////
-char *simVersionHeader()
-{
-  return strdup(GZ_SIM_VERSION_HEADER);
-}
 
 //////////////////////////////////////////////////
 void cmdVerbosity(const int _verbosity)
@@ -74,8 +66,90 @@ const std::string worldInstallDir()
 }
 
 //////////////////////////////////////////////////
-const char *findFuelResource(
-    char *_pathToResource)
+int checkFile(std::string &_file)
+{
+  // Check if passed string is valid
+  if(!_file.empty())
+  {
+    std::string filepath;
+
+    // Check if passed file exists
+    if(std::filesystem::exists(_file))
+    {
+      filepath = _file;
+    }
+    else
+    {
+      // If passed file does not exist, check GZ_SIM_RESOURCE_PATH
+      // environment variable
+      auto resourcePaths = sim::resourcePaths();
+      for(auto path : resourcePaths)
+      {
+        std::string resourceFilepath =
+          common::joinPaths(path, _file);
+        if(std::filesystem::exists(resourceFilepath))
+        {
+          filepath = resourceFilepath;
+          break;
+        }
+      }
+
+      // If file does not exist in resource path, check in the
+      // installation location of available worlds
+      if(filepath.empty())
+      {
+        std::string worldPath =
+          common::joinPaths(worldInstallDir(), _file);
+        if(std::filesystem::exists(worldPath))
+        {
+          filepath = worldPath;
+        }
+        else
+        {
+          // Check Fuel for file
+          filepath = findFuelResource(_file);
+        }
+      }
+    }
+
+    if(filepath.empty())
+    {
+      std::cout << "Unable to find or download file "
+                << _file << std::endl;
+      return -1;
+    }
+
+    _file = filepath;
+  }
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+int parseSdfFile(const std::string &_file,
+    std::string &_parsedSdfFile)
+{
+  if(!_parsedSdfFile.empty())
+  {
+    std::ifstream fs(_file);
+    if(!fs)
+    {
+      std::cout << "Error reading the SDFormat file "
+                << _file << std::endl;
+      return -1;
+    }
+
+    std::stringstream buffer;
+    buffer << fs.rdbuf();
+    _parsedSdfFile = buffer.str();
+  }
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+std::string findFuelResource(
+    const std::string &_pathToResource)
 {
   std::string path;
   std::string worldPath;
@@ -121,7 +195,7 @@ const char *findFuelResource(
 
       if (fileExtension == "sdf")
       {
-        return strdup(current.c_str());
+        return current;
       }
     }
   }
