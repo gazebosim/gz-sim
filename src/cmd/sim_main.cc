@@ -135,12 +135,12 @@ void runSimCommand(SimOptions &_opt)
         if(parseSdfFile(_opt.file, parsedSdfFile) < 0)
           return;
 
-        runServer(parsedSdfFile.c_str(), _opt.iterations, _opt.runOnStart, _opt.rate,
-                  _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
-                  _opt.networkSecondaries, _opt.record, _opt.recordPath.c_str(),
-                  _opt.recordResources, _opt.logOverwrite, _opt.logCompress,
-                  _opt.playback.c_str(), _opt.physicsEngine.c_str(),
-                  _opt.renderEngineServer.c_str(),
+        runServer(parsedSdfFile.c_str(), _opt.iterations, _opt.runOnStart,
+                  _opt.rate, _opt.initialSimTime, _opt.levels,
+                  _opt.networkRole.c_str(), _opt.networkSecondaries,
+                  _opt.record, _opt.recordPath.c_str(), _opt.recordResources,
+                  _opt.logOverwrite, _opt.logCompress, _opt.playback.c_str(),
+                  _opt.physicsEngine.c_str(), _opt.renderEngineServer.c_str(),
                   _opt.renderEngineServerApiBackend.c_str(),
                   _opt.renderEngineGui.c_str(),
                   _opt.renderEngineGuiApiBackend.c_str(), _opt.file.c_str(),
@@ -168,22 +168,22 @@ void runSimCommand(SimOptions &_opt)
           return;
 
         std::thread serverThread([_opt, parsedSdfFile]{
-          runServer(parsedSdfFile.c_str(), _opt.iterations, _opt.runOnStart, _opt.rate,
-                    _opt.initialSimTime, _opt.levels, _opt.networkRole.c_str(),
-                    _opt.networkSecondaries, _opt.record,
-                    _opt.recordPath.c_str(), _opt.recordResources,
+          runServer(parsedSdfFile.c_str(), _opt.iterations, _opt.runOnStart,
+                    _opt.rate, _opt.initialSimTime, _opt.levels,
+                    _opt.networkRole.c_str(), _opt.networkSecondaries,
+                    _opt.record, _opt.recordPath.c_str(), _opt.recordResources,
                     _opt.logOverwrite, _opt.logCompress, _opt.playback.c_str(),
                     _opt.physicsEngine.c_str(), _opt.renderEngineServer.c_str(),
                     _opt.renderEngineServerApiBackend.c_str(),
                     _opt.renderEngineGui.c_str(),
-                    _opt.renderEngineGuiApiBackend.c_str(),
-                    _opt.file.c_str(), _opt.recordTopics, _opt.waitGui,
-                    _opt.headlessRendering, _opt.recordPeriod, _opt.seed);
+                    _opt.renderEngineGuiApiBackend.c_str(), _opt.file.c_str(),
+                    _opt.recordTopics, _opt.waitGui, _opt.headlessRendering,
+                    _opt.recordPeriod, _opt.seed);
 
           // Server and GUI handle SIGINT independently.
           // When the first SIGINT is received, only one of the two processes
-          // may handle it and exit while the other continues waiting.
-          // To ensure both processes terminate properly, a second SIGINT is sent.
+          // may handle it and exit while the other continues waiting. To
+          // ensure both processes terminate properly, a second SIGINT is sent.
           // A short delay is added to prevent overwhelming the signal handler.
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
           kill(getpid(), SIGINT);
@@ -196,8 +196,8 @@ void runSimCommand(SimOptions &_opt)
 
           // Server and GUI handle SIGINT independently.
           // When the first SIGINT is received, only one of the two processes
-          // may handle it and exit while the other continues waiting.
-          // To ensure both processes terminate properly, a second SIGINT is sent.
+          // may handle it and exit while the other continues waiting. To
+          // ensure both processes terminate properly, a second SIGINT is sent.
           // A short delay is added to prevent overwhelming the signal handler.
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
           kill(getpid(), SIGINT);
