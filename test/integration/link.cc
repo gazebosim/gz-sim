@@ -755,8 +755,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
 
   // LinkA - bounding box from collisions
   gz::sim::Link linkA(eLinkA);
-  linkA.EnableBoundingBoxChecks(ecm);
-  auto aabb = linkA.AxisAlignedBox(ecm);
+  auto aabb = linkA.ComputeAxisAlignedBox(ecm);
 
   EXPECT_TRUE(aabb.has_value());
   EXPECT_EQ(-5.0, aabb->Min().X());
@@ -766,12 +765,20 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   EXPECT_EQ(4.0, aabb->Max().Y());
   EXPECT_EQ(2.0, aabb->Max().Z());
 
+  // By default, the bounding box checks are disabled.
+  // Once enabled, the result must match the computed AABB.
+  EXPECT_EQ(std::nullopt, linkA.AxisAlignedBox(ecm));
+  linkA.EnableBoundingBoxChecks(ecm);
+  EXPECT_EQ(aabb, linkA.AxisAlignedBox(ecm));
+
   // If ECM is updated with new link AABB, the ECM value is returned
+  // instead of recomputing the AABB from the collisions
   math::AxisAlignedBox newAabb(-math::Vector3d::One, math::Vector3d::One);
   ecm.SetComponentData<components::AxisAlignedBox>(eLinkA, newAabb);
+  EXPECT_NE(newAabb, aabb.value());
   EXPECT_EQ(newAabb, linkA.AxisAlignedBox(ecm));
 
-  // If the bounding box checks are disabled and then enabled again, the
+  // If the bounding box checks are disabled and then re-enabled, the
   // bounding box should be recalculated from the collisions
   linkA.EnableBoundingBoxChecks(ecm, false);
   EXPECT_EQ(std::nullopt, linkA.AxisAlignedBox(ecm));
@@ -805,8 +812,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
 
   // LinkB - bounding box from collisions
   gz::sim::Link linkB(eLinkB);
-  linkB.EnableBoundingBoxChecks(ecm);
-  aabb = linkB.AxisAlignedBox(ecm);
+  aabb = linkB.ComputeAxisAlignedBox(ecm);
 
   EXPECT_TRUE(aabb.has_value());
   EXPECT_EQ(-1.5, aabb->Min().X());
@@ -824,6 +830,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   // LinkC - No collisions (AABB should be invalid if checks are enabled)
   gz::sim::Link linkC(eLinkC);
   EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
+  EXPECT_EQ(std::nullopt, linkC.ComputeAxisAlignedBox(ecm));
   linkC.EnableBoundingBoxChecks(ecm);
   EXPECT_EQ(math::AxisAlignedBox(), linkC.AxisAlignedBox(ecm));
 
@@ -844,6 +851,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   linkC = gz::sim::Link(eLinkC);
   linkC.EnableBoundingBoxChecks(ecm, false);
   EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
+  EXPECT_EQ(math::AxisAlignedBox(), linkC.ComputeAxisAlignedBox(ecm));
   linkC.EnableBoundingBoxChecks(ecm);
   EXPECT_EQ(math::AxisAlignedBox(), linkC.AxisAlignedBox(ecm));
 
@@ -858,10 +866,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   // LinkC - Invalid mesh will be skiped with warning, bounding
   // box will be defined for the valid mesh only
   linkC = gz::sim::Link(eLinkC);
-  linkC.EnableBoundingBoxChecks(ecm, false);
-  EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
-  linkC.EnableBoundingBoxChecks(ecm);
-  aabb = linkC.AxisAlignedBox(ecm);
+  aabb = linkC.ComputeAxisAlignedBox(ecm);
 
   EXPECT_TRUE(aabb.has_value());
   EXPECT_EQ(-0.5, aabb->Min().X());
@@ -878,10 +883,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   creator.SetParent(eCollisions[0], eLinkB);
 
   linkC = gz::sim::Link(eLinkC);
-  linkC.EnableBoundingBoxChecks(ecm, false);
-  EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
-  linkC.EnableBoundingBoxChecks(ecm);
-  aabb = linkC.AxisAlignedBox(ecm);
+  aabb = linkC.ComputeAxisAlignedBox(ecm);
 
   EXPECT_TRUE(aabb.has_value());
   EXPECT_EQ(-0.5, aabb->Min().X());
