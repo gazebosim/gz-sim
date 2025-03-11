@@ -371,14 +371,16 @@ namespace gz
 
       /// \brief Get the link's axis-aligned bounding box in the link frame.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Link's AxisAlignedBox in the link frame or nullopt
+      /// \return Link's AxisAlignedBox in the link frame or nullopt if the
+      /// link entity does not have a components::AxisAlignedBox component.
       /// \sa EnableBoundingBoxChecks
       public: std::optional<math::AxisAlignedBox> AxisAlignedBox(
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get the link's axis-aligned bounding box in the world frame.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Link's AxisAlignedBox in the world frame or nullopt
+      /// \return Link's AxisAlignedBox in the world frame or nullopt if the
+      /// link entity does not have a components::AxisAlignedBox component.
       /// \sa AxisAlignedBox
       public: std::optional<math::AxisAlignedBox> WorldAxisAlignedBox(
           const EntityComponentManager &_ecm) const;
@@ -392,7 +394,7 @@ namespace gz
       /// \return Link's axis-aligned bounding box in the link frame or
       /// nullopt if the link does not have collisions. It returns an
       /// invalid bounding box if all of the link collisions are empty.
-      private: std::optional<math::AxisAlignedBox> ComputeAxisAlignedBox(
+      public: std::optional<math::AxisAlignedBox> ComputeAxisAlignedBox(
         const EntityComponentManager &_ecm) const;
 
       /// \brief Pointer to private data.
