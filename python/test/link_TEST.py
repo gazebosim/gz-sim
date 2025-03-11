@@ -88,20 +88,27 @@ class TestModel(unittest.TestCase):
             self.assertEqual(0, link.world_kinetic_energy(_ecm))
             link.enable_velocity_checks(_ecm, False)
             link.enable_acceleration_checks(_ecm, False)
-            # Axis Aligned Box Test
-            link.enable_bounding_box_checks(_ecm, True)
+            # Compute Axis Aligned Box Test
             # Offset of 0.5 meters along z-axis
+            self.assertEqual(
+                AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
+                link.compute_axis_aligned_box(_ecm)
+            )
+            # Axis Aligned Box Test with disabled bounding box checks
+            link.enable_bounding_box_checks(_ecm, False)
+            self.assertEqual(None, link.axis_aligned_box(_ecm))
+            self.assertEqual(None, link.world_axis_aligned_box(_ecm))
+            # Axis Aligned Box Test with enabled bounding box checks
+            link.enable_bounding_box_checks(_ecm, True)
             self.assertEqual(
                 AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
                 link.axis_aligned_box(_ecm)
             )
-            # World Axis Aligned Box Test
-            # Same as above since the link is at the origin
+            # Same as above since the link is at the world origin
             self.assertEqual(
                 AxisAlignedBox(Vector3d(-0.5, -0.5, 0), Vector3d(0.5, 0.5, 1)),
                 link.world_axis_aligned_box(_ecm)
             )
-
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1
