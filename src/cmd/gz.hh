@@ -14,13 +14,9 @@
  * limitations under the License.
  *
 */
-#ifndef GZ_SIM_GZ_HH_
-#define GZ_SIM_GZ_HH_
 
 #include <string>
 #include <vector>
-
-#include "gz/sim/gz/Export.hh"
 
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
@@ -100,5 +96,3 @@ int runGui(const char *_guiConfig, const char *_file,
 /// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
 /// \return String containing the path to the local world sdf file
 std::string findFuelResource(const std::string &_pathToResource);
-
-#endif
