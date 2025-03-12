@@ -762,4 +762,9 @@ TEST_F(LinkIntegrationTest, LinkAddLinkForce)
   EXPECT_NE(nullptr, wrenchComp);
   wrenchMsg = wrenchComp->Data();
 
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+    wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+    wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
 }
