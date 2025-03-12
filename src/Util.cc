@@ -1004,6 +1004,10 @@ math::AxisAlignedBox meshAxisAlignedBox(sdf::Mesh _sdfMesh)
   math::Vector3d meshCenter, meshMin, meshMax;
   mesh->AABB(meshCenter, meshMin, meshMax);
 
+  // Apply mesh scale to the bounding box
+  meshMin *= _sdfMesh.Scale();
+  meshMax *= _sdfMesh.Scale();
+
   return math::AxisAlignedBox(meshMin, meshMax);
 }
 
