@@ -734,9 +734,9 @@ TEST_F(LinkIntegrationTest, LinkAddLinkForce)
   wrenchMsg = wrenchComp->Data();
 
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
-    wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
-    wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 
   // Add link force at an offset
   math::Vector3d offset{0.0, 1.0, 0.0};
@@ -749,12 +749,12 @@ TEST_F(LinkIntegrationTest, LinkAddLinkForce)
   // Calculate the world force with offset
   math::Vector3d worldForceWithOffset =linkWorldPose.Rot().RotateVector(force);
 
-  math::Vector3 expectedTorqueWithOffset =
-  linkWorldPose.Rot().RotateVector(offset + inertiaPose.Pos()).Cross(worldForceWithOffset);
+  math::Vector3 expectedTorqueWithOffset =linkWorldPose.Rot().RotateVector(
+      offset + inertiaPose.Pos()).Cross(worldForceWithOffset);
   EXPECT_EQ(worldForceWithOffset, math::Vector3d(
-    wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(expectedTorqueWithOffset, math::Vector3d(
-    wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 
   // apply opposite force again and verify the resulting wrench values are zero
   link.AddLinkForce(ecm, -force, offset);
@@ -763,8 +763,8 @@ TEST_F(LinkIntegrationTest, LinkAddLinkForce)
   wrenchMsg = wrenchComp->Data();
 
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
-    wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
-    wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 
 }
