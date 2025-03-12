@@ -721,7 +721,7 @@ TEST_F(LinkIntegrationTest, LinkAddLinkForce)
 
   math::Vector3 expectedTorque =
       linkWorldPose.Rot().RotateVector(inertiaPose.Pos()).Cross(worldForce);
-  EXPECT_EQ(worldforce, math::Vector3d(
+  EXPECT_EQ(worldForce, math::Vector3d(
       wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
   EXPECT_EQ(expectedTorque, math::Vector3d(
       wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
