@@ -1066,6 +1066,16 @@ TEST_F(UtilTest, MeshAxisAlignedBoundingBox)
   EXPECT_EQ(aab.Max(), math::Vector3d(0.5, 0.5, 0.5));
   EXPECT_EQ(aab.Center(), math::Vector3d::Zero);
 
+  // Validate scaling using the unit box mesh
+  meshSdf.SetScale(math::Vector3d(2, 3, 4));
+  aab = meshAxisAlignedBox(meshSdf);
+  EXPECT_NE(emptyBox, aab);
+  EXPECT_EQ(aab.Size(), math::Vector3d(2, 3, 4));
+  EXPECT_EQ(aab.Min(), math::Vector3d(-1, -1.5, -2));
+  EXPECT_EQ(aab.Max(), math::Vector3d(1, 1.5, 2));
+  EXPECT_EQ(aab.Center(), math::Vector3d::Zero);
+  meshSdf.SetScale(math::Vector3d(1, 1, 1));
+
   meshSdf.SetUri("duck.dae");
   std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "media", "duck.dae");
