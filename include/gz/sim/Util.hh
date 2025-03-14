@@ -339,8 +339,8 @@ namespace gz
     /// \brief Compute the axis-aligned bounding box of a mesh.
     /// \param _sdfMesh Mesh SDF DOM.
     /// \return The AABB of the mesh in its local frame.
-    GZ_SIM_VISIBLE math::AxisAlignedBox meshAxisAlignedBox(
-      const sdf::Mesh _sdfMesh);
+    GZ_SIM_VISIBLE std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
+      const sdf::Mesh &_sdfMesh);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
