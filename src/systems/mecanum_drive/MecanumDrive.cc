@@ -522,9 +522,9 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     return;
   }
 
-  if (this->frontLeftJoints.empty()  || 
-      this->frontRightJoints.empty() || 
-      this->backLeftJoints.empty()   || 
+  if (this->frontLeftJoints.empty()  ||
+      this->frontRightJoints.empty() ||
+      this->backLeftJoints.empty()   ||
       this->backRightJoints.empty())
     return;
 
@@ -545,7 +545,7 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
                     frontRightPos->Data()[0],
                     backLeftPos->Data()[0],
                     backRightPos->Data()[0],
-                    std::chrono::steady_clock::time_point(_info.simTime)); 
+                    std::chrono::steady_clock::time_point(_info.simTime));
 
   // Throttle publishing
   auto diff = _info.simTime - this->lastOdomPubTime;
@@ -611,7 +611,6 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
   // Publish the messages
   this->odomPub.Publish(msg);
   this->tfPub.Publish(tfMsg);
-
 }
 
 //////////////////////////////////////////////////

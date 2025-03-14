@@ -176,7 +176,7 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
       // However, since the model origin is offset, the model position will
       // change. To find the final pose of the model, we have to do the
       // following similarity transformation
-      
+
       math::Pose3d tOdomModel(-0.2,0,0,0,0,0);
       auto finalModelFramePose =
           tOdomModel * odomPoses.back() * tOdomModel.Inverse();
