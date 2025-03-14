@@ -1052,14 +1052,14 @@ TEST_F(UtilTest, MeshAxisAlignedBoundingBox)
 {
   sdf::Mesh meshSdf;
   math::AxisAlignedBox emptyBox, aab;
-  EXPECT_EQ(emptyBox, meshAxisAlignedBox(meshSdf));
+  EXPECT_FALSE(meshAxisAlignedBox(meshSdf).has_value());
 
   meshSdf.SetUri("invalid_uri");
   meshSdf.SetFilePath("invalid_filepath");
-  EXPECT_EQ(emptyBox, meshAxisAlignedBox(meshSdf));
+  EXPECT_FALSE(meshAxisAlignedBox(meshSdf).has_value());
 
   meshSdf.SetUri("name://unit_box");
-  aab = meshAxisAlignedBox(meshSdf);
+  aab = meshAxisAlignedBox(meshSdf).value();
   EXPECT_NE(emptyBox, aab);
   EXPECT_EQ(aab.Size(), math::Vector3d::One);
   EXPECT_EQ(aab.Min(), math::Vector3d(-0.5, -0.5, -0.5));
@@ -1068,7 +1068,7 @@ TEST_F(UtilTest, MeshAxisAlignedBoundingBox)
 
   // Validate scaling using the unit box mesh
   meshSdf.SetScale(math::Vector3d(2, 3, 4));
-  aab = meshAxisAlignedBox(meshSdf);
+  aab = meshAxisAlignedBox(meshSdf).value();
   EXPECT_NE(emptyBox, aab);
   EXPECT_EQ(aab.Size(), math::Vector3d(2, 3, 4));
   EXPECT_EQ(aab.Min(), math::Vector3d(-1, -1.5, -2));
@@ -1080,7 +1080,7 @@ TEST_F(UtilTest, MeshAxisAlignedBoundingBox)
   std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "media", "duck.dae");
   meshSdf.SetFilePath(filePath);
-  aab = meshAxisAlignedBox(meshSdf);
+  aab = meshAxisAlignedBox(meshSdf).value();
   EXPECT_NE(emptyBox, aab);
 
   // Expected values obtained from the mesh file using Blender:
