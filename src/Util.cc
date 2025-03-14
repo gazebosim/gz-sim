@@ -989,15 +989,16 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
   return optimizedMesh;
 }
 
-math::AxisAlignedBox meshAxisAlignedBox(sdf::Mesh _sdfMesh)
+std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
+  const sdf::Mesh &_sdfMesh)
 {
   auto mesh = loadMesh(_sdfMesh);
   if (!mesh)
   {
-    gzwarn << "Mesh could not be loaded. Invalidating its bounding box."
+    gzwarn << "Mesh could not be loaded. Bounding box cannot be computed."
            << std::endl;
 
-    return math::AxisAlignedBox();
+    return std::nullopt;
   }
 
   // Get the mesh's bounding box
