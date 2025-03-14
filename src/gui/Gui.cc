@@ -89,7 +89,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       {
         gzerr << "Failed to create the default config folder ["
           << defaultConfigFolder << "]\n";
-        return nullptr;
+        return "";
       }
     }
 
@@ -100,7 +100,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
-      return nullptr;
+      return "";
     }
     else
     {
