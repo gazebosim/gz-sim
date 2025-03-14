@@ -538,7 +538,7 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
 
 //////////////////////////////////////////////////
 void Link::EnableBoundingBoxChecks(
-  gz::sim::EntityComponentManager & _ecm,
+  EntityComponentManager & _ecm,
   bool _enable) const
 {
   math::AxisAlignedBox linkAabb;
@@ -555,14 +555,14 @@ void Link::EnableBoundingBoxChecks(
 
 //////////////////////////////////////////////////
 std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
-  const gz::sim::EntityComponentManager & _ecm) const
+  const EntityComponentManager & _ecm) const
 {
   return _ecm.ComponentData<components::AxisAlignedBox>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
 std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
-  const gz::sim::EntityComponentManager & _ecm) const
+  const EntityComponentManager & _ecm) const
 {
   auto linkAabb = this->AxisAlignedBox(_ecm);
 
@@ -572,7 +572,7 @@ std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
   }
 
   // Return the link AABB in the world frame
-  return sim::transformAxisAlignedBox(
+  return transformAxisAlignedBox(
     linkAabb.value(),
     this->WorldPose(_ecm).value()
   );
@@ -580,7 +580,7 @@ std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
 
 //////////////////////////////////////////////////
 std::optional<math::AxisAlignedBox> Link::ComputeAxisAlignedBox(
-  const gz::sim::EntityComponentManager & _ecm) const
+  const EntityComponentManager & _ecm) const
 {
   math::AxisAlignedBox linkAabb;
   auto collisions = this->Collisions(_ecm);
@@ -594,7 +594,7 @@ std::optional<math::AxisAlignedBox> Link::ComputeAxisAlignedBox(
   {
     auto collision = _ecm.ComponentData<components::CollisionElement>(entity);
     auto geom = collision.value().Geom();
-    auto geomAabb = geom->AxisAlignedBox(&sim::meshAxisAlignedBox);
+    auto geomAabb = geom->AxisAlignedBox(&meshAxisAlignedBox);
 
     if (!geomAabb.has_value() || geomAabb == math::AxisAlignedBox())
     {
@@ -605,7 +605,7 @@ std::optional<math::AxisAlignedBox> Link::ComputeAxisAlignedBox(
     }
 
     // Merge geometry AABB (expressed in link frame) into link AABB
-    linkAabb += sim::transformAxisAlignedBox(
+    linkAabb += transformAxisAlignedBox(
       geomAabb.value(),
       _ecm.ComponentData<components::Pose>(entity).value()
     );
