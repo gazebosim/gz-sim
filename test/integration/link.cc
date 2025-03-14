@@ -755,7 +755,7 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   math::Vector3d linkForceWithOffset = inertiaPose.Rot().RotateVector(force);
   // Calculate the world force with offset
   math::Vector3d worldForceWithOffset =linkWorldPose.Rot().RotateVector(
-      LinkForceWithOffset);
+      linkForceWithOffset);
 
   math::Vector3 expectedTorqueWithOffset =linkWorldPose.Rot().RotateVector(
       offsetInLinkFrame + inertiaPose.Pos()).Cross(worldForceWithOffset);
