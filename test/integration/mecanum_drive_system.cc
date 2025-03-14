@@ -197,8 +197,8 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
         auto motionDir = math::Vector2(relativeMotionPos.X(),
                                        relativeMotionPos.Y()).Normalized();
         auto scalarProjection = cmdVelDir.Dot(motionDir);
-        EXPECT_GT(motionDir.Length(), 0.5); // is there motion?
-        EXPECT_GT(scalarProjection, 0.9);   // is it in the right direction?
+        EXPECT_GT(motionDir.Length(), 0.5);  // is there motion?
+        EXPECT_GT(scalarProjection, 0.9);  // is it in the right direction?
 
         // Verify velocity and acceleration upper boundaries.
         double t = 3.0;
@@ -298,11 +298,11 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
       EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
       EXPECT_STREQ(
-            _msg.header().data(0).value().Get(0).c_str(), "vehicle_blue/odom");
+        _msg.header().data(0).value().Get(0).c_str(), "vehicle_blue/odom");
 
       EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
       EXPECT_STREQ(
-            _msg.header().data(1).value().Get(0).c_str(), "vehicle_blue/chassis");
+        _msg.header().data(1).value().Get(0).c_str(), "vehicle_blue/chassis");
 
       odomPosesCount++;
     };

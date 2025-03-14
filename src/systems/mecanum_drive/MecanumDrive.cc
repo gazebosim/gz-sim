@@ -176,8 +176,7 @@ class gz::sim::systems::MecanumDrivePrivate
 };
 
 //////////////////////////////////////////////////
-MecanumDrive::MecanumDrive()
-  : dataPtr(std::make_unique<MecanumDrivePrivate>())
+MecanumDrive::MecanumDrive() : dataPtr(std::make_unique<MecanumDrivePrivate>())
 {
 }
 
@@ -288,7 +287,9 @@ void MecanumDrive::Configure(const Entity &_entity,
 
   // Setup odometry.
   this->dataPtr->odom.SetWheelParams(this->dataPtr->wheelSeparation,
-      this->dataPtr->wheelbase, this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
+      this->dataPtr->wheelbase,
+      this->dataPtr->wheelRadius,
+      this->dataPtr->wheelRadius);
 
   // Subscribe to commands
   std::vector<std::string> topics;
@@ -529,14 +530,19 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     return;
 
   // Get the first joint positions for each wheel joint.
-  auto frontLeftPos = _ecm.Component<components::JointPosition>(this->frontLeftJoints[0]);
-  auto frontRightPos = _ecm.Component<components::JointPosition>(this->frontRightJoints[0]);
-  auto backLeftPos = _ecm.Component<components::JointPosition>(this->backLeftJoints[0]);
-  auto backRightPos = _ecm.Component<components::JointPosition>(this->backRightJoints[0]);
+  auto frontLeftPos = _ecm.Component<components::JointPosition>(
+    this->frontLeftJoints[0]);
+  auto frontRightPos = _ecm.Component<components::JointPosition>(
+    this->frontRightJoints[0]);
+  auto backLeftPos = _ecm.Component<components::JointPosition>(
+    this->backLeftJoints[0]);
+  auto backRightPos = _ecm.Component<components::JointPosition>(
+    this->backRightJoints[0]);
 
   // Abort if the joints were not found or just created.
   if (!frontLeftPos || !frontRightPos || !backLeftPos || !backRightPos ||
-   frontLeftPos->Data().empty() || frontRightPos->Data().empty() || backLeftPos->Data().empty() || backRightPos->Data().empty())
+   frontLeftPos->Data().empty() || frontRightPos->Data().empty() ||
+   backLeftPos->Data().empty() || backRightPos->Data().empty())
   {
     return;
   }
