@@ -356,11 +356,16 @@ std::optional<std::vector<double>> Joint::Position(
 }
 
 //////////////////////////////////////////////////
-std::optional<std::vector<gz::math::Vector2d>> Joint::VelocityLimits(
+std::optional<gz::math::Vector2d> Joint::VelocityLimits(
     const EntityComponentManager &_ecm) const
 {
-  return _ecm.ComponentData<components::JointVelocityLimits>(
-      this->dataPtr->id);
+  auto jointAxis = _ecm.Component<components::JointAxis>(this->dataPtr->id);
+  if (jointAxis)
+  {
+    return jointAxis->Data().MaxVelocity();
+  }
+
+  return std::nullopt;
 }
 
 //////////////////////////////////////////////////
