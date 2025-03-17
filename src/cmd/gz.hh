@@ -18,6 +18,9 @@
 #include <string>
 #include <vector>
 
+#include <gz/utils/Subprocess.hh>
+#include <gz/utils/detail/subprocess.h>
+
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
 void cmdVerbosity(const int _verbosity);
@@ -96,3 +99,27 @@ int runGui(const char *_guiConfig, const char *_file,
 /// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
 /// \return String containing the path to the local world sdf file
 std::string findFuelResource(const std::string &_pathToResource);
+
+
+// Temporary class to test the subprocess_read_stdout API
+// Probably better to add StreamStdout() into
+// gz::utils::Subprocess to stream standard output while
+// the process runs
+struct ExeSubprocess : public gz::utils::Subprocess
+{
+  public: ExeSubprocess(std::vector<std::string> _args)
+  : Subprocess(_args)
+  {
+    // Do nothing
+  }
+
+  public: std::string StreamStdout()
+  {
+    uint32_t bufSize = 1000;
+    char* buffer = new char[bufSize];
+
+    subprocess_read_stdout(this->process, buffer, bufSize);
+
+    return buffer;
+  }
+};
