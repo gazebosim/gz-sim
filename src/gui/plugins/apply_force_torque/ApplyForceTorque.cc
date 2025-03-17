@@ -232,7 +232,7 @@ void ApplyForceTorque::LoadConfig(const tinyxml2::XMLElement */*_pluginElem*/)
     this->dataPtr->worldName = worldNames[0].toStdString();
     auto topic = transport::TopicUtils::AsValidTopic(
       "/world/" + this->dataPtr->worldName + "/wrench");
-    if (topic == "")
+    if (topic.empty())
     {
       gzerr << "Unable to create publisher" << std::endl;
       return;
@@ -764,7 +764,7 @@ void ApplyForceTorquePrivate::UpdateVisuals()
     // https://github.com/gazebosim/gz-rendering/pull/882
 
     // Update gizmo visual rotation so that they are always facing the
-    // eye position and alligned with the active vector
+    // eye position and aligned with the active vector
     math::Quaterniond gizmoRot = this->linkWorldPose.Rot() * this->vectorRot;
     math::Vector3d eye = gizmoRot.RotateVectorReverse(
       (this->camera->WorldPosition() - pos).Normalized());

@@ -81,7 +81,7 @@ namespace gz::sim
     public: std::vector<fuel_tools::ServerConfig> servers;
 
     /// \brief Data structure to hold relevant bits for a worker thread that
-    /// fetches the list of recources available for an owner on Fuel.
+    /// fetches the list of resources available for an owner on Fuel.
     struct FetchResourceListWorker
     {
       /// \brief Thread that runs the worker
@@ -441,7 +441,7 @@ bool compareByDownloaded(const Resource &a, const Resource &b)
 /////////////////////////////////////////////////
 void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 {
-  if (this->dataPtr->displayData.searchKeyword == "")
+  if (this->dataPtr->displayData.searchKeyword.empty())
     return;
 
   std::string searchKeyword = this->dataPtr->displayData.searchKeyword;
