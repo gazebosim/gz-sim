@@ -171,14 +171,11 @@ void SelectEntitiesPrivate::HandleEntitySelection()
       this->selectedEntitiesID.push_back(this->selectedEntitiesIDNew[i]);
 
       Entity entityId = kNullEntity;
-      try
+      if (std::holds_alternative<uint64_t>(
+        visualToHighLight->UserData("gazebo-entity")))
       {
         entityId = std::get<uint64_t>(
           visualToHighLight->UserData("gazebo-entity"));
-      }
-      catch(std::bad_variant_access &_e)
-      {
-        // It's ok to get here
       }
 
       this->selectedEntities.push_back(entityId);
@@ -212,13 +209,9 @@ void SelectEntitiesPrivate::HandleEntitySelection()
   }
 
   Entity entityId = kNullEntity;
-  try
+  if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
   {
     entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
-  }
-  catch(std::bad_variant_access &e)
-  {
-    // It's ok to get here
   }
 
   this->selectionHelper.selectEntity = entityId;
@@ -243,13 +236,9 @@ void SelectEntitiesPrivate::LowlightNode(const rendering::VisualPtr &_visual)
   Entity entityId = kNullEntity;
   if (_visual)
   {
-    try
+    if (std::holds_alternative<uint64_t>(_visual->UserData("gazebo-entity")))
     {
       entityId = std::get<uint64_t>(_visual->UserData("gazebo-entity"));
-    }
-    catch(std::bad_variant_access &)
-    {
-      // It's ok to get here
     }
   }
   if (this->wireBoxes.find(entityId) != this->wireBoxes.end())
@@ -271,13 +260,9 @@ void SelectEntitiesPrivate::HighlightNode(const rendering::VisualPtr &_visual)
   }
 
   Entity entityId = kNullEntity;
-  try
+  if (std::holds_alternative<uint64_t>(_visual->UserData("gazebo-entity")))
   {
     entityId = std::get<uint64_t>(_visual->UserData("gazebo-entity"));
-  }
-  catch(std::bad_variant_access &)
-  {
-    // It's ok to get here
   }
 
   // If the entity is not found in the existing map, create a wire box
@@ -358,13 +343,10 @@ void SelectEntitiesPrivate::SetSelectedEntity(
 
   if (topLevelVisual)
   {
-    try
+    if (std::holds_alternative<uint64_t>(
+      topLevelVisual->UserData("gazebo-entity")))
     {
       entityId = std::get<uint64_t>(topLevelVisual->UserData("gazebo-entity"));
-    }
-    catch(std::bad_variant_access &)
-    {
-      // It's ok to get here
     }
   }
 
@@ -544,13 +526,10 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
           auto visual = this->dataPtr->scene->VisualByIndex(i);
 
           Entity entityId = kNullEntity;
-          try
+          if (std::holds_alternative<uint64_t>(
+            visual->UserData("gazebo-entity")))
           {
             entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
-          }
-          catch(std::bad_variant_access &)
-          {
-            // It's ok to get here
           }
 
           if (entityId == entity)
