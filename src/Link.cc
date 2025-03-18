@@ -482,8 +482,8 @@ void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
   // The force is expressed in terms of the link's inertial coordinate frame,
   // We'll first convert this to force expressed
   //in terms of link's coordinate frame
-  math::Vector3d linkForce = inertial->Data().Pose().Rot(
-                             ).RotateVector(_force);
+  math::Vector3d linkForce =
+    inertial->Data().Pose().Rot().RotateVector(_force);
 
   // ExternalWorldForcecmd applies the force expressed in world coordinates
   // so we need to compute the force expressed in world coordinates
@@ -492,8 +492,12 @@ void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
   // ExternalWorldForcecmd applies the force at a position expressed in terms
   // of link's coordinate frame.So we compute the position expressed in terms
   // of link's coordinate frame.
-  math ::Vector3d positionInLinkFrame = (_position - inertial->Data(
-                                         ).Pose().Pos());
+  math::Pose3d forceApplicationRelativeToInertialFrame(
+    _position,
+    math::Quaterniond::Identity);
+  math::Vector3d positionInLinkFrame =
+    (inertial->Data().Pose() *
+     forceApplicationRelativeToInertialFrame).Pos();
 
   // Apply Force using AddWorldForce method
   this->AddWorldForce(_ecm, worldForce, positionInLinkFrame);
