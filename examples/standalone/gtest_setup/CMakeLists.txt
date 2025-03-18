@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 project(GTestSetup)
 
 # Find Gazebo
-find_package(gz-sim10 REQUIRED)
-set(GZ_SIM_VER ${gz-sim10_VERSION_MAJOR})
+find_package(gz-sim REQUIRED)
 
 # Fetch and configure GTest
 include(FetchContent)
@@ -30,7 +29,7 @@ foreach(TEST_TARGET
   )
   target_link_libraries(${TEST_TARGET}
     gtest_main
-    gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
+    gz-sim::gz-sim
   )
   include(GoogleTest)
   gtest_discover_tests(${TEST_TARGET})

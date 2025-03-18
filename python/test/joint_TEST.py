@@ -17,8 +17,8 @@ import os
 import unittest
 
 from gz_test_deps.common import set_verbosity
-from gz_test_deps.sim import (K_NULL_ENTITY, TestFixture,
-                              Joint, Model, World, world_entity)
+from gz.sim import (K_NULL_ENTITY, TestFixture,
+                    Joint, Model, World, world_entity)
 from gz_test_deps.math import Pose3d
 from gz_test_deps.sdformat import JointAxis, JointType
 

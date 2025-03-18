@@ -36,7 +36,7 @@ if(BUILD_TESTING)
       PRIVATE
         gz-plugin${GZ_PLUGIN_VER}::register
         gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-        gz-sim${PROJECT_VERSION_MAJOR}
+        gz-sim
     )
 
     if (MSVC)

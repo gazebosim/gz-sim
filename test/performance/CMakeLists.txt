@@ -53,8 +53,8 @@ add_executable(
 target_link_libraries(
   PERFORMANCE_${exec}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-gui
+    gz-sim
+    gz-sim-gui
 )
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET PERFORMANCE_sensors_system)

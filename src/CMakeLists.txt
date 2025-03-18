@@ -170,8 +170,8 @@ target_link_libraries(${gz_lib_target}
   PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-gui
+    gz-sim
+    gz-sim-gui
 )
 
 # Executable target that runs the GUI without ruby for debugging purposes.
@@ -241,7 +241,7 @@ gz_build_tests(TYPE UNIT
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
