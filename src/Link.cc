@@ -37,6 +37,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/Util.hh"
@@ -127,6 +128,16 @@ Entity Link::CollisionByName(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+Entity Link::SensorByName(const EntityComponentManager &_ecm,
+    const std::string &_name) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Name(_name),
+      components::Sensor());
+}
+
+//////////////////////////////////////////////////
 Entity Link::VisualByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
@@ -145,6 +156,14 @@ std::vector<Entity> Link::Collisions(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+std::vector<Entity> Link::Sensors(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Sensor());
+}
+
+//////////////////////////////////////////////////
 std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
 {
   return _ecm.EntitiesByComponents(
@@ -156,6 +175,12 @@ std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
 uint64_t Link::CollisionCount(const EntityComponentManager &_ecm) const
 {
   return this->Collisions(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+uint64_t Link::SensorCount(const EntityComponentManager &_ecm) const
+{
+  return this->Sensors(_ecm).size();
 }
 
 //////////////////////////////////////////////////
@@ -259,16 +284,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
-  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
-      _enable);
+  auto defaultWorldPose = math::Pose3d::Zero;
+  if (_enable)
+  {
+    defaultWorldPose = sim::worldPose(this->dataPtr->id, _ecm);
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::LinearVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::AngularVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldPose(defaultWorldPose));
+
+  auto defaultWorldLinVel = math::Vector3d::Zero;
+  auto defaultWorldAngVel = math::Vector3d::Zero;
+  if (_enable)
+  {
+    // The WorldPose component is guaranteed to exist at this point
+    auto worldPose = this->WorldPose(_ecm).value();
+
+    // Compute the default world linear and angular velocities
+    defaultWorldLinVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::LinearVelocity>(this->dataPtr->id)->Data());
+    defaultWorldAngVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::AngularVelocity>(this->dataPtr->id)->Data());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldLinearVelocity(defaultWorldLinVel));
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldAngularVelocity(defaultWorldAngVel));
 }
 
 //////////////////////////////////////////////////
