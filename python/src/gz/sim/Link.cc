@@ -57,6 +57,11 @@ void defineSimLink(py::object module)
       py::arg("name"),
       "Get the ID of a collision entity which is an immediate child of "
       "this link.")
+  .def("sensor_by_name", &gz::sim::Link::SensorByName,
+      py::arg("ecm"),
+      py::arg("name"),
+      "Get the ID of a sensor entity which is an immediate child of "
+      "this link.")
   .def("visual_by_name", &gz::sim::Link::VisualByName,
       py::arg("ecm"),
       py::arg("name"),
@@ -65,6 +70,9 @@ void defineSimLink(py::object module)
   .def("collisions", &gz::sim::Link::Collisions,
       py::arg("ecm"),
       "Get all collisions which are immediate children of this link.")
+  .def("sensors", &gz::sim::Link::Sensors,
+      py::arg("ecm"),
+      "Get all sensors which are immediate children of this link.")
   .def("visuals", &gz::sim::Link::Visuals,
       py::arg("ecm"),
       "Get all visuals which are immediate children of this link.")
@@ -72,6 +80,10 @@ void defineSimLink(py::object module)
       py::arg("ecm"),
       "Get the number of collisions which are immediate children of "
       "this link.")
+  .def("sensor_count", &gz::sim::Link::SensorCount,
+      py::arg("ecm"),
+      "Get the number of sensors which are immediate children of this "
+      "link.")
   .def("visual_count", &gz::sim::Link::VisualCount,
       py::arg("ecm"),
       "Get the number of visuals which are immediate children of this "

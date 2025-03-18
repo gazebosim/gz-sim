@@ -270,7 +270,7 @@ bool Plot3D::eventFilter(QObject *_obj, QEvent *_event)
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
       {
-        this->SetTargetEntity(*event->Data().begin());
+        this->SetTargetEntity(event->Data().front());
       }
     }
 
