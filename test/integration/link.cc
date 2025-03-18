@@ -783,12 +783,12 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   auto wrenchMsg = wrenchComp->Data();
 
   // Looser tolerances are needed for the nonzero terms
-  EXPECT_NEAR(expectedForceX, wrench.force.x(), 1e-2);
-  EXPECT_NEAR(expectedForceY, wrench.force.y(), 1e-2);
-  EXPECT_NEAR(expectedForceZ, wrench.force.z(), 1e-6);
-  EXPECT_NEAR(expectedTorqueX, wrench.Torque.x(), 1e-2);
-  EXPECT_NEAR(expectedTorqueY, wrench.Torque.y(), 1e-2);
-  EXPECT_NEAR(expectedTorqueZ, wrench.Torque.z(), 1e-2);
+  EXPECT_NEAR(expectedForceX, wrenchMsg.force.x(), 1e-2);
+  EXPECT_NEAR(expectedForceY, wrenchMsg.force.y(), 1e-2);
+  EXPECT_NEAR(expectedForceZ, wrenchMsg.force.z(), 1e-6);
+  EXPECT_NEAR(expectedTorqueX, wrenchMsg.Torque.x(), 1e-2);
+  EXPECT_NEAR(expectedTorqueY, wrenchMsg.Torque.y(), 1e-2);
+  EXPECT_NEAR(expectedTorqueZ, wrenchMsg.Torque.z(), 1e-2);
 
   // apply opposite force. Since the cmd is not processed yet, this should
   // cancel out the existing wrench cmd
@@ -891,12 +891,12 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   wrenchMsg = wrenchComp->Data();
 
   // Looser tolerances are needed for the nonzero terms
-  EXPECT_NEAR(expectedForceWithOffsetX, wrench.force.x(), 1e-2);
-  EXPECT_NEAR(expectedForceWithOffsetY, wrench.force.y(), 1e-2);
-  EXPECT_NEAR(expectedForceWithOffsetZ, wrench.force.z(), 1e-6);
-  EXPECT_NEAR(expectedTorqueWithOffsetX, wrench.Torque.x(), 1e-2);
-  EXPECT_NEAR(expectedTorqueWithOffsetY, wrench.Torque.y(), 1e-2);
-  EXPECT_NEAR(expectedTorqueWithOffsetZ, wrench.Torque.z(), 1e-2);
+  EXPECT_NEAR(expectedForceWithOffsetX, wrenchMsg.force.x(), 1e-2);
+  EXPECT_NEAR(expectedForceWithOffsetY, wrenchMsg.force.y(), 1e-2);
+  EXPECT_NEAR(expectedForceWithOffsetZ, wrenchMsg.force.z(), 1e-6);
+  EXPECT_NEAR(expectedTorqueWithOffsetX, wrenchMsg.Torque.x(), 1e-2);
+  EXPECT_NEAR(expectedTorqueWithOffsetY, wrenchMsg.Torque.y(), 1e-2);
+  EXPECT_NEAR(expectedTorqueWithOffsetZ, wrenchMsg.Torque.z(), 1e-2);
 
   // apply opposite force again and verify the resulting wrench values are zero
   link.AddForceInInertialFrame(ecm, -force, offset);
