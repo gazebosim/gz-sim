@@ -18,6 +18,9 @@
 #include "gz.hh"
 
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -37,47 +40,116 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
+#include "gz/sim/Util.hh"
 #include "gz/sim/gui/Gui.hh"
 
 using namespace gz;
 
 //////////////////////////////////////////////////
-extern "C" char *gzSimVersion()
+void cmdVerbosity(const int _verbosity)
 {
-  return strdup(GZ_SIM_VERSION_FULL);
-}
-
-//////////////////////////////////////////////////
-extern "C" char *simVersionHeader()
-{
-  return strdup(GZ_SIM_VERSION_HEADER);
-}
-
-//////////////////////////////////////////////////
-extern "C" void cmdVerbosity(
-    const char *_verbosity)
-{
-  int verbosity = std::atoi(_verbosity);
-  common::Console::SetVerbosity(verbosity);
+  common::Console::SetVerbosity(_verbosity);
 
   // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
   // console output with zero verbosity.
-  if (verbosity == 0)
+  if (_verbosity == 0)
   {
     sdf::Console::Instance()->SetQuiet(true);
   }
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *worldInstallDir()
+const std::string worldInstallDir()
 {
   static std::string worldInstallDir = gz::sim::getWorldInstallDir();
-  return worldInstallDir.c_str();
+  return worldInstallDir;
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *findFuelResource(
-    char *_pathToResource)
+int checkFile(std::string &_file)
+{
+  // Check if passed string is valid
+  if(!_file.empty())
+  {
+    std::string filepath;
+
+    // Check if passed file exists
+    if(std::filesystem::exists(_file))
+    {
+      filepath = _file;
+    }
+    else
+    {
+      // If passed file does not exist, check GZ_SIM_RESOURCE_PATH
+      // environment variable
+      auto resourcePaths = sim::resourcePaths();
+      for(auto path : resourcePaths)
+      {
+        std::string resourceFilepath =
+          common::joinPaths(path, _file);
+        if(std::filesystem::exists(resourceFilepath))
+        {
+          filepath = resourceFilepath;
+          break;
+        }
+      }
+
+      // If file does not exist in resource path, check in the
+      // installation location of available worlds
+      if(filepath.empty())
+      {
+        std::string worldPath =
+          common::joinPaths(worldInstallDir(), _file);
+        if(std::filesystem::exists(worldPath))
+        {
+          filepath = worldPath;
+        }
+        else
+        {
+          // Check Fuel for file
+          filepath = findFuelResource(_file);
+        }
+      }
+    }
+
+    if(filepath.empty())
+    {
+      std::cout << "Unable to find or download file "
+                << _file << std::endl;
+      return -1;
+    }
+
+    _file = filepath;
+  }
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+int parseSdfFile(const std::string &_file,
+    std::string &_parsedSdfFile)
+{
+  if(!_parsedSdfFile.empty())
+  {
+    std::ifstream fs(_file);
+    if(!fs)
+    {
+      std::cout << "Error reading the SDFormat file "
+                << _file << std::endl;
+      return -1;
+    }
+
+    std::stringstream buffer;
+    buffer << fs.rdbuf();
+    _parsedSdfFile = buffer.str();
+  }
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+std::string findFuelResource(
+    const std::string &_pathToResource)
 {
   std::string path;
   std::string worldPath;
@@ -123,7 +195,7 @@ extern "C" const char *findFuelResource(
 
       if (fileExtension == "sdf")
       {
-        return strdup(current.c_str());
+        return current;
       }
     }
   }
@@ -131,7 +203,7 @@ extern "C" const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
-extern "C" int runServer(const char *_sdfString,
+int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime,
     int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
@@ -139,7 +211,7 @@ extern "C" int runServer(const char *_sdfString,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
-    const char *_file, const char *_recordTopics, int _waitGui,
+    const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
     int _headless, float _recordPeriod, int _seed)
 {
   std::string startingWorldPath{""};
@@ -188,7 +260,7 @@ extern "C" int runServer(const char *_sdfString,
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
     _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
-    (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
+    (_recordTopics.size() > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -317,9 +389,7 @@ extern "C" int runServer(const char *_sdfString,
     }
     serverConfig.SetLogRecordPath(recordPathMod);
 
-    std::vector<std::string> topics = common::split(
-        _recordTopics, ":");
-    for (const std::string &topic : topics)
+    for (const std::string &topic : _recordTopics)
     {
       serverConfig.AddLogRecordTopic(topic);
     }
@@ -436,7 +506,7 @@ extern "C" int runServer(const char *_sdfString,
 }
 
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+int runGui(const char *_guiConfig, const char *_file, int _waitGui,
                       const char *_renderEngine,
                       const char *_renderEngineGuiApiBackend)
 {
