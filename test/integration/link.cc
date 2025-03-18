@@ -879,14 +879,14 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   // Calculate the cross product with the world force to get the torque.
   // worldForceWithOffset = [√2/2, √2/2, 0]
   // expectedTorqueWithOffset = effectivePositionWorld × worldForceWithOffset
-  // expectedTorqueWithOffset = (-3√2/2, 3√2/2, 5)
+  // expectedTorqueWithOffset = (-3√2, 3√2, -5)
   // After the calculations the expected wrench is
   const double expectedForceWithOffsetX = std::sqrt(2) / 2;
   const double expectedForceWithOffsetY = std::sqrt(2) / 2;
   const double expectedForceWithOffsetZ = 0;
-  const double expectedTorqueWithOffsetX = -3 * std::sqrt(2)/2;
-  const double expectedTorqueWithOffsetY = 3 * std::sqrt(2)/2;
-  const double expectedTorqueWithOffsetZ = 5;
+  const double expectedTorqueWithOffsetX = -3 * std::sqrt(2);
+  const double expectedTorqueWithOffsetY = 3 * std::sqrt(2);
+  const double expectedTorqueWithOffsetZ = -5;
 
   wrenchMsg = wrenchComp->Data();
 
