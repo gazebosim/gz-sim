@@ -146,7 +146,7 @@ Rectangle {
       }
 
       ToolButton {
-        anchors.right: parent.right
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         id: addEntity
         ToolTip.text: "Add an entity to the world"
         ToolTip.visible: hovered
@@ -164,7 +164,7 @@ Rectangle {
           id: loadFileDialog
           title: "Load mesh"
           folder: shortcuts.home
-          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          nameFilters: [ "Collada files (*.dae)", "STL (*.stl)", "Wavefront OBJ (*.obj)" ]
           selectMultiple: false
           selectExisting: true
           onAccepted: {

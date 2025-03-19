@@ -6,12 +6,12 @@ This component allows us to set the force command on a joint.
 
 Programmatic usage of this component can be found in the source code for
 systems and integration tests, such as the
-[joint integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim8/test/integration/joint.cc),
+[joint integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim9/test/integration/joint.cc),
 the \ref gz::sim::systems::ApplyJointForce system
-([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim8/src/systems/apply_joint_force)),
+([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim9/src/systems/apply_joint_force)),
 and others.
 
-The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim8/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
+The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim9/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
 
 ```bash
 gz sim apply_joint_force.sdf
@@ -56,11 +56,13 @@ In this case, we use the joint entity found above to look for and modify its
 `JointForceCmd` component.
 This will apply a force command to the joint.
 
-In `PreUpdate()`, look for the component:
+In `PreUpdate()`, look for the component. If it does not exist yet, create it,
+setting its default value to `{0.0}` (which means, in this particular case,
+a 1-element `std::vector<double>` with value 0.0 in its only element):
 
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc jointForceComponent
 
-Create it if it does not exist yet, and modify it:
+Now modify the value stored in the component:
 
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc modifyComponent
 
