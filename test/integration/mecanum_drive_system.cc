@@ -51,7 +51,7 @@ using namespace sim;
 using namespace std::chrono_literals;
 
 /// \brief Test MecanumDrive system
-class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
+class MecanumDriveTest : public InternalFixture<::testing::Test>
 {
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
@@ -255,31 +255,30 @@ class MecanumDriveTest : public InternalFixture<::testing::TestWithParam<int>>
 };
 
 /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
+TEST_F(MecanumDriveTest, PublishCmd)
 {
   TestPublishCmd(common::joinPaths(
-      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/mecanum_drive.sdf"),
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "mecanum_drive.sdf"),
       "/model/vehicle_blue/cmd_vel", "/model/vehicle_blue/odometry");
 }
 
 /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest,
+TEST_F(MecanumDriveTest,
        GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomTopics))
 {
   TestPublishCmd(common::joinPaths(
-      std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_topics.sdf"),
+      std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive_custom_topics.sdf"),
       "/model/foo/cmdvel", "/model/bar/odom");
 }
 
-
 // /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -332,12 +331,12 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 }
 
 // /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_frame_id.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -389,12 +388,12 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -449,12 +448,12 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_frame_id.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -509,12 +508,12 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
   // Start server
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/mecanum_drive_custom_tf_topic.sdf"));
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "mecanum_drive_custom_tf_topic.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -568,7 +567,3 @@ TEST_P(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 
   EXPECT_EQ(5u, odomPosesCount);
 }
-
-// Run multiple times
-INSTANTIATE_TEST_SUITE_P(ServerRepeat, MecanumDriveTest,
-    ::testing::Range(1, 2));
