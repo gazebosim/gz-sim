@@ -18,9 +18,26 @@
 #include "QuickStartHandler.hh"
 
 #include "gz/sim/InstallationDirectories.hh"
+#include <gz/transport/Node.hh>
+#include <gz/common/Console.hh>
 
 using namespace gz;
 using namespace sim::gui;
+
+QuickStartHandler::QuickStartHandler()
+{
+  // Create the node if needed
+  this->node = std::make_unique<gz::transport::Node>();
+
+  std::vector<transport::MessagePublisher> publishers;
+  std::vector<transport::MessagePublisher> subscribers;
+  this->node->TopicInfo("/stats", publishers, subscribers);
+  if (!publishers.empty())
+  {
+    gzwarn << "Detected an already running world on start" << std::endl;
+    return;
+  }
+}
 
 /////////////////////////////////////////////////
 QString QuickStartHandler::WorldsPath() const
