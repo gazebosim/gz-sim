@@ -61,6 +61,8 @@ extern "C" GZ_SIM_GZ_VISIBLE const char *worldInstallDir();
 /// \param[in] _headless True if server rendering should run headless
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
+/// \param[in] _waitForAssets True to wait for simulation assets to download
+/// before starting simulation.
 /// \return 0 if successful, 1 if not.
 extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
     int _iterations, int _run, float _hz, double _initialSimTime, int _levels,
@@ -71,7 +73,7 @@ extern "C" GZ_SIM_GZ_VISIBLE int runServer(const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, const char *_recordTopics, int _waitGui, int _headless,
-    float _recordPeriod, int _seed);
+    float _recordPeriod, int _seed, int _waitForAssets);
 
 /// \brief External hook to run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.
