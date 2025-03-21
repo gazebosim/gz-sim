@@ -48,9 +48,6 @@ Pose3d::Pose3d(ComponentInspector *_inspector)
 void Pose3d::OnPose(double _x, double _y, double _z, double _roll,
     double _pitch, double _yaw)
 {
-
-  std::cerr << "pose3d on pose " << _x << " " << _y << " " << _z << std::endl;
-
   std::function<void(const msgs::Boolean &, const bool)> cb =
       [](const msgs::Boolean &, const bool _result)
   {
