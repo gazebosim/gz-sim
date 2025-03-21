@@ -26,7 +26,9 @@
 #include <gz/transport/Node.hh>
 #include <gz/common/Console.hh>
 
-#include "gz/sim/config.hh"
+
+#include <memory>
+#include <vector>
 #include "gz/sim/gui/Export.hh"
 
 namespace gz
