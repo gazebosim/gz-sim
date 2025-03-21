@@ -26,10 +26,8 @@
 #include <gz/transport/Node.hh>
 #include <gz/common/Console.hh>
 
-
 #include <memory>
 #include <vector>
-#include "gz/sim/gui/Export.hh"
 
 namespace gz
 {
@@ -45,7 +43,7 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   Q_OBJECT
 
   // Explicitly declare the constructor
-public: QuickStartHandler();
+  public: QuickStartHandler();
 
   /// \brief Get worlds path
   /// \return worlds directory path
