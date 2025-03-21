@@ -45,7 +45,7 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   Q_OBJECT
 
   // Explicitly declare the constructor
-  public:QuickStartHandler();
+public: QuickStartHandler();
 
   /// \brief Get worlds path
   /// \return worlds directory path
