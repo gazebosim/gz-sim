@@ -40,6 +40,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
