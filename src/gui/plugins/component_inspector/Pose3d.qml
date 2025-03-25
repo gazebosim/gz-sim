@@ -117,7 +117,7 @@ Rectangle {
           pitchValue: model.data[4]
           yawValue: model.data[5]
 
-          onGzPoseSet: {
+          onGzPoseSet: (_x, _y, _z, _roll, _pitch, _yaw) => {
             // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
             sendPose(_x, _y, _z, _roll, _pitch, _yaw)
           }

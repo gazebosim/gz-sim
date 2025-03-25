@@ -14,6 +14,7 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQml.Models 2.2
 import QtQuick
 
@@ -81,7 +82,7 @@ Rectangle {
    * Deselect all entities.
    */
   function deselectAllEntities() {
-    tree.selection.clear()
+    tree.selectionModel.clear()
   }
 
   /*
@@ -90,7 +91,7 @@ Rectangle {
    */
   function selectFromCpp(_entity, itemId) {
     if (_EntityTreeModel.data(itemId, 101) == _entity) {
-      tree.selection.select(itemId, ItemSelectionModel.Select)
+      tree.selectionModel.select(itemId, ItemSelectionModel.Select)
       return
     }
     for (var i = 0; i < _EntityTreeModel.rowCount(itemId); i++) {
@@ -146,7 +147,7 @@ Rectangle {
       }
 
       ToolButton {
-        anchors.right: parent.right
+        Layout.alignment: Qt.AlignRight
         id: addEntity
         ToolTip.text: "Add an entity to the world"
         ToolTip.visible: hovered
@@ -163,12 +164,11 @@ Rectangle {
         FileDialog {
           id: loadFileDialog
           title: "Load mesh"
-          //folder: shortcuts.home
           nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
-          //selectMultiple: false
-          //selectExisting: true
+          fileMode: FileDialog.OpenFile
+          currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
           onAccepted: {
-            _EntityTree.OnLoadMesh(fileUrl)
+            _EntityTree.OnLoadMesh(selectedFile)
           }
         }
 
@@ -305,173 +305,125 @@ Rectangle {
     anchors.left: parent.left
     anchors.right: parent.right
     model: _EntityTreeModel
-    //selectionMode: SelectionMode.MultiSelection
 
-    // Hacky: the sibling of listView is the background(Rectangle) of TreeView
-    //Component.onCompleted: {
-    //  tree.__listView.parent.children[1].color = Material.background
-    //}
-    //Material.onThemeChanged: {
-    //  tree.__listView.parent.children[1].color = Material.background
-    //}
-
-    //selectionModel: ItemSelectionModel {
-    //  model: _EntityTreeModel
-    //}
-    //delegate: Rectangle {
-    //    implicitWidth: 100
-    //    implicitHeight: 20
-    //    Text {
-    //        text: entityName
-    //    }
-    //}
+    selectionModel: ItemSelectionModel {
+      model: _EntityTreeModel
+    }
     palette {
       base: lightGrey
       alternateBase: darkGrey
+      highlight: highlightColor
       windowText: "black"
     }
+
     delegate: TreeViewDelegate {
-      contentItem: Label {
-        text: model.entityName
+      id: treeDelegate
+      implicitWidth: entityTree.width
+      leftMargin: 0
+      rightMargin: 0
+      indentation: 20
+      spacing: 0
+
+      indicator: Rectangle {
+        x: leftMargin + (depth * indentation)
+        height: itemHeight
+        width: itemHeight * 0.75
+        anchors.margins: 0
+        color:  "transparent"
+        Image {
+          id: indicatorIcon
+          anchors.margins: 0
+          sourceSize.height: itemHeight * 0.4
+          sourceSize.width: itemHeight * 0.4
+          fillMode: Image.Pad
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.right: parent.right
+          source: tree.isExpanded(row) ?
+              "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
+        }
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          propagateComposedEvents: true
+          onClicked: mouse => {
+            // Stop the event propagation. The TreeView's own collapsible
+            // behaviour gets messy otherwise.
+            mouse.accepted = true
+            if (tree.isExpanded(row))
+              tree.collapse(row)
+            else
+              tree.expand(row)
+          }
+        }
+      }
+
+      contentItem: Rectangle {
+        id: itemDel
+        color: "transparent"
+        implicitHeight: itemHeight
+        anchors.margins: 0
+
+        GzSim.TypeIcon {
+          id: icon
+          height: itemHeight - 5
+          width: itemHeight - 5
+          entityType: model === null || model.type === undefined ? "" : model.type
+          anchors.margins: 0
+        }
+
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.left: icon.right
+          leftPadding: 2
+          topPadding: 0
+          bottomPadding: 0
+          text: model === null || model.entityName === undefined ? "" : model.entityName
+          color: Material.theme == Material.Light ? "black" : "white"
+          font.pointSize: 12
+        }
+
+        ToolTip {
+          visible: ma.containsMouse
+          delay: tooltipDelay
+          text: model === null || model.entity === undefined ?
+              "Entity Id: ?" : "Entity Id: " + model.entity
+          y: itemDel.z - 30
+          enter: null
+          exit: null
+        }
+
+        MouseArea {
+          id: ma
+          anchors.fill: parent
+          hoverEnabled: true
+          propagateComposedEvents: true
+          acceptedButtons: Qt.RightButton | Qt.LeftButton
+          onClicked: mouse => {
+            mouse.accepted = false
+            if (mouse.button == Qt.RightButton) {
+              var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
+              var type = _EntityTreeModel.EntityType(mi)
+              var scopedName = _EntityTreeModel.ScopedName(mi)
+              var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
+              entityContextMenu.open(scopedName, type, posInTree.x, posInTree.y)
+              // Prevent plugin's context menu from opening
+              mouse.accepted = true
+            }
+            else if (mouse.button == Qt.LeftButton) {
+              var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
+              var mode = mouse.modifiers & Qt.ControlModifier ?
+                  ItemSelectionModel.Select : ItemSelectionModel.ClearAndSelect
+              var entity = _EntityTreeModel.EntityId(mi)
+              _EntityTree.OnEntitySelectedFromQml(entity)
+              tree.selectionModel.select(mi, mode)
+            }
+          }
+        }
       }
     }
-
-    //delegate: Item {
-    //  implicitWidth: 100
-    //  implicitHeight: 20
-    //  Text {
-    //    text: model.entityName
-    //  }
-    //}
-    //style: TreeViewStyle {
-    //  frame: Rectangle {
-    //    border{
-    //      color:  lightGrey
-    //    }
-    //  }
-    //  indentation: itemHeight * 0.75
-    //
-    //  headerDelegate: Rectangle {
-    //    visible: false
-    //  }
-    //  branchDelegate: Rectangle {
-    //    height: itemHeight
-    //    width: itemHeight * 0.75
-    //    color:  "transparent"
-    //    Image {
-    //      id: icon
-    //      sourceSize.height: itemHeight * 0.4
-    //      sourceSize.width: itemHeight * 0.4
-    //      fillMode: Image.Pad
-    //      anchors.verticalCenter: parent.verticalCenter
-    //      anchors.right: parent.right
-    //      source: styleData.isExpanded ?
-    //          "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
-    //    }
-    //    MouseArea {
-    //      anchors.fill: parent
-    //      hoverEnabled: true
-    //      propagateComposedEvents: true
-    //      onClicked: {
-    //        // Stop the event propagation. The TreeView's own collapsible
-    //        // behaviour gets messy otherwise.
-    //        mouse.accepted = true
-    //
-    //        if (tree.isExpanded(styleData.index))
-    //          tree.collapse(styleData.index)
-    //        else
-    //          tree.expand(styleData.index)
-    //      }
-    //    }
-    //  }
-    //
-    //  rowDelegate: Rectangle {
-    //    visible: styleData.row !== undefined
-    //    height: itemHeight
-    //    color: styleData.selected ? highlightColor : (styleData.row % 2 == 0) ? even : odd
-    //    MouseArea {
-    //      anchors.fill: parent
-    //      hoverEnabled: true
-    //      propagateComposedEvents: true
-    //      onClicked: {
-    //        // Stop event propagation and handle selection here.
-    //        mouse.accepted = true
-    //
-    //        // branchDelegate and itemDelegate have styleData.index, but, for
-    //        // some reason, rowDelegate doesn't. So instead of finding
-    //        // the QModelIndex some other way we just disable selection from the
-    //        // row for now
-    //      }
-    //    }
-    //  }
-    //
-    //  itemDelegate: Rectangle {
-    //    id: itemDel
-    //    color: "transparent"
-    //    height: itemHeight
-    //
-    //
-    //    GzSim.TypeIcon {
-    //      id: icon
-    //      height: itemHeight - 2
-    //      width: itemHeight - 2
-    //      entityType: model === null || model.type === undefined ? "" : model.type
-    //    }
-    //
-    //    Text {
-    //      anchors.verticalCenter: parent.verticalCenter
-    //      anchors.left: icon.right
-    //      leftPadding: 2
-    //      text: model === null || model.entityName === undefined ? "" : model.entityName
-    //      color: Material.theme == Material.Light ? "black" : "white"
-    //      font.pointSize: 12
-    //    }
-    //
-    //    ToolTip {
-    //      visible: ma.containsMouse
-    //      delay: tooltipDelay
-    //      text: model === null || model.entity === undefined ?
-    //          "Entity Id: ?" : "Entity Id: " + model.entity
-    //      y: itemDel.z - 30
-    //      enter: null
-    //      exit: null
-    //    }
-    //
-    //    MouseArea {
-    //      id: ma
-    //      anchors.fill: parent
-    //      hoverEnabled: true
-    //      propagateComposedEvents: true
-    //      acceptedButtons: Qt.RightButton | Qt.LeftButton
-    //      onClicked: {
-    //        mouse.accepted = false
-    //        if (mouse.button == Qt.RightButton) {
-    //          var type = _EntityTreeModel.EntityType(styleData.index)
-    //          var scopedName = _EntityTreeModel.ScopedName(styleData.index)
-    //          var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
-    //          entityContextMenu.open(scopedName, type, posInTree.x, posInTree.y)
-    //          // Prevent plugin's context menu from opening
-    //          mouse.accepted = true
-    //        }
-    //        else if (mouse.button == Qt.LeftButton) {
-    //          var mode = mouse.modifiers & Qt.ControlModifier ?
-    //              ItemSelectionModel.Select : ItemSelectionModel.ClearAndSelect
-    //          var entity = _EntityTreeModel.EntityId(styleData.index)
-    //          _EntityTree.OnEntitySelectedFromQml(entity)
-    //          tree.selection.select(styleData.index, mode)
-    //        }
-    //      }
-    //    }
-    //  }
-    //}
 
     GzSim.EntityContextMenu {
       id: entityContextMenu
     }
-
-    //TableViewColumn {
-    //  role: "entityName"
-    //  width: tree.width
-    //}
   }
 }

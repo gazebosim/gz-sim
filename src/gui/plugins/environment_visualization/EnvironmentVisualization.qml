@@ -57,8 +57,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.xSamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.xSamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -80,8 +80,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.ySamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.ySamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -103,8 +103,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.zSamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.zSamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 }

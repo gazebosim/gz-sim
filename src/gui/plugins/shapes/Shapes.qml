@@ -46,7 +46,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("box")
+        _Shapes.OnMode("box")
       }
     }
     ToolButton{
@@ -63,7 +63,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("sphere")
+        _Shapes.OnMode("sphere")
       }
     }
     ToolButton {
@@ -80,7 +80,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("cone")
+        _Shapes.OnMode("cone")
       }
     }
     ToolButton {
@@ -97,7 +97,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("cylinder")
+        _Shapes.OnMode("cylinder")
       }
     }
     ToolButton {
@@ -114,7 +114,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("capsule")
+        _Shapes.OnMode("capsule")
       }
     }
     ToolButton {
@@ -131,7 +131,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("ellipsoid")
+        _Shapes.OnMode("ellipsoid")
       }
     }
   }

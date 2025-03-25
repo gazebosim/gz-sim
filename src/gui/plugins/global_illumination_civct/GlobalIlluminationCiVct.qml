@@ -34,7 +34,7 @@ GridLayout {
   property var cascades: []
 
   function addCascade() {
-    var cascade = GlobalIlluminationCiVct.AddCascade()
+    var cascade = _GlobalIlluminationCiVct.AddCascade()
     var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
     var cascadeObj = cascadeComponent.createObject(mainGridLayout,
                                                    { "cascadePtr":cascade });
@@ -42,14 +42,14 @@ GridLayout {
   }
 
   Connections {
-      target: GlobalIlluminationCiVct
+      target: _GlobalIlluminationCiVct
       function onQmlAddCascade() {
         mainGridLayout.addCascade()
       }
 
       function onQmlAddCascade2(_resX, _resY, _resZ, _octX, _octY, _octZ,
                                 _ahsX, _ahsY, _ahsZ, _thinWallCounter) {
-        var cascade = GlobalIlluminationCiVct.AddCascade()
+        var cascade = _GlobalIlluminationCiVct.AddCascade()
         var cascadeComponent = Qt.createComponent("CiVctCascadePrivate.qml");
         cascade.resolutionX = _resX
         cascade.resolutionY = _resY
@@ -70,7 +70,7 @@ GridLayout {
   Button {
     id: removeCascade
     text: qsTr("Remove Cascade")
-    enabled: GlobalIlluminationCiVct.cascadesEditable
+    enabled: _GlobalIlluminationCiVct.cascadesEditable
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
@@ -78,14 +78,14 @@ GridLayout {
         //mainGridLayout.height = 400 + 400 * (cascades.length + 1)
         cascades[cascades.length - 1].destroy()
         cascades.pop();
-        GlobalIlluminationCiVct.PopCascade()
+        _GlobalIlluminationCiVct.PopCascade()
       }
     }
   }
   Button {
     id: addCascade
     text: qsTr("Add Cascade")
-    enabled: GlobalIlluminationCiVct.cascadesEditable
+    enabled: _GlobalIlluminationCiVct.cascadesEditable
     Layout.columnSpan: 3
     Layout.fillWidth: true
     onClicked: {
@@ -96,11 +96,11 @@ GridLayout {
   Button {
     id: resetCascades
     text: qsTr("Reset Cascades")
-    enabled: !GlobalIlluminationCiVct.cascadesEditable
+    enabled: !_GlobalIlluminationCiVct.cascadesEditable
     Layout.columnSpan: 6
     Layout.fillWidth: true
     onClicked: {
-      GlobalIlluminationCiVct.ResetCascades()
+      _GlobalIlluminationCiVct.ResetCascades()
     }
   }
 
@@ -110,9 +110,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Enabled")
-    checked: GlobalIlluminationCiVct.enabled
+    checked: _GlobalIlluminationCiVct.enabled
     onToggled: {
-      GlobalIlluminationCiVct.enabled = checked
+      _GlobalIlluminationCiVct.enabled = checked
     }
   }
 
@@ -127,12 +127,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: bounceCount
-    value: GlobalIlluminationCiVct.bounceCount
+    value: _GlobalIlluminationCiVct.bounceCount
     minimumValue: 0
     maximumValue: 16
     decimals: 1
     onValueChanged: {
-      GlobalIlluminationCiVct.bounceCount = value
+      _GlobalIlluminationCiVct.bounceCount = value
     }
   }
 
@@ -142,9 +142,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("High Quality")
-    checked: GlobalIlluminationCiVct.highQuality
+    checked: _GlobalIlluminationCiVct.highQuality
     onToggled: {
-      GlobalIlluminationCiVct.highQuality = checked;
+      _GlobalIlluminationCiVct.highQuality = checked;
     }
   }
 
@@ -154,9 +154,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Anisotropic")
-    checked: GlobalIlluminationCiVct.anisotropic
+    checked: _GlobalIlluminationCiVct.anisotropic
     onToggled: {
-      GlobalIlluminationCiVct.anisotropic = checked;
+      _GlobalIlluminationCiVct.anisotropic = checked;
     }
   }
 
@@ -171,13 +171,13 @@ GridLayout {
     Layout.columnSpan: 4
     id: debugVisualization
     Layout.fillWidth: true
-    currentIndex: GlobalIlluminationCiVct.debugVisualizationMode
+    currentIndex: _GlobalIlluminationCiVct.debugVisualizationMode
     model: ["Albedo", "Normal", "Emissive", "Lighting", "None"]
     onCurrentIndexChanged: {
       if (currentIndex < 0|| currentIndex > 4) {
         return;
       }
-      GlobalIlluminationCiVct.debugVisualizationMode = currentIndex
+      _GlobalIlluminationCiVct.debugVisualizationMode = currentIndex
     }
   }
 
@@ -187,7 +187,7 @@ GridLayout {
     Material.background: Material.primary
     onClicked: {
       combo.currentIndex = 0
-      GlobalIlluminationCiVct.OnRefreshCameras();
+      _GlobalIlluminationCiVct.OnRefreshCameras();
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
@@ -199,12 +199,12 @@ GridLayout {
     Layout.columnSpan: 5
     id: combo
     Layout.fillWidth: true
-    model: GlobalIlluminationCiVct.cameraList
+    model: _GlobalIlluminationCiVct.cameraList
     currentIndex: 0
     onCurrentIndexChanged: {
       if (currentIndex < 0)
         return;
-      GlobalIlluminationCiVct.OnCamareBind(textAt(currentIndex));
+      _GlobalIlluminationCiVct.OnCamareBind(textAt(currentIndex));
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
