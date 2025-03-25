@@ -197,7 +197,7 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->node->TopicInfo("/world/" + this->worldName + "/stats", pubs, subs);
   if (!pubs.empty())
   {
-    gzwarn << "Another world of the same name is running" << std::endl;
+    gzerr << "Another world of the same name is running" << std::endl;
   }
 
   // Create the system manager
