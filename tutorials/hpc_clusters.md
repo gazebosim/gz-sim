@@ -70,7 +70,7 @@ guide shows how the GPU can be selected explicitly.
 To use EGL, you need read-write access to both `/dev/dri/card?` and
 `/dev/dri/renderD???` devices. To check that, run the following command:
 
-```
+```bash
 user@cluster$ srun -p gpufast--gres=gpu:1 --pty bash -i
 user@gpu-node-1$ for f in /dev/dri/*; do [ -r "$f" ] && [ -w "$f" ] && echo "OK  $f" || echo "NOK $f"; done
 ```
@@ -117,7 +117,7 @@ user@gpu-node-1$ singularity exec image.sif bash -c "echo $DISPLAY; gz sim -v4 -
 This tests Gazebo on the interactive GPU partition. Now, let's do the same test
 on a noninteractive one. Prepare the following job spec into file `test.batch`:
 
-```
+```bash
 #!/bin/sh
 #SBATCH --time=1 -p gpu --gres=gpu:1
 singularity exec image.sif bash -c "gz sim -v4 -s -r sensors_demo.sdf & (gz topic -t /camera -e | cut -c -80) & sleep 30; kill %1; kill %2; sleep 2; kill -9 %1; kill -9 %2"
@@ -216,7 +216,7 @@ Check `RENDERER` in `ogre2.log` again.
 You can also have a more detailed look into `ogre2.log` and if this method
 works, you should see similar content:
 
-```
+```bash
 01:13:59: GL3PlusRenderSystem::_createRenderWindow "OgreWindow(0)_0", 1x1 windowed  miscParams: FSAA=0 border=none contentScalingFactor=1.000000 gamma=Yes parentWindowHandle=0 stereoMode=Frame Sequential
 01:13:59: Trying to init device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #0 /dev/dri/card1...
 01:13:59: Created GL 4.5 context for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #0 /dev/dri/card1
@@ -241,7 +241,7 @@ allows rendering at all. However, some GPUs have problems with some ways of
 rendering, while working fine when done differently. Also, this allows you to
 explicitly select the GPU to be used. Last, this method can be used to run
 even Gazebo GUI on the cluster (if you e.g. want to record the GUI camera
-programatically).
+programmatically).
 
 First, you will need VirtualGL inside your image. Download a .deb or .rpm from
 https://github.com/VirtualGL/virtualgl/releases and
@@ -256,7 +256,7 @@ client. Also install `mesa-utils`/`glx-utils` if you haven't yet.
 
 Rebuild the image and you should be able to run this command:
 
-```
+```bash
 user@cluster$ srun -p gpufast--gres=gpu:1 --pty bash -i
 user@gpu-node-1$ singularity exec image.sif xvfb-run -a glxgears -info | cut -c -80
 ```
@@ -269,13 +269,13 @@ card allocated to you by the cluster. The easiest thing is just trial and error
 (you can use any of the card devices for which the command does not fail):
 
 
-```
+```bash
 user@cluster$ srun -p gpufast--gres=gpu:1 --pty bash -i
 user@gpu-node-1$ singularity exec --nv image.sif bash -c 'for f in /dev/dri/card*; do vglrun +v -d "$f" xvfb-run -a glxgears -info | cut -c -80; done'
 ```
 
 Of course, there are more sophisticated methods. Here is an example Bash script
-that tranlates IDs of the cards as shown by nvidia-smi to the `card?` and
+that translates IDs of the cards as shown by nvidia-smi to the `card?` and
 `renderD???` devices:
 
 ```bash
@@ -339,7 +339,7 @@ manually. This should help with approaches 2, 3 and 4.
 
 Someone had to mount these in addition to the default:
 
-```
+```bash
 --bind /usr/lib64/libEGL_nvidia.so.0 --bind /usr/share/glvnd/egl_vendor.d/
 ```
 
