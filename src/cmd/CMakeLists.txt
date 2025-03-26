@@ -21,9 +21,6 @@ target_link_libraries(gz
   gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 
-add_executable(gz-sim-server server_main.cc)
-target_link_libraries(gz-sim-server gz)
-
 add_executable(gz-sim-gui gui_main.cc)
 target_link_libraries(gz-sim-gui gz)
 
@@ -32,13 +29,13 @@ add_executable(${sim_executable} sim_main.cc)
 target_link_libraries(${sim_executable} PUBLIC gz)
 
 install(
-  TARGETS ${sim_executable} gz-sim-server gz-sim-gui
+  TARGETS ${sim_executable} gz-sim-gui
   DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
 )
 
 target_compile_definitions(gz-sim-main
   PRIVATE
-    "GZ_SIM_SERVER_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-server>\""
+    "GZ_SIM_MAIN_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-main>\""
     "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
 )
 

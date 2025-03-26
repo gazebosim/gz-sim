@@ -85,11 +85,13 @@ void addGuiFlags(CLI::App &_app)
                   "built against Qt < 5.15.2, it may be very slow")
                   ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
 
-  _app.callback([opt](){
+  _app.add_option("--gui-config", opt->guiConfig,
+                  "Gazebo GUI configuration file to load.\n"
+                  "If no file is provided then the configuration in\n"
+                  "SDF file is used. If that is also missing then\n"
+                  "the default installed configuration is used.");
 
-    // Check SDF file and parse into string
-    if(checkFile(opt->file) < 0)
-      return;
+  _app.callback([opt](){
 
     // Get verbosity level from environment
     std::string verbosity;
@@ -98,9 +100,13 @@ void addGuiFlags(CLI::App &_app)
       cmdVerbosity(std::stoi(verbosity));
     }
 
+    // Check SDF file and parse into string
+    if(checkFile(opt->file) < 0)
+      return;
+
     // Get flag to display Quickstart menu
     std::string waitGui;
-    if(utils::env("GZ_SIM_WAIT_GUI", waitGui) && opt->file.empty())
+    if(utils::env("GZ_SIM_WAIT_GUI", waitGui))
     {
       opt->waitGui = std::stoi(waitGui);
     }
@@ -115,8 +121,6 @@ void addGuiFlags(CLI::App &_app)
 int main(int argc, char** argv)
 {
   CLI::App app{"Run and manage Gazebo GUI."};
-
-  app.allow_extras();
 
   addGuiFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));
