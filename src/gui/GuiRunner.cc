@@ -15,9 +15,7 @@
  *
 */
 
-#include <optional>
 #include <memory>
-#include <mutex>
 #include <utility>
 #include <vector>
 
@@ -47,6 +45,10 @@
 using namespace gz;
 using namespace sim;
 
+// Register SerializedStepMap to the Qt meta type system so we can pass objects
+// of this type in QMetaObject::invokeMethod
+Q_DECLARE_METATYPE(msgs::SerializedStepMap)
+
 /////////////////////////////////////////////////
 class gz::sim::GuiRunner::Implementation
 {
@@ -61,6 +63,15 @@ class gz::sim::GuiRunner::Implementation
 
   /// \brief Latest update info
   public: UpdateInfo updateInfo;
+
+  /// \brief Flag used to end the updateThread.
+  public: bool running{false};
+
+  /// \brief Mutex to protect the plugin update.
+  public: std::mutex updateMutex;
+
+  /// \brief The plugin update thread..
+  public: std::thread updateThread;
 
   /// \brief True if the initial state has been received and processed.
   public: bool receivedInitialState{false};
@@ -92,15 +103,14 @@ class gz::sim::GuiRunner::Implementation
 
   /// \brief Manager of all events.
   public: EventManager eventMgr;
-
-  public: std::optional<msgs::SerializedStepMap> lastStateMsg;
-  public: std::mutex stateMsgMutex;
 };
 
 /////////////////////////////////////////////////
 GuiRunner::GuiRunner(const std::string &_worldName)
   : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
+  qRegisterMetaType<msgs::SerializedStepMap>();
+
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
   // Allow for creation of entities on GUI side.
@@ -252,11 +262,8 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // OnStateQt function to the queue so that its called from the Qt thread. This
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->stateMsgMutex);
-    this->dataPtr->lastStateMsg = _res;
-  }
-  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection);
+  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+                            Q_ARG(msgs::SerializedStepMap, _res));
   this->dataPtr->receivedInitialState = true;
 
   // todo(anyone) store reqSrv string in a member variable and use it here
@@ -277,32 +284,23 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   if (!this->dataPtr->receivedInitialState)
     return;
 
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->stateMsgMutex);
-    this->dataPtr->lastStateMsg = _msg;
-  }
   // Since this function may be called from a transport thread, we push the
   // OnStateQt function to the queue so that its called from the Qt thread. This
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
-  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection);
+  QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+                            Q_ARG(msgs::SerializedStepMap, _msg));
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnStateQt()
+void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("GuiRunner::Update");
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->stateMsgMutex);
-    if (this->dataPtr->lastStateMsg.has_value())
-    {
-      this->dataPtr->ecm.SetState(this->dataPtr->lastStateMsg->state());
-    }
+  this->dataPtr->ecm.SetState(_msg.state());
 
-    // Update all plugins
-    this->dataPtr->updateInfo = convert<UpdateInfo>(this->dataPtr->lastStateMsg->stats());
-  }
+  // Update all plugins
+  this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
   this->UpdatePlugins();
 }
 
