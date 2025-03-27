@@ -122,6 +122,7 @@ Rectangle {
           Layout.alignment: Qt.AlignCenter
           Layout.minimumHeight: 100
 
+
           selectionModel: ItemSelectionModel {
             model: PathList
           }
@@ -184,7 +185,7 @@ Rectangle {
                 sourceSize.width: treeItemHeight * 0.6
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
-                source: tree.isExpanded(row) ?
+                source: treeDelegate.selected ?
                         "folder_open.png" : "folder_closed.png"
               }
 
