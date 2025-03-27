@@ -47,7 +47,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        BananaForScale.OnMode("banana")
+        _BananaForScale.OnMode("banana")
       }
     }
     ToolButton {
@@ -64,7 +64,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        BananaForScale.OnMode("bigbanana")
+        _BananaForScale.OnMode("bigbanana")
       }
     }
   }

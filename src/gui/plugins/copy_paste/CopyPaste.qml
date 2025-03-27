@@ -47,7 +47,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        CopyPaste.OnCopy()
+        _CopyPaste.OnCopy()
       }
     }
     ToolButton{
@@ -64,7 +64,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        CopyPaste.OnPaste()
+        _CopyPaste.OnPaste()
       }
     }
   }

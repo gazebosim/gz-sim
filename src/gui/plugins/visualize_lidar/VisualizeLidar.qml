@@ -40,7 +40,7 @@ GridLayout {
     text: qsTr("Display Lidar Visual")
     checked: true
     onClicked: {
-      VisualizeLidar.DisplayVisual(checked)
+      _VisualizeLidar.DisplayVisual(checked)
     }
   }
 
@@ -52,7 +52,7 @@ GridLayout {
     text: qsTr("Show Non Hitting Rays")
     checked: true
     onClicked: {
-      VisualizeLidar.UpdateNonHitting(checked)
+      _VisualizeLidar.UpdateNonHitting(checked)
     }
   }
 
@@ -62,7 +62,7 @@ GridLayout {
     Material.background: Material.primary
     onClicked: {
       combo.currentIndex = 0
-      VisualizeLidar.OnRefresh();
+      _VisualizeLidar.OnRefresh();
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
@@ -74,12 +74,12 @@ GridLayout {
     Layout.columnSpan: 5
     id: combo
     Layout.fillWidth: true
-    model: VisualizeLidar.topicList
+    model: _VisualizeLidar.topicList
     currentIndex: 0
     onCurrentIndexChanged: {
       if (currentIndex < 0)
         return;
-      VisualizeLidar.OnTopic(textAt(currentIndex));
+      _VisualizeLidar.OnTopic(textAt(currentIndex));
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
@@ -97,7 +97,7 @@ GridLayout {
   Text{
     Layout.columnSpan: 4
     id: minRangeField
-    text: VisualizeLidar.minRange
+    text: _VisualizeLidar.minRange
   }
 
   Text {
@@ -110,7 +110,7 @@ GridLayout {
   Text{
     Layout.columnSpan: 4
     id: maxRangeField
-    text: VisualizeLidar.maxRange
+    text: _VisualizeLidar.maxRange
   }
 
   Text {
@@ -130,7 +130,7 @@ GridLayout {
       if (currentIndex < 0) {
         return;
       }
-      VisualizeLidar.UpdateType(typeCombo.currentIndex);
+      _VisualizeLidar.UpdateType(typeCombo.currentIndex);
     }
   }
 
@@ -142,11 +142,12 @@ GridLayout {
   }
 
   GzSpinBox {
+    Layout.fillWidth: true
     Layout.columnSpan: 2
     id: pointSize
     maximumValue: 1000
     minimumValue: 1
     value: 1
-    onEditingFinished: VisualizeLidar.UpdateSize(pointSize.value)
+    onEditingFinished: _VisualizeLidar.UpdateSize(pointSize.value)
   }
 }
