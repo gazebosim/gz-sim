@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim10 VERSION 10.0.0)
-set (GZ_DISTRIBUTION "Ionic")
+project(gz-sim VERSION 10.0.0)
+set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
 # Find gz-cmake
