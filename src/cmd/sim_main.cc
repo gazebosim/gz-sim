@@ -21,6 +21,10 @@
 #include <thread>
 #include <vector>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include <gz/common/Console.hh>
 #include <gz/utils/cli/CLI.hpp>
 #include <gz/utils/cli/GzFormatter.hpp>
@@ -130,7 +134,31 @@ int launchProcess(
   {
     command << " " << val;
   }
-  return std::system(command.str().c_str());
+
+  #ifdef _WIN32
+    STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+
+    ZeroMemory(&pi, sizeof(pi));
+
+    if(!CreateProcess(NULL, const_cast<char *>(command.str().c_str()),
+                      NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+    {
+      return -1;
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+
+    return 0;
+  #else
+    return std::system(command.str().c_str());
+  #endif
 }
 
 //////////////////////////////////////////////////
@@ -440,9 +468,15 @@ int main(int argc, char** argv)
     // Killing the server in the case where the GUI is closed from the screen
     if(serverThread.joinable())
     {
-      launchProcess(
-        "pkill",
-        std::vector<std::string>({"-f", std::string(GZ_SIM_MAIN_EXE)}));
+      #ifdef _WIN32
+        launchProcess(
+          "taskkill",
+          std::vector<std::string>({"/IM", std::string(GZ_SIM_MAIN_EXE)}));
+      #else
+        launchProcess(
+          "pkill",
+          std::vector<std::string>({"-f", std::string(GZ_SIM_MAIN_EXE)}));
+      #endif
       serverThread.join();
     }
   }
