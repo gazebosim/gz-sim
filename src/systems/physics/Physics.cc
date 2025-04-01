@@ -4383,7 +4383,7 @@ void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
           gzdbg << "Attempting to get a bounding box, but the physics "
                  << "engine doesn't support feature "
                  << "[GetLinkBoundingBox]. Link bounding boxes will be "
-                 << "computed from their collision shapes based on their"
+                 << "computed from their collision shapes based on their "
                  << "geometry properties in SDF." << std::endl;
           informed = true;
         }
