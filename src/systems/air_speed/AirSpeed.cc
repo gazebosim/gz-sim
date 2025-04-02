@@ -124,6 +124,7 @@ void AirSpeed::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("AirSpeed::PreUpdate");
+
   // Create components
   for (auto entity : this->dataPtr->newSensors)
   {
@@ -154,6 +155,7 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
            << std::chrono::duration<double>(_info.dt).count()
            << "s]. System may not work properly." << std::endl;
   }
+  
   this->dataPtr->CreateSensors(_ecm);
 
   if (!_info.paused)
