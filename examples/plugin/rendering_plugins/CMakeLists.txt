@@ -14,7 +14,7 @@ set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gui10 REQUIRED)
+find_package(gz-gui REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
@@ -24,7 +24,7 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    gz-gui10::gz-gui10
+    gz-gui::gz-gui
     gz-rendering9::gz-rendering9
 )
 
