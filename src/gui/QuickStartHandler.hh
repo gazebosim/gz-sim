@@ -80,7 +80,7 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   private: std::string startingWorld{""};
 
   // Add a member for the transport node
-  private: std::unique_ptr<gz::transport::Node> node;
+  private: gz::transport::Node node;
 };
 }
 }
