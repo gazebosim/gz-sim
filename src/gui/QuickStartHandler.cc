@@ -35,7 +35,6 @@ QuickStartHandler::QuickStartHandler()
   if (!publishers.empty())
   {
     gzwarn << "Detected an already running world on start" << std::endl;
-    return;
   }
 }
 
