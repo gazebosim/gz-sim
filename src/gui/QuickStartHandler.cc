@@ -27,7 +27,7 @@ using namespace sim::gui;
 QuickStartHandler::QuickStartHandler()
 {
   // Create the node if needed
-  this->node = std::make_unique<gz::transport::Node>();
+  this->node = gz::transport::Node();
 
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
