@@ -192,6 +192,14 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   this->node = std::make_unique<transport::Node>(opts);
 
+  std::vector<transport::MessagePublisher> pubs;
+  std::vector<transport::MessagePublisher> subs;
+  this->node->TopicInfo("/world/" + this->worldName + "/stats", pubs, subs);
+  if (!pubs.empty())
+  {
+    gzerr << "Another world of the same name is running" << std::endl;
+  }
+
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(
       _systemLoader, &this->entityCompMgr, &this->eventMgr, validNs,
