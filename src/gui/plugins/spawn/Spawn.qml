@@ -31,7 +31,7 @@ ColumnLayout {
 
   Connections {
     target: _Spawn
-    onPopupError: errorPopup.open()
+    function onPopupError() {errorPopup.open()}
   }
 
   Dialog {

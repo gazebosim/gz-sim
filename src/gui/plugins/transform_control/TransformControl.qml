@@ -88,22 +88,22 @@ ToolBar {
 
   Connections {
     target: _TransformControl
-    onNewSnapValues: updateSnapValues();
+    function onNewSnapValues() {updateSnapValues()}
   }
 
   Connections {
     target: _TransformControl
-    onActivateSelect: activateSelect();
+    function onActivateSelect() {activateSelect()}
   }
 
   Connections {
     target: _TransformControl
-    onActivateTranslate: activateTranslate();
+    function onActivateTranslate() {activateTranslate()}
   }
 
   Connections {
     target: _TransformControl
-    onActivateRotate: activateRotate();
+    function onActivateRotate() {activateRotate()}
   }
 
   RowLayout {

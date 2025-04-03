@@ -14,8 +14,9 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQuick 2.9
-import QtQuick.Controls 2.2
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.1
 import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
@@ -132,10 +133,9 @@ Rectangle {
   FileDialog {
     id: saveWorldDialog
     title: "Save world"
-    //folder: shortcuts.home
+    currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
+    fileMode: FileDialog.OpenFile
     nameFilters: [ "SDF files (*.sdf)" ]
-    //selectMultiple: false
-    //selectExisting: false
     onAccepted: {
       saveWorldFileText.text = fileUrl;
     }
@@ -147,11 +147,13 @@ Rectangle {
   Dialog {
     id: aboutDialog
     title: "Gazebo Sim"
-
     modal: true
     focus: true
     parent: ApplicationWindow.overlay
-    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    // \todo(iche033) setting width, x, and y relative to parent does not seem
+    // to work so use hardcoded values for now
+    // width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    width: 500
     height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
@@ -179,6 +181,12 @@ Rectangle {
     focus: true
     title: "File save options"
     parent: ApplicationWindow.overlay
+    // \todo(iche033) setting width, x, and y relative to parent does not seem
+    // to work so use hardcoded values for now
+    // so use hardcoded values for now
+    // width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    width: 500
+    height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
@@ -241,7 +249,7 @@ Rectangle {
 
   Connections {
     target: _GuiFileHandler
-    onNewSaveWorldStatus: {
+    function onNewSaveWorldStatus() {
       console.log(_msg);
       lastSaveSuccess = _status
       if (!_status) {

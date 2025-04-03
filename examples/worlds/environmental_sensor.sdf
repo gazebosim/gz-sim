@@ -26,6 +26,7 @@
       filename="gz-sim-environmental-sensor-system"
       name="gz::sim::systems::EnvironmentalSystem">
     </plugin>
+
     <!-- The system specifies where to preload -->
     <plugin
       filename="gz-sim-environment-preload-system"

@@ -16,7 +16,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(gz-gui10 REQUIRED)
 
-QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
+QT_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
 add_library(${GUI_PLUGIN} SHARED
   ${GUI_PLUGIN}.cc

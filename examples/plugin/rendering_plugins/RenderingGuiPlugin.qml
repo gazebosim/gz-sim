@@ -26,7 +26,7 @@ Rectangle {
   Button {
     text: qsTr("Random GUI color!")
     onClicked: {
-      RenderingGuiPlugin.RandomColor();
+      _RenderingGuiPlugin.RandomColor();
     }
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
