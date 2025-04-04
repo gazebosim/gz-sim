@@ -22,11 +22,11 @@ target_link_libraries(gz
 )
 
 add_executable(gz-sim-gui gui_main.cc)
-target_link_libraries(gz-sim-gui gz)
+target_link_libraries(gz-sim-gui PRIVATE gz)
 
 set(sim_executable gz-sim-main)
 add_executable(${sim_executable} sim_main.cc)
-target_link_libraries(${sim_executable} PUBLIC gz)
+target_link_libraries(${sim_executable} PRIVATE gz)
 
 install(
   TARGETS ${sim_executable} gz-sim-gui
@@ -35,7 +35,6 @@ install(
 
 target_compile_definitions(gz-sim-main
   PRIVATE
-    "GZ_SIM_MAIN_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-main>\""
     "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
 )
 
@@ -73,7 +72,6 @@ foreach(CMD_TEST
   endif()
 
   add_dependencies(${CMD_TEST}
-    ${gz_lib_target}
     TestModelSystem
     TestSensorSystem
     TestWorldSystem

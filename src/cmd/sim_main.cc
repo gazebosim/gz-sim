@@ -15,7 +15,6 @@
  *
 */
 
-#include <csignal>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -32,6 +31,8 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gz/sim/config.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz.hh"
 
 using namespace gz;
@@ -234,7 +235,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
 
   _app.add_flag("--record", _opt->record,
                 "Use logging system to record states and console\n"
-                "to default location, ~/.gz/sim/log.");
+                "messages to the default location, ~/.gz/sim/log.");
 
   _app.add_option_function<std::string>("--record-path",
     [_opt](const std::string &_recordPath){
@@ -407,7 +408,7 @@ int main(int argc, char** argv)
   app.add_flag("--force-version", "Use a particular library version.");
   app.add_flag("--versions", "Show the available versions.");
 
-  app.add_flag("-g", opt->launchGui, "Run and manage Gazebo GUI");
+  app.add_flag("-g", opt->launchGui, "Run and manage only the Gazebo GUI");
 
   app.add_flag_callback("-s",
     [opt]{
@@ -415,7 +416,8 @@ int main(int argc, char** argv)
       opt->launchGui = false;
       opt->waitGui = 0;
     },
-    "Run and manage Gazebo Server");
+    "Run and manage only the Gazebo Server (headless mode).\n"
+    "This overrides -g, if it is also present.");
 
   app.footer("Environment variables:\n"
     "   GZ_SIM_RESOURCE_PATH          Colon separated paths used to locate\n"
@@ -443,42 +445,39 @@ int main(int argc, char** argv)
     if(parseSdfFile(opt->file, parsedSdfFile) < 0)
       return -1;
 
-    std::thread serverThread(
-      [opt, &parsedSdfFile]{
-        runServer(parsedSdfFile.c_str(), opt->iterations, opt->runOnStart,
-                  opt->rate, opt->initialSimTime, opt->levels,
-                  opt->networkRole.c_str(), opt->networkSecondaries,
-                  opt->record, opt->recordPath.c_str(), opt->recordResources,
-                  opt->logOverwrite, opt->logCompress, opt->playback.c_str(),
-                  opt->physicsEngine.c_str(), opt->renderEngineServer.c_str(),
-                  opt->renderEngineServerApiBackend.c_str(),
-                  opt->renderEngineGui.c_str(),
-                  opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
-                  opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                  opt->recordPeriod, opt->seed);
-      });
-
+    // Launch the GUI in a separate thread
     std::thread guiThread(
       [opt]{
         launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
       });
 
+    // Create a Gazebo server configuration
+    sim::ServerConfig serverConfig;
+    createServerConfig(serverConfig, parsedSdfFile.c_str(),
+              opt->rate, opt->initialSimTime, opt->levels,
+              opt->networkRole.c_str(), opt->networkSecondaries,
+              opt->record, opt->recordPath.c_str(), opt->recordResources,
+              opt->logOverwrite, opt->logCompress, opt->playback.c_str(),
+              opt->physicsEngine.c_str(), opt->renderEngineServer.c_str(),
+              opt->renderEngineServerApiBackend.c_str(),
+              opt->renderEngineGui.c_str(),
+              opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
+              opt->recordTopics, opt->waitGui, opt->headlessRendering,
+              opt->recordPeriod, opt->seed);
+
+    // Run the server in a separate thread
+    sim::Server server(serverConfig);
+    server.Run(false, opt->iterations, opt->runOnStart == 0);
+
+    // Join the GUI thread to wait for a possible window close
     guiThread.join();
 
-    // Killing the server in the case where the GUI is closed from the screen
-    if(serverThread.joinable())
+    // Shutdown server if the GUI has been closed from the screen
+    if(server.Running())
     {
-      #ifdef _WIN32
-        launchProcess(
-          "taskkill",
-          std::vector<std::string>({"/IM", std::string(GZ_SIM_MAIN_EXE)}));
-      #else
-        launchProcess(
-          "pkill",
-          std::vector<std::string>({"-f", std::string(GZ_SIM_MAIN_EXE)}));
-      #endif
-      serverThread.join();
+      server.Stop();
     }
+    gzdbg << "Shutting down gz-sim-server" << std::endl;
   }
   else
   {
@@ -492,7 +491,9 @@ int main(int argc, char** argv)
       if(parseSdfFile(opt->file, parsedSdfFile) < 0)
         return -1;
 
-      runServer(parsedSdfFile.c_str(), opt->iterations, opt->runOnStart,
+      // Create a Gazebo server configuration
+      sim::ServerConfig serverConfig;
+      createServerConfig(serverConfig, parsedSdfFile.c_str(),
                 opt->rate, opt->initialSimTime, opt->levels,
                 opt->networkRole.c_str(), opt->networkSecondaries,
                 opt->record, opt->recordPath.c_str(), opt->recordResources,
@@ -503,6 +504,12 @@ int main(int argc, char** argv)
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
                 opt->recordPeriod, opt->seed);
+
+      // Run the server in the main thread
+      sim::Server server(serverConfig);
+      server.Run(true, opt->iterations, opt->runOnStart == 0);
+
+      gzdbg << "Shutting down gz-sim-server" << std::endl;
     }
     else if(opt->launchGui)
     {

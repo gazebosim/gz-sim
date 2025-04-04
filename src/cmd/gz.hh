@@ -21,6 +21,8 @@
 #include <gz/utils/Subprocess.hh>
 #include <gz/utils/detail/subprocess.h>
 
+#include "gz/sim/ServerConfig.hh"
+
 /// \brief Set verbosity level
 /// \param[in] _verbosity 0 to 4
 void cmdVerbosity(const int _verbosity);
@@ -40,10 +42,9 @@ int checkFile(std::string &_file);
 /// \return 0 if successful, -1 in case of error
 int parseSdfFile(const std::string &_file, std::string &_parsedSdfFile);
 
-/// \brief Run simulation server.
+/// \brief Create Gazebo server configuration
+/// \param[in] _config Gazebo server config
 /// \param[in] _sdfString SDF file to run, as a string.
-/// \param[in] _iterations --iterations option
-/// \param[in] _run -r option
 /// \param[in] _hz -z option
 /// \param[in] _initialSimTime --initial_sim_time option
 /// \param[in] _levels --levels option
@@ -69,17 +70,20 @@ int parseSdfFile(const std::string &_file, std::string &_parsedSdfFile);
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
 /// \return 0 if successful, -1 in case of failure
-int runServer(const char *_sdfString, int _iterations, int _run, float _hz,
-              double _initialSimTime, int _levels, const char *_networkRole,
-              int _networkSecondaries, int _record, const char *_recordPath,
-              int _recordResources, int _logOverwrite, int _logCompress,
-              const char *_playback, const char *_physicsEngine,
-              const char *_renderEngineServer,
-              const char *_renderEngineServerApiBackend,
-              const char *_renderEngineGui,
-              const char *_renderEngineGuiApiBackend,
-              const char *_file, std::vector<std::string> _recordTopics,
-              int _waitGui, int _headless, float _recordPeriod, int _seed);
+void createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
+                        float _hz, double _initialSimTime, int _levels,
+                        const char *_networkRole, int _networkSecondaries,
+                        int _record, const char *_recordPath,
+                        int _recordResources, int _logOverwrite,
+                        int _logCompress, const char *_playback,
+                        const char *_physicsEngine,
+                        const char *_renderEngineServer,
+                        const char *_renderEngineServerApiBackend,
+                        const char *_renderEngineGui,
+                        const char *_renderEngineGuiApiBackend,
+                        const char *_file,
+                        std::vector<std::string> _recordTopics, int _waitGui,
+                        int _headless, float _recordPeriod, int _seed);
 
 /// \brief Run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.

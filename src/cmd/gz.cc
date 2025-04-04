@@ -203,9 +203,8 @@ std::string findFuelResource(
 }
 
 //////////////////////////////////////////////////
-int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, double _initialSimTime,
-    int _levels, const char *_networkRole,
+void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
+    float _hz, double _initialSimTime, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
@@ -215,7 +214,6 @@ int runServer(const char *_sdfString,
     int _headless, float _recordPeriod, int _seed)
 {
   std::string startingWorldPath{""};
-  sim::ServerConfig serverConfig;
 
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
@@ -246,7 +244,7 @@ int runServer(const char *_sdfString,
   }
 
   // Path for logs
-  std::string recordPathMod = serverConfig.LogRecordPath();
+  std::string recordPathMod = _config.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
@@ -265,14 +263,14 @@ int runServer(const char *_sdfString,
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
       gzerr << "Both record and playback are specified. Only specify one.\n";
-      return -1;
+      return;
     }
 
-    serverConfig.SetUseLogRecord(true);
-    serverConfig.SetLogRecordResources(_recordResources);
+    _config.SetUseLogRecord(true);
+    _config.SetLogRecordResources(_recordResources);
     if (_recordPeriod >= 0)
     {
-      serverConfig.SetLogRecordPeriod(
+      _config.SetLogRecordPeriod(
            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
            std::chrono::duration<double>(_recordPeriod)));
     }
@@ -387,21 +385,21 @@ int runServer(const char *_sdfString,
       gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
     }
-    serverConfig.SetLogRecordPath(recordPathMod);
+    _config.SetLogRecordPath(recordPathMod);
 
     for (const std::string &topic : _recordTopics)
     {
-      serverConfig.AddLogRecordTopic(topic);
+      _config.AddLogRecordTopic(topic);
     }
   }
   else
   {
-    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(_config.LogRecordPath(), "server_console.log");
   }
 
   if (_logCompress > 0)
   {
-    serverConfig.SetLogRecordCompressPath(cmpPath);
+    _config.SetLogRecordCompressPath(cmpPath);
   }
 
   gzmsg << "Gazebo Sim Server v" << GZ_SIM_VERSION_FULL
@@ -410,40 +408,40 @@ int runServer(const char *_sdfString,
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
   {
-    if (!serverConfig.SetSdfString(_sdfString))
+    if (!_config.SetSdfString(_sdfString))
     {
       gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
-      return -1;
+      return;
     }
   }
 
   // This ensures if the server was run stand alone with a world from
   // command line, the correct world would be loaded.
   if(_waitGui == 1)
-    serverConfig.SetSdfFile(startingWorldPath);
+    _config.SetSdfFile(startingWorldPath);
   else
-    serverConfig.SetSdfFile(_file);
+    _config.SetSdfFile(_file);
 
   // Initial simulation time.
-  serverConfig.SetInitialSimTime(_initialSimTime);
+  _config.SetInitialSimTime(_initialSimTime);
 
   // Set the update rate.
   if (_hz > 0.0)
-    serverConfig.SetUpdateRate(_hz);
+    _config.SetUpdateRate(_hz);
 
   // Set whether levels should be used.
   if (_levels > 0)
   {
     gzmsg << "Using the level system\n";
-    serverConfig.SetUseLevels(true);
+    _config.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
     gzmsg << "Using the distributed simulation and levels systems\n";
-    serverConfig.SetNetworkRole(_networkRole);
-    serverConfig.SetNetworkSecondaries(_networkSecondaries);
-    serverConfig.SetUseLevels(true);
+    _config.SetNetworkRole(_networkRole);
+    _config.SetNetworkSecondaries(_networkSecondaries);
+    _config.SetUseLevels(true);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -452,57 +450,48 @@ int runServer(const char *_sdfString,
     {
       gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
-      return -1;
+      return;
     }
     else
     {
       gzmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(common::absPath(
+      _config.SetLogPlaybackPath(common::absPath(
         std::string(_playback)));
     }
   }
 
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
-    serverConfig.SetPhysicsEngine(_physicsEngine);
+    _config.SetPhysicsEngine(_physicsEngine);
   }
 
-  serverConfig.SetHeadlessRendering(_headless);
+  _config.SetHeadlessRendering(_headless);
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
-    serverConfig.SetRenderEngineServer(_renderEngineServer);
+    _config.SetRenderEngineServer(_renderEngineServer);
   }
 
   if (_renderEngineServerApiBackend != nullptr)
   {
-    serverConfig.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
+    _config.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
   }
 
   if (_renderEngineGuiApiBackend != nullptr)
   {
-    serverConfig.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
+    _config.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
   }
 
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
-    serverConfig.SetRenderEngineGui(_renderEngineGui);
+    _config.SetRenderEngineGui(_renderEngineGui);
   }
 
   if (_seed != 0)
   {
-    serverConfig.SetSeed(_seed);
+    _config.SetSeed(_seed);
     gzmsg << "Setting seed value: " << _seed << "\n";
   }
-
-  // Create the Gazebo server
-  sim::Server server(serverConfig);
-
-  // Run the server
-  server.Run(true, _iterations, _run == 0);
-
-  gzdbg << "Shutting down gz-sim-server" << std::endl;
-  return 0;
 }
 
 //////////////////////////////////////////////////
