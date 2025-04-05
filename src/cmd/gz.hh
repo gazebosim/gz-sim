@@ -18,9 +18,6 @@
 #include <string>
 #include <vector>
 
-#include <gz/utils/Subprocess.hh>
-#include <gz/utils/detail/subprocess.h>
-
 #include "gz/sim/ServerConfig.hh"
 
 /// \brief Set verbosity level
@@ -41,6 +38,12 @@ int checkFile(std::string &_file);
 /// \param[in] _parsedSdfFile Assign the parsed string
 /// \return 0 if successful, -1 in case of error
 int parseSdfFile(const std::string &_file, std::string &_parsedSdfFile);
+
+/// \brief Find or download a fuel world provided a URL.
+/// \param[in] _pathToResource Path to the fuel world resource, ie,
+/// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
+/// \return String containing the path to the local world sdf file
+std::string findFuelResource(const std::string &_pathToResource);
 
 /// \brief Create Gazebo server configuration
 /// \param[in] _config Gazebo server config
@@ -85,6 +88,7 @@ void createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         std::vector<std::string> _recordTopics, int _waitGui,
                         int _headless, float _recordPeriod, int _seed);
 
+#ifdef WITH_GUI
 /// \brief Run simulation GUI.
 /// \param[in] _guiConfig Path to Gazebo GUI configuration file.
 /// \param[in] _file The world file path passed as a command line argument.
@@ -97,9 +101,4 @@ void createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
 int runGui(const char *_guiConfig, const char *_file,
            int _waitGui, const char *_renderEngine,
            const char *_renderEngineGuiApiBackend);
-
-/// \brief Find or download a fuel world provided a URL.
-/// \param[in] _pathToResource Path to the fuel world resource, ie,
-/// https://staging-fuel.gazebosim.org/1.0/gmas/worlds/ShapesClone
-/// \return String containing the path to the local world sdf file
-std::string findFuelResource(const std::string &_pathToResource);
+#endif

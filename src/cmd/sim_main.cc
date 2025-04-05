@@ -123,6 +123,7 @@ struct SimOptions
   bool launchGui{false};
 };
 
+#ifdef WITH_GUI
 //////////////////////////////////////////////////
 /// \brief Launch an executable as a separate process
 int launchProcess(
@@ -194,6 +195,7 @@ std::vector<std::string> createGuiCommand(
 
   return args;
 }
+#endif
 
 //////////////////////////////////////////////////
 void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
@@ -445,11 +447,19 @@ int main(int argc, char** argv)
     if(parseSdfFile(opt->file, parsedSdfFile) < 0)
       return -1;
 
+    bool blocking = true;
+    opt->waitGui = 0;
+
+    #ifdef WITH_GUI
     // Launch the GUI in a separate thread
     std::thread guiThread(
       [opt]{
         launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
       });
+
+    blocking = false;
+    opt->waitGui = 1;
+    #endif
 
     // Create a Gazebo server configuration
     sim::ServerConfig serverConfig;
@@ -467,8 +477,9 @@ int main(int argc, char** argv)
 
     // Run the server in a separate thread
     sim::Server server(serverConfig);
-    server.Run(false, opt->iterations, opt->runOnStart == 0);
+    server.Run(blocking, opt->iterations, opt->runOnStart == 0);
 
+    #ifdef WITH_GUI
     // Join the GUI thread to wait for a possible window close
     guiThread.join();
 
@@ -477,6 +488,8 @@ int main(int argc, char** argv)
     {
       server.Stop();
     }
+    #endif
+
     gzdbg << "Shutting down gz-sim-server" << std::endl;
   }
   else
@@ -513,8 +526,12 @@ int main(int argc, char** argv)
     }
     else if(opt->launchGui)
     {
+      #ifdef WITH_GUI
       utils::setenv(std::string("GZ_SIM_WAIT_GUI"), std::to_string(0));
       launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
+      #else
+      std::cerr << "This version of Gazebo does not support GUI" << std::endl;
+      #endif
     }
   }
 

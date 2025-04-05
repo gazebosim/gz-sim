@@ -41,7 +41,10 @@
 #include "gz/sim/ServerConfig.hh"
 
 #include "gz/sim/Util.hh"
+
+#ifdef WITH_GUI
 #include "gz/sim/gui/Gui.hh"
+#endif
 
 using namespace gz;
 
@@ -494,6 +497,7 @@ void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
   }
 }
 
+#ifdef WITH_GUI
 //////////////////////////////////////////////////
 int runGui(const char *_guiConfig, const char *_file, int _waitGui,
                       const char *_renderEngine,
@@ -529,3 +533,4 @@ int runGui(const char *_guiConfig, const char *_file, int _waitGui,
   return gz::sim::gui::runGui(argc, argv, _guiConfig, _file, _waitGui,
                               _renderEngine, _renderEngineGuiApiBackend);
 }
+#endif

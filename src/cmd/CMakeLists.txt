@@ -11,32 +11,44 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
 )
 
-# Create sim executable
+# Create sim utilies library
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
   gz-utils${GZ_UTILS_VER}::cli
   gz-sim${PROJECT_VERSION_MAJOR}
-  gz-sim${PROJECT_VERSION_MAJOR}-gui
 )
 
-add_executable(gz-sim-gui gui_main.cc)
-target_link_libraries(gz-sim-gui PRIVATE gz)
+# Create GUI executable if enabled
+if(ENABLE_GUI)
+  target_link_libraries(gz gz-sim${PROJECT_VERSION_MAJOR}-gui)
 
+  add_executable(gz-sim-gui gui_main.cc)
+  target_link_libraries(gz-sim-gui PRIVATE gz)
+
+  install(
+    TARGETS gz-sim-gui
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+  )
+endif()
+
+# Create sim main executable
 set(sim_executable gz-sim-main)
 add_executable(${sim_executable} sim_main.cc)
 target_link_libraries(${sim_executable} PRIVATE gz)
 
 install(
-  TARGETS ${sim_executable} gz-sim-gui
+  TARGETS ${sim_executable}
   DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
 )
 
-target_compile_definitions(gz-sim-main
-  PRIVATE
-    "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
-)
+if(ENABLE_GUI)
+  target_compile_definitions(gz-sim-main
+    PRIVATE
+      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
+  )
+endif()
 
 # Build the unit tests.
 set(test_sources gz_TEST.cc)
