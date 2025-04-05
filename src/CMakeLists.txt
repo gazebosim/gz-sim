@@ -1,5 +1,10 @@
 add_subdirectory(rendering)
-add_subdirectory(gui)
+
+if(ENABLE_GUI)
+  add_subdirectory(gui)
+  add_compile_definitions(WITH_GUI)
+endif()
+
 add_subdirectory(systems)
 
 file(GLOB gz_msgs_proto_files
@@ -50,10 +55,12 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
-set(gui_sources
-  ${gui_sources}
-  PARENT_SCOPE
-)
+if(ENABLE_GUI)
+  set(gui_sources
+    ${gui_sources}
+    PARENT_SCOPE
+  )
+endif()
 
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
@@ -184,7 +191,6 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
-  gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
   gz-physics${GZ_PHYSICS_VER}::core
   gz-rendering${GZ_RENDERING_VER}::core
   gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
@@ -194,6 +200,13 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
 )
+
+if(ENABLE_GUI)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC
+    gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+  )
+endif()
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
