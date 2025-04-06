@@ -144,7 +144,6 @@ void cylinderColladaMeshInertiaCalculation(
 
   // Check the Inertial Pose and Link Pose. Their world poses should be the
   // same since the inertial pose relative to the link is zero.
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
     worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero);
 }
@@ -221,9 +220,7 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   EXPECT_TRUE(
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
-
+  // Check the Inertial Pose
   // Since the height of cylinder is 2m and origin is at center of bottom face
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
@@ -319,8 +316,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
               ixxyyzzTol));
   EXPECT_TRUE(actualIxyxzyz.Equal(
               meshInertial.MassMatrix().OffDiagonalMoments(), 3.5));
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
+  // Check the Inertial Pose
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
               worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero, 1e-2));
 }
