@@ -8,7 +8,7 @@ project(GuiSystemPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-sim10 REQUIRED COMPONENTS gui)
+find_package(gz-sim REQUIRED COMPONENTS gui)
 
 QT_ADD_RESOURCES(resources_RCC ${PROJECT_NAME}.qrc)
 
@@ -17,5 +17,5 @@ add_library(${PROJECT_NAME} SHARED
   ${resources_RCC}
 )
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE gz-sim10::gui
+  PRIVATE gz-sim::gui
 )

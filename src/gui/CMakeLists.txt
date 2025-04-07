@@ -48,7 +48,7 @@ target_link_libraries(${gui_target}
   PUBLIC
     ${PROJECT_LIBRARY_TARGET_NAME}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+    gz-gui::gz-gui
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     Qt::Core
@@ -75,7 +75,7 @@ gz_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${gui_target}
     ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   ENVIRONMENT

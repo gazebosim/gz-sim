@@ -23,7 +23,9 @@ RUN apt-get update \
     libgz-gui10-dev \
     libgz-msgs11-dev \
     libgz-sensors9-dev \
-    libsdformat15-dev
+    libsdformat15-dev \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY . gz-sim
 RUN cd gz-sim \

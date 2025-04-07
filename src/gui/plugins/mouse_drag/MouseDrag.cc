@@ -680,12 +680,13 @@ void MouseDragPrivate::HandleMouseEvents()
       this->mode = MouseDragMode::NONE;
       return;
     }
-    try
+    if (std::holds_alternative<uint64_t>(
+      visual->Parent()->UserData("gazebo-entity")))
     {
       this->linkId =
         std::get<uint64_t>(visual->Parent()->UserData("gazebo-entity"));
     }
-    catch(std::bad_variant_access &e)
+    else
     {
       this->mode = MouseDragMode::NONE;
       return;

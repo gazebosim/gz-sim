@@ -147,7 +147,7 @@ Rectangle {
       }
 
       ToolButton {
-        Layout.alignment: Qt.AlignRight
+        Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
         id: addEntity
         ToolTip.text: "Add an entity to the world"
         ToolTip.visible: hovered

@@ -44,11 +44,9 @@ TEST(SystemLoader, Constructor)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>") +
-      "<plugin filename='libgz-sim" +
-      GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so' "
+      "<plugin filename='libgz-sim-user-commands-system.so' "
       "name='gz::sim::systems::UserCommands'></plugin>"
-      "<plugin filename='gz-sim" +
-      GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system' "
+      "<plugin filename='gz-sim-user-commands-system' "
       "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='gz-sim-user-commands-system' "
       "name='gz::sim::systems::UserCommands'></plugin>"
@@ -198,10 +196,9 @@ TEST(SystemLoader, BadPluginName)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libgz-sim") +
-      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
+      "<plugin filename='libgz-sim-physics-system.so' "
       "name='gz::sim::systems::Foo'></plugin>"
-      "</world></sdf>");
+      "</world></sdf>"));
 
   auto worldElem = root.WorldByIndex(0)->Element();
   if (worldElem->HasElement("plugin")) {

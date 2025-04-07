@@ -63,6 +63,7 @@
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
 #include <gz/physics/GetEntities.hh>
+#include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
@@ -132,6 +133,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointTransmittedWrench.hh"
 #include "gz/sim/components/JointForceCmd.hh"
@@ -313,6 +315,10 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Update collision components from physics simulation
   /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateCollisions(EntityComponentManager &_ecm);
+
+  /// \brief Update ray intersection components from physics simulation
+  /// \param[in] _ecm Mutable reference to ECM.
+  public: void UpdateRayIntersections(EntityComponentManager &_ecm);
 
   /// \brief FrameData relative to world at a given offset pose
   /// \param[in] _link gz-physics link
@@ -514,6 +520,11 @@ class gz::sim::systems::PhysicsPrivate
             CollisionFeatureList,
             physics::GetContactsFromLastStepFeature>{};
 
+  /// \brief Feature list to handle ray intersection information.
+  public: struct RayIntersectionFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetRayIntersectionFromLastStepFeature>{};
+
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
             physics::FeatureList<
@@ -651,6 +662,7 @@ class gz::sim::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
+          RayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
@@ -2003,6 +2015,43 @@ void PhysicsPrivate::CreateBatteryEntities(const EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 {
+  // Remove detachable joints. Do this before removing models otherwise the
+  // physics engine may not find the links associated with the detachable
+  // joints.
+  _ecm.EachRemoved<components::DetachableJoint>(
+      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
+      {
+        if (!this->entityJointMap.HasEntity(_entity))
+        {
+          gzwarn << "Failed to find joint [" << _entity
+                  << "]." << std::endl;
+          return true;
+        }
+
+        auto castEntity =
+            this->entityJointMap.EntityCast<DetachableJointFeatureList>(
+                _entity);
+        if (!castEntity)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to detach a joint, but the physics "
+                   << "engine doesn't support feature "
+                   << "[DetachJointFeature]. Joint won't be detached."
+                   << std::endl;
+            informed = true;
+          }
+
+          // Break Each call since no DetachableJoints can be processed
+          return false;
+        }
+
+        gzdbg << "Detaching joint [" << _entity << "]" << std::endl;
+        castEntity->Detach();
+        return true;
+      });
+
   // Assume the world will not be erased
   // Only removing models is supported by gz-physics right now so we only
   // remove links, joints and collisions if they are children of the removed
@@ -2061,40 +2110,6 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           this->staticEntities.erase(_entity);
           this->modelWorldPoses.erase(_entity);
         }
-        return true;
-      });
-
-  _ecm.EachRemoved<components::DetachableJoint>(
-      [&](const Entity &_entity, const components::DetachableJoint *) -> bool
-      {
-        if (!this->entityJointMap.HasEntity(_entity))
-        {
-          gzwarn << "Failed to find joint [" << _entity
-                  << "]." << std::endl;
-          return true;
-        }
-
-        auto castEntity =
-            this->entityJointMap.EntityCast<DetachableJointFeatureList>(
-                _entity);
-        if (!castEntity)
-        {
-          static bool informed{false};
-          if (!informed)
-          {
-            gzdbg << "Attempting to detach a joint, but the physics "
-                   << "engine doesn't support feature "
-                   << "[DetachJointFeature]. Joint won't be detached."
-                   << std::endl;
-            informed = true;
-          }
-
-          // Break Each call since no DetachableJoints can be processed
-          return false;
-        }
-
-        gzdbg << "Detaching joint [" << _entity << "]" << std::endl;
-        castEntity->Detach();
         return true;
       });
 }
@@ -3981,6 +3996,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 
   // TODO(louise) Skip this if there are no collision features
   this->UpdateCollisions(_ecm);
+
+  this->UpdateRayIntersections(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
@@ -4158,6 +4175,97 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
         _ecm.SetChanged(
           _collEntity1, components::ContactSensorData::typeId, state);
 
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
+  // Quit early if the RaycastData component hasn't been created.
+  // This means there are no systems that need raycasting information
+  if (!_ecm.HasComponentType(components::RaycastData::typeId))
+    return;
+
+  // Assume that there is only one world entity
+  Entity worldEntity = _ecm.EntityByComponents(components::World());
+
+  if (!this->entityWorldMap.HasEntity(worldEntity))
+  {
+    gzwarn << "Failed to find world [" << worldEntity << "]." << std::endl;
+    return;
+  }
+
+  auto worldRayIntersectionFeature =
+      this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
+
+  if (!worldRayIntersectionFeature)
+  {
+    static bool informed{false};
+    if (!informed)
+    {
+      gzdbg << "Attempting process ray intersections, but the physics "
+             << "engine doesn't support ray intersection features. "
+             << "Ray intersections won't be computed."
+             << std::endl;
+      informed = true;
+    }
+    return;
+  }
+
+  // Go through each entity that has a RaycastData components, trace the
+  // rays and store the results
+  _ecm.Each<components::RaycastData,
+            components::Pose>(
+      [&](const Entity &_entity,
+          components::RaycastData *_raycastData,
+          components::Pose */*_pose*/) -> bool
+      {
+        // Retrieve the rays from the RaycastData component
+        const auto &rays = _raycastData->Data().rays;
+
+        // Clear the previous results
+        auto &results = _raycastData->Data().results;
+        results.clear();
+        results.reserve(rays.size());
+
+        // Get the entity's world pose
+        const auto &entityWorldPose = worldPose(_entity, _ecm);
+
+        for (const auto &ray : rays)
+        {
+          // Convert ray to world frame
+          const math::Vector3d rayStart = entityWorldPose.Pos() +
+            entityWorldPose.Rot().RotateVector(ray.start);
+          const math::Vector3d rayEnd = entityWorldPose.Pos() +
+            entityWorldPose.Rot().RotateVector(ray.end);
+
+          // Perform ray intersection
+          auto rayIntersection =
+            worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
+              math::eigen3::convert(rayStart),
+              math::eigen3::convert(rayEnd));
+
+          const auto rayIntersectionResult =
+            rayIntersection.Get<
+              physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
+
+          results.emplace_back();
+          auto &result = results.back();
+
+          // Convert result to entity frame and store
+          const math::Vector3d intersectionPoint =
+            math::eigen3::convert(rayIntersectionResult.point);
+          result.point = entityWorldPose.Rot().RotateVectorReverse(
+            intersectionPoint - entityWorldPose.Pos());
+
+          result.fraction = rayIntersectionResult.fraction;
+
+          const math::Vector3d normal =
+            math::eigen3::convert(rayIntersectionResult.normal);
+          result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+        }
         return true;
       });
 }
