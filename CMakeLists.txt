@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim10 VERSION 10.0.0)
+project(gz-sim VERSION 10.0.0)
 set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
@@ -113,8 +113,7 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-gui
-gz_find_package(gz-gui10 REQUIRED)
-set(GZ_GUI_VER ${gz-gui10_VERSION_MAJOR})
+gz_find_package(gz-gui REQUIRED)
 gz_find_package (Qt5
   COMPONENTS
     Core
