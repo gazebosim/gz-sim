@@ -26,12 +26,9 @@ using namespace sim::gui;
 
 QuickStartHandler::QuickStartHandler()
 {
-  // Create the node if needed
-  this->node = gz::transport::Node();
-
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
-  this->node->TopicInfo("/stats", publishers, subscribers);
+  this->node.TopicInfo("/stats", publishers, subscribers);
   if (!publishers.empty())
   {
     gzwarn << "Detected an already running world on start" << std::endl;
