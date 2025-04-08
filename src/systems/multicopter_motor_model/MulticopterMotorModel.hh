@@ -19,6 +19,8 @@
 
 #include <gz/sim/System.hh>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace gz
 {
@@ -57,6 +59,29 @@ namespace systems
 
     /// \brief Private data pointer
     private: std::unique_ptr<MulticopterMotorModelPrivate> dataPtr;
+    private:
+    std::vector<double> ParsePolynomial(const std::string& input)
+    {
+      std::vector<double> result;
+      std::string trimmed = input;
+
+      // Optional: remove brackets
+      trimmed.erase(std::remove(trimmed.begin(), trimmed.end(), '['), trimmed.end());
+      trimmed.erase(std::remove(trimmed.begin(), trimmed.end(), ']'), trimmed.end());
+
+      std::stringstream ss(trimmed);
+      std::string token;
+      while (std::getline(ss, token, ','))
+      {
+        try {
+          result.push_back(std::stod(token));
+        } catch (const std::invalid_argument& e) {
+          gzerr << "[YourPlugin] Invalid number: " << token << std::endl;
+        }
+      }
+      return result;
+    }
+    
   };
   }
 }
