@@ -25,7 +25,7 @@
 import os
 
 from gz.common6 import set_verbosity
-from gz.sim10 import TestFixture, World, world_entity
+from gz.sim import TestFixture, World, world_entity
 from gz.math8 import Vector3d
 
 set_verbosity(4)

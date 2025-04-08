@@ -51,17 +51,15 @@ struct TestWorldSansPhysics
         "<gz:policies>"
         "  <include_server_config_plugins>false</include_server_config_plugins>"
         "</gz:policies>"
-        "<plugin filename='libgz-sim") +
-        GZ_SIM_MAJOR_VERSION_STR + "-scene-broadcaster-system.so'"
+        "<plugin filename='libgz-sim-scene-broadcaster-system.so'"
         "  name='gz::sim::systems::SceneBroadcaster'>"
         "</plugin>"
         "<plugin"
-        "  filename='libgz-sim" +
-        GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so'"
+        "  filename='libgz-sim-user-commands-system.so'"
         "  name='gz::sim::systems::UserCommands'>"
         "</plugin>"
       "</world>"
-    "</sdf>";
+    "</sdf>");
     return world;
   }
 };

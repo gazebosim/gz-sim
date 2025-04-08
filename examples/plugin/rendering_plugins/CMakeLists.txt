@@ -14,7 +14,7 @@ set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gui10 REQUIRED)
+find_package(gz-gui REQUIRED)
 
 QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
@@ -24,7 +24,7 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    gz-gui10::gz-gui10
+    gz-gui::gz-gui
     gz-rendering9::gz-rendering9
 )
 
@@ -32,13 +32,13 @@ target_link_libraries(${GUI_PLUGIN}
 set(SERVER_PLUGIN RenderingServerPlugin)
 
 find_package(gz-plugin3 REQUIRED COMPONENTS register)
-find_package(gz-sim10 REQUIRED)
+find_package(gz-sim REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
 set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)
 target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
     gz-plugin3::gz-plugin3
-    gz-sim10::gz-sim10
+    gz-sim::gz-sim
     gz-rendering9::gz-rendering9
 )
