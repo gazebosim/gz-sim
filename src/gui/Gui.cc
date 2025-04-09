@@ -452,7 +452,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
   else
   {
-    if (component.isError()) 
+    if (component.isError())
     {
       qWarning() << component.errors();
     }
