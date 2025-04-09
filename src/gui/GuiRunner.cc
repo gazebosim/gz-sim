@@ -47,7 +47,7 @@ using namespace sim;
 
 // Register SerializedStepMap to the Qt meta type system so we can pass objects
 // of this type in QMetaObject::invokeMethod
-Q_DECLARE_METATYPE(msgs::SerializedStepMap)
+Q_DECLARE_METATYPE(gz::msgs::SerializedStepMap)
 
 /////////////////////////////////////////////////
 class gz::sim::GuiRunner::Implementation
@@ -109,7 +109,7 @@ class gz::sim::GuiRunner::Implementation
 GuiRunner::GuiRunner(const std::string &_worldName)
   : dataPtr(utils::MakeUniqueImpl<Implementation>())
 {
-  qRegisterMetaType<msgs::SerializedStepMap>();
+  qRegisterMetaType<gz::msgs::SerializedStepMap>();
 
   this->setProperty("worldName", QString::fromStdString(_worldName));
 
@@ -263,7 +263,7 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
-                            Q_ARG(msgs::SerializedStepMap, _res));
+                            Q_ARG(gz::msgs::SerializedStepMap, _res));
   this->dataPtr->receivedInitialState = true;
 
   // todo(anyone) store reqSrv string in a member variable and use it here
@@ -289,7 +289,7 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
-                            Q_ARG(msgs::SerializedStepMap, _msg));
+                            Q_ARG(gz::msgs::SerializedStepMap, _msg));
 }
 
 /////////////////////////////////////////////////

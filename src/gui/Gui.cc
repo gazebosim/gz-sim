@@ -434,8 +434,8 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   // Let QML files use C++ functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
-  context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
-  context->setContextProperty("GuiFileHandler", guiFileHandler);
+  context->setContextProperty("_AboutDialogHandler", aboutDialogHandler);
+  context->setContextProperty("_GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
@@ -452,6 +452,10 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
   else
   {
+    if (component.isError())
+    {
+      qWarning() << component.errors();
+    }
     gzerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
   }

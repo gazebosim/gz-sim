@@ -14,14 +14,14 @@
  * limitations under the License.
  *
  */
-import QtQuick 2.9
+import QtQuick
 import QtQuick.Window 2.2
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.1
+
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 import QtQml.Models 2.2
 
@@ -83,7 +83,9 @@ Rectangle {
     SplitView {
       orientation: Qt.Vertical
       Layout.minimumHeight: 400
-      Layout.minimumWidth: 315
+      SplitView.minimumWidth: 300
+
+
       anchors.bottom: parent.bottom
       anchors.top: parent.top
       anchors.left: parent.left
@@ -92,8 +94,10 @@ Rectangle {
         id: localColumn
         Layout.minimumHeight: 100
         Layout.fillWidth: true
+
         spacing: 0
         Rectangle {
+          id: localResourceLabel
           color: evenColor
           border.color: "gray"
           border.width: 1
@@ -102,6 +106,7 @@ Rectangle {
           Layout.fillWidth: true
           Layout.leftMargin: -border.width
           Layout.rightMargin: -border.width
+
           Label {
             padding: 5
             text: "Local resources"
@@ -110,55 +115,78 @@ Rectangle {
           }
         }
         TreeView {
-          id: treeView
+          id: tree
           model: PathList
           Layout.fillWidth: true
           Layout.fillHeight: true
           Layout.alignment: Qt.AlignCenter
-          Layout.minimumWidth: 300
           Layout.minimumHeight: 100
-          // For some reason, SingleSelection is not working
-          selectionMode: SelectionMode.MultiSelection
-          verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
-          headerVisible: false
-          backgroundVisible: false
-          frameVisible: false
 
-          headerDelegate: Rectangle {
-            visible: false
-          }
 
-          TableViewColumn
-          {
-            role: "name"
-          }
-
-          selection: ItemSelectionModel {
+          selectionModel: ItemSelectionModel {
             model: PathList
           }
 
-          style: TreeViewStyle {
-            indentation: 0
-            rowDelegate: Rectangle {
-              id: row
-              color: Material.background
-              height: treeItemHeight
-            }
-            itemDelegate: Rectangle {
-              id: localItem
-              color: styleData.selected ? Material.accent : (styleData.row % 2 == 0) ? evenColor : oddColor
-              height: treeItemHeight
+          palette {
+            base: oddColor
+            alternateBase: evenColor
+            highlight: Material.accent
+            windowText: "black"
+          }
 
-              anchors.top: parent.top
-              anchors.right: parent.right
+          delegate: TreeViewDelegate {
+            id: treeDelegate
+            implicitWidth: localResourceLabel.width
+            leftMargin: 0
+            rightMargin: 0
+            indentation: 20
+            spacing: 0
+
+            indicator: Rectangle {
+              x: leftMargin + (depth * indentation)
+              height: treeItemHeight
+              width: treeItemHeight * 0.75
+              color:  "transparent"
+              Image {
+                id: indicatorIcon
+                sourceSize.height: treeItemHeight * 0.6
+                sourceSize.width: treeItemHeight * 0.6
+                fillMode: Image.Pad
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right: parent.right
+                source: tree.isExpanded(row) ?
+                    "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
+              }
+              MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                propagateComposedEvents: true
+                onClicked: mouse => {
+                  // Stop the event propagation. The TreeView's own collapsible
+                  // behaviour gets messy otherwise.
+                  mouse.accepted = true
+                  if (tree.isExpanded(row))
+                    tree.collapse(row)
+                  else
+                    tree.expand(row)
+                }
+              }
+            }
+
+            contentItem : Rectangle {
+              id: localItem
+              color: "transparent"
+              implicitHeight: treeItemHeight
+              anchors.margins: 0
 
               Image {
                 id: dirIcon
-                source: styleData.selected ? "folder_open.png" : "folder_closed.png"
-                height: treeItemHeight * 0.6
-                width: treeItemHeight * 0.6
+                sourceSize.height: treeItemHeight * 0.6
+                sourceSize.width: treeItemHeight * 0.6
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
+                source: treeDelegate.selected ?
+                        "folder_open.png" : "folder_closed.png"
               }
 
               Label {
@@ -176,14 +204,15 @@ Rectangle {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 hoverEnabled: true
-                onClicked: {
-                  ResourceSpawner.OnPathClicked(model.path);
-                  ResourceSpawner.DisplayResources();
+                onClicked: (mouse) => {
+                  _ResourceSpawner.OnPathClicked(model.path);
+                  _ResourceSpawner.DisplayResources();
                   currentPath = model.path
                   gridView.currentIndex = -1
                   mouse.accepted = false
-                  treeView.selection.select(styleData.index, ItemSelectionModel.ClearAndSelect)
-                  treeView2.selection.clearSelection()
+
+                  var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
+                  tree.selectionModel.select(mi, ItemSelectionModel.ClearAndSelect)
                 }
               }
 
@@ -247,9 +276,9 @@ Rectangle {
             ListView.onCurrentItemChanged: {
               if (index >= 0) {
                 currentPath = model.path
-                ResourceSpawner.OnOwnerClicked(model.path)
-                ResourceSpawner.DisplayResources();
-                treeView.selection.clearSelection()
+                _ResourceSpawner.OnOwnerClicked(model.path)
+                _ResourceSpawner.DisplayResources();
+                tree.selectionModel.clearSelection()
                 gridView.currentIndex = -1
               }
             }
@@ -288,10 +317,10 @@ Rectangle {
                 flat: true
                 Layout.fillHeight : true
                 Layout.preferredWidth: 30
-                visible: !ResourceSpawner.IsDefaultOwner(model.path)
+                visible: !_ResourceSpawner.IsDefaultOwner(model.path)
 
                 onClicked: {
-                  ResourceSpawner.RemoveOwner(model.path)
+                  _ResourceSpawner.RemoveOwner(model.path)
                 }
               }
             }
@@ -318,7 +347,7 @@ Rectangle {
               color: Material.theme == Material.Light ? "black" : "white"
               placeholderText: "Add owner"
               function processInput() {
-                if (text != "" && ResourceSpawner.AddOwner(text)) {
+                if (text != "" && _ResourceSpawner.AddOwner(text)) {
                   text = ""
                 }
               }
@@ -386,8 +415,8 @@ Rectangle {
               selectByMouse: true
               color: Material.theme == Material.Light ? "black" : "white"
               onTextEdited: {
-                ResourceSpawner.OnSearchEntered(searchField.text);
-                ResourceSpawner.DisplayResources();
+                _ResourceSpawner.OnSearchEntered(searchField.text);
+                _ResourceSpawner.DisplayResources();
               }
             }
           }
@@ -407,8 +436,8 @@ Rectangle {
                 ListElement { text: "Downloaded"}
               }
               onActivated: {
-                ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
-                ResourceSpawner.DisplayResources();
+                _ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
+                _ResourceSpawner.DisplayResources();
               }
             }
           }
@@ -497,7 +526,7 @@ Rectangle {
                 }
                 else
                 {
-                  ResourceSpawner.OnResourceSpawn(model.sdf);
+                  _ResourceSpawner.OnResourceSpawn(model.sdf);
                   gridView.currentIndex = index;
                 }
               }
@@ -552,7 +581,7 @@ Rectangle {
                 sourceSize.height: 35;
               }
               onClicked: {
-                ResourceSpawner.OnDownloadFuelResource(model.sdf, model.name, model.owner, model.index)
+                _ResourceSpawner.OnDownloadFuelResource(model.sdf, model.name, model.owner, model.index)
                 model.isDownloaded = true
               }
             }
@@ -580,7 +609,7 @@ Rectangle {
   }
 
   Connections {
-    target: ResourceSpawner
+    target: _ResourceSpawner
     onResourceSpawnerError : {
       messageDialog.contentItem.text = _errorMsg
       messageDialog.visible = true

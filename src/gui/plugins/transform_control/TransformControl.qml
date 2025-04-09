@@ -20,7 +20,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import "qrc:/qml"
 
 ToolBar {
@@ -31,7 +31,7 @@ ToolBar {
   // TODO(anyone) enable scale button when support is added in gz-physics
   // function activateScale() {
   //   scale.checked = true;
-  //   TransformControl.OnMode("scale");
+  //   _TransformControl.OnMode("scale");
   // }
 
   property color snapTitle: (Material.theme == Material.Light) ?
@@ -44,30 +44,30 @@ ToolBar {
 
   function activateTranslate() {
     translate.checked = true;
-    TransformControl.OnMode("translate");
+    _TransformControl.OnMode("translate");
   }
 
   function activateRotate() {
     rotate.checked = true;
-    TransformControl.OnMode("rotate");
+    _TransformControl.OnMode("rotate");
   }
 
   function activateSelect() {
     select.checked = true;
-    TransformControl.OnMode("select");
+    _TransformControl.OnMode("select");
   }
 
   function updateSnapValues() {
-    xEntry.value = TransformControl.xSnap();
-    yEntry.value = TransformControl.ySnap();
-    zEntry.value = TransformControl.zSnap();
-    rollEntry.value = TransformControl.rollSnap();
-    pitchEntry.value = TransformControl.pitchSnap();
-    yawEntry.value = TransformControl.yawSnap();
+    xEntry.value = _TransformControl.xSnap();
+    yEntry.value = _TransformControl.ySnap();
+    zEntry.value = _TransformControl.zSnap();
+    rollEntry.value = _TransformControl.rollSnap();
+    pitchEntry.value = _TransformControl.pitchSnap();
+    yawEntry.value = _TransformControl.yawSnap();
     // TODO(anyone) enable scale button when support is added in gz-physics
-    // xScaleEntry.value = TransformControl.xScaleSnap()
-    // yScaleEntry.value = TransformControl.yScaleSnap()
-    // zScaleEntry.value = TransformControl.zScaleSnap()
+    // xScaleEntry.value = _TransformControl.xScaleSnap()
+    // yScaleEntry.value = _TransformControl.yScaleSnap()
+    // zScaleEntry.value = _TransformControl.zScaleSnap()
   }
 
   function windowWidth() {
@@ -87,23 +87,23 @@ ToolBar {
   }
 
   Connections {
-    target: TransformControl
-    onNewSnapValues: updateSnapValues();
+    target: _TransformControl
+    function onNewSnapValues() {updateSnapValues()}
   }
 
   Connections {
-    target: TransformControl
-    onActivateSelect: activateSelect();
+    target: _TransformControl
+    function onActivateSelect() {activateSelect()}
   }
 
   Connections {
-    target: TransformControl
-    onActivateTranslate: activateTranslate();
+    target: _TransformControl
+    function onActivateTranslate() {activateTranslate()}
   }
 
   Connections {
-    target: TransformControl
-    onActivateRotate: activateRotate();
+    target: _TransformControl
+    function onActivateRotate() {activateRotate()}
   }
 
   RowLayout {
@@ -142,7 +142,7 @@ ToolBar {
         color: select.Material.rippleColor
       }
       onClicked: {
-        TransformControl.OnMode("select")
+        _TransformControl.OnMode("select")
       }
     }
     ToolButton{
@@ -178,7 +178,7 @@ ToolBar {
         color: translate.Material.rippleColor
       }
       onClicked: {
-        TransformControl.OnMode("translate")
+        _TransformControl.OnMode("translate")
       }
     }
     ToolButton {
@@ -216,7 +216,7 @@ ToolBar {
         color: rotate.Material.rippleColor
       }
       onClicked: {
-        TransformControl.OnMode("rotate")
+        _TransformControl.OnMode("rotate")
       }
     }
     // TODO(anyone) enable scale snap values below when support is added in gz-physics
@@ -257,7 +257,7 @@ ToolBar {
         color: scale.Material.rippleColor
       }
       onClicked: {
-        TransformControl.OnMode("scale")
+        _TransformControl.OnMode("scale")
       }
     }
     */
@@ -314,7 +314,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        TransformControl.OnSnapToGrid()
+        _TransformControl.OnSnapToGrid()
       }
     }
     Dialog {
@@ -355,7 +355,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 1
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0
@@ -378,7 +378,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 1
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0
@@ -401,7 +401,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 1
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0
@@ -433,7 +433,7 @@ ToolBar {
           Layout.row: 1
           Layout.column: 3
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0
@@ -456,7 +456,7 @@ ToolBar {
           Layout.row: 2
           Layout.column: 3
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0
@@ -479,7 +479,7 @@ ToolBar {
           Layout.row: 3
           Layout.column: 3
           onEditingFinished: {
-            TransformControl.OnSnapUpdate(
+            _TransformControl.OnSnapUpdate(
               xEntry.value, yEntry.value, zEntry.value,
               rollEntry.value, pitchEntry.value, yawEntry.value,
               0, 0, 0

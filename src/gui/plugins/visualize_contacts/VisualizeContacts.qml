@@ -42,7 +42,7 @@ GridLayout {
     text: qsTr("Show Contacts")
     checked: false
     onClicked: {
-      VisualizeContacts.OnVisualize(checked)
+      _VisualizeContacts.OnVisualize(checked)
     }
   }
 
@@ -69,7 +69,7 @@ GridLayout {
     value: 0.10
     decimals: 2
     stepSize: 0.05
-    onEditingFinished: VisualizeContacts.UpdateRadius(radius.value)
+    onEditingFinished: _VisualizeContacts.UpdateRadius(radius.value)
   }
 
   Text {
@@ -88,7 +88,7 @@ GridLayout {
     value: 200
     decimals: 0
     stepSize: 50
-    onEditingFinished: VisualizeContacts.UpdatePeriod(updatePeriod.value)
+    onEditingFinished: _VisualizeContacts.UpdatePeriod(updatePeriod.value)
   }
 
   // Bottom spacer

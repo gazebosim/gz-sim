@@ -16,7 +16,6 @@
 */
 import QtQuick 2.9
 import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.0
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
@@ -58,8 +57,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.xSamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.xSamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -81,8 +80,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.ySamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.ySamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 
@@ -104,8 +103,8 @@ GridLayout {
     value: 10
     to: 50
     onMoved: function() {
-      EnvironmentVisualization.zSamples = value;
-      EnvironmentVisualization.ResamplePointcloud();
+      _EnvironmentVisualization.zSamples = value;
+      _EnvironmentVisualization.ResamplePointcloud();
     }
   }
 }
