@@ -149,6 +149,7 @@
         </gz-gui>
         <topic>camera</topic>
         <topic_picker>false</topic_picker>
+        <show_depth_flip>false</show_depth_flip>
       </plugin>
       <plugin filename="ImageDisplay" name="Image Display 2">
         <gz-gui>
@@ -160,6 +161,7 @@
         </gz-gui>
         <topic>depth_camera</topic>
         <topic_picker>false</topic_picker>
+        <show_depth_flip>true</show_depth_flip>
       </plugin>
       <plugin filename="ImageDisplay" name="Image Display 3">
         <gz-gui>
@@ -171,6 +173,7 @@
         </gz-gui>
         <topic>rgbd_camera/image</topic>
         <topic_picker>false</topic_picker>
+        <show_depth_flip>false</show_depth_flip>
       </plugin>
       <plugin filename="ImageDisplay" name="Image Display 3">
         <gz-gui>
@@ -183,6 +186,7 @@
         </gz-gui>
         <topic>rgbd_camera/depth_image</topic>
         <topic_picker>false</topic_picker>
+        <show_depth_flip>false</show_depth_flip>
       </plugin>
       <plugin filename="ImageDisplay" name="Image Display 5">
         <gz-gui>
@@ -195,6 +199,7 @@
         </gz-gui>
         <topic>thermal_camera</topic>
         <topic_picker>false</topic_picker>
+        <show_depth_flip>false</show_depth_flip>
       </plugin>
     </gui>
 
