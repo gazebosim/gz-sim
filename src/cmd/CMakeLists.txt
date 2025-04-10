@@ -8,10 +8,50 @@ target_link_libraries(${model_executable}
 
 install(
   TARGETS ${model_executable}
-  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+)
+
+# Create sim utilies library
+add_library(gz STATIC gz.cc)
+target_link_libraries(gz
+  ${PROJECT_LIBRARY_TARGET_NAME}
+  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-utils${GZ_UTILS_VER}::cli
+  gz-sim${PROJECT_VERSION_MAJOR}
+)
+
+# Create GUI executable if enabled
+if(ENABLE_GUI)
+  target_link_libraries(gz gz-sim${PROJECT_VERSION_MAJOR}-gui)
+
+  add_executable(gz-sim-gui gui_main.cc)
+  target_link_libraries(gz-sim-gui PRIVATE gz)
+
+  install(
+    TARGETS gz-sim-gui
+    DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+  )
+endif()
+
+# Create sim main executable
+set(sim_executable gz-sim-main)
+add_executable(${sim_executable} sim_main.cc)
+target_link_libraries(${sim_executable} PRIVATE gz)
+
+install(
+  TARGETS ${sim_executable}
+  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+)
+
+if(ENABLE_GUI)
+  target_compile_definitions(gz-sim-main
+    PRIVATE
+      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
+  )
+endif()
 
 # Build the unit tests.
-set(test_sources)
+set(test_sources gz_TEST.cc)
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
@@ -21,13 +61,6 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
 else()
   message(STATUS
     "Skipping ModelCommandAPI tests because a valid display was not found")
-endif()
-
-# gz_TEST is not supported with multi config
-# CMake generators, see also cmd/CMakeLists.txt
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND test_sources gz_TEST.cc)
 endif()
 
 # Build unit tests if Gazebo tools is installed
@@ -51,7 +84,6 @@ foreach(CMD_TEST
   endif()
 
   add_dependencies(${CMD_TEST}
-    ${gz_lib_target}
     TestModelSystem
     TestSensorSystem
     TestWorldSystem
@@ -62,31 +94,8 @@ foreach(CMD_TEST
       "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
   )
 
-  if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST)
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
-  endif()
-
-  if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
-    # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
-    # due to System Integrity Protection (SIP). Try to find ruby from
-    # homebrew as a workaround.
-    if(APPLE)
-      find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
-    endif()
-
-    target_compile_definitions(${CMD_TEST}
-      PRIVATE
-        "BREW_RUBY=\"${BREW_RUBY} \""
-    )
-
-    set(_env_vars)
-    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
-    list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
-
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT "${_env_vars}")
-  endif()
+  set_tests_properties(${CMD_TEST} PROPERTIES
+    ENVIRONMENT "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
 
   # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
   # in build directory in necessary. For regular tests, the trick is to place all libraries
@@ -99,87 +108,6 @@ foreach(CMD_TEST
       ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
   endif()
 endforeach()
-
-#===============================================================================
-# Generate the ruby script.
-# Note that the major version of the library is included in the name.
-# Ex: cmdsim0.rb
-set(cmd_script_name "cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-set(cmd_script_generated "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>_${cmd_script_name}")
-set(cmd_script_configured "${CMAKE_CURRENT_BINARY_DIR}/${cmd_script_name}.configured")
-
-# Set the library_location variable to the relative path to the library file
-# within the install directory structure.
-if(WIN32)
-  set(plugin_location ${CMAKE_INSTALL_BINDIR})
-else()
-  set(plugin_location ${CMAKE_INSTALL_LIBDIR})
-endif()
-
-set(library_location "../../../${plugin_location}/$<TARGET_FILE_NAME:${gz_lib_target}>")
-
-configure_file(
-  "cmd${GZ_DESIGNATION}.rb.in"
-  "${cmd_script_configured}"
-  @ONLY)
-
-file(GENERATE
-  OUTPUT "${cmd_script_generated}"
-  INPUT  "${cmd_script_configured}")
-
-# Install the ruby command line library in an unversioned location.
-install(FILES ${cmd_script_generated} DESTINATION lib/ruby/gz RENAME ${cmd_script_name})
-
-set(gz_library_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
-
-# Generate a configuration file.
-# Note that the major version of the library is included in the name.
-# Ex: sim0.yaml
-configure_file(
-  "${GZ_DESIGNATION}.yaml.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
-
-# Install the yaml configuration files in an unversioned location.
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml
-  DESTINATION
-  ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
-
-#===============================================================================
-# Generate the ruby script for internal testing.
-# Note that the major version of the library is included in the name.
-# Ex: cmdsim0.rb
-# The logic is valid only for single-config CMake generators, so no script is
-# generated if a multiple-config CMake geneator is used
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")
-  set(cmd_script_configured_test "${cmd_script_generated_test}.configured")
-
-  # Set the library_location variable to the relative path to the library file
-  # within the install directory structure.
-  set(library_location "$<TARGET_FILE:${gz_lib_target}>")
-
-  configure_file(
-    "cmd${GZ_DESIGNATION}.rb.in"
-    "${cmd_script_configured_test}"
-    @ONLY)
-
-  file(GENERATE
-    OUTPUT "${cmd_script_generated_test}"
-    INPUT  "${cmd_script_configured_test}")
-
-  # Used only for internal testing.
-  set(gz_library_path
-    "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}")
-
-  # Generate a configuration file for internal testing.
-  # Note that the major version of the library is included in the name.
-  # Ex: sim0.yaml
-  configure_file(
-    "${GZ_DESIGNATION}.yaml.in"
-    "${CMAKE_BINARY_DIR}/test/conf/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.yaml" @ONLY)
-endif()
 
 #===============================================================================
 # Generate the ruby script for internal testing of model command.
@@ -221,6 +149,46 @@ file(GENERATE
 )
 
 #===============================================================================
+# Generate the ruby script for internal testing of sim command.
+# Note that the major version of the library is included in the name.
+# Ex: cmdsim0.rb
+set(gz_sim_ruby_path
+  "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdsim${PROJECT_VERSION_MAJOR}")
+set(cmd_sim_script_generated_test "${gz_sim_ruby_path}.rb")
+set(cmd_sim_script_configured_test
+  "${CMAKE_CURRENT_BINARY_DIR}/test_cmdsim${PROJECT_VERSION_MAJOR}.rb.configured")
+
+# Set the library_location variable to the full path of the library file within
+# the build directory.
+set(sim_exe_location "$<TARGET_FILE:${sim_executable}>")
+
+configure_file(
+  "cmdsim.rb.in"
+  "${cmd_sim_script_configured_test}"
+  @ONLY
+)
+
+file(GENERATE
+  OUTPUT "${cmd_sim_script_generated_test}"
+  INPUT "${cmd_sim_script_configured_test}"
+)
+
+# Generate a configuration file for internal testing.
+# Note that the major version of the library is included in the name.
+# Ex: sim0.yaml
+configure_file(
+  "sim.yaml.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/sim${PROJECT_VERSION_MAJOR}.yaml.configured"
+  @ONLY
+)
+
+file(GENERATE
+  OUTPUT "${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>/sim${PROJECT_VERSION_MAJOR}.yaml"
+  INPUT "${CMAKE_CURRENT_BINARY_DIR}/sim${PROJECT_VERSION_MAJOR}.yaml.configured"
+)
+
+
+#===============================================================================
 # Used for the installed model command version.
 # Generate the ruby script that gets installed.
 # Note that the major version of the library is included in the name.
@@ -255,6 +223,42 @@ configure_file(
   @ONLY)
 
 install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
+
+#===============================================================================
+# Used for the installed sim command version.
+# Generate the ruby script that gets installed.
+# Note that the major version of the library is included in the name.
+# Ex: cmdsim0.rb
+set(cmd_sim_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdsim${PROJECT_VERSION_MAJOR}.rb")
+set(cmd_sim_script_configured "${cmd_sim_script_generated}.configured")
+
+# Set the library_location variable to the relative path to the library file
+# within the install directory structure.
+set(sim_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${sim_executable}>")
+
+configure_file(
+  "cmdsim.rb.in"
+  "${cmd_sim_script_configured}"
+  @ONLY
+)
+
+file(GENERATE
+  OUTPUT "${cmd_sim_script_generated}"
+  INPUT "${cmd_sim_script_configured}"
+)
+# Install the ruby command line library in an unversioned location.
+install(FILES ${cmd_sim_script_generated} DESTINATION lib/ruby/gz)
+
+# Used for the installed version.
+set(gz_sim_ruby_path "${CMAKE_INSTALL_PREFIX}/lib/ruby/gz/cmdsim${PROJECT_VERSION_MAJOR}")
+
+set(sim_configured "${CMAKE_CURRENT_BINARY_DIR}/sim${PROJECT_VERSION_MAJOR}.yaml")
+configure_file(
+  "sim.yaml.in"
+  ${sim_configured}
+  @ONLY)
+
+install(FILES ${sim_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
 
 #===============================================================================
 # Bash completion
