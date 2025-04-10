@@ -17,12 +17,12 @@ target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
   gz-utils${GZ_UTILS_VER}::cli
-  gz-sim${PROJECT_VERSION_MAJOR}
+  gz-sim
 )
 
 # Create GUI executable if enabled
 if(ENABLE_GUI)
-  target_link_libraries(gz gz-sim${PROJECT_VERSION_MAJOR}-gui)
+  target_link_libraries(gz gz-sim-gui)
 
   add_executable(gz-sim-gui gui_main.cc)
   target_link_libraries(gz-sim-gui PRIVATE gz)
