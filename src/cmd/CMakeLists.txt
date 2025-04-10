@@ -24,11 +24,11 @@ target_link_libraries(gz
 if(ENABLE_GUI)
   target_link_libraries(gz gz-sim-gui)
 
-  add_executable(gz-sim-gui gui_main.cc)
-  target_link_libraries(gz-sim-gui PRIVATE gz)
+  add_executable(gz-sim-gui-client gui_main.cc)
+  target_link_libraries(gz-sim-gui-client PRIVATE gz)
 
   install(
-    TARGETS gz-sim-gui
+    TARGETS gz-sim-gui-client
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
   )
 endif()
@@ -46,7 +46,7 @@ install(
 if(ENABLE_GUI)
   target_compile_definitions(gz-sim-main
     PRIVATE
-      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui>\""
+      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui-client>\""
   )
 endif()
 
