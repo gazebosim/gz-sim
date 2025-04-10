@@ -111,16 +111,21 @@ set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 gz_find_package(gz-fuel_tools10 REQUIRED)
 set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 
-#--------------------------------------
-# Find gz-gui
-gz_find_package(gz-gui REQUIRED)
-gz_find_package (Qt5
-  COMPONENTS
-    Core
-    Quick
-    QuickControls2
-  REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
+
+if(ENABLE_GUI)
+  #--------------------------------------
+  # Find gz-gui
+  gz_find_package(gz-gui REQUIRED)
+  gz_find_package (Qt5
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+endif()
 
 #--------------------------------------
 # Find gz-physics
