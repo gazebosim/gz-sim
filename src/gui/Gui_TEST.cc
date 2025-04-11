@@ -252,6 +252,8 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     // Close the quick start window
     gzdbg << "Closing the quickstart window" << std::endl;
     ASSERT_EQ(1, gui::App()->allWindows().count());
+    while (!gui::App()->allWindows()[0]->isExposed())
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;
