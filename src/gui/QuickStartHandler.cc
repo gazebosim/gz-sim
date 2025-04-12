@@ -31,7 +31,7 @@ QuickStartHandler::QuickStartHandler()
   this->node.TopicInfo("/stats", publishers, subscribers);
   if (!publishers.empty())
   {
-    gzwarn << "Detected an already running world on start" << std::endl;
+    gzerr << "Detected an already running world on start" << std::endl;
   }
 }
 
