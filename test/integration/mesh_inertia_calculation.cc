@@ -54,7 +54,7 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 
 /// \brief Load an SDF world and run mesh inertia tests. Two tests are run
 /// one after another: 1) the server is launched with path to SDF file, and
-/// 2) ther server is launched from an sdf string.
+/// 2) the server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
 void loadSdfAndTest(const std::string &_path,
@@ -304,7 +304,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   // Check the Inertia Matrix within a larger tolerance since we are
   // comparing a mesh cylinder made of convex hulls with an ideal cylinder.
   // For values more closer to the ideal, a higher number convex decomposition
-  // paramers would be required in the mesh sdf.
+  // parameters would be required in the mesh sdf.
   double ixxyyzzTol = meshInertial.MassMatrix().DiagonalMoments().Max() * 0.1;
   gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(*ecm).value()(0, 0),
                                    link.WorldInertiaMatrix(*ecm).value()(1, 1),

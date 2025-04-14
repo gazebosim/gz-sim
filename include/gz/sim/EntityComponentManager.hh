@@ -826,7 +826,7 @@ namespace gz
 
       /// \brief Get whether views should be locked when entities are being
       /// added to them.
-      /// \return True if views should be locked during entitiy addition, false
+      /// \return True if views should be locked during entity addition, false
       /// otherwise.
       private: bool LockAddingEntitiesToViews() const;
 

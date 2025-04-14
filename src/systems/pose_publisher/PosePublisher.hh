@@ -48,7 +48,7 @@ namespace systems
   ///   pose. The pose of the model that contains this system is also published
   ///   unless publish_model_pose is set to false
   /// - `<use_pose_vector_msg>`: Set to true to publish a gz::msgs::Pose_V
-  ///   message instead of mulitple gz::msgs::Pose messages.
+  ///   message instead of multiple gz::msgs::Pose messages.
   /// - `<update_frequency>`: Frequency of pose publications in Hz. A negative
   ///   frequency publishes as fast as possible (i.e, at the rate of the
   ///   simulation step)

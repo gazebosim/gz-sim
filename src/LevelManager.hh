@@ -123,7 +123,7 @@ namespace gz
       private: bool IsLevelActive(const Entity _entity) const;
 
       /// \brief Service callback to create a new performer.
-      /// \param[in] _req Message that contains perfomer information.
+      /// \param[in] _req Message that contains performer information.
       /// \param[out] _rep Reply message, which is set to true when the
       /// performer has been added.
       /// \return True if the service call completed.

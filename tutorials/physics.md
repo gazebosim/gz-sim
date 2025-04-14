@@ -60,7 +60,7 @@ There are a few different ways of telling Gazebo which engine to load.
 For any method, you should provide the name of your plugin's shared library,
 but the `lib` prefix and the file extension are optional. So in this example,
 the file is `libCustomEngine.so` but it's enough to set `CustomEngine`.
-That is also prefered to support multiple operating systems.
+That is also preferred to support multiple operating systems.
 
 ### From SDF
 
@@ -134,7 +134,7 @@ that path to the environment variable as described above.
 > Unable to load the [/home/physics_engines/libCustomEngine.so] library.
 
 There was some problem loading that file. Check that it exists, that you have
-permissions to access it, and that it's acually a physics engine plugin.
+permissions to access it, and that it's actually a physics engine plugin.
 
 > No physics plugins implementing required interface found in library
 > [/home/physics_engines/libCustomEngine.so]

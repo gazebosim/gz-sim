@@ -716,7 +716,7 @@ struct ResolvedTrace : public Trace {
 
 /*************** STACK TRACE ***************/
 
-// default implemention.
+// default implementation.
 template <typename TAG> class StackTraceImpl {
 public:
   size_t size() const { return 0; }
@@ -1464,7 +1464,7 @@ public:
 
     // trace.addr is the next instruction to be executed after returning
     // from the nested stack frame. In C++ this usually relate to the next
-    // statement right after the function call that leaded to a new stack
+    // statement right after the function call that led to a new stack
     // frame. This is not usually what you want to see when printing out a
     // stacktrace...
     find_sym_result details_call_site =
