@@ -19,7 +19,7 @@ include(FetchContent)
 FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
-  GIT_TAG gz-sensors${GZ_SENSORS_VER}
+  GIT_TAG main
 )
 FetchContent_Populate(sensors_clone)
 add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})
