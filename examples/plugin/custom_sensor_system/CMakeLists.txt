@@ -9,8 +9,8 @@ set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 gz_find_package(gz-sim REQUIRED)
 
-find_package(gz-sensors9 REQUIRED)
-set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
+find_package(gz-sensors REQUIRED)
+set(GZ_SENSORS_VER ${gz-sensors10_VERSION_MAJOR})
 
 # Fetch the custom sensor example from gz-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part

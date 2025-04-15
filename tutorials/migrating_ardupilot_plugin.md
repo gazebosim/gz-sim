@@ -733,8 +733,8 @@ find_package(gz-sim-all REQUIRED)
 find_package(gz-math8-all REQUIRED)
 find_package(gz-msgs11-all REQUIRED)
 find_package(gz-physics8-all REQUIRED)
-find_package(gz-sensors9-all REQUIRED)
-find_package(gz-transport14-all REQUIRED)
+find_package(gz-sensors-all REQUIRED)
+find_package(gz-transport-all REQUIRED)
 ```
 
 In the old code we need only refer to the build configuration retrieved from the Gazebo package:
