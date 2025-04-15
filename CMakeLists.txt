@@ -162,7 +162,6 @@ gz_find_package(gz-sensors REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors10_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering

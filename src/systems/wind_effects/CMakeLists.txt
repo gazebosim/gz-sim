@@ -4,5 +4,5 @@ gz_add_system(wind-effects
   PUBLIC_LINK_LIBS
     gz-transport::gz-transport
     # Include gz-sensors for noise models
-    gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
+    gz-sensors::gz-sensors
 )

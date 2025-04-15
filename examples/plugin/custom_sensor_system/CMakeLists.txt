@@ -10,7 +10,6 @@ set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 gz_find_package(gz-sim REQUIRED)
 
 find_package(gz-sensors REQUIRED)
-set(GZ_SENSORS_VER ${gz-sensors10_VERSION_MAJOR})
 
 # Fetch the custom sensor example from gz-sensors
 # Users won't commonly use this to fetch their sensors. The sensor may be part
@@ -29,7 +28,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
     gz-sim::gz-sim
-    gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
+    gz-sensors::gz-sensors
     odometer
 )
 target_include_directories(${PROJECT_NAME}
