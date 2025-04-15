@@ -7,5 +7,5 @@ gz_add_system(track-controller
     gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
     gz-math${GZ_MATH_VER}::gz-math${GZ_MATH_VER}
     gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-transport::gz-transport
 )
