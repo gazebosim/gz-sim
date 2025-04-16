@@ -115,5 +115,5 @@ In the SDF file representing your simulation, add the plugin to the `world` sect
     ...
 ```
 Plugins can be found using the `GZ_SIM_SYSTEM_PLUGIN_PATH` environment variable. If you
-are using colcon to build your package consider using hooks to add your system to 
+are using colcon to build your package consider using hooks to add your system to
 `GZ_SIM_SYSTEM_PLUGIN_PATH`.
