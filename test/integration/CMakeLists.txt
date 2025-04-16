@@ -211,7 +211,7 @@ endif()
 
 if (TARGET INTEGRATION_log_system)
   target_link_libraries(INTEGRATION_log_system
-    gz-transport${GZ_TRANSPORT_VER}::log
+    gz-transport::log
   )
 endif()
 

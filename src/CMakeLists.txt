@@ -208,8 +208,8 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-gui::gz-gui
   gz-physics${GZ_PHYSICS_VER}::core
   gz-rendering${GZ_RENDERING_VER}::core
-  gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-  gz-transport${GZ_TRANSPORT_VER}::parameters
+  gz-transport::gz-transport
+  gz-transport::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
