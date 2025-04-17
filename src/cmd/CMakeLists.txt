@@ -94,8 +94,35 @@ foreach(CMD_TEST
       "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
   )
 
-  set_tests_properties(${CMD_TEST} PROPERTIES
-    ENVIRONMENT "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+  if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST)
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endif()
+
+  if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
+    # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
+    # due to System Integrity Protection (SIP). Try to find ruby from
+    # homebrew as a workaround.
+    if(APPLE)
+      find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
+    endif()
+
+    target_compile_definitions(${CMD_TEST}
+      PRIVATE
+        "BREW_RUBY=\"${BREW_RUBY} \""
+    )
+
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
+    list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endif()
 
   # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
   # in build directory in necessary. For regular tests, the trick is to place all libraries

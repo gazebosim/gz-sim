@@ -84,8 +84,7 @@ set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport14 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
+gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
@@ -140,7 +139,7 @@ set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors9 REQUIRED
+gz_find_package(gz-sensors REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -168,7 +167,6 @@ gz_find_package(gz-sensors9 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering

@@ -6,12 +6,12 @@ This component allows us to set the force command on a joint.
 
 Programmatic usage of this component can be found in the source code for
 systems and integration tests, such as the
-[joint integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim9/test/integration/joint.cc),
+[joint integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim10/test/integration/joint.cc),
 the \ref gz::sim::systems::ApplyJointForce system
-([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim9/src/systems/apply_joint_force)),
+([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim10/src/systems/apply_joint_force)),
 and others.
 
-The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim9/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
+The corresponding world SDF is [`apply_joint_force.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/apply_joint_force.sdf), which you can look at in Gazebo:
 
 ```bash
 gz sim apply_joint_force.sdf
