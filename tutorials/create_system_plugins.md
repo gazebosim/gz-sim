@@ -36,7 +36,7 @@ there are currently four additional available interfaces:
   3. Used to read out results at the end of a simulation step to be used for sensor or controller updates.
 5. ISystemReset
   1. Has read-write access to world entities and components.
-  2. Executed once the moment the plugin is reseted.
+  2. Executed once the moment the plugin is reset.
 
 It's important to note that gz::sim::UpdateInfo::simTime does not refer to the current time, but the time reached after the `PreUpdate` and `Update` calls have finished.
 So, if any of the `*Update` functions are called with simulation paused, time does not advance, which means the time reached after `PreUpdate` and `Update` is the same as the starting time.

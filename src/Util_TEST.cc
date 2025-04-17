@@ -1002,7 +1002,7 @@ TEST_F(UtilTest, ResolveSdfWorldFile)
   // resolved path will have extra world version information at the end.
   EXPECT_EQ(0u, resolvedPath.find(expectedPath));
 
-  // Now try to resolve the downloaded world file using an aboslute path
+  // Now try to resolve the downloaded world file using an absolute path
   EXPECT_EQ(resolvedPath, resolveSdfWorldFile(resolvedPath));
 
   // The "shapes.sdf" world file should resolve.

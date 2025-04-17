@@ -126,7 +126,7 @@ namespace systems
   ///
   /// The `logic_type` attribute can be used to negate a match. That is, to
   /// trigger an output when the input does not equal the value in `<match>`
-  /// For example, the following will trigger an ouput when the input does not
+  /// For example, the following will trigger an output when the input does not
   /// equal 1 AND does not equal 2.
   /// \code{.xml}
   ///    <plugin>
@@ -244,7 +244,7 @@ namespace systems
       /// \brief Service request message
       std::string reqMsg;
 
-      /// \brief Serivce timeout
+      /// \brief Service timeout
       int timeout;
     };
 
@@ -272,7 +272,7 @@ namespace systems
     /// \brief Mutex to synchronize access to serviceCount
     private: std::mutex triggerSrvMutex;
 
-    /// \brief Condition variable to signal that new matches have occured
+    /// \brief Condition variable to signal that new matches have occurred
     private: std::condition_variable newMatchSignal;
 
     /// \brief Thread handle for worker thread

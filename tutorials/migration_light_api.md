@@ -35,7 +35,7 @@ You'll find the APIs below on the following headers:
 It's worth remembering that most of this functionality can be performed using
 the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
-As an example the `Light::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
+As an example the `Light::Pose()` is a convenient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
 ```
   math::Pose3d pose = _ecm.Component<components::Pose>(lightEntityId)->Data();

@@ -101,7 +101,7 @@ namespace sim
     public slots: void OnViewControlReferenceVisual(bool _enable);
 
     /// \brief Callback in Qt thread when camera view controller changes.
-    /// \param[in] _sensitivity View control sensitivity vlaue
+    /// \param[in] _sensitivity View control sensitivity value
     public slots: void OnViewControlSensitivity(double _sensitivity);
 
     /// \brief Updates gui camera's Horizontal fov
@@ -121,7 +121,7 @@ namespace sim
     signals: void CamPoseChanged();
 
     /// \brief Callback to update gui camera pose
-    /// \param[in] _x, _y, _z cartesion coordinates
+    /// \param[in] _x, _y, _z cartesian coordinates
     /// \param[in] _roll, _pitch, _yaw principal coordinates
     public slots: void SetCamPose(double _x, double _y, double _z,
                                double _roll, double _pitch, double _yaw);

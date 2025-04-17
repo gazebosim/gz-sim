@@ -286,7 +286,7 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    ASSERT_EQ(nItersAfterDetach + nItersInitialize, b1Poses.size());
    ASSERT_EQ(nItersAfterDetach + nItersInitialize, vehiclePoses.size());
 
-   // Deafult distance between B1 and the vehicle is 1.5.
+   // Default distance between B1 and the vehicle is 1.5.
    auto defaultDist = 1.5;
    // Although detached, distance (x-axis) between B1 and vehicle should be 1.5.
    EXPECT_NEAR(vehiclePoses.back().Pos().X(),

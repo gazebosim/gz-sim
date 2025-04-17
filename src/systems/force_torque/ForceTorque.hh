@@ -38,7 +38,7 @@ namespace systems
   /// \note Regardless of the setting of //sensor/force_torque/frame the point
   /// of application of the force is at the sensor's origin.
   /// //sensor/force_torque/frame only changes the coordinate frame in which the
-  /// quantites are expressed, not the point of application.
+  /// quantities are expressed, not the point of application.
   class ForceTorque:
     public System,
     public ISystemConfigurePriority,

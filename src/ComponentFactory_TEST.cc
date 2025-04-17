@@ -201,7 +201,7 @@ TEST_F(ComponentFactoryTest, New)
     comp = factory->New(components::Pose::typeId, nullptr);
     ASSERT_EQ(nullptr, comp);
 
-    // Test mistmatching component types
+    // Test mismatching component types
     comp = factory->New(components::Name::typeId, &poseComp);
     ASSERT_EQ(nullptr, comp);
   }

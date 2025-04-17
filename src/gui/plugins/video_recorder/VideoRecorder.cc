@@ -83,7 +83,7 @@ namespace gz::sim
     /// \brief Video recorder bitrate (bps)
     public: unsigned int bitrate = 2070000;
 
-    /// \brief Start tiem of video recording
+    /// \brief Start time of video recording
     public: std::chrono::steady_clock::time_point startTime;
 
     /// \brief Camera pose publisher
@@ -236,7 +236,7 @@ void VideoRecorderPrivate::OnRender()
     }
   }
   // only has an effect in video recording lockstep mode
-  // this notifes ECM to continue updating the scene
+  // this notifies ECM to continue updating the scene
   g_renderCv.notify_one();
 }
 
@@ -281,7 +281,7 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
         bool useSimTime = false;
         if (useSimTimeElem->QueryBoolText(&useSimTime) != tinyxml2::XML_SUCCESS)
         {
-          gzerr << "Faild to parse <use_sim_time> value: "
+          gzerr << "Failed to parse <use_sim_time> value: "
                  << useSimTimeElem->GetText() << std::endl;
         }
         else

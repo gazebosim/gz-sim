@@ -39,7 +39,7 @@ namespace systems::physics_system
   // entity with the required features to another physics entity with one of
   // the optional features. This class was created to keep all physics entities
   // in one place so that when a gazebo entity is removed, all the mapped
-  // physics entitities can be removed at the same time. This ensures that
+  // physics entities can be removed at the same time. This ensures that
   // reference counts are properly zeroed out in the underlying physics engines
   // and the memory associated with the physics entities can be freed.
   //

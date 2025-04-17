@@ -7,7 +7,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[sim::phyiscs::Link](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Link.html)
+[sim::physics::Link](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Link.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Gazebo
@@ -250,7 +250,7 @@ OnPoseChange | TODO
 
 ## Others
 
-Miscelaneous functions that don't fit the other categories. Most of them involve
+Miscellaneous functions that don't fit the other categories. Most of them involve
 logic that should be performed from within a system.
 
 ---

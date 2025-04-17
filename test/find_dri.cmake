@@ -1,6 +1,6 @@
 ################################# FindDRI support #############################
-# Check for existance of glxinfo application
-# Check for existance of support for pyopengl
+# Check for existence of glxinfo application
+# Check for existence of support for pyopengl
 function(FindDRI)
 
 message(STATUS "Looking for display capabilities")

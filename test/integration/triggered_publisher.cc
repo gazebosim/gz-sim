@@ -647,7 +647,7 @@ TEST_F(TriggeredPublisherTest,
 
 /////////////////////////////////////////////////
 /// Test for invalid service name. A service, `/srv-dummy-test` is advertised
-/// and the callback is also provided in this test. Everytime an input msg is
+/// and the callback is also provided in this test. Every time an input msg is
 /// published to `/in_14` topic, triggered_publisher plugin will call the
 /// service `srv-test`, specified in the test/worlds/triggered_publisher.sdf.
 /// However, since the two service names do not match, the callback provided in
@@ -692,11 +692,11 @@ TEST_F(TriggeredPublisherTest,
 /////////////////////////////////////////////////
 /// Test for triggering a service call in response to an input msg. A service,
 /// `srv-test` is advertised and the callback is also provided in this test.
-/// Everytime an input msg is published to `/in_14` topic, triggered_publisher
+/// Every time an input msg is published to `/in_14` topic, triggered_publisher
 /// plugin will call the service `/srv-test`, specified in the test/worlds/
 /// triggered_publisher.sdf. This time, the name of the services match. By
 /// publishing input msg 10 times, the service callback will also be invoked 10
-/// times. The `pubCount` is set to 10 and recvCount is increased everytime
+/// times. The `pubCount` is set to 10 and recvCount is increased every time
 /// request data matches the string "test" inside the service callback. For a
 /// successful test, the pubCount will equal to recvCount.
 TEST_F(TriggeredPublisherTest,
@@ -724,8 +724,8 @@ TEST_F(TriggeredPublisherTest,
   {
     // This block of code is here because service requests from a previous test
     // might interfere with this test. We sleep a small amount time and reset
-    // `recvCount` to 0. This ensures that the service requets from the previous
-    // test are discarded properly.
+    // `recvCount` to 0. This ensures that the service requests from the
+    // previous test are discarded properly.
     // TODO(azeey) Remove once
     // https://github.com/gazebosim/gz-transport/issues/491 is resolved.
     GZ_SLEEP_MS(2000);
@@ -746,8 +746,8 @@ TEST_F(TriggeredPublisherTest,
 /////////////////////////////////////////////////
 /// Test for triggering multiple services (in sequence) in response to an input
 /// msg by publishing 10 times. Two services, `srv-test-0` and `srv-test-1` are
-/// specified in the test/worlds/triggered_publisher.sdf. Everytime an input msg
-/// is published, triggered_publisher will call the service and invoke the
+/// specified in the test/worlds/triggered_publisher.sdf. Every time an input
+/// msg is published, triggered_publisher will call the service and invoke the
 /// callback. std::vector is passed as a reference and will be populated with
 /// the request message, which will be a boolean value of `true`. If successful,
 /// `recvMsg0` and `recvMsg1` vectors should both have a size of 10 with all

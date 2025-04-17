@@ -199,7 +199,7 @@ void PeerTracker::OnPeerHeartbeat(const private_msgs::PeerInfo &_info)
 {
   auto peer = fromProto(_info);
 
-  // Skip hearbeats from self.
+  // Skip heartbeats from self.
   if (peer.id == this->info.id)
   {
     return;

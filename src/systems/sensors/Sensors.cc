@@ -140,7 +140,7 @@ class gz::sim::systems::SensorsPrivate
   ///
   /// This variable is used to block/unblock operations in PostUpdate thread
   /// to make sure renderUtil's ECM updates are applied to the scene first
-  /// before they are overriden by PostUpdate
+  /// before they are overridden by PostUpdate
   public: std::condition_variable updateTimeCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
@@ -155,7 +155,7 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Update time applied in the rendering thread
   public: std::chrono::steady_clock::duration updateTimeApplied;
 
-  /// \brief Update time to be appplied in the rendering thread
+  /// \brief Update time to be applied in the rendering thread
   public: std::chrono::steady_clock::duration updateTimeToApply;
 
   /// \brief Next sensors update time
@@ -201,7 +201,7 @@ class gz::sim::systems::SensorsPrivate
   ///
   /// The caller of PostUpdate will not be blocked if there is no
   /// rendering operation currently ongoing. Rendering will occur
-  /// asyncronously.
+  /// asynchronously.
   //
   /// The caller of PostUpdate will be blocked if there is a rendering
   /// operation currently ongoing, until that completes.

@@ -56,7 +56,7 @@ class gz::sim::systems::ThrusterPrivateData
 {
   /// \brief The mode of operation
   public: enum OperationMode {
-    /// \brief Takes in a force commmand and spins the propeller at an
+    /// \brief Takes in a force command and spins the propeller at an
     /// appropriate rate.
     ForceCmd = 0,
     /// \brief Takes in angular velocity commands in radians per second and

@@ -343,7 +343,7 @@ class VisualCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 
-  /// \brief Visual equality comparision function
+  /// \brief Visual equality comparison function
   /// TODO(anyone) Currently only checks for material colors equality,
   /// need to extend to others
   public: std::function<bool(const msgs::Visual &, const msgs::Visual &)>
@@ -400,7 +400,7 @@ class WheelSlipCommand : public UserCommandBase
   // Documentation inherited
   public: bool Execute() final;
 
-  /// \brief WheelSlip equality comparision function
+  /// \brief WheelSlip equality comparison function
   public: std::function<bool(
     const msgs::WheelSlipParametersCmd &, const msgs::WheelSlipParametersCmd &)>
           wheelSlipEql {
@@ -523,15 +523,15 @@ class gz::sim::systems::UserCommandsPrivate
 
   /// \brief Callback for visual service
   /// \param[in] _req Request containing visual updates of an entity
-  /// \param[out] _res True if message sucessfully received and queued.
-  /// It does not mean that the viusal will be successfully updated
+  /// \param[out] _res True if message successfully received and queued.
+  /// It does not mean that the visual will be successfully updated
   /// \return True if successful.
   public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
 
   /// \brief Callback for wheel slip service
   /// \param[in] _req Request containing wheel slip parameter updates of an
   ///  entity.
-  /// \param[out] _res True if message sucessfully received and queued.
+  /// \param[out] _res True if message successfully received and queued.
   /// It does not mean that the wheel slip parameters will be successfully
   /// updated.
   /// \return True if successful.

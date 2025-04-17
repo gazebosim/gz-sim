@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
   This example show cases how to load and unload environmental data.
-  Before opening this file in a seperate terminal run:
+  Before opening this file in a separate terminal run:
     gz topic -e -t /sensors/humidity
   Then open this file by running:
     gz sim environmental_sensor.sdf

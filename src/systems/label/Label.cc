@@ -76,7 +76,7 @@ void Label::Configure(const Entity &_entity,
     // child models and their respective links/visuals
     // https://github.com/gazebosim/gz-sim/issues/1041
 
-    // Get link childern of parent model
+    // Get link children of parent model
     auto links = _ecm.ChildrenByComponents<components::Link>(
       _entity, components::Link());
 
@@ -86,7 +86,7 @@ void Label::Configure(const Entity &_entity,
       auto visuals = _ecm.ChildrenByComponents<components::Visual>(
         linkEntity, components::Visual());
 
-      // Create label component to all visual childern
+      // Create label component to all visual children
       for (auto visualEntity : visuals)
       {
         _ecm.CreateComponent(visualEntity,

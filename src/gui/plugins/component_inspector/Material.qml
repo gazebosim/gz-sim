@@ -88,7 +88,7 @@ Rectangle {
                      model.data[_start_index + 2],
                      model.data[_start_index + 3])
     } else {
-      // border color's alpha set to 1 incase fill color is 0
+      // border color's alpha set to 1 in case fill color is 0
       return Qt.rgba(model.data[_start_index],
                      model.data[_start_index + 1],
                      model.data[_start_index + 2],

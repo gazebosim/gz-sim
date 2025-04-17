@@ -78,7 +78,7 @@ namespace gz
       /// \brief Populate simulation step data
       /// This method is called at the beginning of a simulation iteration.
       /// It will populate the info argument with the appropriate values for
-      /// the simuation iteration.
+      /// the simulation iteration.
       /// \param[inout] _info current simulation update information
       /// \return True if simulation step was successfully synced.
       public: bool Step(const UpdateInfo &_info);

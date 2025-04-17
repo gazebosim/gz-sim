@@ -206,7 +206,7 @@ Update | Entities are updated by systems
 
 ## Others
 
-Miscelaneous functions that don't fit the other categories. Most of them involve
+Miscellaneous functions that don't fit the other categories. Most of them involve
 logic that should be performed from within a system.
 
 ---

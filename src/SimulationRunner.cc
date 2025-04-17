@@ -71,7 +71,7 @@ namespace {
 // 1. Gazebo is built without Pybind11
 // 2. The python interpreter is not initialized. This could happen in tests that
 //    create a SimulationRunner without sim::Server where the interpreter is
-//    intialized.
+//    initialized.
 // 3. sim::Server was instantiated by a Python module. In this case, there's a
 //    chance that this would be called with the GIL already released.
 struct MaybeGilScopedRelease
@@ -674,7 +674,7 @@ void SimulationRunner::StopWorkerThreads()
 bool SimulationRunner::Run(const uint64_t _iterations)
 {
   // \todo(nkoenig) Systems will need a an update structure, such as
-  // priorties, or a dependency chain.
+  // priorities, or a dependency chain.
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.
