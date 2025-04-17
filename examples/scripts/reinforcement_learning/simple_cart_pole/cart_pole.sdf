@@ -1,22 +1,10 @@
 <?xml version="1.0" ?>
 <!--
-  Gazebo differential drive plugin demo
-
-  Try sending commands:
-
-    gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 0.5}, angular: {z: 0.05}"
-
-    gz topic -t "/model/vehicle_green/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: -0.1}"
-
-  Listen to odometry:
-
-    gz topic -e -t /model/vehicle_blue/odometry
-
-    gz topic -e -t /model/vehicle_green/odometry
-
+  This is a simple cart-pole world that demonstrates the use of Gazebo for
+  RL. To check it out in action follow the instructions in the readme.
 -->
 <sdf version="1.6">
-  <world name="diff_drive">
+  <world name="cart_pole">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>

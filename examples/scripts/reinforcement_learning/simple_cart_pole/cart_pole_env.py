@@ -92,7 +92,7 @@ class GzRewardScorer:
         """
         Execute the server.
 
-        There is a bit of nuance in this instance, 
+        There is a bit of nuance in this instance,
         our environment has control over every 5 simulation steps.
         We block the server till those 5 steps are completed.
         """
@@ -141,9 +141,9 @@ model.learn(total_timesteps=25_000)
 vec_env = model.get_env()
 obs = vec_env.reset()
 
+# Spawn your GUI and see the model you inferred
 run_gui()
 time.sleep(10)
 for i in range(50000):
     action, _state = model.predict(obs, deterministic=True)
     obs, reward, done, info = vec_env.step(action)
-    # Nice to have spawn a gz sim client
