@@ -4,5 +4,5 @@ gz_add_system(forcetorque
   PUBLIC_LINK_LIBS
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
   PRIVATE_LINK_LIBS
-    gz-sensors${GZ_SENSORS_VER}::force_torque
+    gz-sensors::force_torque
 )

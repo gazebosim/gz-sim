@@ -49,7 +49,7 @@ target_link_libraries(${gui_target}
     ${PROJECT_LIBRARY_TARGET_NAME}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-gui::gz-gui
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-transport::gz-transport
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
     Qt::Core
     Qt::Qml
@@ -77,7 +77,7 @@ gz_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-transport::gz-transport
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )

@@ -11,9 +11,9 @@ libgz-msgs11-dev
 libgz-physics8-dev
 libgz-plugin3-dev
 libgz-rendering9-dev
-libgz-sensors9-dev
+libgz-sensors10-dev
 libgz-tools2-dev
-libgz-transport14-dev
+libgz-transport15-dev
 libgz-utils3-cli-dev
 libogre-1.9-dev
 libogre-next-2.3-dev
@@ -26,7 +26,7 @@ libxmu-dev
 libpython3-dev
 python3-gz-math8
 python3-gz-msgs11
-python3-gz-transport14
+python3-gz-transport15
 python3-pybind11
 python3-pytest
 python3-sdformat15
