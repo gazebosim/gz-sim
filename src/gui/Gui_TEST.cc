@@ -266,6 +266,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
         !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isVisible())
         && sleep < 30; ++sleep)
     {
+      gzdbg << "Sleeping to wait for main window" << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     auto win = gui::App()->findChild<gui::MainWindow *>();
