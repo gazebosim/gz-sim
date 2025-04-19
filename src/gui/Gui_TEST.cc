@@ -263,7 +263,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     // Close main window
     for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
-        !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isVisible())
+        !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isExposed())
         && sleep < 30; ++sleep)
     {
       gzdbg << "Sleeping to wait for main window" << std::endl;
