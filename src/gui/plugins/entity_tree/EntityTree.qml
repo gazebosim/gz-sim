@@ -14,14 +14,15 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQml.Models 2.2
-import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
+import QtQuick
+
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Dialogs 1.0
+
+import QtQuick.Dialogs
 import GzSim 1.0 as GzSim
 
 Rectangle {
@@ -81,7 +82,7 @@ Rectangle {
    * Deselect all entities.
    */
   function deselectAllEntities() {
-    tree.selection.clear()
+    tree.selectionModel.clear()
   }
 
   /*
@@ -89,12 +90,12 @@ Rectangle {
    * found and select that.
    */
   function selectFromCpp(_entity, itemId) {
-    if (EntityTreeModel.data(itemId, 101) == _entity) {
-      tree.selection.select(itemId, ItemSelectionModel.Select)
+    if (_EntityTreeModel.data(itemId, 101) == _entity) {
+      tree.selectionModel.select(itemId, ItemSelectionModel.Select)
       return
     }
-    for (var i = 0; i < EntityTreeModel.rowCount(itemId); i++) {
-      selectFromCpp(_entity, EntityTreeModel.index(i, 0, itemId))
+    for (var i = 0; i < _EntityTreeModel.rowCount(itemId); i++) {
+      selectFromCpp(_entity, _EntityTreeModel.index(i, 0, itemId))
     }
   }
 
@@ -103,8 +104,8 @@ Rectangle {
    * For example, if it comes from the 3D window.
    */
   function onEntitySelectedFromCpp(_entity) {
-    for(var i = 0; i < EntityTreeModel.rowCount(); i++) {
-      var itemId = EntityTreeModel.index(i, 0)
+    for(var i = 0; i < _EntityTreeModel.rowCount(); i++) {
+      var itemId = _EntityTreeModel.index(i, 0)
       selectFromCpp(_entity, itemId)
     }
   }
@@ -163,12 +164,11 @@ Rectangle {
         FileDialog {
           id: loadFileDialog
           title: "Load mesh"
-          folder: shortcuts.home
-          nameFilters: [ "Collada files (*.dae)", "STL (*.stl)", "Wavefront OBJ (*.obj)" ]
-          selectMultiple: false
-          selectExisting: true
+          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          fileMode: FileDialog.OpenFile
+          currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
           onAccepted: {
-            EntityTree.OnLoadMesh(fileUrl)
+            _EntityTree.OnLoadMesh(selectedFile)
           }
         }
 
@@ -189,7 +189,7 @@ Rectangle {
             id: box
             text: "Box"
             onClicked: {
-              EntityTree.OnInsertEntity("box")
+              _EntityTree.OnInsertEntity("box")
             }
           }
 
@@ -198,7 +198,7 @@ Rectangle {
             id: capsule
             text: "Capsule"
             onClicked: {
-              EntityTree.OnInsertEntity("capsule")
+              _EntityTree.OnInsertEntity("capsule")
             }
           }
 
@@ -207,7 +207,7 @@ Rectangle {
             id: cone
             text: "Cone"
             onClicked: {
-              EntityTree.OnInsertEntity("cone")
+              _EntityTree.OnInsertEntity("cone")
             }
           }
 
@@ -216,7 +216,7 @@ Rectangle {
             id: cylinder
             text: "Cylinder"
             onClicked: {
-              EntityTree.OnInsertEntity("cylinder")
+              _EntityTree.OnInsertEntity("cylinder")
             }
           }
 
@@ -225,7 +225,7 @@ Rectangle {
             id: ellipsoid
             text: "Ellipsoid"
             onClicked: {
-              EntityTree.OnInsertEntity("ellipsoid")
+              _EntityTree.OnInsertEntity("ellipsoid")
             }
           }
 
@@ -234,7 +234,7 @@ Rectangle {
             id: sphere
             text: "Sphere"
             onClicked: {
-              EntityTree.OnInsertEntity("sphere")
+              _EntityTree.OnInsertEntity("sphere")
             }
           }
 
@@ -272,7 +272,7 @@ Rectangle {
             id: directionalLight
             text: "Directional"
             onClicked: {
-              EntityTree.OnInsertEntity("directional")
+              _EntityTree.OnInsertEntity("directional")
             }
           }
 
@@ -281,7 +281,7 @@ Rectangle {
             id: pointLight
             text: "Point"
             onClicked: {
-              EntityTree.OnInsertEntity("point")
+              _EntityTree.OnInsertEntity("point")
             }
           }
 
@@ -290,7 +290,7 @@ Rectangle {
             id: spotLight
             text: "Spot"
             onClicked: {
-              EntityTree.OnInsertEntity("spot")
+              _EntityTree.OnInsertEntity("spot")
             }
           }
         }
@@ -304,100 +304,79 @@ Rectangle {
     anchors.bottom: parent.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    model: EntityTreeModel
-    selectionMode: SelectionMode.MultiSelection
+    model: _EntityTreeModel
 
-    // Hacky: the sibling of listView is the background(Rectangle) of TreeView
-    Component.onCompleted: {
-      tree.__listView.parent.children[1].color = Material.background
+    selectionModel: ItemSelectionModel {
+      model: _EntityTreeModel
     }
-    Material.onThemeChanged: {
-      tree.__listView.parent.children[1].color = Material.background
-    }
-
-    selection: ItemSelectionModel {
-      model: EntityTreeModel
+    palette {
+      base: lightGrey
+      alternateBase: darkGrey
+      highlight: highlightColor
+      windowText: "black"
     }
 
-    style: TreeViewStyle {
-      frame: Rectangle {
-        border{
-          color:  lightGrey
-        }
-      }
-      indentation: itemHeight * 0.75
+    delegate: TreeViewDelegate {
+      id: treeDelegate
+      implicitWidth: entityTree.width
+      leftMargin: 0
+      rightMargin: 0
+      indentation: 20
+      spacing: 0
 
-      headerDelegate: Rectangle {
-        visible: false
-      }
-      branchDelegate: Rectangle {
+      indicator: Rectangle {
+        x: leftMargin + (depth * indentation)
         height: itemHeight
         width: itemHeight * 0.75
+        anchors.margins: 0
         color:  "transparent"
         Image {
-          id: icon
+          id: indicatorIcon
+          anchors.margins: 0
           sourceSize.height: itemHeight * 0.4
           sourceSize.width: itemHeight * 0.4
           fillMode: Image.Pad
           anchors.verticalCenter: parent.verticalCenter
           anchors.right: parent.right
-          source: styleData.isExpanded ?
+          source: tree.isExpanded(row) ?
               "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
         }
         MouseArea {
           anchors.fill: parent
           hoverEnabled: true
           propagateComposedEvents: true
-          onClicked: {
+          onClicked: mouse => {
             // Stop the event propagation. The TreeView's own collapsible
             // behaviour gets messy otherwise.
             mouse.accepted = true
-
-            if (tree.isExpanded(styleData.index))
-              tree.collapse(styleData.index)
+            if (tree.isExpanded(row))
+              tree.collapse(row)
             else
-              tree.expand(styleData.index)
+              tree.expand(row)
           }
         }
       }
 
-      rowDelegate: Rectangle {
-        visible: styleData.row !== undefined
-        height: itemHeight
-        color: styleData.selected ? highlightColor : (styleData.row % 2 == 0) ? even : odd
-        MouseArea {
-          anchors.fill: parent
-          hoverEnabled: true
-          propagateComposedEvents: true
-          onClicked: {
-            // Stop event propagation and handle selection here.
-            mouse.accepted = true
-
-            // branchDelegate and itemDelegate have styleData.index, but, for
-            // some reason, rowDelegate doesn't. So instead of finding
-            // the QModelIndex some other way we just disable selection from the
-            // row for now
-          }
-        }
-      }
-
-      itemDelegate: Rectangle {
+      contentItem: Rectangle {
         id: itemDel
         color: "transparent"
-        height: itemHeight
-
+        implicitHeight: itemHeight
+        anchors.margins: 0
 
         GzSim.TypeIcon {
           id: icon
-          height: itemHeight - 2
-          width: itemHeight - 2
+          height: itemHeight - 5
+          width: itemHeight - 5
           entityType: model === null || model.type === undefined ? "" : model.type
+          anchors.margins: 0
         }
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
           anchors.left: icon.right
           leftPadding: 2
+          topPadding: 0
+          bottomPadding: 0
           text: model === null || model.entityName === undefined ? "" : model.entityName
           color: Material.theme == Material.Light ? "black" : "white"
           font.pointSize: 12
@@ -419,22 +398,24 @@ Rectangle {
           hoverEnabled: true
           propagateComposedEvents: true
           acceptedButtons: Qt.RightButton | Qt.LeftButton
-          onClicked: {
+          onClicked: mouse => {
             mouse.accepted = false
             if (mouse.button == Qt.RightButton) {
-              var type = EntityTreeModel.EntityType(styleData.index)
-              var scopedName = EntityTreeModel.ScopedName(styleData.index)
+              var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
+              var type = _EntityTreeModel.EntityType(mi)
+              var scopedName = _EntityTreeModel.ScopedName(mi)
               var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
               entityContextMenu.open(scopedName, type, posInTree.x, posInTree.y)
               // Prevent plugin's context menu from opening
               mouse.accepted = true
             }
             else if (mouse.button == Qt.LeftButton) {
+              var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
               var mode = mouse.modifiers & Qt.ControlModifier ?
                   ItemSelectionModel.Select : ItemSelectionModel.ClearAndSelect
-              var entity = EntityTreeModel.EntityId(styleData.index)
-              EntityTree.OnEntitySelectedFromQml(entity)
-              tree.selection.select(styleData.index, mode)
+              var entity = _EntityTreeModel.EntityId(mi)
+              _EntityTree.OnEntitySelectedFromQml(entity)
+              tree.selectionModel.select(mi, mode)
             }
           }
         }
@@ -443,11 +424,6 @@ Rectangle {
 
     GzSim.EntityContextMenu {
       id: entityContextMenu
-    }
-
-    TableViewColumn {
-      role: "entityName"
-      width: tree.width
     }
   }
 }

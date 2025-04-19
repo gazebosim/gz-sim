@@ -20,7 +20,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 ToolBar {
   id: shapes
@@ -47,7 +47,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnNewLightClicked("point")
+        _Lights.OnNewLightClicked("point")
       }
     }
     ToolButton{
@@ -64,7 +64,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnNewLightClicked("directional")
+        _Lights.OnNewLightClicked("directional")
       }
     }
     ToolButton {
@@ -81,7 +81,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Lights.OnNewLightClicked("spot")
+        _Lights.OnNewLightClicked("spot")
       }
     }
   }

@@ -19,7 +19,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import "qrc:/qml"
 
 ColumnLayout {
@@ -59,7 +59,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(0, 0, -1)
+          _ViewAngle.OnAngleMode(0, 0, -1)
         }
       }
       ToolButton {
@@ -80,7 +80,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(0, 0, 0)
+          _ViewAngle.OnAngleMode(0, 0, 0)
         }
       }
       ToolButton {
@@ -101,7 +101,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(0, 1, 0)
+          _ViewAngle.OnAngleMode(0, 1, 0)
         }
       }
       ToolButton {
@@ -122,7 +122,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(-1, 0, 0)
+          _ViewAngle.OnAngleMode(-1, 0, 0)
         }
       }
       ToolButton {
@@ -143,7 +143,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(0, -1, 0)
+          _ViewAngle.OnAngleMode(0, -1, 0)
         }
       }
       ToolButton {
@@ -164,7 +164,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(1, 0, 0)
+          _ViewAngle.OnAngleMode(1, 0, 0)
         }
       }
       ToolButton {
@@ -185,7 +185,7 @@ ColumnLayout {
           sourceSize.height: 24;
         }
         onClicked: {
-          ViewAngle.OnAngleMode(0, 0, 1)
+          _ViewAngle.OnAngleMode(0, 0, 1)
         }
       }
     }
@@ -193,7 +193,7 @@ ColumnLayout {
 
   // Projection
   ComboBox {
-    currentIndex: ViewAngle.viewControlIndex
+    currentIndex: _ViewAngle.viewControlIndex
     model: ListModel {
         id: controller
         ListElement {text: "Orbit View Control"}
@@ -203,7 +203,7 @@ ColumnLayout {
     Layout.minimumWidth: 280
     Layout.margins: 10
     onCurrentIndexChanged: {
-        ViewAngle.OnViewControl(controller.get(currentIndex).text)
+        _ViewAngle.OnViewControl(controller.get(currentIndex).text)
     }
   }
 
@@ -226,7 +226,7 @@ ColumnLayout {
       decimals: 2
       stepSize: 0.1
       onEditingFinished:{
-        ViewAngle.OnViewControlSensitivity(value)
+        _ViewAngle.OnViewControlSensitivity(value)
       }
     }
   }
@@ -240,7 +240,7 @@ ColumnLayout {
     text: qsTr("Display View Control Reference Visual")
     checked: true
     onClicked: {
-      ViewAngle.OnViewControlReferenceVisual(checked)
+      _ViewAngle.OnViewControlReferenceVisual(checked)
     }
   }
 
@@ -258,16 +258,16 @@ ColumnLayout {
     width: parent.width
     Layout.fillWidth: true
     readOnly: false
-    xValue: ViewAngle.camPose[0]
-    yValue: ViewAngle.camPose[1]
-    zValue: ViewAngle.camPose[2]
-    rollValue: ViewAngle.camPose[3]
-    pitchValue: ViewAngle.camPose[4]
-    yawValue: ViewAngle.camPose[5]
-    onGzPoseSet: {
+    xValue: _ViewAngle.camPose[0]
+    yValue: _ViewAngle.camPose[1]
+    zValue: _ViewAngle.camPose[2]
+    rollValue: _ViewAngle.camPose[3]
+    pitchValue: _ViewAngle.camPose[4]
+    yawValue: _ViewAngle.camPose[5]
+    onGzPoseSet: (_x, _y, _z, _roll, _pitch, _yaw) => {
       // _x, _y, _z, _roll, _pitch, _yaw are parameters of signal gzPoseSet
       // from gz-gui GzPose.qml
-      ViewAngle.SetCamPose(_x, _y, _z, _roll, _pitch, _yaw)
+      _ViewAngle.SetCamPose(_x, _y, _z, _roll, _pitch, _yaw)
     }
     expand: true
   }
@@ -298,12 +298,12 @@ ColumnLayout {
       Layout.fillWidth: true
       Layout.row: 0
       Layout.column: 1
-      value: ViewAngle.camClipDist[0]
+      value: _ViewAngle.camClipDist[0]
       maximumValue: farClip.value
       minimumValue: 0.000001
       decimals: 6
       stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      onEditingFinished: _ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
     Text {
       text: "Far (m)"
@@ -317,12 +317,12 @@ ColumnLayout {
       Layout.fillWidth: true
       Layout.row: 0
       Layout.column: 3
-      value: ViewAngle.camClipDist[1]
+      value: _ViewAngle.camClipDist[1]
       maximumValue: Number.MAX_VALUE
       minimumValue: nearClip.value
       decimals: 6
       stepSize: 0.01
-      onEditingFinished: ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
+      onEditingFinished: _ViewAngle.SetCamClipDist(nearClip.value, farClip.value)
     }
   }
 
@@ -352,12 +352,12 @@ ColumnLayout {
       Layout.fillWidth: true
       Layout.row: 0
       Layout.column: 1
-      value: ViewAngle.horizontalFOV
+      value: _ViewAngle.horizontalFOV
       maximumValue: 3.14159
       minimumValue: 0.000001
       decimals: 6
       stepSize: 0.01
-      onEditingFinished: ViewAngle.SetHorizontalFOV(horizontalFOV.value)
+      onEditingFinished: _ViewAngle.SetHorizontalFOV(horizontalFOV.value)
     }
   }
 
