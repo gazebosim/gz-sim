@@ -259,24 +259,26 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     gzdbg << "Waiting for main window" << std::endl;
     guiCv.wait(internalLock, [&] () {return runningMainWindow;});
 
-    gzdbg << "Closing main window" << std::endl;
+    gzdbg << "Getting main window" << std::endl;
     // Close main window
     for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
         !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isVisible())
         && sleep < 30; ++sleep)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     auto win = gui::App()->findChild<gui::MainWindow *>();
     // The above loop can result in the window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
     if (win)
     {
+      gzdbg << "Closing main window" << std::endl;
       ASSERT_TRUE(win);
       EXPECT_TRUE(win->QuickWindow()->isVisible());
       win->QuickWindow()->close();
     }
+    gzdbg << "Closing all windows" << std::endl;
     auto allWindows = gui::App()->allWindows();
     for (int i = 0; i < allWindows.size(); ++i)
     {
