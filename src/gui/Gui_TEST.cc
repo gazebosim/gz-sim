@@ -253,7 +253,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     gzdbg << "Closing the quickstart window" << std::endl;
     ASSERT_EQ(1, gui::App()->allWindows().count());
     while (!gui::App()->allWindows()[0]->isExposed())
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;
@@ -267,31 +267,27 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
         && sleep < 30; ++sleep)
     {
       gzdbg << "Sleeping to wait for main window" << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      gzdbg << "Done Sleeping to wait for main window" << std::endl;
     }
 
     // The above loop can result in the app or window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
-    if (gui::App())
+    gzdbg << "Finding win" << std::endl;
+    auto win = gui::App()->findChild<gui::MainWindow *>();
+    gzdbg << "Done Finding win" << win << std::endl;
+    if (win)
     {
-      auto win = gui::App()->findChild<gui::MainWindow *>();
-      if (win)
-      {
-        gzdbg << "Closing main window" << std::endl;
-        ASSERT_TRUE(win);
-        EXPECT_TRUE(win->QuickWindow()->isVisible());
-        win->QuickWindow()->close();
-      }
-      gzdbg << "Closing all windows" << std::endl;
-      auto allWindows = gui::App()->allWindows();
-      for (int i = 0; i < allWindows.size(); ++i)
-      {
-        allWindows[i]->close();
-      }
+      gzdbg << "Closing main window" << std::endl;
+      ASSERT_TRUE(win);
+      EXPECT_TRUE(win->QuickWindow()->isVisible());
+      win->QuickWindow()->close();
     }
-    else
+    gzdbg << "Closing all windows" << std::endl;
+    auto allWindows = gui::App()->allWindows();
+    for (int i = 0; i < allWindows.size(); ++i)
     {
-      gzdbg << "gui::App() is null, skipping checks." << std::endl;
+      allWindows[i]->close();
     }
     gzdbg << "Exiting checking thread" << std::endl;
   });
