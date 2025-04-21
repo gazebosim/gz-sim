@@ -253,15 +253,11 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     gzdbg << "Closing the quickstart window" << std::endl;
     ASSERT_EQ(1, gui::App()->allWindows().count());
     while (!gui::App()->allWindows()[0]->isExposed())
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;
     guiCv.wait(internalLock, [&] () {return runningMainWindow;});
-
-    gzdbg << "Sleep for some time for quickstart window to shutdown and for "
-          << "main window to come up." << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     gzdbg << "Getting main window" << std::endl;
     // Close main window
@@ -313,6 +309,11 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   runningMainWindow = true;
   guiCv.notify_one();
   threadLock.unlock();
+
+  gzdbg << "Sleep for some time for quickstart window to shutdown and for "
+        << "main window to come up." << std::endl;
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   gzdbg << "Running main window" << std::endl;
   app->exec();
   checkingThread.join();
