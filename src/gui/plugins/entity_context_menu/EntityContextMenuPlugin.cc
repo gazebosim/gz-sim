@@ -159,10 +159,9 @@ void EntityContextMenuItem::SetEntityContextMenuHandler(
 }
 
 ///////////////////////////////////////////////////
-void EntityContextMenuItem::OnContextMenuRequested(
-  QString _entity, int _mouseX, int _mouseY)
+void EntityContextMenuItem::OnContextMenuRequested(QString _entity)
 {
-  emit openContextMenu(std::move(_entity), _mouseX, _mouseY);
+  emit openContextMenu(std::move(_entity));
 }
 
 /////////////////////////////////////////////////
@@ -198,8 +197,7 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
       visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
     }
 
-    emit ContextMenuRequested(
-      visual->Name().c_str(), _mouseEvent.Pos().X(), _mouseEvent.Pos().Y());
+    emit ContextMenuRequested(visual->Name().c_str());
   }
 }
 
