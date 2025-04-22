@@ -261,7 +261,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
 
     gzdbg << "Getting main window" << std::endl;
     // Close main window
-    for (int sleep = 0;
+    /*for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
         !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isExposed())
         && sleep < 30; ++sleep)
@@ -269,7 +269,10 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
       gzdbg << "Sleeping to wait for main window" << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
       gzdbg << "Done Sleeping to wait for main window" << std::endl;
-    }
+    }*/
+
+    gzdbg << "Sleeping 5s to wait for main window" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
     // The above loop can result in the app or window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
