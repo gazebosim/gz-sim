@@ -296,12 +296,23 @@ std::string launchQuickStart(int &_argc, char **_argv,
   if (nullptr != app)
   {
     app->exec();
+    // dialog->deleteLater();
+    // delete context;
     gzdbg << "Shutting quick setup dialog" << std::endl;
   }
 
   // Update dialog config
   dialog->UpdateConfigAttribute(_configInUse, "show_again",
     quickStartHandler->ShowAgain());
+
+  //if (QCoreApplication::eventDispatcher())
+  {
+    // gzdbg << "  Si Gui Event dispatcher process events" << std::endl;
+    // QCoreApplication::sendPostedEvents(0, QEvent::DeferredDelete);
+    // QCoreApplication::eventDispatcher()->processEvents(QEventLoop::AllEvents);
+  }
+  //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
   return quickStartHandler->StartingWorld();
 }
 

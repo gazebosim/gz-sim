@@ -252,27 +252,34 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     // Close the quick start window
     gzdbg << "Closing the quickstart window" << std::endl;
     ASSERT_EQ(1, gui::App()->allWindows().count());
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     while (!gui::App()->allWindows()[0]->isExposed())
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    {
+      gzdbg << "Sleeping to wait for quickstart window" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+      gzdbg << "Done Sleeping to wait for quickstart window" << std::endl;
+    }
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;
     guiCv.wait(internalLock, [&] () {return runningMainWindow;});
 
     gzdbg << "Getting main window" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     // Close main window
-    /*for (int sleep = 0;
+    for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
         !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isExposed())
         && sleep < 30; ++sleep)
     {
       gzdbg << "Sleeping to wait for main window" << std::endl;
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(5000));
       gzdbg << "Done Sleeping to wait for main window" << std::endl;
-    }*/
+    }
 
-    gzdbg << "Sleeping 2s to wait for main window" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    //gzdbg << "Sleeping 2s to wait for main window" << std::endl;
+    //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // return;
 
     // The above loop can result in the app or window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
@@ -306,6 +313,9 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   EXPECT_NE(nullptr, app);
   gzdbg << "GUI created" << std::endl;
 
+  // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  // QCoreApplication::processEvents();
+
   EXPECT_TRUE(worldsCalled);
   EXPECT_TRUE(startingWorldCalled);
 
@@ -313,10 +323,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   guiCv.notify_one();
   threadLock.unlock();
 
-  gzdbg << "Sleep some time for quickstart window to shutdown" << std::endl;
-  QCoreApplication::processEvents();
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
+  // gzdbg << "Sleep some time for quickstart window to shutdown" << std::endl;
   gzdbg << "Running main window" << std::endl;
   app->exec();
   checkingThread.join();
