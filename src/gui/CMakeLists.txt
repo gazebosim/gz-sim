@@ -24,9 +24,9 @@ set(CMAKE_AUTORCC ON)
 
 # CMake AUTOMOC does not generate moc_*.cpp files automatically for headers
 # located in different directories than the containing .cc file. For Qt header
-# files in `include/gz/sim/gui`, we use qt5_wrap_cpp instead. There is
+# files in `include/gz/sim/gui`, we use qt_wrap_cpp instead. There is
 # no need to add entries for Qt header files in `src/gui/`.
-qt5_wrap_cpp(gui_sources
+qt_wrap_cpp(gui_sources
   ${PROJECT_SOURCE_DIR}/include/gz/sim/gui/GuiSystem.hh
 )
 
@@ -49,10 +49,13 @@ target_link_libraries(${gui_target}
     ${PROJECT_LIBRARY_TARGET_NAME}
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
     gz-gui::gz-gui
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-transport::gz-transport
     gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
-    ${Qt5Core_LIBRARIES}
-    ${Qt5Widgets_LIBRARIES}
+    Qt::Core
+    Qt::Qml
+    Qt::Quick
+    Qt::QuickControls2
+    Qt::Widgets
 )
 
 set(CMAKE_AUTOMOC OFF)
@@ -74,7 +77,7 @@ gz_build_tests(TYPE UNIT
     ${EXTRA_TEST_LIB_DEPS}
     gz-sim
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-transport::gz-transport
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )

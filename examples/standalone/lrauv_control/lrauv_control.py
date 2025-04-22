@@ -29,7 +29,7 @@
 from gz.msgs11.double_pb2 import Double
 from gz.msgs11.odometry_pb2 import Odometry
 from gz.math8 import Quaterniond, Vector3d
-from gz.transport14 import Node
+from gz.transport import Node
 
 from threading import Lock
 

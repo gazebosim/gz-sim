@@ -293,7 +293,7 @@ EntityTree::EntityTree()
 {
   // Connect model
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
-     "EntityTreeModel", &this->dataPtr->treeModel);
+     "_EntityTreeModel", &this->dataPtr->treeModel);
 }
 
 /////////////////////////////////////////////////

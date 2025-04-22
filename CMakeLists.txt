@@ -84,8 +84,7 @@ set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport14 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
+gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
@@ -114,13 +113,25 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 #--------------------------------------
 # Find gz-gui
 gz_find_package(gz-gui REQUIRED)
-gz_find_package (Qt5
+
+set(QT_MAJOR_VERSION 6)
+set(QT_MINOR_VERSION 4)
+gz_find_package (Qt${QT_MAJOR_VERSION}
+  VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
   COMPONENTS
     Core
     Quick
     QuickControls2
   REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+  PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+
+set(CMAKE_AUTOMOC TRUE)
+set(CMAKE_AUTOUIC TRUE)
+set(CMAKE_AUTORCC TRUE)
+if(POLICY CMP0100)
+  cmake_policy(SET CMP0100 NEW)
+endif()
+
 
 #--------------------------------------
 # Find gz-physics
@@ -135,7 +146,7 @@ set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors9 REQUIRED
+gz_find_package(gz-sensors REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -163,7 +174,6 @@ gz_find_package(gz-sensors9 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering

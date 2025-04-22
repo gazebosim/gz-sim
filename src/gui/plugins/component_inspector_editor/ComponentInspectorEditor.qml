@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQuick 2.9
-import QtQuick.Controls 1.4
+
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import GzSim 1.0 as GzSim
 
 
@@ -44,12 +45,12 @@ Rectangle {
   /**
    * Entity type
    */
-  property string entityType: ComponentInspectorEditor.type
+  property string entityType: _ComponentInspectorEditor.type
 
   /**
    * Get if entity is nested model or not
    */
-  property bool nestedModel : ComponentInspectorEditor.nestedModel
+  property bool nestedModel : _ComponentInspectorEditor.nestedModel
 
   /**
    * Light grey according to theme
@@ -82,7 +83,7 @@ Rectangle {
 
   /// \brief Get whether simulation is paused
   function getSimPaused() {
-    return ComponentInspectorEditor.simPaused
+    return _ComponentInspectorEditor.simPaused
   }
 
   // Get number of decimal digits based on a width value
@@ -121,7 +122,7 @@ Rectangle {
                    _attRange, _attLinear, _attConstant, _attQuadratic,
                    _castShadows, _directionX, _directionY, _directionZ,
                    _innerAngle, _outerAngle, _falloff, _intensity, _type) {
-    ComponentInspectorEditor.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+    _ComponentInspectorEditor.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
                                _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                                _attRange, _attLinear, _attConstant, _attQuadratic,
                                _castShadows, _directionX, _directionY, _directionZ,
@@ -132,7 +133,7 @@ Rectangle {
    * Forward physics changes to C++
    */
   function onPhysics(_stepSize, _realTimeFactor) {
-    ComponentInspectorEditor.OnPhysics(_stepSize, _realTimeFactor)
+    _ComponentInspectorEditor.OnPhysics(_stepSize, _realTimeFactor)
   }
 
   /**
@@ -143,7 +144,7 @@ Rectangle {
                            _rSpecular, _gSpecular, _bSpecular, _aSpecular,
                            _rEmissive, _gEmissive, _bEmissive, _aEmissive,
                            _type, _currColor) {
-    ComponentInspectorEditor.OnMaterialColor(
+    _ComponentInspectorEditor.OnMaterialColor(
         _rAmbient, _gAmbient, _bAmbient, _aAmbient,
         _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
         _rSpecular, _gSpecular, _bSpecular, _aSpecular,
@@ -155,7 +156,7 @@ Rectangle {
    * Forward spherical coordinate changes to C++
    */
   function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
-    ComponentInspectorEditor.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+    _ComponentInspectorEditor.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
         _heading);
   }
 
@@ -205,7 +206,7 @@ Rectangle {
       }
       ComboBox {
         id: parentBox
-        model: ComponentInspectorEditor.modelParentLinks
+        model: _ComponentInspectorEditor.modelParentLinks
         currentIndex: 0
       }
       Text {
@@ -214,13 +215,13 @@ Rectangle {
       }
       ComboBox {
         id: childBox
-        model: ComponentInspectorEditor.modelChildLinks
+        model: _ComponentInspectorEditor.modelChildLinks
         currentIndex: 1
       }
     }
 
     onAccepted: {
-      ComponentInspectorEditor.OnAddJoint(jointType, parentBox.currentText, childBox.currentText)
+      _ComponentInspectorEditor.OnAddJoint(jointType, parentBox.currentText, childBox.currentText)
     }
   }
 
@@ -241,11 +242,11 @@ Rectangle {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
-        entityType: ComponentInspectorEditor.type
+        entityType: _ComponentInspectorEditor.type
       }
 
       Label {
-        text: ComponentInspectorEditor.type
+        text: _ComponentInspectorEditor.type
         font.capitalization: Font.Capitalize
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
@@ -275,7 +276,7 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
-          ComponentInspectorEditor.locked = lockButton.checked
+          _ComponentInspectorEditor.locked = lockButton.checked
         }
       }
 
@@ -294,7 +295,7 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
-          ComponentInspectorEditor.paused = pauseButton.checked
+          _ComponentInspectorEditor.paused = pauseButton.checked
         }
       }
 
@@ -334,12 +335,11 @@ Rectangle {
         FileDialog {
           id: loadFileDialog
           title: "Load mesh"
-          folder: shortcuts.home
+          fileMode: FileDialog.OpenFile
+          currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
           nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
-          selectMultiple: false
-          selectExisting: true
           onAccepted: {
-            ComponentInspectorEditor.OnLoadMesh("mesh", "link", fileUrl)
+            _ComponentInspectorEditor.OnLoadMesh("mesh", "link", selectedFile)
           }
         }
 
@@ -359,7 +359,7 @@ Rectangle {
             id: boxLink
             text: "Box"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("box", "link");
+              _ComponentInspectorEditor.OnAddEntity("box", "link");
               addLinkMenu.close()
             }
           }
@@ -368,7 +368,7 @@ Rectangle {
             id: capsuleLink
             text: "Capsule"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("capsule", "link");
+              _ComponentInspectorEditor.OnAddEntity("capsule", "link");
               addLinkMenu.close()
             }
           }
@@ -377,7 +377,7 @@ Rectangle {
             id: coneLink
             text: "Cone"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("cone", "link");
+              _ComponentInspectorEditor.OnAddEntity("cone", "link");
             }
           }
 
@@ -385,7 +385,7 @@ Rectangle {
             id: cylinderLink
             text: "Cylinder"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("cylinder", "link");
+              _ComponentInspectorEditor.OnAddEntity("cylinder", "link");
             }
           }
 
@@ -393,7 +393,7 @@ Rectangle {
             id: ellipsoidLink
             text: "Ellipsoid"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("ellipsoid", "link");
+              _ComponentInspectorEditor.OnAddEntity("ellipsoid", "link");
             }
           }
 
@@ -401,7 +401,7 @@ Rectangle {
             id: emptyLink
             text: "Empty"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("empty", "link");
+              _ComponentInspectorEditor.OnAddEntity("empty", "link");
             }
           }
 
@@ -417,7 +417,7 @@ Rectangle {
             id: sphereLink
             text: "Sphere"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("sphere", "link");
+              _ComponentInspectorEditor.OnAddEntity("sphere", "link");
             }
           }
 
@@ -445,7 +445,7 @@ Rectangle {
             id: directionalLink
             text: "Directional"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("directional", "link");
+              _ComponentInspectorEditor.OnAddEntity("directional", "link");
               addLinkMenu.close()
             }
           }
@@ -454,7 +454,7 @@ Rectangle {
             id: pointLink
             text: "Point"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("point", "link");
+              _ComponentInspectorEditor.OnAddEntity("point", "link");
               addLinkMenu.close()
             }
           }
@@ -463,7 +463,7 @@ Rectangle {
             id: spotLink
             text: "Spot"
             onClicked: {
-              ComponentInspectorEditor.OnAddEntity("spot", "link");
+              _ComponentInspectorEditor.OnAddEntity("spot", "link");
               addLinkMenu.close()
             }
           }
@@ -619,7 +619,7 @@ Rectangle {
             id: airPressure
             text: "Air pressure"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(airPressure.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(airPressure.text, "sensor");
             }
           }
 
@@ -627,7 +627,7 @@ Rectangle {
             id: altimeter
             text: "Altimeter"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(altimeter.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(altimeter.text, "sensor");
             }
           }
 
@@ -647,7 +647,7 @@ Rectangle {
             id: contact
             text: "Contact"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(contact.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(contact.text, "sensor");
             }
           }
 
@@ -655,7 +655,7 @@ Rectangle {
             id: forceTorque
             text: "Force torque"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(forceTorque.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(forceTorque.text, "sensor");
             }
           }
 
@@ -663,7 +663,7 @@ Rectangle {
             id: gps
             text: "GPS"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(gps.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(gps.text, "sensor");
             }
           }*/
 
@@ -671,7 +671,7 @@ Rectangle {
             id: gpuLidar
             text: "GPU Lidar"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("gpu_lidar", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("gpu_lidar", "sensor");
             }
           }
 
@@ -679,7 +679,7 @@ Rectangle {
             id: imu
             text: "IMU"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(imu.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(imu.text, "sensor");
             }
           }
 
@@ -687,7 +687,7 @@ Rectangle {
             id: magnetometer
             text: "Magnetometer"
             onTriggered: {
-              ComponentInspectorEditor.OnAddEntity(magnetometer.text, "sensor");
+              _ComponentInspectorEditor.OnAddEntity(magnetometer.text, "sensor");
             }
           }
         }
@@ -701,49 +701,49 @@ Rectangle {
             id: depth
             text: "Depth"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("depth_camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("depth_camera", "sensor");
             }
           }
           MenuItem {
             id: logical
             text: "Logical"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("logical_camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("logical_camera", "sensor");
             }
           }
           MenuItem {
             id: monocular
             text: "Monocular"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("camera", "sensor");
             }
           }
           /*MenuItem {
             id: multicamera
             text: "Multicamera"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("multicamera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("multicamera", "sensor");
             }
           }*/
           MenuItem {
             id: rgbd
             text: "RGBD"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("rgbd_camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("rgbd_camera", "sensor");
             }
           }
           MenuItem {
             id: segmentation
             text: "Segmentation"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("segmentation_camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("segmentation_camera", "sensor");
             }
           }
           MenuItem {
             id: thermal
             text: "Thermal"
              onTriggered: {
-              ComponentInspectorEditor.OnAddEntity("thermal_camera", "sensor");
+              _ComponentInspectorEditor.OnAddEntity("thermal_camera", "sensor");
             }
           }
         }
@@ -751,7 +751,7 @@ Rectangle {
 
       Label {
         id: entityLabel
-        text: 'Entity ' + ComponentInspectorEditor.entity
+        text: 'Entity ' + _ComponentInspectorEditor.entity
         Layout.minimumWidth: 80
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12

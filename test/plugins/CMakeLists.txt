@@ -35,7 +35,7 @@ if(BUILD_TESTING)
     target_link_libraries(${src}
       PRIVATE
         gz-plugin${GZ_PLUGIN_VER}::register
-        gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+        gz-transport::gz-transport
         gz-sim
     )
 
