@@ -179,11 +179,6 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PathManager))
 /////////////////////////////////////////////////
 TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
 {
-  // \todo(iche033)
-  // Gui crashes when closing main window. Occurs on Ubuntu CI with Qt6.
-  // Re-enable once fixed.
-  GTEST_SKIP();
-
   common::Console::SetVerbosity(4);
   gzdbg << "Start test" << std::endl;
 
@@ -257,6 +252,7 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     // Close the quick start window
     gzdbg << "Closing the quickstart window" << std::endl;
     ASSERT_EQ(1, gui::App()->allWindows().count());
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     while (!gui::App()->allWindows()[0]->isExposed())
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     gui::App()->allWindows()[0]->close();
@@ -264,20 +260,22 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     gzdbg << "Waiting for main window" << std::endl;
     guiCv.wait(internalLock, [&] () {return runningMainWindow;});
 
-    gzdbg << "Closing main window" << std::endl;
+    gzdbg << "Getting main window" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     // Close main window
     for (int sleep = 0;
         (nullptr == gui::App()->findChild<gui::MainWindow *>() ||
-        !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isVisible())
+        !gui::App()->findChild<gui::MainWindow *>()->QuickWindow()->isExposed())
         && sleep < 30; ++sleep)
     {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     auto win = gui::App()->findChild<gui::MainWindow *>();
     // The above loop can result in the window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
     if (win)
     {
+      gzdbg << "Closing main window" << std::endl;
       ASSERT_TRUE(win);
       EXPECT_TRUE(win->QuickWindow()->isVisible());
       win->QuickWindow()->close();
