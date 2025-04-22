@@ -271,8 +271,8 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
       gzdbg << "Done Sleeping to wait for main window" << std::endl;
     }*/
 
-    gzdbg << "Sleeping 5s to wait for main window" << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    gzdbg << "Sleeping 2s to wait for main window" << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     // The above loop can result in the app or window being null. This if will
     // make the test pass, but it also bypasses a couple checks.
@@ -313,8 +313,8 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
   guiCv.notify_one();
   threadLock.unlock();
 
-  gzdbg << "Sleep for some time for quickstart window to shutdown and for "
-        << "main window to come up." << std::endl;
+  gzdbg << "Sleep some time for quickstart window to shutdown" << std::endl;
+  QCoreApplication::processEvents();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   gzdbg << "Running main window" << std::endl;
