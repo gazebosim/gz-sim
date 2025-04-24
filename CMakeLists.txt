@@ -132,7 +132,7 @@ if(ENABLE_GUI)
   set(CMAKE_AUTORCC TRUE)
   if(POLICY CMP0100)
     cmake_policy(SET CMP0100 NEW)
-  endif() 
+  endif()
 endif()
 
 #--------------------------------------
