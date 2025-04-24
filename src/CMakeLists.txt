@@ -191,7 +191,6 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
-  gz-gui::gz-gui
   gz-physics${GZ_PHYSICS_VER}::core
   gz-rendering${GZ_RENDERING_VER}::core
   gz-transport::gz-transport
@@ -205,7 +204,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
 if(ENABLE_GUI)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
     PUBLIC
-    gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
+    gz-gui::gz-gui
   )
 endif()
 
