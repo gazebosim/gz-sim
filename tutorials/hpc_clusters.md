@@ -205,7 +205,7 @@ This is the mode described in tutorial \ref headless_rendering.
 If GLX does not work, let's try EGL backend:
 
 ```bash
-user@cluster$ srun -p gpufast--gres=gpu:1 --pty bash -i
+user@cluster$ srun -p gpufast --gres=gpu:1 --pty bash -i
 user@gpu-node-1$ singularity exec --nv image.sif bash -c "gz sim -v4 -s -r --headless-rendering sensors_demo.sdf & (gz topic -t /camera -e | cut -c -80) & sleep 30; kill %1; kill %2; sleep 2; kill -9 %1; kill -9 %2"
 ```
 
@@ -213,20 +213,67 @@ And, again, try the same on a non-interactive partition.
 
 Check `RENDERER` in `ogre2.log` again.
 
-You can also have a more detailed look into `ogre2.log` and if this method
-works, you should see similar content:
+You can also have a more detailed look into `~/.gz/rendering/ogre2.log`.
+It contains two parts. In the first part, Gazebo is probing the
+available GLX and EGL rendering devices. Here you can see whether Gazebo
+correctly detects your GPU. You can ignore the GLX errors as we've
+verified GLX doesn't work. Also, some EGL devices might occur multiple
+times, e.g. in this example `/dev/dri/card2` appears as
+`EGL_NV_device_cuda` and `EGL_EXT_device_drm`.
+It is okay if just one of the two "views" of the device work.
 
 ```bash
-01:13:59: GL3PlusRenderSystem::_createRenderWindow "OgreWindow(0)_0", 1x1 windowed  miscParams: FSAA=0 border=none contentScalingFactor=1.000000 gamma=Yes parentWindowHandle=0 stereoMode=Frame Sequential
-01:13:59: Trying to init device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #0 /dev/dri/card1...
-01:13:59: Created GL 4.5 context for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #0 /dev/dri/card1
+01:13:59: OpenGL 3+ Rendering Subsystem created.
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn`t open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
+01:13:59: GLX raised an exception. Won't be available. Is X11 running?
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn`t open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
+01:13:59: Found Num EGL Devices: 5
+01:13:59: EGL Device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2
+01:13:59: Trying to init device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2...
+01:13:59: Created GL 4.5 context for device EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2
+01:13:59: Destroying device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2...
+01:13:59: EGL Device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #1 /dev/dri/card3
+01:13:59: Trying to init device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #1 /dev/dri/card3...
+01:13:59: Created GL 4.5 context for device EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #1 /dev/dri/card3
+01:13:59: Destroying device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #1 /dev/dri/card3...
+01:13:59: EGL Device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #2 /dev/dri/card2
+01:13:59: Trying to init device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #2 /dev/dri/card2...
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): eglInitialize failed for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #2 /dev/dri/card2 in EGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/EGL/PBuffer/OgreEglPBufferSupport.cpp (line 320)
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): eglInitialize failed for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #2 /dev/dri/card2 in EGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/EGL/PBuffer/OgreEglPBufferSupport.cpp (line 320)
+01:13:59: Destroying device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #2 /dev/dri/card2...
+01:13:59: EGL Device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #3 /dev/dri/card3
+01:13:59: Trying to init device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #3 /dev/dri/card3...
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): eglInitialize failed for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #3 /dev/dri/card3 in EGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/EGL/PBuffer/OgreEglPBufferSupport.cpp (line 320)
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): eglInitialize failed for device EGL_EXT_device_drm EGL_EXT_device_drm_render_node #3 /dev/dri/card3 in EGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/EGL/PBuffer/OgreEglPBufferSupport.cpp (line 320)
+01:13:59: Destroying device: EGL_EXT_device_drm EGL_EXT_device_drm_render_node #3 /dev/dri/card3...
+01:13:59: EGL Device: EGL_MESA_device_software EGL_EXT_device_drm_render_node #4
+01:13:59: Trying to init device: EGL_MESA_device_software EGL_EXT_device_drm_render_node #4...
+01:13:59: Created GL 4.5 context for device EGL_MESA_device_software EGL_EXT_device_drm_render_node #4
+01:13:59: Destroying device: EGL_MESA_device_software EGL_EXT_device_drm_render_node #4...
+01:13:59: Plugin successfully installed
 ```
 
-If you see `EGL_MESA_device_software` after `Starting EGL Subsystem`, this
-means EGL works, but is not HW-accelerated (just make sure you are looking
-at the lines after `Starting EGL Subsystem`, because before these lines,
-Gazebo does probing of the available EGL devices and seeing the software
-device there is normal).
+In the second part, you should see `Starting EGL Subsystem`. This
+confirms Gazebo uses the EGL backend. Right beneath this line, you
+should see which device is used for rendering:
+
+```bash
+01:13:59: ******************************
+*** Starting EGL Subsystem ***
+******************************
+01:13:59: GL3PlusRenderSystem::_createRenderWindow "OgreWindow(0)_0", 1x1 windowed  miscParams: FSAA=0 border=none contentScalingFactor=1.000000 gamma=Yes parentWindowHandle=0 stereoMode=Frame Sequential
+01:13:59: Trying to init device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2...
+01:13:59: Created GL 4.5 context for device EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2
+01:13:59: GL Version = 4.5.0.0
+01:13:59: GL_VERSION = 4.5.0 NVIDIA 550.120
+01:13:59: GL_VENDOR = NVIDIA Corporation
+01:13:59: GL_RENDERER = NVIDIA GeForce RTX 3090/PCIe/SSE2
+```
+
+If you see `EGL_MESA_device_software` or `llvmpipe` in this part,
+it means EGL works, but is not HW-accelerated. Look in the first
+section with probing to find out what problems are preventing to
+use a HW device.
 
 **Explanation why this worked:** `--headless-rendering` switches Gazebo to
 the EGL backend.
