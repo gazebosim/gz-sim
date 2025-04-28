@@ -1261,14 +1261,17 @@ void RenderUtil::Update()
 
       if (newLightRendering)
       {
-        rendering::VisualPtr lightVisual =
-          this->dataPtr->sceneManager.CreateLightVisual(
-            std::get<0>(light) + 1,
-            std::get<1>(light),
-            std::get<2>(light),
-            std::get<0>(light));
-        this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
-          std::get<0>(light) + 1;
+        if (!this->dataPtr->enableSensors)
+        {
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              std::get<0>(light) + 1,
+              std::get<1>(light),
+              std::get<2>(light),
+              std::get<0>(light));
+          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
+            std::get<0>(light) + 1;
+        }
       }
       else
       {
