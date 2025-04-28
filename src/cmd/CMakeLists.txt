@@ -1,3 +1,112 @@
+<<<<<<< HEAD
+=======
+# Create model executable
+set(model_executable gz-sim-model)
+add_executable(${model_executable} model_main.cc ModelCommandAPI.cc)
+target_link_libraries(${model_executable}
+  gz-utils${GZ_UTILS_VER}::cli
+  ${PROJECT_LIBRARY_TARGET_NAME}
+)
+
+install(
+  TARGETS ${model_executable}
+  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/)
+
+# Build the unit tests.
+set(test_sources)
+
+# Add systems that need a valid display here.
+# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
+# or Xdummy instead of skipping them
+if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
+  list(APPEND test_sources ModelCommandAPI_TEST.cc)
+else()
+  message(STATUS
+    "Skipping ModelCommandAPI tests because a valid display was not found")
+endif()
+
+# gz_TEST is not supported with multi config
+# CMake generators, see also cmd/CMakeLists.txt
+get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT GENERATOR_IS_MULTI_CONFIG)
+  list(APPEND test_sources gz_TEST.cc)
+endif()
+
+# Build unit tests if Gazebo tools is installed
+if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
+  gz_build_tests(TYPE UNIT
+    SOURCES
+      ${test_sources}
+    LIB_DEPS
+      gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+      gz-sim${PROJECT_VERSION_MAJOR}
+    ENVIRONMENT
+        GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  )
+endif()
+
+foreach(CMD_TEST
+  UNIT_gz_TEST UNIT_ModelCommandAPI_TEST)
+
+  if(NOT TARGET ${CMD_TEST})
+    continue()
+  endif()
+
+  add_dependencies(${CMD_TEST}
+    ${gz_lib_target}
+    TestModelSystem
+    TestSensorSystem
+    TestWorldSystem
+  )
+
+  target_compile_definitions(${CMD_TEST}
+    PRIVATE
+      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
+  )
+
+  if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST)
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endif()
+
+  if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
+    # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
+    # due to System Integrity Protection (SIP). Try to find ruby from
+    # homebrew as a workaround.
+    if(APPLE)
+      find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
+    endif()
+
+    target_compile_definitions(${CMD_TEST}
+      PRIVATE
+        "BREW_RUBY=\"${BREW_RUBY} \""
+    )
+
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
+    list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT "${_env_vars}")
+  endif()
+
+  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
+  # in build directory in necessary. For regular tests, the trick is to place all libraries
+  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
+  # as they are in the same directory where the executable is loaded. For tests that are
+  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
+  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that was added in CMake 3.22.
+  if (WIN32)
+    set_tests_properties(${CMD_TEST} PROPERTIES
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+  endif()
+endforeach()
+
+>>>>>>> 3f40ef29 (Set GZ_IP=127.0.0.1 in gz cmd tests (#2884))
 #===============================================================================
 # Generate the ruby script.
 # Note that the major version of the library is included in the name.
