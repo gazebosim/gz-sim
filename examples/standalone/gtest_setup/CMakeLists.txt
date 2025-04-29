@@ -31,6 +31,11 @@ foreach(TEST_TARGET
     gtest_main
     gz-sim::gz-sim
   )
+
   include(GoogleTest)
-  gtest_discover_tests(${TEST_TARGET})
+  if (APPLE)
+    gtest_discover_tests(${TEST_TARGET} DISCOVERY_MODE PRE_TEST)
+  else()
+    gtest_discover_tests(${TEST_TARGET})
+  endif()
 endforeach()
