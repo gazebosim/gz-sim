@@ -166,7 +166,7 @@ namespace sdf_generator
   /// set in `_override` are copied as is.
   ///
   /// The idea here is that the initial configuration is a global configuration
-  /// that can be overriden on a per model basis. The following snippet
+  /// that can be overridden on a per model basis. The following snippet
   /// demonstrates the intent, even though it won't compile
   /// \code
   ///   EntityGeneratorConfig initialConfig;

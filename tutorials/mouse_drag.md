@@ -28,7 +28,7 @@ The rotational stiffness can be modified through the interface.
 The translation mode is activated by Ctrl+Right-clicking and holding a link in
 the scene. Dragging the mouse will then move the link towards the mouse
 position. On the interface, you may select whether the force should be applied
-to the link's center of mass or to the point where the mouse click occured.
+to the link's center of mass or to the point where the mouse click occurred.
 
 If center of mass is selected, only a force is applied, with a magnitude given
 by a constant stiffness and critical damping, scaled by the mass of the link.

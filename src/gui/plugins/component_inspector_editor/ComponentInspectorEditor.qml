@@ -107,7 +107,7 @@ Rectangle {
   // \param[in] _value The value that should be used to set the _widgetId's
   // value attribute.
   function getDecimalsAdjustValue(_widgetId, _value) {
-    // Make sure to update the value, otherwise zeros are used intead of
+    // Make sure to update the value, otherwise zeros are used instead of
     // the actual values.
     _widgetId.value = _widgetId.activeFocus ? _widgetId.value : _value
     return getDecimals(_widgetId.width)

@@ -96,7 +96,7 @@ namespace gz
       public: void SetStaleMultiplier(const size_t &_multiplier);
 
       /// \brief Get current heartbeat multiplier
-      /// \return Number of hearbeats before a peer is marked stale.
+      /// \return Number of heartbeats before a peer is marked stale.
       public: size_t StaleMultiplier() const;
 
       /// \brief Retrieve total number of detected peers in the network.

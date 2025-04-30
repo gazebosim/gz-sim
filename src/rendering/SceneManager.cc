@@ -2436,7 +2436,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
         // "animation0", "animation"1", etc causing conflicts in names
         // when multiple animations are added to meshSkel.
         // We have to clone the skeleton animation before giving it a unique
-        // name otherwise if mulitple instances of the same animation were added
+        // name otherwise if multiple instances of the same animation were added
         // to meshSkel, changing the name that would also change the name of
         // other instances of the animation
         // todo(anyone) cloning is inefficient and error-prone. We should

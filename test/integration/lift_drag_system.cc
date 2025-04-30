@@ -112,7 +112,7 @@ TEST_P(VerticalForceParamFixture,
   testSystem.OnPreUpdate(
       [&](const UpdateInfo &, EntityComponentManager &_ecm)
       {
-        // Create velocity and acceleration components if they dont't exist.
+        // Create velocity and acceleration components if they don't exist.
         // This signals physics system to populate the component
         auto bladeLink = firstEntityFromScopedName(bladeName, _ecm);
 

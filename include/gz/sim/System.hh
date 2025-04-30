@@ -54,7 +54,7 @@ namespace gz
     ///    * This is where systems say what they'd like to happen at time
     ///      UpdateInfo::simTime.
     ///    * Can be used to modify state before physics runs, for example for
-    ///      applying control signals or performing network syncronization.
+    ///      applying control signals or performing network synchronization.
     ///  * Update
     ///    * Has read-write access to world entities and components.
     ///    * Used for physics simulation step (i.e., simulates what happens at
@@ -133,7 +133,7 @@ namespace gz
     ///
     /// Configure is called after the system is instantiated and all entities
     /// and components are loaded from the corresponding SDF world, and before
-    /// simulation begins exectution.
+    /// simulation begins execution.
     class ISystemConfigure {
       /// \brief Configure the system
       /// \param[in] _entity The entity this plugin is attached to.

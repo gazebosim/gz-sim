@@ -55,7 +55,7 @@ class ElevatorTestFixture : public ::testing::Test
   /// \brief Communication node
   protected: transport::Node node;
 
-  /// \brief Accummulates the states published by the system
+  /// \brief Accumulates the states published by the system
   protected: std::vector<int32_t> states;
 };
 

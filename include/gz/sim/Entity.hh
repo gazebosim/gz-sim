@@ -57,7 +57,7 @@ namespace gz
     /// created through the EntityComponentManager.
     using Entity = uint64_t;
 
-    /// \brief Indicates a non-existant or invalid Entity.
+    /// \brief Indicates a non-existent or invalid Entity.
     const Entity kNullEntity{0};
     }
   }

@@ -36,18 +36,18 @@ namespace gz
     class BarrierPrivate;
 
     /// \class Barrier Barrier.hh
-    /// \brief Syncronization barrier for multiple threads
+    /// \brief Synchronization barrier for multiple threads
     ///
-    /// A Barrier is a syncronization mechanism that will block until
+    /// A Barrier is a synchronization mechanism that will block until
     /// all required threads have reached the wait() method.  This is useful
-    /// for syncronizing work across many threads.
+    /// for synchronizing work across many threads.
     ///
     /// Note that this can likely be replaced once the C++ concurrency TS
     /// is ratified: https://en.cppreference.com/w/cpp/experimental/barrier
     class GZ_SIM_VISIBLE Barrier
     {
       /// \brief Constructor
-      /// \param[in] _threadCount Number of threads to syncronize
+      /// \param[in] _threadCount Number of threads to synchronize
       /// Note: it is important to include a main thread (if used) in this
       ///       count.  For instance, controlling 10 worker threads from
       ///       1 main thread would require _threadCount=11.

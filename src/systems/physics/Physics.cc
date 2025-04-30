@@ -1016,7 +1016,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[CollisionDetectorFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1042,7 +1042,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[SolverFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1066,7 +1066,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[SolverFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1091,7 +1091,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[CollisionPairMaxContacts]. "
                      << "Options will be ignored."
                      << std::endl;
@@ -1192,7 +1192,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               if (!informed)
               {
                 gzdbg << "Attempting to construct nested models, but the "
-                       << "phyiscs engine doesn't support feature "
+                       << "physics engine doesn't support feature "
                        << "[ConstructSdfNestedModelFeature]. "
                        << "Nested model will be ignored."
                        << std::endl;

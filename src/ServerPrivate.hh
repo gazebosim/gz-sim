@@ -148,7 +148,7 @@ namespace gz
 
       /// \brief Callback for server control service.
       /// \param[out] _req The control request.
-      /// \param[out] _res Whether the request was successfully fullfilled.
+      /// \param[out] _res Whether the request was successfully fulfilled.
       /// \return True if successful.
       private: bool ServerControlService(
         const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
@@ -211,7 +211,7 @@ namespace gz
       /// \brief Node for transport.
       private: transport::Node node;
 
-      /// \brief Publisher of resrouce paths.
+      /// \brief Publisher of resource paths.
       private: transport::Node::Publisher pathPub;
     };
     }

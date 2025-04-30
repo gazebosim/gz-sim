@@ -7,7 +7,7 @@ view of the architecture differences before using this guide.
 
 This tutorial is meant to serve as a reference guide for developers migrating
 functions from the
-[gazebo::phyiscs::Joint](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Joint.html)
+[gazebo::physics::Joint](http://osrf-distributions.s3.amazonaws.com/gazebo/api/11.0.0/classgazebo_1_1physics_1_1Joint.html)
 class.
 
 If you're trying to use some API which doesn't have an equivalent on Gazebo
@@ -38,7 +38,7 @@ You'll find the Gazebo APIs below on the following headers:
 It's worth remembering that most of this functionality can be performed using
 the \ref gz::sim::EntityComponentManager "EntityComponentManager" directly.
 
-As an example the `Join::Pose()` is a convienient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
+As an example the `Join::Pose()` is a convenient function for querying the `Pose` component from the `EntityComponentManager`, i.e.
 
 ```
   math::Pose3d pose = _ecm.Component<components::Pose>(jointEntityId)->Data();

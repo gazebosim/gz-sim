@@ -88,8 +88,9 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
       else
       {
         statusMsg << "File: " << localPath << " could not be opened for "
-                      << "saving. Please check that the directory containg the "
-                      << "file exists and the correct permissions are set.\n";
+                      << "saving. Please check that the directory "
+                      << "containing the file exists and the correct "
+                      << "permissions are set.\n";
       }
     }
     else
@@ -98,7 +99,7 @@ void GuiFileHandler::SaveWorldAs(const QString &_fileUrl,
       {
         statusMsg << "Service call for generating world SDFormat timed out\n";
       }
-      statusMsg << "Unknown error occured when saving the world. Please check "
+      statusMsg << "Unknown error occurred when saving the world. Please check "
                 << "the console output of gz-sim\n";
     }
   }

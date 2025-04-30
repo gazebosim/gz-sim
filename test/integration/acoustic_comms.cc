@@ -155,7 +155,7 @@ INSTANTIATE_TEST_SUITE_P(
     // The source is moving and the destination is stationary.
     AcousticCommsTestDefinition(
       "acoustic_comms_moving_targets.sdf", "addr2", "addr1", 3, 3),
-    // The source is stationary and the destnation is moving.
+    // The source is stationary and the destination is moving.
     AcousticCommsTestDefinition(
       "acoustic_comms_moving_targets.sdf", "addr4", "addr3", 3, 3),
     // Message packets will be dropped as they are sent too fast

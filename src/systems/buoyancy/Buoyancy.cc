@@ -91,7 +91,7 @@ class gz::sim::systems::BuoyancyPrivate
 
   /// \brief Check for new links to apply buoyancy forces to. Calculates the
   /// volume and center of volume for every new link and stages them to be
-  /// commited when `CommitNewEntities` is called.
+  /// committed when `CommitNewEntities` is called.
   /// \param[in] _ecm The Entity Component Manager.
   public: void CheckForNewEntities(const EntityComponentManager &_ecm);
 

@@ -44,7 +44,7 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE
     {
       /// \brief Relative error tolerance allowed when testing if principal
-      /// moments of a mass matrix satify the triangle inequality.
+      /// moments of a mass matrix satisfy the triangle inequality.
       constexpr double kPrincipalMomentRelativeTol = 0.05;
 
       /// \struct Triangle gz/sim/MeshInertiaCalculator.hh
@@ -83,7 +83,7 @@ namespace gz
         /// conditions are not satisfied, the mass matrix will not be corrected.
         /// \param[in, out] _massMatrix Mass matrix to correct
         /// \param[in] _tol Relative error tolerance allowed when testing if
-        /// principal moments of a mass matrix satify the triangle inequality.
+        /// principal moments of a mass matrix satisfy the triangle inequality.
         /// \return True if the mass matrix is already valid or successfully
         /// corrected, false otherwise.
         public: static bool CorrectMassMatrix(

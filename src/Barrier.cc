@@ -19,7 +19,7 @@
 
 class gz::sim::BarrierPrivate
 {
-  /// \brief Mutex for syncronization
+  /// \brief Mutex for synchronization
   public: std::mutex mutex;
 
   /// \brief Condition Variable for signaling

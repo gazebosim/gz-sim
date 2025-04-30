@@ -115,7 +115,7 @@ the menu. Once you play the simulation it should look this:
 
 ![Pendulum](files/auto_inertia/auto_inertia_pendulum.gif)
 
-This example world has two structurally indentical models. The pendulum link of both
+This example world has two structurally identical models. The pendulum link of both
 the models contain 3 cylindrical collision geometries:
  - One on the top which forms the joint (pivot)
  - A longer cylinder in middle

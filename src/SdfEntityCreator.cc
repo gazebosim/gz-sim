@@ -375,7 +375,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     if (!parentEntity)
     {
       // Performers have not been created yet. Try to create the model
-      // or actor and attach the peformer.
+      // or actor and attach the performer.
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());

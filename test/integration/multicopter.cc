@@ -326,7 +326,7 @@ TEST_F(MulticopterTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(MulticopterVelocityControlNestedModel))
 {
   // test that the drone is able to take off when carrying a payload
-  // (nexted model) with extra mass.
+  // (nested model) with extra mass.
 
   // Start server
   auto server =
@@ -361,7 +361,7 @@ TEST_F(MulticopterTest,
   double initialZ = x3Pose.Pos().Z();
   EXPECT_GT(0.1, initialZ);
 
-  // run for a few interations and verify drone is still on the ground
+  // run for a few iterations and verify drone is still on the ground
   server->Run(true, 100, false);
   EXPECT_NEAR(initialZ, x3Pose.Pos().Z(), 1e-3);
 

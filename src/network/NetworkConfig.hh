@@ -34,7 +34,7 @@ namespace gz
     /// \class NetworkConfig NetworkConfig.hh gz/sim/NetworkConfig.hh
     /// \brief Configuration parameters for a distributed simulation instance
     ///
-    /// NetworkConfig can either be created programatically, or populated from
+    /// NetworkConfig can either be created programmatically, or populated from
     /// environment variables set before the execution of the Gazebo server.
     class GZ_SIM_VISIBLE NetworkConfig
     {

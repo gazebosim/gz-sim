@@ -136,13 +136,13 @@ int main(int argc, char **argv)
 
       if (cachedMatchedEntityCount != matchingEntityCount * eachIterations)
       {
-        std::cerr << "Chached entity count mismatch, "
+        std::cerr << "Cached entity count mismatch, "
           << "this should not happen!!!\n";
       }
 
       if (cachelessMatchedEntityCount != matchingEntityCount * eachIterations)
       {
-        std::cerr << "Chacheless entity count mismatch, "
+        std::cerr << "Cacheless entity count mismatch, "
           << "this should not happen!!!\n";
       }
 

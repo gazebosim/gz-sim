@@ -142,7 +142,7 @@ void MeshInertiaCalculator::CalculateMassProperties(
   // Vector to store cross products of 2 vectors of the triangles
   std::vector<gz::math::Vector3d> crosses(numTriangles);
 
-  // Caculating cross products of 2 vectors emerging from a common vertex
+  // Calculating cross products of 2 vectors emerging from a common vertex
   // This basically gives a vector normal to the plane of triangle
   for (std::size_t i = 0; i < numTriangles; ++i)
   {

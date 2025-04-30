@@ -169,7 +169,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       if (this->topic.empty())
       {
         gzerr << "No valid topics for JointStatePublisher could be found."
-          << "Make sure World/Model name does'nt contain invalid characters.\n";
+          << "Make sure World/Model name doesn't contain invalid characters.\n";
         return;
       }
 

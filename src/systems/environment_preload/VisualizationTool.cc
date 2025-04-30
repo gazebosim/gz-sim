@@ -95,7 +95,7 @@ void EnvironmentVisualizationTool::Step(
     else
     {
       gzerr << "Data does not exist beyond this time."
-        << " Not publishing new environment visuallization data."
+        << " Not publishing new environment visualization data."
         << std::endl;
       this->finishedTime = true;
       return;

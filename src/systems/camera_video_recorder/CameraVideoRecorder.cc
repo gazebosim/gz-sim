@@ -129,7 +129,7 @@ class gz::sim::systems::CameraVideoRecorderPrivate
   /// By default (false), video encoding is done using real time.
   public: bool recordVideoUseSimTime = false;
 
-  /// \brief Video recorder bitrate (bps). This is rougly 2Mbps which
+  /// \brief Video recorder bitrate (bps). This is roughly 2Mbps which
   /// produces decent video quality while not generating overly large
   /// video files.
   ///

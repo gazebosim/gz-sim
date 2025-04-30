@@ -138,5 +138,5 @@ The system can be added to SDFormat model or world with:
 </plugin>
 ```
 
-asuming the name of the module is `test_system` and the directory containing
+assuming the name of the module is `test_system` and the directory containing
 the module has been added to `GZ_SIM_SYSTEM_PLUGIN_PATH`,

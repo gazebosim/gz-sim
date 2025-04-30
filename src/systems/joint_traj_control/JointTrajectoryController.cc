@@ -138,7 +138,7 @@ class JointParameters
 /// plugin
 class ActuatedJoint
 {
-  /// \brief Default contructor
+  /// \brief Default constructor
   public: ActuatedJoint() = default;
 
   /// \brief Constructor that properly configures the actuated joint
@@ -537,7 +537,7 @@ std::vector<Entity> JointTrajectoryControllerPrivate::GetEnabledJoints(
                                                                  "joint_name");
 
   // Get list of joint entities of the model
-  // If there are joints explicitely enabled by the user, get only those
+  // If there are joints explicitly enabled by the user, get only those
   std::vector<Entity> jointEntities;
   if (!enabledJoints.empty())
   {

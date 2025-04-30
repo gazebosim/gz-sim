@@ -52,8 +52,8 @@ namespace multicopter_control
   class LeeVelocityController
   {
     /// \brief Factory function to create LeeVelocityController objects
-    /// \param[in] _controllerParams Controller parameteres
-    /// \param[in] _vehicleParams Vehicle parameteres
+    /// \param[in] _controllerParams Controller parameters
+    /// \param[in] _vehicleParams Vehicle parameters
     /// \returns nullptr if the input parameters were valid, otherwise an
     /// pointer to an instance of LeeVelocityController
     public: static std::unique_ptr<LeeVelocityController> MakeController(
@@ -81,7 +81,7 @@ namespace multicopter_control
                  const FrameData &_frameData, const EigenTwist &_cmdVel) const;
 
     /// \brief Compute desired angular acceleration given the current frame
-    /// data, comanded angular velocity and desired linear acceleration
+    /// data, commanded angular velocity and desired linear acceleration
     private: Eigen::Vector3d ComputeDesiredAngularAcc(
                  const FrameData &_frameData, const EigenTwist &_cmdVel,
                  const Eigen::Vector3d &_acceleration) const;

@@ -66,7 +66,7 @@ namespace optical_tactile_sensor
         gz::msgs::Marker &_sensorMarkerMsg);
 
     /// \brief Request the "/marker" service for the sensor marker.
-    /// This can be helpful when debbuging, given that there shouldn't be a
+    /// This can be helpful when debugging, given that there shouldn't be a
     /// visual tag in the plugin's model
     /// \param[in] _sensorPose Pose of the optical tactile sensor
     public: void RequestSensorMarkerMsg(
