@@ -27,7 +27,7 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
-#include "gz/transport/Node.hh"
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/Util.hh"
 
