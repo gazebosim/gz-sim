@@ -306,9 +306,7 @@ EntityTree::EntityTree()
 }
 
 /////////////////////////////////////////////////
-EntityTree::~EntityTree()
-{
-}
+EntityTree::~EntityTree() = default;
 
 /////////////////////////////////////////////////
 void EntityTree::LoadConfig(const tinyxml2::XMLElement *)
