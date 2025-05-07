@@ -17,21 +17,10 @@
 
 #include "TestSystem.hh"
 
-#include <gz/plugin/RegisterMore.hh>
-
-using namespace gz;
-using namespace sim;
-
-/////////////////////////////////////////////////
-TestSystem::TestSystem()
-  : System()
-{
-}
-
-/////////////////////////////////////////////////
-TestSystem::~TestSystem() = default;
+#include <gz/plugin/Register.hh>
 
 // Register this plugin
-GZ_ADD_PLUGIN(TestSystem, System)
+GZ_ADD_PLUGIN(gz::sim::TestSystem,
+    gz::sim::System)
 
 GZ_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")
