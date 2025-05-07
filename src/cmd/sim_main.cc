@@ -146,8 +146,12 @@ int launchProcess(
 
     ZeroMemory(&pi, sizeof(pi));
 
-    if(!CreateProcess(NULL, const_cast<char *>(command.str().c_str()),
-                      NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+    std::wstring w_command = std::wstring(command.str().begin(),
+                                          command.str().end());
+    LPWSTR cmd_line = const_cast<LPWSTR>(w_command.c_str());
+
+    if(!CreateProcessW(NULL, cmd_line, NULL, NULL, FALSE, 0,
+                      NULL, NULL, &si, &pi))
     {
       return -1;
     }
