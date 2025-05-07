@@ -22,5 +22,3 @@
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::TestSystem,
     gz::sim::System)
-
-GZ_ADD_PLUGIN_ALIAS(TestSystem, "gz::sim::TestSystem")
