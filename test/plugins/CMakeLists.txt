@@ -31,7 +31,7 @@ endif()
 # Plugin shared libraries
 if(BUILD_TESTING)
   foreach (src ${test_plugins})
-    add_library(${src} SHARED ${src}.cc)
+    add_library(${src} MODULE ${src}.cc)
     target_link_libraries(${src}
       PRIVATE
         gz-plugin${GZ_PLUGIN_VER}::register

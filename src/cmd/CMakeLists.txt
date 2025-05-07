@@ -110,7 +110,7 @@ foreach(CMD_TEST
   # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that was added in CMake 3.22.
   if (WIN32)
     set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>")
   endif()
 endforeach()
 
