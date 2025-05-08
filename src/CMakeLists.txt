@@ -245,4 +245,9 @@ if (TARGET UNIT_Server_Rendering_TEST)
   )
 endif()
 
+if ((TARGET UNIT_SystemLoader_TEST) AND (WIN32))
+  set_tests_properties(${CMD_TEST} PROPERTIES
+    ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>")
+endif()
+
 add_subdirectory(cmd)
