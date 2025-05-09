@@ -828,7 +828,7 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
       wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 
   // Add force in Inertial Frame at an offset
-  math::Vector3d offset{0.0, 1.0, 0.0};
+  math::Vector3d offset{1.0, 0.0, 0.0};
   link.AddForceInInertialFrame(ecm, force, offset);
 
   wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
@@ -839,11 +839,11 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   // and orientation (0, 0, π/4).
   // - The link has an inertial pose with position (1, 2, 3)
   // and orientation (0, π/2, 0).
-  // - A force of (0, 0, 1) N is appled at an offset (0, 1, 0),
+  // - A force of (0, 0, 1) N is appled at an offset (1, 0, 0),
   // both force and offset are expressed in terms of the inertial frame.
   // Calculate the offset expressed in terms of link's coordinate frame
   // First, create a pose for the offset in the inertial frame.
-  // offset = (0, 1, 0)
+  // offset = (1, 0, 0)
   // forceApplicationRelativeToInertialFrame =
   // Pose3d(offset, Quaterniond::Identity)
   // This pose represents a translation by the
@@ -870,12 +870,12 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   //
   // Apply this transformation to the offset pose:
   // offsetInLinkFrame = H_inertial * [0, 1, 0, 1]^T
-  //                    = [0  0  1 | 1] * [0]
-  //                      [0  1  0 | 2]   [1]
+  //                    = [0  0  1 | 1] * [1]
+  //                      [0  1  0 | 2]   [0]
   //                      [-1 0  0 | 3]   [0]
   //                      [0  0  0 | 1]   [1]
-  //                    = [1, 3, 3]
-  // offsetInLInkFrame = [1, 3, 3]
+  //                    = [1, 2, 2]
+  // offsetInLInkFrame = [1, 2, 2]
   //
   // Calculate the force expressed in link's coordinate frame with offset
   // First, rotate the force by the inertia pose's rotation.
@@ -890,28 +890,28 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   // Link world pose rotation matrix (around Z-axis by π/4 radians):
   // Rz = [ √2/2   -√2/2    0
   //        √2/2    √2/2    0
-  //          0       0      1 ]
+  //         0       0      1 ]
   // worldForceWithOffset = Rz * linkForceWithOffset = [√2/2, √2/2, 0]
   //
   // Calculate the expected torque with offset
   // First, calculate the effective position vector in the world frame.
-  // offsetInLinkFrame = [1, 3, 3]
+  // offsetInLinkFrame = [1, 2, 2]
   // inertiaPose.Pos() = [1, 2, 3]
-  // effectivePosition = offsetInLinkFrame + inertiaPose.Pos() = [2, 5, 6]
+  // effectivePosition = offsetInLinkFrame + inertiaPose.Pos() = [2, 4, 5]
   // Rotate this effective position by the link's world pose rotation:
   // effectivePositionWorld = Rz * effectivePosition
-  //                        = [-3√2/2, 7√2/2, 6]
+  //                        = [-√2, 3√2, 5]
   // Calculate the cross product with the world force to get the torque.
   // worldForceWithOffset = [√2/2, √2/2, 0]
   // expectedTorqueWithOffset = effectivePositionWorld × worldForceWithOffset
-  // expectedTorqueWithOffset = (-3√2, 3√2, -5)
+  // expectedTorqueWithOffset = (-5√2/2, 5√2/2, -4)
   // After the calculations the expected wrench is
   const double expectedForceWithOffsetX = std::sqrt(2) / 2;
   const double expectedForceWithOffsetY = std::sqrt(2) / 2;
   const double expectedForceWithOffsetZ = 0;
-  const double expectedTorqueWithOffsetX = -3 * std::sqrt(2);
-  const double expectedTorqueWithOffsetY = 3 * std::sqrt(2);
-  const double expectedTorqueWithOffsetZ = -5;
+  const double expectedTorqueWithOffsetX = -5 * std::sqrt(2) / 2;
+  const double expectedTorqueWithOffsetY =  5 * std::sqrt(2) / 2;
+  const double expectedTorqueWithOffsetZ = -4;
 
   wrenchMsg = wrenchComp->Data();
 
