@@ -783,8 +783,8 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   // Inertia pose position: (1, 2, 3)
   // Link world pose rotation matrix (around Z-axis by π/4 radians):
   // R_world = [ √2/2   -√2/2    0
-  //            √2/2    √2/2    0
-  //             0       0      1]
+  //             √2/2    √2/2    0
+  //              0       0      1]
   //
   // Rotate inertia pose position to world frame:
   // r_world = R_world * [1, 2, 3] = [-√2/2, 3√2/2, 3]
