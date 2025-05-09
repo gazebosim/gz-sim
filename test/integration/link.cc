@@ -863,10 +863,10 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   //     [0 0 0 1]
   //
   // Combine rotation and translation into a homogeneous transformation matrix:
-  // H_inertial = [Ry | T] = [0  0  1 | 1]
-  //              [0  1  0 | 2]
-  //              [-1 0  0 | 3]
-  //              [0  0  0 | 1]
+  // H_inertial = [Ry | T] = [ 0  0  1 | 1]
+  //                         [ 0  1  0 | 2]
+  //                         [-1  0  0 | 3]
+  //                         [ 0  0  0 | 1]
   //
   // Apply this transformation to the offset pose:
   // offsetInLinkFrame = H_inertial * [0, 1, 0, 1]^T
