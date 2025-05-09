@@ -857,7 +857,7 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   //       -1   0   0 ]
   //
   // Inertial translation matrix:
-  // T = [1 0n, 0 1]
+  // T = [1 0 0 1]
   //     [0 1 0 2]
   //     [0 0 1 3]
   //     [0 0 0 1]
