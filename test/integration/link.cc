@@ -767,8 +767,8 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   //           0           0       1 ]
   //
   // Rz ≈ [ √2/2   -√2/2    0
-  //         √2/2    √2/2    0
-  //          0       0      1 ]
+  //        √2/2    √2/2    0
+  //         0       0      1 ]
   //
   // Calculate worldForce = Rz * linkForce:
   // worldForce_x = (√2/2)*1 + (-√2/2)*0 + (0)*0 = √2/2 ≈ 0.7071
