@@ -526,8 +526,8 @@ void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
     return;
 
   // The force is expressed in terms of the link's inertial coordinate frame,
-  // We'll first convert this to force expressed
-  //in terms of link's coordinate frame
+  // We'll first convert this to force expressed in terms of the link's
+  // coordinate frame
   math::Vector3d linkForce =
     inertial->Data().Pose().Rot().RotateVector(_force);
 
