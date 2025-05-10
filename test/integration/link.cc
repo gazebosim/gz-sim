@@ -896,7 +896,7 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   const double expectedForceWithOffsetX = std::sqrt(2) / 2;
   const double expectedForceWithOffsetY = std::sqrt(2) / 2;
   const double expectedForceWithOffsetZ = 0;
-  const double expectedTorqueWithOffsetX = std::sqrt(2);
+  const double expectedTorqueWithOffsetX = -1 * std::sqrt(2);
   const double expectedTorqueWithOffsetY = std::sqrt(2);
   const double expectedTorqueWithOffsetZ = -2;
 
