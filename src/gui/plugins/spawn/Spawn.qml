@@ -16,7 +16,7 @@
 */
 
 import QtQuick 2.9
-import QtQuick.Controls 2.2
+import QtQuick.Controls
 import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
 
@@ -36,7 +36,7 @@ ColumnLayout {
 
   Dialog {
     id: errorPopup
-    parent: ApplicationWindow.overlay
+    parent: Overlay.overlay
     modal: true
     focus: true
     width: 500
