@@ -535,8 +535,11 @@ void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
   // so we need to compute the force expressed in world coordinates
   math::Vector3d worldForce = worldPose.Rot().RotateVector(linkForce);
 
-  // ApplyWorldForce applies the force at a position expressed in terms
-  // Rotate offset from inertial frame to link frame.
+  // ApplyWorldForce applies the force at a position relative to the
+  // center of mass and expressed in coordinates of the link frame.
+  // Since _position is relative to the center of mass in coordinates
+  // of the inertial frame, it just needs to be rotated to be expressed
+  // in coordiantes of the link frame.
   math::Vector3d positionInLinkFrame =
     inertial->Data().Pose().Rot().RotateVector(_position);
 
