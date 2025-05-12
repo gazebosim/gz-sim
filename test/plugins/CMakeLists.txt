@@ -21,12 +21,12 @@ set (test_plugins
 
 # TODO: someone with knowledge of gz-plugin please resolve:
 # TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
-if(NOT WIN32)
+# if(NOT WIN32)
   set (test_plugins
     ${test_plugins}
     TestSystem
   )
-endif()
+# endif()
 
 # Plugin shared libraries
 if(BUILD_TESTING)

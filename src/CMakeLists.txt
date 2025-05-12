@@ -236,7 +236,7 @@ gz_build_tests(TYPE UNIT
     gz-sim
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-)
+ )
 
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)

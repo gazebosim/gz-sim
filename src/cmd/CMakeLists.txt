@@ -247,7 +247,7 @@ configure_file(
   @ONLY
 )
 
-file(GENERATE
+file(GENERATE 
   OUTPUT "${cmd_sim_script_generated}"
   INPUT "${cmd_sim_script_configured}"
 )

@@ -1,5 +1,7 @@
+set (CMAKE_CONFIG_EXPR "FOO $<CONFIG>")
+
 configure_file (test_config.hh.in
-  ${PROJECT_BINARY_DIR}/include/test_config.hh
+  ${PROJECT_BINARY_DIR}/include/test_config.hh  
 )
 include_directories (
   ${PROJECT_BINARY_DIR}/include
