@@ -34,6 +34,7 @@ using namespace sim;
 #else
   constexpr const char *kPluginDir = "lib";
 #endif
+
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
@@ -78,6 +79,7 @@ TEST(SystemLoader, FromPluginPathEnv)
       </world>
     </sdf>)");
 
+  // EXPECTED TO FAIL
   ASSERT_NE(root.WorldCount(), 0u);
   auto world = root.WorldByIndex(0);
   ASSERT_TRUE(world != nullptr);
@@ -90,8 +92,8 @@ TEST(SystemLoader, FromPluginPathEnv)
     EXPECT_FALSE(system.has_value());
   }
 
-  const auto libPath = common::joinPaths(PROJECT_BINARY_PATH, kPluginDir);
-
+  // Add test plugin to path (referenced in config)
+  auto libPath = std::string(CMAKE_LIBRARY_OUTPUT_DIRECTORY);
   {
     common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH", libPath.c_str());
 
