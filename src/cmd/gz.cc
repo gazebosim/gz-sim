@@ -265,7 +265,7 @@ void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
       gzerr << "Both record and playback are specified. Only specify one.\n";
-      return;
+      return -1;
     }
 
     _config.SetUseLogRecord(true);
