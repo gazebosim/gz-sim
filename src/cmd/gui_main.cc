@@ -100,9 +100,11 @@ void addGuiFlags(CLI::App &_app)
       cmdVerbosity(std::stoi(verbosity));
     }
 
-    // Check SDF file and parse into string
-    if(checkFile(opt->file) < 0)
-      return;
+    if (opt->file != "") {
+      // Check SDF file and parse into string
+      if(checkFile(opt->file) < 0)
+        return;
+    }
 
     // Get flag to display Quickstart menu
     std::string waitGui;

@@ -441,15 +441,17 @@ int main(int argc, char** argv)
   app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
 
+  std::string parsedSdfFile;
   if(!opt->launchServer && !opt->launchGui)
   {
-    // Check SDF file and parse into string
-    if(checkFile(opt->file) < 0)
-      return -1;
+    // If file was passed, check SDF file and parse into string
+    if (opt->file != "") {
+      if(checkFile(opt->file) < 0)
+        return -1;
 
-    std::string parsedSdfFile;
-    if(parseSdfFile(opt->file, parsedSdfFile) < 0)
-      return -1;
+      if(parseSdfFile(opt->file, parsedSdfFile) < 0)
+        return -1;
+    }
 
     bool blocking = true;
     opt->waitGui = 0;
@@ -503,13 +505,14 @@ int main(int argc, char** argv)
   {
     if(opt->launchServer)
     {
-      // Check SDF file and parse into string
-      if(checkFile(opt->file) < 0)
-        return -1;
+      if (opt->file != "") {
+        // Check SDF file and parse into string
+        if(checkFile(opt->file) < 0)
+          return -1;
 
-      std::string parsedSdfFile;
-      if(parseSdfFile(opt->file, parsedSdfFile) < 0)
-        return -1;
+        if(parseSdfFile(opt->file, parsedSdfFile) < 0)
+          return -1;
+      }
 
       // Create a Gazebo server configuration
       sim::ServerConfig serverConfig;
