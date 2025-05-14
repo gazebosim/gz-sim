@@ -110,28 +110,30 @@ set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 gz_find_package(gz-fuel_tools10 REQUIRED)
 set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 
-#--------------------------------------
-# Find gz-gui
-gz_find_package(gz-gui REQUIRED)
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
-set(QT_MAJOR_VERSION 6)
-set(QT_MINOR_VERSION 4)
-gz_find_package (Qt${QT_MAJOR_VERSION}
-  VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
-  COMPONENTS
-    Core
-    Quick
-    QuickControls2
-  REQUIRED
-  PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+if(ENABLE_GUI)
+  gz_find_package(gz-gui REQUIRED)
 
-set(CMAKE_AUTOMOC TRUE)
-set(CMAKE_AUTOUIC TRUE)
-set(CMAKE_AUTORCC TRUE)
-if(POLICY CMP0100)
-  cmake_policy(SET CMP0100 NEW)
+  set(QT_MAJOR_VERSION 6)
+  set(QT_MINOR_VERSION 4)
+  gz_find_package (Qt${QT_MAJOR_VERSION}
+    VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+
+  set(CMAKE_AUTOMOC TRUE)
+  set(CMAKE_AUTOUIC TRUE)
+  set(CMAKE_AUTORCC TRUE)
+  if(POLICY CMP0100)
+    cmake_policy(SET CMP0100 NEW)
+  endif()
 endif()
-
 
 #--------------------------------------
 # Find gz-physics
