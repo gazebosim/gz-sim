@@ -72,58 +72,60 @@ const std::string worldInstallDir()
 int checkFile(std::string &_file)
 {
   // Check if passed string is valid
-  if(!_file.empty())
+  if(_file.empty()) {
+    std::cout << "Empty filename passed to checkFile" << std::endl;
+    return -1;
+  }
+
+  std::string filepath;
+
+  // Check if passed file exists
+  if(std::filesystem::exists(_file))
   {
-    std::string filepath;
-
-    // Check if passed file exists
-    if(std::filesystem::exists(_file))
+    filepath = _file;
+  }
+  else
+  {
+    // If passed file does not exist, check GZ_SIM_RESOURCE_PATH
+    // environment variable
+    auto resourcePaths = sim::resourcePaths();
+    for(auto path : resourcePaths)
     {
-      filepath = _file;
-    }
-    else
-    {
-      // If passed file does not exist, check GZ_SIM_RESOURCE_PATH
-      // environment variable
-      auto resourcePaths = sim::resourcePaths();
-      for(auto path : resourcePaths)
+      std::string resourceFilepath =
+        common::joinPaths(path, _file);
+      if(std::filesystem::exists(resourceFilepath))
       {
-        std::string resourceFilepath =
-          common::joinPaths(path, _file);
-        if(std::filesystem::exists(resourceFilepath))
-        {
-          filepath = resourceFilepath;
-          break;
-        }
-      }
-
-      // If file does not exist in resource path, check in the
-      // installation location of available worlds
-      if(filepath.empty())
-      {
-        std::string worldPath =
-          common::joinPaths(worldInstallDir(), _file);
-        if(std::filesystem::exists(worldPath))
-        {
-          filepath = worldPath;
-        }
-        else
-        {
-          // Check Fuel for file
-          filepath = findFuelResource(_file);
-        }
+        filepath = resourceFilepath;
+        break;
       }
     }
 
+    // If file does not exist in resource path, check in the
+    // installation location of available worlds
     if(filepath.empty())
     {
-      std::cout << "Unable to find or download file "
-                << _file << std::endl;
-      return -1;
+      std::string worldPath =
+        common::joinPaths(worldInstallDir(), _file);
+      if(std::filesystem::exists(worldPath))
+      {
+        filepath = worldPath;
+      }
+      else
+      {
+        // Check Fuel for file
+        filepath = findFuelResource(_file);
+      }
     }
-
-    _file = filepath;
   }
+
+  if(filepath.empty())
+  {
+    std::cout << "Unable to find or download file "
+              << _file << std::endl;
+    return -1;
+  }
+
+  _file = filepath;
 
   return 0;
 }
