@@ -163,7 +163,7 @@ set(cmd_sim_script_generated_test "${gz_sim_ruby_path}.rb")
 set(cmd_sim_script_configured_test
   "${CMAKE_CURRENT_BINARY_DIR}/test_cmdsim${PROJECT_VERSION_MAJOR}.rb.configured")
 
-# Set the library_location variable to the full path of the library file within
+# Set the sim_exe_location variable to the full path of the executable within
 # the build directory.
 set(sim_exe_location "$<TARGET_FILE:${sim_executable}>")
 
@@ -237,7 +237,7 @@ install(FILES ${model_configured} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/gz/)
 set(cmd_sim_script_generated "${CMAKE_CURRENT_BINARY_DIR}/cmdsim${PROJECT_VERSION_MAJOR}.rb")
 set(cmd_sim_script_configured "${cmd_sim_script_generated}.configured")
 
-# Set the library_location variable to the relative path to the library file
+# Set the sim_exe_location variable to the relative path to the executable
 # within the install directory structure.
 set(sim_exe_location "../../../${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${sim_executable}>")
 

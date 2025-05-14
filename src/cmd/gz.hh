@@ -35,7 +35,7 @@ int checkFile(std::string &_file);
 
 /// \brief Parse the SDFormat file into a string
 /// \param[in] _file Name of the SDFormat file
-/// \param[in] _parsedSdfFile Assign the parsed string
+/// \param[out] _parsedSdfFile Assign the parsed string
 /// \return 0 if successful, -1 in case of error
 int parseSdfFile(const std::string &_file, std::string &_parsedSdfFile);
 
