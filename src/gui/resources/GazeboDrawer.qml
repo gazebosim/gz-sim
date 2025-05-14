@@ -149,11 +149,8 @@ Rectangle {
     title: "Gazebo Sim"
     modal: true
     focus: true
-    parent: ApplicationWindow.overlay
-    // \todo(iche033) setting width, x, and y relative to parent does not seem
-    // to work so use hardcoded values for now
-    // width: parent.width / 3 > 500 ? 500 : parent.width / 3
-    width: 500
+    parent: Overlay.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
     height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
@@ -180,12 +177,8 @@ Rectangle {
     modal: true
     focus: true
     title: "File save options"
-    parent: ApplicationWindow.overlay
-    // \todo(iche033) setting width, x, and y relative to parent does not seem
-    // to work so use hardcoded values for now
-    // so use hardcoded values for now
-    // width: parent.width / 3 > 500 ? 500 : parent.width / 3
-    width: 500
+    parent: Overlay.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
     height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
@@ -269,7 +262,7 @@ Rectangle {
 
     modal: true
     focus: true
-    parent: ApplicationWindow.overlay
+    parent: Overlay.overlay
     width: messageText.implicitWidth
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
