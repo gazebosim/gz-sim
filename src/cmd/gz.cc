@@ -134,20 +134,17 @@ int checkFile(std::string &_file)
 int parseSdfFile(const std::string &_file,
     std::string &_parsedSdfFile)
 {
-  if(!_parsedSdfFile.empty())
+  std::ifstream fs(_file);
+  if(!fs)
   {
-    std::ifstream fs(_file);
-    if(!fs)
-    {
-      std::cout << "Error reading the SDFormat file "
-                << _file << std::endl;
-      return -1;
-    }
-
-    std::stringstream buffer;
-    buffer << fs.rdbuf();
-    _parsedSdfFile = buffer.str();
+    std::cout << "Error reading the SDFormat file "
+              << _file << std::endl;
+    return -1;
   }
+
+  std::stringstream buffer;
+  buffer << fs.rdbuf();
+  _parsedSdfFile = buffer.str();
 
   return 0;
 }
