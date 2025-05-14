@@ -205,7 +205,7 @@ std::string findFuelResource(
 }
 
 //////////////////////////////////////////////////
-void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
+int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     float _hz, double _initialSimTime, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
@@ -413,7 +413,7 @@ void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     if (!_config.SetSdfString(_sdfString))
     {
       gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
-      return;
+      return -1;
     }
   }
 
@@ -452,7 +452,7 @@ void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     {
       gzerr << "Both an SDF file and playback flag are specified. "
         << "Only specify one.\n";
-      return;
+      return -1;
     }
     else
     {
@@ -494,6 +494,8 @@ void createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     _config.SetSeed(_seed);
     gzmsg << "Setting seed value: " << _seed << "\n";
   }
+
+  return 0;
 }
 
 #ifdef WITH_GUI

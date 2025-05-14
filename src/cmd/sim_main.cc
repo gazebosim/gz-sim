@@ -467,7 +467,7 @@ int main(int argc, char** argv)
 
     // Create a Gazebo server configuration
     sim::ServerConfig serverConfig;
-    createServerConfig(serverConfig, parsedSdfFile.c_str(),
+    if (createServerConfig(serverConfig, parsedSdfFile.c_str(),
               opt->rate, opt->initialSimTime, opt->levels,
               opt->networkRole.c_str(), opt->networkSecondaries,
               opt->record, opt->recordPath.c_str(), opt->recordResources,
@@ -477,7 +477,10 @@ int main(int argc, char** argv)
               opt->renderEngineGui.c_str(),
               opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
               opt->recordTopics, opt->waitGui, opt->headlessRendering,
-              opt->recordPeriod, opt->seed);
+              opt->recordPeriod, opt->seed) != 0)
+    {
+      return -1;
+    }
 
     // Run the server in a separate thread
     sim::Server server(serverConfig);
@@ -510,7 +513,7 @@ int main(int argc, char** argv)
 
       // Create a Gazebo server configuration
       sim::ServerConfig serverConfig;
-      createServerConfig(serverConfig, parsedSdfFile.c_str(),
+      if (createServerConfig(serverConfig, parsedSdfFile.c_str(),
                 opt->rate, opt->initialSimTime, opt->levels,
                 opt->networkRole.c_str(), opt->networkSecondaries,
                 opt->record, opt->recordPath.c_str(), opt->recordResources,
@@ -520,7 +523,10 @@ int main(int argc, char** argv)
                 opt->renderEngineGui.c_str(),
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                opt->recordPeriod, opt->seed);
+                opt->recordPeriod, opt->seed) != 0)
+      {
+        return -1;
+      }
 
       // Run the server in the main thread
       sim::Server server(serverConfig);

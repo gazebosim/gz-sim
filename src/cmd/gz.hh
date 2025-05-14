@@ -73,7 +73,7 @@ std::string findFuelResource(const std::string &_pathToResource);
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
 /// \return 0 if successful, -1 in case of failure
-void createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
+int createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         float _hz, double _initialSimTime, int _levels,
                         const char *_networkRole, int _networkSecondaries,
                         int _record, const char *_recordPath,
