@@ -1,5 +1,10 @@
 add_subdirectory(rendering)
-add_subdirectory(gui)
+
+if(ENABLE_GUI)
+  add_subdirectory(gui)
+  add_compile_definitions(WITH_GUI)
+endif()
+
 add_subdirectory(systems)
 
 file(GLOB gz_msgs_proto_files
@@ -50,14 +55,12 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
-set(gui_sources
-  ${gui_sources}
-  PARENT_SCOPE
-)
-
-set(cli_sources
-  gz.cc
-)
+if(ENABLE_GUI)
+  set(gui_sources
+    ${gui_sources}
+    PARENT_SCOPE
+  )
+endif()
 
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
@@ -158,25 +161,8 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
-
-# CLI
-gz_add_component(gz
-  SOURCES
-    ${cli_sources}
-  GET_TARGET_NAME gz_lib_target)
-target_link_libraries(${gz_lib_target}
-  PUBLIC
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim
-    gz-sim-gui
-)
-
-# Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui cmd/runGui_main.cc)
-target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
@@ -205,7 +191,6 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
-  gz-gui::gz-gui
   gz-physics${GZ_PHYSICS_VER}::core
   gz-rendering${GZ_RENDERING_VER}::core
   gz-transport::gz-transport
@@ -215,6 +200,13 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
 )
+
+if(ENABLE_GUI)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC
+    gz-gui::gz-gui
+  )
+endif()
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)

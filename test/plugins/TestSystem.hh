@@ -27,9 +27,9 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     class TestSystem: public System
     {
-      public: TestSystem();
+      public: TestSystem() = default;
 
-      public: virtual ~TestSystem();
+      public: virtual ~TestSystem() = default;
     };
     }
   }
