@@ -6,12 +6,11 @@ project(gz-sim-joystick)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
-  find_package(sdformat15 REQUIRED)
-  set(SDF_VER ${sdformat15_VERSION_MAJOR})
+  find_package(sdformat REQUIRED)
 
   add_executable(joystick joystick.cc)
   target_link_libraries(joystick
     gz-transport::core
-    sdformat${SDF_VER}::sdformat${SDF_VER}
+    sdformat::sdformat
     )
 endif()

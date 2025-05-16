@@ -5,16 +5,14 @@ project(gz-sim-marker)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-transport QUIET REQUIRED)
 
-  find_package(gz-common6 REQUIRED)
-  set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+  find_package(gz-common REQUIRED)
 
-  find_package(gz-msgs11 REQUIRED)
-  set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
+  find_package(gz-msgs REQUIRED)
 
   add_executable(marker marker.cc)
   target_link_libraries(marker
     gz-transport::core
-    gz-msgs${GZ_MSGS_VER}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-msgs
+    gz-common::gz-common
     )
 endif()

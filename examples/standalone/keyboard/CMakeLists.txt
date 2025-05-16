@@ -5,21 +5,18 @@ project(gz-sim-keyboard)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   find_package(gz-transport QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
-  find_package(sdformat15 REQUIRED)
-  set(SDF_VER ${sdformat15_VERSION_MAJOR})
+  find_package(sdformat REQUIRED)
 
-  find_package(gz-msgs11 REQUIRED)
-  set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
+  find_package(gz-msgs REQUIRED)
 
-  find_package(gz-common6 REQUIRED)
-  set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+  find_package(gz-common REQUIRED)
 
   add_executable(keyboard keyboard.cc)
   target_link_libraries(keyboard
     gz-transport::core
-    sdformat${SDF_VER}::sdformat${SDF_VER}
-    gz-msgs${GZ_MSGS_VER}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    sdformat::sdformat
+    gz-msgs
+    gz-common::gz-common
     stdc++fs
     )
 endif()

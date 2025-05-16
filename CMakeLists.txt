@@ -10,7 +10,7 @@ set (GZ_DISTRIBUTION "Jetty")
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake4 REQUIRED)
+find_package(gz-cmake REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -74,13 +74,11 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat15 REQUIRED)
-set(SDF_VER ${sdformat15_VERSION_MAJOR})
+gz_find_package(sdformat REQUIRED)
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin3 REQUIRED COMPONENTS loader register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+gz_find_package(gz-plugin REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find gz-transport
@@ -88,13 +86,12 @@ gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs11 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
+gz_find_package(gz-msgs REQUIRED)
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common6
+gz_find_package(gz-common
   COMPONENTS
     av
     events
@@ -103,12 +100,10 @@ gz_find_package(gz-common6
     profiler
   REQUIRED
 )
-set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools10 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools REQUIRED)
 
 # Option to build gz-sim with GUI support
 option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
@@ -137,14 +132,13 @@ endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics8
+gz_find_package(gz-physics
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
@@ -179,13 +173,11 @@ gz_find_package(gz-sensors REQUIRED
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering9 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering9_VERSION_MAJOR})
+gz_find_package(gz-rendering REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math8 REQUIRED COMPONENTS eigen3)
-set(GZ_MATH_VER ${gz-math8_VERSION_MAJOR})
+gz_find_package(gz-math REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
@@ -201,8 +193,7 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils3 REQUIRED COMPONENTS cli)
-set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
+gz_find_package(gz-utils REQUIRED COMPONENTS cli)
 
 #--------------------------------------
 # Find protobuf
@@ -210,7 +201,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs11_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs12_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
