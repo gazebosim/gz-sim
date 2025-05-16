@@ -727,12 +727,12 @@ In the new code we explicitly reference each Gazebo package that we use:
 
 ```
 # NEW
-find_package(sdformat15 REQUIRED)
-find_package(gz-common6-all REQUIRED)
+find_package(sdformat REQUIRED)
+find_package(gz-common-all REQUIRED)
 find_package(gz-sim-all REQUIRED)
-find_package(gz-math8-all REQUIRED)
-find_package(gz-msgs11-all REQUIRED)
-find_package(gz-physics8-all REQUIRED)
+find_package(gz-math-all REQUIRED)
+find_package(gz-msgs-all REQUIRED)
+find_package(gz-physics-all REQUIRED)
 find_package(gz-sensors-all REQUIRED)
 find_package(gz-transport-all REQUIRED)
 ```

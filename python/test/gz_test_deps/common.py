@@ -1,1 +1,1 @@
-from gz.common6 import *
+from gz.common import *

@@ -85,14 +85,13 @@ Implement the system class as usual, for example:
 In your `CMakeLists.txt` add the following
 
 ```
-find_package(gz-plugin3 REQUIRED COMPONENTS register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+find_package(gz-plugin REQUIRED COMPONENTS register)
 
 # Add sources for each plugin to be registered.
 add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
-  PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
+  PRIVATE gz-plugin::gz-plugin
   PRIVATE gz-sim::gz-sim)
 ```
 
