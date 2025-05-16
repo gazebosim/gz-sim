@@ -63,8 +63,11 @@ foreach(CMD_TEST
   )
 
   if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST)
+    set(_env_vars)
+    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
     set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
+      ENVIRONMENT "${_env_vars}")
   endif()
 
   if(${CMD_TEST} STREQUAL UNIT_gz_TEST)
@@ -82,6 +85,7 @@ foreach(CMD_TEST
 
     set(_env_vars)
     list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
+    list(APPEND _env_vars "GZ_IP=127.0.0.1")
     list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
 
     set_tests_properties(${CMD_TEST} PROPERTIES
