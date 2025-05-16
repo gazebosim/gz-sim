@@ -22,7 +22,7 @@
 
 namespace sample_system
 {
-  /// \brief Sample system that implemente the ISystemPostUpdate system
+  /// \brief Sample system that implements the ISystemPostUpdate system
   /// plugin interface.
   class SampleSystem:
     // This class is a system.

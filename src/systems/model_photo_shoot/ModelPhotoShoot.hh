@@ -54,7 +54,7 @@ namespace systems
   /// An example configuration is installed with Gazebo. The example uses
   /// the Ogre2 rendering plugin to set the background color of the pictures.
   /// It also includes the camera sensor that will be used along with the
-  /// corresponding parameters so they can be easily tunned.
+  /// corresponding parameters so they can be easily tuned.
   ///
   /// To run the example:
   /// ```

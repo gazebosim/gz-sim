@@ -399,17 +399,17 @@ namespace sim
                 const QString &_parentLink,
                 const QString &_childLink);
 
-    /// \brief Return the list of availabe links that are suitable for
+    /// \brief Return the list of available links that are suitable for
     /// parent links in joints if a model is selected.
     /// \return List of available links.
     public: Q_INVOKABLE QStringList ModelParentLinks() const;
 
-    /// \brief Return the list of availabe links that are suitable for
+    /// \brief Return the list of available links that are suitable for
     /// child links in joints if a model is selected.
     /// \return List of available links.
     public: Q_INVOKABLE QStringList ModelChildLinks() const;
 
-    /// \brief Set the list of availabe links when a model is selected.
+    /// \brief Set the list of available links when a model is selected.
     /// \param[in] _modelLinks List of available links.
     public: Q_INVOKABLE void SetModelLinks(const QStringList &_modelLinks);
 

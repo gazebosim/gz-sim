@@ -44,7 +44,7 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// Secifying an audio source via SDF is done as follows:
+  /// Specifying an audio source via SDF is done as follows:
   ///
   /// - `<source>` A new audio source in the environment, which has the
   ///   following child elements:

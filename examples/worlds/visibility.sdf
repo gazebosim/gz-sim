@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
   World to demo the use of visual visibility flags and camera visibility mask.
-  The world consistes of 3 simple shape models and 2 camera sensors.
+  The world consists of 3 simple shape models and 2 camera sensors.
   The visibility mask and flags are set in a way that:
       * box is visible to camera_0x01 and gui camera
       * cylinder is visible to camera_0x02 and gui camera

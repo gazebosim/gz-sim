@@ -368,7 +368,7 @@ void MulticopterVelocityControl::PreUpdate(
       this->rotorVelocities.setZero();
       this->PublishRotorVelocities(_ecm, this->rotorVelocities);
       // Clear the cmdVelMsg so that the system waits for a new command after
-      // being renabled.
+      // being re-enabled.
       std::lock_guard<std::mutex> lock(this->cmdVelMsgMutex);
       this->cmdVelMsg.reset();
     }

@@ -726,7 +726,7 @@
     </model>
 
     <!--
-      4. Model containing two nested models with position contolled joints.
+      4. Model containing two nested models with position controlled joints.
 
       The top-level model does not contain a link, only a joint connecting
       the two nested models.

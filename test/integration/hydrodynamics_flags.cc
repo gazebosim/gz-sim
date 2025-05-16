@@ -117,8 +117,8 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-/// This test makes sure that the linear velocity is reuduced
-/// disbling the coriolis force and also when disabling the added mass.
+/// This test makes sure that the linear velocity is reduced
+/// disabling the coriolis force and also when disabling the added mass.
 TEST_F(HydrodynamicsFlagsTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(AddedMassCoriolisFlags))
 {

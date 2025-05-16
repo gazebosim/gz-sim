@@ -327,12 +327,12 @@
                 <fun>tan</fun>
                 <!-- one of sin,tan,id -->
               </custom_function>
-              <!-- if it is set to `true` your horizontal FOV will ramain as defined -->
-              <!-- othervise it depends on lens type and custom function, if there is one -->
+              <!-- if it is set to `true` your horizontal FOV will remain as defined -->
+              <!-- otherwise it depends on lens type and custom function, if there is one -->
               <scale_to_hfov>true</scale_to_hfov>
               <!-- clip everything that is outside of this angle -->
               <cutoff_angle>3.1415</cutoff_angle>
-              <!-- resolution of the cubemap texture, the highter it is - the sharper is your image -->
+              <!-- resolution of the cubemap texture, the higher it is - the sharper is your image -->
               <env_texture_size>512</env_texture_size>
             </lens>
           </camera>
