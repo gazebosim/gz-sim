@@ -41,7 +41,7 @@ struct GuiOptions
   std::string renderEngineGuiApiBackend{""};
 
   /// \brief Show the world loading menu
-  int waitGui{1};
+  int waitGui{0};
 };
 
 //////////////////////////////////////////////////
@@ -93,13 +93,6 @@ void addGuiFlags(CLI::App &_app)
 
   _app.callback([opt](){
 
-    // Get verbosity level from environment
-    std::string verbosity;
-    if(utils::env("GZ_SIM_VERBOSITY", verbosity))
-    {
-      cmdVerbosity(std::stoi(verbosity));
-    }
-
     if (opt->file != "") {
       // Check SDF file and parse into string
       if(checkFile(opt->file) < 0)
@@ -123,6 +116,16 @@ void addGuiFlags(CLI::App &_app)
 int main(int argc, char** argv)
 {
   CLI::App app{"Run and manage Gazebo GUI."};
+
+  app.add_option_function<int>("-v,--verbose",
+    [](const int _verbosity){
+      cmdVerbosity(_verbosity);
+    },
+    "Adjust the level of console output (0~4).\n"
+    "The default verbosity level is 1. Use -v\n"
+    "without arguments for level 3.\n")
+    ->expected(0, 1)
+    ->default_val(3);
 
   addGuiFlags(app);
   app.formatter(std::make_shared<GzFormatter>(&app));

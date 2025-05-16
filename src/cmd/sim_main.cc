@@ -17,7 +17,6 @@
 
 #include <iostream>
 #include <string>
-#include <thread>
 #include <vector>
 
 #ifdef _WIN32
@@ -108,10 +107,13 @@ struct SimOptions
   int headlessRendering{0};
 
   /// \brief Show the world loading menu
-  int waitGui{1};
+  int waitGui{0};
 
   /// \brief Custom seed to random value generator
   int seed{0};
+
+  /// \brief Verbosity level
+  int verbosity{-1};
 
   /// \brief Path to GUI configuration file
   std::string guiConfig{""};
@@ -173,6 +175,12 @@ std::vector<std::string> createGuiCommand(
   std::shared_ptr<SimOptions> _opt)
 {
   std::vector<std::string> args;
+
+  if(_opt->verbosity >= 0)
+  {
+    args.push_back("--verbose");
+    args.push_back(std::to_string(_opt->verbosity));
+  }
 
   if(!_opt->renderEngineGui.empty())
   {
@@ -397,12 +405,9 @@ int main(int argc, char** argv)
     "Print the current library version.");
 
   app.add_option_function<int>("-v,--verbose",
-    [](const int _verbosity){
-      utils::setenv(
-        std::string("GZ_SIM_VERBOSITY"),
-        std::to_string(_verbosity));
-
+    [opt](const int _verbosity){
       cmdVerbosity(_verbosity);
+      opt->verbosity = _verbosity;
     },
     "Adjust the level of console output (0~4).\n"
     "The default verbosity level is 1. Use -v\n"
@@ -420,7 +425,6 @@ int main(int argc, char** argv)
     [opt]{
       opt->launchServer = true;
       opt->launchGui = false;
-      opt->waitGui = 0;
     },
     "Run and manage only the Gazebo Server (headless mode).\n"
     "This overrides -g, if it is also present.");
@@ -454,17 +458,19 @@ int main(int argc, char** argv)
     }
 
     bool blocking = true;
-    opt->waitGui = 0;
 
     #ifdef WITH_GUI
+    opt->waitGui = 1;
+    blocking = false;
+
     // Launch the GUI in a separate thread
     std::thread guiThread(
       [opt]{
+        utils::setenv(
+            std::string("GZ_SIM_WAIT_GUI"),
+            std::to_string(opt->waitGui));
         launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
       });
-
-    blocking = false;
-    opt->waitGui = 1;
     #endif
 
     // Create a Gazebo server configuration
@@ -540,7 +546,6 @@ int main(int argc, char** argv)
     else if(opt->launchGui)
     {
       #ifdef WITH_GUI
-      utils::setenv(std::string("GZ_SIM_WAIT_GUI"), std::to_string(0));
       launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
       #else
       std::cerr << "This version of Gazebo does not support GUI" << std::endl;
