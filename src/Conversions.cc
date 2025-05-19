@@ -21,6 +21,7 @@
 #include <gz/msgs/boxgeom.pb.h>
 #include <gz/msgs/capsulegeom.pb.h>
 #include <gz/msgs/conegeom.pb.h>
+#include <gz/msgs/convert/PixelFormatType.hh>
 #include <gz/msgs/cylindergeom.pb.h>
 #include <gz/msgs/ellipsoidgeom.pb.h>
 #include <gz/msgs/entity.pb.h>
@@ -1124,7 +1125,8 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       sensor->set_far_clip(sdfCam->FarClip());
       sensor->set_save_enabled(sdfCam->SaveFrames());
       sensor->set_save_path(sdfCam->SaveFramesPath());
-      sensor->set_image_format(sdfCam->PixelFormatStr());
+      sensor->set_pixel_format(
+          msgs::ConvertPixelFormatType(sdfCam->PixelFormatStr()));
       msgs::Distortion *dist = sensor->mutable_distortion();
       msgs::Set(dist->mutable_center(), sdfCam->DistortionCenter());
       dist->set_k1(sdfCam->DistortionK1());
@@ -1397,7 +1399,8 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       sensor.SetHorizontalFov(_in.camera().horizontal_fov());
       sensor.SetImageWidth(static_cast<int>(_in.camera().image_size().x()));
       sensor.SetImageHeight(static_cast<int>(_in.camera().image_size().y()));
-      sensor.SetPixelFormatStr(_in.camera().image_format());
+      sensor.SetPixelFormatStr(
+          msgs::ConvertPixelFormatType(_in.camera().pixel_format()));
       sensor.SetNearClip(_in.camera().near_clip());
       sensor.SetFarClip(_in.camera().far_clip());
       sensor.SetSaveFrames(_in.camera().save_enabled());
