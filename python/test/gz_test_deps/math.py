@@ -1,1 +1,0 @@
-from gz.math import *
