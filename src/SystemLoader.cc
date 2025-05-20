@@ -75,14 +75,14 @@ class gz::sim::SystemLoaderPrivate
              << "]. Using [" << filename << "] instead." << std::endl;
     }
 
-    std::list<std::string> paths = this->PluginPaths();
+    const std::list<std::string> paths = this->PluginPaths();
     common::SystemPaths systemPaths;
     for (const auto &p : paths)
     {
       systemPaths.AddPluginPaths(p);
     }
 
-    auto pathToLib = systemPaths.FindSharedLibrary(filename);
+    const auto pathToLib = systemPaths.FindSharedLibrary(filename);
     if (pathToLib.empty())
     {
       // We assume gz::sim corresponds to the levels feature
@@ -94,7 +94,7 @@ class gz::sim::SystemLoaderPrivate
       return false;
     }
 
-    auto pluginNames = this->loader.LoadLib(pathToLib, true);
+    const auto pluginNames = this->loader.LoadLib(pathToLib, true);
     if (pluginNames.empty())
     {
       std::stringstream ss;
@@ -107,7 +107,7 @@ class gz::sim::SystemLoaderPrivate
       return false;
     }
 
-    auto pluginName = *pluginNames.begin();
+    const auto &pluginName = *pluginNames.begin();
     if (pluginName.empty())
     {
       std::stringstream ss;
@@ -200,7 +200,7 @@ class gz::sim::SystemLoaderPrivate
   // Default plugin search path environment variable
   public: std::string pluginPathEnv{"GZ_SIM_SYSTEM_PLUGIN_PATH"};
 
-  /// \brief Plugin loader instace
+  /// \brief Plugin loader instance
   public: gz::plugin::Loader loader;
 
   /// \brief Paths to search for system plugins.
@@ -232,7 +232,7 @@ void SystemLoader::AddSystemPluginPath(const std::string &_path)
 std::optional<SystemPluginPtr> SystemLoader::LoadPlugin(
     const sdf::Plugin &_plugin)
 {
-  if (_plugin.Filename() == "")
+  if (_plugin.Filename().empty())
   {
     gzerr << "Failed to instantiate system plugin: empty argument "
              "[(filename): " << _plugin.Filename() << "] " << std::endl;

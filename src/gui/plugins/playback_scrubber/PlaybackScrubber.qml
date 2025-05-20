@@ -20,7 +20,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 GridLayout {
   id: playbackScrubber
@@ -58,7 +58,7 @@ GridLayout {
   function updateSliderValue() {
     if (!playbackScrubber.isPressed)
     {
-      slider.value = PlaybackScrubber.Progress();
+      slider.value = _PlaybackScrubber.Progress();
     }
   }
 
@@ -66,25 +66,25 @@ GridLayout {
    * Update the end time of the log playback file.
    */
   function updateEndTime() {
-    endTime = PlaybackScrubber.EndTimeAsString();
+    endTime = _PlaybackScrubber.EndTimeAsString();
   }
 
   /**
    * Update the start time of the log playback file.
    */
   function updateStartTime() {
-    startTime = PlaybackScrubber.CurrentTimeAsString();
+    startTime = _PlaybackScrubber.CurrentTimeAsString();
   }
 
   /**
    * Update the current time the playback scrubber is at.
    */
   function updateCurrentTime() {
-    currentTime = PlaybackScrubber.CurrentTimeAsString();
+    currentTime = _PlaybackScrubber.CurrentTimeAsString();
   }
 
   Connections {
-    target: PlaybackScrubber
+    target: _PlaybackScrubber
     onNewProgress: {
       updateSliderValue();
       updateStartTime();
@@ -105,7 +105,7 @@ GridLayout {
     onPressedChanged: {
       if (!pressed)
       {
-        PlaybackScrubber.OnDrop(slider.value);
+        _PlaybackScrubber.OnDrop(slider.value);
         playbackScrubber.isPressed = false;
       }
       else
@@ -123,7 +123,7 @@ GridLayout {
     Layout.alignment: Qt.AlignRight
     placeholderText: currentTime
     onAccepted: {
-      PlaybackScrubber.OnTimeEntered(textField.text);
+      _PlaybackScrubber.OnTimeEntered(textField.text);
       textField.text = "";
     }
     color: Material.theme == Material.Light ? "black" : "white"

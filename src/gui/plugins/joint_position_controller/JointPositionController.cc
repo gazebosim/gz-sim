@@ -315,7 +315,7 @@ bool JointPositionController::eventFilter(QObject *_obj, QEvent *_event)
       auto event = reinterpret_cast<gui::events::EntitiesSelected *>(_event);
       if (event && !event->Data().empty())
       {
-        this->SetModelEntity(*event->Data().begin());
+        this->SetModelEntity(event->Data().front());
       }
     }
 

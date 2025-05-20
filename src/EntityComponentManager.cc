@@ -34,6 +34,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/DetachableJoint.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
@@ -711,6 +712,25 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   else
   {
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+
+    // remove detachable joint entities that are connected to
+    // any of the entities to be removed
+    std::unordered_set<Entity> detachableJoints;
+    this->Each<components::DetachableJoint>(
+        [&](const Entity &_jointEntity,
+            const components::DetachableJoint *_jointInfo) -> bool
+        {
+          Entity parentLinkEntity = _jointInfo->Data().parentLink;
+          Entity childLinkEntity = _jointInfo->Data().childLink;
+          if (tmpToRemoveEntities.find(parentLinkEntity) !=
+              tmpToRemoveEntities.end() ||
+              tmpToRemoveEntities.find(childLinkEntity) !=
+              tmpToRemoveEntities.end())
+            detachableJoints.insert(_jointEntity);
+          return true;
+        });
+    tmpToRemoveEntities.insert(detachableJoints.begin(),
+                               detachableJoints.end());
   }
 
   // Remove entities from tmpToRemoveEntities that are marked as

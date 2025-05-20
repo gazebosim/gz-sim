@@ -115,16 +115,17 @@ set_target_properties(backward PROPERTIES EXPORT_NAME Backward)
 target_link_libraries(backward PUBLIC Backward::Interface)
 add_library(Backward::Backward ALIAS backward)
 
-install(
-    FILES "backward.hpp"
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-install(
-    FILES "BackwardConfig.cmake"
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-)
+
 # check if Backward is being used as a top-level project or included as a subproject
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    install(
+        FILES "backward.hpp"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+    install(
+        FILES "BackwardConfig.cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+    )
     # export the targets (note that exporting backward_object does not make sense)
     install(TARGETS backward_interface backward EXPORT BackwardTargets)
     # install a CMake file for the exported targets

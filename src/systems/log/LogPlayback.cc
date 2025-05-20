@@ -308,7 +308,7 @@ void LogPlaybackPrivate::ReplaceResourceURIs(EntityComponentManager &_ecm)
   // Define equality functions for replacing component uri
   auto uriEqual = [&](const std::string &_s1, const std::string &_s2) -> bool
   {
-    return (_s1.compare(_s2) == 0);
+    return _s1 == _s2;
   };
 
   auto geoUriEqual = [&](const sdf::Geometry &_g1,

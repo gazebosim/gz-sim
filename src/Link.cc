@@ -37,6 +37,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/Util.hh"
@@ -127,6 +128,16 @@ Entity Link::CollisionByName(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+Entity Link::SensorByName(const EntityComponentManager &_ecm,
+    const std::string &_name) const
+{
+  return _ecm.EntityByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Name(_name),
+      components::Sensor());
+}
+
+//////////////////////////////////////////////////
 Entity Link::VisualByName(const EntityComponentManager &_ecm,
     const std::string &_name) const
 {
@@ -145,6 +156,14 @@ std::vector<Entity> Link::Collisions(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+std::vector<Entity> Link::Sensors(const EntityComponentManager &_ecm) const
+{
+  return _ecm.EntitiesByComponents(
+      components::ParentEntity(this->dataPtr->id),
+      components::Sensor());
+}
+
+//////////////////////////////////////////////////
 std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
 {
   return _ecm.EntitiesByComponents(
@@ -156,6 +175,12 @@ std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
 uint64_t Link::CollisionCount(const EntityComponentManager &_ecm) const
 {
   return this->Collisions(_ecm).size();
+}
+
+//////////////////////////////////////////////////
+uint64_t Link::SensorCount(const EntityComponentManager &_ecm) const
+{
+  return this->Sensors(_ecm).size();
 }
 
 //////////////////////////////////////////////////
@@ -259,16 +284,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
-  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
-      _enable);
+  auto defaultWorldPose = math::Pose3d::Zero;
+  if (_enable)
+  {
+    defaultWorldPose = sim::worldPose(this->dataPtr->id, _ecm);
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::LinearVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::AngularVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldPose(defaultWorldPose));
+
+  auto defaultWorldLinVel = math::Vector3d::Zero;
+  auto defaultWorldAngVel = math::Vector3d::Zero;
+  if (_enable)
+  {
+    // The WorldPose component is guaranteed to exist at this point
+    auto worldPose = this->WorldPose(_ecm).value();
+
+    // Compute the default world linear and angular velocities
+    defaultWorldLinVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::LinearVelocity>(this->dataPtr->id)->Data());
+    defaultWorldAngVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::AngularVelocity>(this->dataPtr->id)->Data());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldLinearVelocity(defaultWorldLinVel));
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldAngularVelocity(defaultWorldAngVel));
 }
 
 //////////////////////////////////////////////////
@@ -438,6 +484,67 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
   math::Vector3d torque = posComWorldCoord.Cross(_force);
 
   this->AddWorldWrench(_ecm, _force, torque);
+}
+
+//////////////////////////////////////////////////
+void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
+                                   const math::Vector3d &_force) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial)
+    return;
+
+  // The force is expressed in terms of the link's inertial coordinate frame,
+  // We'll first convert this to force expressed in terms of the link's
+  // coordinate frame
+  math::Vector3d linkForce = inertial->Data().Pose().Rot(
+                             ).RotateVector(_force);
+
+  // AddWorldForce applies the force expressed in world coordinates
+  // so we need to compute the force expressed in world coordinates
+  math::Vector3d worldForce = worldPose.Rot().RotateVector(linkForce);
+
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce);
+}
+
+//////////////////////////////////////////////////
+void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
+                                   const math::Vector3d &_force,
+                                   const math::Vector3d &_position) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial)
+    return;
+
+  // The force is expressed in terms of the link's inertial coordinate frame,
+  // We'll first convert this to force expressed in terms of the link's
+  // coordinate frame
+  math::Vector3d linkForce =
+    inertial->Data().Pose().Rot().RotateVector(_force);
+
+  // ApplyWorldForce applies the force expressed in world coordinates
+  // so we need to compute the force expressed in world coordinates
+  math::Vector3d worldForce = worldPose.Rot().RotateVector(linkForce);
+
+  // ApplyWorldForce applies the force at a position relative to the
+  // center of mass and expressed in coordinates of the link frame.
+  // Since _position is relative to the center of mass in coordinates
+  // of the inertial frame, it just needs to be rotated to be expressed
+  // in coordiantes of the link frame.
+  math::Vector3d positionInLinkFrame =
+    inertial->Data().Pose().Rot().RotateVector(_position);
+
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce, positionInLinkFrame);
 }
 
 //////////////////////////////////////////////////

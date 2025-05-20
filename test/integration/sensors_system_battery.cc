@@ -121,7 +121,7 @@ TEST_F(SensorsFixture, SensorsBatteryState)
     components::BatterySoC::typeId));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
-  // Check state of charge should be 1, since the batery has not drained
+  // Check state of charge should be 1, since the battery has not drained
   // and the <initial_charge> is equivalent ot the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
@@ -140,7 +140,7 @@ TEST_F(SensorsFixture, SensorsBatteryState)
   // Run the server again.
   server.Run(true, 50, false);
 
-  // The state of charge should be <1, since the batery has started
+  // The state of charge should be <1, since the battery has started
   // draining.
   EXPECT_LT(batComp->Data(), 1.0);
 

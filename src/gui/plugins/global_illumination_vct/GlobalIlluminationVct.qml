@@ -71,9 +71,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Enabled")
-    checked: GlobalIlluminationVct.enabled
+    checked: _GlobalIlluminationVct.enabled
     onToggled: {
-      GlobalIlluminationVct.enabled = checked
+      _GlobalIlluminationVct.enabled = checked
     }
   }
 
@@ -88,12 +88,12 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: bounceCount
-    value: GlobalIlluminationVct.bounceCount
+    value: _GlobalIlluminationVct.bounceCount
     minimumValue: 0
     maximumValue: 16
     decimals: 1
     onValueChanged: {
-      GlobalIlluminationVct.bounceCount = value
+      _GlobalIlluminationVct.bounceCount = value
     }
   }
 
@@ -110,7 +110,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinX
-    value: GlobalIlluminationVct.resolutionX
+    value: _GlobalIlluminationVct.resolutionX
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -119,7 +119,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionX = value;
+      _GlobalIlluminationVct.resolutionX = value;
     }
   }
   GzSpinBox {
@@ -128,7 +128,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinY
-    value: GlobalIlluminationVct.resolutionY
+    value: _GlobalIlluminationVct.resolutionY
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -137,7 +137,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionY = value;
+      _GlobalIlluminationVct.resolutionY = value;
     }
   }
   GzSpinBox {
@@ -146,7 +146,7 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: resolutionSpinZ
-    value: GlobalIlluminationVct.resolutionZ
+    value: _GlobalIlluminationVct.resolutionZ
     minimumValue: 4
     maximumValue: 512
     decimals: 1
@@ -155,7 +155,7 @@ GridLayout {
       tmpValue = nearestPowerOf2(tmpValue, oldValue);
       oldValue = tmpValue;
       value = tmpValue;
-      GlobalIlluminationVct.resolutionZ = value;
+      _GlobalIlluminationVct.resolutionZ = value;
     }
   }
 
@@ -170,36 +170,36 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountX
-    value: GlobalIlluminationVct.octantCountX
+    value: _GlobalIlluminationVct.octantCountX
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationVct.octantCountX = value
+      _GlobalIlluminationVct.octantCountX = value
     }
   }
   GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountY
-    value: GlobalIlluminationVct.octantCountY
+    value: _GlobalIlluminationVct.octantCountY
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationVct.octantCountY = value
+      _GlobalIlluminationVct.octantCountY = value
     }
   }
   GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: octantCountZ
-    value: GlobalIlluminationVct.octantCountZ
+    value: _GlobalIlluminationVct.octantCountZ
     minimumValue: 1
     maximumValue: 8
     decimals: 1
     onEditingFinished: {
-      GlobalIlluminationVct.octantCountZ = value
+      _GlobalIlluminationVct.octantCountZ = value
     }
   }
 
@@ -209,9 +209,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Conserve Memory")
-    checked: GlobalIlluminationVct.conserveMemory
+    checked: _GlobalIlluminationVct.conserveMemory
     onToggled: {
-        GlobalIlluminationVct.conserveMemory = checked;
+        _GlobalIlluminationVct.conserveMemory = checked;
     }
   }
 
@@ -221,9 +221,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("High Quality")
-    checked: GlobalIlluminationVct.highQuality
+    checked: _GlobalIlluminationVct.highQuality
     onToggled: {
-      GlobalIlluminationVct.highQuality = checked;
+      _GlobalIlluminationVct.highQuality = checked;
     }
   }
 
@@ -233,9 +233,9 @@ GridLayout {
     Layout.columnSpan: 6
     Layout.fillWidth: true
     text: qsTr("Anisotropic")
-    checked: GlobalIlluminationVct.anisotropic
+    checked: _GlobalIlluminationVct.anisotropic
     onToggled: {
-      GlobalIlluminationVct.anisotropic = checked;
+      _GlobalIlluminationVct.anisotropic = checked;
     }
   }
 
@@ -250,13 +250,13 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: thinWallCounter
-    value: GlobalIlluminationVct.thinWallCounter
+    value: _GlobalIlluminationVct.thinWallCounter
     minimumValue: 0
     maximumValue: 5
     decimals: 2
     stepSize: 0.1
     onValueChanged: {
-      GlobalIlluminationVct.thinWallCounter = value
+      _GlobalIlluminationVct.thinWallCounter = value
     }
   }
 
@@ -271,13 +271,13 @@ GridLayout {
     Layout.columnSpan: 4
     id: debugVisualization
     Layout.fillWidth: true
-    currentIndex: GlobalIlluminationVct.debugVisualizationMode
+    currentIndex: _GlobalIlluminationVct.debugVisualizationMode
     model: ["Albedo", "Normal", "Emissive", "Lighting", "None"]
     onCurrentIndexChanged: {
       if (currentIndex < 0|| currentIndex > 4) {
         return;
       }
-      GlobalIlluminationVct.debugVisualizationMode = currentIndex
+      _GlobalIlluminationVct.debugVisualizationMode = currentIndex
     }
   }
 }

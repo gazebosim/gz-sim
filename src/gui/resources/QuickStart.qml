@@ -233,7 +233,6 @@ Rectangle {
               id: sdfFileDelegate
 
               ItemDelegate {
-                width: parent.width-11
                 x: 1
                 text: fileName
                 highlighted: selectedWorld == fileName

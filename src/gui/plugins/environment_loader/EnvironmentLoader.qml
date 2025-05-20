@@ -16,7 +16,7 @@
 */
 import QtQuick 2.9
 import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
@@ -46,10 +46,10 @@ GridLayout {
     TextField {
       id: dataFilePathInput
       Layout.fillWidth: true
-      text: EnvironmentLoader.dataPath
+      text: _EnvironmentLoader.dataPath
       placeholderText: qsTr("Path to data file")
       onEditingFinished: {
-        EnvironmentLoader.dataPath = text
+        _EnvironmentLoader.dataPath = text
       }
     }
 
@@ -57,7 +57,7 @@ GridLayout {
       id: browseDataFile
       Layout.preferredWidth: 20
       display: AbstractButton.IconOnly
-      text: EnvironmentLoader.dataFileName
+      text: _EnvironmentLoader.dataFileName
       onClicked: dataFileDialog.open()
       icon.source: "qrc:/Gazebo/images/chevron-right.svg"
       ToolTip.visible: hovered
@@ -69,10 +69,11 @@ GridLayout {
     Layout.columnSpan: 8
     id: dataFileDialog
     title: qsTr("Please choose a data file")
-    folder: shortcuts.home
+    fileMode: FileDialog.OpenFile
+    currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
     visible: false
     onAccepted: {
-      EnvironmentLoader.SetDataUrl(dataFileDialog.fileUrl)
+      _EnvironmentLoader.SetDataUrl(dataFileDialog.selectedFile)
     }
     onRejected: {
     }
@@ -94,11 +95,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: timeDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
-    model: EnvironmentLoader.dimensionList
-    currentIndex: EnvironmentLoader.timeIndex
+    enabled: _EnvironmentLoader.configured
+    model: _EnvironmentLoader.dimensionList
+    currentIndex: _EnvironmentLoader.timeIndex
     onCurrentIndexChanged: {
-      EnvironmentLoader.timeIndex = currentIndex
+      _EnvironmentLoader.timeIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as time dimension")
@@ -119,11 +120,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: xDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
-    model: EnvironmentLoader.dimensionList
-    currentIndex: EnvironmentLoader.xIndex
+    enabled: _EnvironmentLoader.configured
+    model: _EnvironmentLoader.dimensionList
+    currentIndex: _EnvironmentLoader.xIndex
     onCurrentIndexChanged: {
-      EnvironmentLoader.xIndex = currentIndex
+      _EnvironmentLoader.xIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as x dimension")
@@ -144,11 +145,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: yDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
-    model: EnvironmentLoader.dimensionList
-    currentIndex: EnvironmentLoader.yIndex
+    enabled: _EnvironmentLoader.configured
+    model: _EnvironmentLoader.dimensionList
+    currentIndex: _EnvironmentLoader.yIndex
     onCurrentIndexChanged: {
-      EnvironmentLoader.yIndex = currentIndex
+      _EnvironmentLoader.yIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as y dimension")
@@ -169,11 +170,11 @@ GridLayout {
     Layout.columnSpan: 6
     id: zDimensionCombo
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
-    model: EnvironmentLoader.dimensionList
-    currentIndex: EnvironmentLoader.zIndex
+    enabled: _EnvironmentLoader.configured
+    model: _EnvironmentLoader.dimensionList
+    currentIndex: _EnvironmentLoader.zIndex
     onCurrentIndexChanged: {
-      EnvironmentLoader.zIndex = currentIndex
+      _EnvironmentLoader.zIndex = currentIndex
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Data field to be used as z dimension")
@@ -194,10 +195,10 @@ GridLayout {
     Layout.columnSpan: 6
     id: referenceCombo
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
-    model: EnvironmentLoader.referenceList
+    enabled: _EnvironmentLoader.configured
+    model: _EnvironmentLoader.referenceList
     onCurrentTextChanged: {
-      EnvironmentLoader.reference = currentText
+      _EnvironmentLoader.reference = currentText
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Reference for spatial dimensions")
@@ -219,9 +220,9 @@ GridLayout {
     id: unitsConversion
     Layout.fillWidth: true
     enabled: referenceCombo.currentIndex == 2
-    model: EnvironmentLoader.unitList
+    model: _EnvironmentLoader.unitList
     onCurrentTextChanged: {
-      EnvironmentLoader.unit = currentText
+      _EnvironmentLoader.unit = currentText
     }
     ToolTip.visible: hovered
     ToolTip.text: qsTr("Units")
@@ -233,9 +234,9 @@ GridLayout {
     Layout.row: 7
     Layout.columnSpan: 8
     Layout.fillWidth: true
-    enabled: EnvironmentLoader.configured
+    enabled: _EnvironmentLoader.configured
     onClicked: function() {
-      EnvironmentLoader.ScheduleLoad()
+      _EnvironmentLoader.ScheduleLoad()
     }
   }
 }

@@ -1,5 +1,10 @@
 add_subdirectory(rendering)
-add_subdirectory(gui)
+
+if(ENABLE_GUI)
+  add_subdirectory(gui)
+  add_compile_definitions(WITH_GUI)
+endif()
+
 add_subdirectory(systems)
 
 file(GLOB gz_msgs_proto_files
@@ -50,15 +55,12 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
-set(gui_sources
-  ${gui_sources}
-  PARENT_SCOPE
-)
-
-set(cli_sources
-  gz.cc
-  cmd/ModelCommandAPI.cc
-)
+if(ENABLE_GUI)
+  set(gui_sources
+    ${gui_sources}
+    PARENT_SCOPE
+  )
+endif()
 
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
@@ -114,6 +116,7 @@ set (gtest_sources
   Joint_TEST.cc
   Light_TEST.cc
   Link_TEST.cc
+  MeshInertiaCalculator_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
@@ -134,22 +137,10 @@ set (gtest_sources
   network/NetworkManager_TEST.cc
 )
 
-# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
-# CMake generators, see also cmd/CMakeLists.txt
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND gtest_sources gz_TEST.cc)
-endif()
-
-
 # Tests that require a valid display
 set(tests_needing_display
   Server_Rendering_TEST.cc
 )
-
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND tests_needing_display ModelCommandAPI_TEST.cc)
-endif()
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
@@ -170,25 +161,8 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
-
-# CLI
-gz_add_component(gz
-  SOURCES
-    ${cli_sources}
-  GET_TARGET_NAME gz_lib_target)
-target_link_libraries(${gz_lib_target}
-  PUBLIC
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim${PROJECT_VERSION_MAJOR}
-    gz-sim${PROJECT_VERSION_MAJOR}-gui
-)
-
-# Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui cmd/runGui_main.cc)
-target_link_libraries(runGui PRIVATE ${gz_lib_target})
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
@@ -217,16 +191,22 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   gz-common${GZ_COMMON_VER}::graphics
   gz-common${GZ_COMMON_VER}::profiler
   gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
-  gz-gui${GZ_GUI_VER}::gz-gui${GZ_GUI_VER}
   gz-physics${GZ_PHYSICS_VER}::core
   gz-rendering${GZ_RENDERING_VER}::core
-  gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-  gz-transport${GZ_TRANSPORT_VER}::parameters
+  gz-transport::gz-transport
+  gz-transport::parameters
   sdformat${SDF_VER}::sdformat${SDF_VER}
   protobuf::libprotobuf
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
 )
+
+if(ENABLE_GUI)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC
+    gz-gui::gz-gui
+  )
+endif()
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
@@ -253,7 +233,7 @@ gz_build_tests(TYPE UNIT
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
-    gz-sim${PROJECT_VERSION_MAJOR}
+    gz-sim
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
@@ -264,54 +244,5 @@ if (TARGET UNIT_Server_Rendering_TEST)
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()
-
-# Command line tests need extra settings
-foreach(CMD_TEST
-  UNIT_gz_TEST
-  UNIT_ModelCommandAPI_TEST)
-
-  if(NOT TARGET ${CMD_TEST})
-    continue()
-  endif()
-
-  # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
-  # due to System Integrity Protection (SIP). Try to find ruby from
-  # homebrew as a workaround.
-  if (APPLE)
-    find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
-  endif()
-
-  add_dependencies(${CMD_TEST}
-    ${gz_lib_target}
-    TestModelSystem
-    TestSensorSystem
-    TestWorldSystem
-  )
-
-  target_compile_definitions(${CMD_TEST} PRIVATE
-      "BREW_RUBY=\"${BREW_RUBY} \"")
-
-  target_compile_definitions(${CMD_TEST} PRIVATE
-      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
-
-  set(_env_vars)
-  list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
-  list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
-
-  set_tests_properties(${CMD_TEST} PROPERTIES
-    ENVIRONMENT "${_env_vars}")
-
-  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
-  # in build directory in necessary. For regular tests, the trick is to place all libraries
-  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
-  # as they are in the same directory where the executable is loaded. For tests that are
-  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
-  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that was added in CMake 3.22.
-  if (WIN32)
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-  endif()
-
-endforeach()
 
 add_subdirectory(cmd)

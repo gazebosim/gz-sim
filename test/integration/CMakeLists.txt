@@ -19,6 +19,7 @@ set(tests
   contact_system.cc
   detachable_joint.cc
   diff_drive_system.cc
+  drive_to_pose_controller_system.cc
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
@@ -210,7 +211,7 @@ endif()
 
 if (TARGET INTEGRATION_log_system)
   target_link_libraries(INTEGRATION_log_system
-    gz-transport${GZ_TRANSPORT_VER}::log
+    gz-transport::log
   )
 endif()
 

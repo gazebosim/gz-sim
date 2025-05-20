@@ -57,6 +57,11 @@ void defineSimLink(py::object module)
       py::arg("name"),
       "Get the ID of a collision entity which is an immediate child of "
       "this link.")
+  .def("sensor_by_name", &gz::sim::Link::SensorByName,
+      py::arg("ecm"),
+      py::arg("name"),
+      "Get the ID of a sensor entity which is an immediate child of "
+      "this link.")
   .def("visual_by_name", &gz::sim::Link::VisualByName,
       py::arg("ecm"),
       py::arg("name"),
@@ -65,6 +70,9 @@ void defineSimLink(py::object module)
   .def("collisions", &gz::sim::Link::Collisions,
       py::arg("ecm"),
       "Get all collisions which are immediate children of this link.")
+  .def("sensors", &gz::sim::Link::Sensors,
+      py::arg("ecm"),
+      "Get all sensors which are immediate children of this link.")
   .def("visuals", &gz::sim::Link::Visuals,
       py::arg("ecm"),
       "Get all visuals which are immediate children of this link.")
@@ -72,6 +80,10 @@ void defineSimLink(py::object module)
       py::arg("ecm"),
       "Get the number of collisions which are immediate children of "
       "this link.")
+  .def("sensor_count", &gz::sim::Link::SensorCount,
+      py::arg("ecm"),
+      "Get the number of sensors which are immediate children of this "
+      "link.")
   .def("visual_count", &gz::sim::Link::VisualCount,
       py::arg("ecm"),
       "Get the number of visuals which are immediate children of this "
@@ -155,6 +167,24 @@ void defineSimLink(py::object module)
       py::arg("position"),
       "Add a force expressed in world coordinates and applied at "
       "an offset from the center of mass of the link.")
+   .def("add_force_in_inertial_frame",
+      py::overload_cast<EntityComponentManager &, const math::Vector3d &>
+        (&gz::sim::Link::AddForceInInertialFrame, py::const_),
+      py::arg("ecm"),
+      py::arg("force"),
+      "Add a force expressed in link's inertial frame, and applied at"
+      " the link's inertial frame.")
+  .def("add_force_in_inertial_frame",
+      py::overload_cast<EntityComponentManager &,
+                        const math::Vector3d &,
+                        const math::Vector3d &>
+                        (&gz::sim::Link::AddForceInInertialFrame, py::const_),
+      py::arg("ecm"),
+      py::arg("force"),
+      py::arg("position"),
+      "Add a force expressed in link's inertial frame,"
+      " and applied at an offset from the from the link's inertial frame,"
+      "the offset is expressed in link's inertial frame.")
   .def("add_world_wrench",
       py::overload_cast<EntityComponentManager &,
                         const math::Vector3d &,

@@ -93,7 +93,7 @@ add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
 set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
-  PRIVATE gz-sim10::gz-sim10)
+  PRIVATE gz-sim::gz-sim)
 ```
 
 ## Loading your plugin
@@ -114,3 +114,6 @@ In the SDF file representing your simulation, add the plugin to the `world` sect
     </plugin>
     ...
 ```
+Plugins can be found using the `GZ_SIM_SYSTEM_PLUGIN_PATH` environment variable. If you
+are using colcon to build your package consider using hooks to add your system to
+`GZ_SIM_SYSTEM_PLUGIN_PATH`.
