@@ -19,7 +19,7 @@ import unittest
 from gz.common import set_verbosity
 from gz.sim import K_NULL_ENTITY, TestFixture, World, world_entity
 from gz.math import SphericalCoordinates, Vector3d
-from gz.sdformat import Atmosphere
+from sdformat import Atmosphere
 
 class TestWorld(unittest.TestCase):
     post_iterations = 0

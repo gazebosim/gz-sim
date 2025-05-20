@@ -20,7 +20,7 @@ from gz.common import set_verbosity
 from gz.sim import (K_NULL_ENTITY, TestFixture,
                     Joint, Model, World, world_entity)
 from gz.math import Pose3d
-from gz.sdformat import JointAxis, JointType
+from sdformat import JointAxis, JointType
 
 
 class TestJoint(unittest.TestCase):
