@@ -41,19 +41,14 @@ namespace plugin_test
                          EntityComponentManager &_ecm,
                          EventManager &/*_eventMgr*/) override;
 
-    
     public: void PreUpdate(const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
-                
 
     private: 
       gz::sim::Entity linkEntity;
       gz::sim::Entity entity;
       std::string lName;
-
   };
-
-
 }
 
 #endif
