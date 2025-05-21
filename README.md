@@ -12,7 +12,7 @@ Build | Status
 Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim8)
 Ubuntu Jammy  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-jammy-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-jammy-amd64)
 Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim8-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim8-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-8-win/badge/icon)](https://build.osrfoundation.org/job/gz_sim-8-win/)
+Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-8-clowin/badge/icon)](https://build.osrfoundation.org/job/gz_sim-8-clowin/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
