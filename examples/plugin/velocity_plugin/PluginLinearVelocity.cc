@@ -51,7 +51,7 @@ void plugin_test::PluginLinearVelocity::Configure(const gz::sim::Entity &_identi
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            gz::sim::EntityComponentManager &_ecm,
                            gz::sim::EventManager &_eventMgr)
-  {
+{
     // STEP1) Read property from SDF.
     // In this case, I call it "link_name" (see line 84 in the velocity_world_plugin.sdf file)
 
