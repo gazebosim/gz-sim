@@ -1,15 +1,12 @@
 #include <string>
-#include <gz/common/Console.hh>
 #include <iostream>
 
+#include <gz/common/Console.hh>
+#include <gz/plugin/Register.hh>
 #include <gz/sim/Link.hh>
 #include <gz/sim/Model.hh>
-#include <gz/sim/Util.hh>
-
-#include <gz/plugin/Register.hh>
-#include <gz/common/Console.hh>
-
 #include <gz/sim/Types.hh>
+#include <gz/sim/Util.hh>
 
 // This header is required to register plugins.
 // The good practice suggests to recall it in the ".cc" file
