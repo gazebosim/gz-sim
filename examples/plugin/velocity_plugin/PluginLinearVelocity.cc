@@ -92,8 +92,6 @@ void PluginLinearVelocity::PreUpdate(const gz::sim::UpdateInfo &_info,
     // For this example we are applying the linear velocity on a simple box that we defined in the sdf file (see line 39 in the velocity_world_plugin.sdf file)
 
     link_n.SetLinearVelocity(_ecm,lVel);
-    
-
 }
 
 // end
