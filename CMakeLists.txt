@@ -32,10 +32,17 @@ else()
   add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
+#--------------------------------------
+# Find Backward-cpp for stack trace support
+# See https://github.com/gazebosim/gz-cmake/issues/477 before copy this code
+find_package(Backward REQUIRED
+  HINTS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp
+  NO_DEFAULT_PATH)
+
 if (UNIX AND NOT APPLE)
-  set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs Backward::Backward)
 else()
-  set (EXTRA_TEST_LIB_DEPS backward_object)
+  set (EXTRA_TEST_LIB_DEPS Backward::Backward)
 endif()
 
 # We're disabling pybind11 by default on Windows because they
