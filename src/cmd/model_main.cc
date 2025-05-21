@@ -146,9 +146,8 @@ void addModelFlags(CLI::App &_app)
     ->default_val("");
 
   command->add_flag("-p,--pose", opt->pose,
-    "Print the pose of the model. (only useful with --model)");
-  // ->needs(modelCmd) -- CLI11 < 2.5.0 does not support this
-  // see https://github.com/gazebosim/gz-sim/issues/2918
+                "Print the pose of the model.")
+                ->needs(modelCmd);
 
   _app.callback([opt](){ runModelCommand(*opt); });
 }
