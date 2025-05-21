@@ -72,8 +72,7 @@ void plugin_test::PluginLinearVelocity::Configure(const gz::sim::Entity &_identi
     // Look for link entity using "LinkByName" into "model" defined above 
     
     this-> linkEntity = model.LinkByName(_ecm, linkName);
-
-  }
+}
 
 
 void PluginLinearVelocity::PreUpdate(const gz::sim::UpdateInfo &_info,
