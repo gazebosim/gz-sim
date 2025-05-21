@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.0)
 project(backward CXX)
 
 # Introduce variables:
@@ -30,22 +30,6 @@ project(backward CXX)
 include(GNUInstallDirs)
 
 include(BackwardConfig.cmake)
-
-###############################################################################
-# OPTIONS
-###############################################################################
-
-option(BACKWARD_SHARED "Build backward as a shared library" OFF)
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT DEFINED BACKWARD_TESTS)
-	# If this is a top level CMake project, we most lixely want the tests
-	set(BACKWARD_TESTS ON CACHE BOOL "Enable tests")
-else()
-	set(BACKWARD_TESTS OFF CACHE BOOL "Enable tests")
-endif()
-
-###############################################################################
-# COMPILER FLAGS
-###############################################################################
 
 # check if compiler is nvcc or nvcc_wrapper
 set(COMPILER_IS_NVCC false)
@@ -68,6 +52,10 @@ if (${COMPILER_IS_NVCC})
   set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
 
+###############################################################################
+# COMPILER FLAGS
+###############################################################################
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 	if (NOT ${COMPILER_IS_NVCC})
@@ -77,58 +65,75 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 ###############################################################################
-# BACKWARD INTERFACE
-###############################################################################
-
-add_library(backward_interface INTERFACE)
-set_target_properties(backward_interface PROPERTIES EXPORT_NAME Interface)
-target_compile_definitions(backward_interface INTERFACE ${BACKWARD_DEFINITIONS})
-target_include_directories(backward_interface INTERFACE ${BACKWARD_INCLUDE_DIRS})
-if(BACKWARD_HAS_EXTERNAL_LIBRARIES)
-    target_link_libraries(backward_interface INTERFACE ${BACKWARD_LIBRARIES})
-endif()
-add_library(Backward::Interface ALIAS backward_interface)
-
-###############################################################################
-# BACKWARD OBJECT (Includes backward.cpp)
-# (Note that this target is not exported, since CMake currently does not allow
-# exporting an OBJECT library.)
+# BACKWARD OBJECT
 ###############################################################################
 
 add_library(backward_object OBJECT backward.cpp)
-set_target_properties(backward_object PROPERTIES EXPORT_NAME Object)
-target_link_libraries(backward_object PUBLIC Backward::Interface)
-add_library(Backward::Object ALIAS backward_object)
+target_compile_definitions(backward_object PRIVATE ${BACKWARD_DEFINITIONS})
+target_include_directories(backward_object PRIVATE ${BACKWARD_INCLUDE_DIRS})
+set(BACKWARD_ENABLE $<TARGET_OBJECTS:backward_object> CACHE STRING
+	"Link with this object to setup backward automatically")
+
 
 ###############################################################################
 # BACKWARD LIBRARY (Includes backward.cpp)
-# (Note that the linker will not include unused objects from a static library,
-# unless the -Wl,--whole-archive option (or similar) is used.)
 ###############################################################################
+option(BACKWARD_SHARED "Build dynamic backward-cpp shared lib" OFF)
 
-set(libtype STATIC)
 if(BACKWARD_SHARED)
     set(libtype SHARED)
 endif()
 add_library(backward ${libtype} backward.cpp)
-set_target_properties(backward PROPERTIES EXPORT_NAME Backward)
-target_link_libraries(backward PUBLIC Backward::Interface)
-add_library(Backward::Backward ALIAS backward)
+target_compile_definitions(backward PUBLIC ${BACKWARD_DEFINITIONS})
+target_include_directories(backward PUBLIC ${BACKWARD_INCLUDE_DIRS})
 
-# check if Backward is being used as a top-level project or included as a subproject
-if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    install(
-        FILES "backward.hpp"
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-    install(
-        FILES "BackwardConfig.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-    )
-    # export the targets (note that exporting backward_object does not make sense)
-    install(TARGETS backward_interface backward EXPORT BackwardTargets)
-    # install a CMake file for the exported targets
-    install(EXPORT BackwardTargets
-            NAMESPACE Backward::
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+###############################################################################
+# TESTS
+###############################################################################
+
+if(BACKWARD_TESTS)
+	enable_testing()
+
+	add_library(test_main OBJECT test/_test_main.cpp)
+
+	macro(backward_add_test src)
+		get_filename_component(name ${src} NAME_WE)
+		set(test_name "test_${name}")
+
+		add_executable(${test_name} ${src} ${ARGN} $<TARGET_OBJECTS:test_main>)
+
+		target_link_libraries(${test_name} PRIVATE Backward::Backward)
+
+		add_test(NAME ${name} COMMAND ${test_name})
+	endmacro()
+
+	# Tests without backward.cpp
+	set(TESTS
+		test
+		stacktrace
+		rectrace
+		select_signals
+		)
+
+	foreach(test ${TESTS})
+		backward_add_test(test/${test}.cpp)
+	endforeach()
+
+	# Tests with backward.cpp
+	set(TESTS
+		suicide
+		)
+
+	foreach(test ${TESTS})
+		backward_add_test(test/${test}.cpp ${BACKWARD_ENABLE})
+	endforeach()
 endif()
+
+install(
+    FILES "backward.hpp"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+install(
+    FILES "BackwardConfig.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/backward
+)
