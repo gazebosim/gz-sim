@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
+Copyright 2025 Open Source Robotics Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 #include <string>
@@ -42,16 +41,16 @@ using namespace systems;
 
 
 // This is required to register the plugin.
-// NOTE: The interfaces shall match what's in the plugin's header (see line 26).
+// NOTE: The interfaces shall match what's in the plugin's header (see line 29 to 30).
 
 GZ_ADD_PLUGIN(
-    plugin_test::PluginLinearVelocity,
+    plugin_velocity::PluginLinearVelocity,
     gz::sim::System,
-    plugin_test::PluginLinearVelocity::ISystemConfigure,
-    plugin_test::PluginLinearVelocity::ISystemPreUpdate)
+    plugin_velocity::PluginLinearVelocity::ISystemConfigure,
+    plugin_velocity::PluginLinearVelocity::ISystemPreUpdate)
 
 
-using namespace plugin_test;
+using namespace plugin_velocity;
 
 // In the next section, all the functions that we need are recalled.
 // Since the plugin's header (see PluginLinearVelocity.hh file) is used as "function declaration",
@@ -61,19 +60,19 @@ using namespace plugin_test;
 // as e.g. the link_name field. Let's dive into the details, analyzing step-by-step the following code.
 
 
-void plugin_test::PluginLinearVelocity::Configure(const gz::sim::Entity &_identity,
+void plugin_velocity::PluginLinearVelocity::Configure(const gz::sim::Entity &_identity,
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            gz::sim::EntityComponentManager &_ecm,
                            gz::sim::EventManager &_eventMgr)
 {
     // STEP1) Read property from SDF.
-    // In this case, I call it "link_name" (see line 84 in the velocity_world_plugin.sdf file)
+    // In this case, I call it "link_name" (see line 71 in the velocity_world_plugin.sdf file)
 
     auto linkName = _sdf->Get<std::string>("link_name");
 
     // STEP 2) Store the lName variable the value of the "link_name"
 
-    this->lName = linkName; // Do not forget to declare the lName variable in the plugin's header file (see line 50 in the PluginLinearVelocity.hh file))
+    this->lName = linkName; // Do not forget to declare the lName variable in the plugin's header file (see line 52 in the PluginLinearVelocity.hh file))
 
     // Store the _identity value using the "this ->"
     this->entity=_identity;
@@ -102,7 +101,7 @@ void PluginLinearVelocity::PreUpdate(const gz::sim::UpdateInfo &_info,
     Link link_n(linkEntity);
 
     // The next row is the main command wich applies the linear velocity vector "lVel" on the link entity.
-    // For this example we are applying the linear velocity on a simple box that we defined in the sdf file (see line 39 in the velocity_world_plugin.sdf file)
+    // For this example we are applying the linear velocity on a simple box that we defined in the sdf file (see line 34 in the velocity_world_plugin.sdf file)
 
     link_n.SetLinearVelocity(_ecm,lVel);
 }
