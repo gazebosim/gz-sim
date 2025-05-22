@@ -17,7 +17,6 @@
 
 #include "gz.hh"
 
-#include <backward.hpp>
 #include <cstring>
 #include <filesystem>
 #include <fstream>

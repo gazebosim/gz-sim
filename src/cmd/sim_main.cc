@@ -15,7 +15,6 @@
  *
 */
 
-#include <backward.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -34,8 +33,6 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 #include "gz.hh"
-
-backward::SignalHandling sh;
 
 using namespace gz;
 
