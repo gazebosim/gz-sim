@@ -13,9 +13,9 @@ using namespace sim;
 using namespace systems;
 
 // When a plugin's header file is coded, it is a good practice to define a customized namespace.
-// In this case we call it "plugin_test"
+// In this case we call it "plugin_plugin_velocity"
 
-namespace plugin_test
+namespace plugin_velocity
 {
 
   // Under our customized namespace we define and recall all the functions and variables that we need
