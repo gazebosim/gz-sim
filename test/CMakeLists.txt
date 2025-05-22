@@ -21,6 +21,8 @@ execute_process(COMMAND cmake -E remove_directory ${CMAKE_BINARY_DIR}/test_resul
 execute_process(COMMAND cmake -E make_directory ${CMAKE_BINARY_DIR}/test_results)
 include_directories(${GTEST_INCLUDE_DIRS})
 
+add_subdirectory(backward_vendor/backward-cpp)
+add_subdirectory(gtest_vendor)
 add_subdirectory(benchmark)
 add_subdirectory(integration)
 add_subdirectory(performance)
