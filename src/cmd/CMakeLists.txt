@@ -26,7 +26,7 @@ if(ENABLE_GUI)
 
   add_executable(gz-sim-gui-client gui_main.cc)
   target_link_libraries(gz-sim-gui-client
-    PUBLIC Backward::Backward
+    PUBLIC backward_object
     PRIVATE gz)
 
   install(
@@ -38,7 +38,7 @@ endif()
 # Create sim main executable
 set(sim_executable gz-sim-main)
 add_executable(${sim_executable} sim_main.cc)
-target_link_libraries(${sim_executable} PUBLIC gz Backward::Backward)
+target_link_libraries(${sim_executable} PUBLIC gz backward_object)
 
 install(
   TARGETS ${sim_executable}
