@@ -15,6 +15,8 @@
  *
 */
 
+#include <backward.hpp>
+
 #include <gz/utils/cli/CLI.hpp>
 #include <gz/utils/cli/GzFormatter.hpp>
 #include <gz/utils/Environment.hh>
@@ -23,6 +25,8 @@
 #include "gz.hh"
 
 using namespace gz;
+
+backward::SignalHandling sh;
 
 //////////////////////////////////////////////////
 /// \brief Structure to hold all available GUI launch options
