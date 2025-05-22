@@ -2,7 +2,7 @@
 set(model_executable gz-sim-model)
 add_executable(${model_executable} model_main.cc ModelCommandAPI.cc)
 target_link_libraries(${model_executable}
-  gz-utils${GZ_UTILS_VER}::cli
+  gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
@@ -15,8 +15,8 @@ install(
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-  gz-utils${GZ_UTILS_VER}::cli
+  gz-common::gz-common
+  gz-utils::cli
   gz-sim
 )
 
@@ -69,7 +69,7 @@ if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
     SOURCES
       ${test_sources}
     LIB_DEPS
-      gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+      gz-utils::gz-utils
       ${PROJECT_LIBRARY_TARGET_NAME}
     ENVIRONMENT
         GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}

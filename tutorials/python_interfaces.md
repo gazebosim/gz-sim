@@ -96,7 +96,7 @@ Example python system:
 <!-- TODO(azeey) Allow including python files in doxygen -->
 <!-- \include examples/scripts/python_api/systems/test_system.py -->
 ```python
-from gz.math8 import Vector3d
+from gz.math import Vector3d
 from gz.sim import Model, Link
 import random
 

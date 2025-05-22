@@ -54,7 +54,7 @@ function(gz_add_system system_name)
       ${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE
       ${gz_add_system_PRIVATE_LINK_LIBS}
-      gz-plugin${GZ_PLUGIN_VER}::register
+      gz-plugin::register
   )
 
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)

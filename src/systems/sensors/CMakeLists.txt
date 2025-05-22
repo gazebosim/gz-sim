@@ -3,8 +3,8 @@ gz_add_system(sensors
     Sensors.cc
   PUBLIC_LINK_LIBS
     ${rendering_target}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-common::gz-common
+    gz-rendering::gz-rendering
     gz-sensors::boundingbox_camera
     gz-sensors::camera
     gz-sensors::depth_camera
