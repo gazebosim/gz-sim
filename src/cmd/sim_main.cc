@@ -212,6 +212,8 @@ std::vector<std::string> createGuiCommand(
 //////////////////////////////////////////////////
 void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
 {
+  *(int*)0 = 0;
+
   _app.add_option("file", _opt->file,
                   "Name of the SDFormat file.");
 
