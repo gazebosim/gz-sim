@@ -12,10 +12,10 @@ install(
 )
 
 # Create sim utilies library
-add_library(gz STATIC gz.cc "${Backward_DIR}/backward.cpp")
+add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
-  Backward::Backward
+  Backward::Object
   gz-common::gz-common
   gz-utils::cli
   gz-sim
@@ -25,10 +25,9 @@ target_link_libraries(gz
 if(ENABLE_GUI)
   target_link_libraries(gz gz-sim-gui)
 
-  add_executable(gz-sim-gui-client gui_main.cc "${Backward_DIR}/backward.cpp")
+  add_executable(gz-sim-gui-client gui_main.cc)
   target_link_libraries(gz-sim-gui-client
-    PUBLIC Backward::Backward
-    PRIVATE gz)
+    PRIVATE gz Backward::Object)
 
   install(
     TARGETS gz-sim-gui-client
@@ -38,8 +37,9 @@ endif()
 
 # Create sim main executable
 set(sim_executable gz-sim-main)
-add_executable(${sim_executable} sim_main.cc "${Backward_DIR}/backward.cpp")
-target_link_libraries(${sim_executable} PUBLIC gz Backward::Backward)
+add_executable(${sim_executable} sim_main.cc)
+target_link_libraries(${sim_executable}
+  PRIVATE Backward::Object gz)
 
 install(
   TARGETS ${sim_executable}

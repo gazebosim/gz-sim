@@ -35,14 +35,17 @@ endif()
 #--------------------------------------
 # Find Backward-cpp for stack trace support
 # See https://github.com/gazebosim/gz-cmake/issues/477 before copy this code
-find_package(Backward REQUIRED
-  HINTS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp
-  NO_DEFAULT_PATH)
 
+set(BACKWARD_TESTS OFF)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
+
+# Using other CMake interfaces from backwards won't work here since
+# CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
+# using backward_object set the object file path.
 if (UNIX AND NOT APPLE)
-  set (EXTRA_TEST_LIB_DEPS stdc++fs Backward::Backward)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
 else()
-  set (EXTRA_TEST_LIB_DEPS Backward::Backward)
+  set (EXTRA_TEST_LIB_DEPS backward_object)
 endif()
 
 # We're disabling pybind11 by default on Windows because they
