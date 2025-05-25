@@ -67,7 +67,7 @@
 					</geometry>
 				</collision>
 			</link>
-			<plugin filename="PluginLinearVelocity" name="plugin_test::PluginLinearVelocity">
+			<plugin filename="PluginLinearVelocity" name="plugin_velocity::PluginLinearVelocity">
 				<link_name>box</link_name>
 				<!--Make sure to insert the smae name given to the link (i.a.w. see line 39)-->
 			</plugin>
