@@ -36,4 +36,4 @@ Then load the example world:
 
     gz sim -v 3 velocity_world_plugin.sdf
 
-Once Gazebo is opened, toggle the play / pause buttons to see the box moving along a linear path.
+Once Gazebo is opened, toggle the `play/pause` buttons to see the box moving along a linear path.
