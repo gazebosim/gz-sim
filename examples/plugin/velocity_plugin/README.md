@@ -1,6 +1,7 @@
 # Velocity World
 
-This example shows how to set a velocity command on a link. This example will set the velocity command on a stand-alone link but the same approach can be applied for more complex robots.
+This example shows how to set a velocity command on a link. 
+This example will set the velocity command on a stand-alone link but the same approach can be applied for more complex robots.
 
 In particular, in the world there is a box that is free to move on a ground plane. The plugin presented will apply a linear speed of 1 m/s along the x-axis.
 
