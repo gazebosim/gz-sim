@@ -30,18 +30,12 @@ limitations under the License.
 #include <gz/sim/components/Pose.hh>
 #include <gz/math/Vector3.hh>
 
-
 // The next row recalls the plugin's header.
 
 #include "PluginLinearVelocity.hh"
 
-using namespace gz;
-using namespace sim;
-using namespace systems;
-
-
 // This is required to register the plugin.
-// NOTE: The interfaces shall match what's in the plugin's header (see line 29 to 30).
+// NOTE: The interfaces shall match what's in the plugin's header (see line 42 to 44).
 
 GZ_ADD_PLUGIN(
     plugin_velocity::PluginLinearVelocity,
@@ -72,19 +66,20 @@ void plugin_velocity::PluginLinearVelocity::Configure(const gz::sim::Entity &_id
 
     // STEP 2) Store the lName variable the value of the "link_name"
 
-    this->lName = linkName; // Do not forget to declare the lName variable in the plugin's header file (see line 52 in the PluginLinearVelocity.hh file))
+    this -> lName = linkName; // Do not forget to declare the lName variable in the plugin's header file (see line 61 in the PluginLinearVelocity.hh file))
 
-    // Store the _identity value using the "this ->"
-    this->entity=_identity;
+    // Store the _identity value using the "this ->".
+
+    this -> entity = _identity;
 
     // Create the model object to access all the function using as attibute the "entity" variable.
     // The function "Model()" enables to get some important details 
-    
-    auto model = Model(entity);
 
-    // Look for link entity using "LinkByName" into "model" defined above 
+    auto model = gz::sim::Model(entity);
+
+    // Look for link entity using "LinkByName" into "model" defined above. 
     
-    this->linkEntity = model.LinkByName(_ecm, linkName);
+    this -> linkEntity = model.LinkByName(_ecm, linkName);
 }
 
 
@@ -94,11 +89,11 @@ void PluginLinearVelocity::PreUpdate(const gz::sim::UpdateInfo &_info,
 
     // Define the linear velocity vector using.
 
-    math::Vector3d lVel(1,0,0);
+    gz::math::Vector3d lVel(1,0,0);
 
     // Create an object using the "Link" class.
 
-    Link link_n(linkEntity);
+    gz::sim::Link link_n(linkEntity);
 
     // The next row is the main command wich applies the linear velocity vector "lVel" on the link entity.
     // For this example we are applying the linear velocity on a simple box that we defined in the sdf file (see line 34 in the velocity_world_plugin.sdf file)
