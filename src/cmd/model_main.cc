@@ -150,7 +150,7 @@ void addModelFlags(CLI::App &_app)
                         "Print the pose of the model (only useful with --model).");
   // Don't specify that it needs --model for cli11 >= 2.2.0, < 2.5
   // See https://github.com/gazebosim/gz-sim/issues/2918
-  if (!(CLI11_VERSION_MAJOR >= 2 &&
+  if (!(CLI11_VERSION_MAJOR == 2 &&
         CLI11_VERSION_MINOR >= 2 &&
         CLI11_VERSION_MINOR < 5))
   {
