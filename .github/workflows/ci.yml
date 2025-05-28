@@ -32,4 +32,3 @@ jobs:
           codecov-enabled: true
           cppcheck-enabled: true
           cpplint-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
