@@ -164,22 +164,9 @@ if (MSVC)
   set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
-# CLI
-gz_add_component(gz
-  SOURCES
-    ${cli_sources}
-  GET_TARGET_NAME gz_lib_target)
-target_link_libraries(${gz_lib_target}
-  PUBLIC
-    ${PROJECT_LIBRARY_TARGET_NAME}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-sim
-    gz-sim-gui
-)
-
 # Executable target that runs the GUI without ruby for debugging purposes.
 add_executable(runGui cmd/runGui_main.cc)
-target_link_libraries(runGui PRIVATE ${gz_lib_target})
+target_link_libraries(runGui PRIVATE ${gz_lib_target} gz-gui gz)
 install(TARGETS runGui DESTINATION ${CMAKE_INSTALL_PREFIX}/libexec)
 
 # Create the library target
