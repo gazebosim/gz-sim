@@ -1,5 +1,10 @@
 add_subdirectory(rendering)
-add_subdirectory(gui)
+
+if(ENABLE_GUI)
+  add_subdirectory(gui)
+  add_compile_definitions(WITH_GUI)
+endif()
+
 add_subdirectory(systems)
 
 file(GLOB gz_msgs_proto_files
@@ -7,15 +12,15 @@ file(GLOB gz_msgs_proto_files
 )
 
 get_target_property(msgs_desc_file
-  gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER} GZ_MSGS_DESC_FILE)
+  gz-msgs::gz-msgs GZ_MSGS_DESC_FILE)
 
 gz_msgs_generate_messages_impl(
   MSGS_GEN_SCRIPT
-    ${gz-msgs11_PROTO_GENERATOR_SCRIPT}
+    ${gz-msgs_PROTO_GENERATOR_SCRIPT}
   FACTORY_GEN_SCRIPT
-    ${gz-msgs11_FACTORY_GENERATOR_SCRIPT}
+    ${gz-msgs_FACTORY_GENERATOR_SCRIPT}
   GZ_PROTOC_PLUGIN
-    ${gz-msgs11_PROTO_GENERATOR_PLUGIN}
+    ${gz-msgs_PROTO_GENERATOR_PLUGIN}
   INPUT_PROTOS
     ${gz_msgs_proto_files}
   PROTO_PACKAGE
@@ -50,14 +55,12 @@ set(comms_sources
   comms/MsgManager.cc
 )
 
-set(gui_sources
-  ${gui_sources}
-  PARENT_SCOPE
-)
-
-set(cli_sources
-  gz.cc
-)
+if(ENABLE_GUI)
+  set(gui_sources
+    ${gui_sources}
+    PARENT_SCOPE
+  )
+endif()
 
 set(material_sources
   rendering/MaterialParser/MaterialParser.cc
@@ -158,7 +161,7 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} ${cli_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 # CLI
@@ -200,22 +203,28 @@ install(FILES "rendering/MaterialParser/gazebo.material" DESTINATION ${GZ_DATA_I
 
 target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   PUBLIC
-  gz-math${GZ_MATH_VER}
-  gz-plugin${GZ_PLUGIN_VER}::core
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-  gz-common${GZ_COMMON_VER}::graphics
-  gz-common${GZ_COMMON_VER}::profiler
-  gz-fuel_tools${GZ_FUEL_TOOLS_VER}::gz-fuel_tools${GZ_FUEL_TOOLS_VER}
-  gz-gui::gz-gui
-  gz-physics${GZ_PHYSICS_VER}::core
-  gz-rendering${GZ_RENDERING_VER}::core
+  gz-math
+  gz-plugin::core
+  gz-common::gz-common
+  gz-common::graphics
+  gz-common::profiler
+  gz-fuel_tools::gz-fuel_tools
+  gz-physics::core
+  gz-rendering::core
   gz-transport::gz-transport
   gz-transport::parameters
-  sdformat${SDF_VER}::sdformat${SDF_VER}
+  sdformat::sdformat
   protobuf::libprotobuf
   PRIVATE
-  gz-plugin${GZ_PLUGIN_VER}::loader
+  gz-plugin::loader
 )
+
+if(ENABLE_GUI)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
+    PUBLIC
+    gz-gui::gz-gui
+  )
+endif()
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
@@ -250,7 +259,7 @@ gz_build_tests(TYPE UNIT
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
  target_link_libraries(UNIT_Server_Rendering_TEST
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
 endif()
 

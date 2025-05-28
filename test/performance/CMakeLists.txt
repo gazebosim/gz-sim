@@ -52,13 +52,12 @@ add_executable(
 
 target_link_libraries(
   PERFORMANCE_${exec}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-common::gz-common
     gz-sim
-    gz-sim-gui
 )
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET PERFORMANCE_sensors_system)
   target_link_libraries(PERFORMANCE_sensors_system
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
 endif()

@@ -186,26 +186,26 @@ if (DART_FOUND AND TARGET INTEGRATION_physics_system)
   target_compile_definitions(INTEGRATION_physics_system PRIVATE HAVE_DART)
 
   target_link_libraries(INTEGRATION_physics_system
-    gz-math${GZ_MATH_VER}::eigen3
+    gz-math::eigen3
   )
 endif()
 
 if (TARGET INTEGRATION_tracked_vehicle_system)
   target_link_libraries(INTEGRATION_tracked_vehicle_system
-    gz-physics${GZ_PHYSICS_VER}::core
-    gz-plugin${GZ_PLUGIN_VER}::loader
+    gz-physics::core
+    gz-plugin::loader
   )
 endif()
 
 if (TARGET INTEGRATION_model_photo_shoot_default_joints)
   target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
 endif()
 
 if (TARGET INTEGRATION_model_photo_shoot_random_joints)
   target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
 endif()
 
@@ -217,13 +217,13 @@ endif()
 
 if (TARGET INTEGRATION_collada_world_exporter)
   target_link_libraries(INTEGRATION_collada_world_exporter
-    gz-common${GZ_COMMON_VER}::graphics
+    gz-common::graphics
   )
 endif()
 
 if(TARGET INTEGRATION_reset_sensors)
   target_link_libraries(INTEGRATION_reset_sensors
-    gz-common${GZ_COMMON_VER}::graphics
+    gz-common::graphics
   )
 endif()
 
@@ -238,10 +238,10 @@ endif()
 
 if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
   target_link_libraries(INTEGRATION_actor_trajectory
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   )
 endif()
 
