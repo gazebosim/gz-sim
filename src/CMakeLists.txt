@@ -164,10 +164,13 @@ if (MSVC)
   set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
+
 # Executable target that runs the GUI without ruby for debugging purposes.
-add_executable(runGui cmd/runGui_main.cc)
-target_link_libraries(runGui PRIVATE ${gz_lib_target} gz-gui gz)
-install(TARGETS runGui DESTINATION ${CMAKE_INSTALL_PREFIX}/libexec)
+if(ENABLE_GUI)
+  add_executable(runGui cmd/runGui_main.cc)
+  target_link_libraries(runGui PRIVATE ${gz_lib_target} gz-gui gz)
+  install(TARGETS runGui DESTINATION ${CMAKE_INSTALL_PREFIX}/libexec)
+endif()
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
