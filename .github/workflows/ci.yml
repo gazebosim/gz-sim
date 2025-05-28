@@ -31,7 +31,6 @@ jobs:
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
 
   noble-ci-disable-gui:
     runs-on: ubuntu-latest
@@ -46,4 +45,3 @@ jobs:
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
