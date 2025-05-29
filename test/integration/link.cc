@@ -863,7 +863,7 @@ TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
   collision.SetRawPose(gz::math::Pose3d(0, 0, 0, 0, 0, 0));
   creator.SetParent(creator.CreateEntities(&collision), eLinkC);
 
-  // LinkC - Invalid mesh will be skiped with warning, bounding
+  // LinkC - Invalid mesh will be skipped with warning, bounding
   // box will be defined for the valid mesh only
   linkC = gz::sim::Link(eLinkC);
   aabb = linkC.ComputeAxisAlignedBox(ecm);
