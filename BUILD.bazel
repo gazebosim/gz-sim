@@ -37,6 +37,13 @@ gz_export_header(
     lib_name = "gz-sim",
 )
 
+gz_export_header(
+    name = "RenderingExport",
+    out = "include/gz/sim/rendering/Export.hh",
+    export_base = "GZ_SIM_RENDERING",
+    lib_name = "gz-sim-rendering",
+)
+
 private_protos = glob(["src/proto/gz/sim/private_msgs/*.proto"])
 
 proto_library(
@@ -65,6 +72,7 @@ public_headers_no_gen = glob(
         "include/gz/sim/comms/*.hh",
         "include/gz/sim/components/*.hh",
         "include/gz/sim/detail/*.hh",
+        "include/gz/sim/rendering/*.hh",
     ],
 )
 
@@ -72,6 +80,7 @@ private_headers = glob(
     [
         "src/*.hh",
         "src/network/*.hh",
+        "src/rendering/MaterialParser/*.hh",
     ],
     exclude = [
         "src/gz.hh",
@@ -84,6 +93,8 @@ sources = glob(
         "src/bazel/*.cc",
         "src/comms/*.cc",
         "src/network/*.cc",
+        "src/rendering/*.cc",
+        "src/rendering/MaterialParser/*.cc",
     ],
     exclude = [
         "src/gz.cc",
@@ -114,6 +125,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":RenderingExport",
         ":gzsim_cc_proto",
         "@gz-common",
         "@gz-common//events",
@@ -127,6 +139,7 @@ cc_library(
         "@gz-plugin//:core",
         "@gz-plugin//:loader",
         "@gz-plugin//:register",
+        "@gz-rendering",
         "@gz-transport",
         "@gz-transport//parameters",
         "@sdformat",

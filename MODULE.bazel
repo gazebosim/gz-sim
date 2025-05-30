@@ -20,6 +20,7 @@ bazel_dep(name = "gz-fuel-tools")
 bazel_dep(name = "gz-math")
 bazel_dep(name = "gz-msgs")
 bazel_dep(name = "gz-plugin")
+bazel_dep(name = "gz-rendering")
 bazel_dep(name = "gz-transport")
 bazel_dep(name = "gz-utils")
 bazel_dep(name = "sdformat")
@@ -30,11 +31,11 @@ archive_override(
     urls = ["https://github.com/gazebosim/gz-common/archive/refs/heads/gz-common6.tar.gz"],
 )
 
-# archive_override(
-#     module_name = "gz-fuel-tools",
-#     strip_prefix = "gz-fuel-tools-gz-fuel-tools10",
-#     urls = ["https://github.com/gazebosim/gz-fuel-tools/archive/refs/heads/gz-fuel-tools10.tar.gz"],
-# )
+archive_override(
+    module_name = "gz-fuel-tools",
+    strip_prefix = "gz-fuel-tools-gz-fuel-tools10",
+    urls = ["https://github.com/gazebosim/gz-fuel-tools/archive/refs/heads/gz-fuel-tools10.tar.gz"],
+)
 
 archive_override(
     module_name = "gz-math",
@@ -42,11 +43,11 @@ archive_override(
     urls = ["https://github.com/gazebosim/gz-math/archive/refs/heads/gz-math8.tar.gz"],
 )
 
-# archive_override(
-#     module_name = "gz-msgs",
-#     strip_prefix = "gz-msgs-gz-msgs11",
-#     urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/gz-msgs11.tar.gz"],
-# )
+archive_override(
+    module_name = "gz-msgs",
+    strip_prefix = "gz-msgs-gz-msgs11",
+    urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/gz-msgs11.tar.gz"],
+)
 
 archive_override(
     module_name = "gz-plugin",
@@ -73,16 +74,6 @@ archive_override(
 )
 
 local_path_override(
-    module_name = "gz-msgs",
-    path = "/usr/local/google/home/shameek/bazel-ws/gz-msgs",
-)
-
-local_path_override(
-    module_name = "gz-fuel-tools",
-    path = "/usr/local/google/home/shameek/bazel-ws/gz-fuel-tools",
-)
-
-local_path_override(
-    module_name = "assimp",
-    path = "/usr/local/google/home/shameek/bazel-ws/assimp",
+    module_name = "gz-rendering",
+    path = "/usr/local/google/home/shameek/bazel-ws/gz-rendering",
 )
