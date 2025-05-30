@@ -36,9 +36,8 @@
 
 #include <gz/common/Animation.hh>
 #include <gz/common/Console.hh>
-#include <gz/common/geospatial/Dem.hh>
 #include <gz/common/geospatial/HeightmapData.hh>
-#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/geospatial/HeightmapUtil.hh>
 #include <gz/common/KeyFrame.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Skeleton.hh>
@@ -739,35 +738,21 @@ rendering::GeometryPtr SceneManager::LoadGeometry(const sdf::Geometry &_geom,
       return geom;
     }
 
-
     std::shared_ptr<common::HeightmapData> data;
-    std::string lowerFullPath = common::lowercase(fullPath);
     // check if heightmap is an image
-    if (common::EndsWith(lowerFullPath, ".png")
-        || common::EndsWith(lowerFullPath, ".jpg")
-        || common::EndsWith(lowerFullPath, ".jpeg"))
+    if (common::isSupportedImageHeightmapFileExtension(fullPath))
     {
-      auto img = std::make_shared<common::ImageHeightmap>();
-      if (img->Load(fullPath) < 0)
-      {
-        gzerr << "Failed to load heightmap image data from ["
-               << fullPath << "]" << std::endl;
+      data = common::loadHeightmapData(fullPath);
+      if (!data)
         return geom;
-      }
-      data = img;
     }
     // DEM
     else
     {
-      auto dem = std::make_shared<common::Dem>();
-      dem->SetSphericalCoordinates(this->dataPtr->sphericalCoordinates);
-      if (dem->Load(fullPath) < 0)
-      {
-        gzerr << "Failed to load heightmap dem data from ["
-               << fullPath << "]" << std::endl;
+      data = common::loadHeightmapData(fullPath,
+          this->dataPtr->sphericalCoordinates);
+      if (!data)
         return geom;
-      }
-      data = dem;
     }
 
     rendering::HeightmapDescriptor descriptor;
