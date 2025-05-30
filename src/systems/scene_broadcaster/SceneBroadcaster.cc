@@ -949,7 +949,8 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
               camera->HorizontalFov().Radian());
             cameraSensorMsg->mutable_image_size()->set_x(camera->ImageWidth());
             cameraSensorMsg->mutable_image_size()->set_y(camera->ImageHeight());
-            cameraSensorMsg->set_image_format(camera->PixelFormatStr());
+            cameraSensorMsg->set_pixel_format(
+                msgs::ConvertPixelFormatType(camera->PixelFormatStr()));
             cameraSensorMsg->set_near_clip(camera->NearClip());
             cameraSensorMsg->set_far_clip(camera->FarClip());
             msgs::Distortion *distortionMsg =

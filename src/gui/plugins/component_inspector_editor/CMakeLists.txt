@@ -21,5 +21,5 @@ gz_add_gui_plugin(ComponentInspectorEditor
     ModelEditor.hh
     Pose3d.hh
   PRIVATE_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::graphics
+    gz-common::graphics
 )

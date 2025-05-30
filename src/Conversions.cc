@@ -21,17 +21,18 @@
 #include <gz/msgs/boxgeom.pb.h>
 #include <gz/msgs/capsulegeom.pb.h>
 #include <gz/msgs/conegeom.pb.h>
+#include <gz/msgs/convert/PixelFormatType.hh>
 #include <gz/msgs/cylindergeom.pb.h>
 #include <gz/msgs/ellipsoidgeom.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/geometry.pb.h>
-#include <gz/msgs/gps_sensor.pb.h>
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/heightmapgeom.pb.h>
 #include <gz/msgs/imu_sensor.pb.h>
 #include <gz/msgs/lidar_sensor.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material.pb.h>
+#include <gz/msgs/navsat_sensor.pb.h>
 #include <gz/msgs/planegeom.pb.h>
 #include <gz/msgs/plugin.pb.h>
 #include <gz/msgs/projector.pb.h>
@@ -1124,7 +1125,8 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       sensor->set_far_clip(sdfCam->FarClip());
       sensor->set_save_enabled(sdfCam->SaveFrames());
       sensor->set_save_path(sdfCam->SaveFramesPath());
-      sensor->set_image_format(sdfCam->PixelFormatStr());
+      sensor->set_pixel_format(
+          msgs::ConvertPixelFormatType(sdfCam->PixelFormatStr()));
       msgs::Distortion *dist = sensor->mutable_distortion();
       msgs::Set(dist->mutable_center(), sdfCam->DistortionCenter());
       dist->set_k1(sdfCam->DistortionK1());
@@ -1147,7 +1149,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       auto sdfSensor = _in.NavSatSensor();
 
       // \TODO(chapulina) Update to navsat on Garden
-      auto sensor = out.mutable_gps();
+      auto sensor = out.mutable_navsat();
 
       if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
@@ -1397,7 +1399,8 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       sensor.SetHorizontalFov(_in.camera().horizontal_fov());
       sensor.SetImageWidth(static_cast<int>(_in.camera().image_size().x()));
       sensor.SetImageHeight(static_cast<int>(_in.camera().image_size().y()));
-      sensor.SetPixelFormatStr(_in.camera().image_format());
+      sensor.SetPixelFormatStr(
+          msgs::ConvertPixelFormatType(_in.camera().pixel_format()));
       sensor.SetNearClip(_in.camera().near_clip());
       sensor.SetFarClip(_in.camera().far_clip());
       sensor.SetSaveFrames(_in.camera().save_enabled());
@@ -1425,27 +1428,27 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
            out.Type() == sdf::SensorType::NAVSAT)
   {
     sdf::NavSat sensor;
-    if (_in.has_gps())
+    if (_in.has_navsat())
     {
-      if (_in.gps().position().has_horizontal_noise())
+      if (_in.navsat().position().has_horizontal_noise())
       {
         sensor.SetHorizontalPositionNoise(sim::convert<sdf::Noise>(
-              _in.gps().position().horizontal_noise()));
+              _in.navsat().position().horizontal_noise()));
       }
-      if (_in.gps().position().has_vertical_noise())
+      if (_in.navsat().position().has_vertical_noise())
       {
         sensor.SetVerticalPositionNoise(sim::convert<sdf::Noise>(
-              _in.gps().position().vertical_noise()));
+              _in.navsat().position().vertical_noise()));
       }
-      if (_in.gps().velocity().has_horizontal_noise())
+      if (_in.navsat().velocity().has_horizontal_noise())
       {
         sensor.SetHorizontalVelocityNoise(sim::convert<sdf::Noise>(
-              _in.gps().velocity().horizontal_noise()));
+              _in.navsat().velocity().horizontal_noise()));
       }
-      if (_in.gps().velocity().has_vertical_noise())
+      if (_in.navsat().velocity().has_vertical_noise())
       {
         sensor.SetVerticalVelocityNoise(sim::convert<sdf::Noise>(
-              _in.gps().velocity().vertical_noise()));
+              _in.navsat().velocity().vertical_noise()));
       }
     }
     else

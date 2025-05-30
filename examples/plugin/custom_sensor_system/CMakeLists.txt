@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
-find_package(gz-cmake4 REQUIRED)
+find_package(gz-cmake REQUIRED)
 
 project(OdometerSystem)
 
-gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+gz_find_package(gz-plugin REQUIRED COMPONENTS register)
 
 gz_find_package(gz-sim REQUIRED)
 
@@ -26,7 +25,7 @@ add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_cl
 add_library(${PROJECT_NAME} SHARED ${PROJECT_NAME}.cc)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
+    gz-plugin::gz-plugin
     gz-sim::gz-sim
     gz-sensors::gz-sensors
     odometer

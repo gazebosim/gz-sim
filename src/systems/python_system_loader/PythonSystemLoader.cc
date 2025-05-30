@@ -67,8 +67,7 @@ void PythonSystemLoader::Configure(
   // Load the `gz.sim` and sdformat modules to register all pybind bindings
   // necessary for System interface functions
   const std::string gzSimModule = "gz.sim";
-  const auto sdformatModule =
-      std::string("sdformat") + std::to_string(SDF_MAJOR_VERSION);
+  const auto sdformatModule = std::string("sdformat");
   py::module_ sysModule;
   try
   {

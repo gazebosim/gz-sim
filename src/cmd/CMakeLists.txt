@@ -2,7 +2,7 @@
 set(model_executable gz-sim-model)
 add_executable(${model_executable} model_main.cc ModelCommandAPI.cc)
 target_link_libraries(${model_executable}
-  gz-utils${GZ_UTILS_VER}::cli
+  gz-utils::cli
   ${PROJECT_LIBRARY_TARGET_NAME}
 )
 
@@ -15,8 +15,9 @@ install(
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-  gz-utils${GZ_UTILS_VER}::cli
+  Backward::Object
+  gz-common::gz-common
+  gz-utils::cli
   gz-sim
 )
 
@@ -25,7 +26,8 @@ if(ENABLE_GUI)
   target_link_libraries(gz gz-sim-gui)
 
   add_executable(gz-sim-gui-client gui_main.cc)
-  target_link_libraries(gz-sim-gui-client PRIVATE gz)
+  target_link_libraries(gz-sim-gui-client
+    PRIVATE gz Backward::Object)
 
   install(
     TARGETS gz-sim-gui-client
@@ -36,7 +38,8 @@ endif()
 # Create sim main executable
 set(sim_executable gz-sim-main)
 add_executable(${sim_executable} sim_main.cc)
-target_link_libraries(${sim_executable} PRIVATE gz)
+target_link_libraries(${sim_executable}
+  PRIVATE Backward::Object gz)
 
 install(
   TARGETS ${sim_executable}
@@ -69,7 +72,7 @@ if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
     SOURCES
       ${test_sources}
     LIB_DEPS
-      gz-utils${GZ_UTILS_VER}::gz-utils${GZ_UTILS_VER}
+      gz-utils::gz-utils
       ${PROJECT_LIBRARY_TARGET_NAME}
     ENVIRONMENT
         GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
