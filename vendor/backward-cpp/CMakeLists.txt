@@ -115,16 +115,58 @@ set_target_properties(backward PROPERTIES EXPORT_NAME Backward)
 target_link_libraries(backward PUBLIC Backward::Interface)
 add_library(Backward::Backward ALIAS backward)
 
+###############################################################################
+# TESTS
+###############################################################################
+
+if(BACKWARD_TESTS)
+	enable_testing()
+
+	add_library(test_main OBJECT test/_test_main.cpp)
+
+	macro(backward_add_test src)
+		get_filename_component(name ${src} NAME_WE)
+		set(test_name "test_${name}")
+
+		add_executable(${test_name} ${src} ${ARGN} $<TARGET_OBJECTS:test_main>)
+
+		target_link_libraries(${test_name} PRIVATE Backward::Interface)
+
+		add_test(NAME ${name} COMMAND ${test_name})
+	endmacro()
+
+	# Tests without backward.cpp
+	set(TESTS
+		test
+		stacktrace
+		rectrace
+		select_signals
+		)
+
+	foreach(test ${TESTS})
+		backward_add_test(test/${test}.cpp)
+	endforeach()
+
+	# Tests with backward.cpp
+	set(TESTS
+		suicide
+		)
+
+	foreach(test ${TESTS})
+		backward_add_test(test/${test}.cpp backward.cpp)
+	endforeach()
+endif()
+
+install(
+    FILES "backward.hpp"
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+install(
+    FILES "BackwardConfig.cmake"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
 # check if Backward is being used as a top-level project or included as a subproject
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-    install(
-        FILES "backward.hpp"
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    )
-    install(
-        FILES "BackwardConfig.cmake"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
-    )
     # export the targets (note that exporting backward_object does not make sense)
     install(TARGETS backward_interface backward EXPORT BackwardTargets)
     # install a CMake file for the exported targets
