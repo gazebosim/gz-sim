@@ -16,4 +16,3 @@ set_property(TARGET PluginLinearVelocity PROPERTY CXX_STANDARD 17)
 target_link_libraries(PluginLinearVelocity
   PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
   PRIVATE gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER})
-  
