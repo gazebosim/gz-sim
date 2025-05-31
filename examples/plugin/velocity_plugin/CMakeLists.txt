@@ -4,7 +4,7 @@ find_package(gz-cmake4 REQUIRED)
 
 project(Plugin_Linear_Velocity)
 
-gz_find_package(gz-plugin2 REQUIRED COMPONENTS register)
+gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
 set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 gz_find_package(gz-sim8 REQUIRED)
