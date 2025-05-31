@@ -7,7 +7,7 @@ project(Plugin_Linear_Velocity)
 gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
 set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
 
-gz_find_package(gz-sim8 REQUIRED)
+gz_find_package(gz-sim9 REQUIRED)
 set(GZ_SIM_VER ${gz-sim9_VERSION_MAJOR})
 
 add_library(PluginLinearVelocity SHARED PluginLinearVelocity.cc)
