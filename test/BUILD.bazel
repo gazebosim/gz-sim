@@ -48,6 +48,7 @@ cc_library(
         "//:gz-sim",
         "@googletest//:gtest",
         "@gz-common",
+        "@gz-math",
         "@gz-transport",
     ],
 )

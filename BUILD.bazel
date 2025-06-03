@@ -193,6 +193,11 @@ test_sources = glob(
         "@googletest//:gtest_main",
         "@gz-common",
         "@gz-common//testing",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-utils//:ExtraTestMacros",
+        "@gz-utils//:SuppressWarning",
+        "@sdformat",
     ],
 ) for src in test_sources]
