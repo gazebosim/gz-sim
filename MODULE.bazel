@@ -75,4 +75,3 @@ archive_override(
     strip_prefix = "sdformat-sdf15",
     urls = ["https://github.com/gazebosim/sdformat/archive/refs/heads/sdf15.tar.gz"],
 )
-

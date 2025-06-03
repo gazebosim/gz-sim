@@ -31,4 +31,3 @@ std::string getInstallPrefix()
 }
 }
 }
-
