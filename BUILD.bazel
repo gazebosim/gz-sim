@@ -162,17 +162,15 @@ cc_library(
 test_sources = glob(
     include = ["src/*_TEST.cc"],
     exclude = [
-        # These tests currently fail in bazel build.
+        # These tests currently fail in bazel build, either due to missing
+        # System plugin dependencies or due to incorrect resolved output paths.
         "src/AddedMass_TEST.cc",
         "src/Server_TEST.cc",
         "src/ServerConfig_TEST.cc",
         "src/Server_Rendering_TEST.cc",
         "src/SimulationRunner_TEST.cc",
         "src/SystemLoader_TEST.cc",
-        "src/SystemManager_TEST.cc",
-        "src/SdfEntityCreator_TEST.cc",
         "src/SdfGenerator_TEST.cc",
-        "src/TestFixture_TEST.cc",
         "src/Util_TEST.cc",
     ],
 )
@@ -182,6 +180,9 @@ test_sources = glob(
     srcs = [src],
     # Some tests need private headers.
     copts = ["-Wno-private-header"],
+    data = [
+        "//test:worlds",
+    ],
     env = {
         "GZ_BAZEL": "1",
     },
@@ -189,15 +190,20 @@ test_sources = glob(
         ":gz-sim",
         "//test:Config",
         "//test:Helpers",
+        "//test:MockSystem",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-common",
         "@gz-common//testing",
+        "@gz-fuel-tools",
         "@gz-math",
         "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-rendering",
+        "@gz-transport",
         "@gz-utils//:ExtraTestMacros",
         "@gz-utils//:SuppressWarning",
         "@sdformat",
+        "@tinyxml2",
     ],
 ) for src in test_sources]

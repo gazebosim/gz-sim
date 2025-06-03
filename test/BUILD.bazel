@@ -52,3 +52,9 @@ cc_library(
         "@gz-transport",
     ],
 )
+
+filegroup(
+    name = "worlds",
+    srcs = glob(["worlds/**"]),
+    visibility = ["//:__subpackages__"],
+)
