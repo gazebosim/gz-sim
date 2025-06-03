@@ -29,7 +29,7 @@ endif()
 # Create server executable by default
 set(server_executable gz-sim-server-client)
 add_executable(${server_executable} sim_main.cc)
-target_link_libraries(${server_executable} 
+target_link_libraries(${server_executable}
   PRIVATE gz Backward::Object)
 
 install(
@@ -65,7 +65,7 @@ install(
 
 if(ENABLE_GUI)
   target_compile_definitions(${sim_executable} PRIVATE WITH_GUI)
-  target_compile_definitions(gz-sim-main
+  target_compile_definitions(${sim_executable}
     PRIVATE
       "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${gui_executable}>\""
   )
