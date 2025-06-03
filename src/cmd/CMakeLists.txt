@@ -21,16 +21,33 @@ target_link_libraries(gz
   gz-sim
 )
 
+if(ENABLE_GUI)
+  target_compile_definitions(gz PRIVATE WITH_GUI)
+  target_link_libraries(gz gz-sim-gui)
+endif()
+
+# Create server executable by default
+set(server_executable gz-sim-server-client)
+add_executable(${server_executable} sim_main.cc)
+target_link_libraries(${server_executable} 
+  PRIVATE gz Backward::Object)
+
+install(
+  TARGETS ${server_executable}
+  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
+)
+
 # Create GUI executable if enabled
 if(ENABLE_GUI)
-  target_link_libraries(gz gz-sim-gui)
-
-  add_executable(gz-sim-gui-client gui_main.cc)
-  target_link_libraries(gz-sim-gui-client
+  set(gui_executable gz-sim-gui-client)
+  add_executable(${gui_executable} gui_main.cc)
+  target_link_libraries(${gui_executable}
     PRIVATE gz Backward::Object)
 
+  target_compile_definitions(${gui_executable} PRIVATE WITH_GUI)
+
   install(
-    TARGETS gz-sim-gui-client
+    TARGETS ${gui_executable}
     DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
   )
 endif()
@@ -47,9 +64,10 @@ install(
 )
 
 if(ENABLE_GUI)
+  target_compile_definitions(${sim_executable} PRIVATE WITH_GUI)
   target_compile_definitions(gz-sim-main
     PRIVATE
-      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:gz-sim-gui-client>\""
+      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${gui_executable}>\""
   )
 endif()
 
