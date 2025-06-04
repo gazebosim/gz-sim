@@ -21,6 +21,7 @@ libprotobuf-dev
 libprotoc-dev
 libsdformat16-dev
 libtinyxml2-dev
+libwebsockets-dev
 libxi-dev
 libxmu-dev
 libpython3-dev
