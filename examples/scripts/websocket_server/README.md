@@ -3,8 +3,8 @@
 This demo shows how to launch Gazebo with a websocket server for
 web visualization with [gzweb](https://github.com/gazebo-web/gzweb).
 
-1. Launch the `websocket_server.sdf` demo world. The demo world is no different
-from other Gazebo worlds except it includes the
+1. Launch the `websocket_server.sdf` demo world.
+The demo world is no different from other Gazebo worlds except it includes the
 `gz-sim-websocket-server-system`.
 
 ```bash
@@ -25,17 +25,19 @@ gz sim -v 4 -s websocket_server.sdf
         support for materials. For a more up-to-date gzweb visualization,
         see Option 2.
 
-    1. Option 2: In a web browser, go to https://app.gazebosim.org/visualization,
+    1. Option 2: In a web browser, go to
+       [https://app.gazebosim.org/visualization](https://app.gazebosim.org/visualization),
        and connect to the local websocket server on `ws://localhost:9002`.
 
 # Authorization
 
 The `websocket_server` plugin accepts to authentication keys:
 
-* `<authorization_key>` : If this is set, then a connection must provide the
-matching key using an "auth" call on the websocket. If the `<admin_authorization_key>` is set, then the connection can provide that key.
+* `<authorization_key>` : If this is set, then a connection must provide the matching key using an "auth" call on the websocket.
+If the `<admin_authorization_key>` is set, then the connection can provide that key.
 
-* `<admin_authorization_key>` : If this is set, then a connection must provide the matching key using an "auth" call on the websocket. If the `<authorization_key>` is set, then the connection can provide that key.
+* `<admin_authorization_key>` : If this is set, then a connection must provide the matching key using an "auth" call on the websocket.
+If the `<authorization_key>` is set, then the connection can provide that key.
 
 Two keys are used in order to support authorization of different users.
 A competition scenario may require admin access while prohibiting user
