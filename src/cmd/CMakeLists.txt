@@ -115,6 +115,10 @@ foreach(CMD_TEST
       "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
   )
 
+  if(${CMD_TEST} STREQUAL UNIT_gz_TEST AND ENABLE_GUI)
+    target_compile_definitions(${CMD_TEST} PRIVATE WITH_GUI)
+  endif()
+
   if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST OR ${CMD_TEST} STREQUAL UNIT_gz_TEST)
     set(_env_vars)
     list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
