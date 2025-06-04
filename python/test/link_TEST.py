@@ -16,9 +16,9 @@
 import os
 import unittest
 
-from gz_test_deps.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
-from gz_test_deps.math import Inertiald, Matrix3d, Vector3d, Pose3d
+from gz.common import set_verbosity
+from gz.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
+from gz.math import Inertiald, Matrix3d, Vector3d, Pose3d
 
 class TestModel(unittest.TestCase):
     post_iterations = 0
@@ -56,6 +56,9 @@ class TestModel(unittest.TestCase):
             # Collisions Test
             self.assertNotEqual(K_NULL_ENTITY, link.collision_by_name(_ecm, 'collision_test'))
             self.assertEqual(1, link.collision_count(_ecm))
+            # Sensors Test
+            self.assertNotEqual(K_NULL_ENTITY, link.sensor_by_name(_ecm, 'my_sensor'))
+            self.assertEqual(1, link.sensor_count(_ecm))
             # Visuals Test
             self.assertNotEqual(K_NULL_ENTITY, link.visual_by_name(_ecm, 'visual_test'))
             self.assertEqual(1, link.visual_count(_ecm))

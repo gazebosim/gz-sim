@@ -15,11 +15,11 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
-import QtQuick.Controls 2.2
+
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 Rectangle {
   id: jointPositionController
@@ -46,13 +46,13 @@ Rectangle {
    * Forward posiiton changes to C++
    */
   function onCommand(_jointName, _pos) {
-    JointPositionController.OnCommand(_jointName, _pos)
+    _JointPositionController.OnCommand(_jointName, _pos)
   }
 
   Connections {
-    target: JointPositionController
+    target: _JointPositionController
     onLockedChanged: {
-      lockButton.checked = JointPositionController.Locked()
+      lockButton.checked = _JointPositionController.Locked()
     }
   }
 
@@ -70,7 +70,7 @@ Rectangle {
       spacing: 0
 
       Label {
-        text: JointPositionController.modelName
+        text: _JointPositionController.modelName
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
         padding: 3
@@ -94,7 +94,7 @@ Rectangle {
 
       Popup {
         id: helpPopup
-        parent: ApplicationWindow.overlay
+        parent: Overlay.overlay
         // From Qt 5.12 use
         // anchors.centerIn: parent
         x: 10
@@ -126,7 +126,7 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
-          JointPositionController.locked = lockButton.checked
+          _JointPositionController.locked = lockButton.checked
         }
       }
 
@@ -137,13 +137,13 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onClicked: {
-          JointPositionController.OnReset()
+          _JointPositionController.OnReset()
         }
       }
 
       Label {
         id: entityLabel
-        text: 'Entity ' + JointPositionController.modelEntity
+        text: 'Entity ' + _JointPositionController.modelEntity
         Layout.minimumWidth: 80
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12

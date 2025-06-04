@@ -60,6 +60,7 @@ If you are an absolute beginner, start with the Tutorials section.
 ### Advanced
 
 * \subpage physics "Physics engines": Load different physics engines.
+* \subpage hpc_clusters "Gazebo on HPC clusters": How to run rendering sensors.
 
 ### Developers
 

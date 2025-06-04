@@ -25,7 +25,7 @@ function(configure_build_install_location _library_name)
   )
 endfunction()
 
-set(BINDINGS_MODULE_NAME "sim${PROJECT_VERSION_MAJOR}")
+set(BINDINGS_MODULE_NAME "sim")
 pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/_gz_sim_pybind11.cc
   src/gz/sim/Actor.cc
@@ -42,11 +42,12 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/UpdateInfo.cc
   src/gz/sim/Util.cc
   src/gz/sim/World.cc
+  src/gz/sim/InstallationDirectories.cc
 )
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
   ${PROJECT_LIBRARY_TARGET_NAME}
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common::gz-common
 )
 
 set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES CXX_VISIBILITY_PRESET "hidden")
@@ -56,7 +57,7 @@ target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
 
 # TODO(ahcorde): Move this module to gz-common
 
-set(GZ_COMMON_BINDINGS_MODULE_NAME "common${GZ_COMMON_VER}")
+set(GZ_COMMON_BINDINGS_MODULE_NAME "common")
 pybind11_add_module(${GZ_COMMON_BINDINGS_MODULE_NAME} MODULE
   src/gz/common/_gz_common_pybind11.cc
   src/gz/common/Console.cc
@@ -66,7 +67,7 @@ target_compile_definitions(${GZ_COMMON_BINDINGS_MODULE_NAME} PRIVATE
   BINDINGS_MODULE_NAME=${GZ_COMMON_BINDINGS_MODULE_NAME})
 
 target_link_libraries(${GZ_COMMON_BINDINGS_MODULE_NAME} PRIVATE
-  gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+  gz-common::gz-common
 )
 
 configure_build_install_location(${BINDINGS_MODULE_NAME})

@@ -16,13 +16,10 @@ import sys
 from os.path import dirname, realpath
 import threading
 
-# Add "../__file__" to sys.path to get gz_test_deps
-sys.path.append(dirname(dirname(realpath(__file__))))
-
-from gz_test_deps.sim import Model
-from gz_test_deps.transport import Node
-from gz_test_deps.msgs.pose_pb2 import Pose
-from gz_test_deps.msgs.clock_pb2 import Clock
+from gz.sim import Model
+from gz.transport import Node
+from gz.msgs.pose_pb2 import Pose
+from gz.msgs.clock_pb2 import Clock
 
 
 # Test system to be used with test/integration/python_system_loader.cc

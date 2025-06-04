@@ -23,8 +23,8 @@ function(gz_add_gui_library library_name)
 
   cmake_parse_arguments(gz_add_gui_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  QT5_WRAP_CPP(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
-  QT5_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
+  QT_WRAP_CPP(${library_name}_headers_MOC ${gz_add_gui_library_QT_HEADERS})
+  QT_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
 
   if(MSVC)
     # Warning #4251 is the "dll-interface" warning that tells you when types
@@ -47,7 +47,7 @@ function(gz_add_gui_library library_name)
       TINYXML2::TINYXML2
       ${gz_add_gui_library_PUBLIC_LINK_LIBS}
     PRIVATE
-      gz-sim${PROJECT_VERSION_MAJOR}-gui
+      gz-sim-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
   )
 endfunction()
@@ -99,7 +99,7 @@ function(gz_add_gui_plugin plugin_name)
     SOURCES ${gz_add_gui_plugin_SOURCES}
     QT_HEADERS ${gz_add_gui_plugin_QT_HEADERS}
     PUBLIC_LINK_LIBS ${gz_add_gui_plugin_PUBLIC_LINK_LIBS}
-    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} gz-plugin${GZ_PLUGIN_VER}::register
+    PRIVATE_LINK_LIBS ${gz_add_gui_plugin_PRIVATE_LINK_LIBS} gz-plugin::register
   )
 
   if(gz_add_gui_plugin_TEST_SOURCES)
@@ -110,7 +110,7 @@ function(gz_add_gui_plugin plugin_name)
         SOURCES
           ${gz_add_gui_plugin_TEST_SOURCES}
         LIB_DEPS
-          gz-sim${PROJECT_VERSION_MAJOR}-gui
+          gz-sim-gui
           ${plugin_name}
         INCLUDE_DIRS
           # Used to make internal source file headers visible to the unit tests
@@ -159,3 +159,4 @@ add_subdirectory(view_angle)
 add_subdirectory(visualization_capabilities)
 add_subdirectory(visualize_contacts)
 add_subdirectory(visualize_lidar)
+add_subdirectory(visualize_frustum)

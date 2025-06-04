@@ -52,20 +52,17 @@ ColumnLayout {
   RenderWindowOverlay {
     id: renderWindowOverlay
     objectName: "renderWindowOverlay"
-    anchors.fill: parent
 
     Connections {
       target: renderWindowOverlay
-      onOpenContextMenu:
+      function onOpenContextMenu(_entity)
       {
-        entityContextMenu.open(_entity, "model",
-          _mouseX, _mouseY);
+        entityContextMenu.open(_entity, "model");
       }
     }
   }
 
   GzSim.EntityContextMenu {
     id: entityContextMenu
-    anchors.fill: parent
   }
 }

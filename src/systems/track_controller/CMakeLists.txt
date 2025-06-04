@@ -2,10 +2,10 @@ gz_add_system(track-controller
   SOURCES
     TrackController.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-physics${GZ_PHYSICS_VER}::gz-physics${GZ_PHYSICS_VER}
-    gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
-    gz-math${GZ_MATH_VER}::gz-math${GZ_MATH_VER}
-    gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-common::gz-common
+    gz-physics::gz-physics
+    gz-msgs::gz-msgs
+    gz-math::gz-math
+    gz-plugin::gz-plugin
+    gz-transport::gz-transport
 )

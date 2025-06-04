@@ -18,6 +18,9 @@
 #include "gz.hh"
 
 #include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -37,47 +40,118 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
+#include "gz/sim/Util.hh"
+
+#ifdef WITH_GUI
 #include "gz/sim/gui/Gui.hh"
+#endif
 
 using namespace gz;
 
 //////////////////////////////////////////////////
-extern "C" char *gzSimVersion()
+void cmdVerbosity(const int _verbosity)
 {
-  return strdup(GZ_SIM_VERSION_FULL);
-}
-
-//////////////////////////////////////////////////
-extern "C" char *simVersionHeader()
-{
-  return strdup(GZ_SIM_VERSION_HEADER);
-}
-
-//////////////////////////////////////////////////
-extern "C" void cmdVerbosity(
-    const char *_verbosity)
-{
-  int verbosity = std::atoi(_verbosity);
-  common::Console::SetVerbosity(verbosity);
+  common::Console::SetVerbosity(_verbosity);
 
   // SDFormat only has 2 levels: quiet / loud. Let sim users suppress all SDF
   // console output with zero verbosity.
-  if (verbosity == 0)
+  if (_verbosity == 0)
   {
     sdf::Console::Instance()->SetQuiet(true);
   }
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *worldInstallDir()
+const std::string worldInstallDir()
 {
   static std::string worldInstallDir = gz::sim::getWorldInstallDir();
-  return worldInstallDir.c_str();
+  return worldInstallDir;
 }
 
 //////////////////////////////////////////////////
-extern "C" const char *findFuelResource(
-    char *_pathToResource)
+int checkFile(std::string &_file)
+{
+  // Check if passed string is valid
+  if(_file.empty()) {
+    std::cout << "Empty filename passed to checkFile" << std::endl;
+    return -1;
+  }
+
+  std::string filepath;
+
+  // Check if passed file exists
+  if(std::filesystem::exists(_file))
+  {
+    filepath = _file;
+  }
+  else
+  {
+    // If passed file does not exist, check GZ_SIM_RESOURCE_PATH
+    // environment variable
+    auto resourcePaths = sim::resourcePaths();
+    for(auto path : resourcePaths)
+    {
+      std::string resourceFilepath =
+        common::joinPaths(path, _file);
+      if(std::filesystem::exists(resourceFilepath))
+      {
+        filepath = resourceFilepath;
+        break;
+      }
+    }
+
+    // If file does not exist in resource path, check in the
+    // installation location of available worlds
+    if(filepath.empty())
+    {
+      std::string worldPath =
+        common::joinPaths(worldInstallDir(), _file);
+      if(std::filesystem::exists(worldPath))
+      {
+        filepath = worldPath;
+      }
+      else
+      {
+        // Check Fuel for file
+        filepath = findFuelResource(_file);
+      }
+    }
+  }
+
+  if(filepath.empty())
+  {
+    std::cout << "Unable to find or download file "
+              << _file << std::endl;
+    return -1;
+  }
+
+  _file = filepath;
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+int parseSdfFile(const std::string &_file,
+    std::string &_parsedSdfFile)
+{
+  std::ifstream fs(_file);
+  if(!fs)
+  {
+    std::cout << "Error reading the SDFormat file "
+              << _file << std::endl;
+    return -1;
+  }
+
+  std::stringstream buffer;
+  buffer << fs.rdbuf();
+  _parsedSdfFile = buffer.str();
+
+  return 0;
+}
+
+//////////////////////////////////////////////////
+std::string findFuelResource(
+    const std::string &_pathToResource)
 {
   std::string path;
   std::string worldPath;
@@ -123,7 +197,7 @@ extern "C" const char *findFuelResource(
 
       if (fileExtension == "sdf")
       {
-        return strdup(current.c_str());
+        return current;
       }
     }
   }
@@ -131,19 +205,17 @@ extern "C" const char *findFuelResource(
 }
 
 //////////////////////////////////////////////////
-extern "C" int runServer(const char *_sdfString,
-    int _iterations, int _run, float _hz, double _initialSimTime,
-    int _levels, const char *_networkRole,
+int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
+    float _hz, double _initialSimTime, int _levels, const char *_networkRole,
     int _networkSecondaries, int _record, const char *_recordPath,
     int _recordResources, int _logOverwrite, int _logCompress,
     const char *_playback, const char *_physicsEngine,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
-    const char *_file, const char *_recordTopics, int _waitGui,
+    const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
     int _headless, float _recordPeriod, int _seed)
 {
   std::string startingWorldPath{""};
-  sim::ServerConfig serverConfig;
 
   // Lock until the starting world is received from Gui
   if (_waitGui == 1)
@@ -174,7 +246,7 @@ extern "C" int runServer(const char *_sdfString,
   }
 
   // Path for logs
-  std::string recordPathMod = serverConfig.LogRecordPath();
+  std::string recordPathMod = _config.LogRecordPath();
 
   // Path for compressed log, used to check for duplicates
   std::string cmpPath = std::string(recordPathMod);
@@ -188,7 +260,7 @@ extern "C" int runServer(const char *_sdfString,
   // Initialize console log
   if ((_recordPath != nullptr && std::strlen(_recordPath) > 0) ||
     _record > 0 || _recordResources > 0 || _recordPeriod >= 0 ||
-    (_recordTopics != nullptr && std::strlen(_recordTopics) > 0))
+    (_recordTopics.size() > 0))
   {
     if (_playback != nullptr && std::strlen(_playback) > 0)
     {
@@ -196,11 +268,11 @@ extern "C" int runServer(const char *_sdfString,
       return -1;
     }
 
-    serverConfig.SetUseLogRecord(true);
-    serverConfig.SetLogRecordResources(_recordResources);
+    _config.SetUseLogRecord(true);
+    _config.SetLogRecordResources(_recordResources);
     if (_recordPeriod >= 0)
     {
-      serverConfig.SetLogRecordPeriod(
+      _config.SetLogRecordPeriod(
            std::chrono::duration_cast<std::chrono::steady_clock::duration>(
            std::chrono::duration<double>(_recordPeriod)));
     }
@@ -315,23 +387,21 @@ extern "C" int runServer(const char *_sdfString,
       gzmsg << "Recording states to default path [" << recordPathMod << "]"
              << std::endl;
     }
-    serverConfig.SetLogRecordPath(recordPathMod);
+    _config.SetLogRecordPath(recordPathMod);
 
-    std::vector<std::string> topics = common::split(
-        _recordTopics, ":");
-    for (const std::string &topic : topics)
+    for (const std::string &topic : _recordTopics)
     {
-      serverConfig.AddLogRecordTopic(topic);
+      _config.AddLogRecordTopic(topic);
     }
   }
   else
   {
-    gzLogInit(serverConfig.LogRecordPath(), "server_console.log");
+    gzLogInit(_config.LogRecordPath(), "server_console.log");
   }
 
   if (_logCompress > 0)
   {
-    serverConfig.SetLogRecordCompressPath(cmpPath);
+    _config.SetLogRecordCompressPath(cmpPath);
   }
 
   gzmsg << "Gazebo Sim Server v" << GZ_SIM_VERSION_FULL
@@ -340,7 +410,7 @@ extern "C" int runServer(const char *_sdfString,
   // Set the SDF string to user
   if (_sdfString != nullptr && std::strlen(_sdfString) > 0)
   {
-    if (!serverConfig.SetSdfString(_sdfString))
+    if (!_config.SetSdfString(_sdfString))
     {
       gzerr << "Failed to set SDF string [" << _sdfString << "]" << std::endl;
       return -1;
@@ -350,30 +420,30 @@ extern "C" int runServer(const char *_sdfString,
   // This ensures if the server was run stand alone with a world from
   // command line, the correct world would be loaded.
   if(_waitGui == 1)
-    serverConfig.SetSdfFile(startingWorldPath);
+    _config.SetSdfFile(startingWorldPath);
   else
-    serverConfig.SetSdfFile(_file);
+    _config.SetSdfFile(_file);
 
   // Initial simulation time.
-  serverConfig.SetInitialSimTime(_initialSimTime);
+  _config.SetInitialSimTime(_initialSimTime);
 
   // Set the update rate.
   if (_hz > 0.0)
-    serverConfig.SetUpdateRate(_hz);
+    _config.SetUpdateRate(_hz);
 
   // Set whether levels should be used.
   if (_levels > 0)
   {
     gzmsg << "Using the level system\n";
-    serverConfig.SetUseLevels(true);
+    _config.SetUseLevels(true);
   }
 
   if (_networkRole && std::strlen(_networkRole) > 0)
   {
     gzmsg << "Using the distributed simulation and levels systems\n";
-    serverConfig.SetNetworkRole(_networkRole);
-    serverConfig.SetNetworkSecondaries(_networkSecondaries);
-    serverConfig.SetUseLevels(true);
+    _config.SetNetworkRole(_networkRole);
+    _config.SetNetworkSecondaries(_networkSecondaries);
+    _config.SetUseLevels(true);
   }
 
   if (_playback != nullptr && std::strlen(_playback) > 0)
@@ -387,56 +457,50 @@ extern "C" int runServer(const char *_sdfString,
     else
     {
       gzmsg << "Playing back states" << _playback << std::endl;
-      serverConfig.SetLogPlaybackPath(common::absPath(
+      _config.SetLogPlaybackPath(common::absPath(
         std::string(_playback)));
     }
   }
 
   if (_physicsEngine != nullptr && std::strlen(_physicsEngine) > 0)
   {
-    serverConfig.SetPhysicsEngine(_physicsEngine);
+    _config.SetPhysicsEngine(_physicsEngine);
   }
 
-  serverConfig.SetHeadlessRendering(_headless);
+  _config.SetHeadlessRendering(_headless);
 
   if (_renderEngineServer != nullptr && std::strlen(_renderEngineServer) > 0)
   {
-    serverConfig.SetRenderEngineServer(_renderEngineServer);
+    _config.SetRenderEngineServer(_renderEngineServer);
   }
 
   if (_renderEngineServerApiBackend != nullptr)
   {
-    serverConfig.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
+    _config.SetRenderEngineServerApiBackend(_renderEngineServerApiBackend);
   }
 
   if (_renderEngineGuiApiBackend != nullptr)
   {
-    serverConfig.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
+    _config.SetRenderEngineGuiApiBackend(_renderEngineGuiApiBackend);
   }
 
   if (_renderEngineGui != nullptr && std::strlen(_renderEngineGui) > 0)
   {
-    serverConfig.SetRenderEngineGui(_renderEngineGui);
+    _config.SetRenderEngineGui(_renderEngineGui);
   }
 
   if (_seed != 0)
   {
-    serverConfig.SetSeed(_seed);
+    _config.SetSeed(_seed);
     gzmsg << "Setting seed value: " << _seed << "\n";
   }
 
-  // Create the Gazebo server
-  sim::Server server(serverConfig);
-
-  // Run the server
-  server.Run(true, _iterations, _run == 0);
-
-  gzdbg << "Shutting down gz-sim-server" << std::endl;
   return 0;
 }
 
+#ifdef WITH_GUI
 //////////////////////////////////////////////////
-extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
+int runGui(const char *_guiConfig, const char *_file, int _waitGui,
                       const char *_renderEngine,
                       const char *_renderEngineGuiApiBackend)
 {
@@ -470,3 +534,4 @@ extern "C" int runGui(const char *_guiConfig, const char *_file, int _waitGui,
   return gz::sim::gui::runGui(argc, argv, _guiConfig, _file, _waitGui,
                               _renderEngine, _renderEngineGuiApiBackend);
 }
+#endif

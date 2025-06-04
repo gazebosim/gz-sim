@@ -2,6 +2,6 @@ gz_add_system(joint-controller
   SOURCES
     JointController.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-common::gz-common
+    gz-transport::gz-transport
 )

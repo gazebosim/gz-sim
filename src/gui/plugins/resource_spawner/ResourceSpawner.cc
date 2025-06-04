@@ -81,7 +81,7 @@ namespace gz::sim
     public: std::vector<fuel_tools::ServerConfig> servers;
 
     /// \brief Data structure to hold relevant bits for a worker thread that
-    /// fetches the list of recources available for an owner on Fuel.
+    /// fetches the list of resources available for an owner on Fuel.
     struct FetchResourceListWorker
     {
       /// \brief Thread that runs the worker
@@ -110,6 +110,15 @@ using namespace sim;
 /////////////////////////////////////////////////
 PathModel::PathModel() : QStandardItemModel()
 {
+}
+
+/////////////////////////////////////////////////
+PathModel::~PathModel()
+{
+  // Disconnect all signals/slots manually. This prevents Qt from printing
+  // warnings when closing the plugin as it tries to disconnect signals/slots
+  // from the (already deleted) model.
+  this->disconnect();
 }
 
 /////////////////////////////////////////////////
@@ -152,6 +161,15 @@ QHash<int, QByteArray> PathModel::roleNames() const
 /////////////////////////////////////////////////
 ResourceModel::ResourceModel() : QStandardItemModel()
 {
+}
+
+/////////////////////////////////////////////////
+ResourceModel::~ResourceModel()
+{
+  // Disconnect all signals/slots manually. This prevents Qt from printing
+  // warnings when closing the plugin as it tries to disconnect signals/slots
+  // from the (already deleted) model.
+  this->disconnect();
 }
 
 /////////////////////////////////////////////////
@@ -441,7 +459,7 @@ bool compareByDownloaded(const Resource &a, const Resource &b)
 /////////////////////////////////////////////////
 void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 {
-  if (this->dataPtr->displayData.searchKeyword == "")
+  if (this->dataPtr->displayData.searchKeyword.empty())
     return;
 
   std::string searchKeyword = this->dataPtr->displayData.searchKeyword;
