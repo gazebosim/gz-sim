@@ -74,7 +74,7 @@ class gz::sim::systems::BuoyancyEnginePrivateData
   /// \brief Surface location
   public: std::optional<double> surface = std::nullopt;
 
-  /// \brief Trasport node for control
+  /// \brief Transport node for control
   public: gz::transport::Node node;
 
   /// \brief Publishes bladder status

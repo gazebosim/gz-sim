@@ -56,7 +56,7 @@ namespace systems
   ///
   /// Optional parameters:
   ///
-  /// - `<loop>`: When true, all waypoints will be visited continously in a
+  /// - `<loop>`: When true, all waypoints will be visited continuously in a
   ///   circular pattern. If false, the model will stop when the
   ///   last waypoint is reached. Note, that if the vehicle moves,
   ///   it will still try to reach the very last waypoint.

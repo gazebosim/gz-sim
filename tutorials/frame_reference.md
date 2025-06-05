@@ -40,7 +40,7 @@ being in the positive z direction and so forth.
 If you are creating a model, besides designing its kinematic structure (links
 and joints) and physical properties, you need to decide where to place your
 model's reference frame. Next are a few examples of our turtle model with three
-differente choices for its reference frame.
+different choices for its reference frame.
 
 @image html files/frame_reference/turtle_frames.png
 
@@ -64,7 +64,7 @@ smoothly sit on a stable place.
 
 There are a few ways to change the reference frame of your model:
 
-1. Adjust your mesh reference frame. When desigining your mesh you'll be able to
+1. Adjust your mesh reference frame. When designing your mesh you'll be able to
 set its reference frame. It's recommended to match the mesh reference frame with
 the one you will want in Gazebo for your model.
 

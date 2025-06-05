@@ -33,9 +33,8 @@
 #include <vector>
 #include <utility>
 
-#include <gz/common/geospatial/Dem.hh>
 #include <gz/common/geospatial/HeightmapData.hh>
-#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/geospatial/HeightmapUtil.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/common/StringUtils.hh>
@@ -1016,7 +1015,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[CollisionDetectorFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1042,7 +1041,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[SolverFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1066,7 +1065,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[SolverFeature]. Options will be ignored."
                      << std::endl;
               informed = true;
@@ -1091,7 +1090,7 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
             if (!informed)
             {
               gzdbg << "Attempting to set physics options, but the "
-                     << "phyiscs engine doesn't support feature "
+                     << "physics engine doesn't support feature "
                      << "[CollisionPairMaxContacts]. "
                      << "Options will be ignored."
                      << std::endl;
@@ -1192,7 +1191,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               if (!informed)
               {
                 gzdbg << "Attempting to construct nested models, but the "
-                       << "phyiscs engine doesn't support feature "
+                       << "physics engine doesn't support feature "
                        << "[ConstructSdfNestedModelFeature]. "
                        << "Nested model will be ignored."
                        << std::endl;
@@ -1538,20 +1537,12 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           }
 
           std::shared_ptr<common::HeightmapData> data;
-          std::string lowerFullPath = common::lowercase(fullPath);
           // check if heightmap is an image
-          if (common::EndsWith(lowerFullPath, ".png")
-              || common::EndsWith(lowerFullPath, ".jpg")
-              || common::EndsWith(lowerFullPath, ".jpeg"))
+          if (common::isSupportedImageHeightmapFileExtension(fullPath))
           {
-            auto img = std::make_shared<common::ImageHeightmap>();
-            if (img->Load(fullPath) < 0)
-            {
-              gzerr << "Failed to load heightmap image data from ["
-                     << fullPath << "]" << std::endl;
+            data = common::loadHeightmapData(fullPath);
+            if (!data)
               return true;
-            }
-            data = img;
           }
           // DEM
           else
@@ -1560,20 +1551,12 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
             auto sphericalCoordinatesComponent =
               _ecm.Component<components::SphericalCoordinates>(
                 worldEntity);
-
-            auto dem = std::make_shared<common::Dem>();
+            math::SphericalCoordinates sphericalCoordinates;
             if (sphericalCoordinatesComponent)
-            {
-              dem->SetSphericalCoordinates(
-                  sphericalCoordinatesComponent->Data());
-            }
-            if (dem->Load(fullPath) < 0)
-            {
-              gzerr << "Failed to load heightmap dem data from ["
-                     << fullPath << "]" << std::endl;
+              sphericalCoordinates = sphericalCoordinatesComponent->Data();
+            data = common::loadHeightmapData(fullPath, sphericalCoordinates);
+            if (!data)
               return true;
-            }
-            data = dem;
           }
 
           collisionPtrPhys = linkHeightmapFeature->AttachHeightmapShape(

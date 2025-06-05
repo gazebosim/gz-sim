@@ -2,7 +2,7 @@ Example program to generate performance data
 
 ### Build
 
-    cd examples/standalong/each_performance
+    cd examples/standalone/each_performance
     mkdir build
     cd build
     cmake ..

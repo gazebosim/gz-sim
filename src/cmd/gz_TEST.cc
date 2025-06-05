@@ -170,7 +170,7 @@ TEST(CmdLine, SimtimeArgument)
     {
       std::cout << "Sleeping for " << i << " ms";
       GZ_SLEEP_MS(i);
-      std::cout << ", recevied " << msgCount << " messages." << std::endl;
+      std::cout << ", received " << msgCount << " messages." << std::endl;
       if (msgCount)
       {
         break;

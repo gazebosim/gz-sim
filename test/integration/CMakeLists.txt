@@ -92,7 +92,7 @@ set(tests
   world_control_state.cc
 )
 
-# elevator system causes compile erros on windows
+# elevator system causes compile errors on windows
 if (NOT WIN32)
   list(APPEND tests elevator_system.cc)
 endif()

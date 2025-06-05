@@ -649,10 +649,10 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
-      // Thes following two URIs are valid, but have a trailing '/'
+      // These following two URIs are valid, but have a trailing '/'
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/",
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3/",
-      // Thes following two URIs are invalid, and will not be saved
+      // These following two URIs are invalid, and will not be saved
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt",
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"

@@ -80,7 +80,7 @@ class GZ_SIM_VISIBLE MsgManager
   /// \brief Add a new subscriber. It's possible to associate multiple topics
   /// to the same address/model pair. However, the same address cannot be
   /// attached to multiple models. When all the subscribers are removed, it's
-  /// posible to bind to this address using a different model.
+  /// possible to bind to this address using a different model.
   /// \param[in] _address The subscriber address.
   /// \param[in] _modelName The model name.
   /// \param[in] _topic The subscriber topic.
@@ -126,7 +126,7 @@ class GZ_SIM_VISIBLE MsgManager
   /// the appropriate subscribers. This function also clears the inbound queue.
   public: void DeliverMsgs();
 
-  /// \brief Get an inmutable reference to the data containing subscriptions and
+  /// \brief Get an immutable reference to the data containing subscriptions and
   /// data queues.
   /// \return A const reference to the data.
   public: const Registry &DataConst() const;
