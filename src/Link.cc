@@ -539,7 +539,7 @@ void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
   // center of mass and expressed in coordinates of the link frame.
   // Since _position is relative to the center of mass in coordinates
   // of the inertial frame, it just needs to be rotated to be expressed
-  // in coordiantes of the link frame.
+  // in coordinates of the link frame.
   math::Vector3d positionInLinkFrame =
     inertial->Data().Pose().Rot().RotateVector(_position);
 

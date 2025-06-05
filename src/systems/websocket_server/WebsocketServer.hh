@@ -27,6 +27,7 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <thread>
 #include <vector>
@@ -75,10 +76,10 @@ namespace systems
     /// * <ssl> : Element that contains SSL configuration. For testing
     ///           purposes you can create self-signed SSL certificates. Run
     ///
-    /// ```
-    /// openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.cert
-    /// ```
-    ///
+    /** \code{.sh}
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key \
+            -out server.cert
+    */
     ///  Use "localhost" for the  "Common Name" question. If you are testing
     ///  with a browser, first navigate to "https://localhost:<port>" and
     ///  accept the self-signed certificate.
@@ -221,7 +222,7 @@ namespace systems
       /// \param[in] _subscribe True for subscribe operation, false for
       /// unsubscribe operation
       /// \return True if the subscription count is incremented or decremented,
-      /// and false to indicate the subcription limit has reached.
+      /// and false to indicate the subscription limit has reached.
       public: bool UpdateMsgTypeSubscriptionCount(const std::string &_topic,
           int _socketId, bool _subscribe);
 

@@ -18,7 +18,7 @@ Lets install our dependencies
 ```
 pip install stable-baselines3[extra]
 ```
-For visuallization to work you will also need to:
+For visualization to work you will also need to:
 ```
 pip uninstall opencv-python
 pip install opencv-python-headless

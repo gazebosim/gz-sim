@@ -26,12 +26,14 @@
 #include <cstring>
 #include <fstream>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <gz/msgs/bytes.pb.h>
@@ -105,7 +107,7 @@ WebsocketServer *get_server(struct lws *_wsi)
 int write_http_headers(struct lws *_wsi,
                        int _statusCode,
                        const char *_contentType,
-                       unsigned long _contentLength)
+                       size_t _contentLength)
 {
   // Buffer is oversized to account for variable content lengths and future
   // potential headers.
@@ -175,7 +177,7 @@ int httpCallback(struct lws *_wsi,
   {
     case LWS_CALLBACK_HTTP:
     {
-      char *URI = (char *) _in;
+      char *URI = reinterpret_cast<char *>(_in);
       gzdbg << "Requested URI: " << URI << "\n";
 
       // Router
@@ -184,7 +186,7 @@ int httpCallback(struct lws *_wsi,
       {
         gzdbg << "Handling /metrics\n";
 
-        // TODO Support a proper way to output metrics
+        // TODO(anyone) Support a proper way to output metrics
 
         // Format contains the format of the string returned by this route.
         // The following metrics are currently supported:
@@ -201,10 +203,10 @@ int httpCallback(struct lws *_wsi,
         n = snprintf(reinterpret_cast<char *>(buf.get()), buflen, format,
             conns.c_str());
         // Check that no characters were discarded
-        if (n - int(buflen) > 0)
+        if (n - static_cast<int>(buflen) > 0)
         {
           gzwarn << "Discarded "
-            << n - int(buflen)
+            << n - static_cast<int>(buflen)
             << "characters when preparing metrics.\n";
         }
 
@@ -324,7 +326,8 @@ int rootCallback(struct lws *_wsi,
 
         // Prevent too many connections.
         if (self->maxConnections >= 0 &&
-            static_cast<int>(self->connections.size() + 1) > self->maxConnections)
+            static_cast<int>(self->connections.size() + 1)
+                > self->maxConnections)
         {
           gzerr << "Skipping new connection, limit of "
             << self->maxConnections << " has been reached\n";
@@ -587,7 +590,7 @@ void WebsocketServer::QueueMessage(Connection *_connection,
   }
   else
   {
-    gzerr << "Null pointer to a conection. This should not happen.\n";
+    gzerr << "Null pointer to a connection. This should not happen.\n";
   }
 }
 
@@ -620,7 +623,7 @@ void WebsocketServer::OnConnect(int _socketId)
   std::unique_ptr<Connection> c(new Connection);
   c->creationTime = GZ_SYSTEM_TIME();
 
-  // No authorization key means the server is publically accessible
+  // No authorization key means the server is publicly accessible
   c->authorized = this->authorizationKey.empty() &&
                   this->adminAuthorizationKey.empty();
   this->connections[_socketId] = std::move(c);
@@ -665,8 +668,8 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
       // Count the number of commas to handle a frame like "sub,,,"
       std::count(_msg.begin(), _msg.end(), ',') != 3)
   {
-    gzerr << "Received an invalid frame[" << _msg << "] with " << frameParts.size()
-      << "components when 4 is expected.\n";
+    gzerr << "Received an invalid frame[" << _msg << "] with "
+          << frameParts.size() << "components when 4 is expected.\n";
     return;
   }
 
@@ -932,12 +935,12 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
     std::vector<std::string> allTopics;
     std::set<std::string> imageTopics;
     this->node.TopicList(allTopics);
-    for (auto queryTopic: allTopics)
+    for (auto queryTopic : allTopics)
     {
       std::vector<transport::MessagePublisher> publishers;
       std::vector<transport::MessagePublisher> subscribers;
       this->node.TopicInfo(queryTopic, publishers, subscribers);
-      for (auto pub: publishers)
+      for (auto pub : publishers)
       {
         if (pub.MsgTypeName() == "gz.msgs.Image")
         {
@@ -1264,7 +1267,7 @@ void WebsocketServer::OnWebsocketSubscribedImageMessage(
           return;
       }
 
-      // alway publish rgb_int8 format
+      // always publish rgb_int8 format
       std::vector<unsigned char> buffer;
       image.SavePNGToBuffer(buffer);
       std::string img(reinterpret_cast<char *>(buffer.data()), buffer.size());

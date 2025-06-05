@@ -11,7 +11,7 @@ install(
   DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/
 )
 
-# Create sim utilies library
+# Create sim utilities library
 add_library(gz STATIC gz.cc)
 target_link_libraries(gz
   ${PROJECT_LIBRARY_TARGET_NAME}

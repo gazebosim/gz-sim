@@ -152,7 +152,7 @@ But usually, you'll see some kind of error like:
 ```
 [Err] [Ogre2RenderEngine.cc:342] Unable to open display:
 terminate called after throwing an instance of 'Ogre::RenderingAPIException'
-  what():  OGRE EXCEPTION(3:RenderingAPIException): Couldn`t open X display  in GLXGLSupport::getGLDisplay at /var/lib/jenkins/workspace/ogre-2.1-debbuilder/repo/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 789)
+  what():  OGRE EXCEPTION(3:RenderingAPIException): Couldn't open X display  in GLXGLSupport::getGLDisplay at /var/lib/jenkins/workspace/ogre-2.1-debbuilder/repo/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 789)
 ```
 
 **Explanation why this worked:** The cluster probably starts an X server for
@@ -224,9 +224,9 @@ It is okay if just one of the two "views" of the device work.
 
 ```bash
 01:13:59: OpenGL 3+ Rendering Subsystem created.
-01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn`t open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn't open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
 01:13:59: GLX raised an exception. Won't be available. Is X11 running?
-01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn`t open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
+01:13:59: OGRE EXCEPTION(3:RenderingAPIException): Couldn't open X display  in GLXGLSupport::getGLDisplay at ./.obj-x86_64-linux-gnu/gz_ogre_next_vendor-prefix/src/gz_ogre_next_vendor/RenderSystems/GL3Plus/src/windowing/GLX/OgreGLXGLSupport.cpp (line 808)
 01:13:59: Found Num EGL Devices: 5
 01:13:59: EGL Device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2
 01:13:59: Trying to init device: EGL_NV_device_cuda EGL_EXT_device_drm EGL_EXT_device_drm_render_node EGL_EXT_device_query_name EGL_EXT_device_persistent_id #0 /dev/dri/card2...
