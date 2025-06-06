@@ -494,7 +494,7 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
   // - For an ideal system: (position k) = (position k-1) + (velocity k-1) * dt,
   // - And (velocity k) is known from the velocity command (possibly limited by
   // the SpeedLimiter).
-  // However, since this is a velocity-resolved controler, (acceleration k)
+  // However, since this is a velocity-resolved controller, (acceleration k)
   // and (jerk k) are unknown, e.g.:
   //   (acceleration k) = ( (velocity k+1) - (velocity k) ) / dt
   //   in which (velocity k+1) is unknown in timestep k.

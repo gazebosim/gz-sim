@@ -95,7 +95,7 @@ add_subdirectory(detachable_joint)
 add_subdirectory(diff_drive)
 add_subdirectory(drive_to_pose_controller)
 add_subdirectory(dvl)
-# elevator system causes compile erros on windows
+# elevator system causes compile errors on windows
 if (NOT WIN32)
 add_subdirectory(elevator)
 endif()

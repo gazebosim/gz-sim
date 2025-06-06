@@ -30,7 +30,7 @@ class GzRewardScorer:
     """
     def __init__(self):
         """
-        We initiallize a TestFixture: This is a simple fixture that is used
+        We initialize a TestFixture: This is a simple fixture that is used
         to load our gazebo world. We also inject the code to be executed
         on each run.
         """

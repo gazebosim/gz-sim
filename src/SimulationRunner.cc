@@ -71,7 +71,7 @@ namespace {
 // 1. Gazebo is built without Pybind11
 // 2. The python interpreter is not initialized. This could happen in tests that
 //    create a SimulationRunner without sim::Server where the interpreter is
-//    intialized.
+//    initialized.
 // 3. sim::Server was instantiated by a Python module. In this case, there's a
 //    chance that this would be called with the GIL already released.
 struct MaybeGilScopedRelease
@@ -191,6 +191,14 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   opts.SetNameSpace(validNs);
 
   this->node = std::make_unique<transport::Node>(opts);
+
+  std::vector<transport::MessagePublisher> pubs;
+  std::vector<transport::MessagePublisher> subs;
+  this->node->TopicInfo("/world/" + this->worldName + "/stats", pubs, subs);
+  if (!pubs.empty())
+  {
+    gzerr << "Another world of the same name is running" << std::endl;
+  }
 
   // Create the system manager
   this->systemMgr = std::make_unique<SystemManager>(
@@ -666,7 +674,7 @@ void SimulationRunner::StopWorkerThreads()
 bool SimulationRunner::Run(const uint64_t _iterations)
 {
   // \todo(nkoenig) Systems will need a an update structure, such as
-  // priorties, or a dependency chain.
+  // priorities, or a dependency chain.
   //
   // \todo(nkoenig) We should implement the two-phase update detailed
   // in the design.

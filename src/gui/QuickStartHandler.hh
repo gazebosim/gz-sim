@@ -23,6 +23,12 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/gui/Export.hh"
 
+#include <gz/transport/Node.hh>
+#include <gz/common/Console.hh>
+
+#include <memory>
+#include <vector>
+
 namespace gz
 {
 namespace sim
@@ -35,6 +41,9 @@ namespace gui
 class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 {
   Q_OBJECT
+
+  // Explicitly declare the constructor
+  public: QuickStartHandler();
 
   /// \brief Get worlds path
   /// \return worlds directory path
@@ -69,6 +78,9 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 
   /// \brief Get starting world url.
   private: std::string startingWorld{""};
+
+  // Add a member for the transport node
+  private: gz::transport::Node node;
 };
 }
 }

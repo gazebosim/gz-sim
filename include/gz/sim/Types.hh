@@ -54,7 +54,7 @@ namespace gz
 
       /// \brief True if simulation is paused, which means the simulation
       /// time is not currently running, but systems are still being updated.
-      /// It is the responsibilty of a system update appropriately based on
+      /// It is the responsibility of a system update appropriately based on
       /// the status of paused. For example, a physics systems should not
       /// update state when paused is true.
       // cppcheck-suppress unusedStructMember

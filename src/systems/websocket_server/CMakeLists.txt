@@ -1,6 +1,6 @@
 file (READ combined.proto WEBSOCKETSERVER_MESSAGE_DEFINITIONS)
 # Add a dependency on binary source dir so that you can change the
-# combinded.proto file and `make` will rebuild the plugin.
+# combined.proto file and `make` will rebuild the plugin.
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS combined.proto)
 
 gz_add_system(websocket-server

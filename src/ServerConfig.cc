@@ -50,10 +50,10 @@ class gz::sim::ServerConfig::PluginInfoPrivate
 
   /// \brief Constructor based on values.
   /// \param[in] _entityName Name of the entity which should receive
-  /// this plugin. The name is used in conjuction with _entityType to
+  /// this plugin. The name is used in conjunction with _entityType to
   /// uniquely identify an entity.
   /// \param[in] _entityType Entity type which should receive  this
-  /// plugin. The type is used in conjuction with _entityName to
+  /// plugin. The type is used in conjunction with _entityName to
   /// uniquely identify an entity.
   /// \param[in] _plugin SDF Plugin associated with this plugin.
   // cppcheck-suppress passedByValue

@@ -258,7 +258,7 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief World entity to which this system is attached.
   public: Entity worldEntity;
 
-  /// \brief Wind entity on which this sytem operates. There should only be one
+  /// \brief Wind entity on which this system operates. There should only be one
   /// of these currently.
   public: Entity windEntity;
 

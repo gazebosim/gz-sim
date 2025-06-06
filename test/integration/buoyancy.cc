@@ -47,7 +47,7 @@ class BuoyancyTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 {
-  // This test checks if the restoring moments are correctly calculated accross
+  // This test checks if the restoring moments are correctly calculated across
   // both uniform and graded modes when the vehicle is fully submerged.
   std::size_t iterations{10000};
   std::vector<math::Pose3d> posesUniform, posesGraded;
@@ -155,7 +155,7 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
   EXPECT_NEAR(maxUniformRoll, maxGradedRoll, 1e-1);
   EXPECT_NEAR(maxUniformRoll, 0.11, 1e-1);
   EXPECT_NEAR(minUniformRoll, minGradedRoll, 1e-1);
-  // Emperically derived
+  // Empirically derived
   // added extra tol (3e-5) after fixing center of volume's reference frame
   EXPECT_NEAR(minUniformRoll, -0.15, 1e-1 + 3e-5);
 }
