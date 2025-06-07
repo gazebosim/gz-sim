@@ -21,10 +21,9 @@
 #include <memory>
 #include <vector>
 
-#include <gz/common/URI.hh>
+#include <sdf/sdf.hh>
 
-#include <sdf/Types.hh>
-#include <sdf/parser.hh>
+#include <gz/common/URI.hh>
 
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/AirPressureSensor.hh"

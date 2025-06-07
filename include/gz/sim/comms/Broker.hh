@@ -21,7 +21,7 @@
 #include <memory>
 
 #include <gz/utils/ImplPtr.hh>
-#include <sdf/Types.hh>
+#include <sdf/sdf.hh>
 #include "gz/sim/comms/MsgManager.hh"
 #include "gz/sim/config.hh"
 

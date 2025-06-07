@@ -24,7 +24,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
-#include <sdf/Types.hh>
+#include <sdf/sdf.hh>
 
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
