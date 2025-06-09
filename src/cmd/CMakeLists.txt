@@ -27,10 +27,15 @@ if(ENABLE_GUI)
 endif()
 
 # Create server executable by default
-set(server_executable gz-sim-server-client)
-add_executable(${server_executable} sim_main.cc)
+set(server_executable gz-sim-server)
+add_executable(${server_executable} sim_main.cc gz.cc)
 target_link_libraries(${server_executable}
-  PRIVATE gz Backward::Object)
+  PRIVATE
+  Backward::Object
+  gz-common::gz-common
+  gz-utils::cli
+  gz-sim
+)
 
 install(
   TARGETS ${server_executable}
