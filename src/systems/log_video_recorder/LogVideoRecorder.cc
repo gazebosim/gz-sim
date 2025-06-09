@@ -291,7 +291,7 @@ void LogVideoRecorder::PostUpdate(const UpdateInfo &_info,
   // Video recording stopped. We need to save a copy of the video file
   if (this->dataPtr->recordStopRequested)
   {
-    // give it some time for video encording to write the finalize encoding
+    // give it some time for video encoding to write the finalize encoding
     std::chrono::time_point<std::chrono::system_clock> now =
       std::chrono::system_clock::now();
     if (now - this->dataPtr->recordStopTime < std::chrono::seconds(5))

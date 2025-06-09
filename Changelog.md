@@ -63,7 +63,7 @@
 1. Remove detachable joints when a model is removed
     * [Pull request #2686](https://github.com/gazebosim/gz-sim/pull/2686)
 
-1. Improve load times by skipping serialization of entities when unecessary. (#2596)
+1. Improve load times by skipping serialization of entities when unnecessary. (#2596)
     * [Pull request #2682](https://github.com/gazebosim/gz-sim/pull/2682)
 
 1. check valid pointer
@@ -877,7 +877,7 @@
 1. Bump Fuel model version in test
     * [Pull request #2190](https://github.com/gazebosim/gz-sim/pull/2190)
 
-1. Fix enviroment system loading mechanism
+1. Fix environment system loading mechanism
     * [Pull request #1842](https://github.com/gazebosim/gz-sim/pull/1842)
 
 1. Infrastructure
@@ -1098,7 +1098,7 @@
 1. gz_TEST: improve initial sim time test reliability
     * [Pull request #1916](https://github.com/gazebosim/gz-sim/pull/1916)
 
-1. Use a queue to track component registration from mulitiple sources
+1. Use a queue to track component registration from multiple sources
     * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
 
 1. Initialize services in ViewAngle constructor
@@ -1164,7 +1164,7 @@
 1. Add SensorTopic component to rendering sensors
     * [Pull request #1908](https://github.com/gazebosim/gz-sim/pull/1908)
 
-1. Use a queue to track component registration from mulitiple sources
+1. Use a queue to track component registration from multiple sources
     * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
 
 1. Document behaviour changes introduced #1784
@@ -1239,7 +1239,7 @@
 1. Remove actors from screen when they are supposed to
     * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
 
-1. readd namespaces for Q_ARGS
+1. re-add namespaces for Q_ARGS
     * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
 
 1. 🎈 3.14.0
@@ -1364,7 +1364,7 @@
 1. Towards Green CI
     * [Pull request #1771](https://github.com/gazebosim/gz-sim/pull/1771)
 
-1. Refactor: Trajectory loading seperated into external function
+1. Refactor: Trajectory loading separated into external function
     * [Pull request #1744](https://github.com/gazebosim/gz-sim/pull/1744)
 
 1. Add pybind11 module as MODULE
@@ -1394,7 +1394,7 @@
 1. Merge forward 6 to 7, 2022-10-06
     * [Pull request #1676](https://github.com/gazebosim/gz-sim/pull/1676)
 
-1. Add information about <topic> system paramter
+1. Add information about <topic> system parameter
     * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
 
 1. Adding tests for hydrodynamics
@@ -1474,7 +1474,7 @@
 1. Add Metal support to Gazebo for macOS
     * [Pull request #1225](https://github.com/gazebosim/gz-sim/pull/1225)
 
-1. Add information about <topic> system paramter
+1. Add information about <topic> system parameter
     * [Pull request #1671](https://github.com/gazebosim/gz-sim/pull/1671)
 
 1. Adding tests for hydrodynamics
@@ -1895,7 +1895,7 @@
 1. Add SensorTopic component to rendering sensors
     * [Pull request #1908](https://github.com/gazebosim/gz-sim/pull/1908)
 
-1. Use a queue to track component registration from mulitiple sources
+1. Use a queue to track component registration from multiple sources
     * [Pull request #1836](https://github.com/gazebosim/gz-sim/pull/1836)
 
 1. Document behaviour changes introduced #1784
@@ -1961,7 +1961,7 @@
 1. Remove actors from screen when they are supposed to
     * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
 
-1. Readd namespaces for Q_ARGS
+1. Re-add namespaces for Q_ARGS
     * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
 
 1. Remove redundant namespace references
@@ -2457,7 +2457,7 @@
 1. Adding ability to pause/resume the trajectory follower behavior.
     * [Pull request #1347](https://github.com/gazebosim/gz-sim/pull/1347)
 
-1. Logs a warning if a mode is not clearly sepecified.
+1. Logs a warning if a mode is not clearly specified.
     * [Pull request #1307](https://github.com/gazebosim/gz-sim/pull/1307)
 
 1. JointStatePublisher publish parent, child and axis data
@@ -2914,7 +2914,7 @@
 1. Fix component inspector shutdown crash
     * [Pull request #724](https://github.com/gazebosim/gz-sim/pull/724)
 
-1. Setting the intiial velocity for a model or joint
+1. Setting the initial velocity for a model or joint
     * [Pull request #693](https://github.com/gazebosim/gz-sim/pull/693)
 
 1. Examples and tutorial on using rendering API from plugins
@@ -3521,7 +3521,7 @@
 1. Fixed material colors for ackermann sdfs
     * [Pull request #703](https://github.com/gazebosim/gz-sim/pull/703)
 
-1. Setting the intiial velocity for a model or joint
+1. Setting the initial velocity for a model or joint
     * [Pull request #693](https://github.com/gazebosim/gz-sim/pull/693)
 
 1. Remove static for maps from Factory.hh
@@ -4108,7 +4108,7 @@
     * [pull request 452](https://github.com/gazebosim/gz-sim/pull/452)
     * [pull request 469](https://github.com/gazebosim/gz-sim/pull/469)
 
-1. Use a [std::promise](https://en.cppreference.com/w/cpp/thread/promise)/[std::future](https://en.cppreference.com/w/cpp/thread/future) mechanism to avoid waiting in a looop until all `stepAck` messages are received
+1. Use a [std::promise](https://en.cppreference.com/w/cpp/thread/promise)/[std::future](https://en.cppreference.com/w/cpp/thread/future) mechanism to avoid waiting in a loop until all `stepAck` messages are received
     * [pull request 470](https://github.com/gazebosim/gz-sim/pull/470)
 
 1. Optical Tactile Sensor Plugin
@@ -4302,7 +4302,7 @@
 1. Remove actors from screen when they are supposed to
     * [Pull request #1699](https://github.com/gazebosim/gz-sim/pull/1699)
 
-1. Readd namespaces for Q_ARGS
+1. Re-add namespaces for Q_ARGS
     * [Pull request #1670](https://github.com/gazebosim/gz-sim/pull/1670)
 
 ### Gazebo Sim 3.X.X (20XX-XX-XX)
@@ -4461,7 +4461,7 @@
 1. Add UserCommands Plugin.
     * [Pull request #719](https://github.com/gazebosim/gz-sim/pull/719)
 
-1. Setting the intiial velocity for a model or joint
+1. Setting the initial velocity for a model or joint
     * [Pull request #693](https://github.com/gazebosim/gz-sim/pull/693)
 
 1. Examples and tutorial on using rendering API from plugins
@@ -5258,7 +5258,7 @@
 1. Always use the latest render texture in scene3d
     * [BitBucket pull request 518](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/518)
 
-1. Remove redundent messages when levels get unloaded
+1. Remove redundant messages when levels get unloaded
     * [BitBucket pull request 522](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/522)
 
 1. View angle plugin
@@ -5431,7 +5431,7 @@
 
 ### Gazebo Sim 2.3.0 (2019-07-13)
 
-1. Improve physics system peformance by skipping static model updates.
+1. Improve physics system performance by skipping static model updates.
    Components state information has been incorporated, which is used to
    indicate if a component change is periodic (such as through a physics
    update) or a one-time change (such as through a user command).
@@ -5440,7 +5440,7 @@
 1. Add sdf parameter to battery to start draining only when robot has started moving
     * [BitBucket pull request 370](https://osrf-migration.github.io/ignition-gh-pages/#!/ignitionrobotics/ign-gazebo/pull-requests/370)
 
-1. Improve SceneBroadcaster peformance by 1) Limit message generation if
+1. Improve SceneBroadcaster performance by 1) Limit message generation if
    subscribers to pose topics are not present, 2) Set world stats message
    instead of copying the message, 3) Suppress scenegraph updates when there
    are no new entities, 4) Make better use of const functions, 5) Prevent

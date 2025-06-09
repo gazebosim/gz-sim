@@ -205,6 +205,18 @@ set(GZ_TOOLS_VER 2)
 # Find gz-utils
 gz_find_package(gz-utils REQUIRED COMPONENTS cli)
 
+
+#--------------------------------------
+# Find libwebsockets
+# Disable on windows as there is an issue linking against websockets_shared,
+# see #2802
+if (NOT WIN32)
+  gz_find_package(libwebsockets)
+  if (NOT libwebsockets_FOUND)
+    gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+  endif()
+endif()
+
 #--------------------------------------
 # Find protobuf
 gz_find_package(GzProtobuf

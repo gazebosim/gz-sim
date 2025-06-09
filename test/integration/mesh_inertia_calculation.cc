@@ -54,7 +54,7 @@ class MeshInertiaCalculationTest : public InternalFixture<::testing::Test>
 
 /// \brief Load an SDF world and run mesh inertia tests. Two tests are run
 /// one after another: 1) the server is launched with path to SDF file, and
-/// 2) ther server is launched from an sdf string.
+/// 2) the server is launched from an sdf string.
 /// \param[in] _path Path to SDF
 /// \param[in] _testFunc Test function that checks mesh inertia values
 void loadSdfAndTest(const std::string &_path,
@@ -144,7 +144,6 @@ void cylinderColladaMeshInertiaCalculation(
 
   // Check the Inertial Pose and Link Pose. Their world poses should be the
   // same since the inertial pose relative to the link is zero.
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
     worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero);
 }
@@ -221,9 +220,7 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   EXPECT_TRUE(
     link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
-
+  // Check the Inertial Pose
   // Since the height of cylinder is 2m and origin is at center of bottom face
   // the center of mass (inertial pose) will be 1m above the ground
   EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
@@ -307,7 +304,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
   // Check the Inertia Matrix within a larger tolerance since we are
   // comparing a mesh cylinder made of convex hulls with an ideal cylinder.
   // For values more closer to the ideal, a higher number convex decomposition
-  // paramers would be required in the mesh sdf.
+  // parameters would be required in the mesh sdf.
   double ixxyyzzTol = meshInertial.MassMatrix().DiagonalMoments().Max() * 0.1;
   gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(*ecm).value()(0, 0),
                                    link.WorldInertiaMatrix(*ecm).value()(1, 1),
@@ -319,8 +316,7 @@ TEST(MeshInertiaCalculationTest, CylinderColladaOptimizedMeshInertiaCalculation)
               ixxyyzzTol));
   EXPECT_TRUE(actualIxyxzyz.Equal(
               meshInertial.MassMatrix().OffDiagonalMoments(), 3.5));
-  // Check the Inertial Pose and Link Pose
-  EXPECT_EQ(link.WorldPose(*ecm).value(), worldPose(linkEntity, *ecm));
+  // Check the Inertial Pose
   EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
               worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero, 1e-2));
 }

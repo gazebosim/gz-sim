@@ -40,7 +40,7 @@ TEST(TransformationTypes, transformFrame)
     TransformType::ADD_VELOCITY_GLOBAL, pose, velocity, current);
   EXPECT_EQ(res, math::Vector3d(-4, 0, 0));
 
-  // Tranforming to local frame without accounting for velocity. Considering
+  // Transforming to local frame without accounting for velocity. Considering
   // robot is facing Y axis.
   // Top down view:
   //   vvvvvvvvv    Current direction
@@ -54,7 +54,7 @@ TEST(TransformationTypes, transformFrame)
   res = transformFrame(TransformType::LOCAL, pose, velocity, current);
   EXPECT_LT((res - math::Vector3d(0, 3, 0)).Length(), 1e-5);
 
-  // Tranforming with vehicle's velocity in account
+  // Transforming with vehicle's velocity in account
   res = transformFrame(
     TransformType::ADD_VELOCITY_LOCAL, pose, velocity, current);
   EXPECT_LT((res - math::Vector3d(0, 4, 0)).Length(), 1e-5);

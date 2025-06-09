@@ -147,7 +147,8 @@ void addModelFlags(CLI::App &_app)
 
   auto poseOption =
       command->add_flag("-p,--pose", opt->pose,
-                        "Print the pose of the model (only useful with --model).");
+                        "Print the pose of the model "
+                        "(only useful with --model).");
   // Don't specify that it needs --model for cli11 >= 2.2.0, < 2.5
   // See https://github.com/gazebosim/gz-sim/issues/2918
   if (!(CLI11_VERSION_MAJOR == 2 &&

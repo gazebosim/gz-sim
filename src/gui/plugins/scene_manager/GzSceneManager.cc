@@ -68,7 +68,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \brief List of removed entities from a gui event
     public: std::set<Entity> removedEntities;
 
-    /// \brief Mutex to protect gui event and system upate call race conditions
+    /// \brief Mutex to protect gui event and system update call race conditions
     /// for newEntities and removedEntities
     public: std::mutex newRemovedEntityMutex;
 

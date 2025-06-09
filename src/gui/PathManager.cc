@@ -48,7 +48,8 @@ void onAddResourcePaths(const msgs::StringMsg_V &_msg)
 }
 
 //////////////////////////////////////////////////
-void onAddResourcePathsService(const msgs::StringMsg_V &_res, const bool _result)
+void onAddResourcePathsService(const msgs::StringMsg_V &_res,
+                               const bool _result)
 {
   if (!_result)
   {

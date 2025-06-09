@@ -200,7 +200,7 @@ void ShaderParam::Configure(const Entity &_entity,
            << "Missing <shader> SDF element." << std::endl;
     return;
   }
-  // allow mulitple shader SDF element for different shader languages
+  // allow multiple shader SDF element for different shader languages
   auto shaderElem = _sdf->FindElement("shader");
   while (shaderElem)
   {
