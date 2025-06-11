@@ -53,6 +53,34 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "TestStaticModelSystem",
+    testonly = 1,
+    srcs = [
+        "plugins/TestModelSystem.hh",
+        "plugins/TestStaticModelSystem.cc",
+    ],
+    deps = [
+        "//:gz-sim",
+        "@gz-plugin//:register",
+    ],
+    alwayslink = 1,
+)
+
+cc_test(
+    name = "INTEGRATION_load_system_static_registry",
+    srcs = ["integration/load_system_static_registry.cc"],
+    deps = [
+        ":Helpers",
+        ":MockSystem",
+        ":TestStaticModelSystem",
+        "//:gz-sim",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common",
+    ],
+)
+
 filegroup(
     name = "worlds",
     srcs = glob(["worlds/**"]),
