@@ -21,8 +21,14 @@
 #include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <ostream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
@@ -138,16 +144,16 @@ class gz::sim::systems::JointPositionControllerPrivate
   //! \brief Helper to initialise and declare a PID parameter
   public: template<typename Getter, typename Setter>
   void DeclareParameter(
-      ParameterProxy<math::PID>& param,
+      ParameterProxy<math::PID>* param,
       Getter&& getter,
       Setter&& setter,
       const std::string& prefix)
   {
-    param.Init(registry, &posPid,
+    param->Init(registry, &posPid,
       std::forward<Getter>(getter),
       std::forward<Setter>(setter),
       prefix);
-    param.Declare();
+    param->Declare();
   }
 
   /// \brief Gazebo communication node.
@@ -491,21 +497,21 @@ void JointPositionController::ConfigureParameters(
   //!       fields available in gz::math::PID (cmd_max, cmd_min, cmd_offset)
 
   // Declare parameter proxies
-  this->dataPtr->DeclareParameter(this->dataPtr->pGain,
+  this->dataPtr->DeclareParameter(&this->dataPtr->pGain,
       &math::PID::PGain, &math::PID::SetPGain, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->iGain,
+  this->dataPtr->DeclareParameter(&this->dataPtr->iGain,
       &math::PID::IGain, &math::PID::SetIGain, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->dGain,
+  this->dataPtr->DeclareParameter(&this->dataPtr->dGain,
       &math::PID::DGain, &math::PID::SetDGain, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->iMax,
+  this->dataPtr->DeclareParameter(&this->dataPtr->iMax,
       &math::PID::IMax, &math::PID::SetIMax, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->iMin,
+  this->dataPtr->DeclareParameter(&this->dataPtr->iMin,
       &math::PID::IMin, &math::PID::SetIMin, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->cmdMax,
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdMax,
       &math::PID::CmdMax, &math::PID::SetCmdMax, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->cmdMin,
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdMin,
       &math::PID::CmdMin, &math::PID::SetCmdMin, prefix);
-  this->dataPtr->DeclareParameter(this->dataPtr->cmdOffset,
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdOffset,
       &math::PID::CmdOffset, &math::PID::SetCmdOffset, prefix);
 }
 
