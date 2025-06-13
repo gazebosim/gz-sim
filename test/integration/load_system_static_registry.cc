@@ -15,7 +15,6 @@
  *
  */
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <gz/common/Util.hh>
@@ -26,9 +25,6 @@
 
 using namespace gz;
 using namespace sim;
-
-using ::testing::Eq;
-using ::testing::Optional;
 
 /// \brief Test loading system from static plugin registry
 class LoadSystemStaticRegistryTest : public InternalFixture<::testing::Test> {};
@@ -64,7 +60,10 @@ TEST_F(LoadSystemStaticRegistryTest, LoadWorks)
   Server server(serverConfig);
 
   // Verify that server was initialized correctly
-  ASSERT_THAT(server.IterationCount(), Optional(Eq(0)));
+  auto iterationCount = server.IterationCount();
+  ASSERT_NE(iterationCount, std::nullopt);
+  ASSERT_EQ(*iterationCount, 0);
+
   std::optional<Entity> model1Id = server.EntityByName("test_model1");
   ASSERT_NE(model1Id, std::nullopt);
   std::optional<Entity> model2Id = server.EntityByName("test_model2");

@@ -49,3 +49,10 @@ if(BUILD_TESTING)
     endif()
   endforeach (src)
 endif()
+
+# Statically linked test plugin
+add_library(TestStaticModelSystem STATIC TestStaticModelSystem.cc)
+target_link_libraries(TestStaticModelSystem PRIVATE
+    gz-plugin${GZ_PLUGIN_VER}::register
+    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-sim${PROJECT_VERSION_MAJOR})
