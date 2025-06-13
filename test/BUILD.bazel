@@ -62,7 +62,9 @@ cc_library(
     ],
     deps = [
         "//:gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
+        "@gz-transport",
     ],
     alwayslink = 1,
 )
