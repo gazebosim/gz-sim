@@ -18,6 +18,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 
 #include <gz/sim/SystemLoader.hh>
@@ -40,6 +41,10 @@ using namespace gz::sim;
 class gz::sim::SystemLoaderPrivate
 {
   //////////////////////////////////////////////////
+  public: static constexpr std::string_view kStaticPluginFilenamePrefix =
+              "static://";
+
+  //////////////////////////////////////////////////
   public: explicit SystemLoaderPrivate() = default;
 
   //////////////////////////////////////////////////
@@ -61,6 +66,62 @@ class gz::sim::SystemLoaderPrivate
   }
 
   //////////////////////////////////////////////////
+  public: std::string FixDeprecatedPluginName(const std::string &_pluginName)
+  {
+    std::string newPluginName = _pluginName;
+    constexpr std::string_view deprecatedPluginNamePrefix{"ignition::gazebo"};
+    if (auto pos = _pluginName.find(deprecatedPluginNamePrefix);
+        pos != std::string::npos)
+    {
+      newPluginName.replace(pos, deprecatedPluginNamePrefix.size(), "gz::sim");
+      gzwarn << "Trying to load deprecated plugin name [" << _pluginName
+             << "]. Using [" << newPluginName << "] instead."
+             << std::endl;
+    }
+    return newPluginName;
+  }
+
+  //////////////////////////////////////////////////
+  public: bool InstantiateStaticSystemPlugin(const sdf::Plugin &_sdfPlugin,
+              gz::plugin::PluginPtr &_gzPlugin)
+  {
+    const size_t prefixLen = kStaticPluginFilenamePrefix.size();
+    const std::string filenameWoPrefix =
+        _sdfPlugin.Filename().substr(prefixLen);
+    std::string pluginToInstantiate =
+        this->FixDeprecatedPluginName(filenameWoPrefix);
+
+    _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
+
+    if (!_gzPlugin)
+    {
+      gzerr << "Failed to load system plugin: "
+            << "(Reason: static plugin registry does not contain the requested "
+               "plugin)\n"
+            << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+            << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n";
+      return false;
+    }
+
+    if (!_gzPlugin->HasInterface<System>())
+    {
+      std::stringstream ss;
+      ss << "Failed to load system plugin: "
+         << "(Reason: plugin does not implement System interface)\n"
+         << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
+         << "- Requested library name: [" << _sdfPlugin.Filename() << "]\n"
+         << "- Plugin Interfaces Implemented:\n";
+      for (const auto &interfaceIt : this->loader.InterfacesImplemented())
+      {
+        ss << "  - " << interfaceIt << "\n";
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  //////////////////////////////////////////////////
   public: bool InstantiateSystemPlugin(const sdf::Plugin &_sdfPlugin,
               gz::plugin::PluginPtr &_gzPlugin)
   {
@@ -73,6 +134,12 @@ class gz::sim::SystemLoaderPrivate
       filename.replace(pos, deprecatedPrefix.size(), "gz-sim");
       gzwarn << "Trying to load deprecated plugin [" << _sdfPlugin.Filename()
              << "]. Using [" << filename << "] instead." << std::endl;
+    }
+
+    if (filename.substr(0, kStaticPluginFilenamePrefix.size()) ==
+          kStaticPluginFilenamePrefix)
+    {
+      return this->InstantiateStaticSystemPlugin(_sdfPlugin, _gzPlugin);
     }
 
     const std::list<std::string> paths = this->PluginPaths();
@@ -125,17 +192,8 @@ class gz::sim::SystemLoaderPrivate
         pluginName : _sdfPlugin.Name();
 
     // Deprecated: accept ignition plugins.
-    std::string deprecatedPluginNamePrefix{"ignition::gazebo"};
-    pos = pluginToInstantiate.find(deprecatedPluginNamePrefix);
-    if (pos != std::string::npos)
-    {
-      auto origPluginName = pluginToInstantiate;
-      pluginToInstantiate.replace(pos, deprecatedPluginNamePrefix.size(),
-          "gz::sim");
-      gzwarn << "Trying to load deprecated plugin name [" << origPluginName
-             << "]. Using [" << pluginToInstantiate << "] instead."
-             << std::endl;
-    }
+    pluginToInstantiate =
+        this->FixDeprecatedPluginName(pluginToInstantiate);
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
     if (!_gzPlugin)
