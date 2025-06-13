@@ -18,6 +18,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 
 #include <gz/sim/SystemLoader.hh>
@@ -65,7 +66,7 @@ class gz::sim::SystemLoaderPrivate
   }
 
   //////////////////////////////////////////////////
-  public: std::string FixDeprecatedPluginName(const std::string& _pluginName)
+  public: std::string FixDeprecatedPluginName(const std::string &_pluginName)
   {
     std::string newPluginName = _pluginName;
     constexpr std::string_view deprecatedPluginNamePrefix{"ignition::gazebo"};
@@ -87,7 +88,8 @@ class gz::sim::SystemLoaderPrivate
     const size_t prefixLen = kStaticPluginFilenamePrefix.size();
     const std::string filenameWoPrefix =
         _sdfPlugin.Filename().substr(prefixLen);
-    std::string pluginToInstantiate = FixDeprecatedPluginName(filenameWoPrefix);
+    std::string pluginToInstantiate =
+        this->FixDeprecatedPluginName(filenameWoPrefix);
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
 
@@ -137,7 +139,7 @@ class gz::sim::SystemLoaderPrivate
     if (filename.substr(0, kStaticPluginFilenamePrefix.size()) ==
           kStaticPluginFilenamePrefix)
     {
-      return InstantiateStaticSystemPlugin(_sdfPlugin, _gzPlugin);
+      return this->InstantiateStaticSystemPlugin(_sdfPlugin, _gzPlugin);
     }
 
     const std::list<std::string> paths = this->PluginPaths();
@@ -190,7 +192,8 @@ class gz::sim::SystemLoaderPrivate
         pluginName : _sdfPlugin.Name();
 
     // Deprecated: accept ignition plugins.
-    pluginToInstantiate = FixDeprecatedPluginName(pluginToInstantiate);
+    pluginToInstantiate =
+        this->FixDeprecatedPluginName(pluginToInstantiate);
 
     _gzPlugin = this->loader.Instantiate(pluginToInstantiate);
     if (!_gzPlugin)
