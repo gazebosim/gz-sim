@@ -19,9 +19,9 @@ def run_gui():
     an instance of the gui client
     """
     if os.name == 'nt':
-        base = os.path.join(get_install_prefix(), "libexec", "runGui.exe")
+        base = os.path.join(get_install_prefix(), "libexec", "gz", "sim10","gz-sim-gui-client.exe")
     else:
-        base = os.path.join(get_install_prefix(), "libexec", "runGui")
+        base = os.path.join(get_install_prefix(), "libexec", "gz", "sim10", "gz-sim-gui-client")
     subprocess.Popen(base)
 
 class GzRewardScorer:
