@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
 
-  Demostrates the ApplyLinkWrench plugin.
+  Demonstrates the ApplyLinkWrench plugin.
 
   When simulation starts, the box model starts moving due to the persistent force defined in this file.
 

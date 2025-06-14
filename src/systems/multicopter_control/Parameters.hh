@@ -74,7 +74,7 @@ namespace multicopter_control
     Eigen::Matrix3d inertia;
     /// \brief Gravity vector
     Eigen::Vector3d gravity;
-    /// \brief A collection of Rotor objects that specifiy various properties of
+    /// \brief A collection of Rotor objects that specify various properties of
     /// the rotors in the vehicle
     RotorConfiguration rotorConfiguration;
   };

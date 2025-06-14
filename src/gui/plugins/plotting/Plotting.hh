@@ -68,7 +68,7 @@ class PlotComponent
   /// false if all attributes are empty from the charts
   public: bool HasCharts();
 
-  /// \brief Set a value of specefic component attribute
+  /// \brief Set a value of specific component attribute
   /// \param[in] _attribute component attribute to set its value
   /// ex : yaw attribute in Pose3d type Component
   /// \param[in] _value value to be set to the attribute
@@ -147,7 +147,7 @@ class Plotting : public gz::sim::GuiSystem
   /// valid for types (double, float, int, bool)
   public: void SetData(std::string _Id, const double &_value);
 
-  /// \brief Add a chart to a specefic component attribute
+  /// \brief Add a chart to a specific component attribute
   /// \param[in] _entity entity id in the simulation
   /// \param[in] _typeId type identifier unique to each component type
   /// \param[in] _type Component Datatype ("Pose3d","Vector3d","double")
@@ -160,7 +160,7 @@ class Plotting : public gz::sim::GuiSystem
                                               std::string _attribute,
                                               int _chart);
 
-  /// \brief Remove a chart from a specefic component attribute
+  /// \brief Remove a chart from a specific component attribute
   /// \param[in] _entity entity id in the simulation
   /// \param[in] _typeId type identifier unique to each component type
   /// \param[in] _attribute component attribute to remove the chart from it

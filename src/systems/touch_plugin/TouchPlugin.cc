@@ -81,7 +81,7 @@ class gz::sim::systems::TouchPluginPrivate
   /// \brief Target collisions which this model should be touching.
   public: std::vector<Entity> targetEntities;
 
-  /// \brief std::chrono::duration type used throught this plugin
+  /// \brief std::chrono::duration type used throughout this plugin
   public: using DurationType = std::chrono::duration<double>;
 
   /// \brief Target time to continuously touch.

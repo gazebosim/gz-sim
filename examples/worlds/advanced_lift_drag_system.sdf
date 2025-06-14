@@ -13,7 +13,7 @@ Credits for the readme and the plugin go to karthik-feather.
 
 Try sending commands:
 
-To get the propeller spining send the following command
+To get the propeller spinning send the following command
 
 gz topic -t "/advanced_lift_drag_demo_model/command/motor_speed" --msgtype gz.msgs.Actuators -p 'velocity:[2000]'
 

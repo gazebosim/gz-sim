@@ -154,7 +154,7 @@ install( FILES
 # Note that the major version of the library is included in the name.
 # Ex: cmdsim0.rb
 # The logic is valid only for single-config CMake generators, so no script is
-# generated if a multiple-config CMake geneator is used
+# generated if a multiple-config CMake generator is used
 get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(NOT GENERATOR_IS_MULTI_CONFIG)
   set(cmd_script_generated_test "${CMAKE_BINARY_DIR}/test/lib/ruby/gz/cmd${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}.rb")

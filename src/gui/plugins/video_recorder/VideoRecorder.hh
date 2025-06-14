@@ -28,7 +28,7 @@ namespace sim
 {
   class VideoRecorderPrivate;
 
-  /// \brief Provides video recording cababilities to the 3D scene.
+  /// \brief Provides video recording capabilities to the 3D scene.
   class VideoRecorder : public gz::sim::GuiSystem
   {
     Q_OBJECT

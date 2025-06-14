@@ -250,7 +250,7 @@ namespace gz
     /// \param[in] _entity Entity whose component is being enabled
     /// \param[in] _enable True to enable (create), false to disable (remove).
     /// Defaults to true.
-    /// \param[in] _comp The component to create if neeeded. Defaults to a
+    /// \param[in] _comp The component to create if needed. Defaults to a
     /// default-constructed component.
     /// \return True if a component was created or removed, false if nothing
     /// changed.

@@ -168,7 +168,7 @@ void LevelManager::ReadPerformers(const sdf::Plugin &_plugin)
 
   if (this->useLevels && performerMap.empty())
   {
-    gzdbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+    gzdbg << "Levels enabled, but no <performer>s were specified in SDF. Use "
       << "the /world/<world_name>/level/set_performer service to specify "
       << "performers.\n";
   }
@@ -183,7 +183,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // provide the caller with feedback because
   // entityCompMgr.EntityByComponents() is not thread safe. It would better
   // to have long running service calls in gz-transport so that this
-  // function could get information out of the EntityComponent mangager
+  // function could get information out of the EntityComponent manager
   // in a thread-safe manner and return information back to the caller.
   //
   // The commented out section at the end of this function was
@@ -213,7 +213,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
 
   return true;
 
-  // Orignial implementation
+  // Original implementation
   //
   // _rep.set_data(false);
   // std::string name = _req.data();

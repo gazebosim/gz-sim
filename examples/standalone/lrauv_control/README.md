@@ -2,7 +2,7 @@
 This example shows a simple controller for an LRAUV. The vehicle has 3 actuators : the thruster, the fins to control yaw angle, and the fins to control
 pitch angle. Here, the target state of the vehicle is the speed, yaw and pitch angle, and the controller must adjust the fin angles and thruster to achieve
 that state. The vehicle is a MIMO system in reality, where all the three actuators affect each other, but we can approximate this to be a SISO system when
-the pich and yaw angles to be changed are not too drastic.
+the pitch and yaw angles to be changed are not too drastic.
 
 Therefore, we apply a PD controller for speed, and a P controller for yaw and pitch angles. The odometry publisher plugin supplies the required feedback
 on the states.
