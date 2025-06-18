@@ -88,6 +88,13 @@ namespace sim
     public: Q_INVOKABLE void OnRequest(const QString &_request,
         const QString &_data);
 
+    /// \brief Callback when a new plugin window finishes configuring
+    /// \param[in] _request Request type
+    /// \param[in] _data Request data
+    public: Q_INVOKABLE void OnAddPlugin(const QString &_name,
+        const QString &_filename, const QString &_innerXml,
+        const uint64_t _entity);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<EntityContextMenuPrivate> dataPtr;
