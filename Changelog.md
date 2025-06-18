@@ -1,5 +1,103 @@
 ## Gazebo Sim 9.x
 
+### Gazebo Sim 9.2.0 (2025-06-18)
+
+1. Add support to get link AABB from its collisions
+    * [Pull request #2787](https://github.com/gazebosim/gz-sim/pull/2787)
+
+1. Add support for loading System plugin from static plugin registry
+    * [Pull request #2950](https://github.com/gazebosim/gz-sim/pull/2950)
+
+1. Add bazel build for core gz sim library (no gui, physics, systems)
+    * [Pull request #2933](https://github.com/gazebosim/gz-sim/pull/2933)
+
+1. ci.yml: run cppcheck, cpplint on noble
+    * [Pull request #2935](https://github.com/gazebosim/gz-sim/pull/2935)
+
+1. Use HeightmapUtil functions for loading HeightmapData
+    * [Pull request #2915](https://github.com/gazebosim/gz-sim/pull/2915)
+
+1. Fixes issue #2903 - Crash when add liftDrag plugin without designating specific entity
+    * [Pull request #2913](https://github.com/gazebosim/gz-sim/pull/2913)
+
+1. Added codespell as a pre-commit hook.
+    * [Pull request #2853](https://github.com/gazebosim/gz-sim/pull/2853)
+
+1. Do not create light visuals on server side
+    * [Pull request #2888](https://github.com/gazebosim/gz-sim/pull/2888)
+
+1. Set GZ_IP=127.0.0.1 in gz cmd tests
+    * [Pull request #2884](https://github.com/gazebosim/gz-sim/pull/2884)
+
+1. [Documentation] Address #2850: Mention `GZ_SIM_SYSTEM_PLUGIN_PATH`
+    * [Pull request #2863](https://github.com/gazebosim/gz-sim/pull/2863)
+
+1. Detect running server on startup
+    * [Pull request #2828](https://github.com/gazebosim/gz-sim/pull/2828)
+
+1. Bring back feature for plotting pose attributes from Component Inspector
+    * [Pull request #2835](https://github.com/gazebosim/gz-sim/pull/2835)
+
+1. Remove unneeded mesh_inertia_calculation test expectations
+    * [Pull request #2808](https://github.com/gazebosim/gz-sim/pull/2808)
+
+1. Add more documentation to environmental_sensor.sdf example world
+    * [Pull request #2836](https://github.com/gazebosim/gz-sim/pull/2836)
+
+1. Don't install vendored backward files
+    * [Pull request #2838](https://github.com/gazebosim/gz-sim/pull/2838)
+
+1. Restrict docker-nightly workflow to base branch
+    * [Pull request #2827](https://github.com/gazebosim/gz-sim/pull/2827)
+
+1. Update custom sensor system example to make the sensor respect update rate
+    * [Pull request #2817](https://github.com/gazebosim/gz-sim/pull/2817)
+
+1. Attempts to print a stacktrace on segfault in our integration tests
+    * [Pull request #2776](https://github.com/gazebosim/gz-sim/pull/2776)
+
+1. Fix initialization of world components when enabling velocity checks
+    * [Pull request #2777](https://github.com/gazebosim/gz-sim/pull/2777)
+
+1. Update auto inertial calculation tutorial
+    * [Pull request #2782](https://github.com/gazebosim/gz-sim/pull/2782)
+
+1. Attempt to correct mass matrix in mesh inertia calculator
+    * [Pull request #2775](https://github.com/gazebosim/gz-sim/pull/2775)
+
+1. Update Windows CI badge in README.md
+    * [Pull request #2793](https://github.com/gazebosim/gz-sim/pull/2793)
+
+1. Cleanup for Visualize Frustum
+    * [Pull request #2794](https://github.com/gazebosim/gz-sim/pull/2794)
+
+1. Fixed GIL release issue with Python System and Python TestFixture.
+    * [Pull request #2618](https://github.com/gazebosim/gz-sim/pull/2618)
+
+1. Update LogicalCamera plugin to detect nested models
+    * [Pull request #2788](https://github.com/gazebosim/gz-sim/pull/2788)
+
+1. Register MeshInertialCalculator when loading sim from an SDF string
+    * [Pull request #2754](https://github.com/gazebosim/gz-sim/pull/2754)
+
+1. Break out server constructor
+    * [Pull request #2638](https://github.com/gazebosim/gz-sim/pull/2638)
+
+1. Fix SimtimeArgument test on homebrew
+    * [Pull request #2783](https://github.com/gazebosim/gz-sim/pull/2783)
+
+1. Support mesh optimization params in mesh inertial calculator
+    * [Pull request #2770](https://github.com/gazebosim/gz-sim/pull/2770)
+
+1. New system plugin called `DriveToPoseController`
+    * [Pull request #2679](https://github.com/gazebosim/gz-sim/pull/2679)
+
+1. Standalone `gz model` executable
+    * [Pull request #2724](https://github.com/gazebosim/gz-sim/pull/2724)
+
+1. ADD: publish the wind information to gz and ros topic
+    * [Pull request #2767](https://github.com/gazebosim/gz-sim/pull/2767)
+
 ### Gazebo Sim 9.1.0 (2025-02-12)
 
 1. Physics: Ray intersections
