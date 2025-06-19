@@ -21,8 +21,10 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/cameratrack.pb.h>
 #include <gz/msgs/entity.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -88,6 +90,9 @@ namespace gz::sim
 
     /// \brief Storing last follow target for look at.
     public: std::string followTargetLookAt;
+
+    /// \brief Add plugin service
+    public: std::string addPluginService;
 
     /// \brief Flag used to disable look at when not following target.
     public: bool followingTarget{false};
@@ -325,7 +330,7 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else if (request == "view_frames")
   {
-    gz::msgs::StringMsg req;
+    msgs::StringMsg req;
     req.set_data(_data.toStdString());
     this->dataPtr->node.Request(this->dataPtr->viewFramesService, req, cb);
   }
@@ -344,4 +349,53 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   {
     gzwarn << "Unknown request [" << request << "]" << std::endl;
   }
+}
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnAddPlugin(const QString &_name,
+        const QString &_filename, const QString &_innerXml,
+        const uint64_t _entity) {
+
+  if (this->dataPtr->worldName.empty())
+  {
+    auto runners = gui::App()->findChildren<GuiRunner *>();
+    if (runners.empty() || runners[0] == nullptr)
+    {
+      gzerr << "Internal error: no GuiRunner found." << std::endl;
+      return;
+    }
+
+    this->dataPtr->worldName = "default";
+    auto worldNameVariant = runners[0]->property("worldName");
+    if (!worldNameVariant.isValid())
+    {
+      gzwarn << "GuiRunner's worldName not set, using["
+              << this->dataPtr->worldName << "]" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->worldName = worldNameVariant.toString().toStdString();
+    }
+    this->dataPtr->removeService =
+      "/world/" + this->dataPtr->worldName + "/remove";
+  }
+  this->dataPtr->addPluginService =
+      "/world/" + this->dataPtr->worldName + "/entity/system/add";
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+      gzerr << "Error creating new plugin" << std::endl;
+  };
+
+  msgs::EntityPlugin_V entity_plugin_message;
+  msgs::Entity* entity = entity_plugin_message.mutable_entity();
+  entity->set_id(_entity);
+  msgs::Plugin* new_plugin = entity_plugin_message.add_plugins();
+  new_plugin->set_name(_name.toStdString());
+  new_plugin->set_filename(_filename.toStdString());
+  new_plugin->set_innerxml(_innerXml.toStdString());
+
+  this->dataPtr->node.Request(
+    this->dataPtr->addPluginService, entity_plugin_message, cb);
 }
