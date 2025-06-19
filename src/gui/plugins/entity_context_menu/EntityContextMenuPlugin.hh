@@ -97,7 +97,8 @@ namespace sim
 
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
-    public slots: void OnContextMenuRequested(QString _entity, uint64_t _entityId);
+    public slots: void OnContextMenuRequested(QString _entity,
+      uint64_t _entityId);
   };
 }
 }

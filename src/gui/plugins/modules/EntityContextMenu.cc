@@ -221,7 +221,6 @@ void EntityContextMenu::OnRemove(
 
     this->dataPtr->removeService =
       "/world/" + this->dataPtr->worldName + "/remove";
-   
   }
 
   std::function<void(const msgs::Boolean &, const bool)> cb =
@@ -347,7 +346,6 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   }
   else
   {
-    
     gzwarn << "Unknown request [" << request << "]" << std::endl;
   }
 }
@@ -377,10 +375,8 @@ void EntityContextMenu::OnAddPlugin(const QString &_name,
     {
       this->dataPtr->worldName = worldNameVariant.toString().toStdString();
     }
-
     this->dataPtr->removeService =
       "/world/" + this->dataPtr->worldName + "/remove";
-   
   }
   this->dataPtr->addPluginService =
       "/world/" + this->dataPtr->worldName + "/entity/system/add";
@@ -390,7 +386,7 @@ void EntityContextMenu::OnAddPlugin(const QString &_name,
     if (!_result)
       gzerr << "Error creating new plugin" << std::endl;
   };
-  
+
   msgs::EntityPlugin_V entity_plugin_message;
   msgs::Entity* entity = entity_plugin_message.mutable_entity();
   entity->set_id(_entity);

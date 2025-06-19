@@ -159,7 +159,8 @@ void EntityContextMenuItem::SetEntityContextMenuHandler(
 }
 
 ///////////////////////////////////////////////////
-void EntityContextMenuItem::OnContextMenuRequested(QString _entity, uint64_t _eid)
+void EntityContextMenuItem::OnContextMenuRequested(
+  QString _entity, uint64_t _eid)
 {
   emit openContextMenu(std::move(_entity), _eid);
 }
