@@ -17,8 +17,10 @@
 
 #include "EntityContextMenuPlugin.hh"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
+#include <variant>
 
 #include <QtQml>
 

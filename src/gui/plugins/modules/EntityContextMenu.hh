@@ -89,8 +89,10 @@ namespace sim
         const QString &_data);
 
     /// \brief Callback when a new plugin window finishes configuring
-    /// \param[in] _request Request type
-    /// \param[in] _data Request data
+    /// \param[in] _name Plugin name
+    /// \param[in] _filename Plugin filename
+    /// \param[in] _innerXml Inner XML of the plugin
+    /// \param[in] _entity Entity to attach plugin to
     public: Q_INVOKABLE void OnAddPlugin(const QString &_name,
         const QString &_filename, const QString &_innerXml,
         const uint64_t _entity);

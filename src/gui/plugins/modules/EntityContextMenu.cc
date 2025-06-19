@@ -24,6 +24,7 @@
 #include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <string>
