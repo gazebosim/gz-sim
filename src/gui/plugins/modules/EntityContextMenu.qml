@@ -121,7 +121,6 @@ Item {
         context.OnRequest("look_at", context.entity)
       }
     }
-    
   }
   Menu {
     id: thirdMenu
@@ -260,11 +259,10 @@ Item {
     height: parent.height * 0.6
 
     contentItem: Item {
-        // Your dialog content goes here
-        width: parent.width
-        height: parent.height
-
-        Column {
+      // Your dialog content goes here
+      width: parent.width
+      height: parent.height
+      Column {
         anchors.centerIn: parent
         spacing: 10
         width: parent.width * 0.8 // Make inputs a bit narrower than parent
@@ -314,7 +312,7 @@ Item {
             rightPadding: 5
             bottomPadding: 5
         }
-        }
+      }
     }
 
     onAccepted: {
