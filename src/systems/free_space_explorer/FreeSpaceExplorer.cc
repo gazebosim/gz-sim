@@ -1,0 +1,300 @@
+#include "FreeSpaceExplorer.hh"
+
+#include <gz/common/Image.hh>
+#include <gz/math/OccupancyGrid.hh>
+#include <gz/msgs/laserscan.pb.h>
+#include <gz/msgs/Utility.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/sim/Link.hh>
+#include <gz/sim/Model.hh>
+#include <gz/transport/Node.hh>
+
+#include <queue>
+
+using namespace gz;
+using namespace sim;
+using namespace systems;
+
+// Custom hash function for std::pair<int, int>
+struct PairHash {
+  template <class T1, class T2>
+  std::size_t operator () (const std::pair<T1, T2>& p) const {
+    auto h1 = std::hash<T1>{}(p.first);
+    auto h2 = std::hash<T2>{}(p.second);
+
+    // Simple way to combine hashes. You might want a more robust one
+    // for very specific use cases, but this is generally sufficient.
+    return h1 ^ (h2 << 1); // XOR with a left shift to mix bits
+  }
+};
+
+struct gz::sim::systems::FreeSpaceExplorerPrivateData {
+  std::optional<math::OccupancyGrid> grid;
+  Model model;
+  std::size_t numRows, numCols;
+  double resolution;
+  std::string scanTopic;
+  std::string sensorLink;
+  math::Pose3d position;
+  gz::transport::Node node;
+
+  bool recievedMessageForPose {false};
+  std::queue<math::Pose3d> nextPosition;
+
+  std::recursive_mutex m;
+
+  /////////////////////////////////////////////////
+  /// Callback for laser scan message
+  void OnLaserScanMsg(const msgs::LaserScan &_scan)
+  {
+    const std::lock_guard<std::recursive_mutex> lock(this->m);
+    if (!this->grid.has_value())
+    {
+      gzerr<< "Grid not yet inited";
+      return;
+    }
+
+    double currAngle = _scan.angle_min();
+    
+    /// Iterate through laser scan and mark bressenham line of free space
+    for (uint32_t index = 0; index < _scan.count(); index++)
+    {
+      auto length = _scan.ranges(index);
+      auto obstacleExists = length <= _scan.range_max();
+      length = (length > _scan.range_max()) ? _scan.range_max() : length;
+      //auto length = 0.5;
+      auto toX = length * cos(currAngle) + this->position.Pos().X();
+      auto toY = length * sin(currAngle) + this->position.Pos().Y();
+
+      this->grid->MarkFree(this->position.Pos().X(), this->position.Pos().Y(), toX, toY);
+
+      if (obstacleExists)
+        this->grid->MarkOccupied(toX, toY);
+
+      currAngle += _scan.angle_step();
+    }
+
+    //this->recievedMessageForPose = true;
+
+    /// Hack(arjoc) for checking the output of the pixel
+    std::vector<unsigned char> pixelData; 
+    this->grid->ExportToRGBImage(pixelData);
+
+    common::Image fromOccupancy;
+    fromOccupancy.SetFromData(
+      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
+    fromOccupancy.SavePNG("output.png");
+    if (!this->nextPosition.empty())
+    {
+      return;
+    }
+    auto nextPos = this->GetNextPoint(_scan);
+    gzerr << "Setting next position " << nextPos->Pos() <<std::endl;
+    if(nextPos.has_value())
+    {
+      this->nextPosition.push(nextPos.value());
+    }
+    else {
+      gzerr << "Scan complete\n";
+    } 
+  }
+
+  /////////////////////////////////////////////////
+  /// Perform search over occupancy grid
+  std::optional<math::Pose3d> GetNextPoint(const msgs::LaserScan &_scan)
+  {
+    const std::lock_guard<std::recursive_mutex> lock(this->m);
+    if (!this->grid.has_value())
+    {
+      gzerr<< "Grid not yet inited";
+      return {};
+    }
+    std::queue<std::pair<int, int>> q;
+    std::unordered_set<std::pair<int, int>, PairHash> visited;
+
+    int gridX, gridY;
+    if(!this->grid->WorldToGrid( this->position.Pos().X(),
+      this->position.Pos().Y(), gridX, gridY))
+    {
+      gzerr << "Proposed point outside of bounds";
+      return {};
+    }
+    q.emplace(gridX, gridY);
+    visited.emplace(gridX, gridY);
+    auto maxInfoGain = 0.0;
+    std::pair<int, int> bestGain =
+      std::make_pair(gridX, gridY);
+
+    auto numPoints = 0;
+
+    while (!q.empty())
+    {
+      auto pt = q.front();
+      q.pop();
+
+      for(int i = -1; i <=1; i++)
+      {
+        for(int j = -1; j <=1; j++)
+        {
+          
+          auto x = pt.first + i;
+          auto y = pt.second + j;
+
+          if(visited.count(std::make_pair(x,y)) > 0)
+          {
+            continue;
+          }
+          numPoints++;
+
+          if(this->grid->GetCellState(x, y) == math::CellState::Free)
+          {
+            
+            auto infoGain = this->ScoreInfoGain(x, y, _scan);
+            if ( infoGain.has_value() && infoGain > maxInfoGain)
+            {
+              bestGain = std::make_pair(x, y);
+              maxInfoGain = infoGain.value();
+            }
+            
+            visited.emplace(x, y);
+            q.emplace(x, y);
+          }
+        }
+      }
+    }
+
+    gzerr << "Searched " << numPoints <<std::endl;
+
+    if (maxInfoGain < 1e-3)
+    {
+      gzerr << "Could not find areas of information gain\n";
+      gzerr << maxInfoGain << "\n";
+      return std::nullopt;
+    }
+
+    double newX, newY;
+    this->grid->GridToWorld(bestGain.first, bestGain.second, newX, newY);
+    math::Pose3d newPose(this->position);
+    newPose.Pos().X(newX);
+    newPose.Pos().Y(newY);
+    newPose.Pos().Z(this->position.Pos().Z());
+    return newPose;
+  }
+
+  /// Scores information gain given laser scan parameters
+  std::optional<double> ScoreInfoGain(int _x, int _y, const msgs::LaserScan &_scan)
+  {
+    const std::lock_guard<std::recursive_mutex> lock(this->m);
+    if (!this->grid.has_value())
+    {
+      gzerr<< "Grid not yet inited";
+      return {};
+    }
+
+    double currAngle = _scan.angle_min();
+    auto length = _scan.range_max();
+    auto numCells = _scan.range_max() / this->resolution;
+
+    double infoGain = 0.0;
+
+    /// Iterate through laser scan and evaluate information gain
+    for (uint32_t index = 0; index < _scan.count(); index++)
+    {
+      auto x = static_cast<int>(std::round(numCells * cos(currAngle) + _x));
+      auto y = static_cast<int>(std::round(numCells * sin(currAngle) + _y));
+      infoGain += this->grid->CalculateIGain(_x, _y, x, y);
+
+      currAngle += _scan.angle_step();
+    }
+
+    return infoGain;
+  }
+};
+
+/////////////////////////////////////////////////
+FreeSpaceExplorer::FreeSpaceExplorer()
+{
+  
+  this->dataPtr = std::make_unique<FreeSpaceExplorerPrivateData>();
+}
+
+/////////////////////////////////////////////////
+FreeSpaceExplorer::~FreeSpaceExplorer()
+{
+  
+}
+
+/////////////////////////////////////////////////
+void FreeSpaceExplorer::Configure(
+  const gz::sim::Entity &_entity,
+  const std::shared_ptr<const sdf::Element> &_sdf,
+  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EventManager &/*_eventMgr*/)
+{
+  this->dataPtr->model = gz::sim::Model(_entity);
+  this->dataPtr->scanTopic = _sdf->Get<std::string>("lidar_topic", "scan").first;
+  this->dataPtr->sensorLink = _sdf->Get<std::string>("sensor_link", "link").first;
+  this->dataPtr->numRows = _sdf->Get<std::size_t>("width", 10).first;
+  this->dataPtr->numCols = _sdf->Get<std::size_t>("height", 10).first;
+  this->dataPtr->resolution = _sdf->Get<double>("resolution", 1.0).first;
+  this->dataPtr->node.Subscribe(this->dataPtr->scanTopic,
+    &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
+  gzerr << "Loaded camera plugin listening on [" << this->dataPtr->scanTopic << "]\n";
+}
+
+/////////////////////////////////////////////////
+void FreeSpaceExplorer::PreUpdate(
+        const gz::sim::UpdateInfo &_info,
+        gz::sim::EntityComponentManager &_ecm)
+{
+  if (_info.paused)
+  {
+    return;
+  }
+  //TODO(arjo) check link name valisdity
+  auto l = Link(this->dataPtr->model.LinkByName(_ecm, this->dataPtr->sensorLink));
+  if (!l.Valid(_ecm)){
+    gzerr << "Invalid link name " << this->dataPtr->sensorLink <<std::endl;
+    return;
+  }
+  auto pose = l.WorldPose(_ecm);
+  if (!pose.has_value()) {
+    l.EnableVelocityChecks(_ecm);
+    return;
+  }
+
+  const std::lock_guard<std::recursive_mutex> lock(this->dataPtr->m);
+  if (!this->dataPtr->grid.has_value())
+  {
+    auto center_x = pose->Pos().X() - this->dataPtr->numRows * this->dataPtr->resolution / 2;
+    auto center_y = pose->Pos().Y() - this->dataPtr->numCols * this->dataPtr->resolution / 2;
+    math::OccupancyGrid g(
+      this->dataPtr->resolution, this->dataPtr->numRows, this->dataPtr->numCols,
+      center_x, center_y);
+    this->dataPtr->grid = {std::move(g)};
+    this->dataPtr->position = pose.value();
+  }
+  this->dataPtr->position = pose.value();
+
+  if (this->dataPtr->nextPosition.empty())
+  {
+    return;
+  }
+
+  auto modelPosCmd = this->dataPtr->nextPosition.front();
+  this->dataPtr->nextPosition.pop();
+  this->dataPtr->model.SetWorldPoseCmd(_ecm, modelPosCmd);
+  num_steps++;
+}
+
+
+
+GZ_ADD_PLUGIN(
+    FreeSpaceExplorer,
+    gz::sim::System,
+    FreeSpaceExplorer::ISystemPreUpdate,
+    FreeSpaceExplorer::ISystemConfigure)
+
+GZ_ADD_PLUGIN_ALIAS(
+  FreeSpaceExplorer,
+  "gz::sim::systems::FreeSpaceExplorer")
