@@ -242,6 +242,7 @@ foreach(CMD_TEST
   set(_env_vars)
   list(APPEND _env_vars "IGN_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
   list(APPEND _env_vars "IGN_GAZEBO_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
+  list(APPEND _env_vars "IGN_IP=127.0.0.1")
 
   set_tests_properties(${CMD_TEST} PROPERTIES
     ENVIRONMENT "${_env_vars}")
