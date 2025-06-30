@@ -1,7 +1,24 @@
+/*
+ * Copyright (C) 2025 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 #include "FreeSpaceExplorer.hh"
 
 #include <gz/common/Image.hh>
 #include <gz/math/OccupancyGrid.hh>
+#include <gz/math/Pose3.hh>
 #include <gz/msgs/laserscan.pb.h>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
@@ -9,7 +26,17 @@
 #include <gz/sim/Model.hh>
 #include <gz/transport/Node.hh>
 
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <optional>
 #include <queue>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+#include <string>
 
 using namespace gz;
 using namespace sim;
@@ -74,8 +101,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       currAngle += _scan.angle_step();
     }
 
-    //this->recievedMessageForPose = true;
-
     /// Hack(arjoc) for checking the output of the pixel
     std::vector<unsigned char> pixelData; 
     this->grid->ExportToRGBImage(pixelData);
@@ -100,7 +125,8 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   }
 
   /////////////////////////////////////////////////
-  /// Perform search over occupancy grid
+  /// Perform search over occupancy grid for next position to
+  /// explore.
   std::optional<math::Pose3d> GetNextPoint(const msgs::LaserScan &_scan)
   {
     const std::lock_guard<std::recursive_mutex> lock(this->m);
@@ -163,8 +189,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       }
     }
 
-    gzerr << "Searched " << numPoints <<std::endl;
-
     if (maxInfoGain < 1e-3)
     {
       gzerr << "Could not find areas of information gain\n";
@@ -221,7 +245,6 @@ FreeSpaceExplorer::FreeSpaceExplorer()
 /////////////////////////////////////////////////
 FreeSpaceExplorer::~FreeSpaceExplorer()
 {
-  
 }
 
 /////////////////////////////////////////////////
@@ -284,10 +307,7 @@ void FreeSpaceExplorer::PreUpdate(
   auto modelPosCmd = this->dataPtr->nextPosition.front();
   this->dataPtr->nextPosition.pop();
   this->dataPtr->model.SetWorldPoseCmd(_ecm, modelPosCmd);
-  num_steps++;
 }
-
-
 
 GZ_ADD_PLUGIN(
     FreeSpaceExplorer,
