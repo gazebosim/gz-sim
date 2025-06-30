@@ -95,6 +95,22 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
+  // Optional physics parameters
+  if (_sdf->HasElement("physics"))
+  {
+    // Clone as GetElement() requries non-const access.
+    auto sdfClone = _sdf->Clone();
+    auto physicsSdf = sdfClone->GetElement("physics");
+    if (physicsSdf->HasElement("cfm"))
+    {
+      this->cfm = std::optional<double>(physicsSdf->Get<double>("cfm"));
+    }
+    if (physicsSdf->HasElement("erp"))
+    {
+      this->erp = std::optional<double>(physicsSdf->Get<double>("erp"));
+    }
+  }
+
   // Setup detach topic
   std::vector<std::string> detachTopics;
   if (_sdf->HasElement("detach_topic"))
@@ -251,13 +267,21 @@ void DetachableJoint::PreUpdate(
 
         _ecm.CreateComponent(
             this->detachableJointEntity,
-            components::DetachableJoint({this->parentLinkEntity,
-                                         this->childLinkEntity, "fixed"}));
+            components::DetachableJoint({
+              this->parentLinkEntity,
+              this->childLinkEntity,
+              "fixed",
+              this->cfm,
+              this->erp
+            }));
         this->attachRequested = false;
         this->isAttached = true;
         this->PublishJointState(this->isAttached);
         gzdbg << "Attaching entity: " << this->detachableJointEntity
                << std::endl;
+
+        //! @todo  create a separate component for the dynamic joint
+        ///        constraints?
       }
       else
       {

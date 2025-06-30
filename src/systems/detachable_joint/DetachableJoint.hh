@@ -140,6 +140,12 @@ namespace systems
     /// \brief Whether child entity is attached
     private: std::atomic<bool> isAttached{false};
 
+    /// \brief Optional constraint force mixing parameter
+    private: std::optional<double> cfm;
+
+    /// \brief Optional error reduction parameter
+    private: std::optional<double> erp;
+
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
