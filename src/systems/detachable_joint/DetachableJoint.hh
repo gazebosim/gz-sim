@@ -21,6 +21,7 @@
 #include <gz/msgs/empty.pb.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <gz/transport/Node.hh>
 

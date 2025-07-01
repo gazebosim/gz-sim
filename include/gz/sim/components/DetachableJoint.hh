@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
 #define GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
 
+#include <optional>
 #include <string>
 #include <gz/sim/Entity.hh>
 #include <gz/sim/components/Factory.hh>

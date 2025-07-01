@@ -15,6 +15,7 @@
  *
  */
 
+#include <optional>
 #include <vector>
 
 #include <gz/plugin/Register.hh>
