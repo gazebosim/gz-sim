@@ -67,6 +67,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
 
   bool recievedMessageForPose {false};
   std::queue<math::Pose3d> nextPosition;
+  std::unordered_set<std::pair<int,int>, PairHash> previouslyVisited;
 
   std::recursive_mutex m;
 
@@ -89,7 +90,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       auto length = _scan.ranges(index);
       auto obstacleExists = length <= _scan.range_max();
       length = (length > _scan.range_max()) ? _scan.range_max() : length;
-      //auto length = 0.5;
       auto toX = length * cos(currAngle) + this->position.Pos().X();
       auto toY = length * sin(currAngle) + this->position.Pos().Y();
 
@@ -147,7 +147,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     }
     q.emplace(gridX, gridY);
     visited.emplace(gridX, gridY);
-    auto maxInfoGain = 0.0;
+    auto maxInfoGain = 0;
     std::pair<int, int> bestGain =
       std::make_pair(gridX, gridY);
 
@@ -176,7 +176,8 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
           {
             
             auto infoGain = this->ScoreInfoGain(x, y, _scan);
-            if ( infoGain.has_value() && infoGain > maxInfoGain)
+            if (infoGain.has_value() && infoGain > maxInfoGain
+              && previouslyVisited.count(std::make_pair(x, y)) == 0)
             {
               bestGain = std::make_pair(x, y);
               maxInfoGain = infoGain.value();
@@ -188,13 +189,16 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
         }
       }
     }
-
-    if (maxInfoGain < 1e-3)
+    gzerr << "Visited " << visited.size() << "\n";
+    gzerr << "Infogan" << maxInfoGain << "\n";
+    if (maxInfoGain < 1)
     {
-      gzerr << "Could not find areas of information gain\n";
-      gzerr << maxInfoGain << "\n";
+      gzmsg << "Could not find areas of information gain\n";
+      gzmsg << maxInfoGain << "\n";
       return std::nullopt;
     }
+
+    previouslyVisited.emplace(bestGain);
 
     double newX, newY;
     this->grid->GridToWorld(bestGain.first, bestGain.second, newX, newY);
@@ -211,7 +215,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
-      gzerr<< "Grid not yet inited";
+      gzerr<< "Waiting for occupancy grid to be intiallized." << std::endl;
       return {};
     }
 
@@ -226,7 +230,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     {
       auto x = static_cast<int>(std::round(numCells * cos(currAngle) + _x));
       auto y = static_cast<int>(std::round(numCells * sin(currAngle) + _y));
-      infoGain += this->grid->CalculateIGain(_x, _y, x, y);
+      infoGain += std::max(this->grid->CalculateIGain(_x, _y, x, y) - 1, 0);
 
       currAngle += _scan.angle_step();
     }
