@@ -83,7 +83,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     }
 
     double currAngle = _scan.angle_min();
-    
+
     /// Iterate through laser scan and mark bressenham line of free space
     for (uint32_t index = 0; index < _scan.count(); index++)
     {
@@ -102,7 +102,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     }
 
     /// Hack(arjoc) for checking the output of the pixel
-    std::vector<unsigned char> pixelData; 
+    std::vector<unsigned char> pixelData;
     this->grid->ExportToRGBImage(pixelData);
 
     common::Image fromOccupancy;
@@ -121,7 +121,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     }
     else {
       gzerr << "Scan complete\n";
-    } 
+    }
   }
 
   /////////////////////////////////////////////////
@@ -162,7 +162,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       {
         for(int j = -1; j <=1; j++)
         {
-          
+
           auto x = pt.first + i;
           auto y = pt.second + j;
 
@@ -174,7 +174,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
 
           if(this->grid->GetCellState(x, y) == math::CellState::Free)
           {
-            
+
             auto infoGain = this->ScoreInfoGain(x, y, _scan);
             if (infoGain.has_value() && infoGain > maxInfoGain
               && previouslyVisited.count(std::make_pair(x, y)) == 0)
@@ -182,7 +182,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
               bestGain = std::make_pair(x, y);
               maxInfoGain = infoGain.value();
             }
-            
+
             visited.emplace(x, y);
             q.emplace(x, y);
           }
@@ -215,7 +215,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
-      gzerr<< "Waiting for occupancy grid to be intiallized." << std::endl;
+      gzerr<< "Waiting for occupancy grid to be initialized." << std::endl;
       return {};
     }
 
@@ -230,7 +230,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     {
       auto x = static_cast<int>(std::round(numCells * cos(currAngle) + _x));
       auto y = static_cast<int>(std::round(numCells * sin(currAngle) + _y));
-      infoGain += std::max(this->grid->CalculateIGain(_x, _y, x, y) - 1, 0);
+      infoGain +=this->grid->CalculateIGain(_x, _y, x, y);
 
       currAngle += _scan.angle_step();
     }
@@ -242,7 +242,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
 /////////////////////////////////////////////////
 FreeSpaceExplorer::FreeSpaceExplorer()
 {
-  
+
   this->dataPtr = std::make_unique<FreeSpaceExplorerPrivateData>();
 }
 
