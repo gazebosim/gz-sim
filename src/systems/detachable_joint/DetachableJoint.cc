@@ -99,7 +99,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   // Optional physics parameters
   if (_sdf->HasElement("physics"))
   {
-    // Clone as GetElement() requries non-const access.
+    // Clone as GetElement() requires non-const access.
     auto sdfClone = _sdf->Clone();
     auto physicsSdf = sdfClone->GetElement("physics");
     if (physicsSdf->HasElement("cfm"))
