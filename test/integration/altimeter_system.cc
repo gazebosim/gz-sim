@@ -161,7 +161,7 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   EXPECT_LT(velocities.back().Z(), 0.0);
 
   // check altimeter sensor data
-  // vertical position = world position - intial position
+  // vertical position = world position - initial position
   // so since altimeter is falling, vertical position should be negative
   EXPECT_GT(firstMsg.vertical_position(),
       lastMsg.vertical_position());

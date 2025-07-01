@@ -309,7 +309,7 @@ class gz::sim::RenderUtilPrivate
   /// \brief A list of entities with particle emitter cmds to remove
   public: std::vector<Entity> particleCmdsToRemove;
 
-  /// \brief Map of ids of entites to be removed and sim iteration when the
+  /// \brief Map of ids of entities to be removed and sim iteration when the
   /// remove request is received
   public: std::unordered_map<Entity, uint64_t> removeEntities;
 
@@ -328,7 +328,7 @@ class gz::sim::RenderUtilPrivate
   /// \brief A vector of entity ids of VisualCmds to delete
   public: std::vector<Entity> entityVisualsCmdToDelete;
 
-  /// \brief Visual material equality comparision function
+  /// \brief Visual material equality comparison function
   /// TODO(anyone) Currently only checks for material colors equality,
   /// need to extend to others (e.g., PbrMaterial)
   public: std::function<bool(const sdf::Material &, const sdf::Material &)>
@@ -713,7 +713,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
         const components::ThermalCamera *)->bool
       {
         // set properties from thermal sensor plugin
-        // Set defaults to invaid values so we know they have not been set.
+        // Set defaults to invalid values so we know they have not been set.
         // set UpdateECM(). We check for valid values first before setting
         // these thermal camera properties..
         double resolution = 0.0;
@@ -1167,7 +1167,7 @@ void RenderUtil::Update()
   this->dataPtr->updateMutex.unlock();
 
   // scene - only one scene is supported for now
-  // extend the sensor system to support mutliple scenes in the future
+  // extend the sensor system to support multiple scenes in the future
   for (auto &scene : newScenes)
   {
     // Only set the ambient color if the RenderUtil::SetBackgroundColor
@@ -1215,7 +1215,7 @@ void RenderUtil::Update()
     {
       uint64_t iteration = std::get<3>(model);
       Entity entityId = std::get<0>(model);
-      // since entites to be created and removed are queued, we need
+      // since entities to be created and removed are queued, we need
       // to check their creation timestamp to make sure we do not create a new
       // entity when there is also a remove request with a more recent
       // timestamp
@@ -1261,14 +1261,17 @@ void RenderUtil::Update()
 
       if (newLightRendering)
       {
-        rendering::VisualPtr lightVisual =
-          this->dataPtr->sceneManager.CreateLightVisual(
-            std::get<0>(light) + 1,
-            std::get<1>(light),
-            std::get<2>(light),
-            std::get<0>(light));
-        this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
-          std::get<0>(light) + 1;
+        if (!this->dataPtr->enableSensors)
+        {
+          rendering::VisualPtr lightVisual =
+            this->dataPtr->sceneManager.CreateLightVisual(
+              std::get<0>(light) + 1,
+              std::get<1>(light),
+              std::get<2>(light),
+              std::get<0>(light));
+          this->dataPtr->matchLightWithVisuals[std::get<0>(light)] =
+            std::get<0>(light) + 1;
+        }
       }
       else
       {
@@ -1742,7 +1745,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
-  // extend the sensor system to support mutliple scenes in the future
+  // extend the sensor system to support multiple scenes in the future
   _ecm.Each<components::World, components::Scene>(
       [&](const Entity & _entity,
         const components::World *,
@@ -2030,7 +2033,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
-  // extend the sensor system to support mutliple scenes in the future
+  // extend the sensor system to support multiple scenes in the future
   _ecm.EachNew<components::World, components::Scene>(
       [&](const Entity & _entity,
         const components::World *,
@@ -3772,7 +3775,7 @@ void RenderUtilPrivate::CreateLink(
    link.SetRawPose(_pose->Data());
    this->newLinks.push_back(
        std::make_tuple(_entity, link, _parent->Data()));
-   // used for collsions
+   // used for collisions
    this->modelToLinkEntities[_parent->Data()].push_back(_entity);
    // used for joints
    this->matchLinksWithEntities[_parent->Data()][_name->Data()] =

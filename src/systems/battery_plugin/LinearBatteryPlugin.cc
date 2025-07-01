@@ -97,13 +97,6 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Pointer to battery contained in link.
   public: common::BatteryPtr battery;
 
-  /// \brief Whether warning that battery has drained has been printed once.
-  public: bool drainPrinted{false};
-
-  /// \brief Battery consumer identifier.
-  /// Current implementation limits one consumer (Model) per battery.
-  public: int32_t consumerId;
-
   /// \brief Battery entity
   public: Entity batteryEntity{kNullEntity};
 
@@ -136,15 +129,11 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief State of charge [0, 1].
   public: double soc{1.0};
 
-  /// \brief Recharge status
-  public: std::atomic_bool startCharging{false};
-
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \TODO(caguero) Remove this flag in Gazebo Dome.
-  /// \brief Flag to enable some battery fixes.
-  public: bool fixIssue225{false};
+  /// \brief Initial power load set through config
+  public: double initialPowerLoad{0.0};
 
   /// \TODO(caguero) Remove in Gazebo Dome.
   /// \brief Battery current for a historic time window
@@ -157,16 +146,6 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Simulation time handled during a single update.
   public: std::chrono::steady_clock::duration stepSize;
 
-  /// \brief Flag on whether the battery should start draining
-  public: bool startDraining = false;
-
-  /// \brief The start time when battery starts draining in seconds
-  public: int drainStartTime = -1;
-
-  /// \brief Book keep the last time printed, so as to not pollute dbg messages
-  /// in minutes
-  public: int lastPrintTime = -1;
-
   /// \brief Model interface
   public: Model model{kNullEntity};
 
@@ -176,8 +155,32 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Battery state of charge message publisher
   public: transport::Node::Publisher statePub;
 
-  /// \brief Initial power load set trough config
-  public: double initialPowerLoad = 0.0;
+  /// \brief Battery consumer identifier.
+  /// Current implementation limits one consumer (Model) per battery.
+  public: int32_t consumerId;
+
+  /// \brief The start time when battery starts draining in seconds
+  public: int drainStartTime{-1};
+
+  /// \brief Book keep the last time printed, so as to not pollute dbg messages
+  /// in minutes
+  public: int lastPrintTime{-1};
+
+  /// \brief Recharge status
+  public: std::atomic_bool startCharging{false};
+
+  /// \brief Flag on whether the battery should start draining
+  public: std::atomic_bool startDraining{false};
+
+  /// \brief Whether warning that battery has drained has been printed once.
+  public: bool drainPrinted{false};
+
+  /// \brief Flag to invert the current sign
+  public: bool invertCurrentSign{false};
+
+  /// \TODO(caguero) Remove this flag in Gazebo Dome.
+  /// \brief Flag to enable some battery fixes.
+  public: bool fixIssue225{false};
 };
 
 /////////////////////////////////////////////////
@@ -272,6 +275,10 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("fix_issue_225"))
     this->dataPtr->fixIssue225 = _sdf->Get<bool>("fix_issue_225");
+
+  if (_sdf->HasElement("invert_current_sign"))
+    this->dataPtr->invertCurrentSign =
+      _sdf->Get<bool>("invert_current_sign");
 
   if (_sdf->HasElement("battery_name") && _sdf->HasElement("voltage"))
   {
@@ -624,7 +631,10 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
   msg.set_voltage(this->dataPtr->battery->Voltage());
-  msg.set_current(this->dataPtr->ismooth);
+  if (this->dataPtr->invertCurrentSign)
+    msg.set_current(-this->dataPtr->ismooth);
+  else
+    msg.set_current(this->dataPtr->ismooth);
   msg.set_charge(this->dataPtr->q);
   msg.set_capacity(this->dataPtr->c);
 

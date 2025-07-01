@@ -88,7 +88,7 @@ If you are an absolute beginner, start with the Tutorials section.
 
 ### Blender help
 
-* \subpage model_and_optimize_meshes "Model and optimize meshes in Blender": Some recomendations when creating meshes in Blender for simulations.
+* \subpage model_and_optimize_meshes "Model and optimize meshes in Blender": Some recommendations when creating meshes in Blender for simulations.
 * \subpage blender_sdf_exporter "Blender SDF Exporter": Use a Blender script to export a model to the SDF format.
 * \subpage blender_distort_meshes "Blender mesh distortion": Use a Blender Python script to programmatically deform and distort meshes to customized extents.
 * \subpage blender_procedural_datasets "Generation of Procedural Datasets with Blender": Use Blender with a Python script to generate procedural datasets of SDF models.

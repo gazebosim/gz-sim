@@ -34,6 +34,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/DetachableJoint.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
@@ -122,7 +123,7 @@ class gz::sim::EntityComponentManagerPrivate
   /// \return True if _joint's parent or child link name was set.
   /// False otherwise
   /// \note This method should only be called in EntityComponentManager::Clone.
-  /// This is a temporary workaround until we find a way to clone entites and
+  /// This is a temporary workaround until we find a way to clone entities and
   /// components that don't require special treatment for particular component
   /// types.
   public: template<typename ComponentTypeT>
@@ -711,6 +712,25 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   else
   {
     this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+
+    // remove detachable joint entities that are connected to
+    // any of the entities to be removed
+    std::unordered_set<Entity> detachableJoints;
+    this->Each<components::DetachableJoint>(
+        [&](const Entity &_jointEntity,
+            const components::DetachableJoint *_jointInfo) -> bool
+        {
+          Entity parentLinkEntity = _jointInfo->Data().parentLink;
+          Entity childLinkEntity = _jointInfo->Data().childLink;
+          if (tmpToRemoveEntities.find(parentLinkEntity) !=
+              tmpToRemoveEntities.end() ||
+              tmpToRemoveEntities.find(childLinkEntity) !=
+              tmpToRemoveEntities.end())
+            detachableJoints.insert(_jointEntity);
+          return true;
+        });
+    tmpToRemoveEntities.insert(detachableJoints.begin(),
+                               detachableJoints.end());
   }
 
   // Remove entities from tmpToRemoveEntities that are marked as
@@ -1147,7 +1167,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   {
     // if the pre-existing component is marked as removed, this means that the
     // component was added to the entity previously, but later removed. In this
-    // case, a re-addition of the component is occuring. If the pre-existing
+    // case, a re-addition of the component is occurring. If the pre-existing
     // component is not marked as removed, this means that the component was
     // added to the entity previously and never removed. In this case, we are
     // simply modifying the data of the pre-existing component (the modification

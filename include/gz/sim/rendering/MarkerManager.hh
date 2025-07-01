@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_MARKERMANAGER_HH_
 #define GZ_SIM_MARKERMANAGER_HH_
 
+#include <chrono>
 #include <memory>
 #include <string>
 

@@ -114,7 +114,7 @@ namespace components
   /// translation units. This queue is necessary to ensure that component
   /// creation continues to work after plugins are unloaded. The typical
   /// scenario this aims to solve is:
-  ///  1. Plugin P1 registers component descripter for component C1.
+  ///  1. Plugin P1 registers component descriptor for component C1.
   ///  2. Plugin P1 gets unloaded.
   ///  3. Plugin P2 registers a component descriptor for component C1 and tries
   ///     to create an instance of C1.

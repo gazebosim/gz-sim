@@ -514,5 +514,20 @@
       </plugin>
     </model>
 
+    <model name="test_publish_only_model_pose">
+      <pose>5 5 0 0 0 0</pose>
+      <link name="link1"/>
+      <plugin
+         filename="gz-sim-pose-publisher-system"
+         name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_sensor_pose>false</publish_sensor_pose>
+        <publish_collision_pose>false</publish_collision_pose>
+        <publish_visual_pose>false</publish_visual_pose>
+        <publish_nested_model_pose>false</publish_nested_model_pose>
+        <publish_model_pose>true</publish_model_pose>
+      </plugin>
+    </model>
+
   </world>
 </sdf>

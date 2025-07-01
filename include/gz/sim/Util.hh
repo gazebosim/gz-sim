@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <gz/common/Mesh.hh>
+#include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Pose3.hh>
 #include <sdf/Mesh.hh>
 
@@ -250,18 +251,22 @@ namespace gz
     /// \param[in] _entity Entity whose component is being enabled
     /// \param[in] _enable True to enable (create), false to disable (remove).
     /// Defaults to true.
+    /// \param[in] _comp The component to create if needed. Defaults to a
+    /// default-constructed component.
     /// \return True if a component was created or removed, false if nothing
     /// changed.
     template <class ComponentType>
     bool enableComponent(EntityComponentManager &_ecm,
-        Entity _entity, bool _enable = true)
+        Entity _entity,
+        bool _enable = true,
+        const ComponentType &_comp = ComponentType())
     {
       bool changed{false};
 
       auto exists = _ecm.Component<ComponentType>(_entity);
       if (_enable && !exists)
       {
-        _ecm.CreateComponent(_entity, ComponentType());
+        _ecm.CreateComponent(_entity, _comp);
         changed = true;
       }
       else if (!_enable && exists)
@@ -322,6 +327,20 @@ namespace gz
     /// \return The optimized mesh or null if the mesh can not be optimized.
     GZ_SIM_VISIBLE const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
         const common::Mesh &_mesh);
+
+    /// \brief Transform an axis-aligned bounding box by a pose.
+    /// \param[in] _aabb Axis-aligned bounding box to transform.
+    /// \param[in] _pose Pose to transform the bounding box by.
+    /// \return The axis-aligned bounding box in the pose target frame.
+    GZ_SIM_VISIBLE math::AxisAlignedBox transformAxisAlignedBox(
+      const math::AxisAlignedBox & _aabb,
+      const math::Pose3d & _pose);
+
+    /// \brief Compute the axis-aligned bounding box of a mesh.
+    /// \param _sdfMesh Mesh SDF DOM.
+    /// \return The AABB of the mesh in its local frame.
+    GZ_SIM_VISIBLE std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
+      const sdf::Mesh &_sdfMesh);
 
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};

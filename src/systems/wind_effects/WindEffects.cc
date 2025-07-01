@@ -258,7 +258,7 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief World entity to which this system is attached.
   public: Entity worldEntity;
 
-  /// \brief Wind entity on which this sytem operates. There should only be one
+  /// \brief Wind entity on which this system operates. There should only be one
   /// of these currently.
   public: Entity windEntity;
 
@@ -324,6 +324,9 @@ class gz::sim::systems::WindEffectsPrivate
   /// \brief Current wind velocity seed and global enable/disable state.
   /// This is set by a transport message.
   public: msgs::Wind currentWindInfo;
+
+  /// \brief Wind information publisher
+  private: transport::Node::Publisher windPub;
 };
 
 /////////////////////////////////////////////////
@@ -482,6 +485,10 @@ void WindEffectsPrivate::SetupTransport(const std::string &_worldName)
   // Wind info service
   this->node.Advertise("/world/" + validWorldName + "/wind_info",
                        &WindEffectsPrivate::WindInfoService, this);
+
+  // Wind info topic
+  this->windPub = this->node.Advertise<msgs::Wind>
+  ("/world/" + validWorldName + "/wind_info");
 }
 
 //////////////////////////////////////////////////
@@ -563,6 +570,16 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
 
   // Update component
   windLinVel->Data() = windVel;
+
+  // Publish wind information (ENU)
+  msgs::Wind windInfo_gz;
+  windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
+  windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
+  windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
+  if (this->windPub.HasConnections()){
+    this->windPub.Publish(windInfo_gz);
+  }
+
 }
 
 //////////////////////////////////////////////////

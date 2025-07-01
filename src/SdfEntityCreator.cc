@@ -375,7 +375,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     if (!parentEntity)
     {
       // Performers have not been created yet. Try to create the model
-      // or actor and attach the peformer.
+      // or actor and attach the performer.
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
@@ -538,6 +538,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
+
+    if (link->AutoInertia())
+    {
+      gzdbg << "Link has auto-inertial enabled: "
+            << scopedName(linkEntity, *this->dataPtr->ecm, "::", false) << "\n";
+      gzdbg << "  pose: " << link->Inertial().Pose() << "\n";
+      gzdbg << "  mass: " << link->Inertial().MassMatrix().Mass() << "\n";
+      gzdbg << "  ixx iyy izz: "
+            << link->Inertial().MassMatrix().DiagonalMoments() << "\n";
+      gzdbg << "  ixy ixz iyz: "
+            << link->Inertial().MassMatrix().OffDiagonalMoments()
+            << std::endl;
+    }
 
     if (canonicalLink == link)
     {

@@ -33,8 +33,6 @@ static const std::string kBinPath(PROJECT_BINARY_PATH);
 
 static const std::string kGzCommand(
     std::string(BREW_RUBY) + std::string(GZ_PATH) + " sim -s ");
-static const std::string kGzModelCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -145,11 +143,6 @@ TEST(CmdLine, GazeboServer)
 /////////////////////////////////////////////////
 TEST(CmdLine, SimtimeArgument)
 {
-  std::string cmd =
-    kGzCommand + " -r -v 4 --iterations 500 --initial-sim-time 1000.5 " +
-    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf -z 1000";
-
-  std::cout << "Running command [" << cmd << "]" << std::endl;
   int msgCount = 0;
 
   gz::transport::Node node;
@@ -163,6 +156,12 @@ TEST(CmdLine, SimtimeArgument)
   auto cbFcn = std::function<void(const gz::msgs::Clock &)>(cb);
   EXPECT_TRUE(node.Subscribe(std::string("/clock"), cbFcn));
 
+  std::string cmd =
+    kGzCommand + " -r -v 4 --iterations 500 --initial-sim-time 1000.5 " +
+    std::string(PROJECT_SOURCE_PATH) + "/test/worlds/plugins.sdf -z 1000";
+
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
   std::string output = customExecStr(cmd);
 
   // Try waiting different amounts if no messages have been received
@@ -172,7 +171,7 @@ TEST(CmdLine, SimtimeArgument)
     {
       std::cout << "Sleeping for " << i << " ms";
       GZ_SLEEP_MS(i);
-      std::cout << ", recevied " << msgCount << " messages." << std::endl;
+      std::cout << ", received " << msgCount << " messages." << std::endl;
       if (msgCount)
       {
         break;
@@ -276,36 +275,5 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
   for (const auto &flag : flags)
   {
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << flag;
-  }
-}
-
-//////////////////////////////////////////////////
-/// \brief Check --help message and bash completion script for consistent flags
-TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
-{
-  // Flags in help message
-  std::string helpOutput = customExecStr(kGzModelCommand + " --help");
-
-  // Call the output function in the bash completion script
-  std::string scriptPath = gz::common::joinPaths(
-    std::string(PROJECT_SOURCE_PATH),
-    "src", "cmd", "model.bash_completion.sh");
-
-  // Equivalent to:
-  // sh -c "bash -c \". /path/to/model.bash_completion.sh; _gz_model_flags\""
-  std::string cmd = "bash -c \". " + scriptPath + "; _gz_model_flags\"";
-  std::string scriptOutput = customExecStr(cmd);
-
-  // Tokenize script output
-  std::istringstream iss(scriptOutput);
-  std::vector<std::string> flags((std::istream_iterator<std::string>(iss)),
-    std::istream_iterator<std::string>());
-
-  EXPECT_GT(flags.size(), 0u);
-
-  // Match each flag in script output with help message
-  for (const auto &flag : flags)
-  {
-    EXPECT_NE(std::string::npos, helpOutput.find(flag)) << helpOutput;
   }
 }

@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEMMANAGER_HH_
 #define GZ_SIM_SYSTEMMANAGER_HH_
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <cstdint>
@@ -138,12 +139,12 @@ namespace gz
 
       /// \brief Get an ordered map of systems by priority that implement
       /// "PreUpdate"
-      /// \return Priortized map of systems's pre-update interfaces.
+      /// \return Prioritized map of systems's pre-update interfaces.
       public: const PrioritizedSystems<ISystemPreUpdate *>& SystemsPreUpdate();
 
       /// \brief Get an ordered map of systems by priority that implement
       /// "Update"
-      /// \return Priortized map of systems's update interfaces.
+      /// \return Prioritized map of systems's update interfaces.
       public: const PrioritizedSystems<ISystemUpdate *>& SystemsUpdate();
 
       /// \brief Get a vector of all active systems implementing "PostUpdate"

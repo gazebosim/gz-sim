@@ -30,6 +30,8 @@
 #include <gz/sim/components/LinearVelocityCmd.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
+#include <gz/sim/World.hh>
 
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>

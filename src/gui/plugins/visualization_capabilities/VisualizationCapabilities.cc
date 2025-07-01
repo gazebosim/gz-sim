@@ -34,9 +34,8 @@
 #include <QQmlProperty>
 
 #include <gz/common/Console.hh>
-#include <gz/common/geospatial/Dem.hh>
 #include <gz/common/geospatial/HeightmapData.hh>
-#include <gz/common/geospatial/ImageHeightmap.hh>
+#include <gz/common/geospatial/HeightmapUtil.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/common/StringUtils.hh>
@@ -562,8 +561,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
   // create new wireframe visuals
   for (const auto &link : this->newWireframeVisualLinks)
   {
-    std::vector<Entity> visEntities =
-        this->linkToVisualEntities[link];
+    const auto &visEntities = this->linkToVisualEntities[link];
 
     for (const auto &visEntity : visEntities)
     {
@@ -592,8 +590,7 @@ void VisualizationCapabilitiesPrivate::OnRender()
   // create new transparent visuals
   for (const auto &link : this->newTransparentVisualLinks)
   {
-    std::vector<Entity> visEntities =
-        this->linkToVisualEntities[link];
+    const auto &visEntities = this->linkToVisualEntities[link];
 
     for (const auto &visEntity : visEntities)
     {
@@ -1287,32 +1284,20 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     }
 
     std::shared_ptr<common::HeightmapData> data;
-    std::string lowerFullPath = common::lowercase(fullPath);
     // check if heightmap is an image
-    if (common::EndsWith(lowerFullPath, ".png")
-        || common::EndsWith(lowerFullPath, ".jpg")
-        || common::EndsWith(lowerFullPath, ".jpeg"))
+    if (common::isSupportedImageHeightmapFileExtension(fullPath))
     {
-      auto img = std::make_shared<common::ImageHeightmap>();
-      if (img->Load(fullPath) < 0)
-      {
-        gzerr << "Failed to load heightmap image data from ["
-               << fullPath << "]" << std::endl;
+      data = common::loadHeightmapData(fullPath);
+      if (!data)
         return geom;
-      }
-      data = img;
     }
     // DEM
     else
     {
-      auto dem = std::make_shared<common::Dem>();
-      if (dem->Load(fullPath) < 0)
-      {
-        gzerr << "Failed to load heightmap dem data from ["
-               << fullPath << "]" << std::endl;
+      // \todo(iche033) Load DEM with world spherical coordinates?
+      data = common::loadHeightmapData(fullPath);
+      if (!data)
         return geom;
-      }
-      data = dem;
     }
 
     rendering::HeightmapDescriptor descriptor;
@@ -1737,7 +1722,7 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
   {
     auto visual = this->scene->VisualByIndex(i);
 
-    try
+    if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
     {
       Entity visualEntity = std::get<uint64_t>(
         visual->UserData("gazebo-entity"));
@@ -1746,10 +1731,6 @@ rendering::VisualPtr VisualizationCapabilitiesPrivate::VisualByEntity(
       {
         return visual;
       }
-    }
-    catch (std::bad_variant_access &)
-    {
-      // It's ok to get here
     }
   }
   return nullptr;

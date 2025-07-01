@@ -234,7 +234,7 @@ void LensFlarePrivate::OnPostRender()
   }
 
   // disconnect from render event after adding lens flare pass to prevent
-  // unecessary callbacks;
+  // unnecessary callbacks;
   this->postRenderConn.reset();
   this->scene.reset();
   this->camera.reset();

@@ -99,6 +99,12 @@ namespace gz
       /// \return Path to the downloaded resource, empty on error.
       public: std::string FetchResourceUri(const common::URI &_uri);
 
+      /// \brief Helper function that loads an SDF root object based on
+      /// values in a ServerConfig object.
+      /// \param[in] _config Server config to read from.
+      /// \return Set of SDF errors.
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config);
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -142,7 +148,7 @@ namespace gz
 
       /// \brief Callback for server control service.
       /// \param[out] _req The control request.
-      /// \param[out] _res Whether the request was successfully fullfilled.
+      /// \param[out] _res Whether the request was successfully fulfilled.
       /// \return True if successful.
       private: bool ServerControlService(
         const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
@@ -205,7 +211,7 @@ namespace gz
       /// \brief Node for transport.
       private: transport::Node node;
 
-      /// \brief Publisher of resrouce paths.
+      /// \brief Publisher of resource paths.
       private: transport::Node::Publisher pathPub;
     };
     }

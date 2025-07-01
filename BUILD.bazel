@@ -1,0 +1,209 @@
+load("@gz-msgs//tools:gz_msgs_generate.bzl", "gz_proto_library")
+load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
+load("@rules_license//rules:license.bzl", "license")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+package(
+    default_applicable_licenses = [":license"],
+    features = [
+        "layering_check",
+        "parse_headers",
+    ],
+)
+
+license(
+    name = "license",
+    package_name = "gz-sim",
+)
+
+licenses(["notice"])
+
+exports_files([
+    "package.xml",
+    "LICENSE",
+    "MODULE.bazel",
+])
+
+gz_configure_header(
+    name = "Config",
+    src = "include/gz/sim/config.hh.in",
+    package_xml = "package.xml",
+)
+
+gz_export_header(
+    name = "Export",
+    out = "include/gz/sim/Export.hh",
+    export_base = "GZ_SIM",
+    lib_name = "gz-sim",
+)
+
+gz_export_header(
+    name = "RenderingExport",
+    out = "include/gz/sim/rendering/Export.hh",
+    export_base = "GZ_SIM_RENDERING",
+    lib_name = "gz-sim-rendering",
+)
+
+private_protos = glob(["src/proto/gz/sim/private_msgs/*.proto"])
+
+proto_library(
+    name = "gzsim_proto",
+    srcs = private_protos,
+    strip_import_prefix = "src/proto",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@gz-msgs//:gzmsgs_proto",
+    ],
+)
+
+gz_proto_library(
+    name = "gzsim_cc_proto",
+    features = [
+        # Layering check fails for clang build due to no module exporting
+        # `port_def.inc` and `port_undef.inc`. Unfortunately, the bazel target
+        # that exports these headers in protobuf is private.
+        "-layering_check",
+    ],
+    proto_deps = [":gzsim_proto"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:protobuf",
+        "@com_google_protobuf//:protobuf_lite",
+        "@com_google_protobuf//src/google/protobuf/io",
+        "@gz-msgs//:gzmsgs_cc_proto",
+    ],
+)
+
+public_headers_no_gen = glob(
+    [
+        "include/gz/sim/*.hh",
+        "include/gz/sim/comms/*.hh",
+        "include/gz/sim/components/*.hh",
+        "include/gz/sim/detail/*.hh",
+        "include/gz/sim/rendering/*.hh",
+    ],
+)
+
+private_headers = glob(
+    [
+        "src/*.hh",
+        "src/network/*.hh",
+        "src/rendering/MaterialParser/*.hh",
+    ],
+    exclude = [
+        "src/gz.hh",
+    ],
+)
+
+sources = glob(
+    [
+        "src/*.cc",
+        "src/bazel/*.cc",
+        "src/comms/*.cc",
+        "src/network/*.cc",
+        "src/rendering/*.cc",
+        "src/rendering/MaterialParser/*.cc",
+    ],
+    exclude = [
+        "src/gz.cc",
+        "src/comms/*_TEST.cc",
+        "src/network/*_TEST.cc",
+        "src/*_TEST.cc",
+    ],
+)
+
+public_headers = public_headers_no_gen + [
+    "include/gz/sim/config.hh",
+    "include/gz/sim/Export.hh",
+]
+
+cc_library(
+    name = "gz-sim",
+    srcs = sources + private_headers,
+    hdrs = public_headers,
+    includes = ["include"],
+    local_defines = [
+        'GZ_SIM_GUI_CONFIG_RELATIVE_PATH=\\"\\"',
+        'GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR=\\"\\"',
+        'GZ_SIM_SYSTEM_CONFIG_RELATIVE_PATH=\\"\\"',
+        'GZ_SIM_SERVER_CONFIG_RELATIVE_PATH=\\"\\"',
+        'GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR=\\"\\"',
+        'GZ_SIM_WORLD_RELATIVE_INSTALL_DIR=\\"\\"',
+        'GZ_SIM_MEDIA_RELATIVE_INSTALL_DIR=\\"\\"',
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":RenderingExport",
+        ":gzsim_cc_proto",
+        "@com_google_protobuf//:protobuf_lite",
+        "@gz-common",
+        "@gz-common//events",
+        "@gz-common//geospatial",
+        "@gz-common//graphics",
+        "@gz-common//io",
+        "@gz-common//profiler",
+        "@gz-fuel-tools",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:core",
+        "@gz-plugin//:loader",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@gz-transport",
+        "@gz-transport//parameters",
+        "@gz-utils//:ImplPtr",
+        "@gz-utils//:NeverDestroyed",
+        "@sdformat",
+        "@tinyxml2",
+    ],
+)
+
+test_sources = glob(
+    include = ["src/*_TEST.cc"],
+    exclude = [
+        # These tests currently fail in bazel build, either due to missing
+        # System plugin dependencies or due to incorrect resolved output paths.
+        "src/AddedMass_TEST.cc",
+        "src/Server_TEST.cc",
+        "src/ServerConfig_TEST.cc",
+        "src/Server_Rendering_TEST.cc",
+        "src/SimulationRunner_TEST.cc",
+        "src/SystemLoader_TEST.cc",
+        "src/SdfGenerator_TEST.cc",
+        "src/Util_TEST.cc",
+    ],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    # Some tests need private headers.
+    copts = ["-Wno-private-header"],
+    data = [
+        "//test:worlds",
+    ],
+    env = {
+        "GZ_BAZEL": "1",
+    },
+    deps = [
+        ":gz-sim",
+        "//test:Config",
+        "//test:Helpers",
+        "//test:MockSystem",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common",
+        "@gz-common//testing",
+        "@gz-fuel-tools",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-rendering",
+        "@gz-transport",
+        "@gz-utils//:ExtraTestMacros",
+        "@gz-utils//:SuppressWarning",
+        "@sdformat",
+        "@tinyxml2",
+    ],
+) for src in test_sources]

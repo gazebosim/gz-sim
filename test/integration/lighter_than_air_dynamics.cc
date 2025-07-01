@@ -105,7 +105,7 @@ const std::string &_world, const std::string &_namespace)
       auto WorldPose = body.WorldPose(_ecm);
 
       math::Matrix3d DCM(WorldPose.value().Rot());
-      // Small disturbance to enduce munk moment
+      // Small disturbance to induce munk moment
       math::Vector3d body_z_force(0, 0, 100);
       math::Vector3d world_frame_force = DCM * body_z_force;
 
@@ -188,7 +188,7 @@ std::vector<std::pair<math::Pose3d, math::Vector3d>>
       auto WorldPose = body.WorldPose(_ecm);
 
       math::Matrix3d DCM(WorldPose.value().Rot());
-      // Small disturbance to enduce some lateral movement
+      // Small disturbance to induce some lateral movement
       // to allow munk moment to grow
       math::Vector3d body_y_force(0, 10, 0);
       math::Vector3d world_frame_force = DCM * body_y_force;
@@ -233,7 +233,7 @@ std::vector<std::pair<math::Pose3d, math::Vector3d>>
 }
 
 //////////////////////////////////////////////////
-// Test if the plugin can be loaded succesfully and
+// Test if the plugin can be loaded successfully and
 // runs
 std::vector<math::Vector3d> LighterThanAirDynamicsTest::TestWorld(
   const std::string &_world, const std::string &_namespace)

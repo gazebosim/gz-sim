@@ -89,7 +89,7 @@ namespace gz::sim
     /// is the ancestor which is a direct child to the root visual.
     /// Usually, this will be a model or a light.
     /// \param[in] _node Child node
-    /// \return Top level node containining this node
+    /// \return Top level node containing this node
     rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
 
@@ -471,15 +471,8 @@ void TransformControlPrivate::HandleTransform()
   {
     if (this->transformControl.Node())
     {
-      try
-      {
-        this->transformControl.Node()->SetUserData(
-          "pause-update", static_cast<int>(0));
-      }
-      catch (std::bad_variant_access &)
-      {
-        // It's ok to get here
-      }
+      this->transformControl.Node()->SetUserData(
+        "pause-update", static_cast<int>(0));
     }
 
     if (this->transformControl.Active())
@@ -550,15 +543,8 @@ void TransformControlPrivate::HandleMouseEvents()
           this->transformControl.Start();
           if (this->transformControl.Node())
           {
-            try
-            {
-              this->transformControl.Node()->SetUserData(
-                "pause-update", static_cast<int>(1));
-            }
-            catch (std::bad_variant_access &)
-            {
-              // It's ok to get here
-            }
+            this->transformControl.Node()->SetUserData(
+              "pause-update", static_cast<int>(1));
           }
         }
         else
@@ -584,15 +570,8 @@ void TransformControlPrivate::HandleMouseEvents()
           {
             if (this->transformControl.Node())
             {
-              try
-              {
-                this->transformControl.Node()->SetUserData(
-                  "pause-update", static_cast<int>(0));
-              }
-              catch (std::bad_variant_access &)
-              {
-                // It's ok to get here
-              }
+              this->transformControl.Node()->SetUserData(
+                "pause-update", static_cast<int>(0));
             }
             if (!_result)
               gzerr << "Error setting pose" << std::endl;
@@ -673,28 +652,14 @@ void TransformControlPrivate::HandleMouseEvents()
               if (topClickedNode == topClickedVisual)
               {
                 this->transformControl.Attach(topClickedVisual);
-                try
-                {
-                  topClickedVisual->SetUserData(
-                    "pause-update", static_cast<int>(1));
-                }
-                catch (std::bad_variant_access &)
-                {
-                  // It's ok to get here
-                }
+                topClickedVisual->SetUserData(
+                  "pause-update", static_cast<int>(1));
               }
               else
               {
                 this->transformControl.Detach();
-                try
-                {
-                  topClickedVisual->SetUserData(
-                    "pause-update", static_cast<int>(0));
-                }
-                catch (std::bad_variant_access &)
-                {
-                  // It's ok to get here
-                }
+                topClickedVisual->SetUserData(
+                  "pause-update", static_cast<int>(0));
               }
             }
 
@@ -708,14 +673,8 @@ void TransformControlPrivate::HandleMouseEvents()
       && this->transformControl.Active())
   {
     if (this->transformControl.Node()){
-      try
-      {
-        this->transformControl.Node()->SetUserData(
-          "pause-update", static_cast<int>(1));
-      } catch (std::bad_variant_access &)
-      {
-        // It's ok to get here
-      }
+      this->transformControl.Node()->SetUserData(
+        "pause-update", static_cast<int>(1));
     }
 
     this->blockOrbit = true;
@@ -744,13 +703,9 @@ void TransformControlPrivate::HandleMouseEvents()
       {
         auto visual = this->scene->VisualByIndex(i);
         auto entityId = kNullEntity;
-        try
+        if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
         {
           entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
-        }
-        catch (std::bad_variant_access &)
-        {
-          // It's ok to get here
         }
         if (entityId == nodeId)
         {

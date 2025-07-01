@@ -274,7 +274,7 @@ Once both boxes have fallen, we can publish a message to invoke a service call
 to reset the vehicle position as well as set the speed to 0. As shown below, the
 `<output>` sets the linear x speed to 0, and the `<service>` tag contains
 metadata to invoke a service call to `/world/triggered_publisher/set_pose`. The
-`reqMsg` is expressed in the human-readable form of Google Protobuf meesages.
+`reqMsg` is expressed in the human-readable form of Google Protobuf messages.
 Multiple `<service>` tags can be used as well as with the `<output>` tag.
 
 ```xml
