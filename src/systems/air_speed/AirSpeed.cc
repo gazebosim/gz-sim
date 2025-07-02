@@ -111,8 +111,8 @@ AirSpeed::AirSpeed() :
 AirSpeed::~AirSpeed() = default;
 
 //////////////////////////////////////////////////
-void AirSpeed::Configure(const Entity &_entity,
-    const std::shared_ptr<const sdf::Element> &_sdf,
+void AirSpeed::Configure(const Entity &,
+    const std::shared_ptr<const sdf::Element> &,
     EntityComponentManager &_ecm,
     EventManager &)
 {
