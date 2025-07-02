@@ -155,7 +155,6 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
            << std::chrono::duration<double>(_info.dt).count()
            << "s]. System may not work properly." << std::endl;
   }
-  
   this->dataPtr->CreateSensors(_ecm);
 
   if (!_info.paused)
