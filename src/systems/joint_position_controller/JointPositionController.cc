@@ -55,18 +55,18 @@ template <typename T>
 class ParameterProxy
 {
   //! \brief Constructor
-  public: ParameterProxy(const std::string_view& _name) : name(_name)
+  public: ParameterProxy(const std::string_view &_name) : name(_name)
   {
   }
 
   //! \brief Initialise
   public: template<typename Getter, typename Setter>
   void Init(
-    gz::transport::parameters::ParametersRegistry * _registry,
-    T * _obj,
-    Getter&& _getter,
-    Setter&& _setter,
-    const std::string_view& _prefix)
+    gz::transport::parameters::ParametersRegistry *_registry,
+    T *_obj,
+    Getter &&_getter,
+    Setter &&_setter,
+    const std::string_view &_prefix)
   {
     this->registry = _registry;
     this->obj = _obj;
@@ -97,7 +97,7 @@ class ParameterProxy
     {
       return;
     }
-    const double change_tolerance{1.0e-8};
+    const double changeTolerance{1.0e-8};
 
     auto value = std::make_unique<gz::msgs::Double>();
     auto result = this->registry->Parameter(scopedName, *value);
@@ -106,7 +106,7 @@ class ParameterProxy
     {
       const double a = this->getter(*obj);
       const double b = value->data();
-      const bool changed = !math::equal(a, b, change_tolerance);
+      const bool changed = !math::equal(a, b, changeTolerance);
       if (changed)
       {
         this->setter(*obj, b);
@@ -121,7 +121,7 @@ class ParameterProxy
     }
   }
 
-  private: gz::transport::parameters::ParametersRegistry * registry{nullptr};
+  private: gz::transport::parameters::ParametersRegistry *registry{nullptr};
   private: T * obj{nullptr};
   private: std::function<double(const T&)> getter;
   private: std::function<void(T&, double)> setter;
@@ -144,16 +144,16 @@ class gz::sim::systems::JointPositionControllerPrivate
   //! \brief Helper to initialise and declare a PID parameter
   public: template<typename Getter, typename Setter>
   void DeclareParameter(
-      ParameterProxy<math::PID>* param,
-      Getter&& getter,
-      Setter&& setter,
-      const std::string& prefix)
+      ParameterProxy<math::PID> *_param,
+      Getter &&_getter,
+      Setter &&_setter,
+      const std::string &_prefix)
   {
-    param->Init(registry, &posPid,
-      std::forward<Getter>(getter),
-      std::forward<Setter>(setter),
-      prefix);
-    param->Declare();
+    _param->Init(registry, &posPid,
+      std::forward<Getter>(_getter),
+      std::forward<Setter>(_setter),
+      _prefix);
+    _param->Declare();
   }
 
   /// \brief Gazebo communication node.
