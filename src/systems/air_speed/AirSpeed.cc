@@ -70,7 +70,7 @@ class gz::sim::systems::AirSpeedPrivate
 
   public: Entity entity;
 
-  /// \brief Wind entity on which this sytem operates.
+  /// \brief Wind entity on which this system operates.
   public: Entity windEntity;
 
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
