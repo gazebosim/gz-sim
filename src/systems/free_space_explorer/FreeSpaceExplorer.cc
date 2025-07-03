@@ -105,22 +105,23 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     std::vector<unsigned char> pixelData;
     this->grid->ExportToRGBImage(pixelData);
 
-    common::Image fromOccupancy;
-    fromOccupancy.SetFromData(
-      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
-    fromOccupancy.SavePNG("output.png");
+
     if (!this->nextPosition.empty())
     {
       return;
     }
     auto nextPos = this->GetNextPoint(_scan);
-    gzerr << "Setting next position " << nextPos->Pos() <<std::endl;
+    gzmsg << "Setting next position " << nextPos->Pos() <<std::endl;
     if(nextPos.has_value())
     {
       this->nextPosition.push(nextPos.value());
     }
     else {
-      gzerr << "Scan complete\n";
+      common::Image fromOccupancy;
+      fromOccupancy.SetFromData(
+      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
+        fromOccupancy.SavePNG("output.png");
+      gzmsg << "Scan complete\n";
     }
   }
 
@@ -132,7 +133,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
-      gzerr<< "Grid not yet inited";
+      gzerr << "Grid not yet inited" << std::endl;
       return {};
     }
     std::queue<std::pair<int, int>> q;
@@ -142,7 +143,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     if(!this->grid->WorldToGrid( this->position.Pos().X(),
       this->position.Pos().Y(), gridX, gridY))
     {
-      gzerr << "Proposed point outside of bounds";
+      gzerr << "Proposed point outside of bounds" << std::endl;
       return {};
     }
     q.emplace(gridX, gridY);
@@ -266,7 +267,7 @@ void FreeSpaceExplorer::Configure(
   this->dataPtr->resolution = _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(this->dataPtr->scanTopic,
     &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
-  gzerr << "Loaded camera plugin listening on [" << this->dataPtr->scanTopic << "]\n";
+  gzmsg << "Loaded camera plugin listening on [" << this->dataPtr->scanTopic << "]\n";
 }
 
 /////////////////////////////////////////////////
@@ -281,7 +282,7 @@ void FreeSpaceExplorer::PreUpdate(
   //TODO(arjo) check link name valisdity
   auto l = Link(this->dataPtr->model.LinkByName(_ecm, this->dataPtr->sensorLink));
   if (!l.Valid(_ecm)){
-    gzerr << "Invalid link name " << this->dataPtr->sensorLink <<std::endl;
+    gzerr << "Invalid link name " << this->dataPtr->sensorLink << std::endl;
     return;
   }
   auto pose = l.WorldPose(_ecm);
