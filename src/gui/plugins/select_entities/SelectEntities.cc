@@ -598,4 +598,3 @@ bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::gui::SelectEntities,
                     gz::gui::Plugin)
-
