@@ -478,6 +478,11 @@ void SelectEntities::LoadConfig(const tinyxml2::XMLElement *)
 /////////////////////////////////////////////////
 bool SelectEntities::eventFilter(QObject *_obj, QEvent *_event)
 {
+  if (!this->dataPtr->scene)
+  {
+    if (_event->type() != gz::gui::events::Render::kType)
+      return QObject::eventFilter(_obj, _event);
+  }
   if (_event->type() == gz::gui::events::LeftClickOnScene::kType)
   {
     gz::gui::events::LeftClickOnScene *_e =
