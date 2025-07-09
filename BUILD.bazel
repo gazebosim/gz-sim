@@ -283,7 +283,6 @@ genrule(
 
 # Following systems are not yet supported in the Bazel BUILD:
 # - src/systems/camera_video_recorder (av sub-package in gz-common is not yet available in Bazel build)
-# - src/systems/dvl (av sub-package in gz-common is not yet available in Bazel build)
 # - src/systems/elevator (doesn't build)
 # - src/systems/python_system_loader (missing pybind11 dep)
 
@@ -654,6 +653,27 @@ gz_sim_system_libraries(
         "@gz-plugin//:register",
         "@gz-transport",
         "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/dvl/**/*.cc",
+            "src/systems/dvl/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-dvl-system.so",
+    static_lib_name = "gz-sim-dvl-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@gz-sensors",
+        "@gz-sensors//:dvl",
+        "@gz-transport",
     ],
 )
 
