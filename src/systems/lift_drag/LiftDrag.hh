@@ -44,6 +44,8 @@ namespace systems
   /// - `<air_density>`: Density of the fluid this model is suspended in.
   /// - `<radial_symmetry>`: True if the shape is aerodynamically radially
   ///    symmetric about the forward direction.
+  /// - `<reversible>`: True if the airfoil is symmetric when the inflow is
+  ///   reversed (for example reversible propellers)
   /// - `<area>`: Surface area of the link.
   /// - `<a0>`: The initial "alpha" or initial angle of attack. a0 is also
   ///   the y-intercept of the alpha-lift coefficient curve.
