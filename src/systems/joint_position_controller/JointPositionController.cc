@@ -35,7 +35,7 @@
 #include <gz/math/PID.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
-#include <gz/transport/parameters.hh>
+#include <gz/transport/parameters/Registry.hh>
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/Joint.hh"

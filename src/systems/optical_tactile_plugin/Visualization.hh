@@ -24,6 +24,7 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 #include <gz/msgs/marker.pb.h>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/components/ContactSensorData.hh"
 

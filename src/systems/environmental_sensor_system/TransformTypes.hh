@@ -45,7 +45,7 @@ enum TransformType {
 /// \brief Given a string return the type of transform
 /// \param[in] _str - input string
 /// \return std::nullopt if string invalid, else corresponding transform
-std::optional<TransformType> getTransformType(const std::string &_str)
+inline std::optional<TransformType> getTransformType(const std::string &_str)
 {
   if(_str == "ADD_VELOCITY_LOCAL")
     return TransformType::ADD_VELOCITY_LOCAL;
@@ -64,7 +64,7 @@ std::optional<TransformType> getTransformType(const std::string &_str)
 /// \param[in] _velocity - Velocity of current frame.
 /// \param[in] _reading - vector to be transformed.
 /// \return transformed vector.
-math::Vector3d transformFrame(
+inline math::Vector3d transformFrame(
   const TransformType _type, const math::Pose3d& _pose,
   const math::Vector3d& _velocity, const math::Vector3d& _reading)
 {
