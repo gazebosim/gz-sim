@@ -332,7 +332,7 @@ void JointController::PreUpdate(const UpdateInfo &_info,
   if (this->dataPtr->disableBraking)
   {
       double sgn = math::signum(targetVel);
-      applyForce = sgn && sgn * error <= 0.0;
+      applyForce = !math::equal(sgn, 0.0, 1e-16) && sgn * error <= 0.0;
   }
 
   // Force mode.
