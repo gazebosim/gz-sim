@@ -102,9 +102,12 @@ gz_find_package(gz-common6
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common${GZ_COMMON_VER}::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
