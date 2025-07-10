@@ -77,6 +77,9 @@ class gz::sim::systems::JointControllerPrivate
   /// velocity.
   public: bool useForceCommands{false};
 
+  /// \brief True if braking is disabled.
+  public: bool disableBraking{false};
+
   /// \brief Velocity PID controller.
   public: math::PID velPid;
 };
@@ -146,6 +149,11 @@ void JointController::Configure(const Entity &_entity,
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
+    if (_sdf->HasElement("disable_braking"))
+    {
+      this->dataPtr->disableBraking = _sdf->Get<bool>("disable_braking");
+    }
+
     gzdbg << "[JointController] Force mode with parameters:" << std::endl;
     gzdbg << "p_gain: ["     << p         << "]"             << std::endl;
     gzdbg << "i_gain: ["     << i         << "]"             << std::endl;
@@ -155,6 +163,8 @@ void JointController::Configure(const Entity &_entity,
     gzdbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
     gzdbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
     gzdbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+    gzdbg << "disable_braking: [" << this->dataPtr->disableBraking
+          << "]" << std::endl;
   }
   else
   {
@@ -316,9 +326,19 @@ void JointController::PreUpdate(const UpdateInfo &_info,
 
   double error = jointVelComp->Data().at(0) - targetVel;
 
+  // If braking is disabled only apply force if the actual velocity is below
+  // the target - i.e. allow joint to freewheel.
+  bool applyForce = true;
+  if (this->dataPtr->disableBraking)
+  {
+      double sgn = math::signum(targetVel);
+      applyForce = !math::equal(sgn, 0.0, 1e-16) && sgn * error <= 0.0;
+  }
+
   // Force mode.
   if ((this->dataPtr->useForceCommands) &&
-      (!jointVelComp->Data().empty()))
+      (!jointVelComp->Data().empty()) &&
+      (applyForce))
   {
     for (Entity joint : this->dataPtr->jointEntities)
     {
