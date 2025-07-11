@@ -1,5 +1,28 @@
 ## Gazebo Sim 9.x
 
+### Gazebo Sim 9.3.0 (2025-07-11)
+
+1. JointController: allow braking to be disabled in force mode
+    * [Pull request #2971](https://github.com/gazebosim/gz-sim/pull/2971)
+
+1. LiftDrag: allow reversible airfoils
+    * [Pull request #2970](https://github.com/gazebosim/gz-sim/pull/2970)
+
+1. [bazel] Add support for Systems
+    * [Pull request #2966](https://github.com/gazebosim/gz-sim/pull/2966)
+
+1. Add global guard in SelectEntities eventFilter to avoid null pointer crash on render engine failure
+    * [Pull request #2965](https://github.com/gazebosim/gz-sim/pull/2965)
+
+1. JointPositionController: add dynamic PID parameters
+    * [Pull request #2944](https://github.com/gazebosim/gz-sim/pull/2944)
+
+1. Physics System populates link bounding boxes
+    * [Pull request #2821](https://github.com/gazebosim/gz-sim/pull/2821)
+
+1. Fix airspeed calculation under wind influence by wind triangle
+    * [Pull request #2844](https://github.com/gazebosim/gz-sim/pull/2844)
+
 ### Gazebo Sim 9.2.0 (2025-06-18)
 
 1. Add support to get link AABB from its collisions
