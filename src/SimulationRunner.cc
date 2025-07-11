@@ -99,7 +99,8 @@ struct MaybeGilScopedRelease
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const ServerConfig &_config)
+                                   const ServerConfig &_config,
+                                   const bool _createEntities)
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
@@ -256,7 +257,8 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
-  this->CreateEntities(_world);
+  if (_createEntities)
+    this->CreateEntities(_world);
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -792,6 +794,18 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep number of iterations requested by caller
   uint64_t processedIterations{0};
 
+  // Force a wait on asset creation if the number of requested iterations
+  // is greater than zero and forcedPause is true. The forcedPause variable
+  // default value is true, which means simulation is waiting for assets
+  // to download.
+  {
+    std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
+    if (_iterations > 0 && this->forcedPause)
+    {
+      this->creationCv.wait(createLock, [this]{return !this->forcedPause;});
+    }
+  }
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   while (this->running && (_iterations == 0 ||
@@ -841,16 +855,18 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       processedIterations++;
     }
 
-    // If network, wait for network step, otherwise do our own step
-    if (this->networkMgr)
     {
-      auto netPrimary =
-          dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
-      netPrimary->Step(this->currentInfo);
-    }
-    else
-    {
-      this->Step(this->currentInfo);
+      // If network, wait for network step, otherwise do our own step
+      if (this->networkMgr)
+      {
+        auto netPrimary =
+            dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
+        netPrimary->Step(this->currentInfo);
+      }
+      else
+      {
+        this->Step(this->currentInfo);
+      }
     }
 
     // Handle Server::RunOnce(false) in which a single paused run is executed
@@ -1129,6 +1145,17 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
+  // Skip if attempting to unpause while initial set of models are being
+  // downloaded in the background. We must remain paused while downloading.
+  if (!_paused && this->forcedPause)
+  {
+    gzmsg << "Received an unpause request while simulation assets are "
+          << "downloading. Simulation will start running once all the "
+          << "assets are downloaded.\n";
+    this->requestedPause = _paused;
+    return;
+  }
+
   // Only update the realtime clock if Run() has been called.
   if (this->running)
   {
@@ -1552,8 +1579,42 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
+void SimulationRunner::SetForcedPause(bool _p)
+{
+  bool setRequested = this->forcedPause && !_p;
+  bool setPaused = !this->forcedPause && _p;
+
+  this->forcedPause = _p;
+
+  // If the simulation runnner was in a forced pause state before this
+  // function call and the new forced pause state is false, then use
+  // the requested pause state for the simulation runner. The default
+  // value of the requested pause state is true, which will default
+  // simulation to start paused.
+  //
+  // else if the simulation runner was not in a forced pause state
+  // before this function call and the new forced pause state is true,
+  // then make sure the simulation runner is in a pause state.
+  //
+  // Cases where the prior forcedPause value equals the passed in
+  // forced pause state is a no-op.
+  if (setRequested)
+    this->SetPaused(this->requestedPause);
+  else if (setPaused)
+    this->SetPaused(setPaused);
+}
+
+//////////////////////////////////////////////////
+const sdf::World &SimulationRunner::WorldSdf() const
+{
+  return this->sdfWorld;
+}
+
+//////////////////////////////////////////////////
 void SimulationRunner::CreateEntities(const sdf::World &_world)
 {
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+
   this->sdfWorld = _world;
 
   // Instantiate the SDF creator
@@ -1668,6 +1729,11 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+
+
+  // Allow the runner to resume normal operations.
+  this->SetForcedPause(false);
+  this->creationCv.notify_all();
 }
 
 /////////////////////////////////////////////////

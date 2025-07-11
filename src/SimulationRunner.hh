@@ -77,9 +77,13 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
+      /// \param[in] _createEntities True to create entities. Use false if
+      /// you'd like to delay entity creation. False is used to support
+      /// simulation asset download in a background thread.
       public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
-                                const ServerConfig &_config = ServerConfig());
+                                const ServerConfig &_config = ServerConfig(),
+                                bool _createEntities = true);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -379,6 +383,23 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Get a reference to the SDF world used by this runner.
+      /// \return Reference to the SDF world for this runner.
+      public: const sdf::World &WorldSdf() const;
+
+      /// \brief Set whether the paused state of true should be enforced.
+      /// Setting this to true will force simulation to pause, and it can only
+      /// be unpaused if this function is called with a false parameter value.
+      ///
+      /// Do not expose this API function. It's meant as mechanism to
+      /// override user commands in specific situations, such as initial model
+      /// download.
+      ///
+      /// \param[in] _p True to force simulation to pause. False to unpause.
+      /// When false is passed in and the previous value was true, then the
+      /// requested pause state will be set.
+      public: void SetForcedPause(bool _p);
+
       /// \brief Create entities for the world simulated by this runner based
       /// on the provided SDF Root object.
       /// \param[in] _world SDF world created entities from.
@@ -519,6 +540,12 @@ namespace gz
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
 
+      /// \brief Asset creation mutex.
+      private: std::mutex assetCreationMutex;
+
+      /// \brief Asset creation condition variable.
+      private: std::condition_variable creationCv;
+
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
 
@@ -554,8 +581,20 @@ namespace gz
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+
       /// \brief Set if we need to remove systems due to entity removal
       private: bool threadsNeedCleanUp{false};
+
+      /// \brief On start, the server may download models in the
+      /// background. The simulation runner must remain paused while this
+      /// takes place. This flag can be used to make sure simulation stays
+      /// paused.
+      private: bool forcedPause{true};
+
+      /// \brief During a forced pause, the user may request that simulation
+      /// should run. This flag will capture that request, and then be used
+      /// when the forced pause ends.
+      private: bool requestedPause{true};
 
       private: bool resetInitiated{false};
       friend class LevelManager;
