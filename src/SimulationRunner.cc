@@ -797,7 +797,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Force a wait on asset creation if the number of requested iterations
   // is greater than zero and forcedPause is true. The forcedPause variable
   // default value is true, which means simulation is waiting for assets
-  // to download.
+  // to download. We want to wait if iteration is greater than zero, because
+  // the user has indicated a specific number of steps to take with all assets.
   {
     std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
     if (_iterations > 0 && this->forcedPause)
@@ -855,17 +856,19 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       processedIterations++;
     }
 
+    // If network, wait for network step, otherwise do our own step
+    if (this->networkMgr)
     {
-      // If network, wait for network step, otherwise do our own step
-      if (this->networkMgr)
-      {
-        auto netPrimary =
-            dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
-        netPrimary->Step(this->currentInfo);
-      }
-      else
+      auto netPrimary =
+          dynamic_cast<NetworkManagerPrimary *>(this->networkMgr.get());
+      netPrimary->Step(this->currentInfo);
+    }
+    else
+    {
+      if (this->assetCreationMutex.try_lock())
       {
         this->Step(this->currentInfo);
+        this->assetCreationMutex.unlock();
       }
     }
 
@@ -941,8 +944,13 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Process world control messages.
   this->ProcessMessages();
 
-  // Clear all new entities
-  this->entityCompMgr.ClearNewlyCreatedEntities();
+  // Clear all new entities. Make sure that assets are not being created
+  // when clearing new entities.
+  //if (this->assetCreationMutex.try_lock())
+  {
+    this->entityCompMgr.ClearNewlyCreatedEntities();
+    //this->assetCreationMutex.unlock();
+  }
 
   // Recreate any entities that have the Recreate component
   // The entities will have different Entity ids but keep the same name

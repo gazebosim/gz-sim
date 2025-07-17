@@ -118,7 +118,7 @@ Server::Server(const ServerConfig &_config)
   this->dataPtr->SetupTransport();
 
   // Download the simulation assets. This function will block if
-  // _config.WaitForAssets() is true;
+  // _config.AsyncAssetDownload() is false;
   this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in

@@ -116,7 +116,7 @@ namespace gz
 
       /// \brief Download simulation assets.
       /// \param[in] _config Server configuration parameters. This function
-      /// will block if _config.WaitForAssets() is true.
+      /// will block if _config.AsyncAssetDownload() is false.
       public: void DownloadAssets(const ServerConfig &_config);
 
       /// \brief Signal handler callback

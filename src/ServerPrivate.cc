@@ -763,7 +763,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
   // Download models in a separate thread.
   this->downloadThread = std::thread([&]()
   {
-    if (_config.WaitForAssets())
+    if (!_config.AsyncAssetDownload())
       std::lock_guard threadLocalLock(assetMutex);
 
     // Reload the SDF root, which will cause the models to download.
@@ -771,8 +771,11 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     ServerConfig cfg = _config;
     cfg.SetBehaviorOnSdfErrors(
       ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
+
+    std::cerr << "\n\n ================== DOWNLOADING ========================== \n\n";
     sdf::Errors localErrors = this->LoadSdfRootHelper(cfg,
         localRoot, true);
+    std::cerr << "\n\n ================== Done DOWNLOADING ========================== \n\n";
 
     // Output any errors.
     if (!localErrors.empty())
@@ -797,12 +800,12 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       // Create the entities for the simulation runner.
       runner->CreateEntities(*world);
     }
-    if (_config.WaitForAssets())
+    if (!_config.AsyncAssetDownload())
       assetCv.notify_one();
   });
 
   // Wait for assets to download if configured to do so.
-  if (_config.WaitForAssets())
+  if (!_config.AsyncAssetDownload())
   {
     assetCv.wait(assetLock);
   }
