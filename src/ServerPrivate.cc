@@ -146,6 +146,8 @@ void ServerPrivate::Stop()
   {
     runner->Stop();
   }
+
+  // Nate: Kill the download thread. A goood test case is the tunnel.sdf world. Try CTRL-C while downloading.
 }
 
 /////////////////////////////////////////////////
@@ -585,6 +587,7 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
+  std::cerr << "******** FETCH RESOURCE[" << _uri << "] *******\n";
   // Handle gazebo classic material URIs.
   // Return original URI string as the SdfEntityCreator checks for this URI
   if (_uri == kClassicMaterialScriptUri)
@@ -676,7 +679,9 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
         gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
+    std::cerr << "\n\n ================== DOWNLOADING ========================== \n\n";
       errors = sdfRootLocal.Load(filePath, sdfParserConfig);
+    std::cerr << "\n\n ================== Done DOWNLOADING ========================== \n\n";
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
           ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
       {
@@ -772,10 +777,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     cfg.SetBehaviorOnSdfErrors(
       ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
 
-    std::cerr << "\n\n ================== DOWNLOADING ========================== \n\n";
     sdf::Errors localErrors = this->LoadSdfRootHelper(cfg,
         localRoot, true);
-    std::cerr << "\n\n ================== Done DOWNLOADING ========================== \n\n";
 
     // Output any errors.
     if (!localErrors.empty())
