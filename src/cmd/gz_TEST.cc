@@ -248,6 +248,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
+#ifdef WITH_GUI
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
 {
   // Flags in help message
@@ -276,3 +277,4 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << flag;
   }
 }
+#endif
