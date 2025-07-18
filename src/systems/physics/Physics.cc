@@ -285,7 +285,7 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] modelEntity The entity of the model to check.
   /// \param[in] _ecm The entity component manager.
   /// \return True if any collision geometry is a plane.
-  public: bool ModelContainsPlaneCollision(const Entity &modelEntity,
+  public: bool ModelContainsPlaneCollision(const Entity &_modelEntity,
               EntityComponentManager &_ecm) const;
 
   /// \brief Helper function to update the pose of a model.
