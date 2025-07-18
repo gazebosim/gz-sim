@@ -35,8 +35,8 @@
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 
-#include <gz/fuel_tools/Interface.hh>
-#include <gz/fuel_tools/ClientConfig.hh>
+// #include <gz/fuel_tools/Interface.hh>
+// #include <gz/fuel_tools/ClientConfig.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AngularVelocity.hh"
@@ -809,31 +809,31 @@ std::string resolveSdfWorldFile(const std::string &_sdfFile,
   std::string filePath;
 
   // Check Fuel if it's a URL
-  auto sdfUri = common::URI(_sdfFile);
-  if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
-  {
-    fuel_tools::ClientConfig config;
-    if (!_fuelResourceCache.empty())
-      config.SetCacheLocation(_fuelResourceCache);
-    fuel_tools::FuelClient fuelClient(config);
+  // auto sdfUri = common::URI(_sdfFile);
+  // if (sdfUri.Scheme() == "http" || sdfUri.Scheme() == "https")
+  // {
+  //   fuel_tools::ClientConfig config;
+  //   if (!_fuelResourceCache.empty())
+  //     config.SetCacheLocation(_fuelResourceCache);
+  //   fuel_tools::FuelClient fuelClient(config);
 
-    std::string fuelCachePath;
-    if (fuelClient.CachedWorld(common::URI(_sdfFile), fuelCachePath))
-    {
-      filePath = findFuelResourceSdf(fuelCachePath);
-    }
-    else if (auto result = fuelClient.DownloadWorld(
-          common::URI(_sdfFile), fuelCachePath))
-    {
-      filePath = findFuelResourceSdf(fuelCachePath);
-    }
-    else
-    {
-      gzwarn << "Fuel couldn't download URL [" << _sdfFile
-        << "], error: [" << result.ReadableResult() << "]"
-        << std::endl;
-    }
-  }
+  //   std::string fuelCachePath;
+  //   if (fuelClient.CachedWorld(common::URI(_sdfFile), fuelCachePath))
+  //   {
+  //     filePath = findFuelResourceSdf(fuelCachePath);
+  //   }
+  //   else if (auto result = fuelClient.DownloadWorld(
+  //         common::URI(_sdfFile), fuelCachePath))
+  //   {
+  //     filePath = findFuelResourceSdf(fuelCachePath);
+  //   }
+  //   else
+  //   {
+  //     gzwarn << "Fuel couldn't download URL [" << _sdfFile
+  //       << "], error: [" << result.ReadableResult() << "]"
+  //       << std::endl;
+  //   }
+  // }
 
   if (filePath.empty())
   {
