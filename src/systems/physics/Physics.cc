@@ -3143,10 +3143,10 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 }
 
 //////////////////////////////////////////////////
-bool PhysicsPrivate::ModelContainsPlaneCollision(const Entity &modelEntity,
+bool PhysicsPrivate::ModelContainsPlaneCollision(const Entity &_modelEntity,
     EntityComponentManager &_ecm) const
 {
-  sim::Model model(modelEntity);
+  sim::Model model(_modelEntity);
   for (const auto &linkEntity : model.Links(_ecm))
   {
     sim::Link link(linkEntity);
