@@ -281,6 +281,13 @@ class gz::sim::systems::PhysicsPrivate
               EntityComponentManager &_ecm,
               const gz::physics::ForwardStep::Output &_updatedLinks);
 
+  /// \brief Check if a model contains any plane collision geometry.
+  /// \param[in] modelEntity The entity of the model to check.
+  /// \param[in] _ecm The entity component manager.
+  /// \return True if any collision geometry is a plane.
+  public: bool ModelContainsPlaneCollision(const Entity &_modelEntity,
+              EntityComponentManager &_ecm) const;
+
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
   /// \param[in] _canonicalLink The canonical link of _model.
@@ -2466,7 +2473,16 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::WorldPoseCmd *_poseCmd)
       {
         this->worldPoseCmdsToRemove.insert(_entity);
-
+        // Check if the model contains any plane collision geometry.
+        // If so, reject set_pose to prevent physics engine crash.
+        if (this->ModelContainsPlaneCollision(_entity, _ecm))
+        {
+          gzerr << "SetPose is not supported for models containing "
+                << "plane collision geometry. Entity [" << _entity << "]. "
+                << "Request ignored"
+                << std::endl;
+          return true;
+        }
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
         if (nullptr == modelPtrPhys)
           return true;
@@ -2478,7 +2494,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                  << std::endl;
           return true;
         }
-
         // TODO(addisu) Store the free group instead of searching for it at
         // every iteration
         auto freeGroup = modelPtrPhys->FindFreeGroup();
@@ -3155,6 +3170,26 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
   }
 
   return linkFrameData;
+}
+
+//////////////////////////////////////////////////
+bool PhysicsPrivate::ModelContainsPlaneCollision(const Entity &_modelEntity,
+    EntityComponentManager &_ecm) const
+{
+  sim::Model model(_modelEntity);
+  for (const auto &linkEntity : model.Links(_ecm))
+  {
+    sim::Link link(linkEntity);
+    for (const auto &collisionEntity : link.Collisions(_ecm))
+    {
+      auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
+      if (geomComp && geomComp->Data().Type() == sdf::GeometryType::PLANE)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////
