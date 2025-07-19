@@ -95,6 +95,11 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
+  if (_sdf->HasElement("weld_child_to_parent"))
+  {
+    this->weldChildToParent = _sdf->Get<bool>("weld_child_to_parent");
+  }
+
   // Setup detach topic
   std::vector<std::string> detachTopics;
   if (_sdf->HasElement("detach_topic"))
@@ -249,10 +254,11 @@ void DetachableJoint::PreUpdate(
         // We do this by creating a detachable joint entity.
         this->detachableJointEntity = _ecm.CreateEntity();
 
+        std::string type = (this->weldChildToParent) ? "weld" : "fixed";
         _ecm.CreateComponent(
             this->detachableJointEntity,
             components::DetachableJoint({this->parentLinkEntity,
-                                         this->childLinkEntity, "fixed"}));
+                                         this->childLinkEntity, type}));
         this->attachRequested = false;
         this->isAttached = true;
         this->PublishJointState(this->isAttached);
