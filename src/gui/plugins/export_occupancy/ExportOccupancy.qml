@@ -21,37 +21,23 @@ import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
 
-/*
-GridLayout {
-  columns: 8
-  columnSpacing: 10
-  Layout.minimumWidth: 350
-  Layout.minimumHeight: 500
-  anchors.fill: parent
-  anchors.leftMargin: 10
-  anchors.rightMargin: 10
-}*/
-
 Item {
     id: root
     anchors.fill: parent
 
-    property int lidarSamples: 0
-    property real lidarRange: 0.0
-    property real lidarRangeResolution: 0.0
+    property int lidarSamples: 640
+    property real lidarRange: 9.0
+    property real lidarRangeResolution: 0.01
     property real lidarAngularResolution: 0.0
     property real distanceFromLidarToGround: 0.0
-    property real occupancyGridCellResolution: 0.0
-    property int occupancyGridNumberOfHorizontalCells: 0
+    property real occupancyGridCellResolution: 0.1
+    property int occupancyGridNumberOfHorizontalCells: 100
+    property int occupancyGridNumberOfVerticalCells: 10 0
 
     ScrollView {
         anchors.fill: parent
-        ScrollBar.Horizontal: ScrollBar {
-            policy: ScrollBar.AlwaysOn // <--- This is the correct placement
-        }
-        ScrollBar.Vertical: ScrollBar {
-            policy: ScrollBar.AlwaysOff // <--- This is the correct placement
-        }
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+        ScrollBar.vertical.policy: ScrollBar.AlwaysOff
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 20
@@ -167,8 +153,8 @@ Item {
                     Layout.fillWidth: true
                     from: 0
                     to: 10000 // Adjust upper bound as needed
-                    value: root.occupancyGridNumberOfHorizontalCells
-                    onValueChanged: root.occupancyGridNumberOfHorizontalCells = value
+                    value: root.occupancyGridNumberOfVerticalCells
+                    onValueChanged: root.occupancyGridNumberOfVerticalCells = value
                     stepSize: 1
                 }
             }
@@ -184,6 +170,10 @@ Item {
                     console.log("Distance from Lidar to Ground:", root.distanceFromLidarToGround, "m")
                     console.log("Occupancy Grid Cell Resolution:", root.occupancyGridCellResolution, "m")
                     console.log("Occupancy Grid Number of Horizontal Cells:", root.occupancyGridNumberOfHorizontalCells)
+                    exportOccupancy.StartExport(
+                        root.lidarSamples, root.lidarRange, root.lidarRangeResolution, root.lidarAngularResolution,
+                        root.distanceFromLidarToGround, root.occupancyGridCellResolution, root.occupancyGridNumberOfHorizontalCells,
+                        root.occupancyGridNumberOfVerticalCells);
                 }
             }
         }
