@@ -1022,6 +1022,17 @@ math::AxisAlignedBox transformAxisAlignedBox(
   );
 }
 
+const std::string &staticPluginPrefixStr()
+{
+  return kStaticPluginFilenamePrefix;
+}
+
+bool isStaticPlugin(const std::string &_filename)
+{
+  return _filename.substr(0, staticPluginPrefixStr().size()) ==
+        staticPluginPrefixStr();
+}
+
 }
 }
 }
