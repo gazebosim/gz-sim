@@ -212,11 +212,23 @@ ApplyForceTorque::ApplyForceTorque()
 /////////////////////////////////////////////////
 ApplyForceTorque::~ApplyForceTorque()
 {
+  // Remove event filter to prevent events from being sent to a destroyed object
+  auto mainWindow = gz::gui::App()->findChild<gz::gui::MainWindow *>();
+  if (mainWindow)
+    mainWindow->removeEventFilter(this);
+
   if (!this->dataPtr->scene)
     return;
+  // Destroy rendering nodes to release resources
   this->dataPtr->scene->DestroyNode(this->dataPtr->forceVisual, true);
   this->dataPtr->scene->DestroyNode(this->dataPtr->torqueVisual, true);
   this->dataPtr->scene->DestroyNode(this->dataPtr->gizmoVisual, true);
+
+  // Set pointers to nullptr to avoid dangling references
+  this->dataPtr->forceVisual = nullptr;
+  this->dataPtr->torqueVisual = nullptr;
+  this->dataPtr->gizmoVisual = nullptr;
+  this->dataPtr->scene = nullptr;
 }
 
 /////////////////////////////////////////////////
