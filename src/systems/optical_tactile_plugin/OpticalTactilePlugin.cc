@@ -386,6 +386,9 @@ void OpticalTactilePlugin::PreUpdate(const UpdateInfo &_info,
     // We assume there's only one object being touched
     auto csd = _ecm.Component<components::ContactSensorData>(
       this->dataPtr->sensorCollisionEntity);
+    // Check the validity of contact data to avoid crashes
+    if(!csd || csd->Data().contact_size() == 0)
+      return;
     for (const auto &contact : csd->Data().contact())
     {
       this->dataPtr->objectCollisionEntity =
