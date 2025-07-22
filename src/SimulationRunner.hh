@@ -400,10 +400,15 @@ namespace gz
       /// requested pause state will be set.
       public: void SetForcedPause(bool _p);
 
-      /// \brief Create entities for the world simulated by this runner based
-      /// on the provided SDF Root object.
+      /// \brief Set the createEntities variable to true, and store the
+      /// provided SDF world. The simulation runner will create the entities
+      /// during the next Step.
       /// \param[in] _world SDF world created entities from.
-      public: void CreateEntities(const sdf::World &_world);
+      public: void SetCreateEntities(const sdf::World &_world);
+
+      /// \brief Helper function to create the entities. Call `SetCreateEntties`
+      /// before calling this function.
+      public: void CreateEntities();
 
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
@@ -597,6 +602,10 @@ namespace gz
       private: bool requestedPause{true};
 
       private: bool resetInitiated{false};
+
+      /// \brief True to create entities.
+      private: bool createEntities{false};
+
       friend class LevelManager;
     };
     }

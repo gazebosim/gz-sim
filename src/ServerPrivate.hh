@@ -119,6 +119,9 @@ namespace gz
       /// will block if _config.AsyncAssetDownload() is false.
       public: void DownloadAssets(const ServerConfig &_config);
 
+      /// \brief Fetch the queued simulation assets.
+      private: void FetchQueuedAssets();
+
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
       private: void OnSignal(int _sig);
@@ -233,6 +236,9 @@ namespace gz
 
       /// \brief Publisher of resource paths.
       private: transport::Node::Publisher pathPub;
+
+      // \brief Simulation asset download queue.
+      private: std::map<std::string, std::string> uriDownloadQueue;
     };
     }
   }

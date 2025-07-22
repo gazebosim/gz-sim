@@ -565,52 +565,48 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
 void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
     const QString &_name, const QString &_owner, int index)
 {
-  std::thread t([&, _path, _name, _owner, index]()
+  Resource modelResource;
+  std::string localPath;
+
+  // Set the waiting cursor while the resource downloads
+  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
+  if (this->dataPtr->fuelClient->DownloadModel(
+      common::URI(_path.toStdString(), true), localPath))
   {
-    Resource modelResource;
-    std::string localPath;
+    // Successful download, set thumbnail
+    std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
+    this->SetThumbnail(thumbnailPath, modelResource);
+    modelResource.isDownloaded = true;
+    modelResource.sdfPath = common::joinPaths(localPath, "model.sdf");
+    modelResource.isFuel = true;
+    // Update the current grid of resources
+    this->dataPtr->resourceModel.UpdateResourceModel(index, modelResource);
 
-    // Set the waiting cursor while the resource downloads
-    QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-    if (this->dataPtr->fuelClient->DownloadModel(
-        common::URI(_path.toStdString(), true), localPath))
+    // Update the ground truth ownerModelMap
+    if (this->dataPtr->ownerModelMap.find(_owner.toStdString()) !=
+        this->dataPtr->ownerModelMap.end())
     {
-      // Successful download, set thumbnail
-      std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
-      this->SetThumbnail(thumbnailPath, modelResource);
-      modelResource.isDownloaded = true;
-      modelResource.sdfPath = common::joinPaths(localPath, "model.sdf");
-      modelResource.isFuel = true;
-      // Update the current grid of resources
-      this->dataPtr->resourceModel.UpdateResourceModel(index, modelResource);
-
-      // Update the ground truth ownerModelMap
-      if (this->dataPtr->ownerModelMap.find(_owner.toStdString()) !=
-          this->dataPtr->ownerModelMap.end())
+      std::vector<Resource> fuelResources =
+        this->dataPtr->ownerModelMap[_owner.toStdString()];
+      for (auto &resource : fuelResources)
       {
-        std::vector<Resource> fuelResources =
-          this->dataPtr->ownerModelMap[_owner.toStdString()];
-        for (auto &resource : fuelResources)
+        if (resource.name == _name.toStdString())
         {
-          if (resource.name == _name.toStdString())
-          {
-            resource.isDownloaded = modelResource.isDownloaded;
-            resource.isFuel = modelResource.isFuel;
-            resource.sdfPath = modelResource.sdfPath;
-            this->SetThumbnail(thumbnailPath, resource);
-            this->dataPtr->ownerModelMap[_owner.toStdString()] = fuelResources;
-            break;
-          }
+          resource.isDownloaded = modelResource.isDownloaded;
+          resource.isFuel = modelResource.isFuel;
+          resource.sdfPath = modelResource.sdfPath;
+          this->SetThumbnail(thumbnailPath, resource);
+          this->dataPtr->ownerModelMap[_owner.toStdString()] = fuelResources;
+          break;
         }
       }
     }
-    else
-    {
-      gzwarn << "Download failed.  Try again." << std::endl;
-    }
-    QGuiApplication::restoreOverrideCursor();
-  });
-  t.detach();
+  }
+  else
+  {
+    gzwarn << "Download failed.  Try again." << std::endl;
+  }
+  QGuiApplication::restoreOverrideCursor();
 }
 
 /////////////////////////////////////////////////

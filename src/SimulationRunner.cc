@@ -258,7 +258,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
       this->serverConfig.UseLevels());
 
   if (_createEntities)
-    this->CreateEntities(_world);
+  {
+    this->SetCreateEntities(_world);
+    this->CreateEntities();
+  }
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -856,6 +859,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       processedIterations++;
     }
 
+    // Create entities if set.
+    if (this->createEntities)
+    {
+      this->CreateEntities();
+    }
+
     // If network, wait for network step, otherwise do our own step
     if (this->networkMgr)
     {
@@ -865,11 +874,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
     else
     {
-      if (this->assetCreationMutex.try_lock())
-      {
-        this->Step(this->currentInfo);
-        this->assetCreationMutex.unlock();
-      }
+      this->Step(this->currentInfo);
     }
 
     // Handle Server::RunOnce(false) in which a single paused run is executed
@@ -944,13 +949,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Process world control messages.
   this->ProcessMessages();
 
-  // Clear all new entities. Make sure that assets are not being created
-  // when clearing new entities.
-  //if (this->assetCreationMutex.try_lock())
-  {
-    this->entityCompMgr.ClearNewlyCreatedEntities();
-    //this->assetCreationMutex.unlock();
-  }
+  // Clear all new entities..
+  this->entityCompMgr.ClearNewlyCreatedEntities();
 
   // Recreate any entities that have the Recreate component
   // The entities will have different Entity ids but keep the same name
@@ -1619,11 +1619,21 @@ const sdf::World &SimulationRunner::WorldSdf() const
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::CreateEntities(const sdf::World &_world)
+void SimulationRunner::SetCreateEntities(const sdf::World &_world)
 {
   std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
-
   this->sdfWorld = _world;
+  this->createEntities = true;
+}
+
+void SimulationRunner::CreateEntities()
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  if (!this->createEntities)
+  {
+    gzerr << "Need to call SetCreateEntites before CreateEntities\n";
+    return;
+  }
 
   // Instantiate the SDF creator
   auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
@@ -1738,6 +1748,7 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
+  this->createEntities = false;
 
   // Allow the runner to resume normal operations.
   this->SetForcedPause(false);

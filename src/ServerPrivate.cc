@@ -32,6 +32,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/common/Timer.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 
@@ -587,11 +588,17 @@ bool ServerPrivate::ResourcePathsResolveService(
 //////////////////////////////////////////////////
 std::string ServerPrivate::FetchResource(const std::string &_uri)
 {
-  std::cerr << "******** FETCH RESOURCE[" << _uri << "] *******\n";
   // Handle gazebo classic material URIs.
   // Return original URI string as the SdfEntityCreator checks for this URI
   if (_uri == kClassicMaterialScriptUri)
     return _uri;
+
+  auto uriDownloadIter = this->uriDownloadQueue.find(_uri);
+  if (uriDownloadIter != this->uriDownloadQueue.end() &&
+      !uriDownloadIter->second.empty())
+  {
+    return uriDownloadIter->second;
+  }
 
   // Fetch resource from fuel
   std::string path;
@@ -607,7 +614,10 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
       }
       fuelUriMap[path] = _uri;
     }
+  } else {
+    this->uriDownloadQueue[_uri] = "";
   }
+
   return path;
 }
 
@@ -679,9 +689,7 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
         gzmsg << "Loading SDF world file[" << filePath << "].\n";
 
       sdf::Root sdfRootLocal;
-    std::cerr << "\n\n ================== DOWNLOADING ========================== \n\n";
       errors = sdfRootLocal.Load(filePath, sdfParserConfig);
-    std::cerr << "\n\n ================== Done DOWNLOADING ========================== \n\n";
       if (errors.empty() || _config.BehaviorOnSdfErrors() !=
           ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
       {
@@ -771,6 +779,9 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     if (!_config.AsyncAssetDownload())
       std::lock_guard threadLocalLock(assetMutex);
 
+    // Fetch queued assets
+    this->FetchQueuedAssets();
+
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
     ServerConfig cfg = _config;
@@ -800,8 +811,12 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
         return;
       }
 
-      // Create the entities for the simulation runner.
-      runner->CreateEntities(*world);
+      // Tell the SimulationRunner to create the entities on the next step.
+      runner->SetCreateEntities(*world);
+
+      // If not async download, then create entities right away.
+      if (!_config.AsyncAssetDownload())
+        runner->CreateEntities();
     }
     if (!_config.AsyncAssetDownload())
       assetCv.notify_one();
@@ -811,5 +826,28 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
   if (!_config.AsyncAssetDownload())
   {
     assetCv.wait(assetLock);
+  }
+}
+
+//////////////////////////////////////////////////
+void ServerPrivate::FetchQueuedAssets()
+{
+  common::WorkerPool pool(2);
+
+  // Download all of the queued assets
+  for (auto &keyValue : this->uriDownloadQueue) {
+    pool.AddWork([&keyValue, this] ()
+    {
+      this->uriDownloadQueue[keyValue.first] =
+        fuel_tools::fetchResourceWithClient(keyValue.first,
+                                            *this->fuelClient.get());
+    });
+  }
+
+  // Wait for the runner to complete.
+  bool result = pool.WaitForResults();
+  if (!result)
+  {
+    gzerr << "Worker pool failed to download queued simulation assets.\n";
   }
 }
