@@ -32,7 +32,6 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
-#include <gz/common/Timer.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 
@@ -148,7 +147,8 @@ void ServerPrivate::Stop()
     runner->Stop();
   }
 
-  // Nate: Kill the download thread. A goood test case is the tunnel.sdf world. Try CTRL-C while downloading.
+  if (this->downloadThread.joinable())
+    this->downloadThread.join();
 }
 
 /////////////////////////////////////////////////
@@ -737,12 +737,6 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
     }
   }
 
-  // Add record plugin
-  if (_config.UseLogRecord())
-  {
-    this->AddRecordPlugin(_config, _root);
-  }
-
   // If the world only contains a model, load the default
   // world and add the model to it.
   if (_root.WorldCount() == 0)
@@ -812,11 +806,14 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       }
 
       // Tell the SimulationRunner to create the entities on the next step.
-      runner->SetCreateEntities(*world);
+      if (this->running)
+      {
+        runner->SetCreateEntities(*world);
 
-      // If not async download, then create entities right away.
-      if (!_config.AsyncAssetDownload())
-        runner->CreateEntities();
+        // If not async download, then create entities right away.
+        if (!_config.AsyncAssetDownload())
+          runner->CreateEntities();
+      }
     }
     if (!_config.AsyncAssetDownload())
       assetCv.notify_one();
@@ -838,9 +835,11 @@ void ServerPrivate::FetchQueuedAssets()
   for (auto &keyValue : this->uriDownloadQueue) {
     pool.AddWork([&keyValue, this] ()
     {
-      this->uriDownloadQueue[keyValue.first] =
-        fuel_tools::fetchResourceWithClient(keyValue.first,
-                                            *this->fuelClient.get());
+      if (this->running) {
+        this->uriDownloadQueue[keyValue.first] =
+          fuel_tools::fetchResourceWithClient(keyValue.first,
+                                              *this->fuelClient.get());
+      }
     });
   }
 

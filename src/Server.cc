@@ -70,8 +70,8 @@ Server::Server(const ServerConfig &_config)
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
   // Turn off downloads so that we can do an initial parsing of the SDF
-  // file. This will let us get the world names, which in turn allows the
-  // GUI to not-block while simulation assets download.
+  // file. This will let us get the world names, and queue the simulation asset
+  // URIs for download.
   this->dataPtr->enableDownload = false;
 
   // Configure SDF to fetch assets from Gazebo Fuel.
@@ -92,6 +92,12 @@ Server::Server(const ServerConfig &_config)
     ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(
     cfg, sdfRoot);
+
+  // Add record plugin
+  if (_config.UseLogRecord())
+  {
+    this->dataPtr->AddRecordPlugin(_config, this->dataPtr->sdfRoot);
+  }
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
