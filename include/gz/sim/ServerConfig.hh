@@ -447,6 +447,18 @@ namespace gz
       public: const std::chrono::time_point<std::chrono::system_clock> &
               Timestamp() const;
 
+      /// \brief Set whether asset download should be done asynchronously.
+      /// The default value is false.
+      /// \param[in] _set False to wait while assets download. True will
+      /// download assets in a background thread.
+      public: void SetAsyncAssetDownload(bool _set);
+
+      /// \brief Get whether asset download should be done asynchronously.
+      /// The default value is false.
+      /// \return False if simulation should wait while assets download. True
+      /// indicates assets should be downloaded in a separate thread.
+      public: bool AsyncAssetDownload() const;
+
       /// \brief Get the type of source
       /// \return The source type.
       public: SourceType Source() const;

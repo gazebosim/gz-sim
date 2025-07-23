@@ -123,6 +123,11 @@ struct SimOptions
 
   /// \brief Flag to launch the GUI
   bool launchGui{false};
+
+  /// \brief A value of 0 (false) will wait for simulation assets to
+  /// download before starting simulation. A value of 1 (true) will
+  /// download simulation assets in a separate thread.
+  int asyncAssetDownload{0};
 };
 
 #ifdef WITH_GUI
@@ -391,6 +396,9 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
     },
     "Use the logging system to play back states.\n"
     "Argument is the path to recorded states.");
+
+  _app.add_flag("--async-asset-download", _opt->asyncAssetDownload,
+                "Download simulation assets in a background thread.");
 }
 
 //////////////////////////////////////////////////
@@ -490,7 +498,7 @@ int main(int argc, char** argv)
               opt->renderEngineGui.c_str(),
               opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
               opt->recordTopics, opt->waitGui, opt->headlessRendering,
-              opt->recordPeriod, opt->seed) != 0)
+              opt->recordPeriod, opt->seed, opt->asyncAssetDownload) != 0)
     {
       return -1;
     }
@@ -537,7 +545,7 @@ int main(int argc, char** argv)
                 opt->renderEngineGui.c_str(),
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                opt->recordPeriod, opt->seed) != 0)
+                opt->recordPeriod, opt->seed, opt->asyncAssetDownload) != 0)
       {
         return -1;
       }

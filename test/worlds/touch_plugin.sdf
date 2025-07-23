@@ -13,6 +13,10 @@
       filename="gz-sim-contact-system"
       name="gz::sim::systems::Contact">
     </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
 
     <model name="ground_plane">
       <static>true</static>

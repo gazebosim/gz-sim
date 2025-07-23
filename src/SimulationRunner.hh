@@ -77,9 +77,13 @@ namespace gz
       /// \param[in] _world Pointer to the SDF world.
       /// \param[in] _systemLoader Reference to system manager.
       /// \param[in] _useLevels Whether to use levles or not. False by default.
+      /// \param[in] _createEntities True to create entities. Use false if
+      /// you'd like to delay entity creation. False is used to support
+      /// simulation asset download in a background thread.
       public: explicit SimulationRunner(const sdf::World &_world,
                                 const SystemLoaderPtr &_systemLoader,
-                                const ServerConfig &_config = ServerConfig());
+                                const ServerConfig &_config = ServerConfig(),
+                                bool _createEntities = true);
 
       /// \brief Destructor.
       public: virtual ~SimulationRunner();
@@ -379,10 +383,19 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
-      /// \brief Create entities for the world simulated by this runner based
-      /// on the provided SDF Root object.
+      /// \brief Get a reference to the SDF world used by this runner.
+      /// \return Reference to the SDF world for this runner.
+      public: const sdf::World &WorldSdf() const;
+
+      /// \brief Set the createEntities variable to true, and store the
+      /// provided SDF world. The simulation runner will create the entities
+      /// during the next Step.
       /// \param[in] _world SDF world created entities from.
-      public: void CreateEntities(const sdf::World &_world);
+      public: void SetCreateEntities(const sdf::World &_world);
+
+      /// \brief Helper function to create the entities. Call `SetCreateEntties`
+      /// before calling this function.
+      public: void CreateEntities();
 
       /// \brief Process entities with the components::Recreate component.
       /// Put in a request to make them as removed
@@ -519,6 +532,12 @@ namespace gz
       /// \brief Mutex to protect message buffers.
       private: std::mutex msgBufferMutex;
 
+      /// \brief Asset creation mutex.
+      private: std::mutex assetCreationMutex;
+
+      /// \brief Asset creation condition variable.
+      private: std::condition_variable creationCv;
+
       /// \brief Keep the latest GUI message.
       public: msgs::GUI guiMsg;
 
@@ -554,10 +573,21 @@ namespace gz
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
 
+
       /// \brief Set if we need to remove systems due to entity removal
       private: bool threadsNeedCleanUp{false};
 
+      /// \brief During a forced pause, the user may request that simulation
+      /// should run. This flag will capture that request, and then be used
+      /// when the forced pause ends.
+      private: bool requestedPause{true};
+
       private: bool resetInitiated{false};
+
+      /// \brief True to create entities.
+      private: bool createEntities{false};
+      private: bool entitiesCreated{false};
+
       friend class LevelManager;
     };
     }
