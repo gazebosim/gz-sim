@@ -3,9 +3,9 @@ import os
 import gymnasium as gym
 import numpy as np
 
-from gz.common6 import set_verbosity
+from gz.common import set_verbosity
 from gz.sim import TestFixture, World, world_entity, Model, Link, get_install_prefix
-from gz.math8 import Vector3d
+from gz.math import Vector3d
 
 from stable_baselines3 import PPO
 import time
