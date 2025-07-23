@@ -593,6 +593,7 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
   if (_uri == kClassicMaterialScriptUri)
     return _uri;
 
+  // Return path that was returned during asset download.
   auto uriDownloadIter = this->uriDownloadQueue.find(_uri);
   if (uriDownloadIter != this->uriDownloadQueue.end() &&
       !uriDownloadIter->second.empty())
@@ -615,6 +616,7 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
       fuelUriMap[path] = _uri;
     }
   } else {
+    // Store the URI for future download.
     this->uriDownloadQueue[_uri] = "";
   }
 
@@ -806,14 +808,11 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       }
 
       // Tell the SimulationRunner to create the entities on the next step.
-      if (this->running)
-      {
-        runner->SetCreateEntities(*world);
+      runner->SetCreateEntities(*world);
 
-        // If not async download, then create entities right away.
-        if (!_config.AsyncAssetDownload())
-          runner->CreateEntities();
-      }
+      // If not async download, then create entities right away.
+      if (!_config.AsyncAssetDownload())
+        runner->CreateEntities();
     }
     if (!_config.AsyncAssetDownload())
       assetCv.notify_one();

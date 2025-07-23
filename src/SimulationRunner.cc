@@ -798,15 +798,21 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   uint64_t processedIterations{0};
 
   // Force a wait on asset creation if the number of requested iterations
-  // is greater than zero and forcedPause is true. The forcedPause variable
-  // default value is true, which means simulation is waiting for assets
-  // to download. We want to wait if iteration is greater than zero, because
+  // is greater than zero. We want to wait if the iterations are greater than zero because
   // the user has indicated a specific number of steps to take with all assets.
+  if (_iterations > 0)
   {
-    std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
-    if (_iterations > 0 && this->forcedPause)
+    bool created = false;
+    while(!created)
     {
-      this->creationCv.wait(createLock, [this]{return !this->forcedPause;});
+      {
+        std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
+        created = this->creationCv.wait_for(createLock, std::chrono::milliseconds(200),
+                                            [this]{return this->entitiesCreated;});
+      }
+ 
+      if (!created && this->createEntities)
+        this->CreateEntities();
     }
   }
 
@@ -815,6 +821,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
+    // Create entities if set. This needs to be called before updating the systems.
+    if (this->createEntities)
+    {
+      this->CreateEntities();
+    }
+
     GZ_PROFILE("SimulationRunner::Run - Iteration");
 
     // Update the step size and desired rtf
@@ -857,12 +869,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (!this->currentInfo.paused)
     {
       processedIterations++;
-    }
-
-    // Create entities if set.
-    if (this->createEntities)
-    {
-      this->CreateEntities();
     }
 
     // If network, wait for network step, otherwise do our own step
@@ -1153,17 +1159,6 @@ void SimulationRunner::SetUpdatePeriod(
 /////////////////////////////////////////////////
 void SimulationRunner::SetPaused(const bool _paused)
 {
-  // Skip if attempting to unpause while initial set of models are being
-  // downloaded in the background. We must remain paused while downloading.
-  if (!_paused && this->forcedPause)
-  {
-    gzmsg << "Received an unpause request while simulation assets are "
-          << "downloading. Simulation will start running once all the "
-          << "assets are downloaded.\n";
-    this->requestedPause = _paused;
-    return;
-  }
-
   // Only update the realtime clock if Run() has been called.
   if (this->running)
   {
@@ -1587,32 +1582,6 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::SetForcedPause(bool _p)
-{
-  bool setRequested = this->forcedPause && !_p;
-  bool setPaused = !this->forcedPause && _p;
-
-  this->forcedPause = _p;
-
-  // If the simulation runnner was in a forced pause state before this
-  // function call and the new forced pause state is false, then use
-  // the requested pause state for the simulation runner. The default
-  // value of the requested pause state is true, which will default
-  // simulation to start paused.
-  //
-  // else if the simulation runner was not in a forced pause state
-  // before this function call and the new forced pause state is true,
-  // then make sure the simulation runner is in a pause state.
-  //
-  // Cases where the prior forcedPause value equals the passed in
-  // forced pause state is a no-op.
-  if (setRequested)
-    this->SetPaused(this->requestedPause);
-  else if (setPaused)
-    this->SetPaused(setPaused);
-}
-
-//////////////////////////////////////////////////
 const sdf::World &SimulationRunner::WorldSdf() const
 {
   return this->sdfWorld;
@@ -1749,9 +1718,7 @@ void SimulationRunner::CreateEntities()
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
   this->createEntities = false;
-
-  // Allow the runner to resume normal operations.
-  this->SetForcedPause(false);
+  this->entitiesCreated = true;
   this->creationCv.notify_all();
 }
 

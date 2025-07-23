@@ -387,19 +387,6 @@ namespace gz
       /// \return Reference to the SDF world for this runner.
       public: const sdf::World &WorldSdf() const;
 
-      /// \brief Set whether the paused state of true should be enforced.
-      /// Setting this to true will force simulation to pause, and it can only
-      /// be unpaused if this function is called with a false parameter value.
-      ///
-      /// Do not expose this API function. It's meant as mechanism to
-      /// override user commands in specific situations, such as initial model
-      /// download.
-      ///
-      /// \param[in] _p True to force simulation to pause. False to unpause.
-      /// When false is passed in and the previous value was true, then the
-      /// requested pause state will be set.
-      public: void SetForcedPause(bool _p);
-
       /// \brief Set the createEntities variable to true, and store the
       /// provided SDF world. The simulation runner will create the entities
       /// during the next Step.
@@ -590,12 +577,6 @@ namespace gz
       /// \brief Set if we need to remove systems due to entity removal
       private: bool threadsNeedCleanUp{false};
 
-      /// \brief On start, the server may download models in the
-      /// background. The simulation runner must remain paused while this
-      /// takes place. This flag can be used to make sure simulation stays
-      /// paused.
-      private: bool forcedPause{true};
-
       /// \brief During a forced pause, the user may request that simulation
       /// should run. This flag will capture that request, and then be used
       /// when the forced pause ends.
@@ -605,6 +586,7 @@ namespace gz
 
       /// \brief True to create entities.
       private: bool createEntities{false};
+      private: bool entitiesCreated{false};
 
       friend class LevelManager;
     };

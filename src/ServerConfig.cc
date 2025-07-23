@@ -212,9 +212,9 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
+            sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
-            sdfRoot(_cfg->sdfRoot),
             asyncAssetDownload(_cfg->asyncAssetDownload) { }
 
   // \brief The SDF file that the server should load
@@ -294,15 +294,15 @@ class gz::sim::ServerConfigPrivate
   /// \brief is the headless mode active.
   public: bool isHeadlessRendering{false};
 
+  /// \brief Optional SDF root object.
+  public: std::optional<sdf::Root> sdfRoot{std::nullopt};
+
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
 
   /// \brief Server loading behavior in presence of SDF errors.
   public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
       ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
-
-  /// \brief Optional SDF root object.
-  public: std::optional<sdf::Root> sdfRoot{std::nullopt};
 
   /// \brief False to block while simulation assets download.
   public: bool asyncAssetDownload{false};

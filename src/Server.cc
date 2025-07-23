@@ -123,6 +123,11 @@ Server::Server(const ServerConfig &_config)
   // download.
   this->dataPtr->SetupTransport();
 
+  // If we've received a signal before we create entities, the Stop event
+  // won't be propagated to them. Instead, we just quit early here.
+  if (this->dataPtr->signalReceived)
+    return;
+
   // Download the simulation assets. This function will block if
   // _config.AsyncAssetDownload() is false;
   this->dataPtr->DownloadAssets(_config);
