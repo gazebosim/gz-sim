@@ -358,14 +358,6 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] _ecm The entity component manager.
   public: void UpdateModelsBoundingBoxes(EntityComponentManager &_ecm);
 
-  /// \brief Get physics engine from plugin and verify it has all
-  /// requested features.
-  /// \param[in] _plugin Physics engine plugin to check
-  /// \return The physics engine pointer or null if the plugin
-  /// does not contain a physics engine that has the requested features.
-  // public: EngineTypePtr RequestPhysicsEngineFromPlugin(
-  //     const plugin::PluginPtr &_plugin);
-
   /// \brief Cache the top-level model for each entity.
   /// The key is an entity and the value is its top level model.
   public: std::unordered_map<Entity, Entity> topLevelModelMap;
@@ -867,7 +859,6 @@ void Physics::Configure(const Entity &_entity,
     const std::string pluginToInstantiate =
         pluginLib.substr(prefixLen);
     auto plugin = pluginLoader.Instantiate(pluginToInstantiate);
-    //this->dataPtr->engine = this->RequestPhysicsEngineFromPlugin(plugin);
 
     this->dataPtr->engine = physics::RequestEngine<
       physics::FeaturePolicy3d,
@@ -879,7 +870,6 @@ void Physics::Configure(const Entity &_entity,
       gzerr << "Failed to load physics engine plugin: "
             << "(Reason: static plugin registry does not contain the requested "
                "plugin)\n"
-            // << "- Requested plugin name: [" << _sdfPlugin.Name() << "]\n"
             << "- Requested plugin name: [" << pluginLib << "]\n";
       return;
     }
@@ -906,7 +896,6 @@ void Physics::Configure(const Entity &_entity,
     }
 
     // Load engine plugin
-    // plugin::Loader pluginLoader;
     auto plugins = pluginLoader.LoadLib(pathToLib);
     if (plugins.empty())
     {
@@ -4504,40 +4493,6 @@ void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
       return true;
     });
 }
-
-/*
-//////////////////////////////////////////////////
-EnginePtrType PhysicsPrivate::RequestPhysicsEngineFromPlugin(
-    const plugin::PluginPtr &_plugin)
-{
-  EnginePtrType enginePtr = physics::RequestEngine<
-    physics::FeaturePolicy3d,
-    PhysicsPrivate::MinimumFeatureList>::From(_plugin);
-
-  if (nullptr != enginePtr)
-  {
-    gzdbg << "Loaded [" << className << "] from library ["
-           << pathToLib << "]" << std::endl;
-    return enginePtr;
-  }
-
-  auto missingFeatures = physics::RequestEngine<
-      physics::FeaturePolicy3d,
-      PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
-
-  std::stringstream msg;
-  msg << "Plugin [" << className << "] misses required features:"
-      << std::endl;
-  for (auto feature : missingFeatures)
-  {
-    msg << "- " << feature << std::endl;
-  }
-  gzwarn << msg.str();
-  return nullptr;
-}
-*/
-
-
 
 GZ_ADD_PLUGIN(Physics,
                     System,

@@ -674,6 +674,7 @@ gz_sim_system_libraries(
         "@gz-sensors",
         "@gz-sensors//:dvl",
         "@gz-transport",
+        "@gz-utils//:ImplPtr",
     ],
 )
 
