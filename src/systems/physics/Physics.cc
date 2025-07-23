@@ -26,6 +26,7 @@
 #include <iostream>
 #include <deque>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -514,7 +515,8 @@ class gz::sim::systems::PhysicsPrivate
             JointFeatureList,
             physics::AttachFixedJointFeature,
             physics::DetachJointFeature,
-            physics::SetJointTransformFromParentFeature>{};
+            physics::SetJointTransformFromParentFeature,
+            physics::SetDynamicJointConstraintPropertiesFeature>{};
 
   //////////////////////////////////////////////////
   // Joint transmitted wrench
@@ -1966,6 +1968,25 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         {
           gzerr << "DetachableJoint could not be created." << std::endl;
         }
+
+        // Set joint constraint properties
+        if (_jointInfo->Data().cfm.has_value())
+        {
+          gzdbg << "SetConstraintForceMixing: "
+                << _jointInfo->Data().cfm.value()
+                << std::endl;
+          childLinkDetachableJointFeature->SetConstraintForceMixing(
+              _jointInfo->Data().cfm.value());
+        }
+        if (_jointInfo->Data().erp.has_value())
+        {
+          gzdbg << "SetErrorReductionParameter: "
+                << _jointInfo->Data().erp.value()
+                << std::endl;
+          childLinkDetachableJointFeature->SetErrorReductionParameter(
+              _jointInfo->Data().erp.value());
+        }
+
         return true;
       });
 
