@@ -88,7 +88,8 @@ int createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         const char *_renderEngineGuiApiBackend,
                         const char *_file,
                         std::vector<std::string> _recordTopics, int _waitGui,
-                        int _headless, float _recordPeriod, int _seed, int _asyncAssetDownload);
+                        int _headless, float _recordPeriod, int _seed,
+                        int _asyncAssetDownload);
 
 #ifdef WITH_GUI
 /// \brief Run simulation GUI.

@@ -798,8 +798,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   uint64_t processedIterations{0};
 
   // Force a wait on asset creation if the number of requested iterations
-  // is greater than zero. We want to wait if the iterations are greater than zero because
-  // the user has indicated a specific number of steps to take with all assets.
+  // is greater than zero. We want to wait if the iterations are greater
+  // than zero because the user has indicated a specific number of steps
+  // to take with all assets.
   if (_iterations > 0)
   {
     bool created = false;
@@ -807,10 +808,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
-        created = this->creationCv.wait_for(createLock, std::chrono::milliseconds(200),
-                                            [this]{return this->entitiesCreated;});
+        created = this->creationCv.wait_for(createLock,
+          std::chrono::milliseconds(200),
+          [this]{return this->entitiesCreated;});
       }
- 
+
       if (!created && this->createEntities)
         this->CreateEntities();
     }
@@ -821,7 +823,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
-    // Create entities if set. This needs to be called before updating the systems.
+    // Create entities if set. This needs to be called before updating
+    // the systems.
     if (this->createEntities)
     {
       this->CreateEntities();
