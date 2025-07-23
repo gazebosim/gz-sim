@@ -925,9 +925,6 @@ void Physics::Configure(const Entity &_entity,
         continue;
       }
 
-      //this->dataPtr->engine =
-      //    this->dataPtr->RequestPhysicsEngineFromPlugin(plugin);
-
       this->dataPtr->engine = physics::RequestEngine<
         physics::FeaturePolicy3d,
         PhysicsPrivate::MinimumFeatureList>::From(plugin);
