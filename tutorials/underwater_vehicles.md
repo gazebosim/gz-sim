@@ -231,7 +231,7 @@ control. Fortunately, Gazebo already has a version of the LiftDrag plugin. In
 this tutorial, we will simply add two liftdrag plugins to the rudder and
 elevator of MBARI's LRAUV. For more info about the liftdrag plugin including
 what the parameters mean, you may look
-at [this gazebo classic tutorial](http://gazebosim.org/tutorials?tut=aerodynamics&cat=physics).
+at [this gazebo classic tutorial](http://classic.gazebosim.org/tutorials?tut=aerodynamics&cat=physics).
 Essentially when we tilt the fins, we should experience a lift force which
 will cause the vehicle to experience a torque and the vehicle should start
 turning when we move.
