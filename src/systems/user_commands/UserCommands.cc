@@ -463,7 +463,8 @@ class gz::sim::systems::UserCommandsPrivate
   /// \param[in] _serviceName (Optional) Name of service used in console
   /// message. If nullptr, no console message will be emitted
   public: template <typename CommantT, typename InputT>
-  void AdvertiseService(const std::string &_topic, const char* _serviceName = nullptr);
+  void AdvertiseService(const std::string &_topic,
+                        const char *_serviceName = nullptr);
 
   /// \brief Callback for light subscription
   /// \param[in] _msg Light message
@@ -588,8 +589,8 @@ void UserCommands::Configure(const Entity &_entity,
   // Create service
   this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory>(
       "/world/" + validWorldName + "/create");
-  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory_V>("/world/" + validWorldName +
-      "/create_multiple", "Create");
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory_V>(
+      "/world/" + validWorldName + "/create_multiple", "Create");
 
   // Remove service
   this->dataPtr->AdvertiseService<RemoveCommand, msgs::Entity>(
@@ -715,7 +716,8 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 
 //////////////////////////////////////////////////
 template <typename CommantT, typename InputT>
-void UserCommandsPrivate::AdvertiseService(const std::string &_topic, const char *_serviceName)
+void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
+                                           const char *_serviceName)
 {
   this->node.Advertise(
       _topic, &UserCommandsPrivate::ServiceHandler<CommantT, InputT>, this);
@@ -725,7 +727,8 @@ void UserCommandsPrivate::AdvertiseService(const std::string &_topic, const char
 
 //////////////////////////////////////////////////
 template <typename CommantT, typename InputT>
-bool UserCommandsPrivate::ServiceHandler(const InputT &_req, msgs::Boolean &_res)
+bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
+                                         msgs::Boolean &_res)
 {
   auto msg = _req.New();
   msg->CopyFrom(_req);
@@ -777,7 +780,8 @@ bool CreateCommand::Execute()
     if (nullptr != createMsgV)
     {
       bool result = true;
-      for(const auto &msgItem: createMsgV->data()){
+      for (const auto &msgItem : createMsgV->data())
+      {
         result = result && this->CreateFromMsg(msgItem);
       }
       return result;
