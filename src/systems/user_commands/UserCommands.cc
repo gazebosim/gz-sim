@@ -18,6 +18,7 @@
  */
 
 #include "UserCommands.hh"
+#include <future>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -142,6 +143,10 @@ class UserCommandBase
   /// function and update entities and components so the command takes effect.
   /// \return True if command was properly executed.
   public: virtual bool Execute() = 0;
+
+  /// \brief Promise that is used to exchange the result of the command
+  /// execution with the service handler.
+  public: std::promise<bool> promise;
 
   /// \brief Message containing command.
   protected: google::protobuf::Message *msg{nullptr};
@@ -676,7 +681,9 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
   for (auto &cmd : cmds)
   {
     // Execute
-    if (!cmd->Execute())
+    bool result = cmd->Execute();
+    cmd->promise.set_value(result);
+    if (result)
       continue;
 
     // TODO(louise) Update command with current world state
@@ -733,13 +740,15 @@ bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
   auto msg = _req.New();
   msg->CopyFrom(_req);
   auto cmd = std::make_unique<CommantT>(msg, this->iface);
+  auto future = cmd->promise.get_future();
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
     this->pendingCmds.push_back(std::move(cmd));
   }
 
-  _res.set_data(true);
+  // This blocks until the command is executed.
+  _res.set_data(future.get());
   return true;
 }
 
@@ -749,6 +758,7 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     : msg(_msg), iface(_iface)
 {
 }
+
 
 //////////////////////////////////////////////////
 UserCommandBase::~UserCommandBase()
