@@ -687,6 +687,18 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
+void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
+{
+  auto msg = _msg.New();
+  msg->CopyFrom(_msg);
+  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
+
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+}
 void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 {
   auto msg = _msg.New();
