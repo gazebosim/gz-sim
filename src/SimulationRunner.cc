@@ -803,7 +803,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // to take with all assets.
   if (_iterations > 0)
   {
-    bool created = false;
+    bool created = this->entitiesCreated;
     while(!created)
     {
       {
