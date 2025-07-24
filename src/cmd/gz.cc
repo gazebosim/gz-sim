@@ -213,7 +213,7 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
-    int _headless, float _recordPeriod, int _seed, int _asyncAssetDownload)
+    int _headless, float _recordPeriod, int _seed, int _waitForAssets)
 {
   std::string startingWorldPath{""};
 
@@ -495,7 +495,7 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     gzmsg << "Setting seed value: " << _seed << "\n";
   }
 
-  _config.SetAsyncAssetDownload(_asyncAssetDownload);
+  _config.SetWaitForAssets(_waitForAssets);
 
   return 0;
 }

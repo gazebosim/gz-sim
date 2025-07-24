@@ -215,7 +215,7 @@ class gz::sim::ServerConfigPrivate
             sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
-            asyncAssetDownload(_cfg->asyncAssetDownload) { }
+            waitForAssets(_cfg->waitForAssets) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -304,8 +304,8 @@ class gz::sim::ServerConfigPrivate
   public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
       ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
 
-  /// \brief False to block while simulation assets download.
-  public: bool asyncAssetDownload{false};
+  /// \brief True to block while simulation assets download.
+  public: bool waitForAssets{false};
 };
 
 //////////////////////////////////////////////////
@@ -747,15 +747,15 @@ ServerConfig::Timestamp() const
 }
 
 /////////////////////////////////////////////////
-void ServerConfig::SetAsyncAssetDownload(bool _set)
+void ServerConfig::SetWaitForAssets(bool _set)
 {
-  this->dataPtr->asyncAssetDownload = _set;
+  this->dataPtr->waitForAssets = _set;
 }
 
 /////////////////////////////////////////////////
-bool ServerConfig::AsyncAssetDownload() const
+bool ServerConfig::WaitForAssets() const
 {
-  return this->dataPtr->asyncAssetDownload;
+  return this->dataPtr->waitForAssets;
 }
 
 /////////////////////////////////////////////////

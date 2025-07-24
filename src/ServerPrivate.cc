@@ -772,7 +772,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
   // Download models in a separate thread.
   this->downloadThread = std::thread([&]()
   {
-    if (!_config.AsyncAssetDownload())
+    if (_config.WaitForAssets())
       std::lock_guard threadLocalLock(assetMutex);
 
     // Fetch queued assets
@@ -810,16 +810,16 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       // Tell the SimulationRunner to create the entities on the next step.
       runner->SetCreateEntities(*world);
 
-      // If not async download, then create entities right away.
-      if (!_config.AsyncAssetDownload())
+      // If wait for assets, then create entities right away.
+      if (_config.WaitForAssets())
         runner->CreateEntities();
     }
-    if (!_config.AsyncAssetDownload())
+    if (_config.WaitForAssets())
       assetCv.notify_one();
   });
 
   // Wait for assets to download if configured to do so.
-  if (!_config.AsyncAssetDownload())
+  if (_config.WaitForAssets())
   {
     assetCv.wait(assetLock);
   }

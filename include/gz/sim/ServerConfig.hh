@@ -449,15 +449,15 @@ namespace gz
 
       /// \brief Set whether asset download should be done asynchronously.
       /// The default value is false.
-      /// \param[in] _set False to wait while assets download. True will
+      /// \param[in] _set True to wait while assets download. False will
       /// download assets in a background thread.
-      public: void SetAsyncAssetDownload(bool _set);
+      public: void SetWaitForAssets(bool _set);
 
       /// \brief Get whether asset download should be done asynchronously.
-      /// The default value is false.
-      /// \return False if simulation should wait while assets download. True
+      /// The default value is true.
+      /// \return True if simulation should wait while assets download. False
       /// indicates assets should be downloaded in a separate thread.
-      public: bool AsyncAssetDownload() const;
+      public: bool WaitForAssets() const;
 
       /// \brief Get the type of source
       /// \return The source type.
