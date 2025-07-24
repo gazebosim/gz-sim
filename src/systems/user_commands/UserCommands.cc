@@ -18,7 +18,10 @@
  */
 
 #include "UserCommands.hh"
+#include <chrono>
 #include <future>
+#include <gz/common/Util.hh>
+#include <iostream>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -490,6 +493,10 @@ class gz::sim::systems::UserCommandsPrivate
 
   /// \brief Mutex to protect pending queue.
   public: std::mutex pendingMutex;
+
+  /// \brief Global timeout settings for services.
+  /// \TODO(azeey) Consider making this configurable.
+  public: const unsigned int kServiceHandlerTimeoutMs{5000};
 };
 
 /// \brief Pose3d equality comparison function.
@@ -683,7 +690,7 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     // Execute
     bool result = cmd->Execute();
     cmd->promise.set_value(result);
-    if (result)
+    if (!result)
       continue;
 
     // TODO(louise) Update command with current world state
@@ -748,8 +755,13 @@ bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
   }
 
   // This blocks until the command is executed.
-  _res.set_data(future.get());
-  return true;
+  if (future.wait_for(std::chrono::milliseconds(kServiceHandlerTimeoutMs)) ==
+      std::future_status::ready)
+  {
+    _res.set_data(future.get());
+    return true;
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////
