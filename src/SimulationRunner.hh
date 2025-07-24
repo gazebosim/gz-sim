@@ -37,7 +37,6 @@
 #include <sdf/World.hh>
 
 #include <gz/common/Event.hh>
-#include <gz/common/WorkerPool.hh>
 #include <gz/math/Stopwatch.hh>
 #include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
@@ -409,9 +408,6 @@ namespace ignition
 
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
-
-      /// \brief A pool of worker threads.
-      private: common::WorkerPool workerPool{2};
 
       /// \brief Wall time of the previous update.
       private: std::chrono::steady_clock::time_point prevUpdateRealTime;
