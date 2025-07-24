@@ -456,6 +456,15 @@ class gz::sim::systems::UserCommandsPrivate
   public: template <typename CommantT, typename InputT>
   bool ServiceHandler(const InputT &_req, msgs::Boolean &_res);
 
+  /// \brief Temlpate for advertising services
+  /// \tparam CommandT Type for the command that associated with the service.
+  /// \tparam InputT Type form gz::msgs of the input parameter.
+  /// \param[in] _topic Topic of the service to advertise
+  /// \param[in] _serviceName (Optional) Name of service used in console
+  /// message. If nullptr, no console message will be emitted
+  public: template <typename CommantT, typename InputT>
+  void AdvertiseService(const std::string &_topic, const char* _serviceName = nullptr);
+
   /// \brief Callback for light subscription
   /// \param[in] _msg Light message
   public: void OnCmdLight(const msgs::Light &_msg);
@@ -577,57 +586,26 @@ void UserCommands::Configure(const Entity &_entity,
   }
 
   // Create service
-  std::string createService{"/world/" + validWorldName + "/create"};
-  this->dataPtr->node.Advertise(createService,
-      &UserCommandsPrivate::ServiceHandler<CreateCommand, msgs::EntityFactory>, this->dataPtr.get());
-
-  // Create service for EntityFactory_V
-  std::string createServiceMultiple{"/world/" + validWorldName +
-      "/create_multiple"};
-  this->dataPtr->node.Advertise(
-      createServiceMultiple,
-      &UserCommandsPrivate::ServiceHandler<CreateCommand, msgs::EntityFactory_V>,
-      this->dataPtr.get());
-
-  gzmsg << "Create service on [" << createService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory>(
+      "/world/" + validWorldName + "/create");
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory_V>("/world/" + validWorldName +
+      "/create_multiple", "Create");
 
   // Remove service
-  std::string removeService{"/world/" + validWorldName + "/remove"};
-  this->dataPtr->node.Advertise(
-      removeService,
-      &UserCommandsPrivate::ServiceHandler<RemoveCommand, msgs::Entity>,
-      this->dataPtr.get());
-
-  gzmsg << "Remove service on [" << removeService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<RemoveCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/remove", "Remove");
 
   // Pose service
-  std::string poseService{"/world/" + validWorldName + "/set_pose"};
-  this->dataPtr->node.Advertise(
-      poseService,
-      &UserCommandsPrivate::ServiceHandler<PoseCommand, msgs::Pose>,
-      this->dataPtr.get());
-
-  gzmsg << "Pose service on [" << poseService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PoseCommand, msgs::Pose>(
+      "/world/" + validWorldName + "/set_pose", "Pose");
 
   // Pose vector service
-  std::string poseVectorService{
-    "/world/" + validWorldName + "/set_pose_vector"};
-  this->dataPtr->node.Advertise(
-      poseVectorService,
-      &UserCommandsPrivate::ServiceHandler<PoseVectorCommand, msgs::Pose_V>,
-      this->dataPtr.get());
-
-  gzmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PoseVectorCommand, msgs::Pose_V>(
+      "/world/" + validWorldName + "/set_pose_vector", "Pose");
 
   // Light service
-  std::string lightService{"/world/" + validWorldName + "/light_config"};
-  this->dataPtr->node.Advertise(
-      lightService,
-      &UserCommandsPrivate::ServiceHandler<LightCommand, msgs::Light>,
-      this->dataPtr.get());
-
-  gzmsg << "Light configuration service on [" << lightService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<LightCommand, msgs::Light>(
+      "/world/" + validWorldName + "/light_config", "Light configuration");
 
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
@@ -648,70 +626,31 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 
   // Physics service
-  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
-  this->dataPtr->node.Advertise(
-      physicsService,
-      &UserCommandsPrivate::ServiceHandler<PhysicsCommand, msgs::Physics>,
-      this->dataPtr.get());
-
-  gzmsg << "Physics service on [" << physicsService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PhysicsCommand, msgs::Physics>(
+      "/world/" + validWorldName + "/set_physics", "Physics");
 
   // Spherical coordinates service
-  std::string sphericalCoordinatesService{"/world/" + validWorldName +
-      "/set_spherical_coordinates"};
-  this->dataPtr->node.Advertise(
-      sphericalCoordinatesService,
-      &UserCommandsPrivate::ServiceHandler<SphericalCoordinatesCommand,
-                                           msgs::SphericalCoordinates>,
-      this->dataPtr.get());
-
-  gzmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
-         << "]" << std::endl;
+  this->dataPtr->AdvertiseService<SphericalCoordinatesCommand,
+                                  msgs::SphericalCoordinates>(
+      "/world/" + validWorldName + "/set_spherical_coordinates",
+      "SphericalCoordinates");
 
   // Enable collision service
-  std::string enableCollisionService{
-    "/world/" + validWorldName + "/enable_collision"};
-  this->dataPtr->node.Advertise(
-      enableCollisionService,
-      &UserCommandsPrivate::ServiceHandler<EnableCollisionCommand,
-                                           msgs::Entity>,
-      this->dataPtr.get());
-
-  gzmsg << "Enable collision service on [" << enableCollisionService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<EnableCollisionCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/enable_collision", "Enable collision");
 
   // Disable collision service
-  std::string disableCollisionService{
-    "/world/" + validWorldName + "/disable_collision"};
-  this->dataPtr->node.Advertise(
-      disableCollisionService,
-      &UserCommandsPrivate::ServiceHandler<DisableCollisionCommand,
-                                           msgs::Entity>,
-      this->dataPtr.get());
-
-  gzmsg << "Disable collision service on [" << disableCollisionService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<DisableCollisionCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/disable_collision", "Disable collision");
 
   // Visual service
-  std::string visualService
-      {"/world/" + validWorldName + "/visual_config"};
-  this->dataPtr->node.Advertise(
-      visualService,
-      &UserCommandsPrivate::ServiceHandler<VisualCommand, msgs::Visual>,
-      this->dataPtr.get());
-
-  gzmsg << "Material service on [" << visualService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<VisualCommand, msgs::Visual>(
+      "/world/" + validWorldName + "/visual_config", "Material");
 
   // Wheel slip service
-  std::string wheelSlipService
-      {"/world/" + validWorldName + "/wheel_slip"};
-  this->dataPtr->node.Advertise(
-      wheelSlipService,
-      &UserCommandsPrivate::ServiceHandler<WheelSlipCommand,
-                                           msgs::WheelSlipParametersCmd>,
-      this->dataPtr.get());
-
-  gzmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
+  this->dataPtr
+      ->AdvertiseService<WheelSlipCommand, msgs::WheelSlipParametersCmd>(
+          "/world/" + validWorldName + "/wheel_slip", "Material");
 }
 
 //////////////////////////////////////////////////
@@ -760,6 +699,16 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
   }
 
   return;
+}
+
+//////////////////////////////////////////////////
+template <typename CommantT, typename InputT>
+void UserCommandsPrivate::AdvertiseService(const std::string &_topic, const char *_serviceName)
+{
+  this->node.Advertise(
+      _topic, &UserCommandsPrivate::ServiceHandler<CommantT, InputT>, this);
+  if (_serviceName != nullptr)
+    gzmsg << _serviceName << " service on [" << _topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
