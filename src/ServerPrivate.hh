@@ -172,7 +172,10 @@ namespace gz
         const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
 
       /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool{2};
+      /// \note We use optional here since most of the time, there will be a
+      /// single simulation runner and a workerpool is not needed. We will
+      /// initialize the workerpool as necessary later on.
+      public: std::optional<common::WorkerPool> workerPool;
 
       /// \brief All the simulation runners.
       public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;
