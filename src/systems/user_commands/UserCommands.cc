@@ -453,7 +453,7 @@ class gz::sim::systems::UserCommandsPrivate
   /// \tparam InputT Type form gz::msgs of the input parameter.
   /// \param[in] _req Input parameter message of the service.
   /// \param[out] _res Output parameter message of the service.
-  public: template <typename CommantT, typename InputT>
+  public: template <typename CommandT, typename InputT>
   bool ServiceHandler(const InputT &_req, msgs::Boolean &_res);
 
   /// \brief Temlpate for advertising services
@@ -462,7 +462,7 @@ class gz::sim::systems::UserCommandsPrivate
   /// \param[in] _topic Topic of the service to advertise
   /// \param[in] _serviceName (Optional) Name of service used in console
   /// message. If nullptr, no console message will be emitted
-  public: template <typename CommantT, typename InputT>
+  public: template <typename CommandT, typename InputT>
   void AdvertiseService(const std::string &_topic,
                         const char *_serviceName = nullptr);
 
@@ -715,24 +715,24 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 }
 
 //////////////////////////////////////////////////
-template <typename CommantT, typename InputT>
+template <typename CommandT, typename InputT>
 void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
                                            const char *_serviceName)
 {
   this->node.Advertise(
-      _topic, &UserCommandsPrivate::ServiceHandler<CommantT, InputT>, this);
+      _topic, &UserCommandsPrivate::ServiceHandler<CommandT, InputT>, this);
   if (_serviceName != nullptr)
     gzmsg << _serviceName << " service on [" << _topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-template <typename CommantT, typename InputT>
+template <typename CommandT, typename InputT>
 bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
                                          msgs::Boolean &_res)
 {
   auto msg = _req.New();
   msg->CopyFrom(_req);
-  auto cmd = std::make_unique<CommantT>(msg, this->iface);
+  auto cmd = std::make_unique<CommandT>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
