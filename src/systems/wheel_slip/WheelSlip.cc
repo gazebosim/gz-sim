@@ -135,7 +135,7 @@ class gz::sim::systems::WheelSlipPrivate
   public: bool validConfig{false};
   public: bool initialized{false};
 
-  /// \brief Transport paramerter registry. A number of surface params will
+  /// \brief Transport parameter registry. A number of surface params will
   /// be exposed in the registry for user configuration.
   public: transport::parameters::ParametersRegistry *registry{nullptr};
 
@@ -647,7 +647,7 @@ void WheelSlipPrivate::SetSurfaceProperties(
           _params.secondaryFrictionCoeff.has_value())
       {
         pprint = false;
-        std::cerr << " friction coeff orignal vs new "
+        std::cerr << " friction coeff original vs new "
            << _params.frictionCoeff.value() << ", "
            << linkSurface.second.frictionCoeffPrimary << " :  "
            << _params.secondaryFrictionCoeff.value() << ", "
