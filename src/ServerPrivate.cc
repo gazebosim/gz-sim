@@ -768,18 +768,16 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 //////////////////////////////////////////////////
 void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 {
-  std::mutex assetMutex;
-  std::condition_variable assetCv;
-  std::unique_lock assetLock(assetMutex);
+  std::unique_lock assetLock(this->downloadAssetMutex);
 
   // Enable simulation asset download
   this->enableDownload = true;
 
   // Download models in a separate thread.
-  this->downloadThread = std::thread([&]()
+  this->downloadThread = std::thread([&, _config]()
   {
     if (_config.WaitForAssets())
-      std::lock_guard threadLocalLock(assetMutex);
+      std::lock_guard threadLocalLock(this->downloadAssetMutex);
 
     // Fetch queued assets
     this->FetchQueuedAssets();
@@ -821,13 +819,13 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
         runner->CreateEntities();
     }
     if (_config.WaitForAssets())
-      assetCv.notify_one();
+      this->downloadAssetCv.notify_one();
   });
 
   // Wait for assets to download if configured to do so.
   if (_config.WaitForAssets())
   {
-    assetCv.wait(assetLock);
+    this->downloadAssetCv.wait(assetLock);
   }
 }
 

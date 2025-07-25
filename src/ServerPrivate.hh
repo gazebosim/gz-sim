@@ -243,6 +243,12 @@ namespace gz
 
       // \brief Simulation asset download queue.
       private: std::map<std::string, std::string> uriDownloadQueue;
+
+      // \brief Download asset mutex.
+      private: std::mutex downloadAssetMutex;
+
+      // \brief Download asset condition variable.
+      private: std::condition_variable downloadAssetCv;
     };
     }
   }
