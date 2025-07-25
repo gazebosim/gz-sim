@@ -143,6 +143,10 @@ namespace systems
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
+    /// \brief Set whether the fixed joint should weld the child entity to the
+    /// parent entity.
+    /// No-op if the underlying physics engine does not support the feature.
+    private: bool weldChildToParent{false};
   };
   }
 }
