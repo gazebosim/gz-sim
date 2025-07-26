@@ -213,7 +213,7 @@
     <include>
       <pose>9.23 2.18 0 0 0 -1.226</pose>
       <uri>
-        https://fuel.gazebosim.org/1.0/chapulina/models/Extinguisher PBR
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fire Extinguisher
       </uri>
     </include>
 
