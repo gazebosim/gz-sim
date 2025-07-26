@@ -784,11 +784,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 
     // Reload the SDF root, which will cause the models to download.
     sdf::Root localRoot;
-    ServerConfig cfg = _config;
-    cfg.SetBehaviorOnSdfErrors(
-      ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
-
-    sdf::Errors localErrors = this->LoadSdfRootHelper(cfg,
+    sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
         localRoot, true);
 
     // Output any errors.
@@ -796,6 +792,14 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     {
       for (auto &err : localErrors)
         gzerr << err << "\n";
+
+      if (_config.BehaviorOnSdfErrors() ==
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
+        if (_config.WaitForAssets())
+          this->downloadAssetCv.notify_one();
+        return;
+      }
     }
 
     // Add the models back into the worlds.

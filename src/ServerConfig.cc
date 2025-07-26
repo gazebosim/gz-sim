@@ -305,7 +305,7 @@ class gz::sim::ServerConfigPrivate
       ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
 
   /// \brief True to block while simulation assets download.
-  public: bool waitForAssets{false};
+  public: bool waitForAssets{true};
 };
 
 //////////////////////////////////////////////////
