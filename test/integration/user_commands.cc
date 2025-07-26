@@ -69,6 +69,8 @@ struct AsyncRequestInfo {
   bool result{false};
 };
 
+// This calls a request from a new thread so that the calling function can
+// continue even if the request blocks.
 template <typename RequestT>
 auto asyncRequest(transport::Node &_node, const std::string &_topic,
                               const RequestT &_req)
@@ -159,7 +161,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   auto pos = pose->mutable_position();
   pos->set_z(10);
 
-  std::string service{"/world/empty/create"};
+  std::string service{"/world/empty/create/blocking"};
   transport::Node node;
   auto requestDataFuture = asyncRequest(node, service, req);
 

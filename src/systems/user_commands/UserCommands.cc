@@ -464,6 +464,15 @@ class gz::sim::systems::UserCommandsPrivate
   public: template <typename CommandT, typename InputT>
   bool ServiceHandler(const InputT &_req, msgs::Boolean &_res);
 
+  /// \brief This is similar to \sa ServiceHandler but it blocks the request
+  /// until the command is actually executed.
+  /// \tparam CommandT Type for the command that associated with the service.
+  /// \tparam InputT Type form gz::msgs of the input parameter.
+  /// \param[in] _req Input parameter message of the service.
+  /// \param[out] _res Output parameter message of the service.
+  public: template <typename CommandT, typename InputT>
+  bool BlockingServiceHandler(const InputT &_req, msgs::Boolean &_res);
+
   /// \brief Temlpate for advertising services
   /// \tparam CommandT Type for the command that associated with the service.
   /// \tparam InputT Type form gz::msgs of the input parameter.
@@ -735,13 +744,37 @@ void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
 {
   this->node.Advertise(
       _topic, &UserCommandsPrivate::ServiceHandler<CommandT, InputT>, this);
+
+  const auto blockingTopic = _topic + "/blocking";
+  this->node.Advertise(
+      blockingTopic ,&UserCommandsPrivate::BlockingServiceHandler<CommandT, InputT>, this);
   if (_serviceName != nullptr)
-    gzmsg << _serviceName << " service on [" << _topic << "]" << std::endl;
+  {
+    gzmsg << _serviceName << " service on [" << _topic << "] (async)" << std::endl;
+    gzmsg << _serviceName << " service on [" << blockingTopic << "] (blocking)" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
 template <typename CommandT, typename InputT>
 bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
+                                         msgs::Boolean &_res)
+{
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<CommandT>(msg, this->iface);
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+  _res.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+template <typename CommandT, typename InputT>
+bool UserCommandsPrivate::BlockingServiceHandler(const InputT &_req,
                                          msgs::Boolean &_res)
 {
   auto msg = _req.New();
