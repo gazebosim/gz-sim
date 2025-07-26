@@ -57,7 +57,7 @@ left, and `Z` pointing up.
 
 3. Try to match the `Z` value of your reference frame with the point of your
 model that contacts the ground or the water. That way, when you spawn your model
-at any point in the world, if you use `z` value of `0`, you know it will
+at any point in the world, if you use `Z` value of `0`, you know it will
 smoothly sit on a stable place.
 
 # How to set your model reference frame

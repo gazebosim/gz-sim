@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <gz/math/Color.hh>
+
 namespace gz
 {
 namespace sim

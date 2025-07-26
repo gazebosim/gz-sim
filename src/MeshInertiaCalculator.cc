@@ -256,6 +256,13 @@ std::optional<gz::math::Inertiald> MeshInertiaCalculator::operator()
   }
 
   const common::Mesh *mesh = loadMesh(*sdfMesh);
+  if (!mesh)
+  {
+    gzerr << "Failed to load mesh: " << sdfMesh->Uri() << std::endl;
+    _errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+        "Could not calculate mesh inertia as mesh is not loaded."});
+    return std::nullopt;
+  }
 
   // Compute inertia for each submesh then sum up to get the final inertia
   // values.
