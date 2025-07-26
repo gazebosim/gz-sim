@@ -747,11 +747,14 @@ void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
 
   const auto blockingTopic = _topic + "/blocking";
   this->node.Advertise(
-      blockingTopic ,&UserCommandsPrivate::BlockingServiceHandler<CommandT, InputT>, this);
+      blockingTopic,
+      &UserCommandsPrivate::BlockingServiceHandler<CommandT, InputT>, this);
   if (_serviceName != nullptr)
   {
-    gzmsg << _serviceName << " service on [" << _topic << "] (async)" << std::endl;
-    gzmsg << _serviceName << " service on [" << blockingTopic << "] (blocking)" << std::endl;
+    gzmsg << _serviceName << " service on [" << _topic << "] (async)"
+          << std::endl;
+    gzmsg << _serviceName << " service on [" << blockingTopic << "] (blocking)"
+          << std::endl;
   }
 }
 

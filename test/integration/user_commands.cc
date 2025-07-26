@@ -76,12 +76,15 @@ auto asyncRequest(transport::Node &_node, const std::string &_topic,
                               const RequestT &_req)
 {
   unsigned int timeout = 5000;
-  auto asyncRetval = std::async(std::launch::async, [&]{
+  auto asyncRetval = std::async(std::launch::async, [&]
+  {
     AsyncRequestInfo info;
-    info.retval = _node.Request(_topic, _req, timeout, info.response, info.result);
+    info.retval =
+        _node.Request(_topic, _req, timeout, info.response, info.result);
     return info;
   });
-  // Sleep for a little bit for the async thread to spin up and make the service request
+  // Sleep for a little bit for the async thread to spin up and make the service
+  // request
   GZ_SLEEP_MS(10);
   return asyncRetval;
 }
