@@ -34,16 +34,13 @@
 #include <gz/plugin/Loader.hh>
 
 #include "gz/sim/InstallationDirectories.hh"
+#include "gz/sim/Util.hh"
 #include <gz/sim/config.hh>
 
 using namespace gz::sim;
 
 class gz::sim::SystemLoaderPrivate
 {
-  //////////////////////////////////////////////////
-  public: static constexpr std::string_view kStaticPluginFilenamePrefix =
-              "static://";
-
   //////////////////////////////////////////////////
   public: explicit SystemLoaderPrivate() = default;
 
@@ -85,7 +82,7 @@ class gz::sim::SystemLoaderPrivate
   public: bool InstantiateStaticSystemPlugin(const sdf::Plugin &_sdfPlugin,
               gz::plugin::PluginPtr &_gzPlugin)
   {
-    const size_t prefixLen = kStaticPluginFilenamePrefix.size();
+    const size_t prefixLen = staticPluginPrefixStr().size();
     const std::string filenameWoPrefix =
         _sdfPlugin.Filename().substr(prefixLen);
     std::string pluginToInstantiate =
@@ -136,8 +133,7 @@ class gz::sim::SystemLoaderPrivate
              << "]. Using [" << filename << "] instead." << std::endl;
     }
 
-    if (filename.substr(0, kStaticPluginFilenamePrefix.size()) ==
-          kStaticPluginFilenamePrefix)
+    if (isStaticPlugin(filename))
     {
       return this->InstantiateStaticSystemPlugin(_sdfPlugin, _gzPlugin);
     }
