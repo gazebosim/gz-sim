@@ -403,6 +403,129 @@
 
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.9.0 (2025-02-10)
+
+1. Physics: Add components to request and receive Ray intersections
+    * [Pull request #2514](https://github.com/gazebosim/gz-sim/pull/2514)
+
+1. Also handle SIGTERM gracefully
+    * [Pull request #2747](https://github.com/gazebosim/gz-sim/pull/2747)
+
+1. Register MeshInertialCalculator when loading sim from an SDF string
+    * [Pull request #2754](https://github.com/gazebosim/gz-sim/pull/2754)
+
+1. Add debug msg to log auto computed inertial values
+    * [Pull request #2749](https://github.com/gazebosim/gz-sim/pull/2749)
+
+1. Reduce/Eliminate `sdf::Model` and `sdf::World` serialization warnings
+    * [Pull request #2742](https://github.com/gazebosim/gz-sim/pull/2742)
+
+1. Fix illegal anchor warnings
+    * [Pull request #2741](https://github.com/gazebosim/gz-sim/pull/2741)
+
+1. Fix mesh import filters not displaying correctly on KDE #2731 (#2732)
+    * [Pull request #2736](https://github.com/gazebosim/gz-sim/pull/2736)
+
+### Gazebo Sim 8.8.0 (2025-01-16)
+
+1. Add parameter for adjusting current sign in battery plugin
+    * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
+
+1. Extend shapes plugin width to include the ellipsoid button
+    * [Pull request #2699](https://github.com/gazebosim/gz-sim/pull/2699)
+
+1. Use same FP limits for TrackedVehicle to avoid self-moving
+    * [Pull request #2651](https://github.com/gazebosim/gz-sim/pull/2651)
+
+1. Link.hh: add Sensor accessor APIs
+    * [Pull request #2693](https://github.com/gazebosim/gz-sim/pull/2693)
+
+1. Improve load times by skipping serialization of entities when unnecessary.
+    * [Pull request #2683](https://github.com/gazebosim/gz-sim/pull/2683)
+
+1. Prepend to `PYTHONPATH` in tests
+    * [Pull request #2681](https://github.com/gazebosim/gz-sim/pull/2681)
+
+1. Fix crash in `OpticalTactilePlugin` by checking for valid visualize pointer
+    * [Pull request #2674](https://github.com/gazebosim/gz-sim/pull/2674)
+
+### Gazebo Sim 8.7.0 (2024-11-08)
+
+1. Fix crash when multicopter motor system is attached to an empty model
+    * [Pull request #2653](https://github.com/gazebosim/gz-sim/pull/2653)
+
+1. Backport SystemConfigurePriority to harmonic
+    * [Pull request #2661](https://github.com/gazebosim/gz-sim/pull/2661)
+
+1. Break out server constructor
+    * [Pull request #2638](https://github.com/gazebosim/gz-sim/pull/2638)
+
+1. Add check for valid world pose cmd values
+    * [Pull request #2640](https://github.com/gazebosim/gz-sim/pull/2640)
+
+1. Enabling Global Illumination (GI VCT) for sensors in SDF
+    * [Pull request #2550](https://github.com/gazebosim/gz-sim/pull/2550)
+
+1. Fixed typos in three places
+    * [Pull request #2599](https://github.com/gazebosim/gz-sim/pull/2599)
+
+1. Add point cloud data size sanity check to fix crash
+    * [Pull request #2549](https://github.com/gazebosim/gz-sim/pull/2549)
+
+1. Corrected command to move the kth_freeflyer spacecraft testbed
+    * [Pull request #2565](https://github.com/gazebosim/gz-sim/pull/2565)
+
+1. Backport nonbreaking changes from ionic
+    * [Pull request #2552](https://github.com/gazebosim/gz-sim/pull/2552)
+
+1. clang-tidy fixes: use empty(), fix includes
+    * [Pull request #2548](https://github.com/gazebosim/gz-sim/pull/2548)
+
+1. Check ranges before access
+    * [Pull request #2540](https://github.com/gazebosim/gz-sim/pull/2540)
+
+1. Fixed Odometry Publisher Angular Velocity Singularity in 3D
+    * [Pull request #2348](https://github.com/gazebosim/gz-sim/pull/2348)
+
+1. Revert behavior change introduced in #2452
+    * [Pull request #2527](https://github.com/gazebosim/gz-sim/pull/2527)
+
+1. Specify System::PreUpdate, Update execution order
+    * [Pull request #2487](https://github.com/gazebosim/gz-sim/pull/2487)
+
+1. Force Qt to use xcb plugin on Wayland
+    * [Pull request #2526](https://github.com/gazebosim/gz-sim/pull/2526)
+
+1. Remove unused variable in thruster system
+    * [Pull request #2524](https://github.com/gazebosim/gz-sim/pull/2524)
+
+1. Make sure steering joints exist before updating velocity / odometry in AckermannSteering plugin
+    * [Pull request #2521](https://github.com/gazebosim/gz-sim/pull/2521)
+
+1. Fix ResourceSpawner
+    * [Pull request #2490](https://github.com/gazebosim/gz-sim/pull/2490)
+
+1. gui_system_plugin: clarify description in README
+    * [Pull request #2253](https://github.com/gazebosim/gz-sim/pull/2253)
+
+1. Fix adding system to non-existent entity
+    * [Pull request #2516](https://github.com/gazebosim/gz-sim/pull/2516)
+
+1. Checking linkEnity is empty
+    * [Pull request #2509](https://github.com/gazebosim/gz-sim/pull/2509)
+
+1. Initialize threadsNeedCleanUp
+    * [Pull request #2503](https://github.com/gazebosim/gz-sim/pull/2503)
+
+1. Added support for spacecraft thrusters
+    * [Pull request #2431](https://github.com/gazebosim/gz-sim/pull/2431)
+
+1. Disable rendering tests that are failing on github actions
+    * [Pull request #2480](https://github.com/gazebosim/gz-sim/pull/2480)
+
+1. Consolidate entity creation
+    * [Pull request #2452](https://github.com/gazebosim/gz-sim/pull/2452)
+
 ### Gazebo Sim 8.6.0 (2024-07-25)
 
 1. Fix error resolving gazebo classic material when loading world
