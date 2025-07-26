@@ -766,6 +766,12 @@ CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
 }
 
 //////////////////////////////////////////////////
+CreateCommand::CreateCommand(msgs::EntityFactory_V *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+//////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
   auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
