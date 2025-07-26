@@ -28,6 +28,7 @@
 #include <gz/sim/components/AngularAcceleration.hh>
 #include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/AngularVelocityCmd.hh>
+#include <gz/sim/components/AxisAlignedBox.hh>
 #include <gz/sim/components/CanonicalLink.hh>
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ExternalWorldWrenchCmd.hh>
@@ -47,6 +48,13 @@
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/SdfEntityCreator.hh>
 #include <gz/sim/Link.hh>
+
+#include <sdf/Collision.hh>
+#include <sdf/Box.hh>
+#include <sdf/Sphere.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Ellipsoid.hh>
 
 #include "../helpers/EnvTestFixture.hh"
 
@@ -921,4 +929,245 @@ TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
   EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
       wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 
+}
+
+/////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
+{
+  // linkA
+  //  - collisionAA (box)
+  //  - collisionAB (sphere)
+  //
+  // linkB
+  //  - collisionBA (ellipsoid)
+  //  - collisionBB (mesh)
+  //
+  // linkC
+
+  gz::sim::EntityComponentManager ecm;
+  gz::sim::EventManager evm;
+  gz::sim::SdfEntityCreator creator(ecm, evm);
+
+  sdf::Collision collision;
+  sdf::Geometry geom;
+  sdf::ElementPtr sdf(new sdf::Element());
+
+  // Link A
+  auto eLinkA = ecm.CreateEntity();
+  ecm.CreateComponent(eLinkA, gz::sim::components::Link());
+  ecm.CreateComponent(eLinkA, gz::sim::components::Name("linkA"));
+
+  // Create box collision AA - Child of Link A
+  sdf::Box box;
+  box.SetSize(gz::math::Vector3d(2, 2, 2));
+  geom.SetType(sdf::GeometryType::BOX);
+  geom.SetBoxShape(box);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(2.0, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkA);
+
+  // Create sphere collision AB - Child of Link A
+  sdf::Sphere sphere;
+  sphere.SetRadius(2.0);
+  geom.SetType(sdf::GeometryType::SPHERE);
+  geom.SetSphereShape(sphere);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(-3.0, 2.0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkA);
+
+  // LinkA - bounding box from collisions
+  gz::sim::Link linkA(eLinkA);
+  auto aabb = linkA.ComputeAxisAlignedBox(ecm);
+
+  EXPECT_TRUE(aabb.has_value());
+  EXPECT_EQ(-5.0, aabb->Min().X());
+  EXPECT_EQ(-1.0, aabb->Min().Y());
+  EXPECT_EQ(-2.0, aabb->Min().Z());
+  EXPECT_EQ(3.0, aabb->Max().X());
+  EXPECT_EQ(4.0, aabb->Max().Y());
+  EXPECT_EQ(2.0, aabb->Max().Z());
+
+  // By default, the bounding box checks are disabled.
+  // Once enabled, the result must match the computed AABB.
+  EXPECT_EQ(std::nullopt, linkA.AxisAlignedBox(ecm));
+  linkA.EnableBoundingBoxChecks(ecm);
+  EXPECT_EQ(aabb, linkA.AxisAlignedBox(ecm));
+
+  // If ECM is updated with new link AABB, the ECM value is returned
+  // instead of recomputing the AABB from the collisions
+  math::AxisAlignedBox newAabb(-math::Vector3d::One, math::Vector3d::One);
+  ecm.SetComponentData<components::AxisAlignedBox>(eLinkA, newAabb);
+  EXPECT_NE(newAabb, aabb.value());
+  EXPECT_EQ(newAabb, linkA.AxisAlignedBox(ecm));
+
+  // If the bounding box checks are disabled and then re-enabled, the
+  // bounding box should be recalculated from the collisions
+  linkA.EnableBoundingBoxChecks(ecm, false);
+  EXPECT_EQ(std::nullopt, linkA.AxisAlignedBox(ecm));
+  linkA.EnableBoundingBoxChecks(ecm);
+  EXPECT_EQ(aabb, linkA.AxisAlignedBox(ecm));
+
+  // Link B
+  auto eLinkB = ecm.CreateEntity();
+  ecm.CreateComponent(eLinkB, gz::sim::components::Link());
+  ecm.CreateComponent(eLinkB, gz::sim::components::Name("linkB"));
+
+  // Create ellipsoid collision BA - Child of Link B
+  sdf::Ellipsoid ellipsoid;
+  ellipsoid.SetRadii(gz::math::Vector3d(0.5, 0.6, 0.1));
+  geom.SetType(sdf::GeometryType::ELLIPSOID);
+  geom.SetEllipsoidShape(ellipsoid);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(1, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkB);
+
+  // Create mesh collision BB - Child of Link B
+  sdf::Mesh mesh;
+  mesh.SetUri("name://unit_box");
+  geom.SetType(sdf::GeometryType::MESH);
+  geom.SetMeshShape(mesh);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(-1, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkB);
+
+  // LinkB - bounding box from collisions
+  gz::sim::Link linkB(eLinkB);
+  aabb = linkB.ComputeAxisAlignedBox(ecm);
+
+  EXPECT_TRUE(aabb.has_value());
+  EXPECT_EQ(-1.5, aabb->Min().X());
+  EXPECT_EQ(-0.6, aabb->Min().Y());
+  EXPECT_EQ(-0.5, aabb->Min().Z());
+  EXPECT_EQ(1.5, aabb->Max().X());
+  EXPECT_EQ(0.6, aabb->Max().Y());
+  EXPECT_EQ(0.5, aabb->Max().Z());
+
+  // Link C
+  auto eLinkC = ecm.CreateEntity();
+  ecm.CreateComponent(eLinkC, gz::sim::components::Link());
+  ecm.CreateComponent(eLinkC, gz::sim::components::Name("linkC"));
+
+  // LinkC - No collisions (AABB should be invalid if checks are enabled)
+  gz::sim::Link linkC(eLinkC);
+  EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
+  EXPECT_EQ(std::nullopt, linkC.ComputeAxisAlignedBox(ecm));
+  linkC.EnableBoundingBoxChecks(ecm);
+  EXPECT_EQ(math::AxisAlignedBox(), linkC.AxisAlignedBox(ecm));
+
+  // Add invalid mesh collision to LinkC
+  sdf::Mesh meshInvalid;
+  meshInvalid.SetUri("invalid_uri");
+  meshInvalid.SetFilePath("invalid_filepath");
+  geom.SetType(sdf::GeometryType::MESH);
+  geom.SetMeshShape(meshInvalid);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(0, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkC);
+
+  // LinkC - Invalid mesh is the only collision present, bounding
+  // box should be invalid (aab.Min > aab.Max) and a warning
+  // should be printed
+  linkC = gz::sim::Link(eLinkC);
+  linkC.EnableBoundingBoxChecks(ecm, false);
+  EXPECT_EQ(std::nullopt, linkC.AxisAlignedBox(ecm));
+  EXPECT_EQ(math::AxisAlignedBox(), linkC.ComputeAxisAlignedBox(ecm));
+  linkC.EnableBoundingBoxChecks(ecm);
+  EXPECT_EQ(math::AxisAlignedBox(), linkC.AxisAlignedBox(ecm));
+
+  // Add valid mesh collision to LinkC
+  mesh.SetUri("name://unit_box");
+  geom.SetMeshShape(mesh);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(0, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLinkC);
+
+  // LinkC - Invalid mesh will be skipped with warning, bounding
+  // box will be defined for the valid mesh only
+  linkC = gz::sim::Link(eLinkC);
+  aabb = linkC.ComputeAxisAlignedBox(ecm);
+
+  EXPECT_TRUE(aabb.has_value());
+  EXPECT_EQ(-0.5, aabb->Min().X());
+  EXPECT_EQ(-0.5, aabb->Min().Y());
+  EXPECT_EQ(-0.5, aabb->Min().Z());
+  EXPECT_EQ(0.5, aabb->Max().X());
+  EXPECT_EQ(0.5, aabb->Max().Y());
+  EXPECT_EQ(0.5, aabb->Max().Z());
+
+  // Reparenting invalid mesh collision from LinkC to LinkB
+  // should have the same effect as above but without a warning
+  auto eCollisions = ecm.ChildrenByComponents(
+    eLinkC, gz::sim::components::Collision());
+  creator.SetParent(eCollisions[0], eLinkB);
+
+  linkC = gz::sim::Link(eLinkC);
+  aabb = linkC.ComputeAxisAlignedBox(ecm);
+
+  EXPECT_TRUE(aabb.has_value());
+  EXPECT_EQ(-0.5, aabb->Min().X());
+  EXPECT_EQ(-0.5, aabb->Min().Y());
+  EXPECT_EQ(-0.5, aabb->Min().Z());
+  EXPECT_EQ(0.5, aabb->Max().X());
+  EXPECT_EQ(0.5, aabb->Max().Y());
+  EXPECT_EQ(0.5, aabb->Max().Z());
+}
+
+/////////////////////////////////////////////////
+TEST_F(LinkIntegrationTest, AxisAlignedBoxInWorld)
+{
+  // model
+  //  - link
+  //    - collision (mesh)
+
+  gz::sim::EntityComponentManager ecm;
+  gz::sim::EventManager evm;
+  gz::sim::SdfEntityCreator creator(ecm, evm);
+
+  sdf::Collision collision;
+  sdf::Geometry geom;
+  sdf::ElementPtr sdf(new sdf::Element());
+
+  // Model with translation only pose wrt world
+  auto modelPoseInWorld = gz::math::Pose3d(1023, -932, 378, 0, 0, 0);
+  auto eModel = ecm.CreateEntity();
+  ecm.CreateComponent(eModel, gz::sim::components::Model());
+  ecm.CreateComponent(eModel, gz::sim::components::Name("model"));
+  ecm.CreateComponent(eModel, gz::sim::components::Pose(modelPoseInWorld));
+
+  // Link with translation only pose wrt model
+  auto linkPoseInModel = gz::math::Pose3d(0.1, -0.2, 0.3, 0, 0, 0);
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, gz::sim::components::Link());
+  ecm.CreateComponent(eLink, gz::sim::components::Name("link"));
+  ecm.CreateComponent(eLink, gz::sim::components::Pose(linkPoseInModel));
+  creator.SetParent(eLink, eModel);
+
+  // Create mesh collision - Child of Link
+  sdf::Mesh mesh;
+  mesh.SetUri("name://unit_box");
+  geom.SetType(sdf::GeometryType::MESH);
+  geom.SetMeshShape(mesh);
+  collision.Load(sdf);
+  collision.SetGeom(geom);
+  collision.SetRawPose(gz::math::Pose3d(0, 0, 0, 0, 0, 0));
+  creator.SetParent(creator.CreateEntities(&collision), eLink);
+
+  // Model - bounding box from link collision
+  gz::sim::Link link(eLink);
+  link.EnableBoundingBoxChecks(ecm);
+  auto aabbInWorld = link.WorldAxisAlignedBox(ecm);
+
+  EXPECT_TRUE(aabbInWorld.has_value());
+  EXPECT_EQ(1023 + 0.1 - 0.5, aabbInWorld->Min().X());
+  EXPECT_EQ(1023 + 0.1 + 0.5, aabbInWorld->Max().X());
+  EXPECT_EQ(-932 - 0.2 - 0.5, aabbInWorld->Min().Y());
+  EXPECT_EQ(-932 - 0.2 + 0.5, aabbInWorld->Max().Y());
+  EXPECT_EQ(378 + 0.3 - 0.5, aabbInWorld->Min().Z());
+  EXPECT_EQ(378 + 0.3 + 0.5, aabbInWorld->Max().Z());
 }

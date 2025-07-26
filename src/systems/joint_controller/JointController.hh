@@ -92,6 +92,11 @@ namespace systems
   ///
   /// - `<cmd_offset>` Command offset (feed-forward) of the PID.
   /// The default value is 0.
+  ///
+  /// - `<disable_braking>` Disable braking. Allows the joint to freewheel
+  /// if the commanded velocity is below the actual velocity.
+  /// The default value is 0.
+  ///
   class JointController
       : public System,
         public ISystemConfigure,

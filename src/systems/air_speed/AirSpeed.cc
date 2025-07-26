@@ -39,6 +39,9 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
+#include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/LinearVelocitySeed.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
@@ -66,6 +69,12 @@ class gz::sim::systems::AirSpeedPrivate
   public: bool initialized = false;
 
   public: Entity entity;
+
+  /// \brief Wind entity on which this system operates.
+  public: Entity windEntity;
+
+  /// \param[in] _ecm Mutable reference to the EntityComponentManager.
+  public: void Load(EntityComponentManager &_ecm);
 
   /// \brief Create sensor
   /// \param[in] _ecm Immutable reference to ECM.
@@ -100,6 +109,15 @@ AirSpeed::AirSpeed() :
 
 //////////////////////////////////////////////////
 AirSpeed::~AirSpeed() = default;
+
+//////////////////////////////////////////////////
+void AirSpeed::Configure(const Entity &,
+    const std::shared_ptr<const sdf::Element> &,
+    EntityComponentManager &_ecm,
+    EventManager &)
+{
+  this->dataPtr->Load(_ecm);
+}
 
 //////////////////////////////////////////////////
 void AirSpeed::PreUpdate(const UpdateInfo &/*_info*/,
@@ -137,7 +155,6 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
            << std::chrono::duration<double>(_info.dt).count()
            << "s]. System may not work properly." << std::endl;
   }
-
   this->dataPtr->CreateSensors(_ecm);
 
   if (!_info.paused)
@@ -170,6 +187,13 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
   }
 
   this->dataPtr->RemoveAirSpeedEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
+void AirSpeedPrivate::Load(
+    EntityComponentManager &_ecm)
+{
+  this->windEntity = _ecm.EntityByComponents(components::Wind());
 }
 
 //////////////////////////////////////////////////
@@ -265,6 +289,14 @@ void AirSpeedPrivate::UpdateAirSpeeds(const EntityComponentManager &_ecm)
 
           math::Vector3d sensorRelativeVel = relativeVel(_entity, _ecm);
           it->second->SetVelocity(sensorRelativeVel);
+
+          // update wind velocity
+          auto windVelSeed =
+          _ecm.Component<components::WorldLinearVelocitySeed>(this->windEntity);
+          math::Vector3d windVel{windVelSeed->Data().X(),
+                                 windVelSeed->Data().Y(),
+                                 windVelSeed->Data().Z()};
+          it->second->SetWindVelocity(windVel);
         }
         else
         {
@@ -300,6 +332,7 @@ void AirSpeedPrivate::RemoveAirSpeedEntities(
 }
 
 GZ_ADD_PLUGIN(AirSpeed, System,
+  AirSpeed::ISystemConfigure,
   AirSpeed::ISystemPreUpdate,
   AirSpeed::ISystemPostUpdate
 )

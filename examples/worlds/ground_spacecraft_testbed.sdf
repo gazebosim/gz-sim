@@ -2,9 +2,9 @@
 <!--
   Spacecraft thruster plugin demo
 
-  Send commands to a single thruster:
+  Send commands to a single thruster (corrected 09/01/24):
 
-      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /dart/command/duty_cycle --msgtype gz.msgs.Actuators
+      gz topic -p 'normalized:[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]' -t /kth_freeflyer/command/duty_cycle --msgtype gz.msgs.Actuators
 -->
 <sdf version="1.6">
   <world name="ground_testbed">

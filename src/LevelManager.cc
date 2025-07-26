@@ -19,18 +19,23 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
+#include <sdf/Element.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/World.hh>
 
 #include <gz/math/SphericalCoordinates.hh>
+#include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 
 #include "gz/sim/Events.hh"
+#include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/components/Actor.hh"
@@ -839,7 +844,7 @@ void LevelManager::UnloadLevel(const Entity &_entity,
     }
   }
 
-  if (entityNamesToUnload.size() > 0)
+  if (!entityNamesToUnload.empty())
   {
     this->UnloadInactiveEntities(entityNamesToUnload);
   }

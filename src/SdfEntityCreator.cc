@@ -16,9 +16,13 @@
 */
 
 #include <cstdint>
+#include <set>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
+#include <sdf/Actor.hh>
+#include <sdf/Light.hh>
+#include <sdf/Model.hh>
 #include <sdf/Types.hh>
 
 #include "gz/sim/Events.hh"
@@ -71,7 +75,6 @@
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/Physics.hh"
-#include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/RgbdCamera.hh"
