@@ -371,6 +371,12 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
+  /// \brief Entities whose static commands have been processed and should be
+  /// deleted the following iteration.
+  public: std::unordered_set<Entity> staticStateCmdsToRemove;
+
+  public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -561,6 +567,19 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
+  //////////////////////////////////////////////////
+  // static
+  /// \brief Feature list for model static state.
+  public: struct StaticStateFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::SetFreeGroupStaticState>{};
+
+  //////////////////////////////////////////////////
+  // enabled gravity
+  /// \brief Feature list for model static state.
+  public: struct GravityEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::SetFreeGroupGravityEnabled>{};
 
   //////////////////////////////////////////////////
   // Joint velocity command
@@ -738,7 +757,9 @@ class gz::sim::systems::PhysicsPrivate
   public: using EntityFreeGroupMap = EntityFeatureMap3d<
             physics::FreeGroup,
             MinimumFeatureList,
-            WorldVelocityCommandFeatureList
+            WorldVelocityCommandFeatureList,
+            StaticStateFeatureList,
+            GravityEnabledFeatureList
             >;
 
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
@@ -2085,6 +2106,30 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
+
+  // _ecm.Each<components::Model, components::Name, components::Static>(
+  //     [&](const Entity & _entity,
+  //         const components::Model * _model,
+  //         const components::Name * _name,
+  //         const components::Static *_static) -> bool
+  //     {
+  //       bool is_static = this->staticEntities.find(_entity) !=
+  //           this->staticEntities.end();
+  //       if (is_static != _static->Data()) {
+  //         if (is_static) {
+  //           this->staticEntities.erase(_entity);
+  //           gzwarn << "UpdatePhysics static erase" << std::endl;
+  //         } else {
+  //           this->staticEntities.insert(_entity);
+  //           gzwarn << "UpdatePhysics static insert " << std::endl;
+  //           for (auto & lol : this->staticEntities) {
+  //             gzwarn << "lol " << lol << " " << _name->Data() << std::endl;
+  //           }
+  //         }
+  //       }
+  //       return true;
+  //     });
+
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2394,6 +2439,141 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
+
+  // update Static State
+  auto olderStaticStateCmdsToRemove = std::move(this->staticStateCmdsToRemove);
+  this->staticStateCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::StaticStateCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::StaticStateCmd *_staticSateCmd,
+          const components::Name *_name)->bool
+      {
+        this->staticStateCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto ssModel =
+            this->entityFreeGroupMap.EntityCast<StaticStateFeatureList>(_entity);
+
+        if (!ssModel)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set a static state, but the physics "
+                   << "engine doesn't support feature "
+                   << "[SetStaticState]. static state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Break Each call since no Static state'es can be processed
+          return false;
+        }
+        gzwarn << "_staticSateCmd->Data() " << _staticSateCmd->Data() << std::endl;
+
+        bool is_static = this->staticEntities.find(_entity) !=
+            this->staticEntities.end();
+        if (is_static != _staticSateCmd->Data()) {
+          if (is_static) {
+            this->staticEntities.erase(_entity);
+            gzwarn << "UpdatePhysics static erase " << _name->Data() << std::endl;
+          } else {
+            this->staticEntities.insert(_entity);
+            gzwarn << "UpdatePhysics static insert " << _name->Data() << std::endl;
+            // for (auto & lol : this->staticEntities) {
+            //   gzwarn << "lol " << lol << " " << _name->Data() << std::endl;
+            // }
+          }
+        }
+
+        // auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        // if (nullptr == modelPtrPhys)
+        //   return true;
+
+        // // TODO(addisu) Store the free group instead of searching for it at
+        // // every iteration
+        // auto freeGroup = modelPtrPhys->FindFreeGroup();
+        // if (!freeGroup)
+        //   return true;
+
+        ssModel->SetStaticState(_staticSateCmd->Data());
+        return true;
+      });
+
+  // Remove world commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderStaticStateCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::StaticStateCmd>(entity);
+  }
+
+  // update Gravity enabled
+  auto olderGravityEnabledCmdsToRemove = std::move(this->gravityEnabledCmdsToRemove);
+  this->gravityEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto ssModel =
+            this->entityFreeGroupMap.EntityCast<GravityEnabledFeatureList>(_entity);
+
+        if (!ssModel)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set a static state, but the physics "
+                   << "engine doesn't support feature "
+                   << "[SetGravityEnabled]. static state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Break Each call since no Static state'es can be processed
+          return false;
+        }
+        gzwarn << "_gravityEnabledCmd->Data() " << _gravityEnabledCmd->Data() << std::endl;
+
+        ssModel->SetGravityEnabled(_gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // Remove world commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderGravityEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
+  }
 
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
@@ -2765,6 +2945,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
+  this->staticStateCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
