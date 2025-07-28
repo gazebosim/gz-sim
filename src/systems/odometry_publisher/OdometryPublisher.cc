@@ -40,6 +40,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -74,6 +75,9 @@ class gz::sim::systems::OdometryPublisherPrivate
 
   /// \brief Name of the world-fixed coordinate frame for the odometry message.
   public: std::string odomFrame;
+
+  /// \brief Name of the frame used as child frame id in the odometry message 
+  public: std::string odomChildFrame;
 
   /// \brief Name of the coordinate frame rigidly attached to the mobile
   /// robot base.
@@ -183,8 +187,7 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->gaussianNoise = _sdf->Get<double>("gaussian_noise");
   }
 
-  this->dataPtr->robotBaseFrame = this->dataPtr->model.Name(_ecm)
-    + "/" + "base_footprint";
+  this->dataPtr->robotBaseFrame = Link(this->dataPtr->model.Links(_ecm).at(0)).Name(_ecm).value();
   if (!_sdf->HasElement("robot_base_frame"))
   {
     gzdbg << "OdometryPublisher system plugin missing <robot_base_frame>, "
@@ -192,7 +195,28 @@ void OdometryPublisher::Configure(const Entity &_entity,
   }
   else
   {
-    this->dataPtr->robotBaseFrame = _sdf->Get<std::string>("robot_base_frame");
+    const std::string name = _sdf->Get<std::string>("robot_base_frame");
+    if (this->dataPtr->model.LinkByName(_ecm, name) != kNullEntity)
+    {
+      this->dataPtr->robotBaseFrame = name;
+    }
+    else
+    {
+      gzerr << " OdometryPublisher system plugin <robot_base_frame> link not found in the model, "
+            << "defaults to \"" << this->dataPtr->robotBaseFrame << "\"" << std::endl;
+    }
+  }
+
+  this->dataPtr->odomChildFrame = this->dataPtr->model.Name(_ecm)
+    + "/" + this->dataPtr->robotBaseFrame;
+  if (!_sdf->HasElement("odom_child_frame"))
+  {
+    gzdbg << "OdometryPublisher system plugin missing <odom_child_frame>, "
+      << "defaults to \"" << this->dataPtr->odomChildFrame << "\"" << std::endl;
+  }
+  else
+  {
+    this->dataPtr->odomChildFrame = _sdf->Get<std::string>("odom_child_frame");
   }
 
   this->dataPtr->dimensions = 2;
@@ -380,7 +404,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
 
   // Get and set robotBaseFrame to odom transformation.
   //! [worldPose]
-  const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
+  const math::Pose3d rawPose = worldPose(this->model.LinkByName(_ecm, this->robotBaseFrame), _ecm);
   //! [worldPose]
   //! [setPoseMsg]
   math::Pose3d pose = rawPose * this->offset;
@@ -471,7 +495,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
   frame->add_value(odomFrame);
   auto childFrame = header.add_data();
   childFrame->set_key("child_frame_id");
-  childFrame->add_value(robotBaseFrame);
+  childFrame->add_value(odomChildFrame);
 
   msg.mutable_header()->CopyFrom(header);
 
