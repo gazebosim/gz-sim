@@ -259,7 +259,8 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   if (_createEntities)
   {
-    this->SetCreateEntities(_world);
+    this->SetWorldSdf(_world);
+    this->SetCreateEntities();
     this->CreateEntities();
   }
 
@@ -804,7 +805,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (_iterations > 0)
   {
     bool created = this->entitiesCreated;
-    while(!created)
+    while(!created && this->running)
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
@@ -1585,16 +1586,22 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
+void SimulationRunner::SetWorldSdf(const sdf::World &_world)
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  this->sdfWorld = _world;
+}
+
+//////////////////////////////////////////////////
 const sdf::World &SimulationRunner::WorldSdf() const
 {
   return this->sdfWorld;
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::SetCreateEntities(const sdf::World &_world)
+void SimulationRunner::SetCreateEntities()
 {
   std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
-  this->sdfWorld = _world;
   this->createEntities = true;
 }
 

@@ -792,31 +792,26 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     {
       for (auto &err : localErrors)
         gzerr << err << "\n";
-
-      if (_config.BehaviorOnSdfErrors() ==
-          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
-      {
-        if (_config.WaitForAssets())
-          this->downloadAssetCv.notify_one();
-        return;
-      }
     }
 
     // Add the models back into the worlds.
     for (auto &runner : this->simRunners)
     {
       // Get a pointer to the SDF world
-      sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
+      sdf::World *world = this->sdfRoot.WorldByName(runner->WorldSdf().Name());
       if (!world)
       {
         gzerr << "Unable to find world with name["
           << runner->WorldSdf().Name() << "]. "
           << "Downloaded models may not appear.\n";
-        return;
+      }
+      else
+      {
+        runner->SetWorldSdf(*world);
       }
 
       // Tell the SimulationRunner to create the entities on the next step.
-      runner->SetCreateEntities(*world);
+      runner->SetCreateEntities();
 
       // If wait for assets, then create entities right away.
       if (_config.WaitForAssets())

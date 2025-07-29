@@ -382,15 +382,18 @@ namespace gz
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
 
+      /// \brief Set the SDF world used by this runner.
+      /// \param[in] _world Reference to the SDF world for this runner.
+      public: void SetWorldSdf(const sdf::World &_world);
+
       /// \brief Get a reference to the SDF world used by this runner.
       /// \return Reference to the SDF world for this runner.
       public: const sdf::World &WorldSdf() const;
 
-      /// \brief Set the createEntities variable to true, and store the
-      /// provided SDF world. The simulation runner will create the entities
-      /// during the next Step.
-      /// \param[in] _world SDF world created entities from.
-      public: void SetCreateEntities(const sdf::World &_world);
+      /// \brief Set the createEntities variable to true.
+      /// The simulation runner will create the entities during the next
+      /// step.
+      public: void SetCreateEntities();
 
       /// \brief Helper function to create the entities. Call `SetCreateEntties`
       /// before calling this function.

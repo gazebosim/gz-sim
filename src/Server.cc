@@ -96,7 +96,7 @@ Server::Server(const ServerConfig &_config)
   // Add record plugin
   if (_config.UseLogRecord())
   {
-    this->dataPtr->AddRecordPlugin(_config, this->dataPtr->sdfRoot);
+    this->dataPtr->AddRecordPlugin(_config, sdfRoot);
   }
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
