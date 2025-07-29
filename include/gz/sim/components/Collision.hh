@@ -60,6 +60,10 @@ namespace components
   GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.EnableContactSurfaceCustomization",
     EnableContactSurfaceCustomization)
+
+  /// \brief Store the collision cmd.
+  using CollisionEnabledCmd = Component<bool, class CollisionEnabledCmdTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CollisionEnabledCmd", CollisionEnabledCmd)
 }
 }
 }

@@ -42,7 +42,7 @@ namespace components
   GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.GravityEnabled", GravityEnabled)
 
-      /// \brief Store the gravity acceleration.
+  /// \brief Store the gravity enabled cmd.
   using GravityEnabledCmd = Component<bool, class GravityEnabledCmdTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.GravityEnabledCmd", GravityEnabledCmd)
 }

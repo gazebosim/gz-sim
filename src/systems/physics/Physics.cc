@@ -377,6 +377,8 @@ class gz::sim::systems::PhysicsPrivate
 
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
 
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
+
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -582,6 +584,13 @@ class gz::sim::systems::PhysicsPrivate
             physics::SetFreeGroupGravityEnabled>{};
 
   //////////////////////////////////////////////////
+  // enabled collision
+  /// \brief Feature list for model static state.
+  public: struct CollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::SetFreeGroupCollisionEnabled>{};
+
+  //////////////////////////////////////////////////
   // Joint velocity command
   /// \brief Feature list for set joint velocity command.
   public: struct JointVelocityCommandFeatureList : physics::FeatureList<
@@ -759,7 +768,8 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             WorldVelocityCommandFeatureList,
             StaticStateFeatureList,
-            GravityEnabledFeatureList
+            GravityEnabledFeatureList,
+            CollisionEnabledFeatureList
             >;
 
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
@@ -2573,6 +2583,61 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   for (const Entity &entity : olderGravityEnabledCmdsToRemove)
   {
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
+  }
+
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove = std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto ssModel =
+            this->entityFreeGroupMap.EntityCast<CollisionEnabledFeatureList>(_entity);
+
+        if (!ssModel)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set a static state, but the physics "
+                   << "engine doesn't support feature "
+                   << "[SetCollisionEnabled]. static state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Break Each call since no Static state'es can be processed
+          return false;
+        }
+        gzwarn << "_collisionEnabledCmd->Data() " << _collisionEnabledCmd->Data() << std::endl;
+
+        ssModel->SetCollisionEnabled(_collisionEnabledCmd->Data());
+        return true;
+      });
+
+  // Remove world commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
   }
 
   // Update model pose

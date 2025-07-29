@@ -199,6 +199,12 @@ namespace gz
       public: void SetGravityEnabledCmd(EntityComponentManager &_ecm,
           bool _enabled);
 
+      /// \brief Set a new state to change the model's collision.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _gravity New model state.
+      public: void SetCollisionEnabledCmd(EntityComponentManager &_ecm,
+          bool _enabled);
+
       /// \brief Get the model's canonical link entity.
       /// \param[in] _ecm Entity-component manager.
       /// \return Link entity.

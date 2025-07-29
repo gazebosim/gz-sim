@@ -16,6 +16,7 @@
 */
 
 #include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
@@ -255,6 +256,25 @@ void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
         [](const bool &, const bool &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
         components::GravityEnabledCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+void Model::SetCollisionEnabledCmd(EntityComponentManager &_ecm,
+    bool _enabled)
+{
+  std::cout << "SetCollisionEnabledCmd " << std::endl;
+  auto staticComp = _ecm.Component<components::CollisionEnabledCmd>(
+      this->dataPtr->id);
+  if (!staticComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id, components::CollisionEnabledCmd(_enabled));
+  }
+  else
+  {
+    staticComp->SetData(_enabled,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::CollisionEnabledCmd::typeId, ComponentState::OneTimeChange);
   }
 }
 
