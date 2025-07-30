@@ -863,7 +863,7 @@ void Physics::Configure(const Entity &_entity,
     {
        gzerr << "Failed to load physics engine plugin: "
              << "(Reason: static plugin registry does not contain the "
-             << " equested plugin)\n"
+             << "requested plugin)\n"
              << "- Requested plugin name: [" << pluginLib << "]\n";
       return;
     }
