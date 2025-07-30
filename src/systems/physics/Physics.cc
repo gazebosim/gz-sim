@@ -517,7 +517,8 @@ class gz::sim::systems::PhysicsPrivate
             physics::SetJointTransformFromParentFeature>{};
 
   /// \brief Feature list for setting fixed joint to weld child to parent entity
-  public: struct SetFixedJointWeldChildToParentFeatureList : physics::FeatureList<
+  public: struct SetFixedJointWeldChildToParentFeatureList
+            : physics::FeatureList<
             DetachableJointFeatureList,
             physics::SetFixedJointWeldChildToParentFeature>{};
 
@@ -1980,7 +1981,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
               {
                 gzerr << "Attempting to weld child to parent entity in a "
                       << "detachable joint but the physics engine doesn't "
-                      << "support feature [SetFixedJointWeldChildToParentFeature]. "
+                      << "support feature "
+                      << "[SetFixedJointWeldChildToParentFeature]. "
                       << "The child entity in detachable joints will not be "
                       << "welded to the parent." << std::endl;
                 informed = true;
