@@ -798,7 +798,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     for (auto &runner : this->simRunners)
     {
       // Get a pointer to the SDF world
-      sdf::World *world = this->sdfRoot.WorldByName(runner->WorldSdf().Name());
+      sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
       if (!world)
       {
         gzerr << "Unable to find world with name["
@@ -807,6 +807,21 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       }
       else
       {
+        // Remove the log record plugin, this has already been added by the
+        // ServerConfig.
+        sdf::Plugins &plugins = world->Plugins();
+        for (sdf::Plugins::iterator iter = plugins.begin();
+             iter != plugins.end(); ++iter)
+        {
+          std::string fname = iter->Filename();
+          std::string name = iter->Name();
+          if (fname.find(
+                LoggingPlugin::LoggingPluginSuffix()) != std::string::npos &&
+              name == LoggingPlugin::RecordPluginName())
+          {
+            plugins.erase(iter);
+          }
+        }
         runner->SetWorldSdf(*world);
       }
 
