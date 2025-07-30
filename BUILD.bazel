@@ -1557,6 +1557,7 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@gz-common//:gz-common",
         "@gz-common//profiler",
         "@gz-math",
         "@gz-msgs",

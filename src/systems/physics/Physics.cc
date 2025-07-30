@@ -859,20 +859,29 @@ void Physics::Configure(const Entity &_entity,
     const std::string pluginToInstantiate =
         pluginLib.substr(prefixLen);
     auto plugin = pluginLoader.Instantiate(pluginToInstantiate);
+    if (!plugin)
+    {
+       gzerr << "Failed to load physics engine plugin: "
+             << "(Reason: static plugin registry does not contain the "
+             << " equested plugin)\n"
+             << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
+    }
 
     this->dataPtr->engine = physics::RequestEngine<
       physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
-
     if (!this->dataPtr->engine)
     {
-      gzerr << "Failed to load physics engine plugin: "
-            << "(Reason: static plugin registry does not contain the requested "
-               "plugin)\n"
+      gzerr << "Failed to load physics engine from static plugin registry: "
+            << "(Reason: Physics engine does not meet the minimum features "
+            << "requirement)\n"
             << "- Requested plugin name: [" << pluginLib << "]\n";
       return;
     }
+    gzdbg << "Loaded [" << pluginLib <<"] from the static plugin registry"
+          << std::endl;
   }
   else
   {

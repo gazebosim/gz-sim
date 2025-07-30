@@ -17,11 +17,18 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/common/Util.hh>
+#include <optional>
+#include <string>
+
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
 
 #include "../helpers/EnvTestFixture.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "plugins/MockSystem.hh"
 
@@ -48,6 +55,17 @@ TEST_F(LoadPhysicsSystemStaticRegistryTest, LoadDartsim)
             <filename>static://gz::physics::dartsim::Plugin</filename>
           </engine>
         </plugin>
+        <model name="test_model">
+          <link name="link_1">
+            <collision name="collision">
+              <geometry>
+                <box>
+                  <size>1 1 1</size>
+                </box>
+              </geometry>
+            </collision>
+          </link>
+        </model>
       </world>
     </sdf>)");
 
@@ -58,18 +76,39 @@ TEST_F(LoadPhysicsSystemStaticRegistryTest, LoadDartsim)
   ASSERT_NE(iterationCount, std::nullopt);
   ASSERT_EQ(*iterationCount, 0);
 
-  // Verify that the physics system is loading the static dartsim plugin.
+  std::optional<Entity> modelId = server.EntityByName("test_model");
+  ASSERT_NE(modelId, std::nullopt);
+
+  EntityComponentManager *ecm{nullptr};
   auto mockSystem = std::make_shared<MockSystem>();
-  mockSystem->postUpdateCallback =
-      [](const sim::UpdateInfo &,
-         const sim::EntityComponentManager &_ecm)
-      {
-        auto plugin = _ecm.ComponentData<components::PhysicsEnginePlugin>(
-            worldEntity(_ecm));
-        ASSERT_TRUE(plugin.has_value());
-        EXPECT_EQ("static://gz::physics::dartsim::Plugin", plugin.value());
-      };
+  mockSystem->preUpdateCallback =
+    [&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+    };
   ASSERT_TRUE(server.AddSystem(mockSystem));
+
   server.RunOnce();
-  EXPECT_EQ(1, mockSystem->postUpdateCallCount);
+  EXPECT_EQ(1, mockSystem->preUpdateCallCount);
+
+  // Verify that the physics system loaded the static dartsim plugin.
+  auto plugin = ecm->ComponentData<components::PhysicsEnginePlugin>(
+      worldEntity(*ecm));
+  ASSERT_TRUE(plugin.has_value());
+  EXPECT_EQ("static://gz::physics::dartsim::Plugin", plugin.value());
+
+  // Verify that physics engine is running by checking that
+  // the link is falling and has negative world linear velocity.
+  const std::string linkName{"link_1"};
+  auto linkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(linkName));
+  sim::Link link(linkEntity);
+  link.EnableVelocityChecks(*ecm, true);
+  server.RunOnce(false);
+  std::optional<math::Pose3d> linkPose = link.WorldPose(*ecm);
+  ASSERT_TRUE(linkPose.has_value());
+  EXPECT_GT(0, linkPose->Pos().Z());
+  std::optional<math::Vector3d> linkLinearVel = link.WorldLinearVelocity(*ecm);
+  ASSERT_TRUE(linkLinearVel.has_value());
+  EXPECT_GT(0, linkLinearVel->Z());
 }
