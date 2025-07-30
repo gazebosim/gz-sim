@@ -758,6 +758,15 @@ void OpticalTactilePluginPrivate::ComputeNormalForces(
   if (!this->initialized)
     return;
 
+  // sanity check to make sure point cloud data size matches other fields
+  if (_msg.data().size() !=  _msg.row_step() * _msg.height())
+  {
+    gzerr << "Invalid point cloud message. "
+          << "Point cloud data size != row_step * height."
+          << std::endl;
+    return;
+  }
+
   // Get data from the message
   const char *msgBuffer = _msg.data().data();
 
