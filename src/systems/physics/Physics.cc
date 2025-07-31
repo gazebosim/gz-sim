@@ -516,6 +516,12 @@ class gz::sim::systems::PhysicsPrivate
             physics::DetachJointFeature,
             physics::SetJointTransformFromParentFeature>{};
 
+  /// \brief Feature list for setting fixed joint to weld child to parent entity
+  public: struct SetFixedJointWeldChildToParentFeatureList
+            : physics::FeatureList<
+            DetachableJointFeatureList,
+            physics::SetFixedJointWeldChildToParentFeature>{};
+
   //////////////////////////////////////////////////
   // Joint transmitted wrench
   /// \brief Feature list for getting joint transmitted wrenches.
@@ -730,6 +736,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
+            SetFixedJointWeldChildToParentFeatureList,
             MimicConstraintJointFeatureList,
             JointVelocityCommandFeatureList,
             JointGetTransmittedWrenchFeatureList,
@@ -1915,7 +1922,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
       [&](const Entity &_entity,
           const components::DetachableJoint *_jointInfo) -> bool
       {
-        if (_jointInfo->Data().jointType != "fixed")
+        if (_jointInfo->Data().jointType != "fixed" &&
+            _jointInfo->Data().jointType != "weld")
         {
           gzerr << "Detachable joint type [" << _jointInfo->Data().jointType
                  << "] is currently not supported" << std::endl;
@@ -1993,6 +2001,30 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->entityJointMap.AddEntity(_entity, jointPtrPhys);
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
+
+          if (_jointInfo->Data().jointType == "weld")
+          {
+            auto jointPtrWeld = this->entityJointMap
+                .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
+            if (!jointPtrWeld)
+            {
+              static bool informed{false};
+              if (!informed)
+              {
+                gzerr << "Attempting to weld child to parent entity in a "
+                      << "detachable joint but the physics engine doesn't "
+                      << "support feature "
+                      << "[SetFixedJointWeldChildToParentFeature]. "
+                      << "The child entity in detachable joints will not be "
+                      << "welded to the parent." << std::endl;
+                informed = true;
+              }
+            }
+            else
+            {
+              jointPtrWeld->SetWeldChildToParent(true);
+            }
+          }
         }
         else
         {
