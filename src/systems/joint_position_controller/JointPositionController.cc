@@ -21,14 +21,21 @@
 #include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 
+#include <chrono>
+#include <functional>
+#include <memory>
+#include <ostream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/PID.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
+#include <gz/transport/parameters/Registry.hh>
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/Joint.hh"
@@ -42,6 +49,88 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
+//////////////////////////////////////////////////
+//! \brief Utility to declare and update a parameter owned by another object
+template <typename T>
+class ParameterProxy
+{
+  //! \brief Constructor
+  public: ParameterProxy(const std::string_view &_name) : name(_name)
+  {
+  }
+
+  //! \brief Initialise
+  public: template<typename Getter, typename Setter>
+  void Init(
+    gz::transport::parameters::ParametersRegistry *_registry,
+    T *_obj,
+    Getter &&_getter,
+    Setter &&_setter,
+    const std::string_view &_prefix)
+  {
+    this->registry = _registry;
+    this->obj = _obj;
+    this->getter = std::forward<Getter>(_getter);
+    this->setter = std::forward<Setter>(_setter);
+    this->prefix = _prefix;
+    this->scopedName = std::string(this->prefix) + std::string(this->name);
+  }
+
+  //! \brief Declare the parameter to the registry
+  public: void Declare()
+  {
+    if (this->registry == nullptr)
+    {
+      gzerr << "Uninitialised parameter " << this->scopedName << std::endl;
+      return;
+    }
+    auto value = std::make_unique<gz::msgs::Double>();
+    value->set_data(this->getter(*obj));
+    auto result = this->registry->DeclareParameter(
+        this->scopedName, std::move(value));
+  }
+
+  //! \brief Update the parameter from the registry
+  public: void Update()
+  {
+    if (this->registry == nullptr)
+    {
+      return;
+    }
+    const double changeTolerance{1.0e-8};
+
+    auto value = std::make_unique<gz::msgs::Double>();
+    auto result = this->registry->Parameter(scopedName, *value);
+    if (result.ResultType() ==
+        gz::transport::parameters::ParameterResultType::Success)
+    {
+      const double a = this->getter(*obj);
+      const double b = value->data();
+      const bool changed = !math::equal(a, b, changeTolerance);
+      if (changed)
+      {
+        this->setter(*obj, b);
+        gzdbg << "Parameter " << this->scopedName << " updated from "
+              << a << " to " << b << std::endl;
+      }
+    }
+    else
+    {
+      gzerr << "Failed to get parameter [" << this->scopedName << "] :"
+            << result << std::endl;
+    }
+  }
+
+  private: gz::transport::parameters::ParametersRegistry *registry{nullptr};
+  private: T * obj{nullptr};
+  private: std::function<double(const T&)> getter;
+  private: std::function<void(T&, double)> setter;
+  private: std::string_view prefix;
+  private: std::string_view name;
+  private: std::string scopedName;
+};
+
+//////////////////////////////////////////////////
 class gz::sim::systems::JointPositionControllerPrivate
 {
   /// \brief Callback for position subscription
@@ -51,6 +140,21 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \brief Callback for actuator position subscription
   /// \param[in] _msg Position message
   public: void OnActuatorPos(const msgs::Actuators &_msg);
+
+  //! \brief Helper to initialise and declare a PID parameter
+  public: template<typename Getter, typename Setter>
+  void DeclareParameter(
+      ParameterProxy<math::PID> *_param,
+      Getter &&_getter,
+      Setter &&_setter,
+      const std::string &_prefix)
+  {
+    _param->Init(registry, &posPid,
+      std::forward<Getter>(_getter),
+      std::forward<Setter>(_setter),
+      _prefix);
+    _param->Declare();
+  }
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -97,6 +201,19 @@ class gz::sim::systems::JointPositionControllerPrivate
 
   /// \brief Joint position mode
   public: OperationMode mode = OperationMode::PID;
+
+  /// \brief Parameters registry
+  public: transport::parameters::ParametersRegistry * registry;
+
+  /// Dynamic parameters
+  public: ParameterProxy<math::PID> pGain{"p_gain"};
+  public: ParameterProxy<math::PID> iGain{"i_gain"};
+  public: ParameterProxy<math::PID> dGain{"d_gain"};
+  public: ParameterProxy<math::PID> iMax{"i_max"};
+  public: ParameterProxy<math::PID> iMin{"i_min"};
+  public: ParameterProxy<math::PID> cmdMax{"cmd_max"};
+  public: ParameterProxy<math::PID> cmdMin{"cmd_min"};
+  public: ParameterProxy<math::PID> cmdOffset{"cmd_offset"};
 };
 
 //////////////////////////////////////////////////
@@ -314,34 +431,11 @@ void JointPositionController::Configure(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-void JointPositionController::PreUpdate(
-    const UpdateInfo &_info,
-    EntityComponentManager &_ecm)
+void JointPositionController::ConfigureParameters(
+    gz::transport::parameters::ParametersRegistry &_registry,
+    gz::sim::EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("JointPositionController::PreUpdate");
-
-  // \TODO(anyone) This is a temporary fix for
-  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
-  if (kNullEntity == this->dataPtr->model.Entity())
-  {
-    return;
-  }
-
-  if (!this->dataPtr->model.Valid(_ecm))
-  {
-    gzwarn << "JointPositionController model no longer valid. "
-           << "Disabling plugin." << std::endl;
-    this->dataPtr->model = Model(kNullEntity);
-    return;
-  }
-
-  // \TODO(anyone) Support rewind
-  if (_info.dt < std::chrono::steady_clock::duration::zero())
-  {
-    gzwarn << "Detected jump back in time ["
-           << std::chrono::duration<double>(_info.dt).count()
-           << "s]. System may not work properly." << std::endl;
-  }
+  this->dataPtr->registry = &_registry;
 
   // If the joints haven't been identified yet, look for them
   if (this->dataPtr->jointEntities.empty())
@@ -389,12 +483,86 @@ void JointPositionController::PreUpdate(
       }
     }
   }
+
+  if (this->dataPtr->jointEntities.empty())
+    return;
+
+  // Use the first joint to create the scoped parameter names
+  std::string scopedName = gz::sim::scopedName(
+    this->dataPtr->jointEntities[0], _ecm, ".", false);
+  std::string prefix = std::string("JointPositionController.") + scopedName
+    + std::string(".");
+
+  //! @note not using gz::msgs::PID because the message does not support all
+  //!       fields available in gz::math::PID (cmd_max, cmd_min, cmd_offset)
+
+  // Declare parameter proxies
+  this->dataPtr->DeclareParameter(&this->dataPtr->pGain,
+      &math::PID::PGain, &math::PID::SetPGain, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->iGain,
+      &math::PID::IGain, &math::PID::SetIGain, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->dGain,
+      &math::PID::DGain, &math::PID::SetDGain, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->iMax,
+      &math::PID::IMax, &math::PID::SetIMax, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->iMin,
+      &math::PID::IMin, &math::PID::SetIMin, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdMax,
+      &math::PID::CmdMax, &math::PID::SetCmdMax, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdMin,
+      &math::PID::CmdMin, &math::PID::SetCmdMin, prefix);
+  this->dataPtr->DeclareParameter(&this->dataPtr->cmdOffset,
+      &math::PID::CmdOffset, &math::PID::SetCmdOffset, prefix);
+}
+
+//////////////////////////////////////////////////
+void JointPositionController::PreUpdate(
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("JointPositionController::PreUpdate");
+
+  // \TODO(anyone) This is a temporary fix for
+  // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
+  if (kNullEntity == this->dataPtr->model.Entity())
+  {
+    return;
+  }
+
+  if (!this->dataPtr->model.Valid(_ecm))
+  {
+    gzwarn << "JointPositionController model no longer valid. "
+           << "Disabling plugin." << std::endl;
+    this->dataPtr->model = Model(kNullEntity);
+    return;
+  }
+
+  // \TODO(anyone) Support rewind
+  if (_info.dt < std::chrono::steady_clock::duration::zero())
+  {
+    gzwarn << "Detected jump back in time ["
+           << std::chrono::duration<double>(_info.dt).count()
+           << "s]. System may not work properly." << std::endl;
+  }
+
   if (this->dataPtr->jointEntities.empty())
     return;
 
   // Nothing left to do if paused.
   if (_info.paused)
     return;
+
+  // Update parameters
+  {
+    this->dataPtr->pGain.Update();
+    this->dataPtr->iGain.Update();
+    this->dataPtr->dGain.Update();
+    this->dataPtr->iMax.Update();
+    this->dataPtr->iMin.Update();
+    this->dataPtr->cmdMax.Update();
+    this->dataPtr->cmdMin.Update();
+    this->dataPtr->cmdOffset.Update();
+  }
 
   // Create joint position component if one doesn't exist
   auto jointPosComp = _ecm.Component<components::JointPosition>(
@@ -509,6 +677,7 @@ void JointPositionControllerPrivate::OnActuatorPos(const msgs::Actuators &_msg)
 GZ_ADD_PLUGIN(JointPositionController,
                     System,
                     JointPositionController::ISystemConfigure,
+                    JointPositionController::ISystemConfigureParameters,
                     JointPositionController::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(JointPositionController,

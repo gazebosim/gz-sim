@@ -24,7 +24,6 @@
 #include <vector>
 
 #include <gz/common/Profiler.hh>
-#include <gz/common/VideoEncoder.hh>
 
 #include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/CustomSensor.hh>
@@ -42,7 +41,6 @@
 #include <gz/sim/rendering/Events.hh>
 
 #include <gz/plugin/Register.hh>
-#include <gz/transport/Node.hh>
 
 #include <gz/rendering/Camera.hh>
 #include <gz/rendering/RenderEngine.hh>
