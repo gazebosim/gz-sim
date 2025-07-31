@@ -159,8 +159,18 @@ class CreateCommand : public UserCommandBase
   public: CreateCommand(msgs::EntityFactory *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Constructor overload that takes a vector of Factory messages
+  /// \param[in] _msg Vector of Factory message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: CreateCommand(msgs::EntityFactory_V *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
   // Documentation inherited
   public: bool Execute() final;
+
+  /// \brief Actual implementation that creates entities from message.
+  /// \param[in] Factory message that specifies the entity to create.
+  private: bool CreateFromMsg(const msgs::EntityFactory &_createMsg);
 };
 
 /// \brief Command to remove an entity from simulation.
@@ -437,36 +447,24 @@ class WheelSlipCommand : public UserCommandBase
 /// \brief Private UserCommands data class.
 class gz::sim::systems::UserCommandsPrivate
 {
-  /// \brief Callback for create service
-  /// \param[in] _req Request containing entity description.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully spawned.
-  /// \return True if successful.
-  public: bool CreateService(const msgs::EntityFactory &_req,
-      msgs::Boolean &_res);
+  /// \brief Temlpate for handling service calls. This copies the message and
+  /// adds it the pending commands queue.
+  /// \tparam CommandT Type for the command that associated with the service.
+  /// \tparam InputT Type form gz::msgs of the input parameter.
+  /// \param[in] _req Input parameter message of the service.
+  /// \param[out] _res Output parameter message of the service.
+  public: template <typename CommandT, typename InputT>
+  bool ServiceHandler(const InputT &_req, msgs::Boolean &_res);
 
-  /// \brief Callback for multiple create service
-  /// \param[in] _req Request containing one or more entity descriptions.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the entities will be successfully spawned.
-  /// \return True if successful.
-  public: bool CreateServiceMultiple(
-              const msgs::EntityFactory_V &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for remove service
-  /// \param[in] _req Request containing identification of entity to be removed.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully removed.
-  /// \return True if successful.
-  public: bool RemoveService(const msgs::Entity &_req,
-      msgs::Boolean &_res);
-
-  /// \brief Callback for light service
-  /// \param[in] _req Request containing light update of an entity.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the light will be successfully updated.
-  /// \return True if successful.
-  public: bool LightService(const msgs::Light &_req, msgs::Boolean &_res);
+  /// \brief Temlpate for advertising services
+  /// \tparam CommandT Type for the command that associated with the service.
+  /// \tparam InputT Type form gz::msgs of the input parameter.
+  /// \param[in] _topic Topic of the service to advertise
+  /// \param[in] _serviceName (Optional) Name of service used in console
+  /// message. If nullptr, no console message will be emitted
+  public: template <typename CommandT, typename InputT>
+  void AdvertiseService(const std::string &_topic,
+                        const char *_serviceName = nullptr);
 
   /// \brief Callback for light subscription
   /// \param[in] _msg Light message
@@ -475,68 +473,6 @@ class gz::sim::systems::UserCommandsPrivate
   /// \brief Callback for MaterialColor subscription
   /// \param[in] _msg MaterialColor message
   public: void OnCmdMaterialColor(const msgs::MaterialColor &_msg);
-
-  /// \brief Callback for pose service
-  /// \param[in] _req Request containing pose update of an entity.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully moved.
-  /// \return True if successful.
-  public: bool PoseService(const msgs::Pose &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for pose_v service
-  /// \param[in] _req Request containing pose update of several entities.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the entity will be successfully moved.
-  /// \return True if successful.
-  public: bool PoseVectorService(const msgs::Pose_V &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for physics service
-  /// \param[in] _req Request containing updates to the physics parameters.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the physics parameters will be successfully updated.
-  /// \return True if successful.
-  public: bool PhysicsService(const msgs::Physics &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for spherical coordinates service
-  /// \param[in] _req Request containing updates to the spherical coordinates.
-  /// \param[in] _res True if message successfully received and queued.
-  /// It does not mean that the physics parameters will be successfully updated.
-  /// \return True if successful.
-  public: bool SphericalCoordinatesService(
-      const msgs::SphericalCoordinates &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for enable collision service
-  /// \param[in] _req Request containing collision entity.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the collision will be successfully enabled.
-  /// \return True if successful.
-  public: bool EnableCollisionService(
-      const msgs::Entity &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for disable collision service
-  /// \param[in] _req Request containing collision entity.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the collision will be successfully disabled.
-  /// \return True if successful.
-  public: bool DisableCollisionService(
-      const msgs::Entity &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for visual service
-  /// \param[in] _req Request containing visual updates of an entity
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the visual will be successfully updated
-  /// \return True if successful.
-  public: bool VisualService(const msgs::Visual &_req, msgs::Boolean &_res);
-
-  /// \brief Callback for wheel slip service
-  /// \param[in] _req Request containing wheel slip parameter updates of an
-  ///  entity.
-  /// \param[out] _res True if message successfully received and queued.
-  /// It does not mean that the wheel slip parameters will be successfully
-  /// updated.
-  /// \return True if successful.
-  public: bool WheelSlipService(
-    const msgs::WheelSlipParametersCmd &_req, msgs::Boolean &_res);
 
   /// \brief Queue of commands pending execution.
   public: std::vector<std::unique_ptr<UserCommandBase>> pendingCmds;
@@ -651,47 +587,26 @@ void UserCommands::Configure(const Entity &_entity,
   }
 
   // Create service
-  std::string createService{"/world/" + validWorldName + "/create"};
-  this->dataPtr->node.Advertise(createService,
-      &UserCommandsPrivate::CreateService, this->dataPtr.get());
-
-  // Create service for EntityFactory_V
-  std::string createServiceMultiple{"/world/" + validWorldName +
-      "/create_multiple"};
-  this->dataPtr->node.Advertise(createServiceMultiple,
-      &UserCommandsPrivate::CreateServiceMultiple, this->dataPtr.get());
-
-  gzmsg << "Create service on [" << createService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory>(
+      "/world/" + validWorldName + "/create");
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory_V>(
+      "/world/" + validWorldName + "/create_multiple", "Create");
 
   // Remove service
-  std::string removeService{"/world/" + validWorldName + "/remove"};
-  this->dataPtr->node.Advertise(removeService,
-      &UserCommandsPrivate::RemoveService, this->dataPtr.get());
-
-  gzmsg << "Remove service on [" << removeService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<RemoveCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/remove", "Remove");
 
   // Pose service
-  std::string poseService{"/world/" + validWorldName + "/set_pose"};
-  this->dataPtr->node.Advertise(poseService,
-      &UserCommandsPrivate::PoseService, this->dataPtr.get());
-
-  gzmsg << "Pose service on [" << poseService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PoseCommand, msgs::Pose>(
+      "/world/" + validWorldName + "/set_pose", "Pose");
 
   // Pose vector service
-  std::string poseVectorService{
-    "/world/" + validWorldName + "/set_pose_vector"};
-  this->dataPtr->node.Advertise(poseVectorService,
-      &UserCommandsPrivate::PoseVectorService, this->dataPtr.get());
-
-  gzmsg << "Pose service on [" << poseVectorService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PoseVectorCommand, msgs::Pose_V>(
+      "/world/" + validWorldName + "/set_pose_vector", "Pose");
 
   // Light service
-  std::string lightService{"/world/" + validWorldName + "/light_config"};
-  this->dataPtr->node.Advertise(lightService,
-      &UserCommandsPrivate::LightService, this->dataPtr.get());
-
-  gzmsg << "Light configuration service on [" << lightService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<LightCommand, msgs::Light>(
+      "/world/" + validWorldName + "/light_config", "Light configuration");
 
   std::string lightTopic{"/world/" + validWorldName + "/light_config"};
   this->dataPtr->node.Subscribe(lightTopic, &UserCommandsPrivate::OnCmdLight,
@@ -712,54 +627,31 @@ void UserCommands::Configure(const Entity &_entity,
       &UserCommandsPrivate::OnCmdMaterialColor, this->dataPtr.get());
 
   // Physics service
-  std::string physicsService{"/world/" + validWorldName + "/set_physics"};
-  this->dataPtr->node.Advertise(physicsService,
-      &UserCommandsPrivate::PhysicsService, this->dataPtr.get());
-
-  gzmsg << "Physics service on [" << physicsService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<PhysicsCommand, msgs::Physics>(
+      "/world/" + validWorldName + "/set_physics", "Physics");
 
   // Spherical coordinates service
-  std::string sphericalCoordinatesService{"/world/" + validWorldName +
-      "/set_spherical_coordinates"};
-  this->dataPtr->node.Advertise(sphericalCoordinatesService,
-      &UserCommandsPrivate::SphericalCoordinatesService, this->dataPtr.get());
-
-  gzmsg << "SphericalCoordinates service on [" << sphericalCoordinatesService
-         << "]" << std::endl;
+  this->dataPtr->AdvertiseService<SphericalCoordinatesCommand,
+                                  msgs::SphericalCoordinates>(
+      "/world/" + validWorldName + "/set_spherical_coordinates",
+      "SphericalCoordinates");
 
   // Enable collision service
-  std::string enableCollisionService{
-    "/world/" + validWorldName + "/enable_collision"};
-  this->dataPtr->node.Advertise(enableCollisionService,
-      &UserCommandsPrivate::EnableCollisionService, this->dataPtr.get());
-
-  gzmsg << "Enable collision service on [" << enableCollisionService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<EnableCollisionCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/enable_collision", "Enable collision");
 
   // Disable collision service
-  std::string disableCollisionService{
-    "/world/" + validWorldName + "/disable_collision"};
-  this->dataPtr->node.Advertise(disableCollisionService,
-      &UserCommandsPrivate::DisableCollisionService, this->dataPtr.get());
-
-  gzmsg << "Disable collision service on [" << disableCollisionService << "]"
-    << std::endl;
+  this->dataPtr->AdvertiseService<DisableCollisionCommand, msgs::Entity>(
+      "/world/" + validWorldName + "/disable_collision", "Disable collision");
 
   // Visual service
-  std::string visualService
-      {"/world/" + validWorldName + "/visual_config"};
-  this->dataPtr->node.Advertise(visualService,
-      &UserCommandsPrivate::VisualService, this->dataPtr.get());
-
-  gzmsg << "Material service on [" << visualService << "]" << std::endl;
+  this->dataPtr->AdvertiseService<VisualCommand, msgs::Visual>(
+      "/world/" + validWorldName + "/visual_config", "Material");
 
   // Wheel slip service
-  std::string wheelSlipService
-      {"/world/" + validWorldName + "/wheel_slip"};
-  this->dataPtr->node.Advertise(wheelSlipService,
-      &UserCommandsPrivate::WheelSlipService, this->dataPtr.get());
-
-  gzmsg << "Material service on [" << wheelSlipService << "]" << std::endl;
+  this->dataPtr
+      ->AdvertiseService<WheelSlipCommand, msgs::WheelSlipParametersCmd>(
+          "/world/" + validWorldName + "/wheel_slip", "Material");
 }
 
 //////////////////////////////////////////////////
@@ -796,82 +688,6 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::CreateServiceMultiple(
-    const msgs::EntityFactory_V &_req, msgs::Boolean &_res)
-{
-  std::lock_guard<std::mutex> lock(this->pendingMutex);
-  for (int i = 0; i < _req.data_size(); ++i)
-  {
-    const msgs::EntityFactory &msg = _req.data(i);
-    // Create command and push it to queue
-    auto msgCopy = msg.New();
-    msgCopy->CopyFrom(msg);
-    auto cmd = std::make_unique<CreateCommand>(msgCopy, this->iface);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::CreateService(const msgs::EntityFactory &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<CreateCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::RemoveService(const msgs::Entity &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<RemoveCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::LightService(const msgs::Light &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<LightCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
 void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
 {
   auto msg = _msg.New();
@@ -884,120 +700,6 @@ void UserCommandsPrivate::OnCmdLight(const msgs::Light &_msg)
     this->pendingCmds.push_back(std::move(cmd));
   }
 }
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::PoseService(const msgs::Pose &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<PoseCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::PoseVectorService(const msgs::Pose_V &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<PoseVectorCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::EnableCollisionService(const msgs::Entity &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<EnableCollisionCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::DisableCollisionService(const msgs::Entity &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<DisableCollisionCommand>(msg, this->iface);
-
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::PhysicsService(const msgs::Physics &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<PhysicsCommand>(msg, this->iface);
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
-bool UserCommandsPrivate::VisualService(const msgs::Visual &_req,
-    msgs::Boolean &_res)
-{
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<VisualCommand>(msg, this->iface);
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
-}
-
-//////////////////////////////////////////////////
 void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 {
   auto msg = _msg.New();
@@ -1013,32 +715,24 @@ void UserCommandsPrivate::OnCmdMaterialColor(const msgs::MaterialColor &_msg)
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::WheelSlipService(
-    const msgs::WheelSlipParametersCmd &_req,
-    msgs::Boolean &_res)
+template <typename CommandT, typename InputT>
+void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
+                                           const char *_serviceName)
 {
-  // Create command and push it to queue
-  auto msg = _req.New();
-  msg->CopyFrom(_req);
-  auto cmd = std::make_unique<WheelSlipCommand>(msg, this->iface);
-  // Push to pending
-  {
-    std::lock_guard<std::mutex> lock(this->pendingMutex);
-    this->pendingCmds.push_back(std::move(cmd));
-  }
-
-  _res.set_data(true);
-  return true;
+  this->node.Advertise(
+      _topic, &UserCommandsPrivate::ServiceHandler<CommandT, InputT>, this);
+  if (_serviceName != nullptr)
+    gzmsg << _serviceName << " service on [" << _topic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
-bool UserCommandsPrivate::SphericalCoordinatesService(
-    const msgs::SphericalCoordinates &_req, msgs::Boolean &_res)
+template <typename CommandT, typename InputT>
+bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
+                                         msgs::Boolean &_res)
 {
-  // Create command and push it to queue
   auto msg = _req.New();
   msg->CopyFrom(_req);
-  auto cmd = std::make_unique<SphericalCoordinatesCommand>(msg, this->iface);
+  auto cmd = std::make_unique<CommandT>(msg, this->iface);
   // Push to pending
   {
     std::lock_guard<std::mutex> lock(this->pendingMutex);
@@ -1072,29 +766,55 @@ CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
 }
 
 //////////////////////////////////////////////////
+CreateCommand::CreateCommand(msgs::EntityFactory_V *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+//////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
   auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg);
-  if (nullptr == createMsg)
+  if (nullptr != createMsg)
   {
-    gzerr << "Internal error, null create message" << std::endl;
-    return false;
+    return this->CreateFromMsg(*createMsg);
+  }
+  else
+  {
+    // It could also be an EntityFactory_V
+    auto createMsgV = dynamic_cast<const msgs::EntityFactory_V *>(this->msg);
+    if (nullptr != createMsgV)
+    {
+      bool result = true;
+      for (const auto &msgItem : createMsgV->data())
+      {
+        result = result && this->CreateFromMsg(msgItem);
+      }
+      return result;
+    }
   }
 
+  gzerr << "Internal error, null create message" << std::endl;
+  return false;
+}
+
+//////////////////////////////////////////////////
+bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
+{
   // Load SDF
   sdf::Root root;
   sdf::Light lightSdf;
   sdf::Errors errors;
-  switch (createMsg->from_case())
+  switch (_createMsg.from_case())
   {
     case msgs::EntityFactory::kSdf:
     {
-      errors = root.LoadSdfString(createMsg->sdf());
+      errors = root.LoadSdfString(_createMsg.sdf());
       break;
     }
     case msgs::EntityFactory::kSdfFilename:
     {
-      errors = root.Load(createMsg->sdf_filename());
+      errors = root.Load(_createMsg.sdf_filename());
       break;
     }
     case msgs::EntityFactory::kModel:
@@ -1105,7 +825,7 @@ bool CreateCommand::Execute()
     }
     case msgs::EntityFactory::kLight:
     {
-      lightSdf = convert<sdf::Light>(createMsg->light());
+      lightSdf = convert<sdf::Light>(_createMsg.light());
       break;
     }
     case msgs::EntityFactory::kCloneName:
@@ -1113,7 +833,7 @@ bool CreateCommand::Execute()
       auto validClone = false;
       auto clonedEntity = kNullEntity;
       auto entityToClone = this->iface->ecm->EntityByComponents(
-          components::Name(createMsg->clone_name()));
+          components::Name(_createMsg.clone_name()));
       if (kNullEntity != entityToClone)
       {
         auto parentComp =
@@ -1125,7 +845,7 @@ bool CreateCommand::Execute()
         {
           auto parentEntity = parentComp->Data();
           clonedEntity = this->iface->ecm->Clone(entityToClone,
-              parentEntity, createMsg->name(), createMsg->allow_renaming());
+              parentEntity, _createMsg.name(), _createMsg.allow_renaming());
           validClone = kNullEntity != clonedEntity;
         }
       }
@@ -1133,14 +853,14 @@ bool CreateCommand::Execute()
       if (!validClone)
       {
         gzerr << "Request to clone an entity named ["
-          << createMsg->clone_name() << "] failed." << std::endl;
+          << _createMsg.clone_name() << "] failed." << std::endl;
         return false;
       }
 
-      if (createMsg->has_pose())
+      if (_createMsg.has_pose())
       {
         // TODO(anyone) handle if relative_to is filled
-        auto pose = sim::convert<math::Pose3d>(createMsg->pose());
+        auto pose = sim::convert<math::Pose3d>(_createMsg.pose());
         this->iface->ecm->SetComponentData<components::Pose>(clonedEntity,
             pose);
       }
@@ -1198,9 +918,9 @@ bool CreateCommand::Execute()
 
   // Check the name of the entity being spawned
   std::string desiredName;
-  if (!createMsg->name().empty())
+  if (!_createMsg.name().empty())
   {
-    desiredName = createMsg->name();
+    desiredName = _createMsg.name();
   }
   else if (isModel)
   {
@@ -1224,7 +944,7 @@ bool CreateCommand::Execute()
       components::Name(desiredName),
       components::ParentEntity(this->iface->worldEntity)))
   {
-    if (!createMsg->allow_renaming())
+    if (!_createMsg.allow_renaming())
     {
       gzwarn << "Entity named [" << desiredName << "] already exists and "
               << "[allow_renaming] is false. Entity not spawned."
@@ -1274,13 +994,13 @@ bool CreateCommand::Execute()
 
   // Pose
   std::optional<math::Pose3d> createPose;
-  if (createMsg->has_pose())
+  if (_createMsg.has_pose())
   {
-    createPose = msgs::Convert(createMsg->pose());
+    createPose = msgs::Convert(_createMsg.pose());
   }
 
   // Spherical coordinates
-  if (createMsg->has_spherical_coordinates())
+  if (_createMsg.has_spherical_coordinates())
   {
     auto scComp = this->iface->ecm->Component<components::SphericalCoordinates>(
         this->iface->worldEntity);
@@ -1294,9 +1014,9 @@ bool CreateCommand::Execute()
     else
     {
       auto vec = math::CoordinateVector3::Spherical(
-          GZ_DTOR(createMsg->spherical_coordinates().latitude_deg()),
-          GZ_DTOR(createMsg->spherical_coordinates().longitude_deg()),
-          createMsg->spherical_coordinates().elevation());
+          GZ_DTOR(_createMsg.spherical_coordinates().latitude_deg()),
+          GZ_DTOR(_createMsg.spherical_coordinates().longitude_deg()),
+          _createMsg.spherical_coordinates().elevation());
       auto pos = scComp->Data().PositionTransform(vec,
           math::SphericalCoordinates::SPHERICAL,
           math::SphericalCoordinates::LOCAL);
@@ -1317,7 +1037,7 @@ bool CreateCommand::Execute()
         createPose.value().SetY(*pos->Y());
         createPose.value().SetZ(*pos->Z());
         createPose.value().Rot() = math::Quaterniond(0, 0,
-            GZ_DTOR(createMsg->spherical_coordinates().heading_deg())) *
+            GZ_DTOR(_createMsg.spherical_coordinates().heading_deg())) *
             createPose.value().Rot();
       }
     }
