@@ -14,8 +14,12 @@
  * limitations under the License.
  *
 */
-import QtQuick 2.0
-import QtQuick.Controls 2.0
+import QtCore
+import QtQuick 2.9
+import QtQuick.Controls
+import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs
+import QtQuick.Layouts 1.3
 import GzSim 1.0 as GzSim
 
 Item {
@@ -78,6 +82,14 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: thirdMenu.open()
+      }
+    }
+    MenuItem {
+      id: attachPlugin
+      text: "Attach Plugin"
+      onTriggered: {
+        menu.close()
+        pluginDialog.open()
       }
     }
   }
@@ -172,9 +184,10 @@ Item {
     }
   }
 
-  function open(_entity, _type) {
+  function open(_entity, _type, _eid) {
     context.entity = _entity
     context.type = _type
+    context.eid = _eid
     moveToMenu.enabled = false
     followMenu.enabled = false
     followFreeLookMenu.enabled = false
@@ -233,9 +246,91 @@ Item {
     menu.popup()
   }
 
+  Dialog {
+    id: pluginDialog
+    title: "Add Plugin Dialog"
+    modal: true
+    standardButtons: Dialog.Ok | Dialog.Cancel // Adds standard buttons
+    parent: Overlay.overlay
+    //parent: customPlugin.Window.window ? customPlugin.Window.window.contentItem : customPlugin
+    x: (parent.width - width) / 2
+    y: (parent.height - height) / 2
+    width: parent.width * 0.3
+    height: parent.height * 0.6
+
+    contentItem: Item {
+      // Your dialog content goes here
+      width: parent.width
+      height: parent.height
+      Column {
+        anchors.centerIn: parent
+        spacing: 10
+        width: parent.width * 0.8 // Make inputs a bit narrower than parent
+        height: parent.height
+
+        Text {
+          id: pluginNameLbl
+          text: "Plugin Name:"
+        }
+
+        TextInput {
+          id: pluginNames
+          width: parent.width
+          height: 20
+          
+        }
+
+        Text {
+          id: pluginFilesLbl
+          text: "Plugin Filename:"
+        }
+
+        TextInput {
+          id: pluginFilename
+          width: parent.width
+          height: 20
+        }
+
+        Text {
+          id: pluginSdfLbl
+          text: "Enter the inner-xml of your plugin"
+        }
+
+        TextArea {
+            id: pluginParams
+            width: parent.width
+            height: parent.y + parent.height - (pluginSdfLbl.y + pluginFilesLbl.height)  // Set a reasonable height
+
+            font.family: "Monospace"
+            background: Rectangle {
+                 color: "transparent" // No fill
+                 border.width: 2     // No border
+                 border.color: "lightblue"
+            }
+            leftPadding: 5
+            topPadding: 5
+            rightPadding: 5
+            bottomPadding: 5
+        }
+      }
+    }
+
+    onAccepted: {
+        console.log("Dialog Accepted!");
+        context.OnAddPlugin(pluginNames.text, pluginFilename.text, pluginParams.text, context.eid)
+        // Perform actions when OK is clicked
+    }
+
+    onRejected: {
+        console.log("Dialog Rejected!");
+        // Perform actions when Cancel is clicked or dialog is closed
+    }
+  }
+
   GzSim.EntityContextMenuItem {
     id: context
     property string entity
     property string type
+    property int eid
   }
 }
