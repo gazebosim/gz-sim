@@ -61,8 +61,8 @@ TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
     auto robotTags = _ecm.ComponentData<components::SemanticTag>(robots[0]);
     ASSERT_TRUE(robotTags.has_value());
     ASSERT_EQ(2u, robotTags->size());
-    EXPECT_EQ(1u, robotTags->count("mobile"));
-    EXPECT_EQ(1u, robotTags->count("diff_drive"));
+    EXPECT_EQ("mobile", (*robotTags)[0]);
+    EXPECT_EQ("diff_drive", (*robotTags)[1]);
 
     auto dynamicObjects =
         _ecm.EntitiesByComponents(components::SemanticCategory(4));

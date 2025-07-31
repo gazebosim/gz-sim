@@ -76,7 +76,7 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
   // `EachNew` loop.
   std::map<Entity, uint8_t> entitiesToCategorize;
   std::map<Entity, std::string> entitiesToDescribe;
-  std::map<Entity, std::set<std::string>> entitiesToTag;
+  std::map<Entity, std::vector<std::string>> entitiesToTag;
   _ecm.EachNew<components::Name, components::ModelSdf>(
       [&](const Entity &_entity, const components::Name *_name,
           const components::ModelSdf *_modelSdf)
@@ -144,7 +144,7 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
             }
             else
             {
-              entitiesToTag[_entity].insert(tagStr);
+              entitiesToTag[_entity].push_back(tagStr);
             }
           }
         }

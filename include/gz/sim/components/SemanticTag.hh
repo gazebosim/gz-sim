@@ -19,8 +19,8 @@
 
 #include <gz/msgs/stringmsg_v.pb.h>
 
-#include <set>
 #include <string>
+#include <vector>
 
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
@@ -39,7 +39,7 @@ class SemanticTagSerializer
 {
   public:
   static std::ostream &Serialize(std::ostream &_out,
-                                 const std::set<std::string> &_tags)
+                                 const std::vector<std::string> &_tags)
   {
     msgs::StringMsg_V msg;
     for (const auto &tag : _tags)
@@ -52,13 +52,13 @@ class SemanticTagSerializer
 
   public:
   static std::istream &Deserialize(std::istream &_in,
-                                   std::set<std::string> &_tags)
+                                   std::vector<std::string> &_tags)
   {
     msgs::StringMsg_V msg;
     msg.ParsePartialFromIstream(&_in);
     for (const auto &item : msg.data())
     {
-      _tags.insert(item);
+      _tags.push_back(item);
     }
     return _in;
   }
@@ -72,7 +72,7 @@ namespace components
 /// meant to be used by systems such as EntitySemantics to assign tags to
 /// entities. See
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/TagsFilter.msg
-using SemanticTag = Component<std::set<std::string>, class SemanticTagTag,
+using SemanticTag = Component<std::vector<std::string>, class SemanticTagTag,
                               serializers::SemanticTagSerializer>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticTag", SemanticTag)
 }  // namespace components
