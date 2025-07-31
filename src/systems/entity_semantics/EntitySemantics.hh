@@ -18,7 +18,6 @@
 #define GZ_SIM_SYSTEMS_ENTITYSEMANTICS_HH_
 
 #include <gz/sim/System.hh>
-#include <memory>
 
 namespace gz
 {
@@ -35,8 +34,9 @@ class EntitySemanticsPrivate;
 /// \brief System for assigning semantics to entities, such as models,
 /// by classifying them into categories and assigning them tags.
 /// Reference:
-/// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityCategory.msg,
-/// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/TagsFilter.msg
+/// https://github.com/ros-simulation/simulation_interfaces/blob/main/msg/EntityInfo.msg,
+/// https://github.com/ros-simulation/simulation_interfaces/blob/main/msg/EntityCategory.msg,
+/// https://github.com/ros-simulation/simulation_interfaces/blob/main/msg/TagsFilter.msg
 ///
 /// ## System Parameters
 ///
@@ -61,6 +61,8 @@ class EntitySemanticsPrivate;
 ///   in on top of categories. Multiple instances of the `<tag>` elements are
 ///   allowed for an entity.
 ///
+///   - `<description>`: freeform string that describes the entity. There can
+///   only be one instance of the `<description>` element for an entity.
 ///
 /// Example:
 ///
@@ -70,6 +72,7 @@ class EntitySemanticsPrivate;
 ///     <category>ROBOT</category>
 ///     <tag>mobile</tag>
 ///     <tag>diff_drive</tag>
+///     <description>Food delivery mobile robot</description>
 ///   </gz:semantics>
 /// </model>
 ///

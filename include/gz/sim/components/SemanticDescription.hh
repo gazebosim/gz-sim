@@ -14,8 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_SIM_COMPONENTS_SEMANTIC_CATEGORY_HH_
-#define GZ_SIM_COMPONENTS_SEMANTIC_CATEGORY_HH_
+#ifndef GZ_SIM_COMPONENTS_SEMANTIC_DESCRIPTION_HH_
+#define GZ_SIM_COMPONENTS_SEMANTIC_DESCRIPTION_HH_
+
+#include <string>
 
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
@@ -29,14 +31,14 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-/// \brief A component that holds the semantic category of an entity. This is
-/// meant to be used by systems such as EntitySemantics to assign categories to
-/// entities.
-/// See
-/// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityCategory.msg
-using SemanticCategory = Component<uint8_t, class SemanticCategoryTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticCategory",
-                          SemanticCategory)
+/// \brief A component that holds the semantic description of an entity. This is
+/// meant to be used by systems such as EntitySemantics to assign descriptions
+/// to entities. See
+/// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityInfo.msg
+using SemanticDescription =
+    Component<std::string, class SemanticDescriptionTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticDescription",
+                          SemanticDescription)
 }  // namespace components
 }  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim

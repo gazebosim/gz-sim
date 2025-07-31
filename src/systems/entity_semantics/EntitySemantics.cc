@@ -32,6 +32,7 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SemanticCategory.hh"
+#include "gz/sim/components/SemanticDescription.hh"
 #include "gz/sim/components/SemanticTag.hh"
 
 using namespace gz;
@@ -71,7 +72,10 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
 {
   GZ_PROFILE("EntitySemantics::PreUpdate");
 
+  // Store entities temporarily since it's not safe to add components in an
+  // `EachNew` loop.
   std::map<Entity, uint8_t> entitiesToCategorize;
+  std::map<Entity, std::string> entitiesToDescribe;
   std::map<Entity, std::set<std::string>> entitiesToTag;
   _ecm.EachNew<components::Name, components::ModelSdf>(
       [&](const Entity &_entity, const components::Name *_name,
@@ -106,6 +110,29 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
             }
           }
 
+          auto descriptionElem = semanticsElem->FindElement("description");
+          if (descriptionElem)
+          {
+            auto description = descriptionElem->Get<std::string>();
+            if (!description.empty())
+            {
+              entitiesToDescribe.emplace(_entity, description);
+            }
+            else
+            {
+              gzerr << "<description> cannot be an empty string"
+                    << "] in model [" << _name->Data() << "]\n";
+            }
+
+            if (descriptionElem->GetNextElement("description"))
+            {
+              // TODO(azeey) Include file and line number in error message.
+              gzerr << "There should be only one <description> element for an "
+                       "entity in model ["
+                    << _name->Data() << "]\n";
+            }
+          }
+
           for (auto tagElem = semanticsElem->FindElement("tag"); tagElem;
                tagElem = tagElem->GetNextElement("tag"))
           {
@@ -127,6 +154,11 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
   for (const auto &[entity, category] : entitiesToCategorize)
   {
     _ecm.SetComponentData<components::SemanticCategory>(entity, category);
+  }
+
+  for (const auto &[entity, description] : entitiesToDescribe)
+  {
+    _ecm.SetComponentData<components::SemanticDescription>(entity, description);
   }
 
   for (const auto &[entity, tags] : entitiesToTag)

@@ -54,6 +54,7 @@
     <model name='vehicle'>
       <gz:semantics>
         <category>ROBOT</category>
+        <description>Food delivery mobile robot</description>
         <tag>mobile</tag>
         <tag>diff_drive</tag>
       </gz:semantics>
