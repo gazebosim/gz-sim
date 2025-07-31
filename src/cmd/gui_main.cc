@@ -67,24 +67,6 @@ void addGuiFlags(CLI::App &_app)
                   "for the GUI.")
                   ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
 
-  _app.add_option("--render-engine", opt->renderEngineGui,
-                  "Gazebo Rendering engine plugin to load for both the Server\n"
-                  "and the GUI. Gazebo will use OGRE2 by default.\n"
-                  "Make sure custom plugins are inside\n"
-                  "GZ_SIM_RENDER_ENGINE_PATH.")
-                  ->default_str("ogre2");
-
-  _app.add_option("--render-engine-api-backend",
-                  opt->renderEngineGuiApiBackend,
-                  "API to use for both Server and GUI.\n"
-                  "Possible values for ogre2:\n"
-                  "   - opengl (default)\n"
-                  "   - vulkan (beta)\n"
-                  "   - metal (Apple only. Default for Apple)\n"
-                  "Note: If Vulkan is being in the GUI and gz-gui was\n"
-                  "built against Qt < 5.15.2, it may be very slow")
-                  ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
-
   _app.add_option("--gui-config", opt->guiConfig,
                   "Gazebo GUI configuration file to load.\n"
                   "If no file is provided then the configuration in\n"
