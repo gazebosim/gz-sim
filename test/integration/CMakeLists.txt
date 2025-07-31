@@ -52,6 +52,7 @@ set(tests
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   material.cc
+  mecanum_drive_system.cc
   mesh_inertia_calculation.cc
   model.cc
   model_photo_shoot_default_joints.cc
@@ -104,6 +105,7 @@ set(tests_needing_display
   camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
+  camera_sensor_global_illumination.cc
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc

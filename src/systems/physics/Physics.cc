@@ -281,6 +281,13 @@ class gz::sim::systems::PhysicsPrivate
               EntityComponentManager &_ecm,
               const gz::physics::ForwardStep::Output &_updatedLinks);
 
+  /// \brief Check if a model contains any plane collision geometry.
+  /// \param[in] modelEntity The entity of the model to check.
+  /// \param[in] _ecm The entity component manager.
+  /// \return True if any collision geometry is a plane.
+  public: bool ModelContainsPlaneCollision(const Entity &_modelEntity,
+              EntityComponentManager &_ecm) const;
+
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
   /// \param[in] _canonicalLink The canonical link of _model.
@@ -845,87 +852,119 @@ void Physics::Configure(const Entity &_entity,
       "include_entity_names", true).first;
   }
 
-  // Find engine shared library
-  // Look in:
-  // * Paths from environment variable
-  // * Engines installed with gz-physics
-  common::SystemPaths systemPaths;
-  systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
-
-  auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
-
-  if (pathToLib.empty())
-  {
-    gzerr << "Failed to find plugin [" << pluginLib
-    << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-    << " environment variable?" << std::endl;
-
-    return;
-  }
-
-  // Load engine plugin
   plugin::Loader pluginLoader;
-  auto plugins = pluginLoader.LoadLib(pathToLib);
-  if (plugins.empty())
+  if (isStaticPlugin(pluginLib))
   {
-    gzerr << "Unable to load the [" << pathToLib << "] library.\n";
-    return;
-  }
-
-  auto classNames = pluginLoader.PluginsImplementing<
-      physics::ForwardStep::Implementation<
-      physics::FeaturePolicy3d>>();
-  if (classNames.empty())
-  {
-    gzerr << "No physics plugins implementing required interface found in "
-          << "library [" << pathToLib << "]." << std::endl;
-    return;
-  }
-
-  // Get the first plugin that works
-  for (auto className : classNames)
-  {
-    auto plugin = pluginLoader.Instantiate(className);
-
+    const size_t prefixLen = staticPluginPrefixStr().size();
+    const std::string pluginToInstantiate =
+        pluginLib.substr(prefixLen);
+    auto plugin = pluginLoader.Instantiate(pluginToInstantiate);
     if (!plugin)
     {
-      gzwarn << "Failed to instantiate [" << className << "] from ["
-              << pathToLib << "]" << std::endl;
-      continue;
+       gzerr << "Failed to load physics engine plugin: "
+             << "(Reason: static plugin registry does not contain the "
+             << "requested plugin)\n"
+             << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
 
     this->dataPtr->engine = physics::RequestEngine<
       physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
-    if (nullptr != this->dataPtr->engine)
+    if (!this->dataPtr->engine)
     {
-      gzdbg << "Loaded [" << className << "] from library ["
-             << pathToLib << "]" << std::endl;
-      break;
+      gzerr << "Failed to load physics engine from static plugin registry: "
+            << "(Reason: Physics engine does not meet the minimum features "
+            << "requirement)\n"
+            << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
-
-    auto missingFeatures = physics::RequestEngine<
-        physics::FeaturePolicy3d,
-        PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
-
-    std::stringstream msg;
-    msg << "Plugin [" << className << "] misses required features:"
-        << std::endl;
-    for (auto feature : missingFeatures)
-    {
-      msg << "- " << feature << std::endl;
-    }
-    gzwarn << msg.str();
+    gzdbg << "Loaded [" << pluginLib <<"] from the static plugin registry"
+          << std::endl;
   }
-
-  if (nullptr == this->dataPtr->engine)
+  else
   {
-    gzerr << "Failed to load a valid physics engine from [" << pathToLib
-           << "]."
-           << std::endl;
-    return;
+    // Find engine shared library
+    // Look in:
+    // * Paths from environment variable
+    // * Engines installed with gz-physics
+    common::SystemPaths systemPaths;
+    systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
+
+    auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
+
+    if (pathToLib.empty())
+    {
+      gzerr << "Failed to find plugin [" << pluginLib
+      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+      << " environment variable?" << std::endl;
+
+      return;
+    }
+
+    // Load engine plugin
+    auto plugins = pluginLoader.LoadLib(pathToLib);
+    if (plugins.empty())
+    {
+      gzerr << "Unable to load the [" << pathToLib << "] library.\n";
+      return;
+    }
+
+    auto classNames = pluginLoader.PluginsImplementing<
+        physics::ForwardStep::Implementation<
+        physics::FeaturePolicy3d>>();
+    if (classNames.empty())
+    {
+      gzerr << "No physics plugins implementing required interface found in "
+            << "library [" << pathToLib << "]." << std::endl;
+      return;
+    }
+
+    // Get the first plugin that works
+    for (auto className : classNames)
+    {
+      auto plugin = pluginLoader.Instantiate(className);
+
+      if (!plugin)
+      {
+        gzwarn << "Failed to instantiate [" << className << "] from ["
+                << pathToLib << "]" << std::endl;
+        continue;
+      }
+
+      this->dataPtr->engine = physics::RequestEngine<
+        physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::From(plugin);
+
+      if (nullptr != this->dataPtr->engine)
+      {
+        gzdbg << "Loaded [" << className << "] from library ["
+               << pathToLib << "]" << std::endl;
+        break;
+      }
+
+      auto missingFeatures = physics::RequestEngine<
+          physics::FeaturePolicy3d,
+          PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
+
+      std::stringstream msg;
+      msg << "Plugin [" << className << "] misses required features:"
+          << std::endl;
+      for (auto feature : missingFeatures)
+      {
+        msg << "- " << feature << std::endl;
+      }
+      gzwarn << msg.str();
+    }
+    if (nullptr == this->dataPtr->engine)
+    {
+      gzerr << "Failed to load a valid physics engine from [" << pathToLib
+             << "]."
+             << std::endl;
+      return;
+    }
   }
 
   this->dataPtr->eventManager = &_eventMgr;
@@ -2436,7 +2475,16 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::WorldPoseCmd *_poseCmd)
       {
         this->worldPoseCmdsToRemove.insert(_entity);
-
+        // Check if the model contains any plane collision geometry.
+        // If so, reject set_pose to prevent physics engine crash.
+        if (this->ModelContainsPlaneCollision(_entity, _ecm))
+        {
+          gzerr << "SetPose is not supported for models containing "
+                << "plane collision geometry. Entity [" << _entity << "]. "
+                << "Request ignored"
+                << std::endl;
+          return true;
+        }
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
         if (nullptr == modelPtrPhys)
           return true;
@@ -2446,6 +2494,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         {
           gzerr << "Unable to set world pose for nested models."
                  << std::endl;
+          return true;
+        }
+        math::Pose3d worldPoseCmd = _poseCmd->Data();
+        if (!worldPoseCmd.Pos().IsFinite() || !worldPoseCmd.Rot().IsFinite() ||
+            worldPoseCmd.Rot() == math::Quaterniond::Zero)
+        {
+          gzerr << "Unable to set world pose. Invalid pose value: "
+                << worldPoseCmd << std::endl;
           return true;
         }
 
@@ -2467,7 +2523,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
 
-        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+        freeGroup->SetWorldPose(math::eigen3::convert(worldPoseCmd *
                                 linkPose));
 
         // Process pose commands for static models here, as one-time changes
@@ -2476,7 +2532,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           auto worldPoseComp = _ecm.Component<components::Pose>(_entity);
           if (worldPoseComp)
           {
-            auto state = worldPoseComp->SetData(_poseCmd->Data(),
+            auto state = worldPoseComp->SetData(worldPoseCmd,
                 this->pose3Eql) ?
                 ComponentState::OneTimeChange :
                 ComponentState::NoChange;
@@ -3125,6 +3181,26 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
   }
 
   return linkFrameData;
+}
+
+//////////////////////////////////////////////////
+bool PhysicsPrivate::ModelContainsPlaneCollision(const Entity &_modelEntity,
+    EntityComponentManager &_ecm) const
+{
+  sim::Model model(_modelEntity);
+  for (const auto &linkEntity : model.Links(_ecm))
+  {
+    sim::Link link(linkEntity);
+    for (const auto &collisionEntity : link.Collisions(_ecm))
+    {
+      auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
+      if (geomComp && geomComp->Data().Type() == sdf::GeometryType::PLANE)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////
