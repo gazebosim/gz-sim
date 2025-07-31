@@ -852,87 +852,119 @@ void Physics::Configure(const Entity &_entity,
       "include_entity_names", true).first;
   }
 
-  // Find engine shared library
-  // Look in:
-  // * Paths from environment variable
-  // * Engines installed with gz-physics
-  common::SystemPaths systemPaths;
-  systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
-
-  auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
-
-  if (pathToLib.empty())
-  {
-    gzerr << "Failed to find plugin [" << pluginLib
-    << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-    << " environment variable?" << std::endl;
-
-    return;
-  }
-
-  // Load engine plugin
   plugin::Loader pluginLoader;
-  auto plugins = pluginLoader.LoadLib(pathToLib);
-  if (plugins.empty())
+  if (isStaticPlugin(pluginLib))
   {
-    gzerr << "Unable to load the [" << pathToLib << "] library.\n";
-    return;
-  }
-
-  auto classNames = pluginLoader.PluginsImplementing<
-      physics::ForwardStep::Implementation<
-      physics::FeaturePolicy3d>>();
-  if (classNames.empty())
-  {
-    gzerr << "No physics plugins implementing required interface found in "
-          << "library [" << pathToLib << "]." << std::endl;
-    return;
-  }
-
-  // Get the first plugin that works
-  for (auto className : classNames)
-  {
-    auto plugin = pluginLoader.Instantiate(className);
-
+    const size_t prefixLen = staticPluginPrefixStr().size();
+    const std::string pluginToInstantiate =
+        pluginLib.substr(prefixLen);
+    auto plugin = pluginLoader.Instantiate(pluginToInstantiate);
     if (!plugin)
     {
-      gzwarn << "Failed to instantiate [" << className << "] from ["
-              << pathToLib << "]" << std::endl;
-      continue;
+       gzerr << "Failed to load physics engine plugin: "
+             << "(Reason: static plugin registry does not contain the "
+             << "requested plugin)\n"
+             << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
 
     this->dataPtr->engine = physics::RequestEngine<
       physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
-    if (nullptr != this->dataPtr->engine)
+    if (!this->dataPtr->engine)
     {
-      gzdbg << "Loaded [" << className << "] from library ["
-             << pathToLib << "]" << std::endl;
-      break;
+      gzerr << "Failed to load physics engine from static plugin registry: "
+            << "(Reason: Physics engine does not meet the minimum features "
+            << "requirement)\n"
+            << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
-
-    auto missingFeatures = physics::RequestEngine<
-        physics::FeaturePolicy3d,
-        PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
-
-    std::stringstream msg;
-    msg << "Plugin [" << className << "] misses required features:"
-        << std::endl;
-    for (auto feature : missingFeatures)
-    {
-      msg << "- " << feature << std::endl;
-    }
-    gzwarn << msg.str();
+    gzdbg << "Loaded [" << pluginLib <<"] from the static plugin registry"
+          << std::endl;
   }
-
-  if (nullptr == this->dataPtr->engine)
+  else
   {
-    gzerr << "Failed to load a valid physics engine from [" << pathToLib
-           << "]."
-           << std::endl;
-    return;
+    // Find engine shared library
+    // Look in:
+    // * Paths from environment variable
+    // * Engines installed with gz-physics
+    common::SystemPaths systemPaths;
+    systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
+
+    auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
+
+    if (pathToLib.empty())
+    {
+      gzerr << "Failed to find plugin [" << pluginLib
+      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+      << " environment variable?" << std::endl;
+
+      return;
+    }
+
+    // Load engine plugin
+    auto plugins = pluginLoader.LoadLib(pathToLib);
+    if (plugins.empty())
+    {
+      gzerr << "Unable to load the [" << pathToLib << "] library.\n";
+      return;
+    }
+
+    auto classNames = pluginLoader.PluginsImplementing<
+        physics::ForwardStep::Implementation<
+        physics::FeaturePolicy3d>>();
+    if (classNames.empty())
+    {
+      gzerr << "No physics plugins implementing required interface found in "
+            << "library [" << pathToLib << "]." << std::endl;
+      return;
+    }
+
+    // Get the first plugin that works
+    for (auto className : classNames)
+    {
+      auto plugin = pluginLoader.Instantiate(className);
+
+      if (!plugin)
+      {
+        gzwarn << "Failed to instantiate [" << className << "] from ["
+                << pathToLib << "]" << std::endl;
+        continue;
+      }
+
+      this->dataPtr->engine = physics::RequestEngine<
+        physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::From(plugin);
+
+      if (nullptr != this->dataPtr->engine)
+      {
+        gzdbg << "Loaded [" << className << "] from library ["
+               << pathToLib << "]" << std::endl;
+        break;
+      }
+
+      auto missingFeatures = physics::RequestEngine<
+          physics::FeaturePolicy3d,
+          PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
+
+      std::stringstream msg;
+      msg << "Plugin [" << className << "] misses required features:"
+          << std::endl;
+      for (auto feature : missingFeatures)
+      {
+        msg << "- " << feature << std::endl;
+      }
+      gzwarn << msg.str();
+    }
+    if (nullptr == this->dataPtr->engine)
+    {
+      gzerr << "Failed to load a valid physics engine from [" << pathToLib
+             << "]."
+             << std::endl;
+      return;
+    }
   }
 
   this->dataPtr->eventManager = &_eventMgr;
