@@ -26,8 +26,8 @@
 #include <gz/transport/Node.hh>
 #include <map>
 #include <optional>
-#include <set>
 #include <string>
+#include <vector>
 
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"

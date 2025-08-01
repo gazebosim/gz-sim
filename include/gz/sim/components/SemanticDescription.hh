@@ -37,7 +37,8 @@ namespace serializers
 {
 class SemanticDescriptionSerializer
 {
-  public: static std::ostream &Serialize(std::ostream &_out, const std::string &_desc)
+  public:
+  static std::ostream &Serialize(std::ostream &_out, const std::string &_desc)
   {
     msgs::StringMsg msg;
     msg.set_data(_desc);
@@ -45,7 +46,8 @@ class SemanticDescriptionSerializer
     return _out;
   }
 
-  public: static std::istream &Deserialize(std::istream &_in, std::string &_desc)
+  public:
+  static std::istream &Deserialize(std::istream &_in, std::string &_desc)
   {
     msgs::StringMsg msg;
     msg.ParsePartialFromIstream(&_in);
@@ -60,9 +62,8 @@ namespace components
 /// meant to be used by systems such as EntitySemantics to assign descriptions
 /// to entities. See
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityInfo.msg
-using SemanticDescription =
-    Component<std::string, class SemanticDescriptionTag,
-              serializers::StringSerializer>;
+using SemanticDescription = Component<std::string, class SemanticDescriptionTag,
+                                      serializers::StringSerializer>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticDescription",
                           SemanticDescription)
 }  // namespace components
