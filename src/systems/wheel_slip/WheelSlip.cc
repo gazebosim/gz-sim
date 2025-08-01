@@ -138,7 +138,7 @@ class gz::sim::systems::WheelSlipPrivate
   public: bool validConfig{false};
   public: bool initialized{false};
 
-  /// \brief Transport paramerter registry. A number of surface params will
+  /// \brief Transport parameter registry. A number of surface params will
   /// be exposed in the registry for user configuration.
   public: transport::parameters::ParametersRegistry *registry{nullptr};
 

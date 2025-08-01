@@ -23,6 +23,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <gz/common/Image.hh>
 #include <gz/common/Filesystem.hh>
@@ -92,7 +93,7 @@ class gz::sim::systems::LookupWheelSlipPrivate
   /// \brief The friction delta to apply.
   public: double frictionDelta = 0.5;
 
-  /// \brief A transfrom from world to img space.
+  /// \brief A transform from world to img space.
   public: math::Matrix4d worldToImgTransform;
 
   /// \brief True if the system is initialized, false otherwise
@@ -107,7 +108,7 @@ class gz::sim::systems::LookupWheelSlipPrivate
   public: std::unordered_map<std::string, double> nominalParamValues;
 
   /// \brief The new surface param values computed by this plugin. The params
-  /// on the paramater registry will be updated by these values.
+  /// on the parameter registry will be updated by these values.
   /// The elements are <param_name, param_value_to_set>
   public: std::unordered_map<std::string, double> newParamValues;
 
