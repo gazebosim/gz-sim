@@ -827,19 +827,18 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 
       // Tell the SimulationRunner to create the entities on the next step.
       runner->SetCreateEntities();
-
-      // If wait for assets, then create entities right away.
-      if (_config.WaitForAssets())
-        runner->CreateEntities();
     }
     if (_config.WaitForAssets())
       this->downloadAssetCv.notify_one();
   });
 
-  // Wait for assets to download if configured to do so.
+  // Wait for assets to download if configured to do so, and then create
+  // entities.
   if (_config.WaitForAssets())
   {
     this->downloadAssetCv.wait(assetLock);
+    for (auto &runner : this->simRunners)
+      runner->CreateEntities();
   }
 }
 
