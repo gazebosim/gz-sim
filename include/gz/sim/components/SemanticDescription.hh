@@ -17,10 +17,13 @@
 #ifndef GZ_SIM_COMPONENTS_SEMANTIC_DESCRIPTION_HH_
 #define GZ_SIM_COMPONENTS_SEMANTIC_DESCRIPTION_HH_
 
+#include <gz/msgs/stringmsg.pb.h>
+
 #include <string>
 
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Serialization.hh"
 #include "gz/sim/config.hh"
 
 namespace gz
@@ -28,7 +31,29 @@ namespace gz
 namespace sim
 {
 // Inline bracket to help doxygen filtering.
-inline namespace GZ_SIM_VERSION_NAMESPACE {
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+namespace serializers
+{
+class SemanticDescriptionSerializer
+{
+  public: static std::ostream &Serialize(std::ostream &_out, const std::string &_desc)
+  {
+    msgs::StringMsg msg;
+    msg.set_data(_desc);
+    msg.SerializeToOstream(&_out);
+    return _out;
+  }
+
+  public: static std::istream &Deserialize(std::istream &_in, std::string &_desc)
+  {
+    msgs::StringMsg msg;
+    msg.ParsePartialFromIstream(&_in);
+    _desc = msg.data();
+    return _in;
+  }
+};
+}  // namespace serializers
 namespace components
 {
 /// \brief A component that holds the semantic description of an entity. This is
@@ -36,7 +61,8 @@ namespace components
 /// to entities. See
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityInfo.msg
 using SemanticDescription =
-    Component<std::string, class SemanticDescriptionTag>;
+    Component<std::string, class SemanticDescriptionTag,
+              serializers::StringSerializer>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticDescription",
                           SemanticDescription)
 }  // namespace components
