@@ -25,7 +25,7 @@
 #include "gz/sim/TestFixture.hh"
 #include "gz/sim/components/SemanticCategory.hh"
 #include "gz/sim/components/SemanticDescription.hh"
-#include "gz/sim/components/SemanticTag.hh"
+#include "gz/sim/components/SemanticTags.hh"
 #include "test_config.hh"
 
 using namespace gz;
@@ -58,7 +58,7 @@ TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
     ASSERT_TRUE(robotDescription .has_value());
     EXPECT_EQ("Food delivery mobile robot", *robotDescription);
 
-    auto robotTags = _ecm.ComponentData<components::SemanticTag>(robots[0]);
+    auto robotTags = _ecm.ComponentData<components::SemanticTags>(robots[0]);
     ASSERT_TRUE(robotTags.has_value());
     ASSERT_EQ(2u, robotTags->size());
     EXPECT_EQ("mobile", (*robotTags)[0]);

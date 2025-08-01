@@ -33,7 +33,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SemanticCategory.hh"
 #include "gz/sim/components/SemanticDescription.hh"
-#include "gz/sim/components/SemanticTag.hh"
+#include "gz/sim/components/SemanticTags.hh"
 
 using namespace gz;
 using namespace sim;
@@ -163,7 +163,7 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
 
   for (const auto &[entity, tags] : entitiesToTag)
   {
-    _ecm.SetComponentData<components::SemanticTag>(entity, tags);
+    _ecm.SetComponentData<components::SemanticTags>(entity, tags);
   }
 }
 
