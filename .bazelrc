@@ -1,0 +1,19 @@
+common --enable_bzlmod
+common --lockfile_mode=off
+
+# Add C++17 compiler flags.
+build --cxxopt=-std=c++17
+build --host_cxxopt=-std=c++17
+
+build --force_pic
+build --strip=never
+build --strict_system_includes
+build --fission=dbg
+build --features=per_object_debug_info
+
+# Enable header processing, required for layering checks with parse_header.
+build --process_headers_in_dependencies
+
+# Workaround for bug in rules_foreign_cc when linking libzip.
+# Similar to https://github.com/bazel-contrib/rules_foreign_cc/issues/1164
+build --dynamic_mode=off
