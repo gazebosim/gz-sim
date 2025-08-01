@@ -820,6 +820,7 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
               name == LoggingPlugin::RecordPluginName())
           {
             plugins.erase(iter);
+            break;
           }
         }
         runner->SetWorldSdf(*world);
