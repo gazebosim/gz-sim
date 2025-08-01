@@ -99,6 +99,7 @@ namespace systems
   class JointPositionController
       : public System,
         public ISystemConfigure,
+        public ISystemConfigureParameters,
         public ISystemPreUpdate
   {
     /// \brief Constructor
@@ -112,6 +113,11 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) override;
+
+    // Documentation inherited
+    public: void ConfigureParameters(
+                gz::transport::parameters::ParametersRegistry &_registry,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     // Documentation inherited
     public: void PreUpdate(

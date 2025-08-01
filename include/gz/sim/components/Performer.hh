@@ -23,6 +23,7 @@
 
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Serialization.hh"
 
 namespace gz
 {

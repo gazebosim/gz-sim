@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_SYSTEMMANAGER_HH_
 #define GZ_SIM_SYSTEMMANAGER_HH_
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_plugin_v.pb.h>
 
 #include <cstdint>

@@ -42,6 +42,10 @@ namespace systems
   ///   nested models. \sa entitiesFromScopedName to learn more
   ///   about scoped names.
   /// - `<air_density>`: Density of the fluid this model is suspended in.
+  /// - `<radial_symmetry>`: True if the shape is aerodynamically radially
+  ///    symmetric about the forward direction.
+  /// - `<reversible>`: True if the airfoil is symmetric when the inflow is
+  ///   reversed (for example reversible propellers)
   /// - `<area>`: Surface area of the link.
   /// - `<a0>`: The initial "alpha" or initial angle of attack. a0 is also
   ///   the y-intercept of the alpha-lift coefficient curve.
@@ -49,6 +53,8 @@ namespace systems
   ///   stall. Slope of the first portion of the alpha-lift
   ///   coefficient curve.
   /// - `<cda>`: The ratio of the coefficient of drag and alpha slope before
+  ///   stall.
+  /// - `<cma>`: The ratio of the coefficient of moment and alpha slope before
   ///   stall.
   /// - `<cp>`: Center of pressure. The forces due to lift and drag will be
   ///   applied here.
@@ -62,10 +68,14 @@ namespace systems
   ///   coefficient curve.
   /// - `<cda_stall>`: The ratio of coefficient of drag and alpha slope after
   ///   stall.
+  /// - `<cda_stall>`: The ratio of coefficient of moment and alpha slope after
+  ///   stall.
   /// - `<control_joint_name>`: Name of joint that actuates a control surface
   ///   for this lifting body (Optional)
   /// - `<cm_delta>`: How much Cm changes with a change in control
   ///   surface deflection angle
+  /// - `<control_joint_rad_to_cl>`: How much to change CL per radian of
+  ///   control joint surface angle.
   class LiftDrag
       : public System,
         public ISystemConfigure,
