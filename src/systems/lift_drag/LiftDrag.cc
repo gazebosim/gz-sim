@@ -104,6 +104,11 @@ class gz::sim::systems::LiftDragPrivate
   /// angle of attack.
   public: bool radialSymmetry = false;
 
+  /// \brief if the shape is aerodynamically symmetric when the inflow
+  /// determined by the forward direction is reversed. Defaults to false.
+  /// The main application is to reversible propellers.
+  public: bool reversible = false;
+
   /// \brief effective planeform surface area
   public: double area = 1.0;
 
@@ -164,6 +169,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
   this->rho = _sdf->Get<double>("air_density", this->rho).first;
   this->radialSymmetry = _sdf->Get<bool>("radial_symmetry",
       this->radialSymmetry).first;
+  this->reversible = _sdf->Get<bool>("reversible", this->reversible).first;
   this->area = _sdf->Get<double>("area", this->area).first;
   this->alpha0 = _sdf->Get<double>("a0", this->alpha0).first;
   this->cp = _sdf->Get<math::Vector3d>("cp", this->cp).first;
@@ -309,9 +315,10 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
   // rotate forward and upward vectors into world frame
   const auto forwardI = pose.Rot().RotateVector(this->forward);
 
-  if (forwardI.Dot(vel) <= 0.0){
-    // Only calculate lift or drag if the wind relative velocity
-    // is in the same direction
+  if (!this->reversible && forwardI.Dot(vel) <= 0.0)
+  {
+    // For non-reversible airfoils, only calculate lift or drag if the
+    // wind relative velocity is in the same direction
     return;
   }
 
