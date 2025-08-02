@@ -84,7 +84,7 @@ class MeshUriTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 // Test spawning mesh by name and verify that the mesh is correctly
 // spawned in both rendering and physics. Cameras should see the spawned
-// mesh and spawend object should collide with one another on the physics
+// mesh and spawned object should collide with one another on the physics
 // side.
 TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
 {
@@ -195,9 +195,10 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
   r = imageBuffer[midIdx];
   g = imageBuffer[midIdx + 1];
   b = imageBuffer[midIdx + 2];
-  EXPECT_EQ(255u, r);
-  EXPECT_EQ(255u, g);
-  EXPECT_EQ(255u, b);
+  // Default material is black
+  EXPECT_EQ(0u, r);
+  EXPECT_EQ(0u, g);
+  EXPECT_EQ(0u, b);
 
   // Spawn another box over the static one
   const std::string spawnedModel2Name = "spawned_model2";
