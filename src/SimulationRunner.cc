@@ -504,7 +504,7 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
 void SimulationRunner::AddSystem(
       const std::shared_ptr<System> &_system,
       std::optional<Entity> _entity,
-      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+            std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
   auto sdf = _sdf.value_or(createEmptyPluginElement());
@@ -1596,50 +1596,13 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   {
     gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
     bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
-<<<<<<< HEAD
     auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
-=======
-    auto defaultPlugins = gz::sim::loadPluginInfo(isPlayback);
-    if (loadedWorldPlugins.empty())
-    {
-      gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
-    }
-    else
-    {
-      std::unordered_set<std::string> loadedWorldPluginFileNames;
-      for (const auto &pl : loadedWorldPlugins)
-      {
-        loadedWorldPluginFileNames.insert(pl.fname);
-      }
-      auto isPluginLoaded =
-          [&loadedWorldPluginFileNames](const ServerConfig::PluginInfo &_pl)
-      {
-          return loadedWorldPluginFileNames.count(_pl.Plugin().Filename()) != 0;
-      };
-
-      // Remove plugin if it's already loaded so as to not duplicate world
-      // plugins.
-      defaultPlugins.remove_if(isPluginLoaded);
-
-      gzdbg << "Additional plugins to load:\n";
-      for (const auto &plugin : defaultPlugins)
-      {
-        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename()
-              << "\n";
-      }
-    }
-
-    this->LoadServerPlugins(defaultPlugins);
-    // Load logging plugins after all server plugins so that necessary
-    // plugins such as SceneBroadcaster are loaded first. This might be
-    // a bug or an assumption made in the logging plugins.
-    this->LoadLoggingPlugins(this->serverConfig);
-
-  };
->>>>>>> ca40c1db (Fix log playback GUI display (#2611))
-
+  // Load logging plugins after all server plugins so that necessary
+  // plugins such as SceneBroadcaster are loaded first. This might be
+  // a bug or an assumption made in the logging plugins.
+  this->LoadLoggingPlugins(this->serverConfig);
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
