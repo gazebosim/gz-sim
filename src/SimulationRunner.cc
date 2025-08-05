@@ -504,7 +504,7 @@ void SimulationRunner::AddSystem(const SystemPluginPtr &_system,
 void SimulationRunner::AddSystem(
       const std::shared_ptr<System> &_system,
       std::optional<Entity> _entity,
-            std::optional<std::shared_ptr<const sdf::Element>> _sdf)
+      std::optional<std::shared_ptr<const sdf::Element>> _sdf)
 {
   auto entity = _entity.value_or(worldEntity(this->entityCompMgr));
   auto sdf = _sdf.value_or(createEmptyPluginElement());
