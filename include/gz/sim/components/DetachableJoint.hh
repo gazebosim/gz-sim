@@ -39,7 +39,8 @@ namespace components
     Entity parentLink;
     /// \brief Entity of the echild link
     Entity childLink;
-    // \brief Type of joint. Only the "fixed" joint type is currently supported.
+    // \brief Type of joint. Only the "fixed" and "enforce_fixed_constraint"
+    // joint types are currently supported.
     std::string jointType = {"fixed"};
 
     public: bool operator==(const DetachableJointInfo &_info) const

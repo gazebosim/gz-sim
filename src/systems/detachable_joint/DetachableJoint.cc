@@ -95,9 +95,9 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("weld_child_to_parent"))
+  if (_sdf->HasElement("enforce_fixed_constraint"))
   {
-    this->weldChildToParent = _sdf->Get<bool>("weld_child_to_parent");
+    this->enforceFixedConstraint = _sdf->Get<bool>("enforce_fixed_constraint");
   }
 
   // Setup detach topic
@@ -254,7 +254,8 @@ void DetachableJoint::PreUpdate(
         // We do this by creating a detachable joint entity.
         this->detachableJointEntity = _ecm.CreateEntity();
 
-        std::string type = (this->weldChildToParent) ? "weld" : "fixed";
+        std::string type = (this->enforceFixedConstraint) ?
+            "enforce_fixed_constraint" : "fixed";
         _ecm.CreateComponent(
             this->detachableJointEntity,
             components::DetachableJoint({this->parentLinkEntity,

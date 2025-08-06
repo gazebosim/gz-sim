@@ -1923,7 +1923,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::DetachableJoint *_jointInfo) -> bool
       {
         if (_jointInfo->Data().jointType != "fixed" &&
-            _jointInfo->Data().jointType != "weld")
+            _jointInfo->Data().jointType != "enforce_fixed_constraint")
         {
           gzerr << "Detachable joint type [" << _jointInfo->Data().jointType
                  << "] is currently not supported" << std::endl;
@@ -2002,7 +2002,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
 
-          if (_jointInfo->Data().jointType == "weld")
+          if (_jointInfo->Data().jointType == "enforce_fixed_constraint")
           {
             auto jointPtrWeld = this->entityJointMap
                 .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
@@ -2011,12 +2011,12 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
               static bool informed{false};
               if (!informed)
               {
-                gzerr << "Attempting to weld child to parent entity in a "
+                gzerr << "Attempting to enforce fixed constraint in a "
                       << "detachable joint but the physics engine doesn't "
                       << "support feature "
                       << "[SetFixedJointWeldChildToParentFeature]. "
-                      << "The child entity in detachable joints will not be "
-                      << "welded to the parent." << std::endl;
+                      << "The fixed constraint in detachable joints will not be "
+                      << "enforced." << std::endl;
                 informed = true;
               }
             }
