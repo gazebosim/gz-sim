@@ -2015,8 +2015,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
                       << "detachable joint but the physics engine doesn't "
                       << "support feature "
                       << "[SetFixedJointWeldChildToParentFeature]. "
-                      << "The fixed constraint in detachable joints will not be "
-                      << "enforced." << std::endl;
+                      << "The fixed constraint in detachable joints will not "
+                      << "be enforced." << std::endl;
                 informed = true;
               }
             }
