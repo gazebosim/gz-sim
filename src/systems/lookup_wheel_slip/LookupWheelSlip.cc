@@ -455,11 +455,12 @@ bool LookupWheelSlipPrivate::GetNominalSurfaceParams(
 void LookupWheelSlipPrivate::UpdateParams(
     const EntityComponentManager &_ecm)
 {
+  std::cout << "UpdateParams" << std::endl;
+
   for (const auto &linkEnt : this->linkEntities)
   {
     sim::Link link(linkEnt);
-    // math::Vector3d linkWorldPos = link.WorldPose(_ecm).value().Pos();
-    math::Vector3d linkWorldPos(1, 2, 0.5);
+    math::Vector3d linkWorldPos = link.WorldPose(_ecm).value().Pos();
     math::Vector3d imgPos = this->worldToImgTransform * linkWorldPos;
 
     int u = static_cast<int>(std::round(imgPos.X()));
@@ -517,13 +518,14 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
 
     // gzmsg << "[u, v]: " << u << ", " << v << std::endl;
-    // gzmsg << "color: "
-    //       << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
-    //       << ", "
-    //       << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
-    //       << ", "
-    //       << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
-    //       << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "color: "
+          << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
+          << ", "
+          << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
+          << ", "
+          << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
+          << std::endl;
     // gzmsg << "[lat|lon|mu|mu2] nominal: "
     //       << this->nominalParamValues[latParamName] << ", "
     //       << this->nominalParamValues[lonParamName] << ", "

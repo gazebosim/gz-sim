@@ -1,17 +1,13 @@
 <?xml version="1.0" ?>
 <!--
   Gazebo trisphere wheel slip plugin demo
-
-  A demo displaying the wheel slip plugin.  The red trisphere cycle has wheel slip while the blue does not.
-
+  A demo displaying the wheel slip plugin.  The blue trisphere cycle has lookup wheel slip while the red does not.
   Run with
-
     gz sim trisphere_cycle_wheel_slip.sdf
-
 -->
 
 <sdf version="1.6">
-  <world name="wheel_slip">
+  <world name="lookup_wheel_slip">
     <gravity>-2 0 -9.8</gravity>
 
     <plugin
@@ -66,7 +62,8 @@
       </attenuation>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
-    <model name="trisphere_cycle0">
+
+    <model name="trisphere_cycle_red">
       <link name="frame">
         <pose>-0.40855911616047164 0 0.38502293110800634  0 -0.522020852957719 0</pose>
         <inertial>
@@ -467,7 +464,8 @@
         </wheel>
       </plugin>
     </model>
-    <model name="trisphere_cycle1">
+
+    <model name="trisphere_cycle_blue">
       <pose>0 2 0  0 0 0</pose>
       <link name="frame">
         <pose>-0.40855911616047164 0 0.38502293110800634  0 -0.522020852957719 0</pose>
@@ -866,9 +864,9 @@
       <plugin
         filename="gz-sim-lookup-wheel-slip-system"
         name="gz::sim::systems::LookupWheelSlip">
-        <slip_map>lookup_slip_map.png</slip_map>
-        <size_x>10</size_x>
-        <size_y>10</size_y>
+        <slip_map>lookup_slip_map_test.png</slip_map>
+        <size_x>129</size_x>
+        <size_y>129</size_y>
         <slip_compliance_lateral_delta>0.04</slip_compliance_lateral_delta>
         <slip_compliance_longitudinal_delta>0.04</slip_compliance_longitudinal_delta>
         <friction_delta>0.4</friction_delta>
@@ -877,6 +875,44 @@
         <wheel_link_name>wheel_rear_right</wheel_link_name>
       </plugin>
 
+    </model>
+
+    <model name="heightmap">
+        <static>true</static>
+        <link name="link">
+            <collision name="collision">
+                <geometry>
+                    <heightmap>
+                        <uri>lookup_slip_heightmap.png</uri>
+                        <size>129 129 0.001</size>
+                        <pos>0 0 0</pos>
+                    </heightmap>
+                </geometry>
+            </collision>
+            <visual name="visual">
+                <geometry>
+                    <heightmap>
+                        <use_terrain_paging>false</use_terrain_paging>
+                        <texture>
+                            <diffuse>lookup_slip_map_test.png</diffuse>
+                            <normal>lookup_slip_heightmap_normal.png</normal>
+                            <size>129</size>
+                        </texture>
+                        <blend>
+                            <min_height>2</min_height>
+                            <fade_dist>5</fade_dist>
+                        </blend>
+                        <blend>
+                            <min_height>4</min_height>
+                            <fade_dist>5</fade_dist>
+                        </blend>
+                        <uri>lookup_slip_map_test.png</uri>
+                        <size>129 129 0.001</size>
+                        <pos>0 0 0</pos>
+                    </heightmap>
+                </geometry>
+            </visual>
+        </link>
     </model>
 
   </world>
