@@ -72,7 +72,7 @@ namespace systems
   ///
   /// - `<enforce_fixed_constraint>` (optional): Applicable only when the
   /// gz-physics bullet-featherstone-plugin is used as the physics engine.
-  /// If true, the system will enforce the fixed contraint between the child
+  /// If true, the system will enforce the fixed constraint between the child
   /// and parent entities of the fixed joint as if the child is 'welded' to
   /// the parent. Fixed constraints can be violated, e.g. due to large
   /// external forces, so this setting tells the phyics engine to manually
