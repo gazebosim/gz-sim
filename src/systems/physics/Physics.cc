@@ -2485,14 +2485,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                 << std::endl;
           return true;
         }
-        sim::Model model(_entity);
-        if (model.Links(_ecm).empty())
-        {
-            gzerr << "SetPose is not supported for models without any link."
-                  << "Entity [" << _entity << "]."
-                  << "Request ignored" << std::endl;
-            return true;
-        }
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
         if (nullptr == modelPtrPhys)
           return true;
