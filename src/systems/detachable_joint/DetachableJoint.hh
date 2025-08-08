@@ -69,15 +69,7 @@ namespace systems
   /// - `<suppress_child_warning>` (optional): If true, the system
   /// will not print a warning message if a child model does not exist yet.
   /// Otherwise, a warning message is printed. Defaults to false.
-  ///
-  /// - `<enforce_fixed_constraint>` (optional): Applicable only when the
-  /// gz-physics bullet-featherstone-plugin is used as the physics engine.
-  /// If true, the system will enforce the fixed constraint between the child
-  /// and parent entities of the fixed joint as if the child is 'welded' to
-  /// the parent. Fixed constraints can be violated, e.g. due to large
-  /// external forces, so this setting tells the phyics engine to manually
-  /// correct and maintain the relative pose between the parent and child
-  /// entities. Defaults to false.
+
   class DetachableJoint
       : public System,
         public ISystemConfigure,
@@ -151,11 +143,6 @@ namespace systems
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
-    /// \brief Set whether to enforce the fixed constraint between child and
-    /// parent entities. Applicable only for the bullet-featherstone physics
-    /// plugin. No-op if the underlying physics engine does not support the
-    /// feature.
-    private: bool enforceFixedConstraint{false};
   };
   }
 }

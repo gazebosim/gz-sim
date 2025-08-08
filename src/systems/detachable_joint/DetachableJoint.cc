@@ -95,11 +95,6 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("enforce_fixed_constraint"))
-  {
-    this->enforceFixedConstraint = _sdf->Get<bool>("enforce_fixed_constraint");
-  }
-
   // Setup detach topic
   std::vector<std::string> detachTopics;
   if (_sdf->HasElement("detach_topic"))
@@ -254,12 +249,10 @@ void DetachableJoint::PreUpdate(
         // We do this by creating a detachable joint entity.
         this->detachableJointEntity = _ecm.CreateEntity();
 
-        std::string type = (this->enforceFixedConstraint) ?
-            "enforce_fixed_constraint" : "fixed";
         _ecm.CreateComponent(
             this->detachableJointEntity,
             components::DetachableJoint({this->parentLinkEntity,
-                                         this->childLinkEntity, type}));
+                                         this->childLinkEntity, "fixed"}));
         this->attachRequested = false;
         this->isAttached = true;
         this->PublishJointState(this->isAttached);

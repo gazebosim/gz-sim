@@ -397,6 +397,11 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
 
+  /// \brief Set whether to enforce fixed constraints. Applicable only if
+  /// the underlying physics engine supports SetWeldChildToParent feature, e.g.
+  /// gz-physics bullet-featherstone-plugin
+  public: bool enforceFixedConstraint = false;
+
   /// \brief Vector3d equality comparison function.
   public: std::function<bool(const math::Vector3d &, const math::Vector3d &)>
           vec3Eql { [](const math::Vector3d &_a, const math::Vector3d &_b)
@@ -858,6 +863,11 @@ void Physics::Configure(const Entity &_entity,
     this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
       "include_entity_names", true).first;
   }
+
+  // Check if fixed constraints should be enforced.
+  this->dataPtr->enforceFixedConstraint =
+      _sdf->Get<bool>("enforce_fixed_constraint",
+      this->dataPtr->enforceFixedConstraint).first;
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1922,8 +1932,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
       [&](const Entity &_entity,
           const components::DetachableJoint *_jointInfo) -> bool
       {
-        if (_jointInfo->Data().jointType != "fixed" &&
-            _jointInfo->Data().jointType != "enforce_fixed_constraint")
+        if (_jointInfo->Data().jointType != "fixed")
         {
           gzerr << "Detachable joint type [" << _jointInfo->Data().jointType
                  << "] is currently not supported" << std::endl;
@@ -2002,7 +2011,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
 
-          if (_jointInfo->Data().jointType == "enforce_fixed_constraint")
+          if (this->enforceFixedConstraint)
           {
             auto jointPtrWeld = this->entityJointMap
                 .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
