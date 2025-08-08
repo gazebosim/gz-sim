@@ -15,6 +15,10 @@
  *
 */
 
+#include <string>
+#include <cstdlib>
+#include <ctime>
+
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
 #include <sdf/Actor.hh>
@@ -1041,4 +1045,103 @@ TEST_F(UtilTest, LoadMesh)
   auto *optimizedMesh = loadMesh(meshSdf);
   EXPECT_NE(nullptr, optimizedMesh);
   EXPECT_EQ(16u, optimizedMesh->SubMeshCount());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, MeshAxisAlignedBoundingBox)
+{
+  sdf::Mesh meshSdf;
+  math::AxisAlignedBox emptyBox, aab;
+  EXPECT_FALSE(meshAxisAlignedBox(meshSdf).has_value());
+
+  meshSdf.SetUri("invalid_uri");
+  meshSdf.SetFilePath("invalid_filepath");
+  EXPECT_FALSE(meshAxisAlignedBox(meshSdf).has_value());
+
+  meshSdf.SetUri("name://unit_box");
+  aab = meshAxisAlignedBox(meshSdf).value();
+  EXPECT_NE(emptyBox, aab);
+  EXPECT_EQ(aab.Size(), math::Vector3d::One);
+  EXPECT_EQ(aab.Min(), math::Vector3d(-0.5, -0.5, -0.5));
+  EXPECT_EQ(aab.Max(), math::Vector3d(0.5, 0.5, 0.5));
+  EXPECT_EQ(aab.Center(), math::Vector3d::Zero);
+
+  // Validate scaling using the unit box mesh
+  meshSdf.SetScale(math::Vector3d(2, 3, 4));
+  aab = meshAxisAlignedBox(meshSdf).value();
+  EXPECT_NE(emptyBox, aab);
+  EXPECT_EQ(aab.Size(), math::Vector3d(2, 3, 4));
+  EXPECT_EQ(aab.Min(), math::Vector3d(-1, -1.5, -2));
+  EXPECT_EQ(aab.Max(), math::Vector3d(1, 1.5, 2));
+  EXPECT_EQ(aab.Center(), math::Vector3d::Zero);
+  meshSdf.SetScale(math::Vector3d(1, 1, 1));
+
+  meshSdf.SetUri("duck.dae");
+  std::string filePath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "media", "duck.dae");
+  meshSdf.SetFilePath(filePath);
+  aab = meshAxisAlignedBox(meshSdf).value();
+  EXPECT_NE(emptyBox, aab);
+
+  // Expected values obtained from the mesh file using Blender:
+  auto minExp = math::Vector3d(-69.2985, 9.92937, -61.3282) * 1e-2;
+  auto maxExp = math::Vector3d(96.1799, 163.9700, 53.9252) * 1e-2;
+
+  EXPECT_EQ(minExp, aab.Min());
+  EXPECT_EQ(maxExp, aab.Max());
+  EXPECT_EQ((minExp + maxExp) / 2, aab.Center());
+  EXPECT_EQ(maxExp - minExp, aab.Size());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, TransformAxisAlignedBoxFrame)
+{
+  // Creates a pseudo-random vector with values between -max and max
+  std::srand(std::time(nullptr));
+  auto randomVector3d = [](int max = 1) -> math::Vector3d
+  {
+    return (
+      math::Vector3d(
+        static_cast<double>(std::rand()),
+        static_cast<double>(std::rand()),
+        static_cast<double>(std::rand())
+      ) / RAND_MAX - 0.5 * math::Vector3d::One
+    ) * 2 * max;
+  };
+
+  math::AxisAlignedBox aab(randomVector3d(3), randomVector3d(2));
+
+  // Trivial case: identity transform should not change the box
+  math::Pose3d transform = math::Pose3d::Zero;
+  math::AxisAlignedBox aabExp = aab;
+  EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
+
+  // Pure translation offset
+  transform.Pos() = randomVector3d(10);
+  aabExp = aab + transform.Pos();
+  EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
+
+  // Pure rotation of 90 degrees around the z-axis
+  // x -> y, y -> -x, z -> z
+  transform.Reset();
+  transform.Rot() = math::Quaterniond(0, 0, GZ_PI_2);
+  aabExp = math::AxisAlignedBox(
+    math::Vector3d(-aab.Max().Y(), aab.Min().X(), aab.Min().Z()),
+    math::Vector3d(-aab.Min().Y(), aab.Max().X(), aab.Max().Z())
+  );
+  EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
+
+  // Full transform: translation and rotation
+  transform.Pos() = randomVector3d(150);
+  aabExp = aabExp + transform.Pos();
+  EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, StaticPlugin)
+{
+  EXPECT_FALSE(staticPluginPrefixStr().empty());
+  EXPECT_FALSE(isStaticPlugin("my_plugin"));
+  EXPECT_FALSE(isStaticPlugin(""));
+  EXPECT_TRUE(isStaticPlugin(staticPluginPrefixStr() + "my_plugin"));
 }

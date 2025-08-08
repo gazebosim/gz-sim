@@ -92,6 +92,7 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
@@ -280,6 +281,13 @@ class gz::sim::systems::PhysicsPrivate
               EntityComponentManager &_ecm,
               const gz::physics::ForwardStep::Output &_updatedLinks);
 
+  /// \brief Check if a model contains any plane collision geometry.
+  /// \param[in] modelEntity The entity of the model to check.
+  /// \param[in] _ecm The entity component manager.
+  /// \return True if any collision geometry is a plane.
+  public: bool ModelContainsPlaneCollision(const Entity &_modelEntity,
+              EntityComponentManager &_ecm) const;
+
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
   /// \param[in] _canonicalLink The canonical link of _model.
@@ -341,6 +349,14 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Disable contact surface customization for the given world.
   /// \param[in] _world The world to disable it for.
   public: void DisableContactSurfaceCustomization(const Entity &_world);
+
+  /// \brief Update the AxisAlignedBox for link entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateLinksBoundingBoxes(EntityComponentManager &_ecm);
+
+  /// \brief Update the AxisAlignedBox for model entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateModelsBoundingBoxes(EntityComponentManager &_ecm);
 
   /// \brief Cache the top-level model for each entity.
   /// The key is an entity and the value is its top level model.
@@ -554,12 +570,18 @@ class gz::sim::systems::PhysicsPrivate
 
 
   //////////////////////////////////////////////////
-  // Bounding box
+  // Model Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : physics::FeatureList<
+  public: struct ModelBoundingBoxFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
+  //////////////////////////////////////////////////
+  // Link Bounding box
+  /// \brief Feature list for model bounding box.
+  public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetLinkBoundingBox>{};
 
   //////////////////////////////////////////////////
   // Joint velocity command
@@ -679,7 +701,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Model,
             MinimumFeatureList,
             JointFeatureList,
-            BoundingBoxFeatureList,
+            ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
             ConstructSdfJointFeatureList>;
@@ -696,7 +718,8 @@ class gz::sim::systems::PhysicsPrivate
             CollisionFeatureList,
             HeightmapFeatureList,
             LinkForceFeatureList,
-            MeshFeatureList>;
+            MeshFeatureList,
+            LinkBoundingBoxFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -829,87 +852,119 @@ void Physics::Configure(const Entity &_entity,
       "include_entity_names", true).first;
   }
 
-  // Find engine shared library
-  // Look in:
-  // * Paths from environment variable
-  // * Engines installed with gz-physics
-  common::SystemPaths systemPaths;
-  systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
-  systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
-
-  auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
-
-  if (pathToLib.empty())
-  {
-    gzerr << "Failed to find plugin [" << pluginLib
-    << "]. Have you checked the " << this->dataPtr->pluginPathEnv
-    << " environment variable?" << std::endl;
-
-    return;
-  }
-
-  // Load engine plugin
   plugin::Loader pluginLoader;
-  auto plugins = pluginLoader.LoadLib(pathToLib);
-  if (plugins.empty())
+  if (isStaticPlugin(pluginLib))
   {
-    gzerr << "Unable to load the [" << pathToLib << "] library.\n";
-    return;
-  }
-
-  auto classNames = pluginLoader.PluginsImplementing<
-      physics::ForwardStep::Implementation<
-      physics::FeaturePolicy3d>>();
-  if (classNames.empty())
-  {
-    gzerr << "No physics plugins implementing required interface found in "
-          << "library [" << pathToLib << "]." << std::endl;
-    return;
-  }
-
-  // Get the first plugin that works
-  for (auto className : classNames)
-  {
-    auto plugin = pluginLoader.Instantiate(className);
-
+    const size_t prefixLen = staticPluginPrefixStr().size();
+    const std::string pluginToInstantiate =
+        pluginLib.substr(prefixLen);
+    auto plugin = pluginLoader.Instantiate(pluginToInstantiate);
     if (!plugin)
     {
-      gzwarn << "Failed to instantiate [" << className << "] from ["
-              << pathToLib << "]" << std::endl;
-      continue;
+       gzerr << "Failed to load physics engine plugin: "
+             << "(Reason: static plugin registry does not contain the "
+             << "requested plugin)\n"
+             << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
 
     this->dataPtr->engine = physics::RequestEngine<
       physics::FeaturePolicy3d,
       PhysicsPrivate::MinimumFeatureList>::From(plugin);
 
-    if (nullptr != this->dataPtr->engine)
+    if (!this->dataPtr->engine)
     {
-      gzdbg << "Loaded [" << className << "] from library ["
-             << pathToLib << "]" << std::endl;
-      break;
+      gzerr << "Failed to load physics engine from static plugin registry: "
+            << "(Reason: Physics engine does not meet the minimum features "
+            << "requirement)\n"
+            << "- Requested plugin name: [" << pluginLib << "]\n";
+      return;
     }
-
-    auto missingFeatures = physics::RequestEngine<
-        physics::FeaturePolicy3d,
-        PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
-
-    std::stringstream msg;
-    msg << "Plugin [" << className << "] misses required features:"
-        << std::endl;
-    for (auto feature : missingFeatures)
-    {
-      msg << "- " << feature << std::endl;
-    }
-    gzwarn << msg.str();
+    gzdbg << "Loaded [" << pluginLib <<"] from the static plugin registry"
+          << std::endl;
   }
-
-  if (nullptr == this->dataPtr->engine)
+  else
   {
-    gzerr << "Failed to load a valid physics engine from [" << pathToLib
-           << "]."
-           << std::endl;
-    return;
+    // Find engine shared library
+    // Look in:
+    // * Paths from environment variable
+    // * Engines installed with gz-physics
+    common::SystemPaths systemPaths;
+    systemPaths.SetPluginPathEnv(this->dataPtr->pluginPathEnv);
+    systemPaths.AddPluginPaths(gz::physics::getEngineInstallDir());
+
+    auto pathToLib = systemPaths.FindSharedLibrary(pluginLib);
+
+    if (pathToLib.empty())
+    {
+      gzerr << "Failed to find plugin [" << pluginLib
+      << "]. Have you checked the " << this->dataPtr->pluginPathEnv
+      << " environment variable?" << std::endl;
+
+      return;
+    }
+
+    // Load engine plugin
+    auto plugins = pluginLoader.LoadLib(pathToLib);
+    if (plugins.empty())
+    {
+      gzerr << "Unable to load the [" << pathToLib << "] library.\n";
+      return;
+    }
+
+    auto classNames = pluginLoader.PluginsImplementing<
+        physics::ForwardStep::Implementation<
+        physics::FeaturePolicy3d>>();
+    if (classNames.empty())
+    {
+      gzerr << "No physics plugins implementing required interface found in "
+            << "library [" << pathToLib << "]." << std::endl;
+      return;
+    }
+
+    // Get the first plugin that works
+    for (auto className : classNames)
+    {
+      auto plugin = pluginLoader.Instantiate(className);
+
+      if (!plugin)
+      {
+        gzwarn << "Failed to instantiate [" << className << "] from ["
+                << pathToLib << "]" << std::endl;
+        continue;
+      }
+
+      this->dataPtr->engine = physics::RequestEngine<
+        physics::FeaturePolicy3d,
+        PhysicsPrivate::MinimumFeatureList>::From(plugin);
+
+      if (nullptr != this->dataPtr->engine)
+      {
+        gzdbg << "Loaded [" << className << "] from library ["
+               << pathToLib << "]" << std::endl;
+        break;
+      }
+
+      auto missingFeatures = physics::RequestEngine<
+          physics::FeaturePolicy3d,
+          PhysicsPrivate::MinimumFeatureList>::MissingFeatureNames(plugin);
+
+      std::stringstream msg;
+      msg << "Plugin [" << className << "] misses required features:"
+          << std::endl;
+      for (auto feature : missingFeatures)
+      {
+        msg << "- " << feature << std::endl;
+      }
+      gzwarn << msg.str();
+    }
+    if (nullptr == this->dataPtr->engine)
+    {
+      gzerr << "Failed to load a valid physics engine from [" << pathToLib
+             << "]."
+             << std::endl;
+      return;
+    }
   }
 
   this->dataPtr->eventManager = &_eventMgr;
@@ -2420,7 +2475,24 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::WorldPoseCmd *_poseCmd)
       {
         this->worldPoseCmdsToRemove.insert(_entity);
-
+        // Check if the model contains any plane collision geometry.
+        // If so, reject set_pose to prevent physics engine crash.
+        if (this->ModelContainsPlaneCollision(_entity, _ecm))
+        {
+          gzerr << "SetPose is not supported for models containing "
+                << "plane collision geometry. Entity [" << _entity << "]. "
+                << "Request ignored"
+                << std::endl;
+          return true;
+        }
+        sim::Model model(_entity);
+        if (model.Links(_ecm).empty())
+        {
+            gzerr << "SetPose is not supported for models without any link."
+                  << "Entity [" << _entity << "]."
+                  << "Request ignored" << std::endl;
+            return true;
+        }
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
         if (nullptr == modelPtrPhys)
           return true;
@@ -2430,6 +2502,14 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         {
           gzerr << "Unable to set world pose for nested models."
                  << std::endl;
+          return true;
+        }
+        math::Pose3d worldPoseCmd = _poseCmd->Data();
+        if (!worldPoseCmd.Pos().IsFinite() || !worldPoseCmd.Rot().IsFinite() ||
+            worldPoseCmd.Rot() == math::Quaterniond::Zero)
+        {
+          gzerr << "Unable to set world pose. Invalid pose value: "
+                << worldPoseCmd << std::endl;
           return true;
         }
 
@@ -2451,7 +2531,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         math::Pose3d linkPose =
             this->RelativePose(_entity, linkEntity, _ecm);
 
-        freeGroup->SetWorldPose(math::eigen3::convert(_poseCmd->Data() *
+        freeGroup->SetWorldPose(math::eigen3::convert(worldPoseCmd *
                                 linkPose));
 
         // Process pose commands for static models here, as one-time changes
@@ -2460,7 +2540,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           auto worldPoseComp = _ecm.Component<components::Pose>(_entity);
           if (worldPoseComp)
           {
-            auto state = worldPoseComp->SetData(_poseCmd->Data(),
+            auto state = worldPoseComp->SetData(worldPoseCmd,
                 this->pose3Eql) ?
                 ComponentState::OneTimeChange :
                 ComponentState::NoChange;
@@ -2836,46 +2916,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       });
 
   // Populate bounding box info
-  // Only compute bounding box if component exists to avoid unnecessary
-  // computations
-  _ecm.Each<components::Model, components::AxisAlignedBox>(
-      [&](const Entity &_entity, const components::Model *,
-          components::AxisAlignedBox *_bbox)
-      {
-        if (!this->entityModelMap.HasEntity(_entity))
-        {
-          gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
-          return true;
-        }
-
-        auto bbModel =
-            this->entityModelMap.EntityCast<BoundingBoxFeatureList>(_entity);
-
-        if (!bbModel)
-        {
-          static bool informed{false};
-          if (!informed)
-          {
-            gzdbg << "Attempting to get a bounding box, but the physics "
-                   << "engine doesn't support feature "
-                   << "[GetModelBoundingBox]. Bounding box won't be populated."
-                   << std::endl;
-            informed = true;
-          }
-
-          // Break Each call since no AxisAlignedBox'es can be processed
-          return false;
-        }
-
-        math::AxisAlignedBox bbox =
-            math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
-        auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
-            ComponentState::PeriodicChange :
-            ComponentState::NoChange;
-        _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
-
-        return true;
-      });
+  this->UpdateLinksBoundingBoxes(_ecm);
+  this->UpdateModelsBoundingBoxes(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
@@ -3147,6 +3189,26 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
   }
 
   return linkFrameData;
+}
+
+//////////////////////////////////////////////////
+bool PhysicsPrivate::ModelContainsPlaneCollision(const Entity &_modelEntity,
+    EntityComponentManager &_ecm) const
+{
+  sim::Model model(_modelEntity);
+  for (const auto &linkEntity : model.Links(_ecm))
+  {
+    sim::Link link(linkEntity);
+    for (const auto &collisionEntity : link.Collisions(_ecm))
+    {
+      auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
+      if (geomComp && geomComp->Data().Type() == sdf::GeometryType::PLANE)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////
@@ -4352,6 +4414,107 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 
   gzmsg << "Disabled contact surface customization for world entity ["
          << _world << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for links.
+  _ecm.Each<components::Link, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Link *,
+        components::AxisAlignedBox *_bbox)
+    {
+      auto linkPhys = this->entityLinkMap.Get(_entity);
+      if (!linkPhys)
+      {
+        gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbLink = this->entityLinkMap.EntityCast<
+        LinkBoundingBoxFeatureList>(_entity);
+
+      // Bounding box expressed in the link frame
+      math::AxisAlignedBox bbox;
+
+      if (bbLink)
+      {
+        bbox = math::eigen3::convert(
+          bbLink->GetAxisAlignedBoundingBox(linkPhys->GetFrameID()));
+      }
+      else
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetLinkBoundingBox]. Link bounding boxes will be "
+                 << "computed from their collision shapes based on their "
+                 << "geometry properties in SDF." << std::endl;
+          informed = true;
+        }
+
+        // Fallback to SDF API to get the link AABB from its collision shapes.
+        // If the link has no collision shapes, the AABB will be invalid.
+        bbox = gz::sim::Link(_entity).ComputeAxisAlignedBox(_ecm).value_or(
+          math::AxisAlignedBox());
+      }
+
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for models.
+  _ecm.Each<components::Model, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Model *,
+        components::AxisAlignedBox *_bbox)
+    {
+      if (!this->entityModelMap.HasEntity(_entity))
+      {
+        gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbModel = this->entityModelMap.EntityCast<
+        ModelBoundingBoxFeatureList>(_entity);
+
+      if (!bbModel)
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetModelBoundingBox]. Bounding box won't be populated."
+                 << std::endl;
+          informed = true;
+        }
+
+        // Break Each call since no AxisAlignedBox'es can be processed
+        return false;
+      }
+
+      // Bounding box expressed in the world frame
+      math::AxisAlignedBox bbox =
+          math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
 }
 
 GZ_ADD_PLUGIN(Physics,
