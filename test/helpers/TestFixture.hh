@@ -137,7 +137,7 @@ class TestFixture
   /// Returns the total number of simulation iterations so far.
   public: uint64_t Iterations() const { return this->info.iterations; }
 
-  /// To be optionally overriden by subclasses.
+  /// To be optionally overridden by subclasses.
   /// \see sim::TestFixture
   protected: virtual void OnConfigure(
       const sim::Entity &,
@@ -147,7 +147,7 @@ class TestFixture
   {
   }
 
-  /// To be optionally overriden by subclasses.
+  /// To be optionally overridden by subclasses.
   /// \see sim::TestFixture
   protected: virtual void OnPreUpdate(
     const sim::UpdateInfo &,
@@ -155,7 +155,7 @@ class TestFixture
   {
   }
 
-  /// To be optionally overriden by subclasses.
+  /// To be optionally overridden by subclasses.
   /// \see sim::TestFixture
   protected: virtual void OnPostUpdate(
     const sim::UpdateInfo &,

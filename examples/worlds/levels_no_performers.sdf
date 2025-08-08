@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!--
-  Gazebo level manager demo, with perfomers added at runtime.
+  Gazebo level manager demo, with performers added at runtime.
 
   * Start gazebo using the "--levels" flag.
   * Start the simulation and try sending commands:
@@ -11,7 +11,7 @@
 
   * The vehicles should both drive off the world's edge.
   * Restart simulation with the "--levels" flag.
-  * This time, tell simulation that the "vehicle_red" is a perfomer using:
+  * This time, tell simulation that the "vehicle_red" is a performer using:
 
     gz service -s /world/levels/level/set_performer --reqtype gz.msgs.StringMsg --reptype gz.msgs.Boolean --timeout 2000 --req 'data: "vehicle_red"'
 

@@ -108,7 +108,7 @@ void testSensorTopicComponents(const sim::EntityComponentManager &_ecm,
 
     // verify that the topic string stored in sensor topic component
     // exits in the list of topics
-    // For rendering sensors, they may advertize more than one topics but
+    // For rendering sensors, they may advertise more than one topics but
     // the the sensor topic component will only contain one of them, e.g.
     //   * <topic_prefix>/image - stored in sensor topic component
     //   * <topic_prefix>/camera_info

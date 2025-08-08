@@ -159,7 +159,7 @@ TEST(Barrier, Cancel)
     ASSERT_TRUE(ret);
   }
 
-  // Cancel the barrier immedeately
+  // Cancel the barrier immediately
   barrier->Cancel();
 
   {

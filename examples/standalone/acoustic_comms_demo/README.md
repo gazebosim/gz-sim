@@ -28,4 +28,4 @@ From the `build` directory, run Gazebo Sim and the example controller:
     ./acoustic_comms_demo
 
 It can be seen visually that one of the vehicles (Triton) starts moving
-immediately, then afer a while Tethys will start moving, and then finally Daphne.
+immediately, then after a while Tethys will start moving, and then finally Daphne.

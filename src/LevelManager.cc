@@ -19,18 +19,23 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 
 #include <sdf/Actor.hh>
 #include <sdf/Atmosphere.hh>
+#include <sdf/Element.hh>
 #include <sdf/Joint.hh>
 #include <sdf/Light.hh>
 #include <sdf/Model.hh>
+#include <sdf/Plugin.hh>
 #include <sdf/World.hh>
 
 #include <gz/math/SphericalCoordinates.hh>
+#include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 
 #include "gz/sim/Events.hh"
+#include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/components/Actor.hh"
@@ -168,7 +173,7 @@ void LevelManager::ReadPerformers(const sdf::Plugin &_plugin)
 
   if (this->useLevels && performerMap.empty())
   {
-    gzdbg << "Levels enabled, but no <performer>s were speficied in SDF. Use "
+    gzdbg << "Levels enabled, but no <performer>s were specified in SDF. Use "
       << "the /world/<world_name>/level/set_performer service to specify "
       << "performers.\n";
   }
@@ -183,7 +188,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
   // provide the caller with feedback because
   // entityCompMgr.EntityByComponents() is not thread safe. It would better
   // to have long running service calls in gz-transport so that this
-  // function could get information out of the EntityComponent mangager
+  // function could get information out of the EntityComponent manager
   // in a thread-safe manner and return information back to the caller.
   //
   // The commented out section at the end of this function was
@@ -213,7 +218,7 @@ bool LevelManager::OnSetPerformer(const msgs::StringMsg &_req,
 
   return true;
 
-  // Orignial implementation
+  // Original implementation
   //
   // _rep.set_data(false);
   // std::string name = _req.data();
@@ -839,7 +844,7 @@ void LevelManager::UnloadLevel(const Entity &_entity,
     }
   }
 
-  if (entityNamesToUnload.size() > 0)
+  if (!entityNamesToUnload.empty())
   {
     this->UnloadInactiveEntities(entityNamesToUnload);
   }

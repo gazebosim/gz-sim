@@ -14,9 +14,13 @@
  * limitations under the License.
  *
 */
+#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 
 #include <tinyxml2.h>
+
+#include <string>
+#include <utility>
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/server_control.pb.h>
@@ -196,16 +200,22 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   }
   else
   {
+    if (!this->workerPool.has_value())
+    {
+      // Initialize the workerpool if we do have multiple simulation runners and
+      // it hasn't been initialized before
+      this->workerPool.emplace(2);
+    }
     for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
     {
-      this->workerPool.AddWork([&runner, &_iterations] ()
+      this->workerPool->AddWork([&runner, &_iterations] ()
         {
           runner->Run(_iterations);
         });
     }
 
     // Wait for the runner to complete.
-    result = this->workerPool.WaitForResults();
+    result = this->workerPool->WaitForResults();
   }
 
   // See comments ServerPrivate::Stop() for why we lock this mutex here.
@@ -595,4 +605,117 @@ std::string ServerPrivate::FetchResource(const std::string &_uri)
 std::string ServerPrivate::FetchResourceUri(const common::URI &_uri)
 {
   return this->FetchResource(_uri.Str());
+}
+
+//////////////////////////////////////////////////
+sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config)
+{
+  sdf::Errors errors;
+
+  sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
+  sdfParserConfig.SetStoreResolvedURIs(true);
+  sdfParserConfig.SetCalculateInertialConfiguration(
+    sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
+  MeshInertiaCalculator meshInertiaCalculator;
+  sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
+
+  switch (_config.Source())
+  {
+    // Load a world if specified. Check SDF string first, then SDF file
+    case ServerConfig::SourceType::kSdfRoot:
+    {
+      this->sdfRoot = _config.SdfRoot()->Clone();
+      gzmsg << "Loading SDF world from SDF DOM.\n";
+      break;
+    }
+
+    case ServerConfig::SourceType::kSdfString:
+    {
+      std::string msg = "Loading SDF string. ";
+      if (_config.SdfFile().empty())
+      {
+        msg += "File path not available.\n";
+      }
+      else
+      {
+        msg += "File path [" + _config.SdfFile() + "].\n";
+      }
+      gzmsg << msg;
+      errors = this->sdfRoot.LoadSdfString(
+        _config.SdfString(), sdfParserConfig);
+      this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
+
+    case ServerConfig::SourceType::kSdfFile:
+    {
+      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
+          _config.ResourceCache());
+
+      if (filePath.empty())
+      {
+        std::string errStr =  "Failed to find world ["
+          + _config.SdfFile() + "]";
+        gzerr << errStr << std::endl;
+        errors.push_back({sdf::ErrorCode::FILE_READ, errStr});
+        return errors;
+      }
+
+      gzmsg << "Loading SDF world file[" << filePath << "].\n";
+
+      sdf::Root sdfRootLocal;
+      // \todo(nkoenig) Async resource download.
+      // This call can block for a long period of time while
+      // resources are downloaded. Blocking here causes the GUI to block with
+      // a black screen (search for "Async resource download" in
+      // 'src/gui_main.cc'.
+      errors = sdfRootLocal.Load(filePath, sdfParserConfig);
+      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
+        if (sdfRootLocal.Model() == nullptr) {
+          this->sdfRoot = std::move(sdfRootLocal);
+        }
+        else
+        {
+          sdf::World defaultWorld;
+          defaultWorld.SetName("default");
+
+          // If the specified file only contains a model, load the default
+          // world and add the model to it.
+          errors = this->sdfRoot.AddWorld(defaultWorld);
+          sdf::World *world = this->sdfRoot.WorldByIndex(0);
+          if (world == nullptr) {
+            errors.push_back({sdf::ErrorCode::FATAL_ERROR,
+              "sdf::World pointer is null"});
+            return errors;
+          }
+          world->AddModel(*sdfRootLocal.Model());
+          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
+              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+          {
+            errors = this->sdfRoot.UpdateGraphs();
+          }
+        }
+      }
+
+      this->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
+      break;
+    }
+
+    case ServerConfig::SourceType::kNone:
+    default:
+    {
+      gzmsg << "Loading default world.\n";
+
+      sdf::World defaultWorld;
+      defaultWorld.SetName("default");
+
+      // Load an empty world.
+      errors = this->sdfRoot.AddWorld(defaultWorld);
+      break;
+    }
+  }
+
+  return errors;
 }

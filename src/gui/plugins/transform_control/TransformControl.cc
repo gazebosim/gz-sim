@@ -89,7 +89,7 @@ namespace gz::sim
     /// is the ancestor which is a direct child to the root visual.
     /// Usually, this will be a model or a light.
     /// \param[in] _node Child node
-    /// \return Top level node containining this node
+    /// \return Top level node containing this node
     rendering::NodePtr TopLevelNode(
         const rendering::NodePtr &_node) const;
 

@@ -56,7 +56,7 @@ class AcousticComms::Implementation
           poseSrcAtMsgTimestamp;
 
   /// \brief Map that holds data of the address of a receiver,
-  /// the timestamp, length of the last message recevied by it.
+  /// the timestamp, length of the last message received by it.
   public: std::unordered_map
           <std::string,
            std::tuple<std::chrono::duration<double>,

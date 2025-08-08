@@ -50,9 +50,14 @@ density values for each and the inertia values from each would be aggregated to 
 the final inertia of the link. However, if there are no collisions present,
 an `ELEMENT_MISSING` error would be thrown.
 
-It is **important** to note here that if `auto` is set to `true` and the user has
-still provided values through the `<mass>`, `<pose>` and `<inertia>` tags, they
-would be **overwritten** by the automatically computed values.
+**Important Notes**
+* If `auto` is set to `true` and the user has still provided values through the
+`<pose>` and `<inertia>` tags, they would be **overwritten** by the
+automatically computed values.
+* In libSDFormat versions equal to or newer than 14.7.0 and 15.2.0, if `<mass>`
+is specified, it takes precedence over the `<density>` property. The link's
+inertial parameters will be scaled to match the specified mass while respecting
+the ratio of collision density values.
 
 > **Note:** Use SDF Spec version 1.11 or greater to utilize the new tags and attributes of this feature.
 
@@ -110,7 +115,7 @@ the menu. Once you play the simulation it should look this:
 
 ![Pendulum](files/auto_inertia/auto_inertia_pendulum.gif)
 
-This example world has two structurally indentical models. The pendulum link of both
+This example world has two structurally identical models. The pendulum link of both
 the models contain 3 cylindrical collision geometries:
  - One on the top which forms the joint (pivot)
  - A longer cylinder in middle
@@ -151,11 +156,22 @@ the center of mass in this case).
 
 ## Key Points on Mesh Inertia Calculator
 
+The mesh inertia calculator is implemented based on the method described in
+this [document](https://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf)(pdf).
+The method is suited for solid, simple polyhedrons of constant mass density.
+
 Here are some key points to consider when using automatic inertia calculation with 3D Meshes:
  * Water-tight triangle meshes are required for the Mesh Inertia Calculator.
  * Since the vertex data is used for inertia calculations, high vertex count would be
  needed for near ideal values. However, it is recommended to use basic shapes with the
  geometry tag (Box, Capsule, Cylinder, Ellipsoid and Sphere) as collision geometries get
  a better overall simulation performance or RTF.
- * Currently, the mesh inertia calculator does not work well with meshes having submeshes.
- Therefore, they are not recommended for automatic computation.
+ * In the case that the mesh inertia calculator fails to produce valid inertia,
+ it will attempt to correct the auto-calculated mass matrix if it is strictly
+ positive and within a certain tolerance of satisfying the triangle inequality.
+ If that fails, an error will be logged.
+ * For complex, non-water-tight meshes, it is recommended to enable
+ [mesh optimization](http://sdformat.org/spec?ver=1.12&elem=geometry#mesh_optimization)
+ for the mesh collision in SDF by setting it to `convex_hull` or
+ `convex_decomposition`. The mesh inertia calculator will then compute inertia
+ based on the decomposed convex hull submeshes.

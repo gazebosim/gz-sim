@@ -173,7 +173,7 @@ TEST_F(SphericalCoordinatesTest, SetWorldOriginFromComponent)
       iterations++;
     }).Finalize();
 
-  // Set throught C++ API and check
+  // Set throughout C++ API and check
   fixture.OnPreUpdate(
     [&](
       const gz::sim::UpdateInfo &,

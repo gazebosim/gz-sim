@@ -203,7 +203,7 @@ object.
 An object can be selected, indicated by an orange outline, but not active,
 which would be indicated by a white outline.)
 
-To make the object active, find the object programatically, then call
+To make the object active, find the object programmatically, then call
 ```
 bpy.context.view_layer.objects.active = obj
 ```

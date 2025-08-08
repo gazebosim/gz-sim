@@ -317,7 +317,7 @@ physics::ModelPtr model;
 ```
 
 In the new code we instead store references to the model, the entity underlying
-the model, and the entity underyling one of the links in the model:
+the model, and the entity underlying one of the links in the model:
 
 ```cpp
 // NEW

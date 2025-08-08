@@ -24,6 +24,7 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 #include <gz/msgs/marker.pb.h>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/components/ContactSensorData.hh"
 
@@ -66,7 +67,7 @@ namespace optical_tactile_sensor
         gz::msgs::Marker &_sensorMarkerMsg);
 
     /// \brief Request the "/marker" service for the sensor marker.
-    /// This can be helpful when debbuging, given that there shouldn't be a
+    /// This can be helpful when debugging, given that there shouldn't be a
     /// visual tag in the plugin's model
     /// \param[in] _sensorPose Pose of the optical tactile sensor
     public: void RequestSensorMarkerMsg(

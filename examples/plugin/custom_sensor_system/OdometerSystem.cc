@@ -100,7 +100,19 @@ void OdometerSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     for (auto &[entity, sensor] : this->entitySensorMap)
     {
       sensor->NewPosition(gz::sim::worldPose(entity, _ecm).Pos());
-      sensor->Update(_info.simTime);
+      // Call base Sensor class' Update function with force = false
+      // to make the sensor respect the specified update rate.
+      auto baseSensor = std::dynamic_pointer_cast<gz::sensors::Sensor>(sensor);
+      if (baseSensor)
+      {
+        baseSensor->Update(_info.simTime, false);
+      }
+      else
+      {
+        sensor->Update(_info.simTime);
+        gzerr << "Error casting custom sensor to base Sensor class. "
+              << "This should not happen." << std::endl;
+      }
     }
   }
 

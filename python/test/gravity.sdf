@@ -17,6 +17,11 @@
           <mass>1.0</mass>
         </inertial>
       </link>
+      <plugin filename="gz-sim-python-system-loader-system"
+        name="gz::sim::systems::PythonSystemLoader">
+        <module_name>plugins.test_model_system</module_name>
+      </plugin>
     </model>
+
   </world>
 </sdf>

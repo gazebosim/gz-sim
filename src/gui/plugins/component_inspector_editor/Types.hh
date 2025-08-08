@@ -29,7 +29,7 @@ namespace gz
 {
 namespace sim
 {
-  /// \brief UpdateCallback is a function defition that is used by a
+  /// \brief UpdateCallback is a function definition that is used by a
   /// component to manage ECM changes.
   /// \sa void ComponentInspectorEditor::AddUpdateCallback(UpdateCallback _cb)
   using UpdateCallback = std::function<void(EntityComponentManager &)>;

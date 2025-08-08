@@ -132,7 +132,7 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Hours taken to fully charge battery
   public: double tCharge{0.0};
 
-  /// \brief Initial power load set trough config
+  /// \brief Initial power load set through config
   public: double initialPowerLoad{0.0};
 
   /// \TODO(caguero) Remove in Gazebo Dome.

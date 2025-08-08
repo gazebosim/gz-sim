@@ -16,9 +16,13 @@
 */
 
 #include <cstdint>
+#include <set>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
+#include <sdf/Actor.hh>
+#include <sdf/Light.hh>
+#include <sdf/Model.hh>
 #include <sdf/Types.hh>
 
 #include "gz/sim/Events.hh"
@@ -71,7 +75,6 @@
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/Physics.hh"
-#include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include <gz/sim/components/Projector.hh>
 #include "gz/sim/components/RgbdCamera.hh"
@@ -375,7 +378,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
     if (!parentEntity)
     {
       // Performers have not been created yet. Try to create the model
-      // or actor and attach the peformer.
+      // or actor and attach the performer.
       if (_world->ModelNameExists(_ref->Data()))
       {
         const sdf::Model *model = _world->ModelByName(_ref->Data());
@@ -538,6 +541,19 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     auto linkEntity = this->CreateEntities(link);
 
     this->SetParent(linkEntity, modelEntity);
+
+    if (link->AutoInertia())
+    {
+      gzdbg << "Link has auto-inertial enabled: "
+            << scopedName(linkEntity, *this->dataPtr->ecm, "::", false) << "\n";
+      gzdbg << "  pose: " << link->Inertial().Pose() << "\n";
+      gzdbg << "  mass: " << link->Inertial().MassMatrix().Mass() << "\n";
+      gzdbg << "  ixx iyy izz: "
+            << link->Inertial().MassMatrix().DiagonalMoments() << "\n";
+      gzdbg << "  ixy ixz iyz: "
+            << link->Inertial().MassMatrix().OffDiagonalMoments()
+            << std::endl;
+    }
 
     if (canonicalLink == link)
     {

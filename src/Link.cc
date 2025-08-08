@@ -24,6 +24,7 @@
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/AxisAlignedBox.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
@@ -284,16 +285,37 @@ std::optional<math::Vector3d> Link::WorldAngularVelocity(
 void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
     const
 {
-  enableComponent<components::WorldLinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldAngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::LinearVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->id,
-      _enable);
-  enableComponent<components::WorldPose>(_ecm, this->dataPtr->id,
-      _enable);
+  auto defaultWorldPose = math::Pose3d::Zero;
+  if (_enable)
+  {
+    defaultWorldPose = sim::worldPose(this->dataPtr->id, _ecm);
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::LinearVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::AngularVelocity());
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldPose(defaultWorldPose));
+
+  auto defaultWorldLinVel = math::Vector3d::Zero;
+  auto defaultWorldAngVel = math::Vector3d::Zero;
+  if (_enable)
+  {
+    // The WorldPose component is guaranteed to exist at this point
+    auto worldPose = this->WorldPose(_ecm).value();
+
+    // Compute the default world linear and angular velocities
+    defaultWorldLinVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::LinearVelocity>(this->dataPtr->id)->Data());
+    defaultWorldAngVel = worldPose.Rot().RotateVector(
+      _ecm.Component<components::AngularVelocity>(this->dataPtr->id)->Data());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldLinearVelocity(defaultWorldLinVel));
+  enableComponent(_ecm, this->dataPtr->id,
+    _enable, components::WorldAngularVelocity(defaultWorldAngVel));
 }
 
 //////////////////////////////////////////////////
@@ -512,4 +534,82 @@ void Link::AddWorldWrench(EntityComponentManager &_ecm,
     msgs::Set(linkWrenchComp->Data().mutable_torque(),
       msgs::Convert(linkWrenchComp->Data().torque()) + torqueWithOffset);
   }
+}
+
+//////////////////////////////////////////////////
+void Link::EnableBoundingBoxChecks(
+  EntityComponentManager & _ecm,
+  bool _enable) const
+{
+  math::AxisAlignedBox linkAabb;
+  if (_enable)
+  {
+    // Compute link's AABB from its collision shapes for proper initialization
+    linkAabb = this->ComputeAxisAlignedBox(_ecm).value_or(
+      math::AxisAlignedBox());
+  }
+
+  enableComponent(_ecm, this->dataPtr->id, _enable,
+    components::AxisAlignedBox(linkAabb));
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::AxisAlignedBox(
+  const EntityComponentManager & _ecm) const
+{
+  return _ecm.ComponentData<components::AxisAlignedBox>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::WorldAxisAlignedBox(
+  const EntityComponentManager & _ecm) const
+{
+  auto linkAabb = this->AxisAlignedBox(_ecm);
+
+  if (!linkAabb.has_value())
+  {
+    return std::nullopt;
+  }
+
+  // Return the link AABB in the world frame
+  return transformAxisAlignedBox(
+    linkAabb.value(),
+    this->WorldPose(_ecm).value()
+  );
+}
+
+//////////////////////////////////////////////////
+std::optional<math::AxisAlignedBox> Link::ComputeAxisAlignedBox(
+  const EntityComponentManager & _ecm) const
+{
+  math::AxisAlignedBox linkAabb;
+  auto collisions = this->Collisions(_ecm);
+
+  if (collisions.empty())
+  {
+    return std::nullopt;
+  }
+
+  for (auto & entity : collisions)
+  {
+    auto collision = _ecm.ComponentData<components::CollisionElement>(entity);
+    auto geom = collision.value().Geom();
+    auto geomAabb = geom->AxisAlignedBox(&meshAxisAlignedBox);
+
+    if (!geomAabb.has_value() || geomAabb == math::AxisAlignedBox())
+    {
+      gzwarn << "Failed to get bounding box for collision entity ["
+             << entity << "]. It will be ignored in the computation "
+             << "of the link bounding box." << std::endl;
+      continue;
+    }
+
+    // Merge geometry AABB (expressed in link frame) into link AABB
+    linkAabb += transformAxisAlignedBox(
+      geomAabb.value(),
+      _ecm.ComponentData<components::Pose>(entity).value()
+    );
+  }
+
+  return linkAabb;
 }

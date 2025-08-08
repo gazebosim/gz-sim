@@ -405,7 +405,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
   server.Run(true, 1, false);
 
 
-  // Check that the model is in the scene/infor response
+  // Check that the model is in the scene/info response
   {
     msgs::Empty req;
     msgs::Scene rep;

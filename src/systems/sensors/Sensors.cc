@@ -64,10 +64,70 @@
 
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/rendering/GlobalIlluminationVct.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace systems;
+
+/// \brief GI parameters holding default data
+struct GiDefaultData
+{
+  /// \brief See rendering::GlobalIlluminationVct::SetResolution
+  math::Vector3d resolution{16, 16, 16};
+
+  /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
+  math::Vector3d octantCount{1, 1, 1};
+
+  /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
+  uint32_t bounceCount = 6;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
+  bool highQuality = true;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
+  bool anisotropic = true;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
+  float thinWallCounter = 1.0f;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
+  bool conserveMemory = false;
+
+  /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
+  uint32_t debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
+};
+
+/// \brief GI VCT flag and parameters
+struct GiVctParameters
+{
+  /// \brief VCT enabled flag
+  bool enabled = false;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetResolution
+  uint32_t resolution[3];
+
+  /// \brief See rendering::GlobalIlluminationVct::SetOctantCount
+  uint32_t octantCount[3];
+
+  /// \brief See rendering::GlobalIlluminationVct::SetBounceCount
+  uint32_t bounceCount;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetHighQuality
+  bool highQuality;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetAnisotropic
+  bool anisotropic;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetThinWallCounter
+  float thinWallCounter;
+
+  /// \brief See rendering::GlobalIlluminationVct::SetConserveMemory
+  bool conserveMemory;
+
+  /// \brief See rendering::GlobalIlluminationVct::DebugVisualizationMode
+  uint32_t debugVisMode;
+};
 
 // Private data class.
 class gz::sim::systems::SensorsPrivate
@@ -88,6 +148,18 @@ class gz::sim::systems::SensorsPrivate
   /// \brief rendering scene to be managed by the scene manager and used to
   /// generate sensor data
   public: rendering::ScenePtr scene;
+
+  /// \brief Pointer to GlobalIlluminationVct
+  public: rendering::GlobalIlluminationVctPtr giVct;
+
+  /// \brief GI VCT parameters passed to giVct
+  public: GiVctParameters giVctParameters;
+
+  /// \brief Default GI data
+  public: GiDefaultData giDefaultData;
+
+  /// \brief GI built flag
+  public: bool giBuilt = false;
 
   /// \brief Temperature used by thermal camera. Defaults to temperature at
   /// sea level
@@ -140,7 +212,7 @@ class gz::sim::systems::SensorsPrivate
   ///
   /// This variable is used to block/unblock operations in PostUpdate thread
   /// to make sure renderUtil's ECM updates are applied to the scene first
-  /// before they are overriden by PostUpdate
+  /// before they are overridden by PostUpdate
   public: std::condition_variable updateTimeCv;
 
   /// \brief Connection to events::Stop event, used to stop thread
@@ -155,7 +227,7 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Update time applied in the rendering thread
   public: std::chrono::steady_clock::duration updateTimeApplied;
 
-  /// \brief Update time to be appplied in the rendering thread
+  /// \brief Update time to be applied in the rendering thread
   public: std::chrono::steady_clock::duration updateTimeToApply;
 
   /// \brief Next sensors update time
@@ -201,7 +273,7 @@ class gz::sim::systems::SensorsPrivate
   ///
   /// The caller of PostUpdate will not be blocked if there is no
   /// rendering operation currently ongoing. Rendering will occur
-  /// asyncronously.
+  /// asynchronously.
   //
   /// The caller of PostUpdate will be blocked if there is a rendering
   /// operation currently ongoing, until that completes.
@@ -288,6 +360,28 @@ void SensorsPrivate::WaitForInit()
 #endif
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
+
+      if (this->giVctParameters.enabled)
+      {
+        this->giVct = this->scene->CreateGlobalIlluminationVct();
+        this->giVct->SetParticipatingVisuals(
+            rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
+            rendering::GlobalIlluminationBase::STATIC_VISUALS);
+
+        this->giVct->SetResolution(this->giVctParameters.resolution);
+        this->giVct->SetOctantCount(this->giVctParameters.octantCount);
+        this->giVct->SetBounceCount(this->giVctParameters.bounceCount);
+        this->giVct->SetAnisotropic(this->giVctParameters.anisotropic);
+        this->giVct->SetHighQuality(this->giVctParameters.highQuality);
+        this->giVct->SetConserveMemory(this->giVctParameters.conserveMemory);
+        this->giVct->SetThinWallCounter(this->giVctParameters.thinWallCounter);
+
+        this->giVct->SetDebugVisualization(
+            rendering::GlobalIlluminationVct::DVM_None);
+
+        this->scene->SetActiveGlobalIllumination(this->giVct);
+      }
+
       this->initialized = true;
     }
 
@@ -359,6 +453,19 @@ void SensorsPrivate::RunOnce()
       // We only need to do this once per frame It is important to call
       // sensors::RenderingSensor::SetManualSceneUpdate and set it to true
       // so we don't waste cycles doing one scene graph update per sensor
+
+      if (!this->giBuilt)
+      {
+        if (this->giVctParameters.enabled)
+        {
+          this->giVct->Build();
+          this->giVct->SetDebugVisualization(static_cast<
+              rendering::GlobalIlluminationVct::DebugVisualizationMode>
+              (this->giVctParameters.debugVisMode));
+          this->giBuilt = true;
+        }
+      }
+
       this->scene->PreRender();
     }
 
@@ -438,6 +545,7 @@ void SensorsPrivate::RenderThread()
   for (const auto id : this->sensorIds)
     this->sensorManager.Remove(id);
 
+  this->giVct.reset();
   this->scene.reset();
   this->renderUtil.Destroy();
   gzdbg << "SensorsPrivate::RenderThread stopped" << std::endl;
@@ -521,6 +629,65 @@ Sensors::~Sensors()
   this->dataPtr->Stop();
 }
 
+/// \brief Helper to convert math::Vector3d to uint32_t array
+/// \param[in] _valueToSet Array values to set
+/// \param[in] _vecValues Vector values to convert
+static void convertVector3dToUInt32Array(uint32_t _valueToSet[3],
+    const math::Vector3d &_vecValues)
+{
+  _valueToSet[0] = static_cast<uint32_t>(_vecValues[0]);
+  _valueToSet[1] = static_cast<uint32_t>(_vecValues[1]);
+  _valueToSet[2] = static_cast<uint32_t>(_vecValues[2]);
+}
+
+/// \brief Helper to parse math::Vector3d as uint32_t array
+/// \param[in] _parentElem Parent element to look through
+/// \param[in] _childName Child element name to look for
+/// \param[in] _valueToSet Array values to set
+/// \param[in] _defaultValue Default vector values to use
+static void parseVector3dAsUInt32Array(sdf::ElementConstPtr _parentElem,
+    const char *_childName, uint32_t _valueToSet[3],
+    const math::Vector3d &_defaultValue)
+{
+  math::Vector3d parsedValues = (_parentElem == nullptr) ? _defaultValue :
+      _parentElem->Get<math::Vector3d>(_childName, _defaultValue).first;
+
+  convertVector3dToUInt32Array(_valueToSet, parsedValues);
+}
+
+/// \brief Helper to set debug visualization mode (DVM)
+/// \param[in] _text String text to parse
+/// \param[in] _modeToSet DVM to set
+/// \param[in] _defaultMode Default DVM to use
+static void SetDebugVisMode(const std::string &_text,
+    uint32_t &_modeToSet, uint32_t _defaultMode)
+{
+  if (_text == "albedo")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Albedo;
+  }
+  else if (_text == "normal")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Normal;
+  }
+  else if (_text == "emissive")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Emissive;
+  }
+  else if (_text == "lighting")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_Lighting;
+  }
+  else if (_text == "none")
+  {
+    _modeToSet = rendering::GlobalIlluminationVct::DVM_None;
+  }
+  else
+  {
+    _modeToSet = _defaultMode;
+  }
+}
+
 //////////////////////////////////////////////////
 void Sensors::Configure(const Entity &/*_id*/,
     const std::shared_ptr<const sdf::Element> &_sdf,
@@ -548,6 +715,89 @@ void Sensors::Configure(const Entity &/*_id*/,
   // Get the ambient light, if specified.
   if (_sdf->HasElement("ambient_light"))
     this->dataPtr->ambientLight = _sdf->Get<math::Color>("ambient_light");
+
+  // Get the global illumination technique and its parameters, if specified
+  if (_sdf->HasElement("global_illumination"))
+  {
+    if (engineName != "ogre2")
+    {
+      gzerr << "Global illumination is only supported by the ogre2 "
+            << "render engine" << std::endl;
+    }
+    else
+    {
+      auto giElem = _sdf->FindElement("global_illumination");
+      std::string giType = giElem->GetAttribute("type")->GetAsString();
+      if (giType == "vct")
+      {
+        this->dataPtr->giVctParameters.enabled = giElem->Get<bool>(
+            "enabled", this->dataPtr->giVctParameters.enabled).first;
+
+        // Use helper functions to parse the inputted set of values
+        // as a uint32_t array
+        if (giElem->HasElement("resolution"))
+        {
+          parseVector3dAsUInt32Array(giElem, "resolution",
+              this->dataPtr->giVctParameters.resolution,
+              this->dataPtr->giDefaultData.resolution);
+        }
+        else
+        {
+          convertVector3dToUInt32Array(
+              this->dataPtr->giVctParameters.resolution,
+              this->dataPtr->giDefaultData.resolution);
+        }
+
+        if (giElem->HasElement("octant_count"))
+        {
+          parseVector3dAsUInt32Array(giElem, "octant_count",
+              this->dataPtr->giVctParameters.octantCount,
+              this->dataPtr->giDefaultData.octantCount);
+        }
+        else
+        {
+          convertVector3dToUInt32Array(
+              this->dataPtr->giVctParameters.octantCount,
+              this->dataPtr->giDefaultData.octantCount);
+        }
+
+        this->dataPtr->giVctParameters.bounceCount =
+            giElem->Get<uint32_t>("bounce_count",
+            this->dataPtr->giVctParameters.bounceCount).first;
+        this->dataPtr->giVctParameters.highQuality =
+            giElem->Get<bool>("high_quality",
+            this->dataPtr->giVctParameters.highQuality).first;
+        this->dataPtr->giVctParameters.anisotropic =
+            giElem->Get<bool>("anisotropic",
+            this->dataPtr->giVctParameters.anisotropic).first;
+        this->dataPtr->giVctParameters.thinWallCounter =
+            giElem->Get<float>("thin_wall_counter",
+            this->dataPtr->giVctParameters.thinWallCounter).first;
+        this->dataPtr->giVctParameters.conserveMemory =
+            giElem->Get<bool>("conserve_memory",
+            this->dataPtr->giVctParameters.conserveMemory).first;
+
+        if (giElem->HasElement("debug_vis_mode"))
+        {
+          const std::string text = giElem->Get<std::string>(
+              "debug_vis_mode", "none").first;
+          SetDebugVisMode(text, this->dataPtr->giVctParameters.debugVisMode,
+              this->dataPtr->giDefaultData.debugVisMode);
+        }
+      }
+      else if (giType == "civct")
+      {
+        // todo: add CIVCT here. should also check if apiBackend is vulkan
+        // can use SetDebugVisMode when parsing DVM
+        gzerr << "GI CI VCT is not supported" << std::endl;
+      }
+      else
+      {
+        gzerr << "GI method type [" << giType << "] is not supported."
+              << std::endl;
+      }
+    }
+  }
 
   this->dataPtr->renderUtil.SetEngineName(engineName);
 #ifdef __APPLE__

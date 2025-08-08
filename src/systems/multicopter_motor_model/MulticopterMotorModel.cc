@@ -58,10 +58,10 @@
 /// \brief    This class can be used to apply a first order filter on a signal.
 ///           It allows different acceleration and deceleration time constants.
 /// \details
-///           Short reveiw of discrete time implementation of first order system
+///           Short review of discrete time implementation of first order system
 ///           Laplace:
 ///             X(s)/U(s) = 1/(tau*s + 1)
-///           continous time system:
+///           continuous time system:
 ///             dx(t) = (-1/tau)*x(t) + (1/tau)*u(t)
 ///           discretized system (ZoH):
 ///             x(k+1) = exp(samplingTime*(-1/tau))*x(k) + (1 - exp(samplingTime*(-1/tau))) * u(k) // NOLINT
@@ -78,7 +78,7 @@ class FirstOrderFilter {
   {
     T outputState;
     if (_inputState > previousState) {
-      // Calcuate the outputState if accelerating.
+      // Calculate the outputState if accelerating.
       double alphaUp = exp(-_samplingTime / timeConstantUp);
       // x(k+1) = Ad*x(k) + Bd*u(k)
       outputState = alphaUp * previousState + (1 - alphaUp) * _inputState;
@@ -292,7 +292,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   {
     this->dataPtr->actuatorNumber =
       sdfClone->GetElement("motorNumber")->Get<int>();
-    gzwarn << "<motorNumber> is depricated, "
+    gzwarn << "<motorNumber> is deprecated, "
            << "please use <actuator_number>.\n";
   }
   else

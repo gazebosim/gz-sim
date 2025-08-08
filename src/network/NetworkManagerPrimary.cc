@@ -106,7 +106,7 @@ void NetworkManagerPrimary::Handshake()
 bool NetworkManagerPrimary::Ready() const
 {
   // The detected number of peers in the "Secondary" role must match
-  // the number exepected (set via configuration of environment).
+  // the number expected (set via configuration of environment).
   auto nSecondary = this->dataPtr->tracker->NumSecondary();
   return (nSecondary == this->dataPtr->config.numSecondariesExpected);
 }

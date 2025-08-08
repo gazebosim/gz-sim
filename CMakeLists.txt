@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim9 VERSION 9.0.0)
+project(gz-sim9 VERSION 9.3.0)
 set (GZ_DISTRIBUTION "Ionic")
 
 #============================================================================
@@ -33,9 +33,9 @@ else()
 endif()
 
 if (UNIX AND NOT APPLE)
-  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
 else()
-  set (EXTRA_TEST_LIB_DEPS)
+  set (EXTRA_TEST_LIB_DEPS backward_object)
 endif()
 
 # We're disabling pybind11 by default on Windows because they
@@ -102,9 +102,12 @@ gz_find_package(gz-common6
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common${GZ_COMMON_VER}::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools

@@ -649,10 +649,10 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 
   // These are URIs that are potentially problematic.
   const std::vector<std::string> fuelUris = {
-      // Thes following two URIs are valid, but have a trailing '/'
+      // These following two URIs are valid, but have a trailing '/'
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/",
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/3/",
-      // Thes following two URIs are invalid, and will not be saved
+      // These following two URIs are invalid, and will not be saved
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
       "notInt",
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack/"
@@ -709,10 +709,11 @@ TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithInvalidUris)
 /////////////////////////////////////////////////
 TEST_F(ElementUpdateFixture, WorldWithModelsIncludedWithNonFuelUris)
 {
+  const auto sdfSourceFilePath = common::testing::TestFile("worlds", "models",
+      "sphere");
   const std::vector<std::string> includeUris = {
       "https://fuel.gazebosim.org/1.0/openroboticstest/models/backpack",
-      std::string("file://") + PROJECT_SOURCE_PATH +
-          "/test/worlds/models/sphere"};
+      std::string("file://") + sdfSourceFilePath};
 
   std::string worldSdf = R"(
 <?xml version="1.0" ?>
@@ -900,8 +901,9 @@ TEST_F(ElementUpdateFixture, WorldWithModelsExpandedWithOneIncluded)
 TEST_F(ElementUpdateFixture,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(WorldWithModelsUsingRelativeResourceURIs))
 {
-  const auto includeUri = std::string("file://") + PROJECT_SOURCE_PATH +
-                          "/test/worlds/models/relative_resource_uri";
+  const auto sdfSourceFilePath = common::testing::TestFile("worlds", "models",
+      "relative_resource_uri");
+  const auto includeUri = std::string("file://") + sdfSourceFilePath;
 
   std::string worldSdf = R"(
 <?xml version="1.0" ?>

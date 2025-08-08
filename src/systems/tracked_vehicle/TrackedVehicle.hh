@@ -122,7 +122,7 @@ namespace systems
   ///   default value is `{model_name}/odom`.
   ///
   /// - `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  ///   the target of the odometry trasnform in both the `<tf_topic>`
+  ///   the target of the odometry transform in both the `<tf_topic>`
   ///   `gz.msgs.Pose_V` message and the `<odom_topic>`
   ///   `gz.msgs.Odometry` message. This element if optional,
   ///   and the default value is `{model_name}/{link_name}`.

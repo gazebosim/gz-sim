@@ -167,7 +167,7 @@ TEST_F(EntityFeatureMapFixture,
   // have not added an entity.
   EXPECT_EQ(10u, testMap.TotalMapEntryCount());
 
-  // Remove entitites
+  // Remove entities
   testMap.Remove(gazeboWorld1Entity);
   EXPECT_FALSE(testMap.HasEntity(gazeboWorld1Entity));
   EXPECT_EQ(nullptr, testMap.Get(gazeboWorld1Entity));

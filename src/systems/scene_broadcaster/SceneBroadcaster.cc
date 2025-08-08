@@ -444,7 +444,7 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
           this->dataPtr->pubPeriodicChanges = true;
         }
         // this creates an empty state in the msg even there are no periodic
-        // changed components - done to preseve existing behavior.
+        // changed components - done to preserve existing behavior.
         // we may be able to remove this in the future and update tests
         this->dataPtr->stepMsg.mutable_state();
       }

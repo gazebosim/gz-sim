@@ -1,11 +1,19 @@
 <?xml version="1.0" ?>
 <!--
   This example show cases how to load and unload environmental data.
-  Before opening this file in a seperate terminal run:
+  Before opening this file in a separate terminal run:
     gz topic -e -t /sensors/humidity
   Then open this file by running:
     gz sim environmental_sensor.sdf
-  Play the simulation and you should see a data stream of increasing numbers eventually stop at 90.
+
+  Optionally, enable environment visualization in the 3D window by opening
+  two GUI plugins via top right GUI plugin menu:
+    - `Environment Visualization` and
+    - `Point Cloud`: Click on `refresh` button and set `Point size` to a
+                     reasonable value, e.g. 5
+
+  Play the simulation and you should see a data stream of increasing numbers in
+  the separate terminal, which eventually stops at 90.
 -->
 <sdf version="1.6">
   <world name="environmental_sensor_example">
@@ -21,11 +29,6 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
-    <!-- The system is added to the world, so it handles all environmental data in the world-->
-    <plugin
-      filename="gz-sim-environmental-sensor-system"
-      name="gz::sim::systems::EnvironmentalSystem">
-    </plugin>
 
     <!-- The system specifies where to preload -->
     <plugin
@@ -40,6 +43,12 @@
           <z>z</z>
         </space>
       </dimensions>
+    </plugin>
+
+    <!-- The system is added to the world, so it handles all environmental data in the world-->
+    <plugin
+      filename="gz-sim-environmental-sensor-system"
+      name="gz::sim::systems::EnvironmentalSystem">
     </plugin>
 
     <light type="directional" name="sun">

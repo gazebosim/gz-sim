@@ -2,6 +2,8 @@ name: nightly docker image builds
 
 on:
   push:
+    branches:
+      - 'gz-sim9'
   schedule:
     - cron: '0 6 * * *'
 

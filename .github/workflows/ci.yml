@@ -30,10 +30,10 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@jammy
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
           codecov-enabled: true
-          cppcheck-enabled: true
-          cpplint-enabled: true
+          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
+
   noble-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI
@@ -49,4 +49,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@noble
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+          cppcheck-enabled: true
+          cpplint-enabled: true
+          apt-dependencies: libdwarf-dev libdw-dev binutils-dev

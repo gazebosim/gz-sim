@@ -41,7 +41,6 @@
 #include <sdf/World.hh>
 
 #include <gz/common/Event.hh>
-#include <gz/common/WorkerPool.hh>
 #include <gz/math/Stopwatch.hh>
 #include <gz/transport/Node.hh>
 
@@ -107,7 +106,7 @@ namespace gz
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
-      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// runner at the beginning of the a simulation cycle (call to Run). It is
       /// also responsible for calling `Configure` on the system.
       /// \param[in] _system SystemPluginPtr to be added
       /// \param[in] _entity Entity that system is attached to. If nullopt,
@@ -121,7 +120,7 @@ namespace gz
 
       /// \brief Add system after the simulation runner has been instantiated
       /// \note This actually adds system to a queue. The system is added to the
-      /// runner at the begining of the a simulation cycle (call to Run). It is
+      /// runner at the beginning of the a simulation cycle (call to Run). It is
       /// also responsible for calling `Configure` on the system.
       /// \param[in] _system System to be added
       /// \param[in] _entity Entity of system to be added. Nullopt if system
@@ -327,7 +326,7 @@ namespace gz
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
-      /// \brief Process all buffered messages. Ths function is called at
+      /// \brief Process all buffered messages. The function is called at
       /// the end of an update iteration.
       private: void ProcessMessages();
 
@@ -426,9 +425,6 @@ namespace gz
 
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
-
-      /// \brief A pool of worker threads.
-      private: common::WorkerPool workerPool{2};
 
       /// \brief Wall time of the previous update.
       private: std::chrono::steady_clock::time_point prevUpdateRealTime;

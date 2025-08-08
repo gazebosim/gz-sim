@@ -290,12 +290,12 @@ class Cmd
       end
       opts.on('-g') do
         options['gui'] = 1
-        # Runing the Gui only, don't show world loading menu
+        # Running the Gui only, don't show world loading menu
         options['wait_gui'] = 0
       end
       opts.on('-s') do
         options['server'] = 1
-        # Runing the server only, don't wait for starting world from Gui
+        # Running the server only, don't wait for starting world from Gui
         options['wait_gui'] = 0
       end
       opts.on('--levels') do
@@ -554,9 +554,19 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
                           options['render_engine_gui_api_backend'])
         end
 
-        Signal.trap("INT") {
+        # Handle SIGINT and SIGTERM signals
+        def handle_signal(guiPid, serverPid)
           self.killProcess(guiPid, "Gazebo Sim GUI", 5.0)
           self.killProcess(serverPid, "Gazebo Sim Server", 5.0)
+        end
+
+        Signal.trap("INT") {
+          handle_signal(guiPid, serverPid)
+          return 1
+        }
+
+        Signal.trap("TERM") {
+          handle_signal(guiPid, serverPid)
           return 1
         }
 

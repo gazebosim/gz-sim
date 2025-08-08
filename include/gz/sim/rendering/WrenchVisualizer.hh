@@ -67,7 +67,7 @@ namespace detail
     /// \param[in] _position Position of the arrow
     /// \param[in] _size Size of the arrow in meters
     /// \param[in] _tip True if _position specifies the tip of the vector,
-    /// false if it specifies tha base of the vector
+    /// false if it specifies the base of the vector
     public: void UpdateVectorVisual(rendering::VisualPtr _visual,
                                     const math::Vector3d &_direction,
                                     const math::Vector3d &_position,

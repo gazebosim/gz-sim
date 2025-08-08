@@ -28,9 +28,7 @@
 #include <gz/sim/Util.hh>
 #include <gz/sim/config.hh>
 
-#include <gz/common/graphics.hh>
-#include <gz/common/Mesh.hh>
-#include <gz/common/MeshManager.hh>
+#include <gz/common/SubMesh.hh>
 
 #include <gz/math/Vector3.hh>
 #include <gz/math/Pose3.hh>
@@ -45,6 +43,10 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE
     {
+      /// \brief Relative error tolerance allowed when testing if principal
+      /// moments of a mass matrix satisfy the triangle inequality.
+      constexpr double kPrincipalMomentRelativeTol = 0.05;
+
       /// \struct Triangle gz/sim/MeshInertiaCalculator.hh
       /// \brief A struct to represent a triangle of the mesh
       /// An instance of the struct holds 3 Vector3D instances
@@ -70,10 +72,23 @@ namespace gz
       /// The calculation method used in this class is described here:
       /// https://www.geometrictools.com/Documentation/PolyhedralMassProperties.pdf
       /// and it works on triangle water-tight meshes for simple polyhedron
-      class MeshInertiaCalculator
+      class GZ_SIM_VISIBLE MeshInertiaCalculator
       {
         /// \brief Constructor
         public: MeshInertiaCalculator() = default;
+
+        /// \brief Function to correct an invalid mass matrix. The mass matrix
+        /// to be corrected needs to be positive definite and within a small
+        /// tolerance of satisfying the triangle inequality test. If the above
+        /// conditions are not satisfied, the mass matrix will not be corrected.
+        /// \param[in, out] _massMatrix Mass matrix to correct
+        /// \param[in] _tol Relative error tolerance allowed when testing if
+        /// principal moments of a mass matrix satisfy the triangle inequality.
+        /// \return True if the mass matrix is already valid or successfully
+        /// corrected, false otherwise.
+        public: static bool CorrectMassMatrix(
+            gz::math::MassMatrix3d &_massMatrix,
+            double tol = kPrincipalMomentRelativeTol);
 
         /// \brief Function to get the vertices & indices of the given mesh
         /// & convert them into instances of the Triangle struct
@@ -85,10 +100,10 @@ namespace gz
         /// \param[in] _meshScale A vector with the scaling factor
         /// of all the 3 axes
         /// \param[in] _mesh Mesh object
-        public: void GetMeshTriangles(
+        public: static void GetMeshTriangles(
           std::vector<Triangle> &_triangles,
           const gz::math::Vector3d &_meshScale,
-          const gz::common::Mesh* _mesh);
+          const gz::common::SubMesh* _mesh);
 
         /// \brief Function that calculates the mass, mass matrix & centre of
         /// mass of a mesh using a vector of Triangles of the mesh
@@ -98,7 +113,7 @@ namespace gz
         /// moment of inertia of the mesh
         /// \param[out] _inertiaOrigin Pose3d object to hold the origin about
         /// which the inertia tensor was calculated
-        public: void CalculateMassProperties(
+        public: static void CalculateMassProperties(
           const std::vector<Triangle>& _triangles,
           double _density,
           gz::math::MassMatrix3d& _massMatrix,

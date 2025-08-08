@@ -479,7 +479,7 @@ bool SpawnPrivate::GeneratePreview(const std::string &_name)
   this->spawnPreview = visualChildrenPair.first;
   this->spawnPreviewPose = this->spawnPreview->WorldPose();
 
-  // save the copied chiled IDs before saving the copied parent visual ID in
+  // save the copied child IDs before saving the copied parent visual ID in
   // order to ensure that the child visuals get deleted before the parent visual
   // (since the SceneManager::RemoveEntity call in this->TerminateSpawnPreview()
   // isn't recursive, deleting the parent visual before the child visuals could

@@ -166,11 +166,11 @@ TEST_F(PerformerDetectorTest,
 
   // The performer's bounding box is 2x2. It starts at a position of {0, 2} and
   // moves straight in the +x direction. The performer enters the detector's
-  // region when the its bounding box interesects with the detector's region.
+  // region when the its bounding box intersects with the detector's region.
   // The reported position is relative to the detector.
 
   // detector1's XY position is {4, 0} with a region of 4x4. Accounting for the
-  // performer's own bounding box, the interval of interesection becomes:
+  // performer's own bounding box, the interval of intersection becomes:
   //   x:[4 - 2 - 1, 4 + 2 + 1], y: [0 - 2 - 1, 0 + 2 + 1]
   // = x:[1, 7], y:[-3, 3]
   // The position of the performer is {1, 2} when it enters detector1's region
@@ -182,7 +182,7 @@ TEST_F(PerformerDetectorTest,
   EXPECT_NEAR(2.0, this->poseMsgs[2].position().y(), 1e-2);
 
   // detector2's XY position is {5, 3} with a region of 3x2.5. Accounting for
-  // the performer's own bounding box, the interval of interesection becomes:
+  // the performer's own bounding box, the interval of intersection becomes:
   //   x:[5 - 1.5 - 1, 5 + 1.5 + 1], y: [3 - 1.25 - 1, 3 + 1.25 + 1]
   // = x:[2.5, 7.5], y:[1.75, 5.25]
   // The position of the performer is {2.5, 2} when it enters detector2's region

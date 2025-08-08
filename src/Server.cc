@@ -33,30 +33,11 @@
 #include "gz/sim/Server.hh"
 #include "gz/sim/Util.hh"
 
-#include "MeshInertiaCalculator.hh"
 #include "ServerPrivate.hh"
 #include "SimulationRunner.hh"
 
 using namespace gz;
 using namespace sim;
-
-/// \brief This struct provides access to the default world.
-struct DefaultWorld
-{
-  /// \brief Get the default world as a string.
-  /// Plugins will be loaded from the server.config file.
-  /// \return An SDF string that contains the default world.
-  public: static std::string &World()
-  {
-    static std::string world = std::string("<?xml version='1.0'?>"
-      "<sdf version='1.6'>"
-        "<world name='default'>") +
-        "</world>"
-      "</sdf>";
-
-    return world;
-  }
-};
 
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
@@ -96,107 +77,8 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  sdf::Errors errors;
-
-  switch (_config.Source())
-  {
-    // Load a world if specified. Check SDF string first, then SDF file
-    case ServerConfig::SourceType::kSdfRoot:
-    {
-      this->dataPtr->sdfRoot = _config.SdfRoot()->Clone();
-      gzmsg << "Loading SDF world from SDF DOM.\n";
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfString:
-    {
-      std::string msg = "Loading SDF string. ";
-      if (_config.SdfFile().empty())
-      {
-        msg += "File path not available.\n";
-      }
-      else
-      {
-        msg += "File path [" + _config.SdfFile() + "].\n";
-      }
-      gzmsg <<  msg;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
-      errors = this->dataPtr->sdfRoot.LoadSdfString(
-        _config.SdfString(), sdfParserConfig);
-      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
-      break;
-    }
-
-    case ServerConfig::SourceType::kSdfFile:
-    {
-      std::string filePath = resolveSdfWorldFile(_config.SdfFile(),
-          _config.ResourceCache());
-
-      if (filePath.empty())
-      {
-        gzerr << "Failed to find world [" << _config.SdfFile() << "]"
-               << std::endl;
-        return;
-      }
-
-      gzmsg << "Loading SDF world file[" << filePath << "].\n";
-
-      sdf::Root sdfRoot;
-      sdf::ParserConfig sdfParserConfig = sdf::ParserConfig::GlobalConfig();
-      sdfParserConfig.SetStoreResolvedURIs(true);
-      sdfParserConfig.SetCalculateInertialConfiguration(
-        sdf::ConfigureResolveAutoInertials::SKIP_CALCULATION_IN_LOAD);
-
-      MeshInertiaCalculator meshInertiaCalculator;
-      sdfParserConfig.RegisterCustomInertiaCalc(meshInertiaCalculator);
-      // \todo(nkoenig) Async resource download.
-      // This call can block for a long period of time while
-      // resources are downloaded. Blocking here causes the GUI to block with
-      // a black screen (search for "Async resource download" in
-      // 'src/gui_main.cc'.
-      errors = sdfRoot.Load(filePath, sdfParserConfig);
-      if (errors.empty() || _config.BehaviorOnSdfErrors() !=
-          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
-      {
-        if (sdfRoot.Model() == nullptr) {
-          this->dataPtr->sdfRoot = std::move(sdfRoot);
-        }
-        else
-        {
-          // If the specified file only contains a model, load the default
-          // world and add the model to it.
-          errors = this->dataPtr->sdfRoot.LoadSdfString(
-            DefaultWorld::World(), sdfParserConfig);
-          sdf::World *world = this->dataPtr->sdfRoot.WorldByIndex(0);
-          if (world == nullptr) {
-            return;
-          }
-          world->AddModel(*sdfRoot.Model());
-          if (errors.empty() || _config.BehaviorOnSdfErrors() !=
-              ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
-          {
-            errors = this->dataPtr->sdfRoot.UpdateGraphs();
-          }
-        }
-      }
-
-      this->dataPtr->sdfRoot.ResolveAutoInertials(errors, sdfParserConfig);
-      break;
-    }
-
-    case ServerConfig::SourceType::kNone:
-    default:
-    {
-      gzmsg << "Loading default world.\n";
-      // Load an empty world.
-      /// \todo(nkoenig) Add a "AddWorld" function to sdf::Root.
-      errors = this->dataPtr->sdfRoot.LoadSdfString(DefaultWorld::World());
-      break;
-    }
-  }
+  // Loads the SDF root object based on values in a ServerConfig object.
+  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config);
 
   if (!errors.empty())
   {
@@ -275,7 +157,7 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     // Wait for the thread to start. We do this to guarantee that the
     // running variable gets updated before this function returns. With
     // a small number of iterations it is possible that the run thread
-    // successfuly completes before this function returns.
+    // successfully completes before this function returns.
     cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
     return true;
   }

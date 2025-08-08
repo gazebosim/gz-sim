@@ -57,7 +57,6 @@ set(gui_sources
 
 set(cli_sources
   gz.cc
-  cmd/ModelCommandAPI.cc
 )
 
 set(material_sources
@@ -114,6 +113,7 @@ set (gtest_sources
   Joint_TEST.cc
   Light_TEST.cc
   Link_TEST.cc
+  MeshInertiaCalculator_TEST.cc
   Model_TEST.cc
   Primitives_TEST.cc
   SdfEntityCreator_TEST.cc
@@ -134,22 +134,10 @@ set (gtest_sources
   network/NetworkManager_TEST.cc
 )
 
-# gz_TEST and ModelCommandAPI_TEST are not supported with multi config
-# CMake generators, see also cmd/CMakeLists.txt
-get_property(GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND gtest_sources gz_TEST.cc)
-endif()
-
-
 # Tests that require a valid display
 set(tests_needing_display
   Server_Rendering_TEST.cc
 )
-
-if(NOT GENERATOR_IS_MULTI_CONFIG)
-  list(APPEND tests_needing_display ModelCommandAPI_TEST.cc)
-endif()
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
@@ -264,54 +252,5 @@ if (TARGET UNIT_Server_Rendering_TEST)
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()
-
-# Command line tests need extra settings
-foreach(CMD_TEST
-  UNIT_gz_TEST
-  UNIT_ModelCommandAPI_TEST)
-
-  if(NOT TARGET ${CMD_TEST})
-    continue()
-  endif()
-
-  # Running `gz sim` on macOS has problems when run with /usr/bin/ruby
-  # due to System Integrity Protection (SIP). Try to find ruby from
-  # homebrew as a workaround.
-  if (APPLE)
-    find_program(BREW_RUBY ruby HINTS /usr/local/opt/ruby/bin)
-  endif()
-
-  add_dependencies(${CMD_TEST}
-    ${gz_lib_target}
-    TestModelSystem
-    TestSensorSystem
-    TestWorldSystem
-  )
-
-  target_compile_definitions(${CMD_TEST} PRIVATE
-      "BREW_RUBY=\"${BREW_RUBY} \"")
-
-  target_compile_definitions(${CMD_TEST} PRIVATE
-      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\"")
-
-  set(_env_vars)
-  list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf")
-  list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
-
-  set_tests_properties(${CMD_TEST} PROPERTIES
-    ENVIRONMENT "${_env_vars}")
-
-  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
-  # in build directory in necessary. For regular tests, the trick is to place all libraries
-  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
-  # as they are in the same directory where the executable is loaded. For tests that are
-  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
-  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that was added in CMake 3.22.
-  if (WIN32)
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-  endif()
-
-endforeach()
 
 add_subdirectory(cmd)

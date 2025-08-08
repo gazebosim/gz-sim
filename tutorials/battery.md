@@ -60,7 +60,7 @@ there are some issues affecting batteries in Gazebo Blueprint and Citadel.
 This parameter fixes the issues. Feel free to omit the parameter if you have
 legacy code and want to preserve the old behavior.
 
-* `<start_draining>`: Start draining battery from the begining of the
+* `<start_draining>`: Start draining battery from the beginning of the
 simulation. If this is not set the battery draining can only be started
 through the topics set through .
 

@@ -161,7 +161,6 @@ GlobalIlluminationCiVct::GlobalIlluminationCiVct() :
   GuiSystem(),
   dataPtr(new GlobalIlluminationCiVctPrivate)
 {
-  // no ops
 }
 
 /////////////////////////////////////////////////

@@ -52,7 +52,6 @@ ColumnLayout {
   RenderWindowOverlay {
     id: renderWindowOverlay
     objectName: "renderWindowOverlay"
-    anchors.fill: parent
 
     Connections {
       target: renderWindowOverlay
@@ -66,6 +65,5 @@ ColumnLayout {
 
   GzSim.EntityContextMenu {
     id: entityContextMenu
-    anchors.fill: parent
   }
 }

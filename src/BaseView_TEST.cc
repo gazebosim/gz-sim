@@ -479,7 +479,7 @@ TEST_F(BaseViewTest, ComponentTypeHasher)
 {
   // Test the hash function for a std::vector<ComponentTypeId> to make
   // sure that views with different component types (either a different type
-  // ordering or a different set of types alltogether) are considered unique
+  // ordering or a different set of types altogether) are considered unique
   using ComponentVec = std::vector<ComponentTypeId>;
 
   // Create vectors with the same types, but different order

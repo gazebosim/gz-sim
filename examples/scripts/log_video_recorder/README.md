@@ -3,7 +3,7 @@
 This demo shows how to record videos from a log playback using the
 `LogVideoRecorder` system. The video is recorded from the view of the GUI camera
 which is set to follow entities in the world. One video will be created per
-entity. The entites can be specified by its name and by region (axis-aligned
+entity. The entities can be specified by its name and by region (axis-aligned
 box) where the entities are located at the start of the log.
 
 ## Running the demo

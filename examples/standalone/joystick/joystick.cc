@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     else
     {
       std::cout << "Unable to open joystick at [" << deviceFilename
-        << "] Attemping again\n";
+        << "] Attempting again\n";
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(200));

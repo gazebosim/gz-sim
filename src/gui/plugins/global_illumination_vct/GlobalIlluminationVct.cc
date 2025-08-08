@@ -155,7 +155,6 @@ GlobalIlluminationVct::GlobalIlluminationVct() :
   GuiSystem(),
   dataPtr(new GlobalIlluminationVctPrivate)
 {
-  // no ops
 }
 
 /////////////////////////////////////////////////

@@ -122,7 +122,7 @@ TEST_F(SensorsFixture, SensorsBatteryState)
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge should be 1, since the battery has not drained
-  // and the <initial_charge> is equivalent ot the <capacity>.
+  // and the <initial_charge> is equivalent of the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
   gz::transport::Node node;

@@ -93,7 +93,7 @@ namespace systems
   ///                 `{ns}/{topic}/enable_deadband` depending on other params
   /// - `<wake_fraction>`: Relative speed reduction between the water
   ///                      at the propeller (Va) vs behind the vessel.
-  ///                      [Optional, defults to 0.2]
+  ///                      [Optional, defaults to 0.2]
   ///
   ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
   ///   ```
@@ -102,10 +102,10 @@ namespace systems
   ///
   /// - `<alpha_1>`: Constant given by the open water propeller diagram. Used
   ///                in the calculation of the thrust coefficient (Kt).
-  ///                [Optional, defults to 1]
+  ///                [Optional, defaults to 1]
   /// - `<alpha_2>`: Constant given by the open water propeller diagram. Used
   ///                in the calculation of the thrust coefficient (Kt).
-  ///                [Optional, defults to 0]
+  ///                [Optional, defaults to 0]
   ///
   ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
   ///   ```

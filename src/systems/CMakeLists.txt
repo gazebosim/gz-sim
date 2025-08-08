@@ -83,7 +83,7 @@ function(gz_add_system system_name)
   set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
   set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
   if(WIN32)
-    # symlinks on Windows require admin priviledges, fallback to copy
+    # symlinks on Windows require admin privileges, fallback to copy
     INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy
       ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${versioned}
       ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${unversioned})")
@@ -112,8 +112,9 @@ add_subdirectory(contact)
 add_subdirectory(camera_video_recorder)
 add_subdirectory(detachable_joint)
 add_subdirectory(diff_drive)
+add_subdirectory(drive_to_pose_controller)
 add_subdirectory(dvl)
-# elevator system causes compile erros on windows
+# elevator system causes compile errors on windows
 if (NOT WIN32)
 add_subdirectory(elevator)
 endif()

@@ -204,7 +204,7 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  // Supress Child Warning
+  // Suppress Child Warning
   this->suppressChildWarning =
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
           .first;

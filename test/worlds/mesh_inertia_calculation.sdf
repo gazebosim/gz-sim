@@ -6,7 +6,6 @@
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-
     <include>
       <uri>cylinder_dae</uri>
       <name>cylinder_dae</name>
@@ -17,6 +16,12 @@
       <uri>cylinder_dae_bottom_origin</uri>
       <name>cylinder_dae_bottom_origin</name>
       <pose>4 0 0 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>cylinder_dae_convex_decomposition</uri>
+      <name>cylinder_dae_convex_decomposition</name>
+      <pose>8 0 0 0 0 0</pose>
     </include>
   </world>
 </sdf>

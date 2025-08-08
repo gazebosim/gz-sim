@@ -86,10 +86,10 @@ namespace gz
 
         /// \brief Constructor with plugin information specified.
         /// \param[in] _entityName Name of the entity which should receive
-        /// this plugin. The name is used in conjuction with _entityType to
+        /// this plugin. The name is used in conjunction with _entityType to
         /// uniquely identify an entity.
         /// \param[in] _entityType Entity type which should receive  this
-        /// plugin. The type is used in conjuction with _entityName to
+        /// plugin. The type is used in conjunction with _entityName to
         /// uniquely identify an entity.
         /// \param[in] _plugin SDF Plugin library information.
         public: PluginInfo(const std::string &_entityName,
@@ -106,25 +106,25 @@ namespace gz
         public: PluginInfo &operator=(const PluginInfo &_info);
 
         /// \brief Get the name of the entity which should receive
-        /// this plugin. The name is used in conjuction with _entityType to
+        /// this plugin. The name is used in conjunction with _entityType to
         /// uniquely identify an entity.
         /// \return Entity name.
         public: const std::string &EntityName() const;
 
         /// \brief Set the name of the entity which should receive
-        /// this plugin. The name is used in conjuction with _entityType to
+        /// this plugin. The name is used in conjunction with _entityType to
         /// uniquely identify an entity.
         /// \param[in] _entityName Entity name.
         public: void SetEntityName(const std::string &_entityName);
 
         /// \brief Get the entity type which should receive  this
-        /// plugin. The type is used in conjuction with EntityName to
+        /// plugin. The type is used in conjunction with EntityName to
         /// uniquely identify an entity.
         /// \return Entity type string.
         public: const std::string &EntityType() const;
 
         /// \brief Set the type of the entity which should receive this
-        /// plugin. The type is used in conjuction with EntityName to
+        /// plugin. The type is used in conjunction with EntityName to
         /// uniquely identify an entity.
         /// \param[in] _entityType Entity type string.
         public: void SetEntityType(const std::string &_entityType);
@@ -183,7 +183,7 @@ namespace gz
       public: std::string SdfString() const;
 
       /// \brief Set the SDF Root DOM object. The sdf::Root object will take
-      /// precendence over ServerConfig::SdfString() and
+      /// precedence over ServerConfig::SdfString() and
       /// ServerConfig::SdfFile().
       /// \param[in] _root SDF Root object to use.
       public: void SetSdfRoot(const sdf::Root &_root) const;
@@ -240,7 +240,7 @@ namespace gz
       public: unsigned int NetworkSecondaries() const;
 
       /// \brief Set the network role, which is one of [primary, secondary].
-      /// If primary is used, then make sure to also set the numer of
+      /// If primary is used, then make sure to also set the number of
       /// network secondaries via
       /// SetNetworkSecondaries(unsigned int _secondaries).
       /// \param[in] _role Network role, one of [primary, secondary].
@@ -398,12 +398,12 @@ namespace gz
 
       /// \brief Set the server behavior when SDF errors are encountered while
       //// loading the server.
-      /// \param[in] _behavior Server behavior when SDF errors are encounted.
+      /// \param[in] _behavior Server behavior when SDF errors are encountered.
       public: void SetBehaviorOnSdfErrors(SdfErrorBehavior _behavior);
 
       /// \brief Get the behavior when SDF errors are encountered while
       //// loading the server.
-      /// \return Server behavior when SDF errors are encounted.
+      /// \return Server behavior when SDF errors are encountered.
       public: SdfErrorBehavior BehaviorOnSdfErrors() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific

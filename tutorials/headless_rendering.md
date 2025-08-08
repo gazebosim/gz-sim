@@ -1,7 +1,7 @@
 \page headless_rendering Headless Rendering
 
 It is often desirable to run simulation on a remote computer, such as
-a computer managed by cloud provider, in order to paralellize work or access
+a computer managed by cloud provider, in order to parallelize work or access
 specific compute resources. Simulated sensors that require GPU access have
 historically been difficult to use on a remote computer due to OpenGL's
 X server requirement on linux systems. This issue can be resolved through

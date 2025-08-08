@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -123,7 +124,7 @@ class gz::sim::EntityComponentManagerPrivate
   /// \return True if _joint's parent or child link name was set.
   /// False otherwise
   /// \note This method should only be called in EntityComponentManager::Clone.
-  /// This is a temporary workaround until we find a way to clone entites and
+  /// This is a temporary workaround until we find a way to clone entities and
   /// components that don't require special treatment for particular component
   /// types.
   public: template<typename ComponentTypeT>
@@ -1167,7 +1168,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   {
     // if the pre-existing component is marked as removed, this means that the
     // component was added to the entity previously, but later removed. In this
-    // case, a re-addition of the component is occuring. If the pre-existing
+    // case, a re-addition of the component is occurring. If the pre-existing
     // component is not marked as removed, this means that the component was
     // added to the entity previously and never removed. In this case, we are
     // simply modifying the data of the pre-existing component (the modification
