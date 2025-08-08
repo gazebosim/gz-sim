@@ -69,6 +69,11 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
+  // Turn off downloads so that we can do an initial parsing of the SDF
+  // file. This will let us get the world names, and queue the simulation asset
+  // URIs for download.
+  this->dataPtr->enableDownload = false;
+
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
@@ -77,42 +82,62 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  // Loads the SDF root object based on values in a ServerConfig object.
-  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config);
+  sdf::Root sdfRoot;
 
-  if (!errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << "\n";
-    if (_config.BehaviorOnSdfErrors() ==
-        ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
-    {
-      return;
-    }
-  }
+  // Loads the SDF root object based on values in a ServerConfig object.
+  // Ignore the sdf::Errors returned by this function. The errors will be
+  // displayed later in the downloadThread.
+  ServerConfig cfg = _config;
+  cfg.SetBehaviorOnSdfErrors(
+    ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
+  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(
+    cfg, sdfRoot);
 
   // Add record plugin
   if (_config.UseLogRecord())
   {
-    this->dataPtr->AddRecordPlugin(_config);
+    this->dataPtr->AddRecordPlugin(_config, sdfRoot);
   }
+
+  // Remove all the models, lights, and actors from the primary sdfRoot object
+  // so that they can be downloaded and added to simulation in the background.
+  for (uint64_t i = 0; i < sdfRoot.WorldCount(); ++i)
+  {
+    sdfRoot.WorldByIndex(i)->ClearModels();
+    sdfRoot.WorldByIndex(i)->ClearActors();
+    sdfRoot.WorldByIndex(i)->ClearLights();
+  }
+
+  // This will create the simulation runners, but not entities.
+  this->dataPtr->CreateSimulationRunners(sdfRoot);
+
+  // Storing the sdf root. The ServerPrivate.hh header file mentions
+  // that other classes may keep pointers to child nodes of the root,
+  // so we need to keep this object around.
+  // However, everything seems to work fine without storing this.
+  // \todo(nkoenig): Look into removing the sdfRoot member variable.
+  this->dataPtr->sdfRoot = sdfRoot;
+
+  // Establish publishers and subscribers. Setup transport before
+  // downloading simulation assets so that the GUI is not blocked during
+  // download.
+  this->dataPtr->SetupTransport();
 
   // If we've received a signal before we create entities, the Stop event
   // won't be propagated to them. Instead, we just quit early here.
   if (this->dataPtr->signalReceived)
     return;
 
-  this->dataPtr->CreateEntities();
+  // Download the simulation assets. This function will block if
+  // _config.WaitForAssets() is true;
+  this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in
-  // the world file which was parsed by CreateEntities.
+  // the world file which was parsed by LoadSdfRootHelper.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
-
-  // Establish publishers and subscribers.
-  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////
