@@ -17,6 +17,7 @@
 #ifndef GZ_GAZEBO_COMPONENTS_FACTORY_HH_
 #define GZ_GAZEBO_COMPONENTS_FACTORY_HH_
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <deque>
