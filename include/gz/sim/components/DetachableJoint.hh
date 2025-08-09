@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
 #define GZ_SIM_COMPONENTS_DETACHABLE_JOINT_HH_
 
+#include <optional>
 #include <string>
 #include <gz/sim/Entity.hh>
 #include <gz/sim/components/Factory.hh>
@@ -39,14 +40,20 @@ namespace components
     Entity parentLink;
     /// \brief Entity of the echild link
     Entity childLink;
-    // \brief Type of joint. Only the "fixed" joint type is currently supported.
+    /// \brief Type of joint. Only the "fixed" joint type is currently supported.
     std::string jointType = {"fixed"};
+    /// \brief Optional constraint force mixing parameter
+    std::optional<double> cfm;
+    /// \brief Optional error reduction parameter
+    std::optional<double> erp;
 
     public: bool operator==(const DetachableJointInfo &_info) const
     {
       return (this->parentLink == _info.parentLink) &&
              (this->childLink == _info.childLink) &&
-             (this->jointType == _info.jointType);
+             (this->jointType == _info.jointType) &&
+             (this->cfm == _info.cfm) &&
+             (this->erp == _info.erp);
     }
 
     public: bool operator!=(const DetachableJointInfo &_info) const
@@ -69,8 +76,20 @@ namespace serializers
                 std::ostream &_out,
                 const components::DetachableJointInfo &_info)
     {
+      std::string cfmStr("nullopt");
+      if (_info.cfm.has_value())
+      {
+        cfmStr = std::to_string(_info.cfm.value());
+      }
+      std::string erpStr("nullopt");
+      if (_info.erp.has_value())
+      {
+        erpStr = std::to_string(_info.erp.value());
+      }
+
       _out << _info.parentLink << " " << _info.childLink << " "
-           << _info.jointType;
+           << _info.jointType << " "
+           << cfmStr << " " << erpStr;
       return _out;
     }
 
@@ -81,7 +100,20 @@ namespace serializers
     public: static std::istream &Deserialize(
                 std::istream &_in, components::DetachableJointInfo &_info)
     {
-      _in >> _info.parentLink >> _info.childLink >> _info.jointType;
+      std::string cfmStr;
+      std::string erpStr;
+      _in >> _info.parentLink >> _info.childLink >> _info.jointType
+          >> cfmStr >> erpStr;
+
+      if (cfmStr != "nullopt")
+      {
+        _info.cfm = std::optional<double>(std::stod(cfmStr));
+      }
+      if (erpStr != "nullopt")
+      {
+        _info.erp = std::optional<double>(std::stod(erpStr));
+      }
+
       return _in;
     }
   };
