@@ -940,7 +940,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Geometry(*_visual->Geom()));
   }
 
-  // \todo(louise) Populate with default material if undefined
   if (_visual->Material())
   {
     sdf::Material visualMaterial = *_visual->Material();
@@ -983,6 +982,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         }
       }
     }
+    this->dataPtr->ecm->CreateComponent(visualEntity,
+        components::Material(visualMaterial));
+  }
+  else
+  {
+    sdf::Material visualMaterial;
     this->dataPtr->ecm->CreateComponent(visualEntity,
         components::Material(visualMaterial));
   }
