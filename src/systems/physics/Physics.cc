@@ -397,6 +397,11 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Pointer to the underlying gz-physics Engine entity.
   public: EnginePtrType engine = nullptr;
 
+  /// \brief Set whether to enforce fixed constraints. Applicable only if
+  /// the underlying physics engine supports SetWeldChildToParent feature, e.g.
+  /// gz-physics bullet-featherstone-plugin
+  public: bool enforceFixedConstraint = false;
+
   /// \brief Vector3d equality comparison function.
   public: std::function<bool(const math::Vector3d &, const math::Vector3d &)>
           vec3Eql { [](const math::Vector3d &_a, const math::Vector3d &_b)
@@ -515,6 +520,12 @@ class gz::sim::systems::PhysicsPrivate
             physics::AttachFixedJointFeature,
             physics::DetachJointFeature,
             physics::SetJointTransformFromParentFeature>{};
+
+  /// \brief Feature list for setting fixed joint to weld child to parent entity
+  public: struct SetFixedJointWeldChildToParentFeatureList
+            : physics::FeatureList<
+            DetachableJointFeatureList,
+            physics::SetFixedJointWeldChildToParentFeature>{};
 
   //////////////////////////////////////////////////
   // Joint transmitted wrench
@@ -730,6 +741,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Joint,
             JointFeatureList,
             DetachableJointFeatureList,
+            SetFixedJointWeldChildToParentFeatureList,
             MimicConstraintJointFeatureList,
             JointVelocityCommandFeatureList,
             JointGetTransmittedWrenchFeatureList,
@@ -851,6 +863,11 @@ void Physics::Configure(const Entity &_entity,
     this->dataPtr->contactsEntityNames = contactsElement->Get<bool>(
       "include_entity_names", true).first;
   }
+
+  // Check if fixed constraints should be enforced.
+  this->dataPtr->enforceFixedConstraint =
+      _sdf->Get<bool>("enforce_fixed_constraint",
+      this->dataPtr->enforceFixedConstraint).first;
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1993,6 +2010,30 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->entityJointMap.AddEntity(_entity, jointPtrPhys);
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
+
+          if (this->enforceFixedConstraint)
+          {
+            auto jointPtrWeld = this->entityJointMap
+                .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
+            if (!jointPtrWeld)
+            {
+              static bool informed{false};
+              if (!informed)
+              {
+                gzerr << "Attempting to enforce fixed constraint in a "
+                      << "detachable joint but the physics engine doesn't "
+                      << "support feature "
+                      << "[SetFixedJointWeldChildToParentFeature]. "
+                      << "The fixed constraint in detachable joints will not "
+                      << "be enforced." << std::endl;
+                informed = true;
+              }
+            }
+            else
+            {
+              jointPtrWeld->SetWeldChildToParent(true);
+            }
+          }
         }
         else
         {
