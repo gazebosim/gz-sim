@@ -2012,6 +2012,68 @@
 
 ## Gazebo Sim 6.x
 
+### Gazebo Sim 6.17.0 (2025-01-10)
+
+1. Add parameter for adjust current sign in battery plugin
+    * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
+
+1. Fix uncontrolled cast of size_t to uint
+    * [Pull request #2687](https://github.com/gazebosim/gz-sim/pull/2687)
+
+1. Improve load times by skipping serialization of entities when unnecessary
+    * [Pull request #2596](https://github.com/gazebosim/gz-sim/pull/2596)
+
+1. Fix crash in OpticalTactilePlugin by checking for valid visualize pointer
+    * [Pull request #2674](https://github.com/gazebosim/gz-sim/pull/2674)
+
+1. Disable detachable_joint integration test case on Windows
+    * [Pull request #2523](https://github.com/gazebosim/gz-sim/pull/2523)
+
+1. Initialize threadsNeedCleanUp
+    * [Pull request #2503](https://github.com/gazebosim/gz-sim/pull/2503)
+
+1. Remove systems if their parent entity is removed
+    * [Pull request #2232](https://github.com/gazebosim/gz-sim/pull/2232)
+
+1. Disable failing testFixture_TEST for MacOS
+    * [Pull request #2499](https://github.com/gazebosim/gz-sim/pull/2499)
+
+1. backport lidar visualization frame_id fix
+    * [Pull request #2483](https://github.com/gazebosim/gz-sim/pull/2483)
+
+1. Fix DLL linkage/visibility issues
+    * [Pull request #2254](https://github.com/gazebosim/gz-sim/pull/2254)
+
+1. Address a few Windows CI Issues
+    * [Pull request #1911](https://github.com/gazebosim/gz-sim/pull/1911)
+
+1. Add GravityEnabled boolean component
+    * [Pull request #2451](https://github.com/gazebosim/gz-sim/pull/2451)
+
+1. Add support for no gravity link
+    * [Pull request #2398](https://github.com/gazebosim/gz-sim/pull/2398)
+
+1. Use VERSION_GREATER_EQUAL in cmake logic
+    * [Pull request #2418](https://github.com/gazebosim/gz-sim/pull/2418)
+
+1. Rephrase cmake comment about CMP0077
+    * [Pull request #2419](https://github.com/gazebosim/gz-sim/pull/2419)
+
+1. Fix bug where iterator was used after the underlying item was erased from the container
+    * [Pull request #2412](https://github.com/gazebosim/gz-sim/pull/2412)
+
+1. Fix namespace and class links in documentation references that use namespace `gz`
+    * [Pull request #2385](https://github.com/gazebosim/gz-sim/pull/2385)
+
+1. Fix ModelPhotoShootTest test failures
+    * [Pull request #2294](https://github.com/gazebosim/gz-sim/pull/2294)
+
+1. Setup rendering environment before cmake runs
+    * [Pull request #1965](https://github.com/gazebosim/gz-sim/pull/1965)
+
+1. Detachable joint: support for nested models of the same name
+    * [Pull request 1097](https://github.com/gazebosim/gz-sim/pull/1097)
+
 ### Gazebo Sim 6.16.0 (2024-01-12)
 
 1. Allow using plugin file names and environment variables compatible with Garden and later
