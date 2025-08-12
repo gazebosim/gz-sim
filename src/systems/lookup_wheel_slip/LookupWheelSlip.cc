@@ -455,7 +455,7 @@ bool LookupWheelSlipPrivate::GetNominalSurfaceParams(
 void LookupWheelSlipPrivate::UpdateParams(
     const EntityComponentManager &_ecm)
 {
-  std::cout << "UpdateParams" << std::endl;
+  // std::cout << "UpdateParams" << std::endl;
 
   for (const auto &linkEnt : this->linkEntities)
   {
@@ -518,14 +518,14 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
 
     // gzmsg << "[u, v]: " << u << ", " << v << std::endl;
-    std::cout << "-------------------------------------" << std::endl;
-    std::cout << "color: "
-          << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
-          << ", "
-          << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
-          << ", "
-          << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
-          << std::endl;
+    // std::cout << "-------------------------------------" << std::endl;
+    // std::cout << "color: "
+    //       << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
+    //       << ", "
+    //       << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
+    //       << ", "
+    //       << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
+    //       << std::endl;
     // gzmsg << "[lat|lon|mu|mu2] nominal: "
     //       << this->nominalParamValues[latParamName] << ", "
     //       << this->nominalParamValues[lonParamName] << ", "
@@ -539,13 +539,14 @@ void LookupWheelSlipPrivate::UpdateParams(
     //       << latCoeff << ", "
     //       << lonCoeff << ",  "
     //       << mu1Coeff << ",  "
-    //       << mu2Coeff << ",  " << std::endl;
+    //       << mu2Coeff << std::endl;
 
     // Update surface params
     if (!math::equal(this->newParamValues[latParamName], latCoeff, 1e-6))
     {
       this->newParamValues[latParamName] = latCoeff;
       msgs::Double msg;
+      msg.set_data(latCoeff);
       auto result = this->client.SetParameter(latParamName, msg);
       if (!result)
       {
@@ -556,6 +557,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     {
       this->newParamValues[lonParamName] = lonCoeff;
       msgs::Double msg;
+      msg.set_data(lonCoeff);
       auto result = this->client.SetParameter(lonParamName, msg);
       if (!result)
       {
@@ -566,6 +568,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     {
       this->newParamValues[mu1ParamName] = mu1Coeff;
       msgs::Double msg;
+      msg.set_data(mu1Coeff);
       auto result = this->client.SetParameter(mu1ParamName, msg);
       if (!result)
       {
@@ -576,6 +579,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     {
       this->newParamValues[mu2ParamName] = mu2Coeff;
       msgs::Double msg;
+      msg.set_data(mu2Coeff);
       auto result = this->client.SetParameter(mu2ParamName, msg);
       if (!result)
       {

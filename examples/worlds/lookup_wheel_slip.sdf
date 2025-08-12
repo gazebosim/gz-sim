@@ -2,7 +2,7 @@
 <!--
   Gazebo diff drive wheel slip plugin demo
   A demo displaying the wheel slip plugin. The blue vehicle has lookup wheel slip while the green does not.
-  
+
   Run with:
     gz sim trisphere_cycle_wheel_slip.sdf
 
@@ -17,6 +17,12 @@
 <sdf version="1.6">
   <world name="lookup_wheel_slip">
     <gravity>0 0 -9.8</gravity>
+    <physics name="1ms" type="ignored">
+      <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
+        <collision_detector>bullet</collision_detector>
+      </dart>
+    </physics>
 
     <plugin
       filename="gz-sim-physics-system"
@@ -311,19 +317,19 @@
         </wheel>
       </plugin>
 
-      <!-- <plugin
+      <plugin
         filename="gz-sim-lookup-wheel-slip-system"
         name="gz::sim::systems::LookupWheelSlip">
         <slip_map>lookup_slip_map.png</slip_map>
         <size_x>129</size_x>
         <size_y>129</size_y>
         <slip_compliance_lateral_delta>0.04</slip_compliance_lateral_delta>
-        <slip_compliance_longitudinal_delta>0.04</slip_compliance_longitudinal_delta>
+        <slip_compliance_longitudinal_delta>0.004</slip_compliance_longitudinal_delta>
         <friction_delta>0.4</friction_delta>
         <wheel_link_name>caster</wheel_link_name>
         <wheel_link_name>left_wheel</wheel_link_name>
         <wheel_link_name>right_wheel</wheel_link_name>
-      </plugin> -->
+      </plugin>
     </model>
 
     <model name='vehicle_blue'>
@@ -573,7 +579,7 @@
         <size_x>129</size_x>
         <size_y>129</size_y>
         <slip_compliance_lateral_delta>0.04</slip_compliance_lateral_delta>
-        <slip_compliance_longitudinal_delta>0.04</slip_compliance_longitudinal_delta>
+        <slip_compliance_longitudinal_delta>0.004</slip_compliance_longitudinal_delta>
         <friction_delta>0.4</friction_delta>
         <wheel_link_name>caster</wheel_link_name>
         <wheel_link_name>left_wheel</wheel_link_name>
