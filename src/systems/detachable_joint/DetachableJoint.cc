@@ -231,13 +231,17 @@ void DetachableJoint::GetChildModelAndLinkEntities(
     auto entitiesMatchingName = entitiesFromScopedName(
       this->childModelName, _ecm);
 
-    // TODO(arjoc): There is probably a more efficient way of combining entitiesFromScopedName
+    // TODO(arjoc): There is probably a more efficient way
+    // of combining entitiesFromScopedName
     // With filtering.
     // Filter for entities with only models
     std::vector<Entity> candidateEntities;
     std::copy_if(entitiesMatchingName.begin(), entitiesMatchingName.end(),
                 std::back_inserter(candidateEntities),
-                [&_ecm](Entity e) { return _ecm.EntityHasComponentType(e, components::Model::typeId); });
+                [&_ecm](Entity e) {
+                  return _ecm.EntityHasComponentType(e,
+                            components::Model::typeId);
+                });
 
     if (candidateEntities.size() == 1)
     {
@@ -248,7 +252,8 @@ void DetachableJoint::GetChildModelAndLinkEntities(
     {
       std::string selectedModelName;
       auto parentEntityScopedPath = scopedName(this->model.Entity(), _ecm);
-      // If there is more than one model with the given child model name, the plugin looks for a model which is
+      // If there is more than one model with the given child model name,
+      // the plugin looks for a model which is
       // - a descendant of the plugin's parent model with that name, and
       // - has a child link with the given child link name
       for (auto entity : candidateEntities)
@@ -271,14 +276,17 @@ void DetachableJoint::GetChildModelAndLinkEntities(
 
           if (kNullEntity != this->childLinkEntity)
           {
-                // Only select this child model entity if the entity has a link with the given child link name
+                // Only select this child model entity if the entity
+                // has a link with the given child link name
                 modelEntity = entity;
                 selectedModelName = childEntityScope;
-                gzdbg << "Selecting " << childEntityScope << " as model to be detached" << std::endl;
+                gzdbg << "Selecting " << childEntityScope
+                  << " as model to be detached" << std::endl;
           }
           else
           {
-            gzwarn << "Found " << childEntityScope << " with no link named " << this->childLinkName << std::endl;
+            gzwarn << "Found " << childEntityScope
+              << " with no link named " << this->childLinkName << std::endl;
           }
         }
         else
@@ -315,7 +323,8 @@ void DetachableJoint::PreUpdate(
       return;
     }
 
-    if (this->childLinkEntity == kNullEntity || !_ecm.HasEntity(this->childLinkEntity))
+    if (this->childLinkEntity == kNullEntity ||
+        !_ecm.HasEntity(this->childLinkEntity))
       this->GetChildModelAndLinkEntities(_ecm);
 
     if (kNullEntity != this->childLinkEntity)
