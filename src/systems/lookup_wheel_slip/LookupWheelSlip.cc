@@ -504,6 +504,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
     int muDeltaScale = static_cast<int>(
         this->slipMapRgb[idx + kFrictionColorChannel] - kNominalColor);
+
     double mu1Coeff = this->nominalParamValues[mu1ParamName] +
         (muDeltaScale * this->frictionDelta);
     if (mu1Coeff < 0.0)
@@ -566,6 +567,13 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
     if (!math::equal(this->newParamValues[mu1ParamName], mu1Coeff, 1e-6))
     {
+     // std::cout << "color: "
+     //      << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
+     //      << ", "
+     //      << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
+     //      << ", "
+     //      << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
+     //      << std::endl;
       this->newParamValues[mu1ParamName] = mu1Coeff;
       msgs::Double msg;
       msg.set_data(mu1Coeff);
