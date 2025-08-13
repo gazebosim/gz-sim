@@ -210,8 +210,105 @@ void DetachableJoint::Configure(const Entity &_entity,
           .first;
 
   this->validConfig = true;
+
+  this->GetChildModelAndLinkEntities(_ecm);
 }
 
+//////////////////////////////////////////////////
+void DetachableJoint::GetChildModelAndLinkEntities(
+  EntityComponentManager &_ecm)
+{
+  this->childLinkEntity = kNullEntity;
+  // Look for the child model and link
+  Entity modelEntity{kNullEntity};
+
+  if ("__model__" == this->childModelName)
+  {
+    modelEntity = this->model.Entity();
+  }
+  else
+  {
+    auto entitiesMatchingName = entitiesFromScopedName(
+      this->childModelName, _ecm);
+
+    // TODO(arjoc): There is probably a more efficient way
+    // of combining entitiesFromScopedName
+    // With filtering.
+    // Filter for entities with only models
+    std::vector<Entity> candidateEntities;
+    std::copy_if(entitiesMatchingName.begin(), entitiesMatchingName.end(),
+                std::back_inserter(candidateEntities),
+                [&_ecm](Entity e) {
+                  return _ecm.EntityHasComponentType(e,
+                            components::Model::typeId);
+                });
+
+    if (candidateEntities.size() == 1)
+    {
+      // If there is one entity select that entity itself
+      modelEntity = *candidateEntities.begin();
+    }
+    else
+    {
+      std::string selectedModelName;
+      auto parentEntityScopedPath = scopedName(this->model.Entity(), _ecm);
+      // If there is more than one model with the given child model name,
+      // the plugin looks for a model which is
+      // - a descendant of the plugin's parent model with that name, and
+      // - has a child link with the given child link name
+      for (auto entity : candidateEntities)
+      {
+        auto childEntityScope = scopedName(entity, _ecm);
+        if (childEntityScope.size() < parentEntityScopedPath.size())
+        {
+          continue;
+        }
+        if (childEntityScope.rfind(parentEntityScopedPath, 0) != 0)
+        {
+          continue;
+        }
+        if (modelEntity == kNullEntity)
+        {
+
+          this->childLinkEntity = _ecm.EntityByComponents(
+                    components::Link(), components::ParentEntity(entity),
+                    components::Name(this->childLinkName));
+
+          if (kNullEntity != this->childLinkEntity)
+          {
+                // Only select this child model entity if the entity
+                // has a link with the given child link name
+                modelEntity = entity;
+                selectedModelName = childEntityScope;
+                gzdbg << "Selecting " << childEntityScope
+                  << " as model to be detached" << std::endl;
+          }
+          else
+          {
+            gzwarn << "Found " << childEntityScope
+              << " with no link named " << this->childLinkName << std::endl;
+          }
+        }
+        else
+        {
+          gzwarn << "Found multiple models skipping " << childEntityScope
+            << "Using " << selectedModelName << " instead" << std::endl;
+        }
+      }
+    }
+  }
+  if (kNullEntity != modelEntity)
+  {
+    this->childLinkEntity = _ecm.EntityByComponents(
+        components::Link(), components::ParentEntity(modelEntity),
+        components::Name(this->childLinkName));
+  }
+  else if (!this->suppressChildWarning)
+  {
+    gzwarn << "Child Model " << this->childModelName
+            << " could not be found.\n";
+  }
+}
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
   const UpdateInfo &/*_info*/,
@@ -225,54 +322,36 @@ void DetachableJoint::PreUpdate(
     if (!this->attachRequested){
       return;
     }
-    // Look for the child model and link
-    Entity modelEntity{kNullEntity};
 
-    if ("__model__" == this->childModelName)
+    if (this->childLinkEntity == kNullEntity ||
+        !_ecm.HasEntity(this->childLinkEntity))
+      this->GetChildModelAndLinkEntities(_ecm);
+
+    if (kNullEntity != this->childLinkEntity)
     {
-      modelEntity = this->model.Entity();
+      // Attach the models
+      // We do this by creating a detachable joint entity.
+      this->detachableJointEntity = _ecm.CreateEntity();
+
+      _ecm.CreateComponent(
+          this->detachableJointEntity,
+          components::DetachableJoint({this->parentLinkEntity,
+                                        this->childLinkEntity, "fixed"}));
+      this->attachRequested = false;
+      this->isAttached = true;
+      this->PublishJointState(this->isAttached);
+      gzdbg << "Attaching entity: " << this->detachableJointEntity
+              << std::endl;
     }
     else
     {
-      modelEntity = _ecm.EntityByComponents(
-          components::Model(), components::Name(this->childModelName));
-    }
-    if (kNullEntity != modelEntity)
-    {
-      this->childLinkEntity = _ecm.EntityByComponents(
-          components::Link(), components::ParentEntity(modelEntity),
-          components::Name(this->childLinkName));
-
-      if (kNullEntity != this->childLinkEntity)
-      {
-        // Attach the models
-        // We do this by creating a detachable joint entity.
-        this->detachableJointEntity = _ecm.CreateEntity();
-
-        _ecm.CreateComponent(
-            this->detachableJointEntity,
-            components::DetachableJoint({this->parentLinkEntity,
-                                         this->childLinkEntity, "fixed"}));
-        this->attachRequested = false;
-        this->isAttached = true;
-        this->PublishJointState(this->isAttached);
-        gzdbg << "Attaching entity: " << this->detachableJointEntity
-               << std::endl;
-      }
-      else
-      {
-        gzwarn << "Child Link " << this->childLinkName
-                << " could not be found.\n";
-      }
-    }
-    else if (!this->suppressChildWarning)
-    {
-      gzwarn << "Child Model " << this->childModelName
+      gzwarn << "Child Link " << this->childLinkName
               << " could not be found.\n";
     }
+
   }
 
- // only allow detaching if child entity is attached
+  // only allow detaching if child entity is attached
   if (this->isAttached)
   {
     if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
