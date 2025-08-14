@@ -342,6 +342,15 @@ namespace gz
     GZ_SIM_VISIBLE std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
       const sdf::Mesh &_sdfMesh);
 
+    /// \brief Get the static plugin prefix
+    /// \return The static plugin prefix
+    GZ_SIM_VISIBLE const std::string &staticPluginPrefixStr();
+
+    /// \brief Check if input filename of a library is a static plugin or not.
+    /// \param _filename_ Library filename to check
+    /// \return True if input filename has a static plugin string format.
+    GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
 
@@ -355,6 +364,9 @@ namespace gz
     /// \brief Environment variable holding paths to custom rendering engine
     /// plugins.
     const std::string kRenderPluginPathEnv{"GZ_SIM_RENDER_ENGINE_PATH"};
+
+    /// \brief Static plugin filename prefix string.
+    const std::string kStaticPluginFilenamePrefix{"static://"};
     }
   }
 }
