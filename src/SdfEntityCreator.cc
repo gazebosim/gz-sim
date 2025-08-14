@@ -940,9 +940,10 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         components::Geometry(*_visual->Geom()));
   }
 
+  sdf::Material visualMaterial;
   if (_visual->Material())
   {
-    sdf::Material visualMaterial = *_visual->Material();
+    visualMaterial = *_visual->Material();
     if (!_visual->Material()->ScriptUri().empty())
     {
       gzwarn << "Gazebo does not support Ogre material scripts. See " <<
@@ -966,7 +967,7 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         std::optional<MaterialParser::MaterialValues> parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
 
-        if(parsed.has_value())
+        if (parsed.has_value())
         {
           visualMaterial.SetAmbient
             (parsed->ambient.value_or(visualMaterial.Ambient()));
@@ -982,15 +983,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         }
       }
     }
-    this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(visualMaterial));
   }
-  else
-  {
-    sdf::Material visualMaterial;
-    this->dataPtr->ecm->CreateComponent(visualEntity,
-        components::Material(visualMaterial));
-  }
+  this->dataPtr->ecm->CreateComponent(visualEntity,
+      components::Material(visualMaterial));
 
   // store the plugin in a component
   if (!_visual->Plugins().empty())
