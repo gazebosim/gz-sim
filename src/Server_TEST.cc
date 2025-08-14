@@ -81,6 +81,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
   EXPECT_TRUE(serverConfig.Plugins().empty());
   EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
 
+  serverConfig.SetWaitForAssets(true);
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -314,6 +315,7 @@ TEST_P(ServerFixture,
   pluginInfo.SetPlugin(plugin);
 
   serverConfig.AddPlugin(pluginInfo);
+  serverConfig.SetWaitForAssets(true);
 
   gzdbg << "Create server" << std::endl;
   sim::Server server(serverConfig);
@@ -357,6 +359,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfServerConfig))
       "test", "worlds", "shapes.sdf"));
   EXPECT_FALSE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
+  serverConfig.SetWaitForAssets(true);
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -400,6 +403,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(SdfRootServerConfig))
   EXPECT_TRUE(serverConfig.SdfRoot());
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_TRUE(serverConfig.SdfString().empty());
+  serverConfig.SetWaitForAssets(true);
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -437,7 +441,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
     sim::ServerConfig serverConfig;
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordPath(logPath);
-
+    serverConfig.SetWaitForAssets(true);
     sim::Server server(serverConfig);
 
     EXPECT_EQ(0u, *server.IterationCount());
@@ -477,6 +481,7 @@ TEST_P(ServerFixture,
     serverConfig.SetUseLogRecord(true);
     serverConfig.SetLogRecordPath(logPath);
     serverConfig.SetLogRecordCompressPath(compressedFile);
+    serverConfig.SetWaitForAssets(true);
 
     sim::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
@@ -503,6 +508,7 @@ TEST_P(ServerFixture, SdfStringServerConfig)
   EXPECT_TRUE(serverConfig.SdfFile().empty());
   EXPECT_FALSE(serverConfig.SdfString().empty());
   EXPECT_FALSE(serverConfig.SdfRoot());
+  serverConfig.SetWaitForAssets(true);
 
   sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -612,7 +618,9 @@ TEST_P(ServerFixture, RunNonBlocking)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RunOnceUnpaused))
 {
-  sim::Server server;
+  sim::ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+  sim::Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
   EXPECT_EQ(0u, *server.IterationCount());
@@ -891,6 +899,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
 TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemAfterLoad))
 {
   ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
 
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "shapes.sdf"));
