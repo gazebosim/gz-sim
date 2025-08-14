@@ -455,11 +455,12 @@ bool LookupWheelSlipPrivate::GetNominalSurfaceParams(
 void LookupWheelSlipPrivate::UpdateParams(
     const EntityComponentManager &_ecm)
 {
+  // std::cout << "UpdateParams" << std::endl;
+
   for (const auto &linkEnt : this->linkEntities)
   {
     sim::Link link(linkEnt);
-    // math::Vector3d linkWorldPos = link.WorldPose(_ecm).value().Pos();
-    math::Vector3d linkWorldPos(1, 2, 0.5);
+    math::Vector3d linkWorldPos = link.WorldPose(_ecm).value().Pos();
     math::Vector3d imgPos = this->worldToImgTransform * linkWorldPos;
 
     int u = static_cast<int>(std::round(imgPos.X()));
@@ -503,6 +504,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
     int muDeltaScale = static_cast<int>(
         this->slipMapRgb[idx + kFrictionColorChannel] - kNominalColor);
+
     double mu1Coeff = this->nominalParamValues[mu1ParamName] +
         (muDeltaScale * this->frictionDelta);
     if (mu1Coeff < 0.0)
@@ -517,7 +519,8 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
 
     // gzmsg << "[u, v]: " << u << ", " << v << std::endl;
-    // gzmsg << "color: "
+    // std::cout << "-------------------------------------" << std::endl;
+    // std::cout << "color: "
     //       << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
     //       << ", "
     //       << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
@@ -537,13 +540,14 @@ void LookupWheelSlipPrivate::UpdateParams(
     //       << latCoeff << ", "
     //       << lonCoeff << ",  "
     //       << mu1Coeff << ",  "
-    //       << mu2Coeff << ",  " << std::endl;
+    //       << mu2Coeff << std::endl;
 
     // Update surface params
     if (!math::equal(this->newParamValues[latParamName], latCoeff, 1e-6))
     {
       this->newParamValues[latParamName] = latCoeff;
       msgs::Double msg;
+      msg.set_data(latCoeff);
       auto result = this->client.SetParameter(latParamName, msg);
       if (!result)
       {
@@ -554,6 +558,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     {
       this->newParamValues[lonParamName] = lonCoeff;
       msgs::Double msg;
+      msg.set_data(lonCoeff);
       auto result = this->client.SetParameter(lonParamName, msg);
       if (!result)
       {
@@ -562,8 +567,16 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
     if (!math::equal(this->newParamValues[mu1ParamName], mu1Coeff, 1e-6))
     {
+     // std::cout << "color: "
+     //      << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
+     //      << ", "
+     //      << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
+     //      << ", "
+     //      << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
+     //      << std::endl;
       this->newParamValues[mu1ParamName] = mu1Coeff;
       msgs::Double msg;
+      msg.set_data(mu1Coeff);
       auto result = this->client.SetParameter(mu1ParamName, msg);
       if (!result)
       {
@@ -574,6 +587,7 @@ void LookupWheelSlipPrivate::UpdateParams(
     {
       this->newParamValues[mu2ParamName] = mu2Coeff;
       msgs::Double msg;
+      msg.set_data(mu2Coeff);
       auto result = this->client.SetParameter(mu2ParamName, msg);
       if (!result)
       {
