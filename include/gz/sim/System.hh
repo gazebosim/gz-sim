@@ -135,6 +135,8 @@ namespace gz
     /// and components are loaded from the corresponding SDF world, and before
     /// simulation begins execution.
     class ISystemConfigure {
+      public: virtual ~ISystemConfigure() = default;
+
       /// \brief Configure the system
       /// \param[in] _entity The entity this plugin is attached to.
       /// \param[in] _sdf The SDF Element associated with this system plugin.
@@ -157,6 +159,8 @@ namespace gz
     /// override System::kDefaultPriority. It can still be overridden by the
     /// XML priority element.
     class ISystemConfigurePriority {
+      public: virtual ~ISystemConfigurePriority() = default;
+
       /// \brief Configure the default priority of the system, which can still
       /// be overridden by the XML priority element.
       /// \return The default priority for the system.
@@ -169,6 +173,8 @@ namespace gz
     /// ISystemConfigureParameters::ConfigureParameters is called after
     /// ISystemConfigure::Configure.
     class ISystemConfigureParameters {
+      public: virtual ~ISystemConfigureParameters() = default;
+
       /// \brief Configure the parameters of the system.
       /// \param[in] _registry The parameter registry.
       public: virtual void ConfigureParameters(
@@ -178,6 +184,7 @@ namespace gz
 
 
     class ISystemReset {
+      public: virtual ~ISystemReset() = default;
       public: virtual void Reset(const UpdateInfo &_info,
                                  EntityComponentManager &_ecm) = 0;
     };
@@ -185,6 +192,7 @@ namespace gz
     /// \class ISystemPreUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class ISystemPreUpdate {
+      public: virtual ~ISystemPreUpdate() = default;
       public: virtual void PreUpdate(const UpdateInfo &_info,
                                      EntityComponentManager &_ecm) = 0;
     };
@@ -192,6 +200,7 @@ namespace gz
     /// \class ISystemUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the Update phase
     class ISystemUpdate {
+      public: virtual ~ISystemUpdate() = default;
       public: virtual void Update(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm) = 0;
     };
@@ -199,6 +208,7 @@ namespace gz
     /// \class ISystemPostUpdate ISystem.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class ISystemPostUpdate{
+      public: virtual ~ISystemPostUpdate() = default;
       public: virtual void PostUpdate(const UpdateInfo &_info,
                                       const EntityComponentManager &_ecm) = 0;
     };
