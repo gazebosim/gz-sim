@@ -455,8 +455,6 @@ bool LookupWheelSlipPrivate::GetNominalSurfaceParams(
 void LookupWheelSlipPrivate::UpdateParams(
     const EntityComponentManager &_ecm)
 {
-  // std::cout << "UpdateParams" << std::endl;
-
   for (const auto &linkEnt : this->linkEntities)
   {
     sim::Link link(linkEnt);
@@ -518,9 +516,9 @@ void LookupWheelSlipPrivate::UpdateParams(
       mu2Coeff = 0.0;
     }
 
+    // Uncomment the following for debugging slip and friction params
     // gzmsg << "[u, v]: " << u << ", " << v << std::endl;
-    // std::cout << "-------------------------------------" << std::endl;
-    // std::cout << "color: "
+    // gzmsg << "color: "
     //       << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
     //       << ", "
     //       << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
@@ -567,13 +565,6 @@ void LookupWheelSlipPrivate::UpdateParams(
     }
     if (!math::equal(this->newParamValues[mu1ParamName], mu1Coeff, 1e-6))
     {
-     // std::cout << "color: "
-     //      << static_cast<int>(slipMapRgb[idx + kLateralColorChannel])
-     //      << ", "
-     //      << static_cast<int>(slipMapRgb[idx + kLongitudinalColorChannel])
-     //      << ", "
-     //      << static_cast<int>(slipMapRgb[idx + kFrictionColorChannel])
-     //      << std::endl;
       this->newParamValues[mu1ParamName] = mu1Coeff;
       msgs::Double msg;
       msg.set_data(mu1Coeff);
