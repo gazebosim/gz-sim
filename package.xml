@@ -31,16 +31,17 @@
   <depend>libxmu-dev</depend>
   <depend>protobuf-dev</depend>
   <depend>pybind11-dev</depend>
-  <depend>qml-module-qt-labs-folderlistmodel</depend>
-  <depend>qml-module-qt-labs-settings</depend>
-  <depend>qml-module-qtgraphicaleffects</depend>
-  <depend>qml-module-qtquick-controls2</depend>
-  <depend>qml-module-qtquick-controls</depend>
-  <depend>qml-module-qtquick-dialogs</depend>
-  <depend>qml-module-qtquick-layouts</depend>
-  <depend>qml-module-qtquick2</depend>
-  <depend>qtbase5-dev</depend>
-  <depend>qtdeclarative5-dev</depend>
+  <depend>qml6-module-qt-labs-folderlistmodel</depend>
+  <depend>qml6-module-qt-labs-settings</depend>
+  <depend>qml6-module-qt5compat-graphicaleffects</depend>
+  <depend>qml6-module-qtquick-controls</depend>
+  <depend>qml6-module-qtquick-dialogs</depend>
+  <depend>qml6-module-qtquick-layouts</depend>
+  <depend>qml6-module-qtquick</depend>
+  <depend>qt6-5compat-dev</depend>
+  <depend>qt6-base-dev</depend>
+  <depend>qt6-base-private-dev</depend>
+  <depend>qt6-declarative-dev</depend>
   <depend>sdformat</depend>
   <depend>tinyxml2</depend>
   <depend>uuid</depend>
