@@ -4,7 +4,7 @@
 
   The world consists of two vehicles, blue and green, on a flat heightmap.
   The blue vehicle has a lookup wheel slip plugin while the green only has
-  a normal wheel slip plugin with fixed slip compliance values.
+  a regular wheel slip plugin with fixed slip compliance values.
 
   The slip map used in this demo contains several regions with increased
   longitudinal slip compliance values. The same slip map is overlaid on top
@@ -313,22 +313,16 @@
         filename="gz-sim-wheel-slip-system"
         name="gz::sim::systems::WheelSlip">
         <wheel link_name="right_wheel">
-          <slip_compliance_lateral>1</slip_compliance_lateral>
-          <slip_compliance_longitudinal>1</slip_compliance_longitudinal>
-          <wheel_normal_force>77</wheel_normal_force>
-          <wheel_radius>0.15</wheel_radius>
+          <slip_compliance_lateral>0.1</slip_compliance_lateral>
+          <slip_compliance_longitudinal>0.1</slip_compliance_longitudinal>
+          <wheel_normal_force>1</wheel_normal_force>
+          <wheel_radius>0.3</wheel_radius>
         </wheel>
         <wheel link_name="left_wheel">
-          <slip_compliance_lateral>1</slip_compliance_lateral>
-          <slip_compliance_longitudinal>1</slip_compliance_longitudinal>
-          <wheel_normal_force>32</wheel_normal_force>
-          <wheel_radius>0.15</wheel_radius>
-        </wheel>
-        <wheel link_name="caster">
-          <slip_compliance_lateral>1</slip_compliance_lateral>
-          <slip_compliance_longitudinal>1</slip_compliance_longitudinal>
-          <wheel_normal_force>32</wheel_normal_force>
-          <wheel_radius>0.15</wheel_radius>
+          <slip_compliance_lateral>0.1</slip_compliance_lateral>
+          <slip_compliance_longitudinal>0.1</slip_compliance_longitudinal>
+          <wheel_normal_force>1</wheel_normal_force>
+          <wheel_radius>0.3</wheel_radius>
         </wheel>
       </plugin>
     </model>
