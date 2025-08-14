@@ -47,8 +47,8 @@ namespace systems
   ///   * Pixel values:
   ///     * A pixel value of 128 represents nominal slip / friction, i.e.
   ///       Apply the original slip / friction values from the WheelSlip system.
-  ///     * A pixel value of >128 tells the WheelSlip system to apply an increased
-  ///       amount of slip / friction values.
+  ///     * A pixel value of >128 tells the WheelSlip system to apply an
+  ///       increased amount of slip / friction values.
   ///     * A pixel value of <128 tells the WheelSlip system to apply a reduced
   ///       amount of slip / friction values.
   ///     * The change in slip / friction to apply to the wheels is computed as:
