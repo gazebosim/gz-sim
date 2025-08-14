@@ -3,14 +3,16 @@
   Gazebo lookup wheel slip demo
 
   The world consists of two vehicles, blue and green, on a flat heightmap.
-  The blue vehicle has a lookup wheel slip plugin while the green only has
-  a regular wheel slip plugin with fixed slip compliance values.
+  The blue vehicle has a lookup wheel slip system + a regular wheel slip
+  system while the green only has a regular wheel slip plugin with fixed
+  slip compliance values.
 
   The slip map used in this demo contains several regions with increased
-  longitudinal slip compliance values. The same slip map is overlaid on top
-  of the heightmap to help visualize where the slippage regions are. When the
-  blue vehicle drives over these green regions, its wheels' longitudinal slip
-  compliance values should be dynamically updated (increased).
+  longitudinal slip compliance values (encoded in the green channel of the
+  slip map). The same slip map is overlaid on top of the heightmap to help
+  visualize where the slippage regions are. When the blue vehicle drives over
+  these green regions, its wheels' longitudinal slip compliance values should
+  be dynamically updated (increased).
 
   Note: wheel slippage takes effect when a vehicle accelerates, e.g.
   climbing uphill. So the gravity is set to a small -x direction to simulate

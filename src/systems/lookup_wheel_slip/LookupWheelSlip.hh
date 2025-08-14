@@ -33,6 +33,40 @@ namespace systems
   class LookupWheelSlipPrivate;
 
   /// \brief Lookup Wheel Slip system.
+  /// This plugin uses a lookup map to dynamically adjust the
+  /// wheel slip and friction parameters based on the wheel's position on the
+  /// region covered by the lookup map.
+  /// This plugin needs to be used together with the WheelSlip system.
+  /// LookupWheelSlip system params:
+  /// * <slip_map>: (Required) Lookup slip map filename. This needs to be an
+  ///   8 bit RGB image.
+  ///   * Channels:
+  ///     * Red - updates lateral slip
+  ///     * Green - updates longitudinal slip
+  ///     * Blue - updates friction
+  ///   * Pixel values:
+  ///     * A pixel value of 128 represents nominal slip / friction, i.e.
+  ///       Apply the original slip / friction values from the WheelSlip system.
+  ///     * A pixel value of >128 tells the WheelSlip system to apply an increased
+  ///       amount of slip / friction values.
+  ///     * A pixel value of <128 tells the WheelSlip system to apply a reduced
+  ///       amount of slip / friction values.
+  ///     * The change in slip / friction to apply to the wheels is computed as:
+  ///       (pixel_value - 128) * delta. See the different delta parameters
+  ///       below.
+  ///   To visualize the lookup map, set the model's visual diffuse texture to
+  ///   this file, e.g. set this texture to a plane or heightmap.
+  /// * <size_x>: (Required) x size of lookup slip map in meters.
+  /// * <size_y>: (Required) y size of lookup slip map in meters.
+  /// * <wheel_link_name>: (Required) The wheel link name from the
+  ///   WheelSlip system. Specify one <wheel_link_name> per wheel link.
+  /// * <slip_compliance_lateral_delta>`: (Optional) The increase / decrease
+  ///   step to be applied to the lateral slip. Default is 0.05
+  /// * <slip_compliance_longitudinal_delta>: (Optional) The increase / decrease
+  ///   step to be applied to the longitudinal slip. Default is 0.005
+  /// * <friction_delta>: (Optional) The increase/decrease step to be applied
+  ///   to the friction coefficients in the primary and secondary directions.
+  ///   Default is 0.5
   class LookupWheelSlip
       : public System,
         public ISystemConfigure,

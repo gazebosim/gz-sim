@@ -187,39 +187,15 @@ void LookupWheelSlip::Configure(const Entity &_entity,
     return;
   }
 
-  // \todo(iche033) Auto determine size from region collision geometry?
-  math::Vector3d colSize;
-  /*
-  for (const auto &linkEntity : regionModel.Links(_ecm))
-  {
-    sim::Link link(linkEntity);
-    for (const auto &collisionEntity : link.Collisions(_ecm))
-    {
-      auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
-      if (geomComp && geomComp->Data().Type() == sdf::GeometryType::HEIGHTMAP)
-      {
-        const sdf::Heightmap *shape = geomComp->Data().HeightmapShape();
-        colSize = shape->Size();
-        break;
-      }
-    }
-  }
-  */
-
   auto sizeXElem = _sdf->FindElement("size_x");
   if (sizeXElem)
   {
     this->dataPtr->sizeX = sizeXElem->Get<double>();
   }
-  else if (colSize.X() > 0.0)
-  {
-    this->dataPtr->sizeX = colSize.X();
-  }
   else
   {
-    gzerr << "Unable to determine size x from collision and missing "
-          << "'size_x' param. Will not dynamically update wheel slip values."
-          << std::endl;
+    gzerr << "Missing <size_x> param. Will not dynamically update wheel
+          << "slip values." << std::endl;
     return;
   }
   auto sizeYElem = _sdf->FindElement("size_y");
@@ -227,19 +203,12 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   {
     this->dataPtr->sizeY = sizeYElem->Get<double>();
   }
-  else if (colSize.Y() > 0.0)
-  {
-    this->dataPtr->sizeY = colSize.Y();
-  }
   else
   {
-    gzerr << "Unable to determine size y from collision and missing "
-          << "'size_y' param. Will not dynamically update wheel slip values."
-          << std::endl;
+    gzerr << "Missing <size_y> param. Will not dynamically update wheel
+          << "slip values." << std::endl;
     return;
   }
-
-  // \todo(iche033) Swap R and B channels?
 
   // transformation matrix from world to image coordinates
   std::string filePath;
