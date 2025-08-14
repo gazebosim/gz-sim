@@ -175,14 +175,14 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   auto slipMapElem = _sdf->FindElement("slip_map");
   if (!slipMapElem)
   {
-    gzerr << "No 'slip_map' provided. Will not dynamically update "
+    gzerr << "No <slip_map> provided. Will not dynamically update "
           << "wheel slip values. " << std::endl;
     return;
   }
   this->dataPtr->slipMapFilename = slipMapElem->Get<std::string>();
   if (this->dataPtr->slipMapFilename.empty())
   {
-    gzerr << "No value for 'slip_path' provided. Will not dynamically update "
+    gzerr << "No value for <slip_path> provided. Will not dynamically update "
           << "wheel slip values. " << std::endl;
     return;
   }
@@ -194,7 +194,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Missing <size_x> param. Will not dynamically update wheel
+    gzerr << "Missing <size_x> param. Will not dynamically update wheel "
           << "slip values." << std::endl;
     return;
   }
@@ -205,7 +205,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Missing <size_y> param. Will not dynamically update wheel
+    gzerr << "Missing <size_y> param. Will not dynamically update wheel "
           << "slip values." << std::endl;
     return;
   }
@@ -260,7 +260,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   }
   if (wheelLinkNames.empty())
   {
-    gzerr << "Error loading 'wheel_slip_name' element. Unable to load plugin."
+    gzerr << "Error loading <wheel_slip_name> element. Unable to load plugin."
           << std::endl;
     return;
   }
