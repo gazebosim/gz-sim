@@ -32,7 +32,7 @@ Item {
     property real distanceFromLidarToGround: 0.0
     property real occupancyGridCellResolution: 0.1
     property int occupancyGridNumberOfHorizontalCells: 100
-    property int occupancyGridNumberOfVerticalCells: 10 0
+    property int occupancyGridNumberOfVerticalCells: 100
 
     ScrollView {
         anchors.fill: parent

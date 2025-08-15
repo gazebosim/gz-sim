@@ -72,6 +72,68 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   std::recursive_mutex m;
 
   /////////////////////////////////////////////////
+  /// \brief Perform search over occupancy grid to see if there are any
+  /// reachable unknown cells and return their count.
+  int CountReachableUnknowns()
+  {
+    const std::lock_guard<std::recursive_mutex> lock(this->m);
+    if (!this->grid.has_value())
+    {
+      gzerr << "Grid not yet inited" << std::endl;
+      return 0;
+    }
+    std::queue<std::pair<int, int>> q;
+    std::unordered_set<std::pair<int, int>, PairHash> visited;
+
+    int gridX, gridY;
+    if(!this->grid->WorldToGrid( this->position.Pos().X(),
+      this->position.Pos().Y(), gridX, gridY))
+    {
+      gzerr << "Current position outside of bounds" << std::endl;
+      return 0;
+    }
+    q.emplace(gridX, gridY);
+    visited.emplace(gridX, gridY);
+
+    int unknownCellCount = 0;
+    while (!q.empty())
+    {
+      auto pt = q.front();
+      q.pop();
+
+      for(int i = -1; i <=1; i++)
+      {
+        for(int j = -1; j <=1; j++)
+        {
+          if (i == 0 && j == 0)
+            continue;
+
+          auto x = pt.first + i;
+          auto y = pt.second + j;
+
+          auto neighbor = std::make_pair(x, y);
+          if(visited.count(neighbor) > 0)
+          {
+            continue;
+          }
+
+          auto cellState = this->grid->GetCellState(x, y);
+          if (cellState == math::CellState::Free)
+          {
+            q.emplace(neighbor);
+          }
+          else if (cellState == math::CellState::Unknown)
+          {
+            unknownCellCount++;
+          }
+          visited.emplace(neighbor);
+        }
+      }
+    }
+    return unknownCellCount;
+  }
+
+  /////////////////////////////////////////////////
   /// Callback for laser scan message
   void OnLaserScanMsg(const msgs::LaserScan &_scan)
   {
@@ -101,22 +163,34 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       currAngle += _scan.angle_step();
     }
 
-    /// Hack(arjoc) for checking the output of the pixel
-    std::vector<unsigned char> pixelData;
-    this->grid->ExportToRGBImage(pixelData);
-
-
     if (!this->nextPosition.empty())
     {
       return;
     }
+
+    gzerr << this->CountReachableUnknowns() << "\n";
+
+    if (this->CountReachableUnknowns() == 0)
+    {
+      std::vector<unsigned char> pixelData;
+      this->grid->ExportToRGBImage(pixelData);
+      common::Image fromOccupancy;
+      fromOccupancy.SetFromData(
+      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
+        fromOccupancy.SavePNG("output.png");
+      gzmsg << "Scan complete: No reachable unknown cells.\n";
+      return;
+    }
+
     auto nextPos = this->GetNextPoint(_scan);
-    gzmsg << "Setting next position " << nextPos->Pos() <<std::endl;
     if(nextPos.has_value())
     {
+      gzmsg << "Setting next position " << nextPos->Pos() <<std::endl;
       this->nextPosition.push(nextPos.value());
     }
     else {
+      std::vector<unsigned char> pixelData;
+      this->grid->ExportToRGBImage(pixelData);
       common::Image fromOccupancy;
       fromOccupancy.SetFromData(
       pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
