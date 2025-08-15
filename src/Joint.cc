@@ -28,6 +28,7 @@
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
+#include "gz/sim/components/JointVelocityLimits.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
@@ -352,6 +353,19 @@ std::optional<std::vector<double>> Joint::Position(
 {
   return _ecm.ComponentData<components::JointPosition>(
       this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+std::optional<gz::math::Vector2d> Joint::VelocityLimits(
+    const EntityComponentManager &_ecm) const
+{
+  auto jointAxis = _ecm.Component<components::JointAxis>(this->dataPtr->id);
+  if (jointAxis)
+  {
+    return jointAxis->Data().MaxVelocity();
+  }
+
+  return std::nullopt;
 }
 
 //////////////////////////////////////////////////
