@@ -20,8 +20,6 @@
 #include "UserCommands.hh"
 #include <chrono>
 #include <future>
-#include <gz/common/Util.hh>
-#include <iostream>
 
 #ifdef _MSC_VER
 #pragma warning(push)
