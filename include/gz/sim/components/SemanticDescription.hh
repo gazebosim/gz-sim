@@ -19,6 +19,8 @@
 
 #include <gz/msgs/stringmsg.pb.h>
 
+#include <istream>
+#include <ostream>
 #include <string>
 
 #include "gz/sim/components/Component.hh"

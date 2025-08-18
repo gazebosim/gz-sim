@@ -17,6 +17,8 @@
 #ifndef GZ_SIM_COMPONENTS_SEMANTIC_CATEGORY_HH_
 #define GZ_SIM_COMPONENTS_SEMANTIC_CATEGORY_HH_
 
+#include <cstdint>
+
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/config.hh"

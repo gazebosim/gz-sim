@@ -19,6 +19,8 @@
 
 #include <gz/msgs/stringmsg_v.pb.h>
 
+#include <istream>
+#include <ostream>
 #include <string>
 #include <vector>
 

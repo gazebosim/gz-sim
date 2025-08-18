@@ -21,23 +21,21 @@
 #include <array>
 #include <cctype>
 #include <cstdint>
-#include <gz/common/Profiler.hh>
-#include <gz/plugin/Register.hh>
-#include <gz/transport/Node.hh>
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include <gz/common/Profiler.hh>
+#include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SemanticCategory.hh"
 #include "gz/sim/components/SemanticDescription.hh"
 #include "gz/sim/components/SemanticTags.hh"
-
-using namespace gz;
-using namespace sim;
-using namespace systems;
 
 namespace
 {
@@ -66,6 +64,8 @@ std::optional<uint8_t> ConvertCategoryStrToInt(const std::string &_category)
 }
 }  // namespace
 
+namespace gz::sim::systems
+{
 //////////////////////////////////////////////////
 void EntitySemantics::PreUpdate(const UpdateInfo &,
                                 EntityComponentManager &_ecm)
@@ -170,3 +170,4 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
 GZ_ADD_PLUGIN(EntitySemantics, System, EntitySemantics::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(EntitySemantics, "gz::sim::systems::EntitySemantics")
+}  // namespace gz::sim::systems

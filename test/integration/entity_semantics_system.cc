@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -28,9 +30,10 @@
 #include "gz/sim/components/SemanticTags.hh"
 #include "test_config.hh"
 
-using namespace gz;
-using namespace sim;
-using namespace std::chrono_literals;
+namespace common = gz::common;
+namespace sim = gz::sim;
+namespace components = gz::sim::components;
+using gz::sim::TestFixture;
 
 /// \brief Test EntitySemantics system
 class EntitySemanticsTest : public InternalFixture<::testing::Test>
@@ -48,7 +51,7 @@ TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
 
   // Put the checks in an extra lambda as opposed to doing it OnPostUpdate so we
   // can call ASSERT_*
-  auto runChecks = [](const sim::EntityComponentManager &_ecm)
+  auto runChecks = [](const gz::sim::EntityComponentManager &_ecm)
   {
     auto robots = _ecm.EntitiesByComponents(components::SemanticCategory(1));
     ASSERT_EQ(1u, robots.size());
