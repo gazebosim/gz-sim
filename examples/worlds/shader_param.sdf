@@ -181,12 +181,12 @@ ShaderParam visual plugin over time.
     <include>
       <name>deformable_sphere</name>
       <pose>0 0 1.5 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/deformable_sphere</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/deformable_sphere/5</uri>
     </include>
     <include>
       <name>waves</name>
       <pose>0 0 0 0 0 0</pose>
-      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/waves</uri>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/waves/4</uri>
     </include>
 
     <model name="camera">
