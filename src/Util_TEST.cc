@@ -1136,3 +1136,12 @@ TEST_F(UtilTest, TransformAxisAlignedBoxFrame)
   aabExp = aabExp + transform.Pos();
   EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
 }
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, StaticPlugin)
+{
+  EXPECT_FALSE(staticPluginPrefixStr().empty());
+  EXPECT_FALSE(isStaticPlugin("my_plugin"));
+  EXPECT_FALSE(isStaticPlugin(""));
+  EXPECT_TRUE(isStaticPlugin(staticPluginPrefixStr() + "my_plugin"));
+}
