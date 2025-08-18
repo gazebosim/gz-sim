@@ -108,8 +108,11 @@ gz_find_package(gz-common
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
@@ -223,7 +226,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs12_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python

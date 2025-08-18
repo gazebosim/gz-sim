@@ -47,10 +47,12 @@ set(tests
   light.cc
   lighter_than_air_dynamics.cc
   link.cc
+  load_system_static_registry.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
   magnetometer_system.cc
   material.cc
+  mecanum_drive_system.cc
   mesh_inertia_calculation.cc
   model.cc
   model_photo_shoot_default_joints.cc
@@ -103,6 +105,7 @@ set(tests_needing_display
   camera_lens_flare.cc
   camera_sensor_background.cc
   camera_sensor_background_from_scene.cc
+  camera_sensor_global_illumination.cc
   camera_video_record_system.cc
   depth_camera.cc
   distortion_camera.cc
@@ -248,4 +251,28 @@ endif()
 if (TARGET INTEGRATION_python_system_loader)
   set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
     ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
+endif()
+
+if (TARGET INTEGRATION_load_system_static_registry)
+  # The linker option -force_load (for Clang) or --whole-archive (for GNU)
+  # or /WHOLEARCHIVE: (for MSVC) needs to be specified to ensure that the
+  # global structs specified in the static plugin module get loaded even
+  # without any explicit reference to the loaded symbols
+  # (only the interfaces are referenced).
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_link_libraries(INTEGRATION_load_system_static_registry
+      -WHOLEARCHIVE:$<TARGET_FILE:TestStaticModelSystem>)
+
+    # The whole-archive invocation doesn't correctly compute dependencies,
+    # so explicitly require the plugin before the test can build.
+    add_dependencies(INTEGRATION_load_system_static_registry
+      TestStaticModelSystem)
+  else()
+    target_link_libraries(INTEGRATION_load_system_static_registry
+      gz-plugin::loader
+      $<$<CXX_COMPILER_ID:GNU>:-Wl,--whole-archive>
+      $<$<CXX_COMPILER_ID:Clang>:-force_load>
+      $<$<CXX_COMPILER_ID:AppleClang>:-force_load> TestStaticModelSystem
+      $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-whole-archive>)
+  endif()
 endif()

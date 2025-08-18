@@ -771,6 +771,7 @@ bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
     std::lock_guard<std::mutex> lock(this->pendingMutex);
     this->pendingCmds.push_back(std::move(cmd));
   }
+
   _res.set_data(true);
   return true;
 }
@@ -806,7 +807,6 @@ UserCommandBase::UserCommandBase(google::protobuf::Message *_msg,
     : msg(_msg), iface(_iface)
 {
 }
-
 
 //////////////////////////////////////////////////
 UserCommandBase::~UserCommandBase()
