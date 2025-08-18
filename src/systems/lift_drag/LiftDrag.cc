@@ -148,6 +148,12 @@ class gz::sim::systems::LiftDragPrivate
 void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
                            const sdf::ElementPtr &_sdf)
 {
+  if (!this->model.Valid(_ecm))
+  {
+    gzerr << "The LiftDrag system should be attached to a model entity. "
+           << "Failed to initialize." << std::endl;
+    return;
+  }
   this->cla = _sdf->Get<double>("cla", this->cla).first;
   this->cda = _sdf->Get<double>("cda", this->cda).first;
   this->cma = _sdf->Get<double>("cma", this->cma).first;
@@ -529,15 +535,9 @@ void LiftDragPrivate::Update(EntityComponentManager &_ecm)
 //////////////////////////////////////////////////
 void LiftDrag::Configure(const Entity &_entity,
                          const std::shared_ptr<const sdf::Element> &_sdf,
-                         EntityComponentManager &_ecm, EventManager &)
+                         EntityComponentManager &, EventManager &)
 {
   this->dataPtr->model = Model(_entity);
-  if (!this->dataPtr->model.Valid(_ecm))
-  {
-    gzerr << "The LiftDrag system should be attached to a model entity. "
-           << "Failed to initialize." << std::endl;
-    return;
-  }
   this->dataPtr->sdfConfig = _sdf->Clone();
 }
 

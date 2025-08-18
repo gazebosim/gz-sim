@@ -6,3 +6,4 @@ configure_file (environmental_data.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/envi
 
 configure_file (environmental_sensor.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/environmental_sensor.sdf)
 configure_file (hydrodynamics.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/hydrodynamics.sdf)
+configure_file (bounding_boxes.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/bounding_boxes.sdf)

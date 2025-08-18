@@ -1,10 +1,8 @@
 # More info:
 # https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 
-*                     @mjcarroll
+*                     @arjo129
 */rendering/*         @iche033
-examples/*            @mabelzhang
 src/systems/physics/* @azeey
 src/systems/sensors/* @iche033
 */gui/*               @jennuine
-tutorials/*           @mabelzhang

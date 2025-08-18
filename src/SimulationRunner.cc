@@ -1587,8 +1587,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   this->entityCompMgr.ProcessRemoveEntityRequests();
   this->entityCompMgr.ClearRemovedComponents();
 
-  this->LoadLoggingPlugins(this->serverConfig);
-
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
 
@@ -1601,7 +1599,10 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
-
+  // Load logging plugins after all server plugins so that necessary
+  // plugins such as SceneBroadcaster are loaded first. This might be
+  // a bug or an assumption made in the logging plugins.
+  this->LoadLoggingPlugins(this->serverConfig);
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
