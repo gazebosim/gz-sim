@@ -30,6 +30,7 @@ if(BUILD_TESTING)
     add_library(${src} MODULE ${src}.cc)
     target_link_libraries(${src}
       PRIVATE
+        gz-common::gz-common
         gz-plugin::register
         gz-transport::gz-transport
         gz-sim
@@ -45,3 +46,11 @@ if(BUILD_TESTING)
     endif()
   endforeach (src)
 endif()
+
+# Statically linked test plugin
+add_library(TestStaticModelSystem STATIC TestStaticModelSystem.cc)
+target_link_libraries(TestStaticModelSystem PRIVATE
+    gz-common::gz-common
+    gz-plugin::register
+    gz-transport::gz-transport
+    gz-sim)

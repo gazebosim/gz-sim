@@ -22,6 +22,7 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
+#include <gz/common/testing/TestPaths.hh>
 #include "test_config.hh"
 
 using namespace gz;
@@ -52,8 +53,8 @@ class InternalFixture : public TestType
   }
 
   /// \brief Directory to act as $HOME for tests
-  public: const std::string kFakeHome = common::joinPaths(PROJECT_BINARY_PATH,
-      "test", "fake_home");
+  public: const std::string kFakeHome = common::testing::TempPath("test",
+      "fake_home");
 
   /// \brief Store user's real $HOME to set it back at the end of tests.
   public: std::string realHome;

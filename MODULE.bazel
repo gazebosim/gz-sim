@@ -1,0 +1,94 @@
+## MODULE.bazel
+module(
+    name = "gz-sim",
+    repo_name = "org_gazebosim_gz-sim",
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "eigen", version = "3.4.0.bcr.3")
+bazel_dep(name = "googletest", version = "1.15.2")
+bazel_dep(name = "protobuf", version = "29.4", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "tinyxml2", version = "10.0.0")
+
+# Gazebo Dependencies
+bazel_dep(name = "rules_gazebo", version = "0.0.6")
+bazel_dep(name = "gz-common")
+bazel_dep(name = "gz-fuel-tools")
+bazel_dep(name = "gz-math")
+bazel_dep(name = "gz-msgs")
+bazel_dep(name = "gz-physics")
+bazel_dep(name = "gz-plugin")
+bazel_dep(name = "gz-rendering")
+bazel_dep(name = "gz-sensors")
+bazel_dep(name = "gz-transport")
+bazel_dep(name = "gz-utils")
+bazel_dep(name = "sdformat")
+
+archive_override(
+    module_name = "gz-common",
+    strip_prefix = "gz-common-main",
+    urls = ["https://github.com/gazebosim/gz-common/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-fuel-tools",
+    strip_prefix = "gz-fuel-tools-main",
+    urls = ["https://github.com/gazebosim/gz-fuel-tools/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-math",
+    strip_prefix = "gz-math-main",
+    urls = ["https://github.com/gazebosim/gz-math/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-msgs",
+    strip_prefix = "gz-msgs-main",
+    urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-physics",
+    strip_prefix = "gz-physics-main",
+    urls = ["https://github.com/gazebosim/gz-physics/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-plugin",
+    strip_prefix = "gz-plugin-main",
+    urls = ["https://github.com/gazebosim/gz-plugin/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-rendering",
+    strip_prefix = "gz-rendering-main",
+    urls = ["https://github.com/gazebosim/gz-rendering/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-sensors",
+    strip_prefix = "gz-sensors-main",
+    urls = ["https://github.com/gazebosim/gz-sensors/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-transport",
+    strip_prefix = "gz-transport-main",
+    urls = ["https://github.com/gazebosim/gz-transport/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "gz-utils",
+    strip_prefix = "gz-utils-main",
+    urls = ["https://github.com/gazebosim/gz-utils/archive/refs/heads/main.tar.gz"],
+)
+
+archive_override(
+    module_name = "sdformat",
+    strip_prefix = "sdformat-main",
+    urls = ["https://github.com/gazebosim/sdformat/archive/refs/heads/main.tar.gz"],
+)
