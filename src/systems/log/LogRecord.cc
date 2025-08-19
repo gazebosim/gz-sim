@@ -298,7 +298,7 @@ bool LogRecordPrivate::Start(const std::string &_logPath,
   if (!validSdfTopic.empty())
   {
     this->sdfPub = this->node.Advertise(validSdfTopic,
-        this->sdfMsg.GetTypeName());
+        std::string(this->sdfMsg.GetTypeName()));
   }
   else
   {
