@@ -48,9 +48,11 @@ using namespace systems;
 
 class gz::sim::systems::LookupWheelSlipPrivate
 {
-  /// \brief Can the nominal (original) surface param values from the parameter
-  /// registry.
+  /// \brief Get and store the nominal (original) surface param values from the
+  /// parameter registry.
   /// \param[in] _ecm Immutable reference to the EntityComponentManager
+  /// \return True if all params were retrieved and stored successfully, false
+  /// otherwise.
   public: bool GetNominalSurfaceParams(const EntityComponentManager &_ecm);
 
   /// \brief Get the scoped param name for an entity
@@ -69,7 +71,7 @@ class gz::sim::systems::LookupWheelSlipPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief /Filename of the slip map texture
+  /// \brief Filename of the slip map
   public: std::string slipMapFilename;
 
   /// \brief The loaded slip map image
@@ -182,7 +184,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   this->dataPtr->slipMapFilename = slipMapElem->Get<std::string>();
   if (this->dataPtr->slipMapFilename.empty())
   {
-    gzerr << "No value for <slip_path> provided. Will not dynamically update "
+    gzerr << "No value for <slip_map> provided. Will not dynamically update "
           << "wheel slip values. " << std::endl;
     return;
   }
@@ -230,6 +232,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   if (filePath.empty())
   {
     gzerr << "Unable to find slip_map file: " << this->dataPtr->slipMapFilename
+          << "\nWill not dynamically update wheel slip values."
           << std::endl;
     return;
   }

@@ -58,7 +58,7 @@ class gz::sim::systems::WheelSlipPrivate
   /// \param[in] _ecm Mutable reference to the EntityComponentManager
   public: void Update(EntityComponentManager &_ecm);
 
-  /// \brief Update susrface parameters from the transport parameter registry.
+  /// \brief Update surface parameters from the transport parameter registry.
   public: void UpdateParams();
 
   public: using P = physics::FeaturePolicy3d;

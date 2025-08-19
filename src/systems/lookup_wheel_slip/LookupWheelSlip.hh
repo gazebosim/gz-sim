@@ -33,9 +33,10 @@ namespace systems
   class LookupWheelSlipPrivate;
 
   /// \brief Lookup Wheel Slip system.
-  /// This plugin uses a lookup map to dynamically adjust the
-  /// wheel slip and friction parameters based on the wheel's position on the
-  /// region covered by the lookup map.
+  /// This plugin dynamically adjusts the wheel slip and friction parameters
+  /// based on the wheel's position on the region covered by the specified
+  /// lookup image map (slip map) where slip and friction values are encoded in
+  /// the image's RGB channels.
   /// This plugin needs to be used together with the WheelSlip system.
   /// LookupWheelSlip system params:
   /// * <slip_map>: (Required) Lookup slip map filename. This needs to be an
