@@ -18,6 +18,8 @@
  */
 
 #include "UserCommands.hh"
+#include <chrono>
+#include <future>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -142,6 +144,10 @@ class UserCommandBase
   /// function and update entities and components so the command takes effect.
   /// \return True if command was properly executed.
   public: virtual bool Execute() = 0;
+
+  /// \brief Promise that is used to exchange the result of the command
+  /// execution with the service handler.
+  public: std::promise<bool> promise;
 
   /// \brief Message containing command.
   protected: google::protobuf::Message *msg{nullptr};
@@ -456,6 +462,15 @@ class gz::sim::systems::UserCommandsPrivate
   public: template <typename CommandT, typename InputT>
   bool ServiceHandler(const InputT &_req, msgs::Boolean &_res);
 
+  /// \brief This is similar to \sa ServiceHandler but it blocks the request
+  /// until the command is actually executed.
+  /// \tparam CommandT Type for the command that associated with the service.
+  /// \tparam InputT Type form gz::msgs of the input parameter.
+  /// \param[in] _req Input parameter message of the service.
+  /// \param[out] _res Output parameter message of the service.
+  public: template <typename CommandT, typename InputT>
+  bool BlockingServiceHandler(const InputT &_req, msgs::Boolean &_res);
+
   /// \brief Temlpate for advertising services
   /// \tparam CommandT Type for the command that associated with the service.
   /// \tparam InputT Type form gz::msgs of the input parameter.
@@ -485,6 +500,10 @@ class gz::sim::systems::UserCommandsPrivate
 
   /// \brief Mutex to protect pending queue.
   public: std::mutex pendingMutex;
+
+  /// \brief Global timeout settings for services.
+  /// \TODO(azeey) Consider making this configurable.
+  public: const unsigned int kServiceHandlerTimeoutMs{5000};
 };
 
 /// \brief Pose3d equality comparison function.
@@ -676,7 +695,9 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
   for (auto &cmd : cmds)
   {
     // Execute
-    if (!cmd->Execute())
+    bool result = cmd->Execute();
+    cmd->promise.set_value(result);
+    if (!result)
       continue;
 
     // TODO(louise) Update command with current world state
@@ -721,8 +742,18 @@ void UserCommandsPrivate::AdvertiseService(const std::string &_topic,
 {
   this->node.Advertise(
       _topic, &UserCommandsPrivate::ServiceHandler<CommandT, InputT>, this);
+
+  const auto blockingTopic = _topic + "/blocking";
+  this->node.Advertise(
+      blockingTopic,
+      &UserCommandsPrivate::BlockingServiceHandler<CommandT, InputT>, this);
   if (_serviceName != nullptr)
-    gzmsg << _serviceName << " service on [" << _topic << "]" << std::endl;
+  {
+    gzmsg << _serviceName << " service on [" << _topic << "] (async)"
+          << std::endl;
+    gzmsg << _serviceName << " service on [" << blockingTopic << "] (blocking)"
+          << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -741,6 +772,31 @@ bool UserCommandsPrivate::ServiceHandler(const InputT &_req,
 
   _res.set_data(true);
   return true;
+}
+
+//////////////////////////////////////////////////
+template <typename CommandT, typename InputT>
+bool UserCommandsPrivate::BlockingServiceHandler(const InputT &_req,
+                                         msgs::Boolean &_res)
+{
+  auto msg = _req.New();
+  msg->CopyFrom(_req);
+  auto cmd = std::make_unique<CommandT>(msg, this->iface);
+  auto future = cmd->promise.get_future();
+  // Push to pending
+  {
+    std::lock_guard<std::mutex> lock(this->pendingMutex);
+    this->pendingCmds.push_back(std::move(cmd));
+  }
+
+  // This blocks until the command is executed.
+  if (future.wait_for(std::chrono::milliseconds(kServiceHandlerTimeoutMs)) ==
+      std::future_status::ready)
+  {
+    _res.set_data(future.get());
+    return true;
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////
