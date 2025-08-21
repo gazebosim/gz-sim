@@ -312,7 +312,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
                   "will use DART by default (gz-physics-dartsim-plugin)\n"
                   "Make sure custom plugins are inside\n"
                   "GZ_SIM_PHYSICS_ENGINE_PATH.");
-
+  #ifdef WITH_GUI
   _app.add_option("--render-engine-gui", _opt->renderEngineGui,
                   "Gazebo Rendering engine plugin to load for the GUI.\n"
                   "Gazebo will use OGRE2 by default. Make sure custom\n"
@@ -324,6 +324,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
                   "Same as --render-engine-api-backend but only\n"
                   "for the GUI.")
                   ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
+  #endif
 
   _app.add_option("--render-engine-server", _opt->renderEngineServer,
                   "Gazebo Rendering engine plugin to load for the Server.\n"
@@ -337,6 +338,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
                   "for the Server.")
                   ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
 
+#ifdef WITH_GUI
   _app.add_option_function<std::string>("--render-engine",
     [_opt](const std::string &_renderEngine){
       _opt->renderEngineGui = _renderEngine;
@@ -361,6 +363,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
     "Note: If Vulkan is being in the GUI and gz-gui was\n"
     "built against Qt < 5.15.2, it may be very slow")
     ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
+  #endif
 
   _app.add_flag("--headless-rendering", _opt->headlessRendering,
                 "Run rendering in headless mode.");
@@ -371,11 +374,13 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
   _app.add_option("-z", _opt->rate,
                 "Update rate in hertz.");
 
+  #ifdef WITH_GUI
   _app.add_option("--gui-config", _opt->guiConfig,
                   "Gazebo GUI configuration file to load.\n"
                   "If no file is provided then the configuration in\n"
                   "SDF file is used. If that is also missing then\n"
                   "the default installed configuration is used.");
+  #endif
 
   _app.add_option_function<std::string>("--playback",
     [_opt](const std::string &_playback){
@@ -419,7 +424,9 @@ int main(int argc, char** argv)
   app.add_flag("--force-version", "Use a particular library version.");
   app.add_flag("--versions", "Show the available versions.");
 
+  #ifdef WITH_GUI
   app.add_flag("-g", opt->launchGui, "Run and manage only the Gazebo GUI");
+  #endif
 
   app.add_flag_callback("-s",
     [opt]{

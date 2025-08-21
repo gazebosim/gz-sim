@@ -2,7 +2,6 @@ add_subdirectory(rendering)
 
 if(ENABLE_GUI)
   add_subdirectory(gui)
-  add_compile_definitions(WITH_GUI)
 endif()
 
 add_subdirectory(systems)
