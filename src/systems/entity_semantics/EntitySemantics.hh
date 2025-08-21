@@ -18,9 +18,7 @@
 #define GZ_SIM_SYSTEMS_ENTITYSEMANTICS_HH_
 
 #include <gz/sim/System.hh>
-
 #include <gz/sim/config.hh>
-#include <gz/sim/System.hh>
 
 namespace gz
 {
