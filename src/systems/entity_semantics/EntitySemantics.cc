@@ -64,10 +64,9 @@ std::optional<uint8_t> ConvertCategoryStrToInt(const std::string &_category)
 }
 }  // namespace
 
-namespace gz
+namespace gz::sim
 {
-namespace sim
-{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 //////////////////////////////////////////////////
@@ -174,6 +173,6 @@ void EntitySemantics::PreUpdate(const UpdateInfo &,
 GZ_ADD_PLUGIN(EntitySemantics, System, EntitySemantics::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(EntitySemantics, "gz::sim::systems::EntitySemantics")
-} // namespace systems
-} // namespace sim
-} // namespace gz
+}  // namespace systems
+}  // inline namespace
+}  // namespace gz::sim

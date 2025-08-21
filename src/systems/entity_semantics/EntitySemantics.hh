@@ -19,6 +19,9 @@
 
 #include <gz/sim/System.hh>
 
+#include <gz/sim/config.hh>
+#include <gz/sim/System.hh>
+
 namespace gz
 {
 namespace sim
