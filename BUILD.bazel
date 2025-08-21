@@ -1134,6 +1134,28 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/lookup_wheel_slip/**/*.cc",
+            "src/systems/lookup_wheel_slip/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lookup-wheel-slip-system.so",
+    static_lib_name = "gz-sim-lookup-wheel-slip-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//graphics",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-math",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/magnetometer/**/*.cc",
             "src/systems/magnetometer/**/*.hh",
         ],
