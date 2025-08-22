@@ -353,19 +353,28 @@ void FreeSpaceExplorer::Configure(
   gz::sim::EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = gz::sim::Model(_entity);
-  this->dataPtr->scanTopic = _sdf->Get<std::string>("lidar_topic", "scan").first;
-  this->dataPtr->imageTopic = _sdf->Get<std::string>("image_topic", "scan_image").first;
-  this->dataPtr->startTopic = _sdf->Get<std::string>("start_topic", "start").first;
-  this->dataPtr->sensorLink = _sdf->Get<std::string>("sensor_link", "link").first;
-  this->dataPtr->numRows = _sdf->Get<std::size_t>("width", 10).first;
-  this->dataPtr->numCols = _sdf->Get<std::size_t>("height", 10).first;
-  this->dataPtr->resolution = _sdf->Get<double>("resolution", 1.0).first;
+  this->dataPtr->scanTopic =
+    _sdf->Get<std::string>("lidar_topic", "scan").first;
+  this->dataPtr->imageTopic =
+    _sdf->Get<std::string>("image_topic", "scan_image").first;
+  this->dataPtr->startTopic =
+    _sdf->Get<std::string>("start_topic", "start").first;
+  this->dataPtr->sensorLink =
+    _sdf->Get<std::string>("sensor_link", "link").first;
+  this->dataPtr->numRows =
+    _sdf->Get<std::size_t>("width", 10).first;
+  this->dataPtr->numCols =
+    _sdf->Get<std::size_t>("height", 10).first;
+  this->dataPtr->resolution =
+    _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(this->dataPtr->scanTopic,
     &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
   this->dataPtr->node.Subscribe(this->dataPtr->startTopic,
     &FreeSpaceExplorerPrivateData::OnStartMsg, this->dataPtr.get());
-  this->dataPtr->imagePub = this->dataPtr->node.Advertise<gz::msgs::Image>(this->dataPtr->imageTopic);
-  gzmsg << "Loaded lidar exploration plugin listening on [" << this->dataPtr->scanTopic << "]\n";
+  this->dataPtr->imagePub =
+  this->dataPtr->node.Advertise<gz::msgs::Image>(this->dataPtr->imageTopic);
+  gzmsg << "Loaded lidar exploration plugin listening on ["
+    << this->dataPtr->scanTopic << "]\n";
 }
 
 /////////////////////////////////////////////////
@@ -378,7 +387,8 @@ void FreeSpaceExplorer::PreUpdate(
     return;
   }
   //TODO(arjo) check link name valisdity
-  auto l = Link(this->dataPtr->model.LinkByName(_ecm, this->dataPtr->sensorLink));
+  auto l =
+    Link(this->dataPtr->model.LinkByName(_ecm, this->dataPtr->sensorLink));
   if (!l.Valid(_ecm)){
     gzerr << "Invalid link name " << this->dataPtr->sensorLink << std::endl;
     return;
@@ -392,8 +402,10 @@ void FreeSpaceExplorer::PreUpdate(
   const std::lock_guard<std::recursive_mutex> lock(this->dataPtr->m);
   if (!this->dataPtr->grid.has_value())
   {
-    auto center_x = pose->Pos().X() - this->dataPtr->numRows * this->dataPtr->resolution / 2;
-    auto center_y = pose->Pos().Y() - this->dataPtr->numCols * this->dataPtr->resolution / 2;
+    auto center_x =
+      pose->Pos().X() - this->dataPtr->numRows * this->dataPtr->resolution / 2;
+    auto center_y =
+      pose->Pos().Y() - this->dataPtr->numCols * this->dataPtr->resolution / 2;
     math::OccupancyGrid g(
       this->dataPtr->resolution, this->dataPtr->numRows, this->dataPtr->numCols,
       center_x, center_y);
