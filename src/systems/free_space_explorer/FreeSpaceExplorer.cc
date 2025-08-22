@@ -117,12 +117,12 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
             continue;
           }
 
-          auto cellState = this->grid->GetCellState(x, y);
-          if (cellState == math::CellState::Free)
+          auto cellState = this->grid->CellState(x, y);
+          if (cellState == math::OccupancyCellState::Free)
           {
             q.emplace(neighbor);
           }
-          else if (cellState == math::CellState::Unknown)
+          else if (cellState == math::OccupancyCellState::Unknown)
           {
             unknownCellCount++;
           }
@@ -176,7 +176,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       this->grid->ExportToRGBImage(pixelData);
       common::Image fromOccupancy;
       fromOccupancy.SetFromData(
-      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
+      pixelData.data(), this->grid->Width(), this->grid->Height(), common::Image::PixelFormatType::RGB_INT8);
         fromOccupancy.SavePNG("output.png");
       gzmsg << "Scan complete: No reachable unknown cells.\n";
       return;
@@ -193,7 +193,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       this->grid->ExportToRGBImage(pixelData);
       common::Image fromOccupancy;
       fromOccupancy.SetFromData(
-      pixelData.data(), this->grid->GetWidth(), this->grid->GetHeight(), common::Image::PixelFormatType::RGB_INT8);
+      pixelData.data(), this->grid->Width(), this->grid->Height(), common::Image::PixelFormatType::RGB_INT8);
         fromOccupancy.SavePNG("output.png");
       gzmsg << "Scan complete\n";
     }
@@ -247,7 +247,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
           }
           numPoints++;
 
-          if(this->grid->GetCellState(x, y) == math::CellState::Free)
+          if(this->grid->CellState(x, y) == math::OccupancyCellState::Free)
           {
 
             auto infoGain = this->ScoreInfoGain(x, y, _scan);
@@ -295,7 +295,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     }
 
     double currAngle = _scan.angle_min();
-    auto length = _scan.range_max();
     auto numCells = _scan.range_max() / this->resolution;
 
     double infoGain = 0.0;
@@ -330,7 +329,7 @@ FreeSpaceExplorer::~FreeSpaceExplorer()
 void FreeSpaceExplorer::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  gz::sim::EntityComponentManager &_ecm,
+  gz::sim::EntityComponentManager &/*_ecm*/,
   gz::sim::EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = gz::sim::Model(_entity);
