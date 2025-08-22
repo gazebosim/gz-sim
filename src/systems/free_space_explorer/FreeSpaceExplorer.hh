@@ -18,6 +18,8 @@
 #define GZ_SIM_SYSTEMS_FREESPACEEXPLORER_HH_
 
 #include <gz/sim/System.hh>
+
+#include <gz/transport/Node.hh>
 #include <memory>
 
 namespace gz
@@ -30,10 +32,10 @@ namespace systems
 {
   struct FreeSpaceExplorerPrivateData;
 
-  /// \brief This plugin is to be used with a model that has a 2D 
+  /// \brief This plugin is to be used with a model that has a 2D
   /// LiDAR attached to it. It uses this 2d lidar to export an occupancy
   /// map of the world.
-  /// 
+  ///
   /// ## System Parameters
   ///
   /// This system takes in the following parameters:
@@ -42,6 +44,7 @@ namespace systems
   ///    * <height> - Number of rows in the occupancy map
   ///    * <resolution> - Resolution of an individual cell
   ///    * <sensor_link> - Link on which the sensor is attached within the model.
+  ///    * <image_topic> - Topic to publish occupancy map on
   class FreeSpaceExplorer:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,

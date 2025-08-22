@@ -19,6 +19,7 @@
 #include <gz/common/Image.hh>
 #include <gz/math/OccupancyGrid.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/msgs/image.pb.h>
 #include <gz/msgs/laserscan.pb.h>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
@@ -61,6 +62,8 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   std::size_t numRows, numCols;
   double resolution;
   std::string scanTopic;
+  std::string imageTopic;
+  gz::transport::Node::Publisher imagePub;
   std::string sensorLink;
   math::Pose3d position;
   gz::transport::Node node;
@@ -168,16 +171,17 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       return;
     }
 
-    gzerr << this->CountReachableUnknowns() << "\n";
-
     if (this->CountReachableUnknowns() == 0)
     {
       std::vector<unsigned char> pixelData;
       this->grid->ExportToRGBImage(pixelData);
-      common::Image fromOccupancy;
-      fromOccupancy.SetFromData(
-      pixelData.data(), this->grid->Width(), this->grid->Height(), common::Image::PixelFormatType::RGB_INT8);
-        fromOccupancy.SavePNG("output.png");
+      gz::msgs::Image imageMsg;
+      imageMsg.set_width(this->grid->Width());
+      imageMsg.set_height(this->grid->Height());
+      imageMsg.set_pixel_format_type(gz::msgs::PixelFormatType::RGB_INT8);
+      imageMsg.set_step(this->grid->Width() * 3);
+      imageMsg.set_data(pixelData.data(), pixelData.size());
+      this->imagePub.Publish(imageMsg);
       gzmsg << "Scan complete: No reachable unknown cells.\n";
       return;
     }
@@ -188,15 +192,17 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       gzmsg << "Setting next position " << nextPos->Pos() <<std::endl;
       this->nextPosition.push(nextPos.value());
     }
-    else {
-      std::vector<unsigned char> pixelData;
-      this->grid->ExportToRGBImage(pixelData);
-      common::Image fromOccupancy;
-      fromOccupancy.SetFromData(
-      pixelData.data(), this->grid->Width(), this->grid->Height(), common::Image::PixelFormatType::RGB_INT8);
-        fromOccupancy.SavePNG("output.png");
-      gzmsg << "Scan complete\n";
-    }
+
+    std::vector<unsigned char> pixelData;
+    this->grid->ExportToRGBImage(pixelData);
+    gz::msgs::Image imageMsg;
+    imageMsg.set_width(this->grid->Width());
+    imageMsg.set_height(this->grid->Height());
+    imageMsg.set_pixel_format_type(gz::msgs::PixelFormatType::RGB_INT8);
+    imageMsg.set_step(this->grid->Width() * 3);
+    imageMsg.set_data(pixelData.data(), pixelData.size());
+    this->imagePub.Publish(imageMsg);
+    //gzmsg << "Scan complete\n";
   }
 
   /////////////////////////////////////////////////
@@ -264,12 +270,9 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
         }
       }
     }
-    gzerr << "Visited " << visited.size() << "\n";
-    gzerr << "Infogan" << maxInfoGain << "\n";
+
     if (maxInfoGain < 1)
     {
-      gzmsg << "Could not find areas of information gain\n";
-      gzmsg << maxInfoGain << "\n";
       return std::nullopt;
     }
 
@@ -334,13 +337,15 @@ void FreeSpaceExplorer::Configure(
 {
   this->dataPtr->model = gz::sim::Model(_entity);
   this->dataPtr->scanTopic = _sdf->Get<std::string>("lidar_topic", "scan").first;
+  this->dataPtr->imageTopic = _sdf->Get<std::string>("image_topic", "scan_image").first;
   this->dataPtr->sensorLink = _sdf->Get<std::string>("sensor_link", "link").first;
   this->dataPtr->numRows = _sdf->Get<std::size_t>("width", 10).first;
   this->dataPtr->numCols = _sdf->Get<std::size_t>("height", 10).first;
   this->dataPtr->resolution = _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(this->dataPtr->scanTopic,
     &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
-  gzmsg << "Loaded camera plugin listening on [" << this->dataPtr->scanTopic << "]\n";
+  this->dataPtr->imagePub = this->dataPtr->node.Advertise<gz::msgs::Image>(this->dataPtr->imageTopic);
+  gzmsg << "Loaded lidar exploration plugin listening on [" << this->dataPtr->scanTopic << "]\n";
 }
 
 /////////////////////////////////////////////////

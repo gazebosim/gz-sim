@@ -1,5 +1,15 @@
+<!--
+  This world demonstrates the FreeSpaceExplorer system plugin.
+  A lidar will explore the world and generate an occupancy grid.
+  The occupancy grid will be published as an image on the /scan_image topic.
+-->
 <sdf version="1.6">
   <world name="empty">
+    <gui>
+      <plugin filename="ImageDisplay" name="Image Display">
+        <topic>/scan_image</topic>
+      </plugin>
+    </gui>
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -93,6 +103,7 @@
             filename="gz-sim-free-space-explorer-system"
             name="gz::sim::systems::FreeSpaceExplorer">
             <lidar_topic>/scan</lidar_topic>
+            <image_topic>/scan_image</image_topic>
             <width>100</width>
             <height>100</height>
             <resolution>0.25</resolution>
