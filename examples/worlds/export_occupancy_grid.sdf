@@ -2,6 +2,9 @@
   This world demonstrates the FreeSpaceExplorer system plugin.
   A lidar will explore the world and generate an occupancy grid.
   The occupancy grid will be published as an image on the /scan_image topic.
+
+  To start the exploration, run the following command in a new terminal:
+  gz topic -t /start_exploration -m gz.msgs.Boolean -p 'data: true'
 -->
 <sdf version="1.6">
   <world name="empty">
@@ -104,6 +107,7 @@
             name="gz::sim::systems::FreeSpaceExplorer">
             <lidar_topic>/scan</lidar_topic>
             <image_topic>/scan_image</image_topic>
+            <start_topic>/start_exploration</start_topic>
             <width>100</width>
             <height>100</height>
             <resolution>0.25</resolution>

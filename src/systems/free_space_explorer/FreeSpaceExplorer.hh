@@ -45,6 +45,7 @@ namespace systems
   ///    * <resolution> - Resolution of an individual cell
   ///    * <sensor_link> - Link on which the sensor is attached within the model.
   ///    * <image_topic> - Topic to publish occupancy map on
+  ///    * <start_topic> - Topic to listen on before starting exploration.
   class FreeSpaceExplorer:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,

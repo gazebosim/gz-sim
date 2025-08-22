@@ -804,6 +804,26 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/free_space_explorer/**/*.cc",
+            "src/systems/free_space_explorer/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-free-space_explorer--system.so",
+    static_lib_name = "gz-sim-free-space-explorer-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//graphics",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/hydrodynamics/**/*.cc",
             "src/systems/hydrodynamics/**/*.hh",
         ],

@@ -15,10 +15,10 @@
  *
 */
 #include "FreeSpaceExplorer.hh"
-
 #include <gz/common/Image.hh>
 #include <gz/math/OccupancyGrid.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/laserscan.pb.h>
 #include <gz/msgs/Utility.hh>
@@ -63,16 +63,28 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   double resolution;
   std::string scanTopic;
   std::string imageTopic;
+  std::string startTopic;
   gz::transport::Node::Publisher imagePub;
   std::string sensorLink;
   math::Pose3d position;
   gz::transport::Node node;
 
   bool recievedMessageForPose {false};
+  bool explorationStarted {false};
   std::queue<math::Pose3d> nextPosition;
   std::unordered_set<std::pair<int,int>, PairHash> previouslyVisited;
 
   std::recursive_mutex m;
+
+  /////////////////////////////////////////////////
+  /// \brief Callback for start message
+  void OnStartMsg(const msgs::Boolean &_scan)
+  {
+    if (_scan.data())
+    {
+      this->explorationStarted = true;
+    }
+  }
 
   /////////////////////////////////////////////////
   /// \brief Perform search over occupancy grid to see if there are any
@@ -144,6 +156,11 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     if (!this->grid.has_value())
     {
       gzerr<< "Grid not yet inited";
+      return;
+    }
+
+    if (!this->explorationStarted)
+    {
       return;
     }
 
@@ -338,12 +355,15 @@ void FreeSpaceExplorer::Configure(
   this->dataPtr->model = gz::sim::Model(_entity);
   this->dataPtr->scanTopic = _sdf->Get<std::string>("lidar_topic", "scan").first;
   this->dataPtr->imageTopic = _sdf->Get<std::string>("image_topic", "scan_image").first;
+  this->dataPtr->startTopic = _sdf->Get<std::string>("start_topic", "start").first;
   this->dataPtr->sensorLink = _sdf->Get<std::string>("sensor_link", "link").first;
   this->dataPtr->numRows = _sdf->Get<std::size_t>("width", 10).first;
   this->dataPtr->numCols = _sdf->Get<std::size_t>("height", 10).first;
   this->dataPtr->resolution = _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(this->dataPtr->scanTopic,
     &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
+  this->dataPtr->node.Subscribe(this->dataPtr->startTopic,
+    &FreeSpaceExplorerPrivateData::OnStartMsg, this->dataPtr.get());
   this->dataPtr->imagePub = this->dataPtr->node.Advertise<gz::msgs::Image>(this->dataPtr->imageTopic);
   gzmsg << "Loaded lidar exploration plugin listening on [" << this->dataPtr->scanTopic << "]\n";
 }
@@ -382,7 +402,7 @@ void FreeSpaceExplorer::PreUpdate(
   }
   this->dataPtr->position = pose.value();
 
-  if (this->dataPtr->nextPosition.empty())
+  if (this->dataPtr->nextPosition.empty() || !this->dataPtr->explorationStarted)
   {
     return;
   }
