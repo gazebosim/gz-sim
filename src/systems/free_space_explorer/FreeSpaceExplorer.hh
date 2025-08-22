@@ -43,7 +43,8 @@ namespace systems
   ///    * <width> - Number of columns in the occupancy map
   ///    * <height> - Number of rows in the occupancy map
   ///    * <resolution> - Resolution of an individual cell
-  ///    * <sensor_link> - Link on which the sensor is attached within the model.
+  ///    * <sensor_link> - Link on which the sensor is attached within the
+  ///                      model.
   ///    * <image_topic> - Topic to publish occupancy map on
   ///    * <start_topic> - Topic to listen on before starting exploration.
   class FreeSpaceExplorer:

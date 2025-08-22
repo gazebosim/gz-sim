@@ -49,10 +49,7 @@ struct PairHash {
   std::size_t operator () (const std::pair<T1, T2>& p) const {
     auto h1 = std::hash<T1>{}(p.first);
     auto h2 = std::hash<T2>{}(p.second);
-
-    // Simple way to combine hashes. You might want a more robust one
-    // for very specific use cases, but this is generally sufficient.
-    return h1 ^ (h2 << 1); // XOR with a left shift to mix bits
+    return h1 ^ (h2 << 1);
   }
 };
 
@@ -72,7 +69,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   bool recievedMessageForPose {false};
   bool explorationStarted {false};
   std::queue<math::Pose3d> nextPosition;
-  std::unordered_set<std::pair<int,int>, PairHash> previouslyVisited;
+  std::unordered_set<std::pair<int, int>, PairHash> previouslyVisited;
 
   std::recursive_mutex m;
 
@@ -175,7 +172,8 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
       auto toX = length * cos(currAngle) + this->position.Pos().X();
       auto toY = length * sin(currAngle) + this->position.Pos().Y();
 
-      this->grid->MarkFree(this->position.Pos().X(), this->position.Pos().Y(), toX, toY);
+      this->grid->MarkFree(this->position.Pos().X(),
+        this->position.Pos().Y(), toX, toY);
 
       if (obstacleExists)
         this->grid->MarkOccupied(toX, toY);
@@ -219,7 +217,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
     imageMsg.set_step(this->grid->Width() * 3);
     imageMsg.set_data(pixelData.data(), pixelData.size());
     this->imagePub.Publish(imageMsg);
-    //gzmsg << "Scan complete\n";
   }
 
   /////////////////////////////////////////////////
@@ -264,7 +261,7 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
           auto x = pt.first + i;
           auto y = pt.second + j;
 
-          if(visited.count(std::make_pair(x,y)) > 0)
+          if(visited.count(std::make_pair(x, y)) > 0)
           {
             continue;
           }
@@ -305,7 +302,8 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   }
 
   /// Scores information gain given laser scan parameters
-  std::optional<double> ScoreInfoGain(int _x, int _y, const msgs::LaserScan &_scan)
+  std::optional<double> ScoreInfoGain(int _x, int _y,
+    const msgs::LaserScan &_scan)
   {
     const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
