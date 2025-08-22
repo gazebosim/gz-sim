@@ -384,7 +384,6 @@ void FreeSpaceExplorer::PreUpdate(
   {
     return;
   }
-  //TODO(arjo) check link name valisdity
   auto l =
     Link(this->dataPtr->model.LinkByName(_ecm, this->dataPtr->sensorLink));
   if (!l.Valid(_ecm)){
