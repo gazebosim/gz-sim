@@ -47,10 +47,15 @@ namespace systems
   ///                      model.
   ///    * <image_topic> - Topic to publish occupancy map on
   ///    * <start_topic> - Topic to listen on before starting exploration.
+  ///
+  /// Note: It is assumed the sensor does not implement any pose
+  /// offset from the link itself. This may of may not be true.
+  /// and should be fixed in a future release.
   class FreeSpaceExplorer:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: FreeSpaceExplorer();
@@ -69,6 +74,11 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(
+      const gz::sim::UpdateInfo &_info,
+      const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<FreeSpaceExplorerPrivateData> dataPtr;
