@@ -180,6 +180,10 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   /// Callback for laser scan message
   void OnLaserScanMsg(const msgs::LaserScan &_scan)
   {
+    if (!this->explorationStarted)
+    {
+      return;
+    }
     std::lock_guard<std::mutex> lock(this->laserScanMutex);
     this->laserScanMsgs.push(_scan);
   }
@@ -412,10 +416,7 @@ void FreeSpaceExplorer::PostUpdate(
     return;
   }
 
-  if (!this->dataPtr->explorationStarted)
-  {
-    return;
-  }
+
 
   double currAngle = scan.angle_min();
 
