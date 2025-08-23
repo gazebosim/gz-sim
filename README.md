@@ -1,5 +1,7 @@
 # Gazebo Sim : A Robotic Simulator
 
+TESTING DONT MERGE
+
 **Maintainer:** arjoc AT intrinsic DOT ai
 
 [![GitHub open issues](https://img.shields.io/github/issues-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/issues)
