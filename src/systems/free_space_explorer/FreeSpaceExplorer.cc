@@ -56,7 +56,7 @@ struct PairHash {
 
 /// \brief Private data pointer that performs actual
 /// exploration.
-struct gz::sim::systems::FreeSpaceExplorerPrivateData {
+struct gz::sim::systems::FreeSpaceExplorer::Implementation {
 
   /// \brief Occupancy Grid function
   std::optional<math::OccupancyGrid> grid;
@@ -295,10 +295,10 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
 };
 
 /////////////////////////////////////////////////
-FreeSpaceExplorer::FreeSpaceExplorer()
+FreeSpaceExplorer::FreeSpaceExplorer():
+  dataPtr(
+    std::move(gz::utils::MakeUniqueImpl<Implementation>()))
 {
-
-  this->dataPtr = std::make_unique<FreeSpaceExplorerPrivateData>();
 }
 
 /////////////////////////////////////////////////
@@ -329,9 +329,9 @@ void FreeSpaceExplorer::Configure(
   this->dataPtr->resolution =
     _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(scanTopic,
-    &FreeSpaceExplorerPrivateData::OnLaserScanMsg, this->dataPtr.get());
+    &FreeSpaceExplorer::Implementation::OnLaserScanMsg, this->dataPtr.get());
   this->dataPtr->node.Subscribe(startTopic,
-    &FreeSpaceExplorerPrivateData::OnStartMsg, this->dataPtr.get());
+    &FreeSpaceExplorer::Implementation::OnStartMsg, this->dataPtr.get());
   this->dataPtr->imagePub =
   this->dataPtr->node.Advertise<gz::msgs::Image>(imageTopic);
   gzmsg << "Loaded lidar exploration plugin listening on ["

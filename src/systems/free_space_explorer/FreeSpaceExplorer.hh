@@ -19,8 +19,7 @@
 
 #include <gz/sim/System.hh>
 
-#include <gz/transport/Node.hh>
-#include <memory>
+#include <gz/utils/ImplPtr.hh>
 
 namespace gz
 {
@@ -30,8 +29,6 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  struct FreeSpaceExplorerPrivateData;
-
   /// \brief This plugin is to be used with a model that has a 2D
   /// LiDAR attached to it. It uses this 2d lidar to export an occupancy
   /// map of the world.
@@ -81,7 +78,7 @@ namespace systems
       const gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<FreeSpaceExplorerPrivateData> dataPtr;
+    private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }
