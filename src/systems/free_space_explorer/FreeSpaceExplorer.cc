@@ -95,9 +95,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   std::unordered_set<std::pair<int, int>, PairHash>
     previouslyVisited;
 
-  /// \brief Mutex to protect data in this structure.
-  std::recursive_mutex m;
-
   /// \brief Laser scan message queue
   std::queue<gz::msgs::LaserScan> laserScanMsgs;
 
@@ -119,7 +116,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   /// reachable unknown cells and return their count.
   int CountReachableUnknowns()
   {
-    const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
       gzerr << "Grid not yet inited" << std::endl;
@@ -193,7 +189,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   /// explore.
   std::optional<math::Pose3d> GetNextPoint(const msgs::LaserScan &_scan)
   {
-    const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
       gzerr << "Grid not yet inited" << std::endl;
@@ -274,7 +269,6 @@ struct gz::sim::systems::FreeSpaceExplorerPrivateData {
   std::optional<double> ScoreInfoGain(int _x, int _y,
     const msgs::LaserScan &_scan)
   {
-    const std::lock_guard<std::recursive_mutex> lock(this->m);
     if (!this->grid.has_value())
     {
       gzerr<< "Waiting for occupancy grid to be initialized." << std::endl;
@@ -365,7 +359,6 @@ void FreeSpaceExplorer::PreUpdate(
     return;
   }
 
-  const std::lock_guard<std::recursive_mutex> lock(this->dataPtr->m);
   if (!this->dataPtr->grid.has_value())
   {
     auto centerX =
@@ -409,7 +402,6 @@ void FreeSpaceExplorer::PostUpdate(
   auto scan = this->dataPtr->laserScanMsgs.front();
   this->dataPtr->laserScanMsgs.pop();
 
-  const std::lock_guard<std::recursive_mutex> lock2(this->dataPtr->m);
   if (!this->dataPtr->grid.has_value())
   {
     gzerr<< "Grid not yet inited";
