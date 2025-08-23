@@ -56,54 +56,53 @@ struct PairHash {
 
 /// \brief Private data pointer that performs actual
 /// exploration.
-struct gz::sim::systems::FreeSpaceExplorer::Implementation {
+class gz::sim::systems::FreeSpaceExplorer::Implementation {
 
   /// \brief Occupancy Grid function
-  std::optional<math::OccupancyGrid> grid;
+  public: std::optional<math::OccupancyGrid> grid;
 
   /// \brief Model of the parent sensor that gets
   /// moved around.
-  Model model;
+  public: Model model{};
 
   /// \brief Number of rows and columns the occupancy grid should
   /// have.
-  std::size_t numRows, numCols;
+  public: std::size_t numRows, numCols;
 
   /// \brief Resolution parameter for the occupancy grid
-  double resolution;
+  public: double resolution;
 
   /// \brief Image publisher for preview image of occupancy grid
-  gz::transport::Node::Publisher imagePub;
+  public: gz::transport::Node::Publisher imagePub;
 
   /// \brief Sensor link
-  std::string sensorLink;
+  public: std::string sensorLink;
 
   /// \brief The starting position of the occupancy grid.
-  math::Pose3d position;
+  public: math::Pose3d position;
 
   /// \brief GZ-Transport node
-  gz::transport::Node node;
+  public: gz::transport::Node node;
 
   /// \brief The signal to enable exploration
-  std::atomic<bool> explorationStarted {false};
+  public: std::atomic<bool> explorationStarted{false};
 
   /// \brief The next position to move the sensor to increase
   /// coverage.
-  std::queue<math::Pose3d> nextPosition;
+  public: std::queue<math::Pose3d> nextPosition;
 
   /// \brief Previously visited locations
-  std::unordered_set<std::pair<int, int>, PairHash>
-    previouslyVisited;
+  public: std::unordered_set<std::pair<int, int>, PairHash> previouslyVisited;
 
   /// \brief Laser scan message queue
-  std::queue<gz::msgs::LaserScan> laserScanMsgs;
+  public: std::queue<gz::msgs::LaserScan> laserScanMsgs;
 
   /// \brief Mutex for the laser scan queue
-  std::mutex laserScanMutex;
+  public: std::mutex laserScanMutex;
 
   /////////////////////////////////////////////////
   /// \brief Callback for start message
-  void OnStartMsg(const msgs::Boolean &_scan)
+  public: void OnStartMsg(const msgs::Boolean &_scan)
   {
     if (_scan.data())
     {
@@ -114,7 +113,7 @@ struct gz::sim::systems::FreeSpaceExplorer::Implementation {
   /////////////////////////////////////////////////
   /// \brief Perform search over occupancy grid to see if there are any
   /// reachable unknown cells and return their count.
-  int CountReachableUnknowns()
+  public: int CountReachableUnknowns()
   {
     if (!this->grid.has_value())
     {
@@ -174,7 +173,7 @@ struct gz::sim::systems::FreeSpaceExplorer::Implementation {
 
   /////////////////////////////////////////////////
   /// Callback for laser scan message
-  void OnLaserScanMsg(const msgs::LaserScan &_scan)
+  public: void OnLaserScanMsg(const msgs::LaserScan &_scan)
   {
     if (!this->explorationStarted)
     {
@@ -187,7 +186,7 @@ struct gz::sim::systems::FreeSpaceExplorer::Implementation {
   /////////////////////////////////////////////////
   /// Perform search over occupancy grid for next position to
   /// explore.
-  std::optional<math::Pose3d> GetNextPoint(const msgs::LaserScan &_scan)
+  public: std::optional<math::Pose3d> GetNextPoint(const msgs::LaserScan &_scan)
   {
     if (!this->grid.has_value())
     {
@@ -266,8 +265,8 @@ struct gz::sim::systems::FreeSpaceExplorer::Implementation {
   }
 
   /// Scores information gain given laser scan parameters
-  std::optional<double> ScoreInfoGain(int _x, int _y,
-    const msgs::LaserScan &_scan)
+  public: std::optional<double> ScoreInfoGain(
+    int _x, int _y, const msgs::LaserScan &_scan)
   {
     if (!this->grid.has_value())
     {
@@ -296,8 +295,7 @@ struct gz::sim::systems::FreeSpaceExplorer::Implementation {
 
 /////////////////////////////////////////////////
 FreeSpaceExplorer::FreeSpaceExplorer():
-  dataPtr(
-    std::move(gz::utils::MakeUniqueImpl<Implementation>()))
+  dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -323,9 +321,9 @@ void FreeSpaceExplorer::Configure(
   this->dataPtr->sensorLink =
     _sdf->Get<std::string>("sensor_link", "link").first;
   this->dataPtr->numRows =
-    _sdf->Get<std::size_t>("width", 10).first;
+    _sdf->Get<unsigned int>("width", 10).first;
   this->dataPtr->numCols =
-    _sdf->Get<std::size_t>("height", 10).first;
+    _sdf->Get<unsigned int>("height", 10).first;
   this->dataPtr->resolution =
     _sdf->Get<double>("resolution", 1.0).first;
   this->dataPtr->node.Subscribe(scanTopic,

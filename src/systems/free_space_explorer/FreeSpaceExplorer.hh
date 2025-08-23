@@ -17,9 +17,11 @@
 #ifndef GZ_SIM_SYSTEMS_FREESPACEEXPLORER_HH_
 #define GZ_SIM_SYSTEMS_FREESPACEEXPLORER_HH_
 
-#include <gz/sim/System.hh>
-
 #include <gz/utils/ImplPtr.hh>
+#include <memory>
+
+#include "gz/sim/System.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {
