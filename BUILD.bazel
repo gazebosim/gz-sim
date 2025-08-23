@@ -674,6 +674,7 @@ gz_sim_system_libraries(
         "@gz-sensors",
         "@gz-sensors//:dvl",
         "@gz-transport",
+        "@gz-utils//:ImplPtr",
     ],
 )
 
@@ -699,6 +700,26 @@ gz_sim_system_libraries(
 #         "@gz-plugin//:register",
 #     ],
 # )
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/entity_semantics/**/*.cc",
+            "src/systems/entity_semantics/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-entity-semantics-system.so",
+    static_lib_name = "gz-sim-entity-semantics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -797,6 +818,26 @@ gz_sim_system_libraries(
         "@gz-sensors//:force_torque",
         "@gz-transport",
         "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/free_space_explorer/**/*.cc",
+            "src/systems/free_space_explorer/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-free-space_explorer--system.so",
+    static_lib_name = "gz-sim-free-space-explorer-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//graphics",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
     ],
 )
 
@@ -1125,6 +1166,28 @@ gz_sim_system_libraries(
         "@gz-math",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/lookup_wheel_slip/**/*.cc",
+            "src/systems/lookup_wheel_slip/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lookup-wheel-slip-system.so",
+    static_lib_name = "gz-sim-lookup-wheel-slip-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//graphics",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-math",
         "@gz-transport",
         "@sdformat",
     ],
@@ -1556,6 +1619,7 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@gz-common//:gz-common",
         "@gz-common//profiler",
         "@gz-math",
         "@gz-msgs",

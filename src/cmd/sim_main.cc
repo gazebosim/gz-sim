@@ -343,6 +343,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
                   "for the Server.")
                   ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
 
+#ifdef WITH_GUI
   _app.add_option_function<std::string>("--render-engine",
     [_opt](const std::string &_renderEngine){
       _opt->renderEngineGui = _renderEngine;
@@ -367,6 +368,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
     "Note: If Vulkan is being in the GUI and gz-gui was\n"
     "built against Qt < 5.15.2, it may be very slow")
     ->check(CLI::IsMember({"opengl", "vulkan", "metal"}));
+  #endif
 
   _app.add_flag("--headless-rendering", _opt->headlessRendering,
                 "Run rendering in headless mode.");

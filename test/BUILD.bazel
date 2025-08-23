@@ -163,6 +163,22 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "INTEGRATION_load_physics_system_static_registry",
+    srcs = ["integration/load_physics_system_static_registry.cc"],
+    env = {"GZ_BAZEL": "1"},
+    deps = [
+        ":Helpers",
+        ":MockSystem",
+        "//:gz-sim-physics-system-static",
+        "//:gz-sim",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-math//:gz-math",
+        "@gz-physics//dartsim:libgz-physics-dartsim-plugin-static",
+    ],
+)
+
 filegroup(
     name = "worlds",
     srcs = glob(["worlds/**"]),

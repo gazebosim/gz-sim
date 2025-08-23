@@ -23,6 +23,7 @@ set(tests
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
+  entity_semantics_system.cc
   environment_preload_system.cc
   environmental_sensor_system.cc
   events.cc
@@ -50,6 +51,7 @@ set(tests
   load_system_static_registry.cc
   logical_camera_system.cc
   logical_audio_sensor_plugin.cc
+  lookup_wheel_slip_system.cc
   magnetometer_system.cc
   material.cc
   mecanum_drive_system.cc
