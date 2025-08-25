@@ -34,9 +34,9 @@ else()
 endif()
 
 if (UNIX AND NOT APPLE)
-  set (EXTRA_TEST_LIB_DEPS stdc++fs)
+  set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
 else()
-  set (EXTRA_TEST_LIB_DEPS)
+  set (EXTRA_TEST_LIB_DEPS backward_object)
 endif()
 
 # We're disabling pybind11 by default on Windows because they
