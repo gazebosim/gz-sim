@@ -72,6 +72,8 @@ std::string findFuelResource(const std::string &_pathToResource);
 /// \param[in] _headless True if server rendering should run headless
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
+/// \param[in] _waitForAssets True to wait for assets to download before
+/// starting simulation.
 /// \return 0 if successful, -1 in case of failure
 int createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         float _hz, double _initialSimTime, int _levels,
@@ -86,7 +88,8 @@ int createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         const char *_renderEngineGuiApiBackend,
                         const char *_file,
                         std::vector<std::string> _recordTopics, int _waitGui,
-                        int _headless, float _recordPeriod, int _seed);
+                        int _headless, float _recordPeriod, int _seed,
+                        int _waitForAssets);
 
 #ifdef WITH_GUI
 /// \brief Run simulation GUI.
