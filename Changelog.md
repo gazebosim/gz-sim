@@ -67,10 +67,6 @@
 1. Fix link in underwater tutorial
     * [Pull request #2977](https://github.com/gazebosim/gz-sim/pull/2977)
 
-1. Add support to get link AABB from its collisions
-    * [Pull request #2787](https://github.com/gazebosim/gz-sim/pull/2787)
-    * [Pull request #2821](https://github.com/gazebosim/gz-sim/pull/2821)
-
 1. Set GZ_IP=127.0.0.1 in cmd tests
     * [Pull request #2959](https://github.com/gazebosim/gz-sim/pull/2959)
 
@@ -95,7 +91,7 @@
     * [Pull request #2947](https://github.com/gazebosim/gz-sim/pull/2947)
     * [Pull request #2989](https://github.com/gazebosim/gz-sim/pull/2989)
 
-1. Fix crash when LiftDrag and AdvancedLiftDrag plugins are added without designating specific entity 
+1. Fix crash when LiftDrag and AdvancedLiftDrag plugins are added without designating specific entity
     * [Pull request #2907](https://github.com/gazebosim/gz-sim/pull/2907)
     * [Pull request #2923](https://github.com/gazebosim/gz-sim/pull/2923)
 
@@ -125,9 +121,6 @@
 1. Fix Qt warnings on shutdown
     * [Pull request #2898](https://github.com/gazebosim/gz-sim/pull/2898)
 
-1.  Do not create light visuals on server side
-    * [Pull request #2888](https://github.com/gazebosim/gz-sim/pull/2888)
-
 1. tutorials: Added hpc_clusters.md
     * [Pull request #2833](https://github.com/gazebosim/gz-sim/pull/2833)
 
@@ -137,20 +130,11 @@
     * [Pull request #3025](https://github.com/gazebosim/gz-sim/pull/3025)
     * [Pull request #2870](https://github.com/gazebosim/gz-sim/pull/2870)
 
-1. Add reference to `GZ_SIM_SYSTEM_PLUGIN_PATH` in tutorial for custom plugins
-    * [Pull request #2863](https://github.com/gazebosim/gz-sim/pull/2863)
-
 1. Bump gz-transport and others in jetty
     * [Pull request #2857](https://github.com/gazebosim/gz-sim/pull/2857)
 
 1. Fix QML warnings from Inertial.qml in Component Inspector
     * [Pull request #2830](https://github.com/gazebosim/gz-sim/pull/2830)
-
-1. Bring back feature for plotting pose attributes from Component Inspector
-    * [Pull request #2835](https://github.com/gazebosim/gz-sim/pull/2835)
-
-1. Add more documentation to `environmental_sensor.sdf` example world
-    * [Pull request #2836](https://github.com/gazebosim/gz-sim/pull/2836)
 
 1. Remove major version from package name
     * [Pull request #2726](https://github.com/gazebosim/gz-sim/pull/2726)
@@ -179,9 +163,6 @@
 
 1. Remove deprecations: tock
     * [Pull request #2703](https://github.com/gazebosim/gz-sim/pull/2703)
-
-1. Add parameter for adjust current sign in battery plugin
-    * [Pull request #2696](https://github.com/gazebosim/gz-sim/pull/2696)
 
 1. Replace systemTimeISO with systemTimeIso
     * [Pull request #2691](https://github.com/gazebosim/gz-sim/pull/2691)
