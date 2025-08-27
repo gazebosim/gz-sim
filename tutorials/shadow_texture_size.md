@@ -20,7 +20,7 @@ Currently, light type is restricted to only directional light. As a scene should
 
 ### Example usage for the GUI
 
-Let's change the shadow texture size for directional light with the SDF file below. (The finished SDF file can be viewed [here](https://github.com/gazebosim/gz-sim/tree/main/examples/worlds/shadow_texture_size.sdf).)
+Let's change the shadow texture size for directional light with the SDF file below. (The finished SDF file can be viewed [here](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds/shadow_texture_size.sdf).)
 
 1) Save the below in an SDF file named `shadow_texture_size.sdf`:
 

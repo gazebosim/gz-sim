@@ -10,7 +10,7 @@ following entity types:
 * Actor
 
 To create a system plugin for use in the simulation environment, follow the
-steps below. The fully working example is available [here](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/system_plugin).
+steps below. The fully working example is available [here](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/plugin/system_plugin).
 
 ## Decide on interfaces to implement
 

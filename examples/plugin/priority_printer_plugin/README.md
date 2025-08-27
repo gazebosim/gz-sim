@@ -2,7 +2,7 @@
 
 This example illustrates how to control the order of execution of System
 PreUpdate and Update callbacks. As documented in
-[gz/sim/System.hh](https://github.com/gazebosim/gz-sim/tree/main/include/gz/sim/System.hh),
+[gz/sim/System.hh](https://github.com/gazebosim/gz-sim/tree/gz-sim10/include/gz/sim/System.hh),
 the PreUpdate and Update phases are executed sequentially in the same
 thread, and the order of execution of these phases can be
 controlled by specifying a signed integer priority value for the System

@@ -10,7 +10,7 @@ release will remove the deprecated code.
 * Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
 have been migrated. This upgrade affects all users' custom Gazebo GUI plugins.
 Please see the
-[Qt6 Migration tutorial](https://github.com/gazebosim/gz-gui/blob/main/tutorials/09_migration_qt6.md)
+[Qt6 Migration tutorial](https://github.com/gazebosim/gz-gui/blob/gz-sim10/tutorials/09_migration_qt6.md)
 for information on how to port your Qt5 based plugins to Qt6.
 
 ### Removals
