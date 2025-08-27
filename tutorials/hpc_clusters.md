@@ -105,7 +105,7 @@ other magic to allow access (cgroups).
 Try directly running Gazebo on the GPU node. For easier testing and to rule-out
 ROS complexity, use the `sensors_demo.sdf` world that comes preinstalled with
 Gazebo. If you don't have it, just
-[download it](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/sensors_demo.sdf)
+[download it](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/sensors_demo.sdf)
 e.g. to your home folder and provide an absolute path to the file instead of
 simply `sensors_demo.sdf`.
 

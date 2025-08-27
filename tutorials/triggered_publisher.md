@@ -16,10 +16,10 @@ Publisher systems can be chained together by showing how the falling of the box
 can trigger another box to fall. Last, it covers how a service call can be
 triggered to reset the robot pose. The finished world SDFormat file for this
 tutorial can be found in
-[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/triggered_publisher.sdf)
+[examples/worlds/triggered_publisher.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/triggered_publisher.sdf)
 
 We will use the differential drive vehicle from
-[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/diff_drive.sdf),
+[examples/worlds/diff_drive.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/diff_drive.sdf),
 but modify the input topic of the `DiffDrive` system to `cmd_vel`. A snippet of
 the change to the `DiffDrive` system is shown below:
 
