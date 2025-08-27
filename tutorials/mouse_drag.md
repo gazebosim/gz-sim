@@ -7,7 +7,7 @@ translation.
 To use it, open any world (such as `shapes.sdf`) and select `Mouse Drag` from
 the plugin dropdown to load the plugin.
 
-![Interface](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mouse_drag/Interface.png)
+![Interface](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/mouse_drag/Interface.png)
 
 ## Rotation mode
 
@@ -21,7 +21,7 @@ constant stiffness and critical damping. It is also proportional to the link's
 inertia, so that the same stiffness causes similar effects on different links.
 The rotational stiffness can be modified through the interface.
 
-![Rotation mode](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mouse_drag/Rotation.png)
+![Rotation mode](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/mouse_drag/Rotation.png)
 
 ## Translation mode
 
@@ -42,7 +42,7 @@ for the offset in the force application point. In this case, the rotation of
 the object is also slightly damped (according to the rotational stiffness).
 The position stiffness can be modified through the interface.
 
-![Translation mode](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/mouse_drag/Translation.png)
+![Translation mode](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/mouse_drag/Translation.png)
 
 ## SDF configuration
 

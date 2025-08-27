@@ -33,7 +33,7 @@ others.
 
 ### Python Script for Generating Procedural Datasets of SDF models
 
-Python script [`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/main/examples/scripts/blender/procedural_dataset_generator.py)
+Python script [`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/scripts/blender/procedural_dataset_generator.py)
 contains a Blender exporter of SDF models and a generator of procedural SDF
 dataset. The exporter outputs models that are compatible with the SDF format
 and the directory structure of [Fuel](https://app.gazebosim.org), which can be
@@ -85,7 +85,7 @@ steps:
 blender [blender options] file.blend
 ```
 
-2. Copy the [`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/main/examples/scripts/blender/procedural_dataset_generator.py)
+2. Copy the [`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/scripts/blender/procedural_dataset_generator.py)
    Python script into a new text data block in your `.blend` under the
    *Text Editor* tab.
 3. Configure the default parameters of the script for your specific models via
@@ -93,7 +93,7 @@ blender [blender options] file.blend
 4. Run the script using the *Run script* button in the panel of the
    *Text Editor* tab at the top of the screen.
 
-![Instructions in Blender](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/blender_instructions.png)
+![Instructions in Blender](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/blender_instructions.png)
 
 Once you follow these steps and configure the script for your `.blend` project,
 you can save it and use Option B in the future.
@@ -103,7 +103,7 @@ you can save it and use Option B in the future.
 The second option is to run a script that is already saved inside a `.blend`
 project, i.e. saved and configured through the procedure above. Therefore, this
 approach is applicable only for `.blend` projects previously configured with the
-[`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/main/examples/scripts/blender/procedural_dataset_generator.py)
+[`procedural_dataset_generator.py`](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/scripts/blender/procedural_dataset_generator.py)
 Python script. This option enables configuring the script via CLI arguments
 instead of modifying its contents, which is unnecessary if the project is
 already configured.
@@ -129,9 +129,9 @@ blender [blender options] file.blend --python /path/to/procedural_dataset_genera
 In order to demonstrate the generation of procedural datasets, the following two
 `.blend` projects are provided:
 
-- [rock.blend](https://github.com/gazebosim/gz-sim/tree/main/tutorials/files/blender_procedural_datasets/rock.blend)
+- [rock.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim10/tutorials/files/blender_procedural_datasets/rock.blend)
   — Models of randomized rocks for Gazebo that robots can interact with
-- [woodland.blend](https://github.com/gazebosim/gz-sim/tree/main/tutorials/files/blender_procedural_datasets/woodland.blend)
+- [woodland.blend](https://github.com/gazebosim/gz-sim/tree/gz-sim10/tutorials/files/blender_procedural_datasets/woodland.blend)
   — Static environments of natural scenery with randomly scattered assets of
   low-poly trees, rocks, grass and flowers (these assets were adapted from
   [Blender Studio](https://studio.blender.org))
@@ -140,8 +140,8 @@ You need to download these `.blend` projects to follow the examples. You can do
 that either manually on GitHub or via `wget`/`curl`.
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/rock.blend
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/woodland.blend
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/rock.blend
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/woodland.blend
 ```
 
 ### Try Demo Files
@@ -155,9 +155,9 @@ blender rock.blend --python-text procedural_dataset_generator.py -- -o sdf_model
 blender woodland.blend --python-text procedural_dataset_generator.py -- -o sdf_models/woodland
 ```
 
-![Example of generating a dataset of rock SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/demo_blender_rock.gif)
+![Example of generating a dataset of rock SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/demo_blender_rock.gif)
 
-![Example of generating a dataset of woodland SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/demo_blender_woodland.gif)
+![Example of generating a dataset of woodland SDF models](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/demo_blender_woodland.gif)
 
 You can configure the script in several ways (see
 `blender rock.blend --python-text procedural_dataset_generator.py -- -h`). For
@@ -220,9 +220,9 @@ Hereafter, you can spawn the generated models inside Gazebo with your preferred
 approach, e.g. via the Resource Spawner GUI plugin. Below are some examples of
 Gazebo environments using the rock and woodland SDF models.
 
-![Example of the generated rock SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/demo_gazebo_rock.png)
+![Example of the generated rock SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/demo_gazebo_rock.png)
 
-![Example of the generated woodland SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/blender_procedural_datasets/demo_gazebo_woodland.png)
+![Example of the generated woodland SDF models in Gazebo](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/blender_procedural_datasets/demo_gazebo_woodland.png)
 
 Every object that uses Geometry Nodes in these projects has several input
 attributes that can be configured. You can open the `.blend` projects again,

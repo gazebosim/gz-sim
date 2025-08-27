@@ -8,7 +8,7 @@ This is not to be confused with integrating a new rendering engine. See
 for that.
 
 This tutorial will go over a couple of example plugins that are located at
-https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/rendering_plugins.
+https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/plugin/rendering_plugins.
 
 ## Scenes
 
@@ -47,7 +47,7 @@ See [Create System Plugins](createsystemplugins.html).
 To interact with the client-side scene, you'll need to write an
 \ref gz::gui::Plugin, or a more specialized `gz::sim::GuiSystem`
 if you need to access entities and components.
-See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/gui_system_plugin).
+See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/plugin/gui_system_plugin).
 
 ## Getting the scene
 
@@ -121,7 +121,7 @@ Here's how to do it:
 ## Running examples
 
 Follow the build instructions on the rendering plugins
-[README](https://github.com/gazebosim/gz-sim/blob/main/examples/plugin/rendering_plugins)
+[README](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/plugin/rendering_plugins)
 and you'll generate both plugins:
 
 * `RenderingGuiPlugin`: GUI plugin that updates the GUI scene's ambient light with a random color at each click.

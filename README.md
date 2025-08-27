@@ -9,10 +9,10 @@
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/main/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/main)
-Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-noble-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-main-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-main-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-main-cnlwin)](https://build.osrfoundation.org/job/gz_sim-main-cnlwin/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim10/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim10-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim10-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim10-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim10-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-10-cnlwin)](https://build.osrfoundation.org/job/gz_sim-10-cnlwin/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -78,7 +78,7 @@ introspection and control.
 
 # Install
 
-For installing Gazebo, see the [getting started guide](https://gazebosim.org/docs/latest/getstarted/). If you want to use `libgz-sim` as a library, see the [installation tutorial](https://gazebosim.org/api/sim/9/install.html)
+For installing Gazebo, see the [getting started guide](https://gazebosim.org/docs/latest/getstarted/). If you want to use `libgz-sim` as a library, see the [installation tutorial](https://gazebosim.org/api/sim/10/install.html)
 
 # Usage
 
@@ -116,11 +116,11 @@ in both terminals (as well as any changes to `GZ_PARTITION` and other environmen
 
 # Documentation
 
-See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/10/install.html).
 
 # Testing
 
-See the [installation tutorial](https://gazebosim.org/api/sim/9/install.html).
+See the [installation tutorial](https://gazebosim.org/api/sim/10/install.html).
 
 See the [Writing Tests section of the contributor guide](https://gazebosim.org/docs/all/contributing/#writing-tests) for help creating or modifying tests.
 
