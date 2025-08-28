@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
   You can echo logical camera sensor messages using:
-    gz topic -e -t /logical_camera_sensor
+    gz topic -e -t /logical_camera
 -->
 <sdf version="1.10">
   <world name="visualize_frustum_world">
