@@ -9,7 +9,7 @@ understanding of its theory.
 # Understanding Hydrodynamic Forces
 
 The behavior of a moving body through water is different from the behavior of
-a ground based vehicle. In particular bodies moving underwater experience much
+a ground based vehicle. In particular bodies moving underwater experience many
 more forces derived from drag, buoyancy and lift. The way these forces act on
 a body can be seen in the following diagram:
 
