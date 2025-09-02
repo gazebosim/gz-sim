@@ -716,7 +716,7 @@ void GlobalIlluminationCiVct::OnRefreshCamerasImpl()
   REQUIRES(this->dataPtr->serviceMutex)
 {
   auto scene = this->dataPtr->scene.get();
-  if(!scene)
+  if (!scene)
   {
     gzerr << "Scene is not initialized. "
           << "Cannot refresh camera list."
