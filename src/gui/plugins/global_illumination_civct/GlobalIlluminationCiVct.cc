@@ -763,12 +763,16 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 
   if (!this->dataPtr->gi)
   {
-    gzerr << "GlobalIlluminationCiVct object is not initialized. Cannot add cascade." << std::endl;
+    gzerr << "GlobalIlluminationCiVct object is not initialized. "
+          << "Cannot add cascade."
+          << std::endl;
     return nullptr;
   }
   if (this->dataPtr->gi->Started())
   {
-    gzdbg << "GlobalIlluminationCiVct is already started. Cannot add cascade." << std::endl;
+    gzerr << "GlobalIlluminationCiVct is already started. "
+          << "Cannot add cascade."
+          << std::endl;
     return nullptr;
   }
 
