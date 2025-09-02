@@ -754,8 +754,16 @@ QObject *GlobalIlluminationCiVct::AddCascade()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
-  if (this->dataPtr->gi && this->dataPtr->gi->Started())
+  if (!this->dataPtr->gi)
+  {
+    gzerr << "GlobalIlluminationCiVct object is not initialized. Cannot add cascade." << std::endl;
     return nullptr;
+  }
+  if (this->dataPtr->gi->Started())
+  {
+    gzdbg << "GlobalIlluminationCiVct is already started. Cannot add cascade." << std::endl;
+    return nullptr;
+  }
 
   rendering::CiVctCascade const *ref = nullptr;
   if (!this->dataPtr->cascades.empty())
