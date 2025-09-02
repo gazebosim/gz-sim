@@ -719,7 +719,8 @@ void GlobalIlluminationCiVct::OnRefreshCamerasImpl()
   if(!scene)
   {
     gzerr << "Scene is not initialized. "
-          << "Cannot refresh camera list." << std::endl;
+          << "Cannot refresh camera list."
+          << std::endl;
     return;
   }
   const unsigned int sensorCount = scene->SensorCount();
