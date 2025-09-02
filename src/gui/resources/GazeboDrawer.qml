@@ -137,7 +137,7 @@ Rectangle {
     fileMode: FileDialog.OpenFile
     nameFilters: [ "SDF files (*.sdf)" ]
     onAccepted: {
-      saveWorldFileText.text = fileUrl;
+      saveWorldFileText.text = selectedFile;
     }
   }
 
