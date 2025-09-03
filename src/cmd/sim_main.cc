@@ -15,6 +15,7 @@
  *
 */
 
+#include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -137,15 +138,23 @@ int launchProcess(
   const std::string &_executable,
   std::vector<std::string> _args)
 {
-  std::ostringstream command;
-  command << _executable;
+  std::string command = _executable;
   for(const auto &val : _args)
   {
-    command << " " << val;
+    command += " ";
+    if (val.find(' ') != std::string::npos)
+    {
+      // Wrap commands that have spaces in them with extra quotes
+      command += "\"" + val + "\"";
+    }
+    else
+    {
+      command += val;
+    }
   }
 
   #ifdef _WIN32
-    STARTUPINFO si;
+    STARTUPINFOA si;
     PROCESS_INFORMATION pi;
 
     ZeroMemory(&si, sizeof(si));
@@ -153,12 +162,11 @@ int launchProcess(
 
     ZeroMemory(&pi, sizeof(pi));
 
-    std::wstring w_command = std::wstring(command.str().begin(),
-                                          command.str().end());
-    LPWSTR cmd_line = const_cast<LPWSTR>(w_command.c_str());
+    std::vector<char> commandVec(command.begin(), command.end());
+    commandVec.push_back('\0');
 
-    if(!CreateProcessW(NULL, cmd_line, NULL, NULL, FALSE, 0,
-                      NULL, NULL, &si, &pi))
+    if(!CreateProcessA(NULL, commandVec.data(), NULL, NULL, FALSE, 0,
+                       NULL, NULL, &si, &pi))
     {
       return -1;
     }
@@ -170,7 +178,7 @@ int launchProcess(
 
     return 0;
   #else
-    return std::system(command.str().c_str());
+    return std::system(command.c_str());
   #endif
 }
 
@@ -481,10 +489,16 @@ int main(int argc, char** argv)
     // Launch the GUI in a separate thread
     std::thread guiThread(
       [opt]{
-        utils::setenv(
-            std::string("GZ_SIM_WAIT_GUI"),
-            std::to_string(opt->waitGui));
-        launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
+        try {
+          utils::setenv(
+              std::string("GZ_SIM_WAIT_GUI"),
+              std::to_string(opt->waitGui));
+          launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
+        }
+        catch (const std::exception &e)
+        {
+          gzerr << e.what() << "\n";
+        }
       });
     #endif
 
@@ -511,7 +525,8 @@ int main(int argc, char** argv)
 
     #ifdef WITH_GUI
     // Join the GUI thread to wait for a possible window close
-    guiThread.join();
+    if (guiThread.joinable())
+      guiThread.join();
 
     // Shutdown server if the GUI has been closed from the screen
     if(server.Running())
