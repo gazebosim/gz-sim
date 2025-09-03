@@ -835,9 +835,11 @@ gz_sim_system_libraries(
         ":gz-sim",
         "@gz-common//graphics",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
+        "@gz-utils//:ImplPtr",
     ],
 )
 
@@ -1189,6 +1191,7 @@ gz_sim_system_libraries(
         "@gz-plugin//:register",
         "@gz-math",
         "@gz-transport",
+        "@gz-transport//parameters",
         "@sdformat",
     ],
 )
@@ -1839,7 +1842,10 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@gz-common",
+        "@gz-common//events",
         "@gz-common//profiler",
+        "@gz-physics",
         "@gz-plugin//:register",
         "@gz-transport",
     ],
