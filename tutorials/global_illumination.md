@@ -55,7 +55,7 @@ GI can be enabled for the GUI through a GUI plugin. Both VCT and CI VCT are supp
 #### Example usage for VCT
 
 1) Open the [global_illumination.sdf](
-https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/worlds/global_illumination.sdf) world with
+https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds/global_illumination.sdf) world with
 
 ```bash
 gz sim global_illumination.sdf
@@ -76,7 +76,7 @@ gz sim global_illumination.sdf
 #### Example usage for CI VCT
 
 1) Open the [global_illumination.sdf](
-https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/worlds/global_illumination.sdf) world using Vulkan with
+https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds/global_illumination.sdf) world using Vulkan with
 
 ```bash
 gz sim global_illumination.sdf --render-engine-api-backend vulkan
@@ -93,7 +93,7 @@ GI can be enabled for sensors through the `<global_illumination>` element in the
 #### Example usage with VCT
 
 We will demonstrate how to enable VCT for the sensor with the SDF file below. (The finished SDF file can be viewed [here](
-https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/worlds/global_illumination.sdf).)
+https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds/global_illumination.sdf).)
 
 1) Save the below in an SDF file named `gi_demo.sdf`:
 

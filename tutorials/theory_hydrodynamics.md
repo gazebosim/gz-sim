@@ -88,7 +88,7 @@ in the positive `X` direction.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -O ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -O ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 

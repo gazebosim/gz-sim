@@ -14,11 +14,11 @@ Here, we will explain how a system can use components to modify the world.
 You can view the list of \ref gz::sim::components in the API.
 
 Programmatic usage of components can be found in
-[built-in systems](https://github.com/gazebosim/gz-sim/tree/gz-sim8/src/systems)
-and [integration tests](https://github.com/gazebosim/gz-sim/blob/gz-sim8/test/integration)
+[built-in systems](https://github.com/gazebosim/gz-sim/tree/gz-sim10/src/systems)
+and [integration tests](https://github.com/gazebosim/gz-sim/blob/gz-sim10/test/integration)
 in the source code.
 Most of the built-in systems have a corresponding example SDF world.
-You can find all the example worlds [here](https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/worlds).
+You can find all the example worlds [here](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds).
 
 ## Prerequisites
 
@@ -35,15 +35,15 @@ understanding:
 Quick access to resources mentioned in this tutorial:
 - List of \ref gz::sim::components in the API
 - List of \ref gz::sim::systems in the API
-- Source code of [built-in systems](https://github.com/gazebosim/gz-sim/tree/gz-sim8/src/systems)
-- Source code of [example worlds](https://github.com/gazebosim/gz-sim/tree/gz-sim8/examples/worlds)
-- Source code of [integration tests](https://github.com/gazebosim/gz-sim/blob/gz-sim8/test/integration)
+- Source code of [built-in systems](https://github.com/gazebosim/gz-sim/tree/gz-sim10/src/systems)
+- Source code of [example worlds](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/worlds)
+- Source code of [integration tests](https://github.com/gazebosim/gz-sim/blob/gz-sim10/test/integration)
 
 ## Entity Component Manager (ECM)
 
 The gateway to interact with entities is through the
 \ref gz::sim::EntityComponentManager
-([source code](https://github.com/gazebosim/gz-sim/blob/gz-sim8/include/gz/sim/EntityComponentManager.hh)),
+([source code](https://github.com/gazebosim/gz-sim/blob/gz-sim10/include/gz/sim/EntityComponentManager.hh)),
 ECM for short.
 The ECM gives us access to all the entities, each of which gives us access
 to its associated components.
