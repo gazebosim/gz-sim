@@ -4,12 +4,12 @@ We will show how to use the gz::sim::components::Pose component in a system.
 
 An example usage of the component can be found in the
 gz::sim::systems::OdometryPublisher system
-([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim8/src/systems/odometry_publisher)),
+([source code](https://github.com/gazebosim/gz-sim/tree/gz-sim10/src/systems/odometry_publisher)),
 which reads the pose component of a model through the Model entity, uses the
 pose for some calculations, and then publishes the result as a message.
 
 More usage can be found in the
-[integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim8/test/integration/odometry_publisher.cc)
+[integration test](https://github.com/gazebosim/gz-sim/blob/gz-sim10/test/integration/odometry_publisher.cc)
 for the system, with test worlds `odometry*.sdf`
 [here](https://github.com/gazebosim/gz-sim/tree/gz-sim10/test/worlds).
 

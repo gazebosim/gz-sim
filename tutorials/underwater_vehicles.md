@@ -38,15 +38,15 @@ mkdir -p ~/gazebo_maritime/models/my_lrauv/meshes
 Download all the files from here and copy them within that directory:
 
 ```bash
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/model.config -O ~/gazebo_maritime/models/my_lrauv/model.config
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/model.sdf -O ~/gazebo_maritime/models/my_lrauv/model.sdf
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Albedo.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Albedo.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Metalness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Metalness.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Normal.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Normal.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Roughness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Roughness.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/base.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/base.dae
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/propeller.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/propeller.dae
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/tethys.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/tethys.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/model.config -O ~/gazebo_maritime/models/my_lrauv/model.config
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/model.sdf -O ~/gazebo_maritime/models/my_lrauv/model.sdf
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Albedo.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Albedo.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Metalness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Metalness.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Normal.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Normal.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Roughness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Roughness.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/meshes/base.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/base.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/meshes/propeller.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/propeller.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/my_lrauv/meshes/tethys.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/tethys.dae
 ```
 
 Open with your favorite editor `~/gazebo_maritime/models/my_lrauv/model.sdf`.
@@ -111,7 +111,7 @@ Let's now download the following world that includes the buoyancy plugin:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/buoyant_lrauv.sdf -O ~/gazebo_maritime/worlds/buoyant_lrauv.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/underwater_vehicles/buoyant_lrauv.sdf -O ~/gazebo_maritime/worlds/buoyant_lrauv.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 

@@ -61,8 +61,8 @@ mkdir -p ~/gazebo_maritime/models/my_turtle/materials/textures
 Next, download the COLLADA mesh and its texture.
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_visuals/turtle.dae -O ~/gazebo_maritime/models/my_turtle/meshes/turtle.dae
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/adding_visuals/Turtle_BaseColor.png -O ~/gazebo_maritime/models/my_turtle/materials/textures/Turtle_BaseColor.png
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/adding_visuals/turtle.dae -O ~/gazebo_maritime/models/my_turtle/meshes/turtle.dae
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/adding_visuals/Turtle_BaseColor.png -O ~/gazebo_maritime/models/my_turtle/materials/textures/Turtle_BaseColor.png
 ```
 
 Now, let's edit our `model.sdf` to use the new mesh as our visual.
