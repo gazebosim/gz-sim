@@ -533,9 +533,23 @@ void GlobalIlluminationVct::UpdateOctantCount(int _axis, uint32_t _count)
 //////////////////////////////////////////////////
 void GlobalIlluminationVct::SetEnabled(const bool _enabled)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->enabled = _enabled;
-  this->dataPtr->visualDirty = true;
+  bool needEmitDebugVisChanged = false;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+    if (this->dataPtr->enabled && !_enabled)
+    {
+      // When disabling GI, force debugVisMode to None for safety
+      this->dataPtr->debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
+      this->dataPtr->debugVisualizationDirty = true;
+      needEmitDebugVisChanged = true;
+    }
+    this->dataPtr->enabled = _enabled;
+    this->dataPtr->visualDirty = true;
+  }
+  if (needEmitDebugVisChanged)
+  {
+    this->DebugVisualizationModeChanged();
+  }
 }
 
 //////////////////////////////////////////////////
