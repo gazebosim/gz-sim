@@ -26,6 +26,7 @@
 #include <sdf/Types.hh>
 
 #include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
