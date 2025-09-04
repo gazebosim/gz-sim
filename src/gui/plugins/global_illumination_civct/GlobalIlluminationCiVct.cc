@@ -710,6 +710,13 @@ void GlobalIlluminationCiVct::OnRefreshCamerasImpl()
   REQUIRES(this->dataPtr->serviceMutex)
 {
   auto scene = this->dataPtr->scene.get();
+  if (!scene)
+  {
+    gzerr << "Scene is not initialized. "
+          << "Cannot refresh camera list."
+          << std::endl;
+    return;
+  }
   const unsigned int sensorCount = scene->SensorCount();
   for (unsigned int i = 0u; i < sensorCount; ++i)
   {
