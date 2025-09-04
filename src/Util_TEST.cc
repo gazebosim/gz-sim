@@ -981,7 +981,8 @@ TEST_F(UtilTest, EntityFromMsg)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UtilTest, ResolveSdfWorldFile)
+// This test appears to be flaky on macOS (see https://github.com/gazebosim/gz-sim/issues/3031)
+TEST_F(UtilTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResolveSdfWorldFile))
 {
   // Test resolving a Fuel URI
   fuel_tools::ClientConfig config;
