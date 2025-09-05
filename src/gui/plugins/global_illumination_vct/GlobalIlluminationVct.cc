@@ -479,9 +479,21 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
       }
       else if (this->dataPtr->debugVisualizationDirty)
       {
-        this->dataPtr->gi->SetDebugVisualization(
+        if (this->dataPtr->enabled && this->dataPtr->gi->Enabled())
+        {
+          this->dataPtr->gi->SetDebugVisualization(
           static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
-            this->dataPtr->debugVisMode));
+          this->dataPtr->debugVisMode));
+        }
+        else
+        {
+          gzerr << "Trying to set debug visualization mode while GI is "
+                << "disabled. Please enable GI first."
+                << std::endl;
+          // Always set to none when disabled to avoid crash
+          this->dataPtr->gi->SetDebugVisualization(
+            rendering::GlobalIlluminationVct::DVM_None);
+        }
         this->dataPtr->debugVisualizationDirty = false;
       }
     }
