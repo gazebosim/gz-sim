@@ -43,50 +43,15 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                 const sdf::Model &_model)
     {
-      sdf::ElementPtr modelElem = _model.Element();
-      if (!modelElem)
-      {
-        gzwarn << "Unable to serialize sdf::Model" << std::endl;
-        return _out;
-      }
-
-      bool skip = false;
-      if (modelElem->HasElement("pose"))
-      {
-        sdf::ElementPtr poseElem = modelElem->GetElement("pose");
-        if (poseElem->GetAttribute("relative_to")->GetSet())
-        {
-          // Skip serializing models with //pose/@relative_to attribute
-          // since deserialization will fail. This could be a nested model.
-          // see https://github.com/gazebosim/gz-sim/issues/1071
-          // Once https://github.com/gazebosim/sdformat/issues/820 is
-          // resolved, there should be an API that returns sdf::Errors objects
-          // instead of printing console msgs so it would be easier to ignore
-          // specific errors in Deserialize.
-          static bool warned = false;
-          if (!warned)
-          {
-            gzwarn << "Skipping serialization / deserialization for models "
-                    << "with //pose/@relative_to attribute."
-                    << std::endl;
-            warned = true;
-          }
-          skip = true;
-        }
-      }
-
-      if (!skip)
-      {
-        _out << "<?xml version=\"1.0\" ?>"
-              << "<sdf version='" << SDF_PROTOCOL_VERSION << "'>"
-              << modelElem->ToString("")
-              << "</sdf>";
-
-      }
-      else
-      {
-        _out << "";
-      }
+      // Skip serialization of model sdf
+      // \todo(iche033) It was found that deserialization is
+      // very expensive, which impacts initial load time of a world with many
+      // entities. Currently only the server consumes ModelSdf components
+      // so let's skip serialization until either the deserialization
+      // performance is improved or when the GUI needs the to use Model SDF
+      // components.
+      // see, https://github.com/gazebosim/sdformat/issues/1478
+      _out << "";
       return _out;
     }
 
@@ -104,6 +69,7 @@ namespace serializers
       }
 
       // Its super expensive to create an SDFElement for some reason
+      // https://github.com/gazebosim/sdformat/issues/1478
       sdf::Root root;
       sdf::Errors errors = root.LoadSdfString(sdf);
       if (!root.Model())
