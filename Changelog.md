@@ -1,6 +1,6 @@
 ## Gazebo Sim 9.x
 
-### Gazebo Sim 9.4.0 (2025-09-05)
+### Gazebo Sim 9.4.0 (2025-09-08)
 
 1. Fix crash when setting debug visualization mode while gi is disabled (backport #3059)
     * [Pull request #3072](https://github.com/gazebosim/gz-sim/pull/3072)
