@@ -104,7 +104,10 @@ namespace serializers
         return _in;
       }
 
-      // Its super expensive to create an SDFElement for some reason
+      // Its super expensive to an sdf::SDFPtr object.
+      // Workaround this by making it a static object so we only initialize it
+      // once.
+      // https://github.com/gazebosim/sdformat/issues/1478
       sdf::Errors errors;
       static sdf::SDFPtr sdfParsed;
       if (!sdfParsed)
