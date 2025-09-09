@@ -41,7 +41,7 @@ namespace serializers
     /// \param[in] _time Model to stream
     /// \return The stream.
     public: static std::ostream &Serialize(std::ostream &_out,
-                const sdf::Model &_model)
+                const sdf::Model &)
     {
       // Skip serialization of model sdf
       // \todo(iche033) It was found that deserialization is
@@ -60,25 +60,11 @@ namespace serializers
     /// \param[out] _model Model to populate
     /// \return The stream.
     public: static std::istream &Deserialize(std::istream &_in,
-                sdf::Model &_model)
+                sdf::Model &)
     {
-      std::string sdf(std::istreambuf_iterator<char>(_in), {});
-      if (sdf.empty())
-      {
-        return _in;
-      }
-
-      // Its super expensive to create an SDFElement for some reason
+      // Its super expensive to create an SDFElement for some reason.
+      // So seriazliation / deserialization of model sdf is skipped
       // https://github.com/gazebosim/sdformat/issues/1478
-      sdf::Root root;
-      sdf::Errors errors = root.LoadSdfString(sdf);
-      if (!root.Model())
-      {
-        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
-        return _in;
-      }
-
-      _model = *root.Model();
       return _in;
     }
   };
