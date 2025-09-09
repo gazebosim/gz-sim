@@ -1276,8 +1276,10 @@ TEST_F(ComponentsTest, ModelSdf)
   std::istringstream istr(ostr.str());
   comp2.Deserialize(istr);
 
-  EXPECT_EQ("my_model", comp2.Data().Name());
-  EXPECT_EQ(1u, comp2.Data().LinkCount());
+  // Model sdf serialization / deserialization is disabled due to perf issue
+  // https://github.com/gazebosim/sdformat/issues/1478
+  // EXPECT_EQ("my_model", comp2.Data().Name());
+  // EXPECT_EQ(1u, comp2.Data().LinkCount());
 }
 
 /////////////////////////////////////////////////
