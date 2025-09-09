@@ -21,7 +21,9 @@
 
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+#include <sdf/parser.hh>
 
+#include <gz/common/Timer.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
@@ -43,6 +45,9 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
                 const sdf::Model &_model)
     {
+      // _out << "";
+      // return _out;
+
       sdf::ElementPtr modelElem = _model.Element();
       if (!modelElem)
       {
@@ -104,8 +109,41 @@ namespace serializers
       }
 
       // Its super expensive to create an SDFElement for some reason
+      common::Timer t;
+
+      t.Start();
+      sdf::Errors errors;
+      static sdf::SDFPtr sdfParsed;
+      if (!sdfParsed)
+      {
+        sdfParsed.reset(new sdf::SDF());
+        sdf::init(sdfParsed);
+      }
+      // t.Stop();
+      // std::cerr << "       -------  deserialize  t1 " << t.ElapsedTime().count() << std::endl;
+
+
+      // t.Start();
+      auto config = sdf::ParserConfig::GlobalConfig();
+      // Read an SDF string, and store the result in sdfParsed.
+      if (!sdf::readString(sdf, config, sdfParsed, errors))
+      {
+        errors.push_back(
+            {sdf::ErrorCode::STRING_READ, "Unable to read SDF string: " + sdf});
+      }
+      t.Stop();
+      std::cerr << "       -------  deserialize  t2 " << t.ElapsedTime().count() << std::endl;
+
+      t.Start();
+
       sdf::Root root;
-      sdf::Errors errors = root.LoadSdfString(sdf);
+      sdf::Errors loadErrors = root.Load(sdfParsed, config);
+      t.Stop();
+      // std::cerr << "       -------  deserialize  t3 " << t.ElapsedTime().count() << std::endl;
+
+
+      errors.insert(errors.end(), loadErrors.begin(), loadErrors.end());
+
       if (!root.Model())
       {
         gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
@@ -113,6 +151,21 @@ namespace serializers
       }
 
       _model = *root.Model();
+//      return _in;
+
+
+
+      sdf::Root root2;
+      t.Start();
+      sdf::Errors errors2 = root2.LoadSdfString(sdf);
+      t.Stop();
+      std::cerr << "       -------  deserialize  o2 " << t.ElapsedTime().count() << std::endl;
+      if (!root.Model())
+      {
+        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
+        return _in;
+      }
+
       return _in;
     }
   };
