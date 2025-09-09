@@ -104,7 +104,7 @@ namespace serializers
         return _in;
       }
 
-      // Its super expensive to an sdf::SDFPtr object.
+      // Its super expensive to create an sdf::SDFPtr object.
       // Workaround this by making it a static object so we only initialize it
       // once.
       // https://github.com/gazebosim/sdformat/issues/1478
@@ -123,6 +123,8 @@ namespace serializers
                << sdf << std::endl;
         return _in;
       }
+      sdf::Root root;
+      root.Load(sdfParsed, config);
       if (!root.Model())
       {
         gzwarn << "Unable to deserialize sdf::Model " << sdf << std::endl;
