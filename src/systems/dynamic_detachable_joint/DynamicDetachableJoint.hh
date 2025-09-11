@@ -113,6 +113,10 @@ namespace systems
     /// \brief Name of attachment link in the child model
     private: std::string childLinkName;
 
+    /// \brief Variables to keep track of what is currently attached
+    private: std::string attachedChildModelName;
+    private: std::string attachedChildLinkName;
+
     /// \brief Minimum distance to consider the child link as attached
     private: double defaultAttachDistance = 0.1;
     
