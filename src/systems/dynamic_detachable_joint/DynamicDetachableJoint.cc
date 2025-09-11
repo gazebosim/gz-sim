@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * Author: Adarsh Karan K P, Neobotix GmbH
+ * 
  */
-// Author: Adarsh Karan K P, Neobotix GmbH
 
 #include <vector>
 
@@ -42,9 +43,9 @@ using namespace systems;
 
 /////////////////////////////////////////////////
 void DynamicDetachableJoint::Configure(const Entity &_entity,
-               const std::shared_ptr<const sdf::Element> &_sdf,
-               EntityComponentManager &_ecm,
-               EventManager &/*_eventMgr*/)
+                const std::shared_ptr<const sdf::Element> &_sdf,
+                EntityComponentManager &_ecm,
+                EventManager &/*_eventMgr*/)
 {
   this->model = Model(_entity);
   if (!this->model.Valid(_ecm))
@@ -76,7 +77,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
 
   // Setup attach distance threshold
   auto [value, found] = _sdf->Get<double>("attach_distance", this->defaultAttachDistance);
-  if(!found)
+  if (!found)
   {
     gzmsg << "No 'attach_distance' specified in sdf, using default value of "
           << this->defaultAttachDistance << " meters.\n";
@@ -93,7 +94,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
   // Check if the SDF has a service_name element
   std::vector<std::string> serviceNames;
   if (_sdf->HasElement("service_name"))
-  { 
+  {
     // If it does, add it to the list of service names
     serviceNames.push_back(_sdf->Get<std::string>("service_name"));
   }
@@ -114,7 +115,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
   // Advertise the service
   if (!this->node.Advertise(this->serviceName, &DynamicDetachableJoint::OnServiceRequest, this))
   {
-    std::cerr << "Error advertising service [" << serviceName << "]" << std::endl;
+    gzerr << "Error advertising service [" << this->serviceName << "]" << std::endl;
     return;
   }
 
@@ -189,30 +190,27 @@ void DynamicDetachableJoint::PreUpdate(
           components::Name(this->childLinkName));
 
       if (kNullEntity != this->childLinkEntity)
-      {  
-
-      // store the child and parent link poses in the world frame
-      math::Pose3d child_pose = gz::sim::worldPose(this->childLinkEntity, _ecm);
-      math::Pose3d parent_pose = gz::sim::worldPose(this->parentLinkEntity, _ecm);
-
-      auto dist = child_pose.Pos().Distance(parent_pose.Pos());
-      std::cout << "Centre-to-centre distance: " << dist << " m\n";
-
-      // Check if the child link is within the attach distance
-      if (dist > this->attachDistance)
       {
-        std::cout << "Child Link " << this->childLinkName
-               << " is too far away from Parent"
-               << "Distance: " << dist
-               << ", Attach Distance: " << this->attachDistance
-               << ". Cannot attach.\n";
-        this->attachRequested = false; // reset attach request
-        return;
-      }
-      // If the child link is within the attach distance, proceed to attach
-      std::cout << "Child Link " << this->childLinkName
-             << " is within attach distance of Parent Link. Proceeding to attach.\n";
-             
+        // store the child and parent link poses in the world frame
+        math::Pose3d childPose = gz::sim::worldPose(this->childLinkEntity, _ecm);
+        math::Pose3d parentPose = gz::sim::worldPose(this->parentLinkEntity, _ecm);
+
+        auto dist = childPose.Pos().Distance(parentPose.Pos());
+        gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
+
+        // Check if the child link is within the attach distance
+        if (dist > this->attachDistance)
+        {
+          gzwarn << "Child Link [" << this->childLinkName 
+                << "] is too far from parent. Distance: " << dist 
+                << "m, threshold: " << this->attachDistance << "m" << std::endl;
+          this->attachRequested = false; // reset attach request
+          return;
+        }
+        // If the child link is within the attach distance, proceed to attach
+        gzdbg << "Child Link " << this->childLinkName
+               << " is within attach distance of Parent Link. Proceeding to attach." << std::endl;
+
         // Attach the models
         // We do this by creating a detachable joint entity.
         this->detachableJointEntity = _ecm.CreateEntity();
@@ -262,7 +260,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
                                             gz::msgs::AttachDetachResponse &_res)
 {
   GZ_PROFILE("DynamicDetachableJoint::OnServiceRequest");
-  
+
   // Check if the request is valid
   if (_req.child_model_name().empty() || _req.child_link_name().empty() )
   {

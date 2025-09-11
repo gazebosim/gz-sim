@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2025 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ * Author: Adarsh Karan K P, Neobotix GmbH
+ * 
  */
-// Author: Adarsh Karan K P, Neobotix GmbH
 
 #ifndef GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 #define GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
@@ -36,40 +37,31 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  /// \brief A system that initially attaches two models via a fixed joint and
-  /// allows for the models to get detached during simulation via a topic. A
-  /// model can be re-attached during simulation via a topic. The status of the
-  /// detached state can be monitored via a topic as well.
-  ///
-  /// ## System Parameters
-  ///
-  /// - `<parent_link>`: Name of the link in the parent model to be used in
-  /// creating a fixed joint with a link in the child model.
-  ///
-  /// - `<child_model>`: Name of the model to which this model will be connected
-  ///
-  /// - `<child_link>`: Name of the link in the child model to be used in
-  /// creating a fixed joint with a link in the parent model.
-  ///
-  /// - `<topic>` (optional): Topic name to be used for detaching connections.
-  /// Using <detach_topic> is preferred.
-  ///
-  /// - `<detach_topic>` (optional): Topic name to be used for detaching
-  /// connections. If multiple detachable plugin is used in one model,
-  /// `detach_topic` is REQUIRED to detach child models individually.
-  ///
-  /// - `<attach_topic>` (optional): Topic name to be used for attaching
-  /// connections. If multiple detachable plugin is used in one model,
-  /// `attach_topic` is REQUIRED to attach child models individually.
-  ///
-  /// - `<output_topic>` (optional): Topic name to be used for publishing
-  /// the state of the detachment. If multiple detachable plugin is used in
-  /// one model, `output_topic` is REQUIRED to publish child models state
-  /// individually.
-  ///
-  /// - `<suppress_child_warning>` (optional): If true, the system
-  /// will not print a warning message if a child model does not exist yet.
-  /// Otherwise, a warning message is printed. Defaults to false.
+/// \brief A system that dynamically creates detachable joints between models
+/// via a service interface, allowing runtime attachment and detachment of any
+/// model with a parent model that is defined in the SDF/URDF.
+///
+/// Unlike the standard DetachableJoint which requires child model specification
+/// in the SDF, this system accepts child model and link names via service calls.
+/// Hence, it is a more flexible extension of the existing DetachableJoint system.
+///
+/// ## System Parameters
+///
+/// - `<parent_link>`: Name of the link in the parent model to be used in
+///   creating a fixed joint with a link in the child model. Required.
+///
+/// - `<attach_distance>` (optional): Maximum distance in meters between parent
+///   and child links to allow attachment. Defaults to 0.1 meters.
+///
+/// - `<service_name>` (optional): Service name for attach/detach requests.
+///   Defaults to `/model/{model_name}/dynamic_detachable_joint/attach_detach`.
+///
+/// - `<output_topic>` (optional): Topic name for publishing attachment state.
+///   Defaults to `/model/{model_name}/detachable_joint/state`.
+///
+/// - `<suppress_child_warning>` (optional): If true, the system
+/// will not print a warning message if a child model does not exist yet.
+/// Otherwise, a warning message is printed. Defaults to false.
 
   class DynamicDetachableJoint
       : public System,
@@ -97,6 +89,9 @@ namespace systems
     private: transport::Node::Publisher outputPub;
 
     /// \brief Callback for attach/detach service request
+    /// \param[in] _req Request message containing child model/link names and command
+    /// \param[out] _res Response message with success status and message
+    /// \return Always returns true to indicate message was processed
     private: bool OnServiceRequest(const gz::msgs::AttachDetachRequest &_req,
                                   gz::msgs::AttachDetachResponse &_res);
     
@@ -117,9 +112,6 @@ namespace systems
 
     /// \brief Name of attachment link in the child model
     private: std::string childLinkName;
-
-    /// \brief Pose of the child link in world frame
-    const components::WorldPose* childPoseInWorld;
 
     /// \brief Minimum distance to consider the child link as attached
     private: double defaultAttachDistance = 0.1;
