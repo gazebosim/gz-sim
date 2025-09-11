@@ -222,6 +222,9 @@ void DynamicDetachableJoint::PreUpdate(
                                          this->childLinkEntity, "fixed"}));
         this->attachRequested = false;
         this->isAttached = true;
+        // Keep track of the attached pair for future validation
+        this->attachedChildModelName = this->childModelName;
+        this->attachedChildLinkName  = this->childLinkName;
         this->PublishJointState(this->isAttached);
         gzdbg << "Attaching entity: " << this->detachableJointEntity
                << std::endl;
@@ -250,7 +253,10 @@ void DynamicDetachableJoint::PreUpdate(
       this->detachableJointEntity = kNullEntity;
       this->detachRequested = false;
       this->isAttached = false;
+      // Publish using the last known attached pair, then clear them.
       this->PublishJointState(this->isAttached);
+      this->attachedChildModelName.clear();
+      this->attachedChildLinkName.clear();
     }
   }
 }
@@ -275,50 +281,69 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
     _res.set_message("Invalid request: command must be 'attach' or 'detach'.");
     return true;
   }
-  // Set the child model and link names
-  this->childModelName = _req.child_model_name();
-  this->childLinkName = _req.child_link_name();
 
-  // If attach is requested
-  if (_req.command() == "attach")
-  {
-    if (this->isAttached) 
+   // If attach is requested
+   if (_req.command() == "attach")
+   {
+     if (this->isAttached) 
+     {
+       _res.set_success(false);
+      _res.set_message("Already attached to child model " + this->attachedChildModelName +
+                      " at link " + this->attachedChildLinkName + ".");
+       gzdbg << "Already attached" << std::endl;
+       return true;
+     }
+
+    // set the child model and link names from the request
+    this->childModelName = _req.child_model_name();
+    this->childLinkName  = _req.child_link_name();
+     this->OnAttachRequest(msgs::Empty());
+     _res.set_success(true);
+     _res.set_message("Attached to child model " + this->childModelName +
+                    " at link " + this->childLinkName + ".");
+   }
+
+   // If detach is requested
+   else if (_req.command() == "detach")
+   {
+     if (!this->isAttached)
+     {
+         _res.set_success(false);
+         _res.set_message(std::string("Detach request received for ")
+              + this->attachedChildModelName + "/" + this->attachedChildLinkName);
+         gzdbg << "Already detached" << std::endl;
+         return true;
+     }
+
+    // Validate that the request matches what is actually attached.
+    const auto &reqModel = _req.child_model_name();
+    const auto &reqLink  = _req.child_link_name();
+    if (reqModel != this->attachedChildModelName ||
+        reqLink  != this->attachedChildLinkName)
     {
       _res.set_success(false);
-      _res.set_message("Already attached to another object");
-      gzdbg << "Already attached" << std::endl;
+      _res.set_message(
+        "Detach rejected: requested " + reqModel + "/" + reqLink +
+        " but currently attached to " + this->attachedChildModelName + "/" +
+        this->attachedChildLinkName + "."
+      );
       return true;
     }
 
-    this->OnAttachRequest(msgs::Empty());
-    _res.set_success(true);
-    _res.set_message("Attach request received.");
-  }
+     this->OnDetachRequest(msgs::Empty());
+     _res.set_success(true);
+     _res.set_message("Detached from child model " + this->attachedChildModelName +
+                 " at link " + this->attachedChildLinkName + ".");
+   }
 
-  // If detach is requested
-  else if (_req.command() == "detach")
-  {
-    if (!this->isAttached)
-    {
-        _res.set_success(false);
-        _res.set_message("Already detached");
-        gzdbg << "Already detached" << std::endl;
-        return true;
-    }
-
-    this->OnDetachRequest(msgs::Empty());
-    _res.set_success(true);
-    _res.set_message("Detach request processed successfully.");
-  }
-
-  else
-  {
-    _res.set_success(false);
-    _res.set_message("Invalid command. Use 'attach' or 'detach'.");
-    return true;
-  }
-  return true;
-}
+   else
+   {
+     _res.set_success(false);
+     _res.set_message("Invalid command. Use 'attach' or 'detach'.");
+     return true;
+   }
+   return true;
+ }
 
 //////////////////////////////////////////////////
 void DynamicDetachableJoint::OnAttachRequest(const msgs::Empty &)
