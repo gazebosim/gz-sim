@@ -36,6 +36,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Heightmap.hh>
 
+#include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Link.hh"
@@ -213,8 +214,10 @@ void LookupWheelSlip::Configure(const Entity &_entity,
   }
 
   // find the slip map file
+  auto modelPath =
+    _ecm.ComponentData<components::SourceFilePath>(_entity);
   std::string filePath = common::findFile(asFullPath(
-      this->dataPtr->slipMapFilename, _sdf->FilePath()), false);
+      this->dataPtr->slipMapFilename, modelPath.value()), false);
   if (filePath.empty())
   {
     auto *component =
