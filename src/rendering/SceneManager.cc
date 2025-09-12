@@ -400,7 +400,7 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           // \todo(anyone) find way to propate cast shadows changes tos submesh
           // in gz-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
-          submesh->SetMaterial(submeshMat);
+          submesh->SetMaterial(submeshMat, false);
         }
       }
     }
