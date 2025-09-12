@@ -212,7 +212,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
     return;
   }
 
-  // file the slip map file
+  // find the slip map file
   std::string filePath = common::findFile(asFullPath(
       this->dataPtr->slipMapFilename, _sdf->FilePath()), false);
   if (filePath.empty())
