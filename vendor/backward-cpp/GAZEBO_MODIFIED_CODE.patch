@@ -1,0 +1,38 @@
+Summary: avoid installing backwards file in the system unless being 
+  used as a top level
+
+Description: do not install backwards files in the Gazebo usage of
+the vendor package. See https://github.com/gazebosim/gz-sim/pull/2838.
+Upstream PR related: https://github.com/bombela/backward-cpp/pull/338
+
+On updates, be sure of preserving this patch.
+
+diff --git a/vendor/backward-cpp/CMakeLists.txt b/vendor/backward-cpp/CMakeLists.txt
+index e625f8ac9..3b18476d5 100644
+--- a/vendor/backward-cpp/CMakeLists.txt
++++ b/vendor/backward-cpp/CMakeLists.txt
+@@ -157,16 +157,16 @@ if(BACKWARD_TESTS)
+ 	endforeach()
+ endif()
+ 
+-install(
+-    FILES "backward.hpp"
+-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+-)
+-install(
+-    FILES "BackwardConfig.cmake"
+-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+-)
+ # check if Backward is being used as a top-level project or included as a subproject
+ if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
++    install(
++        FILES "backward.hpp"
++        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++    )
++    install(
++        FILES "BackwardConfig.cmake"
++        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
++    )
+     # export the targets (note that exporting backward_object does not make sense)
+     install(TARGETS backward_interface backward EXPORT BackwardTargets)
+     # install a CMake file for the exported targets
