@@ -51,10 +51,12 @@ Gazebo has an example world that demonstrates the use of the wheel slip system,
 namely [trisphere_cycle_wheel_slip.sdf](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/trisphere_cycle_wheel_slip.sdf).
 
 In this example, the world consists of two trisphere cycles and uses an inclined
-gravity vector to simulate a sloped surface. The blue trisphere cycle on the
-left has zero slip compliance values (no slip) while the red trisphere cycle
-on the right has both the lateral and longitudinal slip compliance values
-set to 1.
+gravity vector to simulate a sloped surface. The red trisphere cycle on the
+right has zero slip compliance values (no slip) while the blue trisphere cycle
+on the left has both the lateral and longitudinal slip compliance values
+set to 1. Both trispheres have their rear wheels controlled by joint velocity
+control systems with initial +x velocity to move them forward up the sloped
+surface.
 
 Launch Gazebo with the example world:
 
@@ -63,10 +65,8 @@ gz sim -v 4 trisphere_cycle_wheel_slip.sdf
 ```
 
 Hit the Play button and you should see that the two trisphere cycles start
-moving down the slope under the effect of the inclined gravity vector.
-After some time, the red trisphere cycle picks up speed and wheel slippage
-occurs, causing it to tumble. The blue trisphere cycle continues to roll down the
-slope normally.
+moving forward. The blue trisphere cycle moves slower than the red trisphere
+due to wheel slippage.
 
 @image html files/wheel_slip_systems/wheel_slip.gif
 
