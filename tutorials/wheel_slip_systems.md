@@ -66,7 +66,7 @@ gz sim -v 4 trisphere_cycle_wheel_slip.sdf
 
 Hit the Play button and you should see that the two trisphere cycles start
 moving forward. The blue trisphere cycle moves slower than the red trisphere
-due to wheel slippage.
+cycle due to wheel slippage.
 
 @image html files/wheel_slip_systems/wheel_slip.gif
 
