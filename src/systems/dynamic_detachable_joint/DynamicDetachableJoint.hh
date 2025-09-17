@@ -21,10 +21,16 @@
 #define GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
+#include <gz/msgs/empty.pb.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
+
 #include <gz/transport/Node.hh>
+
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
 
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
@@ -93,7 +99,7 @@ namespace systems
     /// \param[out] _res Response message with success status and message
     /// \return Always returns true to indicate message was processed
     private: bool OnServiceRequest(const gz::msgs::AttachDetachRequest &_req,
-                                  gz::msgs::AttachDetachResponse &_res);
+                                   gz::msgs::AttachDetachResponse &_res);
     
     /// \brief Helper function to publish the state of the detachment
     private: void PublishJointState(bool attached);

@@ -17,12 +17,14 @@
  * 
  */
 
+#include "DynamicDetachableJoint.hh"
+
+#include <string>
 #include <vector>
 
+#include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
-
-#include <gz/common/Profiler.hh>
 
 #include <sdf/Element.hh>
 
@@ -32,10 +34,11 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
+
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
-
-#include "DynamicDetachableJoint.hh"
 
 using namespace gz;
 using namespace sim;
@@ -109,8 +112,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
     gzerr << "No valid service name for DynamicDetachableJoint could be found.\n";
     return;
   }
-  gzdbg << "using service: "
-        << this->serviceName << std::endl;
+  gzdbg << "using service: " << this->serviceName << std::endl;
 
   // Advertise the service
   if (!this->node.Advertise(this->serviceName, &DynamicDetachableJoint::OnServiceRequest, this))
@@ -165,7 +167,8 @@ void DynamicDetachableJoint::PreUpdate(
   if (this->validConfig && !this->isAttached)
   {
     // return if attach is not requested.
-    if (!this->attachRequested){
+    if (!this->attachRequested)
+    {
       return;
     }
     // Look for the child model and link
@@ -202,14 +205,14 @@ void DynamicDetachableJoint::PreUpdate(
         if (dist > this->attachDistance)
         {
           gzwarn << "Child Link [" << this->childLinkName 
-                << "] is too far from parent. Distance: " << dist 
-                << "m, threshold: " << this->attachDistance << "m" << std::endl;
+                 << "] is too far from parent. Distance: " << dist 
+                 << "m, threshold: " << this->attachDistance << "m" << std::endl;
           this->attachRequested = false; // reset attach request
           return;
         }
         // If the child link is within the attach distance, proceed to attach
         gzdbg << "Child Link " << this->childLinkName
-               << " is within attach distance of Parent Link. Proceeding to attach." << std::endl;
+              << " is within attach distance of Parent Link. Proceeding to attach." << std::endl;
 
         // Attach the models
         // We do this by creating a detachable joint entity.
@@ -227,18 +230,18 @@ void DynamicDetachableJoint::PreUpdate(
         this->attachedChildLinkName  = this->childLinkName;
         this->PublishJointState(this->isAttached);
         gzdbg << "Attaching entity: " << this->detachableJointEntity
-               << std::endl;
+              << std::endl;
       }
       else
       {
         gzwarn << "Child Link " << this->childLinkName
-                << " could not be found.\n";
+               << " could not be found.\n";
       }
     }
     else if (!this->suppressChildWarning)
     {
       gzwarn << "Child Model " << this->childModelName
-              << " could not be found.\n";
+             << " could not be found.\n";
     }
   }
 
@@ -263,7 +266,7 @@ void DynamicDetachableJoint::PreUpdate(
 
 //////////////////////////////////////////////////
 bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachRequest &_req,
-                                            gz::msgs::AttachDetachResponse &_res)
+                                              gz::msgs::AttachDetachResponse &_res)
 {
   GZ_PROFILE("DynamicDetachableJoint::OnServiceRequest");
 
@@ -289,7 +292,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
      {
        _res.set_success(false);
       _res.set_message("Already attached to child model " + this->attachedChildModelName +
-                      " at link " + this->attachedChildLinkName + ".");
+                       " at link " + this->attachedChildLinkName + ".");
        gzdbg << "Already attached" << std::endl;
        return true;
      }
@@ -300,7 +303,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
      this->OnAttachRequest(msgs::Empty());
      _res.set_success(true);
      _res.set_message("Attached to child model " + this->childModelName +
-                    " at link " + this->childLinkName + ".");
+                      " at link " + this->childLinkName + ".");
    }
 
    // If detach is requested
@@ -333,7 +336,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
      this->OnDetachRequest(msgs::Empty());
      _res.set_success(true);
      _res.set_message("Detached from child model " + this->attachedChildModelName +
-                 " at link " + this->attachedChildLinkName + ".");
+                      " at link " + this->attachedChildLinkName + ".");
    }
 
    else
