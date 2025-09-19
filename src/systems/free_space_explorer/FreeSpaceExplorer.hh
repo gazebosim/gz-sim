@@ -17,10 +17,11 @@
 #ifndef GZ_SIM_SYSTEMS_FREESPACEEXPLORER_HH_
 #define GZ_SIM_SYSTEMS_FREESPACEEXPLORER_HH_
 
-#include <gz/sim/System.hh>
-
-#include <gz/transport/Node.hh>
+#include <gz/utils/ImplPtr.hh>
 #include <memory>
+
+#include "gz/sim/System.hh"
+#include "gz/sim/config.hh"
 
 namespace gz
 {
@@ -30,8 +31,6 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  struct FreeSpaceExplorerPrivateData;
-
   /// \brief This plugin is to be used with a model that has a 2D
   /// LiDAR attached to it. It uses this 2d lidar to export an occupancy
   /// map of the world.
@@ -43,12 +42,19 @@ namespace systems
   ///    * <width> - Number of columns in the occupancy map
   ///    * <height> - Number of rows in the occupancy map
   ///    * <resolution> - Resolution of an individual cell
-  ///    * <sensor_link> - Link on which the sensor is attached within the model.
+  ///    * <sensor_link> - Link on which the sensor is attached within the
+  ///                      model.
   ///    * <image_topic> - Topic to publish occupancy map on
+  ///    * <start_topic> - Topic to listen on before starting exploration.
+  ///
+  /// Note: It is assumed the sensor does not implement any pose
+  /// offset from the link itself. This may of may not be true.
+  /// and should be fixed in a future release.
   class FreeSpaceExplorer:
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
-    public gz::sim::ISystemPreUpdate
+    public gz::sim::ISystemPreUpdate,
+    public gz::sim::ISystemPostUpdate
   {
     /// \brief Constructor
     public: FreeSpaceExplorer();
@@ -68,8 +74,13 @@ namespace systems
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
 
+    // Documentation inherited
+    public: void PostUpdate(
+      const gz::sim::UpdateInfo &_info,
+      const gz::sim::EntityComponentManager &_ecm) override;
+
     /// \brief Private data pointer
-    private: std::unique_ptr<FreeSpaceExplorerPrivateData> dataPtr;
+    private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };
 }
 }

@@ -104,7 +104,8 @@ struct MaybeGilScopedRelease
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
-                                   const ServerConfig &_config)
+                                   const ServerConfig &_config,
+                                   const bool _createEntities)
   : sdfWorld(_world), serverConfig(_config)
 {
   // Keep world name
@@ -261,7 +262,12 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
-  this->CreateEntities(_world);
+  if (_createEntities)
+  {
+    this->SetWorldSdf(_world);
+    this->SetCreateEntities();
+    this->CreateEntities();
+  }
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
@@ -797,11 +803,39 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep number of iterations requested by caller
   uint64_t processedIterations{0};
 
+  // Force a wait on asset creation if the number of requested iterations
+  // is greater than zero. We want to wait if the iterations are greater
+  // than zero because the user has indicated a specific number of steps
+  // to take with all assets.
+  if (_iterations > 0)
+  {
+    bool created = this->entitiesCreated;
+    while(!created && this->running)
+    {
+      {
+        std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
+        created = this->creationCv.wait_for(createLock,
+          std::chrono::milliseconds(200),
+          [this]{return this->entitiesCreated;});
+      }
+
+      if (!created && this->createEntities)
+        this->CreateEntities();
+    }
+  }
+
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
+    // Create entities if set. This needs to be called before updating
+    // the systems.
+    if (this->createEntities)
+    {
+      this->CreateEntities();
+    }
+
     GZ_PROFILE("SimulationRunner::Run - Iteration");
 
     // Update the step size and desired rtf
@@ -930,7 +964,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // Process world control messages.
   this->ProcessMessages();
 
-  // Clear all new entities
+  // Clear all new entities..
   this->entityCompMgr.ClearNewlyCreatedEntities();
 
   // Recreate any entities that have the Recreate component
@@ -1557,9 +1591,33 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 }
 
 //////////////////////////////////////////////////
-void SimulationRunner::CreateEntities(const sdf::World &_world)
+void SimulationRunner::SetWorldSdf(const sdf::World &_world)
 {
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
   this->sdfWorld = _world;
+}
+
+//////////////////////////////////////////////////
+const sdf::World &SimulationRunner::WorldSdf() const
+{
+  return this->sdfWorld;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetCreateEntities()
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  this->createEntities = true;
+}
+
+void SimulationRunner::CreateEntities()
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  if (!this->createEntities)
+  {
+    gzerr << "Need to call SetCreateEntites before CreateEntities\n";
+    return;
+  }
 
   // Instantiate the SDF creator
   auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
@@ -1673,6 +1731,10 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
 
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+
+  this->createEntities = false;
+  this->entitiesCreated = true;
+  this->creationCv.notify_all();
 }
 
 /////////////////////////////////////////////////
