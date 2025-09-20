@@ -26,6 +26,7 @@
 #include "gz/sim/World.hh"
 
 #include <sstream>
+#include <string>
 
 using namespace gz;
 using namespace sim;
@@ -54,7 +55,6 @@ void ExportOccupancyUi::LoadConfig(
     this->title = "Export Occupancy";
 
   gui::App()->findChild<gui::MainWindow *>()->installEventFilter(this);
-
 }
 
 void ExportOccupancyUi::Update(const UpdateInfo &,
