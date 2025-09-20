@@ -20,6 +20,10 @@
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
+#include <gz/transport/Node.hh>
+
+#include "gz/sim/Util.hh"
+#include "gz/sim/World.hh"
 
 #include <sstream>
 
@@ -28,9 +32,11 @@ using namespace sim;
 
 class gz::sim::ExportOccupancyUiPrivate
 {
+  public: std::string worldName;
 };
 
-ExportOccupancyUi::ExportOccupancyUi() : dataPtr(std::make_unique<ExportOccupancyUiPrivate>())
+ExportOccupancyUi::ExportOccupancyUi() :
+  dataPtr(std::make_unique<ExportOccupancyUiPrivate>())
 {
   gui::App()->Engine()->rootContext()->setContextProperty(
     "exportOccupancy", this);
@@ -48,22 +54,35 @@ void ExportOccupancyUi::LoadConfig(
     this->title = "Export Occupancy";
 
   gui::App()->findChild<gui::MainWindow *>()->installEventFilter(this);
+
 }
 
 void ExportOccupancyUi::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
-
+  auto world = World(worldEntity(_ecm));
+  if (!world.Valid(_ecm)) {
+    gzerr << "Could not get running world" << std::endl;
+    return;
+  }
+  if (!world.Name(_ecm).has_value())
+  {
+    return;
+  }
+  this->dataPtr->worldName = world.Name(_ecm).value();
 }
 
-void ExportOccupancyUi::StartExport(double _samples, double _range, double _rangeRes, double _angularRes,
-  double _distanceFromGround, double _gridResolution, std::size_t _numWidth, std::size_t _numHeight)
+void ExportOccupancyUi::StartExport(double _samples, double _range,
+  double _rangeRes, double _angularRes,
+  double _distanceFromGround, double _gridResolution,
+  std::size_t _numWidth, std::size_t _numHeight)
 {
   gz::msgs::EntityFactory factoryReq;
   std::stringstream ss;
   ss << R"(
+    <sdf version="1.6">
     <model name="model_with_lidar">
-      <pose>0 0 )" << _distanceFromGround << R"( 0 0 0</pose>
+      <pose>-1.5 -1.5 )" << _distanceFromGround << R"( 0 0 0</pose>
       <link name="link">
           <inertial>
             <mass>0.1</mass>
@@ -121,8 +140,18 @@ void ExportOccupancyUi::StartExport(double _samples, double _range, double _rang
         <sensor_link>link</sensor_link>
       </plugin>
     </model>
+    </sdf>
   )";
+
+  gzerr << ss.str() <<std::endl;
   factoryReq.set_sdf(ss.str());
+
+  gz::transport::Node node;
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+        [](const msgs::Boolean &/*_rep*/, const bool _result)
+    {};
+  node.Request("/world/" + this->dataPtr->worldName + "/create",
+      factoryReq, cb);
 }
 
 // Register this plugin

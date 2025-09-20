@@ -51,8 +51,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
                         EntityComponentManager &_ecm) override;
 
     /// Triggers the export of our
-    public: Q_INVOKABLE void StartExport(double _samples, double _range, double _rangeRes, double _angularRes,
-      double _distanceFromGround, double _gridResolution, std::size_t _numWidth, std::size_t _numHeight);
+    public: Q_INVOKABLE void StartExport(double _samples, double _range,
+      double _rangeRes, double _angularRes,
+      double _distanceFromGround, double _gridResolution,
+      std::size_t _numWidth, std::size_t _numHeight);
 
     /// \internal
     /// \brief Pointer to private data
