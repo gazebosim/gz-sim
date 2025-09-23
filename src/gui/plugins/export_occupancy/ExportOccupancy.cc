@@ -34,6 +34,8 @@ using namespace sim;
 class gz::sim::ExportOccupancyUiPrivate
 {
   public: std::string worldName;
+  public: gz::transport::Node node;
+  public: gz::transport::Node::Publisher startPub;
 };
 
 ExportOccupancyUi::ExportOccupancyUi() :
@@ -41,6 +43,9 @@ ExportOccupancyUi::ExportOccupancyUi() :
 {
   gui::App()->Engine()->rootContext()->setContextProperty(
     "exportOccupancy", this);
+  this->dataPtr->startPub =
+    this->dataPtr->node.Advertise<gz::msgs::Boolean>("/start");
+
 }
 
 ExportOccupancyUi::~ExportOccupancyUi()
@@ -82,7 +87,7 @@ void ExportOccupancyUi::StartExport(double _samples, double _range,
   ss << R"(
     <sdf version="1.6">
     <model name="model_with_lidar">
-      <pose>-1.5 -1.5 )" << _distanceFromGround << R"( 0 0 0</pose>
+      <pose>0 0 )" << _distanceFromGround << R"( 0 0 0</pose>
       <link name="link">
           <inertial>
             <mass>0.1</mass>
@@ -143,7 +148,6 @@ void ExportOccupancyUi::StartExport(double _samples, double _range,
     </sdf>
   )";
 
-  gzerr << ss.str() <<std::endl;
   factoryReq.set_sdf(ss.str());
 
   gz::transport::Node node;
@@ -152,6 +156,13 @@ void ExportOccupancyUi::StartExport(double _samples, double _range,
     {};
   node.Request("/world/" + this->dataPtr->worldName + "/create",
       factoryReq, cb);
+}
+
+void ExportOccupancyUi::StartExploration()
+{
+  gz::msgs::Boolean start;
+  start.set_data(true);
+  this->dataPtr->startPub.Publish(start);
 }
 
 // Register this plugin

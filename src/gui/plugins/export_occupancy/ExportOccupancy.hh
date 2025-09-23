@@ -50,11 +50,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: void Update(const UpdateInfo &,
                         EntityComponentManager &_ecm) override;
 
-    /// Triggers the export of our
+    /// Triggers the export of our occupancy grid
     public: Q_INVOKABLE void StartExport(double _samples, double _range,
       double _rangeRes, double _angularRes,
       double _distanceFromGround, double _gridResolution,
       std::size_t _numWidth, std::size_t _numHeight);
+
+    /// Trigger scan start
+    public: Q_INVOKABLE void StartExploration();
 
     /// \internal
     /// \brief Pointer to private data

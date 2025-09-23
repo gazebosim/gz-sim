@@ -41,6 +41,7 @@ ColumnLayout {
     property string state: "configure"
     // Lidar Samples
     RowLayout {
+        id: sampleRow
         Label { text: "Lidar Samples:" }
         TextField {
             id: lidarSamplesInput
@@ -56,6 +57,7 @@ ColumnLayout {
 
     // Lidar Range
     RowLayout {
+        id: rangeRow
         Label { text: "Lidar Range (m):" }
         TextField {
             id: lidarRangeInput
@@ -71,6 +73,7 @@ ColumnLayout {
 
     // Lidar Range Resolution
     RowLayout {
+        id: rangeResolutionRow
         Label { text: "Lidar Range Resolution (m):" }
         TextField {
             id: lidarRangeResolutionInput
@@ -86,6 +89,7 @@ ColumnLayout {
 
     // Lidar Angular Resolution
     RowLayout {
+        id: angularResolutionRow
         Label { text: "Lidar Angular Resolution (degrees):" }
         TextField {
             id: lidarAngularResolutionInput
@@ -101,6 +105,7 @@ ColumnLayout {
 
     // Distance from Lidar to Ground
     RowLayout {
+        id: heightRow
         Label { text: "Distance from Lidar to Ground (m):" }
         TextField {
             id: distanceFromLidarToGroundInput
@@ -116,6 +121,7 @@ ColumnLayout {
 
     // Occupancy Grid Cell Resolution
     RowLayout {
+        id: resolutionRow
         Label { text: "Cell Resolution (m):" }
         TextField {
             id: occupancyGridCellResolutionInput
@@ -131,6 +137,7 @@ ColumnLayout {
 
     // Occupancy Grid Number of Horizontal Cells
     RowLayout {
+        id: horizontalCellRow
         Label { text: "Number of Horizontal Cells:" }
         TextField {
             id: occupancyGridHorizontalCellsInput
@@ -145,6 +152,7 @@ ColumnLayout {
     }
 
     RowLayout {
+        id: verticalCellRow
         Label { text: "Number of Vertical Cells:" }
         TextField {
             id: occupancyGridVerticalCellsInput
@@ -160,19 +168,29 @@ ColumnLayout {
 
     // Example of how you might use the properties (e.g., a button to print values)
     Button {
+        id: startButton
         text: "Add Probe"
         onClicked: {
-            console.log("Lidar Samples:", root.lidarSamples)
-            console.log("Lidar Range:", root.lidarRange, "m")
-            console.log("Lidar Range Resolution:", root.lidarRangeResolution, "m")
-            console.log("Lidar Angular Resolution:", root.lidarAngularResolution, "degrees")
-            console.log("Distance from Lidar to Ground:", root.distanceFromLidarToGround, "m")
-            console.log("Occupancy Grid Cell Resolution:", root.occupancyGridCellResolution, "m")
-            console.log("Occupancy Grid Number of Horizontal Cells:", root.occupancyGridNumberOfHorizontalCells)
-            exportOccupancy.StartExport(
-                root.lidarSamples, root.lidarRange, root.lidarRangeResolution, root.lidarAngularResolution,
-                root.distanceFromLidarToGround, root.occupancyGridCellResolution, root.occupancyGridNumberOfHorizontalCells,
-                root.occupancyGridNumberOfVerticalCells);
+            if (startButton.text === "Add Probe") {
+                sampleRow.visible =  false;
+                rangeRow.visible = false;
+                rangeResolutionRow.visible = false;
+                angularResolutionRow.visible = false;
+                horizontalCellRow.visible = false;
+                verticalCellRow.visible = false;
+                resolutionRow.visible = false;
+                heightRow.visible = false;
+                exportOccupancy.StartExport(
+                    root.lidarSamples, root.lidarRange, root.lidarRangeResolution, root.lidarAngularResolution,
+                    root.distanceFromLidarToGround, root.occupancyGridCellResolution, root.occupancyGridNumberOfHorizontalCells,
+                    root.occupancyGridNumberOfVerticalCells);
+                startButton.text = "Start Scan";
+            }
+            else if (startButton.text === "Start Scan")
+            {
+                exportOccupancy.StartExploration();
+                startButton.text = "Save Occupancy Map";
+            }
         }
     }
 }
