@@ -4,6 +4,12 @@
 
 1. **Baseline:** this includes all changes from 9.3.0 and earlier.
 
+1. Add missing dependencies to package.xml
+    * [Pull request #3093](https://github.com/gazebosim/gz-sim/pull/3093)
+
+1. Add tutorial on wheel slip systems
+    * [Pull request #3056](https://github.com/gazebosim/gz-sim/pull/3056)
+
 1. Set non-unique material to submesh when updating cast shadows property
     * [Pull request #3085](https://github.com/gazebosim/gz-sim/pull/3085)
 
