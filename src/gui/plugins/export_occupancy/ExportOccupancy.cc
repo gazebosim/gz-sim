@@ -16,7 +16,12 @@
 */
 
 #include "ExportOccupancy.hh"
+
+#include <gz/common/Image.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/convert/PixelFormatType.hh>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/image.pb.h>
 #include <gz/gui/Application.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/plugin/Register.hh>
@@ -28,6 +33,8 @@
 #include <sstream>
 #include <string>
 
+#include <QFileDialog>
+
 using namespace gz;
 using namespace sim;
 
@@ -36,6 +43,8 @@ class gz::sim::ExportOccupancyUiPrivate
   public: std::string worldName;
   public: gz::transport::Node node;
   public: gz::transport::Node::Publisher startPub;
+  public: ImageProvider* provider;
+  public: gz::msgs::Image lastOccupancy;
 };
 
 ExportOccupancyUi::ExportOccupancyUi() :
@@ -45,7 +54,11 @@ ExportOccupancyUi::ExportOccupancyUi() :
     "exportOccupancy", this);
   this->dataPtr->startPub =
     this->dataPtr->node.Advertise<gz::msgs::Boolean>("/start");
+  this->dataPtr->provider = new ImageProvider();
 
+  this->dataPtr->node.Subscribe("/scan_image",
+      &ExportOccupancyUi::OnImageMsg,
+      this);
 }
 
 ExportOccupancyUi::~ExportOccupancyUi()
@@ -53,8 +66,28 @@ ExportOccupancyUi::~ExportOccupancyUi()
 
 }
 
+void ExportOccupancyUi::RegisterImageProvider(const QString &_uniqueName)
+{
+  gz::gui::App()->Engine()->addImageProvider(_uniqueName,
+                                    this->dataPtr->provider);
+}
+
+void ExportOccupancyUi::OnImageMsg(const gz::msgs::Image &img)
+{
+  this->dataPtr->lastOccupancy = img;
+  unsigned int height = img.height();
+  unsigned int width = img.width();
+  QImage::Format qFormat = QImage::Format_RGB888;
+  QImage image = QImage(width, height, qFormat);
+  image = QImage(reinterpret_cast<const uchar *>(
+        img.data().c_str()), width, height,
+        3 * width, qFormat);
+  this->dataPtr->provider->SetImage(image);
+  emit this->newImage();
+}
+
 void ExportOccupancyUi::LoadConfig(
-    const tinyxml2::XMLElement *_pluginElem)
+    const tinyxml2::XMLElement */*_pluginElem*/)
 {
   if (this->title.empty())
     this->title = "Export Occupancy";
@@ -165,5 +198,26 @@ void ExportOccupancyUi::StartExploration()
   this->dataPtr->startPub.Publish(start);
 }
 
+void ExportOccupancyUi::Save()
+{
+  auto last = this->dataPtr->lastOccupancy;
+  //auto pt = msgs::Convert(last);
+  common::Image image;
+  image.SetFromData(
+    reinterpret_cast<unsigned char*>(
+      const_cast<char*>(last.data().data())),
+    last.width(), last.height(),
+    common::Image::PixelFormatType::RGB_INT8);
+
+  QString fileName = QFileDialog::getSaveFileName(
+    nullptr,
+    tr("Save File"),
+    QDir::homePath(), // Default directory
+    tr("PNG Files (*.png);"));
+  if (fileName.isEmpty()) {
+    return;
+  }
+  image.SavePNG(fileName.toStdString());
+}
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::ExportOccupancyUi, gz::gui::Plugin)

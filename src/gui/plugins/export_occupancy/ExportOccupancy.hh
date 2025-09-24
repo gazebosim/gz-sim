@@ -19,6 +19,9 @@
 #define GZ_SIM_GUI_EXPORT_OCCUPANCY_HH_
 
 #include <memory>
+#include <QQuickImageProvider>
+
+#include <gz/msgs/image.pb.h>
 
 #include "gz/sim/gui/GuiSystem.hh"
 #include "gz/gui/qt.h"
@@ -30,6 +33,36 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+  class ImageProvider : public QQuickImageProvider
+  {
+    public: ImageProvider()
+       : QQuickImageProvider(QQuickImageProvider::Image)
+    {
+    }
+
+    public: QImage requestImage(const QString &, QSize *,
+        const QSize &) override
+    {
+      if (!this->img.isNull())
+      {
+        // Must return a copy
+        return this->img;
+      }
+
+      // Placeholder in case we have no image yet
+      QImage i(400, 400, QImage::Format_RGB888);
+      i.fill(QColor(128, 128, 128, 100));
+      return i;
+    }
+
+    public: void SetImage(const QImage &_image)
+    {
+      this->img = _image;
+    }
+
+    private: QImage img;
+  };
+
   class ExportOccupancyUiPrivate;
 
   /// \brief A GUI plugin for a user to export the occupancy
@@ -56,8 +89,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       double _distanceFromGround, double _gridResolution,
       std::size_t _numWidth, std::size_t _numHeight);
 
+    /// Callback for when an occupancy scan is received
+    private: void OnImageMsg(const gz::msgs::Image &img);
+
     /// Trigger scan start
     public: Q_INVOKABLE void StartExploration();
+
+    /// Needed to scope image display
+    public: Q_INVOKABLE void RegisterImageProvider(const QString &_uniqueName);
+
+    /// Save Dialog
+    public: Q_INVOKABLE void Save();
+
+    /// \brief Notify that a new image has been received.
+    signals: void newImage();
 
     /// \internal
     /// \brief Pointer to private data

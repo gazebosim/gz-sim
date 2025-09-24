@@ -38,7 +38,21 @@ ColumnLayout {
     property real occupancyGridCellResolution: 0.1
     property int occupancyGridNumberOfHorizontalCells: 100
     property int occupancyGridNumberOfVerticalCells: 100
-    property string state: "configure"
+    property string uniqueName: ""
+
+    Connections {
+        target: exportOccupancy
+        function onNewImage(){ image.reload(); }
+    }
+
+    onParentChanged: {
+        if (undefined === parent)
+        return;
+
+        uniqueName = parent.card().objectName + "imagedisplay";
+        exportOccupancy.RegisterImageProvider(uniqueName);
+        image.reload();
+    }
     // Lidar Samples
     RowLayout {
         id: sampleRow
@@ -165,6 +179,21 @@ ColumnLayout {
             }
         }
     }
+    RowLayout {
+        id: imageView
+        visible: false
+        Image {
+            id: image
+            fillMode: Image.PreserveAspectFit
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            verticalAlignment: Image.AlignTop
+            function reload() {
+                // Force image request to C++
+                source = "image://" + uniqueName + "/" + Math.random().toString(36).substr(2, 5);
+            }
+        }
+    }
 
     // Example of how you might use the properties (e.g., a button to print values)
     Button {
@@ -180,16 +209,24 @@ ColumnLayout {
                 verticalCellRow.visible = false;
                 resolutionRow.visible = false;
                 heightRow.visible = false;
+                imageView.visible = true;
                 exportOccupancy.StartExport(
-                    root.lidarSamples, root.lidarRange, root.lidarRangeResolution, root.lidarAngularResolution,
-                    root.distanceFromLidarToGround, root.occupancyGridCellResolution, root.occupancyGridNumberOfHorizontalCells,
+                    root.lidarSamples, root.lidarRange,
+                    root.lidarRangeResolution, root.lidarAngularResolution,
+                    root.distanceFromLidarToGround,
+                    root.occupancyGridCellResolution,
+                    root.occupancyGridNumberOfHorizontalCells,
                     root.occupancyGridNumberOfVerticalCells);
                 startButton.text = "Start Scan";
+                root.Layout.minimumHeight = 500;
             }
             else if (startButton.text === "Start Scan")
             {
                 exportOccupancy.StartExploration();
                 startButton.text = "Save Occupancy Map";
+            }
+            else {
+                exportOccupancy.Save();
             }
         }
     }
