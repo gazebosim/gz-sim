@@ -201,7 +201,6 @@ void ExportOccupancyUi::StartExploration()
 void ExportOccupancyUi::Save()
 {
   auto last = this->dataPtr->lastOccupancy;
-  //auto pt = msgs::Convert(last);
   common::Image image;
   image.SetFromData(
     reinterpret_cast<unsigned char*>(
@@ -212,9 +211,10 @@ void ExportOccupancyUi::Save()
   QString fileName = QFileDialog::getSaveFileName(
     nullptr,
     tr("Save File"),
-    QDir::homePath(), // Default directory
+    QDir::homePath(),
     tr("PNG Files (*.png);"));
-  if (fileName.isEmpty()) {
+  if (fileName.isEmpty())
+  {
     return;
   }
   image.SavePNG(fileName.toStdString());
