@@ -140,7 +140,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
   gzdbg << "Output topic is: " << this->outputTopic << std::endl;
 
   // Setup publisher for output topic
-  this->outputPub = this->node.Advertise<gz::msgs::StringMsg>(
+  this->outputPub = this->node.Advertise<gz::msgs::Entity>(
       this->outputTopic);
   if (!this->outputPub)
   {
@@ -355,18 +355,18 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
 //////////////////////////////////////////////////
 void DynamicDetachableJoint::PublishJointState(bool attached)
 {
-  gz::msgs::StringMsg detachedStateMsg;
+  gz::msgs::Entity stateMsg;
   if (attached)
   {
-    detachedStateMsg.set_data("attached to " +
-      this->childModelName + " at link " + this->childLinkName);
+    stateMsg.set_id(this->childLinkEntity);
+    stateMsg.set_type(gz::msgs::Entity::LINK);
   }
   else
   {
-    detachedStateMsg.set_data("detached from " +
-      this->childModelName + " at link " + this->childLinkName);
+    stateMsg.set_id(kNullEntity);
+    stateMsg.set_type(gz::msgs::Entity::NONE);
   }
-  this->outputPub.Publish(detachedStateMsg);
+  this->outputPub.Publish(stateMsg);
 }
 
 GZ_ADD_PLUGIN(DynamicDetachableJoint,

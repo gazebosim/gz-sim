@@ -21,6 +21,7 @@
 #define GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
+#include <gz/msgs/entity.pb.h>
 
 #include <atomic>
 #include <memory>
