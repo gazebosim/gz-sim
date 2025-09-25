@@ -64,10 +64,6 @@ namespace systems
 ///
 /// - `<output_topic>` (optional): Topic name for publishing attachment state.
 ///   Defaults to `/model/{model_name}/detachable_joint/state`.
-///
-/// - `<suppress_child_warning>` (optional): If true, the system
-/// will not print a warning message if a child model does not exist yet.
-/// Otherwise, a warning message is printed. Defaults to false.
 
   class DynamicDetachableJoint
       : public System,
@@ -127,9 +123,6 @@ namespace systems
 
     /// \brief Topic to be used for publishing detached state
     private: std::string outputTopic;
-
-    /// \brief Whether to suppress warning about missing child model.
-    private: bool suppressChildWarning{false};
 
     /// \brief Entity of attachment link in the parent model
     private: Entity parentLinkEntity{kNullEntity};

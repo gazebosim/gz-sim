@@ -149,11 +149,6 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  // Suppress Child Warning
-  this->suppressChildWarning =
-      _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
-          .first;
-
   this->validConfig = true;
 }
 
@@ -189,11 +184,8 @@ void DynamicDetachableJoint::PreUpdate(
     // if child model is not found
     if (kNullEntity == modelEntity)
     {
-      if (!this->suppressChildWarning)
-      {
-        gzwarn << "Child Model " << this->childModelName
-               << " could not be found.\n";
-      }
+      gzwarn << "Child Model " << this->childModelName
+              << " could not be found.\n";
       return;
     }
 
