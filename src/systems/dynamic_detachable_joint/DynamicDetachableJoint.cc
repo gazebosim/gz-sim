@@ -19,6 +19,7 @@
 
 #include "DynamicDetachableJoint.hh"
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -158,6 +159,8 @@ void DynamicDetachableJoint::PreUpdate(
   EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DynamicDetachableJoint::PreUpdate");
+  std::lock_guard<std::mutex> lock(this->mutex);
+
   // only allow attaching if child entity is detached
   if (this->validConfig && !this->isAttached)
   {
@@ -265,6 +268,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
                                               gz::msgs::AttachDetachResponse &_res)
 {
   GZ_PROFILE("DynamicDetachableJoint::OnServiceRequest");
+  std::lock_guard<std::mutex> lock(this->mutex);
 
   // Check if the request is valid
   if (_req.child_model_name().empty() || _req.child_link_name().empty() )

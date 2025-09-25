@@ -23,7 +23,7 @@
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
 #include <gz/msgs/entity.pb.h>
 
-#include <atomic>
+#include <mutex>
 #include <memory>
 #include <string>
 
@@ -134,17 +134,19 @@ namespace systems
     private: Entity detachableJointEntity{kNullEntity};
 
     /// \brief Whether detachment has been requested
-    private: std::atomic<bool> detachRequested{false};
+    private: bool detachRequested{false};
 
     /// \brief Whether attachment has been requested
-    private: std::atomic<bool> attachRequested{false};
+    private: bool attachRequested{false};
 
     /// \brief Whether child entity is attached
-    private: std::atomic<bool> isAttached{false};
+    private: bool isAttached{false};
 
     /// \brief Whether all parameters are valid and the system can proceed
     private: bool validConfig{false};
 
+    /// \brief Mutex to protect access to member variables
+    private: std::mutex mutex;
   };
   }
 }
