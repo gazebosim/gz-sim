@@ -112,7 +112,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
     gzerr << "No valid service name for DynamicDetachableJoint could be found.\n";
     return;
   }
-  gzdbg << "using service: " << this->serviceName << std::endl;
+  gzdbg << "Using service: " << this->serviceName << std::endl;
 
   // Advertise the service
   if (!this->node.Advertise(this->serviceName, &DynamicDetachableJoint::OnServiceRequest, this))
@@ -291,8 +291,8 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
      if (this->isAttached) 
      {
        _res.set_success(false);
-      _res.set_message("Already attached to child model " + this->attachedChildModelName +
-                       " at link " + this->attachedChildLinkName + ".");
+       _res.set_message("Already attached to child model " + this->attachedChildModelName +
+                        " at link " + this->attachedChildLinkName + ".");
        gzdbg << "Already attached" << std::endl;
        return true;
      }
@@ -300,10 +300,10 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
     // set the child model and link names from the request
     this->childModelName = _req.child_model_name();
     this->childLinkName  = _req.child_link_name();
-     this->OnAttachRequest(msgs::Empty());
-     _res.set_success(true);
-     _res.set_message("Attached to child model " + this->childModelName +
-                      " at link " + this->childLinkName + ".");
+    this->OnAttachRequest(msgs::Empty());
+    _res.set_success(true);
+    _res.set_message("Attached to child model " + this->childModelName +
+                     " at link " + this->childLinkName + ".");
    }
 
    // If detach is requested
