@@ -129,7 +129,7 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
   }
 
   outputTopics.push_back("/model/" + this->model.Name(_ecm) +
-      "/detachable_joint/state");
+      "/dynamic_detachable_joint/state");
 
   this->outputTopic = validTopic(outputTopics);
   if (this->outputTopic.empty())
@@ -185,64 +185,68 @@ void DynamicDetachableJoint::PreUpdate(
       modelEntity = _ecm.EntityByComponents(
           components::Model(), components::Name(this->childModelName));
     }
-    if (kNullEntity != modelEntity)
+
+    // if child model is not found
+    if (kNullEntity == modelEntity)
     {
-      this->childLinkEntity = _ecm.EntityByComponents(
-          components::Link(),
-          components::ParentEntity(modelEntity),
-          components::Name(this->childLinkName));
-
-      if (kNullEntity != this->childLinkEntity)
+      if (!this->suppressChildWarning)
       {
-        // store the child and parent link poses in the world frame
-        math::Pose3d childPose = gz::sim::worldPose(this->childLinkEntity, _ecm);
-        math::Pose3d parentPose = gz::sim::worldPose(this->parentLinkEntity, _ecm);
-
-        auto dist = childPose.Pos().Distance(parentPose.Pos());
-        gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
-
-        // Check if the child link is within the attach distance
-        if (dist > this->attachDistance)
-        {
-          gzwarn << "Child Link [" << this->childLinkName 
-                 << "] is too far from parent. Distance: " << dist 
-                 << "m, threshold: " << this->attachDistance << "m" << std::endl;
-          this->attachRequested = false; // reset attach request
-          return;
-        }
-        // If the child link is within the attach distance, proceed to attach
-        gzdbg << "Child Link " << this->childLinkName
-              << " is within attach distance of Parent Link. Proceeding to attach." << std::endl;
-
-        // Attach the models
-        // We do this by creating a detachable joint entity.
-        this->detachableJointEntity = _ecm.CreateEntity();
-
-        // creating the joint
-        _ecm.CreateComponent(
-            this->detachableJointEntity,
-            components::DetachableJoint({this->parentLinkEntity,
-                                         this->childLinkEntity, "fixed"}));
-        this->attachRequested = false;
-        this->isAttached = true;
-        // Keep track of the attached pair for future validation
-        this->attachedChildModelName = this->childModelName;
-        this->attachedChildLinkName  = this->childLinkName;
-        this->PublishJointState(this->isAttached);
-        gzdbg << "Attaching entity: " << this->detachableJointEntity
-              << std::endl;
-      }
-      else
-      {
-        gzwarn << "Child Link " << this->childLinkName
+        gzwarn << "Child Model " << this->childModelName
                << " could not be found.\n";
       }
+      return;
     }
-    else if (!this->suppressChildWarning)
+
+    this->childLinkEntity = _ecm.EntityByComponents(
+        components::Link(),
+        components::ParentEntity(modelEntity),
+        components::Name(this->childLinkName));
+    
+    // if child link is not found
+    if (kNullEntity == this->childLinkEntity)
     {
-      gzwarn << "Child Model " << this->childModelName
-             << " could not be found.\n";
+      gzwarn << "Child Link " << this->childLinkName
+              << " could not be found.\n";
+      return;
     }
+
+    // store the child and parent link poses in the world frame
+    math::Pose3d childPose = gz::sim::worldPose(this->childLinkEntity, _ecm);
+    math::Pose3d parentPose = gz::sim::worldPose(this->parentLinkEntity, _ecm);
+
+    auto dist = childPose.Pos().Distance(parentPose.Pos());
+    gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
+
+    // Check if the child link is within the attach distance
+    if (dist > this->attachDistance)
+    {
+      gzwarn << "Child Link [" << this->childLinkName 
+              << "] is too far from parent. Distance: " << dist 
+              << "m, threshold: " << this->attachDistance << "m" << std::endl;
+      this->attachRequested = false; // reset attach request
+      return;
+    }
+    // If the child link is within the attach distance, proceed to attach
+    gzdbg << "Child Link " << this->childLinkName
+          << " is within attach distance of Parent Link. Proceeding to attach." << std::endl;
+
+    // Attach the models
+    // We do this by creating a detachable joint entity.
+    this->detachableJointEntity = _ecm.CreateEntity();
+
+    // creating the joint
+    _ecm.CreateComponent(
+        this->detachableJointEntity,
+        components::DetachableJoint({this->parentLinkEntity,
+                                      this->childLinkEntity, "fixed"}));
+    this->attachRequested = false;
+    this->isAttached = true;
+    // Keep track of the attached pair for future validation
+    this->attachedChildModelName = this->childModelName;
+    this->attachedChildLinkName  = this->childLinkName;
+    this->PublishJointState(this->isAttached);
+    gzdbg << "Attaching entity: " << this->detachableJointEntity
+          << std::endl;
   }
 
   // only allow detaching if child entity is attached
