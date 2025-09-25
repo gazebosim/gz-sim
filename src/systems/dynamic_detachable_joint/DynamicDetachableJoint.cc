@@ -293,7 +293,8 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
        _res.set_success(false);
        _res.set_message("Already attached to child model " + this->attachedChildModelName +
                         " at link " + this->attachedChildLinkName + ".");
-       gzdbg << "Already attached" << std::endl;
+       gzdbg << "Already attached to child model " << this->attachedChildModelName
+             << " at link " << this->attachedChildLinkName << std::endl;
        return true;
      }
 
