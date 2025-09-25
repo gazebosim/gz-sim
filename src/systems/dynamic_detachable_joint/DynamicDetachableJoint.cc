@@ -300,7 +300,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
     // set the child model and link names from the request
     this->childModelName = _req.child_model_name();
     this->childLinkName  = _req.child_link_name();
-    this->OnAttachRequest(msgs::Empty());
+    this->attachRequested = true;
     _res.set_success(true);
     _res.set_message("Attached to child model " + this->childModelName +
                      " at link " + this->childLinkName + ".");
@@ -333,7 +333,7 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
       return true;
     }
 
-     this->OnDetachRequest(msgs::Empty());
+     this->detachRequested = true;
      _res.set_success(true);
      _res.set_message("Detached from child model " + this->attachedChildModelName +
                       " at link " + this->attachedChildLinkName + ".");
@@ -347,18 +347,6 @@ bool DynamicDetachableJoint::OnServiceRequest(const gz::msgs::AttachDetachReques
    }
    return true;
  }
-
-//////////////////////////////////////////////////
-void DynamicDetachableJoint::OnAttachRequest(const msgs::Empty &)
-{
-  this->attachRequested = true;
-}
-
-//////////////////////////////////////////////////
-void DynamicDetachableJoint::OnDetachRequest(const msgs::Empty &)
-{
-  this->detachRequested = true;
-}
 
 //////////////////////////////////////////////////
 void DynamicDetachableJoint::PublishJointState(bool attached)

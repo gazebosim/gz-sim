@@ -21,7 +21,6 @@
 #define GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
-#include <gz/msgs/empty.pb.h>
 
 #include <atomic>
 #include <memory>
@@ -103,12 +102,6 @@ namespace systems
     
     /// \brief Helper function to publish the state of the detachment
     private: void PublishJointState(bool attached);
-
-    /// \brief Toggle the attach state.
-    private: void OnAttachRequest(const msgs::Empty &_msg);
-
-    /// \brief Toggle the detach state.
-    private: void OnDetachRequest(const msgs::Empty &_msg);
 
     /// \brief The model associated with this system.
     private: Model model;
