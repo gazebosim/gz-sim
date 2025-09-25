@@ -19,7 +19,6 @@
 
 #include <gz/common/Image.hh>
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/convert/PixelFormatType.hh>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/image.pb.h>
 #include <gz/gui/Application.hh>
@@ -30,6 +29,8 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
 
+#include <cstddef>
+#include <functional>
 #include <sstream>
 #include <string>
 
@@ -38,7 +39,7 @@
 using namespace gz;
 using namespace sim;
 
-class gz::sim::ExportOccupancyUiPrivate
+class gz::sim::ExportOccupancyUi::Implementation
 {
   public: std::string worldName;
   public: gz::transport::Node node;
@@ -48,7 +49,7 @@ class gz::sim::ExportOccupancyUiPrivate
 };
 
 ExportOccupancyUi::ExportOccupancyUi() :
-  dataPtr(std::make_unique<ExportOccupancyUiPrivate>())
+  dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   gui::App()->Engine()->rootContext()->setContextProperty(
     "exportOccupancy", this);
@@ -99,7 +100,8 @@ void ExportOccupancyUi::Update(const UpdateInfo &,
     EntityComponentManager &_ecm)
 {
   auto world = World(worldEntity(_ecm));
-  if (!world.Valid(_ecm)) {
+  if (!world.Valid(_ecm))
+  {
     gzerr << "Could not get running world" << std::endl;
     return;
   }

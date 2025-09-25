@@ -18,13 +18,16 @@
 #ifndef GZ_SIM_GUI_EXPORT_OCCUPANCY_HH_
 #define GZ_SIM_GUI_EXPORT_OCCUPANCY_HH_
 
+#include <cstddef>
 #include <memory>
+#include <QImage>
 #include <QQuickImageProvider>
 
+#include <gz/gui/qt.h>
 #include <gz/msgs/image.pb.h>
+#include <gz/utils/ImplPtr.hh>
 
 #include "gz/sim/gui/GuiSystem.hh"
-#include "gz/gui/qt.h"
 
 namespace gz
 {
@@ -33,6 +36,7 @@ namespace sim
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+  /// Helper Image provider class for image view.
   class ImageProvider : public QQuickImageProvider
   {
     public: ImageProvider()
@@ -62,8 +66,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     private: QImage img;
   };
-
-  class ExportOccupancyUiPrivate;
 
   /// \brief A GUI plugin for a user to export the occupancy
   /// grid of the current world.
@@ -106,7 +108,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \internal
     /// \brief Pointer to private data
-    private: std::unique_ptr<ExportOccupancyUiPrivate> dataPtr;
+    private:  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr);
   };
 }
 }
