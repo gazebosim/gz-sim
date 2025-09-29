@@ -122,7 +122,7 @@ void ExportOccupancyUi::StartExport(double _samples, double _range,
   ss << R"(
     <sdf version="1.6">
     <model name="model_with_lidar">
-      <pose>0 0 )" << _distanceFromGround << R"( 0 0 0</pose>
+      <pose>1.5 1.5 )" << _distanceFromGround << R"( 0 0 0</pose>
       <link name="link">
           <inertial>
             <mass>0.1</mass>

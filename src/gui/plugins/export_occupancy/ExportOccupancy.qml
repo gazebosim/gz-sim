@@ -157,10 +157,10 @@ ColumnLayout {
             id: occupancyGridHorizontalCellsInput
             Layout.fillWidth: true
             validator: IntValidator { bottom: 0 }
-            text:  root.occupancyGridNumberOfHorizontalCells.toFixed(2)
+            text:  root.occupancyGridNumberOfHorizontalCells
             onEditingFinished: {
-                root.occupancyGridNumberOfHorizontalCells = parseInt(text)
-                if (isNaN(root. root.occupancyGridNumberOfHorizontalCells))root.occupancyGridNumberOfHorizontalCells = 0
+                root.occupancyGridNumberOfHorizontalCells = parseInt(text);
+                if (isNaN(root.occupancyGridNumberOfHorizontalCells)) root.occupancyGridNumberOfHorizontalCells = 0;
             }
         }
     }
@@ -172,10 +172,10 @@ ColumnLayout {
             id: occupancyGridVerticalCellsInput
             Layout.fillWidth: true
             validator: IntValidator { bottom: 0 }
-            text:  root.occupancyGridNumberOfVerticalCells.toFixed(2)
+            text:  root.occupancyGridNumberOfVerticalCells
             onEditingFinished: {
-                root.occupancyGridNumberOfVerticalCells = parseInt(text)
-                if (isNaN(root. root.occupancyGridNumberOfVerticalCells)) root. root.occupancyGridNumberOfVerticalCells = 0
+                root.occupancyGridNumberOfVerticalCells = parseInt(text);
+                if (isNaN(root.occupancyGridNumberOfVerticalCells)) root.occupancyGridNumberOfVerticalCells = 0;
             }
         }
     }
