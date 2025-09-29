@@ -4,6 +4,9 @@
 
 1. **Baseline:** this includes all changes from 9.3.0 and earlier.
 
+1. Don't install vendored backward files
+    * [Pull request #3088](https://github.com/gazebosim/gz-sim/pull/3088)
+
 1. Parallel asset download
     * [Pull request #2992](https://github.com/gazebosim/gz-sim/pull/2992)
 
