@@ -1,4 +1,4 @@
-Summary: avoid installing backwards file in the system unless being 
+Summary: avoid installing backwards file in the system unless being
   used as a top level
 
 Description: do not install backwards files in the Gazebo usage of
@@ -13,7 +13,7 @@ index e625f8ac9..3b18476d5 100644
 @@ -157,16 +157,16 @@ if(BACKWARD_TESTS)
  	endforeach()
  endif()
- 
+
 -
 -install(
 -    FILES "backward.hpp"
