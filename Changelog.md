@@ -4,6 +4,9 @@
 
 1. **Baseline:** this includes all changes from 9.3.0 and earlier.
 
+1. Don't install vendored backward files
+    * [Pull request #3088](https://github.com/gazebosim/gz-sim/pull/3088)
+
 1. Add missing dependencies to package.xml
     * [Pull request #3093](https://github.com/gazebosim/gz-sim/pull/3093)
 
