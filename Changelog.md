@@ -7,6 +7,48 @@
 1. Don't install vendored backward files
     * [Pull request #3088](https://github.com/gazebosim/gz-sim/pull/3088)
 
+1. Add missing dependencies to package.xml
+    * [Pull request #3093](https://github.com/gazebosim/gz-sim/pull/3093)
+
+1. Add tutorial on wheel slip systems
+    * [Pull request #3056](https://github.com/gazebosim/gz-sim/pull/3056)
+
+1. Set non-unique material to submesh when updating cast shadows property
+    * [Pull request #3085](https://github.com/gazebosim/gz-sim/pull/3085)
+
+1. Use `common::findFile` when searching for slip map in LookupWheelSlip system
+    * [Pull request #3087](https://github.com/gazebosim/gz-sim/pull/3087)
+
+1. Fix sporadic crash when launching GUI client on windows
+    * [Pull request #3074](https://github.com/gazebosim/gz-sim/pull/3074)
+
+1. Documentation updates
+    * [Pull request #3081](https://github.com/gazebosim/gz-sim/pull/3081)
+    * [Pull request #3054](https://github.com/gazebosim/gz-sim/pull/3054)
+    * [Pull request #3042](https://github.com/gazebosim/gz-sim/pull/3042)
+    * [Pull request #3040](https://github.com/gazebosim/gz-sim/pull/3040)
+
+1. Fix comment for logical camera topic
+    * [Pull request #3043](https://github.com/gazebosim/gz-sim/pull/3043)
+
+1. Disable `UtilTest.ResolveSdfWorldFile` on macOS
+    * [Pull request #3065](https://github.com/gazebosim/gz-sim/pull/3065)
+
+1. Add Null Check for Scene Initialization in `onRefreshCamerasImpl` to Prevent Crash
+    * [Pull request #3051](https://github.com/gazebosim/gz-sim/pull/3051)
+
+1. Fix saving world through GUI
+    * [Pull request #3052](https://github.com/gazebosim/gz-sim/pull/3052)
+
+1. Update logic for setting initial state
+    * [Pull request #3044](https://github.com/gazebosim/gz-sim/pull/3044)
+
+1. Remove obsolete tag from example SDFormat file
+    * [Pull request #3045](https://github.com/gazebosim/gz-sim/pull/3045)
+
+1. [Bazel] Update bazel module to use jetty release branches
+    * [Pull request #3041](https://github.com/gazebosim/gz-sim/pull/3041)
+
 1. Parallel asset download
     * [Pull request #2992](https://github.com/gazebosim/gz-sim/pull/2992)
 

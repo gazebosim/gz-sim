@@ -18,7 +18,7 @@ find_package(gz-cmake REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX pre2)
 
 #============================================================================
 # Set project-specific options
