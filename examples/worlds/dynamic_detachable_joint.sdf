@@ -1,0 +1,518 @@
+<?xml version="1.0" ?>
+<sdf version="1.11">
+
+<!--
+  Author: Adarsh Karan K P, Neobotix GmbH
+  
+  This example demonstrates a simple robot arm that can attach colored cubes from a spinning turntable, 
+  rotate itself to face a collection bin, and detach the cubes to drop them inside. 
+  You can dynamically attach/detach cubes using services and watch the state on a topic.
+
+  Services & topics:
+    - Attach/Detach service: /payload/attach_detach   (command = "attach" or "detach")
+    - Pose service:          /world/dynamic_detach_demo/set_pose
+    - State topic:           /payload/child_state
+
+  Quick start:
+    1) Run the first 2 commands together (attach, then rotate 180°) to avoid bumping other cubes.
+    2) Later, detach and rotate back to reset the scene.
+    NOTE: To target a different cube, change child_model_name:"<cube_name>"
+
+  Cubes available (use these names in commands):
+    red_cube, blue_cube, green_cube, yellow_cube, black_cube
+    Link name for all cubes: "link"
+
+-->
+
+<!-- Commands to "attach" red cube and rotate robot to face the bin 
+  (run these two in sequence to avoid bumping other cubes)-->
+<![CDATA[
+
+gz service -s /payload/attach_detach \
+  --reqtype gz.msgs.AttachDetachRequest \
+  --reptype gz.msgs.AttachDetachResponse \
+  --timeout 3000 \
+  --req 'child_model_name:"red_cube" child_link_name:"link" command:"attach"'
+
+gz service -s /world/dynamic_detach_demo/set_pose \
+  --reqtype gz.msgs.Pose \
+  --reptype gz.msgs.Boolean \
+  --timeout 3000 \
+  --req 'name:"single_arm_robot" position { x: 0.5 y: 0.0 z: 0.75 } orientation { x: 0 y: 0 z: 1 w: 0 }'
+
+]]>
+
+<!-- Commands to "detach" and turn back to original orientation -->
+<![CDATA[
+
+gz service -s /payload/attach_detach \
+  --reqtype gz.msgs.AttachDetachRequest \
+  --reptype gz.msgs.AttachDetachResponse \
+  --timeout 3000 \
+  --req 'child_model_name:"red_cube" child_link_name:"link" command:"detach"'
+
+# Rotate the robot back to original orientation.
+gz service -s /world/dynamic_detach_demo/set_pose \
+  --reqtype gz.msgs.Pose \
+  --reptype gz.msgs.Boolean \
+  --timeout 3000 \
+  --req 'name:"single_arm_robot" position { x: 0.5 y: 0.0 z: 0.75 } orientation { x: 0 y: 0 z: 0 w: 1 }'
+
+]]>
+
+<!-- Monitor attach/detach state messages -->
+  <!--gz topic -e -t /payload/child_state-->
+
+  <world name="dynamic_detach_demo">
+    
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.031 0.043 0.1 1</ambient>
+            <diffuse>0.031 0.043 0.1 1</diffuse>
+            <specular>0.031 0.043 0.1 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Simple single arm robot -->
+    <model name="single_arm_robot">
+      <pose>0.5 0 0.75 0 0 0</pose>
+      <self_collide>false</self_collide>
+      <link name="base_link">
+        <inertial>
+          <mass>40</mass>
+        </inertial>
+        <collision name="base_collision">
+          <pose>0 0 -0.70 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.10</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="base_visual">
+          <pose>0 0 -0.70 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.10</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+        <collision name="body_collision">
+          <pose>0 0 -0.075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.35</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="body_visual">
+          <pose>0 0 -0.075 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.1 0.1 1.35</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="arm">
+        <pose>0.35 0 0.25 0 0 0</pose>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.7 0.05 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.7 0.05 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <joint name="arm_mount" type="fixed">
+        <parent>base_link</parent>
+        <child>arm</child>
+      </joint>
+
+      <plugin filename="gz-sim-velocity-control-system"
+              name="gz::sim::systems::VelocityControl">
+        <topic>cmd_vel</topic>
+      </plugin>
+
+      <plugin filename="gz-sim-dynamic-detachable-joint-system"
+              name="gz::sim::systems::DynamicDetachableJoint">
+        <parent_link>arm</parent_link>
+        <service_name>/payload/attach_detach</service_name>
+        <output_topic>/payload/child_state</output_topic>
+        <attach_distance>0.3</attach_distance> <!--30 cm-->
+      </plugin>
+    </model>
+
+    <!-- Table -->
+    <model name="turntable">
+      <pose>1.4 0 0 0 0 0</pose>
+      <static>false</static>
+
+      <link name="base">
+        <pose>0 0 0.375 0 0 0</pose>
+        <inertial>
+          <mass>20</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.75</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>0.75</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="turntable">
+        <pose>0 0 0.775 0 0 0</pose>
+        <inertial>
+          <mass>5</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.5</radius>
+              <length>0.05</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <!-- Rotating turntable joint -->
+      <joint name="turntable_joint" type="revolute">
+        <parent>base</parent>
+        <child>turntable</child>
+        <pose>0 0 0.75 0 0 0</pose>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e16</lower>
+            <upper>1e16</upper>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-controller-system"
+              name="gz::sim::systems::JointController">
+        <joint_name>turntable_joint</joint_name>
+        <initial_velocity>0.4</initial_velocity>
+      </plugin>
+    </model>
+
+    <!-- 5 colored cubes to pick up arranged in a pentagon pattern-->
+    <model name="black_cube">
+      <pose>1.400 0.350 0.85 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.05 0.05 0.05 1</ambient>
+            <diffuse>0.05 0.05 0.05 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="blue_cube">
+      <pose>1.733  0.108 0.85 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="green_cube">
+      <pose>1.606 -0.283 0.85 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="yellow_cube">
+      <pose>1.194 -0.283 0.85 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="red_cube">
+      <pose>1.067 0.108 0.85 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- A simple 4 walled bin to drop the cube into-->
+    <model name="collection_bin">
+      <pose>-0.2 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="bin_walls">
+        <collision name="front_wall">
+          <pose>0.30 0 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.02 0.6 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name="back_wall">
+          <pose>-0.30 0 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.02 0.6 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name="right_wall">
+          <pose>0 0.30 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.6 0.02 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name="left_wall">
+          <pose>0 -0.30 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.6 0.02 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="front_wall_visual">
+          <pose>0.30 0 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.02 0.6 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+        <visual name="back_wall_visual">
+          <pose>-0.30 0 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.02 0.6 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+        <visual name="right_wall_visual">
+          <pose>0 0.30 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.6 0.02 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+        <visual name="left_wall_visual">
+          <pose>0 -0.30 0.35 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.6 0.02 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+  </model>
+  </world>
+</sdf>
