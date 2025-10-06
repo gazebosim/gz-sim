@@ -332,6 +332,20 @@ std::unique_ptr<gz::gui::Application> createGui(
   gzmsg << "Gazebo Sim GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
+  gzdbg << "Qt Prefix:"
+        << QLibraryInfo::path(QLibraryInfo::PrefixPath).toStdString() << "\n";
+  gzdbg << "Qt libs:"
+        << QLibraryInfo::path(QLibraryInfo::LibrariesPath).toStdString()
+        << "\n";
+  gzdbg << "Qt data:"
+        << QLibraryInfo::path(QLibraryInfo::DataPath).toStdString() << " arch:"
+        << QLibraryInfo::path(QLibraryInfo::ArchDataPath).toStdString() << "\n";
+  gzdbg << "Qt plugins:"
+        << QLibraryInfo::path(QLibraryInfo::PluginsPath).toStdString() << "\n";
+  gzdbg << "Qt imports:"
+        << QLibraryInfo::path(QLibraryInfo::QmlImportsPath).toStdString()
+        << "\n";
+
   // Set auto scaling factor for HiDPI displays
   if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
   {
