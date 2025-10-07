@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_MODEL_HH_
 #define GZ_SIM_COMPONENTS_MODEL_HH_
 
+#include <mutex>
 #include <string>
 
 #include <sdf/Model.hh>
@@ -104,27 +105,31 @@ namespace serializers
         return _in;
       }
 
-      // Its super expensive to create an sdf::SDFPtr object.
-      // Workaround this by making it a static object so we only initialize it
-      // once.
-      // https://github.com/gazebosim/sdformat/issues/1478
-      sdf::Errors errors;
-      static sdf::SDFPtr sdfParsed;
-      if (!sdfParsed)
-      {
-        sdfParsed.reset(new sdf::SDF());
-        sdf::init(sdfParsed);
-      }
-      auto config = sdf::ParserConfig::GlobalConfig();
-      // Read an SDF string, and store the result in sdfParsed.
-      if (!sdf::readString(sdf, config, sdfParsed, errors))
-      {
-        gzwarn << "Unable to read SDF while deserializing sdf::Model "
-               << sdf << std::endl;
-        return _in;
-      }
       sdf::Root root;
-      root.Load(sdfParsed, config);
+      std::mutex mutex;
+      {
+        // Its super expensive to create an sdf::SDFPtr object.
+        // Workaround this by making it a static object so we only initialize it
+        // once.
+        // https://github.com/gazebosim/sdformat/issues/1478
+        sdf::Errors errors;
+        static sdf::SDFPtr sdfParsed;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (!sdfParsed)
+        {
+          sdfParsed = std::make_shared<sdf::SDF>();//reset(new sdf::SDF());
+          sdf::init(sdfParsed);
+        }
+        auto config = sdf::ParserConfig::GlobalConfig();
+        // Read an SDF string, and store the result in sdfParsed.
+        if (!sdf::readString(sdf, config, sdfParsed, errors))
+        {
+          gzwarn << "Unable to read SDF while deserializing sdf::Model "
+                 << sdf << std::endl;
+          return _in;
+        }
+        root.Load(sdfParsed, config);
+      }
       if (!root.Model())
       {
         gzwarn << "Unable to deserialize sdf::Model " << sdf << std::endl;
