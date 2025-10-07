@@ -106,18 +106,18 @@ namespace serializers
       }
 
       sdf::Root root;
-      std::mutex mutex;
       {
-        // Its super expensive to create an sdf::SDFPtr object.
+        // It's super expensive to create an sdf::SDFPtr object.
         // Workaround this by making it a static object so we only initialize it
         // once.
         // https://github.com/gazebosim/sdformat/issues/1478
         sdf::Errors errors;
+        static std::mutex mutex;
         static sdf::SDFPtr sdfParsed;
         std::lock_guard<std::mutex> lock(mutex);
         if (!sdfParsed)
         {
-          sdfParsed = std::make_shared<sdf::SDF>();//reset(new sdf::SDF());
+          sdfParsed = std::make_shared<sdf::SDF>();
           sdf::init(sdfParsed);
         }
         auto config = sdf::ParserConfig::GlobalConfig();
