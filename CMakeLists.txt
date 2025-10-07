@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim9 VERSION 9.1.0)
+project(gz-sim9 VERSION 9.4.0)
 set (GZ_DISTRIBUTION "Ionic")
 
 #============================================================================
@@ -102,9 +102,12 @@ gz_find_package(gz-common6
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
 set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common${GZ_COMMON_VER}::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
