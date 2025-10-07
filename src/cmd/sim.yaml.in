@@ -2,7 +2,7 @@
 format: 1.0.0
 library_name: gz-sim-gz
 library_version: @PROJECT_VERSION_FULL@
-library_path: @gz_library_path@
+library_path: @gz_sim_ruby_path@
 commands:
     - sim : Run and manage the Gazebo Simulator.
 ---

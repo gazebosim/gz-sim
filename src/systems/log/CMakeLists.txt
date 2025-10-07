@@ -3,5 +3,5 @@ gz_add_system(log
     LogRecord.cc
     LogPlayback.cc
   PUBLIC_LINK_LIBS
-    gz-transport${GZ_TRANSPORT_VER}::log
+    gz-transport::log
 )

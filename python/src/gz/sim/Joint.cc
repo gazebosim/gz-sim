@@ -94,21 +94,6 @@ void defineSimJoint(py::object module)
       py::arg("ecm"),
       py::arg("limits"),
       "Set the effort limits on a joint axis.")
-  .def("set_position_imits",
-       [](pybind11::object &self, EntityComponentManager &_ecm,
-          const std::vector<math::Vector2d> &_limits)
-       {
-            auto warnings = pybind11::module::import("warnings");
-            auto builtins = pybind11::module::import("builtins");
-            warnings.attr("warn")(
-                "set_position_imits() is deprecated, use set_position_limits() instead.",
-                builtins.attr("DeprecationWarning"));
-
-            return self.attr("set_position_limits")(_ecm, _limits);
-       },
-      py::arg("ecm"),
-      py::arg("limits"),
-      "Set the position limits on a joint axis.")
   .def("set_position_limits", &gz::sim::Joint::SetPositionLimits,
       py::arg("ecm"),
       py::arg("limits"),

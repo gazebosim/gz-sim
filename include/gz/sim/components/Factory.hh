@@ -210,39 +210,6 @@ namespace components
     /// \param[in] _type Type of component to register.
     /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
     ///  objects.
-    /// \tparam ComponentTypeT Type of component to register.
-    // Deprecated in favor of overload that takes _regObjId
-    public: template <typename ComponentTypeT>
-    void GZ_DEPRECATED(8) Register(const std::string &_type,
-                                   ComponentDescriptorBase *_compDesc)
-    {
-      const char* typeDup = strdup(_type.c_str());
-      this->Register<ComponentTypeT>(typeDup, _compDesc,
-                                     RegistrationObjectId{nullptr});
-    }
-    /// \brief Register a component so that the factory can create instances
-    /// of the component based on an ID.
-    /// \param[in] _type Type of component to register.
-    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
-    ///  objects.
-    /// \param[in] _regObjId An ID that identifies the registration object. This
-    /// is generally derived from the `this` pointer of the static component
-    /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
-    /// \tparam ComponentTypeT Type of component to register.
-    // Deprecated in favor of overload that takes `const char *_type`
-    public: template <typename ComponentTypeT>
-    void GZ_DEPRECATED(8) Register(const std::string &_type,
-        ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)
-    {
-      const char* typeDup = strdup(_type.c_str());
-      this->Register<ComponentTypeT>(typeDup, _compDesc, _regObjId);
-    }
-
-    /// \brief Register a component so that the factory can create instances
-    /// of the component based on an ID.
-    /// \param[in] _type Type of component to register.
-    /// \param[in] _compDesc Object to manage the creation of ComponentTypeT
-    ///  objects.
     /// \param[in] _regObjId An ID that identifies the registration object. This
     /// is generally derived from the `this` pointer of the static component
     /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
@@ -298,16 +265,6 @@ namespace components
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
-    // Deprecated in favor of overload that takes _regObjId
-    public: template <typename ComponentTypeT>
-    void GZ_DEPRECATED(8) Unregister()
-    {
-      this->Unregister<ComponentTypeT>(RegistrationObjectId{nullptr});
-    }
-
-    /// \brief Unregister a component so that the factory can't create instances
-    /// of the component anymore.
-    /// \tparam ComponentTypeT Type of component to unregister.
     /// \param[in] _regObjId An ID that identifies the registration object. This
     /// is generally derived from the `this` pointer of the static component
     /// registration object created when calling GZ_SIM_REGISTER_COMPONENT.
@@ -315,18 +272,6 @@ namespace components
     void Unregister(RegistrationObjectId  _regObjId)
     {
       this->Unregister(ComponentTypeT::typeId, _regObjId);
-    }
-
-    /// \brief Unregister a component so that the factory can't create instances
-    /// of the component anymore.
-    /// \details This function will not reset the `typeId` static variable
-    /// within the component type itself. Prefer using the templated
-    /// `Unregister` function when possible.
-    /// \param[in] _typeId Type of component to unregister.
-    // Deprecated in favor of overload that takes _regObjId
-    public: void GZ_DEPRECATED(8) Unregister(ComponentTypeId _typeId)
-    {
-      this->Unregister(_typeId, RegistrationObjectId{nullptr});
     }
 
     /// \brief Unregister a component so that the factory can't create instances

@@ -20,7 +20,6 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
 
 ToolBar {
   id: shapes
@@ -47,7 +46,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("box")
+        _Shapes.OnMode("box")
       }
     }
     ToolButton{
@@ -64,7 +63,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("sphere")
+        _Shapes.OnMode("sphere")
       }
     }
     ToolButton {
@@ -81,7 +80,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("cone")
+        _Shapes.OnMode("cone")
       }
     }
     ToolButton {
@@ -98,7 +97,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("cylinder")
+        _Shapes.OnMode("cylinder")
       }
     }
     ToolButton {
@@ -115,7 +114,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("capsule")
+        _Shapes.OnMode("capsule")
       }
     }
     ToolButton {
@@ -132,7 +131,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        Shapes.OnMode("ellipsoid")
+        _Shapes.OnMode("ellipsoid")
       }
     }
   }

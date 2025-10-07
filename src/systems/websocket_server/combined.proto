@@ -1,0 +1,458 @@
+syntax = "proto3";
+
+package gz.msgs;
+
+message Time {
+  int64 sec = 1;
+  int32 nsec = 2;
+}
+
+message Clock
+{
+  Header header = 1;
+  Time system = 2;
+  Time real   = 3;
+  Time sim    = 4;
+}
+message Header {
+  message Map {
+    string key = 1;
+    repeated string value = 2;
+  }
+  Time stamp         = 1;
+  repeated Map data  = 2;
+}
+message WebRequest
+{
+  Header header         = 1;
+  string operation      = 2;
+  string topic          = 3;
+  string msg_type       = 4;
+  string compression    = 5;
+  double hz             = 6;
+}
+message StringMsg_V
+{
+  repeated string data = 2;
+}
+message CmdVel2D
+{
+  Header header    = 1;
+  double velocity  = 2;
+  double theta     = 3;
+}
+enum PixelFormatType
+{
+  UNKNOWN_PIXEL_FORMAT = 0;
+  L_INT8 = 1;
+  L_INT16 = 2;
+  RGB_INT8 = 3;
+  RGBA_INT8 = 4;
+  BGRA_INT8 = 5;
+  RGB_INT16 = 6;
+  RGB_INT32 = 7;
+  BGR_INT8 = 8;
+  BGR_INT16 = 9;
+  BGR_INT32 = 10;
+  R_FLOAT16 = 11;
+  RGB_FLOAT16 = 12;
+  R_FLOAT32 = 13;
+  RGB_FLOAT32 = 14;
+  BAYER_RGGB8 = 15;
+  BAYER_RGGR8 = 16;
+  BAYER_GBRG8 = 17;
+  BAYER_GRBG8 = 18;
+}
+
+message Image
+{
+  Header header        = 1;
+  uint32 width         = 2;
+  uint32 height        = 3;
+  uint32 pixel_format  = 4;
+  uint32 step          = 5;
+  bytes data          = 6;
+}
+message Vector3d
+{
+  Header header = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+}
+message Pose
+{
+  Header header          = 1;
+  string name            = 2;
+  uint32 id              = 3;
+  Vector3d position      = 4;
+  Quaternion orientation = 5;
+}
+message Quaternion
+{
+  Header header = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
+  double w = 5;
+}
+message Double_V
+{
+  repeated double data = 1;
+}
+message Pose_V
+{
+  Header header = 1;
+  repeated Pose pose = 2;
+}
+message Packet
+{
+  string topic = 1;
+  string type  = 2;
+
+  oneof content
+  {
+    CmdVel2D cmd_vel2d = 3;
+    Image image = 4;
+    StringMsg_V string_msg_v = 5;
+    WebRequest web_request = 6;
+    Pose pose = 7;
+    Double_V doublev = 8;
+    Pose_V pose_v = 9;
+    Time time = 10;
+    Clock clock = 11;
+  }
+}
+
+message Color
+{
+  /// \brief Optional header data
+  Header header = 1;
+
+  float r = 2;
+  float g = 3;
+  float b = 4;
+  float a = 5;
+}
+
+message Sky
+{
+  /// \brief Optional header data
+  Header header         = 1;
+
+  double time           = 2;
+  double sunrise        = 3;
+  double sunset         = 4;
+
+  double wind_speed     = 5;
+  double wind_direction = 6;
+  Color cloud_ambient   = 7;
+  double humidity       = 8;
+  double mean_cloud_size = 9;
+}
+
+message Fog
+{
+  enum FogType
+  {
+    NONE         = 0;
+    LINEAR       = 1;
+    EXPONENTIAL  = 2;
+    EXPONENTIAL2 = 3;
+  }
+
+  /// \brief Optional header data
+  Header header = 1;
+
+  FogType type = 2;
+  Color color = 3;
+  float density = 4;
+  float start = 5;
+  float end = 6;
+}
+
+message Link
+{
+  /// \brief Optional header data
+  Header header        = 1;
+
+  uint32 id            = 2;
+  string name          = 3;
+  bool self_collide    = 4;
+  bool gravity         = 5;
+  bool kinematic       = 6;
+  bool enabled         = 7;
+  Density density      = 8;
+  Inertial inertial    = 9;
+  Pose pose            = 10;
+  repeated Visual visual        = 11;
+  repeated Collision collision  = 12;
+  repeated Sensor sensor        = 13;
+  repeated Projector projector  = 14;
+  bool canonical       = 15;
+
+  /// \brief A vector of batteries attached to this link.
+  repeated Battery battery      = 16;
+
+  /// \brief A vector of lights attached to this link
+  repeated Light light          = 17;
+}
+
+message Model
+{
+  /// \brief Optional header data
+  Header header       = 1;
+
+  /// \brief Name of the model.
+  string name         = 2;
+
+  /// \brief Unique ID associated with the model
+  uint32 id           = 3;
+
+  /// \brief True if the model is statc.
+  bool is_static      = 4;
+
+  /// \brief Pose of the model.
+  Pose pose           = 5;
+
+  /// \brief Information about the joints in this model.
+  repeated Joint joint         = 6;
+
+  /// \brief Information about the links in this model.
+  repeated Link link           = 7;
+
+  /// \brief True if the model was deleted.
+  bool deleted        = 8;
+
+  /// \brief Information about the visuals in this model.
+  repeated Visual visual       = 9;
+
+  /// \brief Scaling factor applied to the model
+  Vector3d scale      = 10;
+
+  /// \brief True if self collide is enabled.
+  bool self_collide   = 11;
+
+  /// \brief An array of nested models.
+  repeated Model model         = 12;
+
+  /// \brief Axis aligned bounding box for the model. The center of the
+  /// bounding box should coincide with the model's pose.
+  AxisAlignedBox bounding_box   = 13;
+}
+
+message Visual
+{
+  /// \brief Optional meta information for the visual. The information
+  /// contained within this element should be used to provide additional
+  /// feedback to an end user.
+  message Meta
+  {
+    /// \brief The layer in which this visual is displayed. The layer number
+    /// is useful for programs, such as Gazebo, that put visuals in different
+    /// layers for enhanced visualization.
+    int32 layer       = 1;
+  }
+
+  enum Type
+  {
+    /// \brief Entity visual
+    ENTITY    = 0;
+    /// \brief Model visual
+    MODEL     = 1;
+    /// \brief Link visual
+    LINK      = 2;
+    /// \brief Visual visual
+    VISUAL    = 3;
+    /// \brief Collision visual
+    COLLISION = 4;
+    /// \brief Sensor visual
+    SENSOR =    5;
+    /// \brief GUI visual
+    GUI =       6;
+    /// \brief Physics data visual
+    PHYSICS =   7;
+  }
+
+  /// \brief Optional header data
+  Header header       = 1;
+
+  string name         = 2;
+  uint32 id           = 3;
+  string parent_name  = 4;
+  uint32 parent_id    = 5;
+  bool cast_shadows   = 6;
+  double transparency = 7;
+  double laser_retro  = 8;
+  Pose pose           = 9;
+  Geometry geometry   = 10;
+  Material material   = 11;
+
+  bool visible        = 12;
+  bool delete_me      = 13;
+  bool is_static      = 14;
+  repeated Plugin plugin       = 15;
+  Vector3d scale      = 16;
+
+  /// \brief Option meta information associated with this visual.
+  Meta meta           = 17;
+
+  /// \brief Type of visual.
+  Type type           = 18;
+}
+
+message AxisAlignedBox
+{
+  /// \brief Optional header data
+  Header header  = 1;
+
+  /// \brief Minimum corner of the axis aligned bound box in the global frame.
+  Vector3d min_corner  = 2;
+
+  /// \brief Maximum corner of the axis aligned bound box in the global frame.
+  Vector3d max_corner  = 3;
+}
+
+message Light
+{
+  /// \brief Optional header data
+  Header header                 = 1;
+
+  string name                   = 2;
+  enum LightType
+  {
+    POINT       = 0;
+    SPOT        = 1;
+    DIRECTIONAL = 2;
+  }
+  LightType type                = 3;
+
+  Pose pose                     = 4;
+  Color diffuse                 = 5;
+  Color specular                = 6;
+  float attenuation_constant    = 7;
+  float attenuation_linear      = 8;
+  float attenuation_quadratic   = 9;
+  Vector3d direction            = 10;
+  float range                   = 11;
+  bool cast_shadows             = 12;
+  float spot_inner_angle        = 13;
+  float spot_outer_angle        = 14;
+  float spot_falloff            = 15;
+
+  /// \brief Unique id of the light
+  uint32 id                     = 16;
+
+  /// \brief Unique id of light's parent
+  uint32 parent_id              = 17;
+}
+
+message Axis
+{
+  /// \brief Optional header data
+  Header header               = 1;
+
+  Vector3d xyz                = 2;
+  double limit_lower          = 3;
+  double limit_upper          = 4;
+  double limit_effort         = 5;
+  double limit_velocity       = 6;
+  double damping              = 7;
+  double friction             = 8;
+  bool use_parent_model_frame = 9;
+
+  /// \brief Position of the joint. For angular joints, such as revolute
+  /// joints, the units are radians. For linear joints, such as prismatic
+  /// joints, the units are meters.
+  double position             = 10;
+
+  /// \brief Velocity of the joint in SI units (meter/second).
+  double velocity             = 11;
+
+  /// \brief Force applied to the joint in SI units (Newton).
+  double force                = 12;
+
+  /// \brief Acceleration of the joint is SI units (meter/second^2).
+  double acceleration         = 13;
+}
+
+message Joint
+{
+
+  message Gearbox
+  {
+    /// \brief Gearbox joint reference body link
+    string gearbox_reference_body = 1;
+
+    /// \brief Gearbox ratio.
+    double gearbox_ratio = 2;
+  }
+
+  message Screw
+  {
+    /// \brief Screw joint thread pitch.
+    double thread_pitch = 1;
+  }
+
+  enum Type
+  {
+    REVOLUTE  = 0;
+    REVOLUTE2 = 1;
+    PRISMATIC = 2;
+    UNIVERSAL = 3;
+    BALL      = 4;
+    SCREW     = 5;
+    GEARBOX   = 6;
+    FIXED     = 7;
+  }
+
+  /// \brief Optional header data
+  Header header         = 1;
+
+  string name           = 2;
+  uint32 id             = 3;
+
+  Type type             = 5;
+  string parent         = 6;
+  uint32 parent_id      = 7;
+  string child          = 8;
+  uint32 child_id       = 9;
+  Pose pose             = 10;
+  Axis axis1            = 11;
+  Axis axis2            = 12;
+
+  double cfm            = 13;
+  double bounce         = 14;
+
+  double fudge_factor   = 16;
+  double limit_cfm      = 17;
+  double limit_erp      = 18;
+  double suspension_cfm = 19;
+  double suspension_erp = 20;
+
+  Gearbox gearbox       = 21;
+  Screw screw           = 22;
+
+  repeated Sensor sensor         = 23;
+}
+
+message Scene
+{
+  /// \brief Optional header data
+  Header header       = 1;
+
+  string name         = 2;
+  Color ambient       = 3;
+  Color background    = 4;
+  Sky sky             = 5;
+  bool shadows        = 6;
+  Fog fog             = 7;
+  bool grid           = 8;
+
+  repeated Model model         = 9;
+  repeated Light light         = 10;
+  repeated Joint joint         = 11;
+
+  /// \brief Show/hide world origin indicator.
+  bool origin_visual  = 12;
+}

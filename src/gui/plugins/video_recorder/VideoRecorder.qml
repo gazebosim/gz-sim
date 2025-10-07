@@ -14,13 +14,14 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQuick 2.9
-import QtQuick.Controls 2.1
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Dialogs 1.0
+
+import QtQuick.Dialogs
 
 ToolBar {
   Layout.minimumWidth: 200
@@ -35,8 +36,8 @@ ToolBar {
     FileDialog {
         id: fileDialog
         title: "Save the recorded video"
-        folder: shortcuts.home
-        selectExisting: false
+        fileMode: FileDialog.SaveFile
+        currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
         property var fileFormat: ""
         property var selectedFormat: ""
 
@@ -45,10 +46,10 @@ ToolBar {
         }
 
         onAccepted: {
-          fileFormat = getFormat(fileUrl.toString())
-          if (fileFormat == fileUrl.toString()) {
+          fileFormat = getFormat(selectedFile.toString())
+          if (fileFormat == selectedFile.toString()) {
             // no format specified
-            VideoRecorder.OnSave(fileFormat + "." + selectedFormat)
+            _VideoRecorder.OnSave(fileFormat + "." + selectedFormat)
             close()
           }
           else if (fileFormat != selectedFormat){
@@ -56,12 +57,12 @@ ToolBar {
             mismatchDialog.open()
           } else {
             // correct format specified
-            VideoRecorder.OnSave(fileUrl)
+            _VideoRecorder.OnSave(selectedFile)
             close()
           }
         }
         onRejected: {
-          VideoRecorder.OnCancel()
+          _VideoRecorder.OnCancel()
           close()
         }
     }
@@ -73,7 +74,7 @@ ToolBar {
       focus: false
       width: 700
       height: 200
-      parent: ApplicationWindow.overlay
+      parent: Overlay.overlay
       x: (parent.width - width) / 2
       y: (parent.height - height) / 2
       standardButtons: Dialog.Save | Dialog.Abort
@@ -96,8 +97,8 @@ ToolBar {
       }
 
       onAccepted: {
-        VideoRecorder.OnSave(fileDialog.fileUrl)
-        VideoRecorder.close()
+        _VideoRecorder.OnSave(fileDialog.selectedFile)
+        _VideoRecorder.close()
         close()
       }
       onRejected: {
@@ -134,7 +135,7 @@ ToolBar {
         onTriggered: {
           fileDialog.nameFilters = ["*.mp4"]
           fileDialog.selectedFormat = "mp4"
-          VideoRecorder.OnStart("mp4")
+          _VideoRecorder.OnStart("mp4")
           animation.start()
         }
       }
@@ -143,7 +144,7 @@ ToolBar {
         onTriggered: {
           fileDialog.nameFilters = ["*.ogv"]
           fileDialog.selectedFormat = "ogv"
-          VideoRecorder.OnStart("ogv")
+          _VideoRecorder.OnStart("ogv")
           animation.start()
         }
       }
@@ -156,7 +157,7 @@ ToolBar {
         text: "Stop"
         onTriggered: {
           animation.stop()
-          VideoRecorder.OnStop()
+          _VideoRecorder.OnStop()
           fileDialog.open()
         }
       }

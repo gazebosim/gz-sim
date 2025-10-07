@@ -16,9 +16,9 @@
 import os
 import unittest
 
-from gz_test_deps.common import set_verbosity
-from gz_test_deps.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
-from gz_test_deps.math import AxisAlignedBox, Inertiald, Matrix3d, Vector3d, Pose3d
+from gz.common import set_verbosity
+from gz.sim import K_NULL_ENTITY, TestFixture, Link, Model, World, world_entity
+from gz.math import AxisAlignedBox, Inertiald, Matrix3d, Vector3d, Pose3d
 
 class TestModel(unittest.TestCase):
     post_iterations = 0

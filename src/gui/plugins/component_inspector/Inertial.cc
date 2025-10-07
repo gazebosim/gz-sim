@@ -27,7 +27,6 @@ using namespace inspector;
 /////////////////////////////////////////////////
 Inertial::Inertial(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("InertialImpl", this);
   this->inspector = _inspector;
 
   this->inspector->AddUpdateViewCb(components::Inertial::typeId,

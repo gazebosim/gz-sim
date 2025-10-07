@@ -18,7 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
@@ -37,7 +37,7 @@ Rectangle {
   // Send new pose to C++
   function sendPose(x, y, z, roll, pitch, yaw) {
     // TODO(anyone) There's a loss of precision when these values get to C++
-    Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
+    _Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
   }
 
   Column {

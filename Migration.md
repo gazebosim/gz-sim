@@ -5,6 +5,43 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 9.x to 10.0
+
+* Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
+have been migrated. This upgrade affects all users' custom Gazebo GUI plugins.
+Please see the
+[Qt6 Migration tutorial](https://github.com/gazebosim/gz-gui/blob/gz-sim10/tutorials/09_migration_qt6.md)
+for information on how to port your Qt5 based plugins to Qt6.
+
+### Removals
+
+- **config.hh**:
+   + The macro `GZ_SIM_GUI_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getGUIConfigPath()` instead.
+
+   + The macro `GZ_SIM_SYSTEM_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getSystemConfigPath()` instead.
+
+   + The macro `GZ_SIM_SERVER_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getServerConfigPath()` instead.
+
+   + The macro `GZ_SIM_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getPluginInstallDir()` instead.
+
+   + The macro `GZ_SIM_GUI_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getGUIPluginInstallDir()` instead.
+
+   + The macro `GZ_SIM_WORLD_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getWorldInstallDir()` instead.
+
+  **components/Factory.hh**:
+    + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and
+      `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)`
+       have been removed. Instead, please use
+       `gz::sim::components::Factory::Register(const char *_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId  _regObjId)`
+    + `gz::sim::components::Factory::Unregister()` has been removed. Instead, please use
+       `gz::sim::components::Factory::Unregister(RegistrationObjectId  _regObjId)`.
+
 ## Gazebo Sim 8.x to 9.0
 
  * **Modified**:

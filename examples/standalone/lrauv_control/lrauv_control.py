@@ -26,10 +26,10 @@
 #   $ python3 lrauv_control.py 0.5 0.78 0.174
 #
 
-from gz.msgs11.double_pb2 import Double
-from gz.msgs11.odometry_pb2 import Odometry
-from gz.math8 import Quaterniond, Vector3d
-from gz.transport14 import Node
+from gz.msgs.double_pb2 import Double
+from gz.msgs.odometry_pb2 import Odometry
+from gz.math import Quaterniond, Vector3d
+from gz.transport import Node
 
 from threading import Lock
 

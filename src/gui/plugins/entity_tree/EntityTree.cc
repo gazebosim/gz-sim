@@ -122,6 +122,15 @@ TreeModel::TreeModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
+TreeModel::~TreeModel()
+{
+  // Disconnect all signals/slots manually. This prevents Qt from printing
+  // warnings when closing the plugin as it tries to disconnect signals/slots
+  // from the (already deleted) model.
+  this->disconnect();
+}
+
+/////////////////////////////////////////////////
 void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
     Entity _parentEntity, const QString &_type)
 {
@@ -293,7 +302,7 @@ EntityTree::EntityTree()
 {
   // Connect model
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
-     "EntityTreeModel", &this->dataPtr->treeModel);
+     "_EntityTreeModel", &this->dataPtr->treeModel);
 }
 
 /////////////////////////////////////////////////

@@ -17,9 +17,9 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.1
+import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import GzSim 1.0 as GzSim
 
 Rectangle {
@@ -42,12 +42,12 @@ Rectangle {
   /**
    * Entity type
    */
-  property string entityType: ComponentInspector.type
+  property string entityType: _ComponentInspector.type
 
   /**
    * Get if entity is nested model or not
    */
-  property bool nestedModel : ComponentInspector.nestedModel
+  property bool nestedModel : _ComponentInspector.nestedModel
 
   /**
    * Light grey according to theme
@@ -91,7 +91,7 @@ Rectangle {
    * Forward pose changes to C++
    */
   function onPose(_x, _y, _z, _roll, _pitch, _yaw) {
-    ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
+    _ComponentInspector.OnPose(_x, _y, _z, _roll, _pitch, _yaw)
   }
 
   /**
@@ -103,7 +103,7 @@ Rectangle {
                    _castShadows, _directionX, _directionY, _directionZ,
                    _innerAngle, _outerAngle, _falloff, _intensity, _type,
                    _isLightOn, _visualizeVisual) {
-    ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
+    _ComponentInspector.OnLight(_rSpecular, _gSpecular, _bSpecular, _aSpecular,
                                _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
                                _attRange, _attLinear, _attConstant, _attQuadratic,
                                _castShadows, _directionX, _directionY, _directionZ,
@@ -115,7 +115,7 @@ Rectangle {
    * Forward physics changes to C++
    */
   function onPhysics(_stepSize, _realTimeFactor) {
-    ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
+    _ComponentInspector.OnPhysics(_stepSize, _realTimeFactor)
   }
 
   /**
@@ -126,7 +126,7 @@ Rectangle {
                            _rSpecular, _gSpecular, _bSpecular, _aSpecular,
                            _rEmissive, _gEmissive, _bEmissive, _aEmissive,
                            _type, _currColor) {
-    ComponentInspector.OnMaterialColor(
+    _ComponentInspector.OnMaterialColor(
         _rAmbient, _gAmbient, _bAmbient, _aAmbient,
         _rDiffuse, _gDiffuse, _bDiffuse, _aDiffuse,
         _rSpecular, _gSpecular, _bSpecular, _aSpecular,
@@ -138,7 +138,7 @@ Rectangle {
    * Forward spherical coordinate changes to C++
    */
   function onSphericalCoordinates(_surface, _lat, _lon, _elevation, _heading) {
-    ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
+    _ComponentInspector.OnSphericalCoordinates(_surface, _lat, _lon, _elevation,
         _heading);
   }
 
@@ -159,11 +159,11 @@ Rectangle {
         id: icon
         height: lockButton.height * 0.8
         width: lockButton.height * 0.8
-        entityType: ComponentInspector.type
+        entityType: _ComponentInspector.type
       }
 
       Label {
-        text: ComponentInspector.type
+        text: _ComponentInspector.type
         font.capitalization: Font.Capitalize
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
@@ -193,7 +193,7 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
-          ComponentInspector.locked = lockButton.checked
+          _ComponentInspector.locked = lockButton.checked
         }
       }
 
@@ -212,7 +212,7 @@ Rectangle {
         ToolTip.visible: hovered
         ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
         onToggled: {
-          ComponentInspector.paused = pauseButton.checked
+          _ComponentInspector.paused = pauseButton.checked
         }
       }
 
@@ -239,7 +239,7 @@ Rectangle {
 
       Label {
         id: entityLabel
-        text: 'Entity ' + ComponentInspector.entity
+        text: 'Entity ' + _ComponentInspector.entity
         Layout.minimumWidth: 80
         color: Material.theme == Material.Light ? "#444444" : "#cccccc"
         font.pointSize: 12
@@ -292,7 +292,7 @@ Rectangle {
           Layout.column: 1
           Layout.fillWidth: true
           Layout.minimumWidth: 250
-          model: ComponentInspector.systemNameList
+          model: _ComponentInspector.systemNameList
           currentIndex: 0
           onCurrentIndexChanged: {
             if (currentIndex < 0)
@@ -336,12 +336,12 @@ Rectangle {
     }
 
     onOpened: {
-      ComponentInspector.QuerySystems();
+      _ComponentInspector.QuerySystems();
       addSystemDialog.updateButtonState();
     }
 
     onAccepted: {
-      ComponentInspector.OnAddSystem(nameField.text.trim(),
+      _ComponentInspector.OnAddSystem(nameField.text.trim(),
           filenameCB.currentText.trim(), innerxmlField.text.trim())
     }
 

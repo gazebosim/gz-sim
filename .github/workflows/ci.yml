@@ -15,25 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  jammy-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Jammy CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: --all-files
-      - name: Compile and test
-        id: ci
-        uses: gazebo-tooling/action-gz-ci@jammy
-        with:
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
-          codecov-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
-
   noble-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI
@@ -50,6 +31,19 @@ jobs:
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+
+  noble-ci-disable-gui:
+    runs-on: ubuntu-latest
+    name: Ubuntu Noble CI (GUI disabled)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v3
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@noble
+        with:
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev

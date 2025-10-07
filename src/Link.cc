@@ -488,6 +488,67 @@ void Link::AddWorldForce(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
+                                   const math::Vector3d &_force) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial)
+    return;
+
+  // The force is expressed in terms of the link's inertial coordinate frame,
+  // We'll first convert this to force expressed in terms of the link's
+  // coordinate frame
+  math::Vector3d linkForce = inertial->Data().Pose().Rot(
+                             ).RotateVector(_force);
+
+  // AddWorldForce applies the force expressed in world coordinates
+  // so we need to compute the force expressed in world coordinates
+  math::Vector3d worldForce = worldPose.Rot().RotateVector(linkForce);
+
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce);
+}
+
+//////////////////////////////////////////////////
+void Link::AddForceInInertialFrame(EntityComponentManager &_ecm,
+                                   const math::Vector3d &_force,
+                                   const math::Vector3d &_position) const
+{
+  auto inertial = _ecm.Component<components::Inertial>(this->dataPtr->id);
+  auto worldPose = _ecm.ComponentData<components::WorldPose>(this->dataPtr->id)
+                       .value_or(sim::worldPose(this->dataPtr->id, _ecm));
+
+  // Can't apply force if the inertial's pose is not found
+  if (!inertial)
+    return;
+
+  // The force is expressed in terms of the link's inertial coordinate frame,
+  // We'll first convert this to force expressed in terms of the link's
+  // coordinate frame
+  math::Vector3d linkForce =
+    inertial->Data().Pose().Rot().RotateVector(_force);
+
+  // ApplyWorldForce applies the force expressed in world coordinates
+  // so we need to compute the force expressed in world coordinates
+  math::Vector3d worldForce = worldPose.Rot().RotateVector(linkForce);
+
+  // ApplyWorldForce applies the force at a position relative to the
+  // center of mass and expressed in coordinates of the link frame.
+  // Since _position is relative to the center of mass in coordinates
+  // of the inertial frame, it just needs to be rotated to be expressed
+  // in coordinates of the link frame.
+  math::Vector3d positionInLinkFrame =
+    inertial->Data().Pose().Rot().RotateVector(_position);
+
+  // Apply Force using AddWorldForce method
+  this->AddWorldForce(_ecm, worldForce, positionInLinkFrame);
+}
+
+//////////////////////////////////////////////////
 void Link::AddWorldWrench(EntityComponentManager &_ecm,
                          const math::Vector3d &_force,
                          const math::Vector3d &_torque) const

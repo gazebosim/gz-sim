@@ -11,19 +11,19 @@ RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
-    libgz-cmake4-dev \
-    libgz-common6-dev \
-    libgz-fuel-tools10-dev \
-    libgz-math8-eigen3-dev \
-    libgz-plugin3-dev \
-    libgz-physics8-dev \
-    libgz-rendering9-dev \
+    libgz-cmake5-dev \
+    libgz-common7-dev \
+    libgz-fuel-tools11-dev \
+    libgz-math9-eigen3-dev \
+    libgz-plugin4-dev \
+    libgz-physics9-dev \
+    libgz-rendering10-dev \
     libgz-tools2-dev \
-    libgz-transport14-dev \
-    libgz-gui9-dev \
-    libgz-msgs11-dev \
-    libgz-sensors9-dev \
-    libsdformat15-dev \
+    libgz-transport15-dev \
+    libgz-gui10-dev \
+    libgz-msgs12-dev \
+    libgz-sensors10-dev \
+    libsdformat16-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

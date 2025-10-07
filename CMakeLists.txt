@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim9 VERSION 9.2.0)
-set (GZ_DISTRIBUTION "Ionic")
+project(gz-sim VERSION 10.0.0)
+set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake4 REQUIRED)
+find_package(gz-cmake REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -32,6 +32,16 @@ else()
   add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
+#--------------------------------------
+# Find Backward-cpp for stack trace support
+# See https://github.com/gazebosim/gz-cmake/issues/477 before copy this code
+
+set(BACKWARD_TESTS OFF)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
+
+# Using other CMake interfaces from backwards won't work here since
+# CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
+# using backward_object set the object file path.
 if (UNIX AND NOT APPLE)
   set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
 else()
@@ -74,69 +84,78 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat15 REQUIRED)
-set(SDF_VER ${sdformat15_VERSION_MAJOR})
+gz_find_package(sdformat REQUIRED)
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin3 REQUIRED COMPONENTS loader register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+gz_find_package(gz-plugin REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport14 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
+gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs11 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
+gz_find_package(gz-msgs REQUIRED)
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common6
+gz_find_package(gz-common
   COMPONENTS
     av
     events
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
-set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools10 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools REQUIRED)
 
-#--------------------------------------
-# Find gz-gui
-gz_find_package(gz-gui9 REQUIRED)
-set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
-gz_find_package (Qt5
-  COMPONENTS
-    Core
-    Quick
-    QuickControls2
-  REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
+
+if(ENABLE_GUI)
+  gz_find_package(gz-gui REQUIRED)
+
+  set(QT_MAJOR_VERSION 6)
+  set(QT_MINOR_VERSION 4)
+  gz_find_package (Qt${QT_MAJOR_VERSION}
+    VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+
+  set(CMAKE_AUTOMOC TRUE)
+  set(CMAKE_AUTOUIC TRUE)
+  set(CMAKE_AUTORCC TRUE)
+  if(POLICY CMP0100)
+    cmake_policy(SET CMP0100 NEW)
+  endif()
+endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics8
+gz_find_package(gz-physics
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors9 REQUIRED
+gz_find_package(gz-sensors REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -164,17 +183,14 @@ gz_find_package(gz-sensors9 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering9 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering9_VERSION_MAJOR})
+gz_find_package(gz-rendering REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math8 REQUIRED COMPONENTS eigen3)
-set(GZ_MATH_VER ${gz-math8_VERSION_MAJOR})
+gz_find_package(gz-math REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
@@ -190,8 +206,19 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils3 REQUIRED COMPONENTS cli)
-set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
+gz_find_package(gz-utils REQUIRED COMPONENTS cli)
+
+
+#--------------------------------------
+# Find libwebsockets
+# Disable on windows as there is an issue linking against websockets_shared,
+# see #2802
+if (NOT WIN32)
+  gz_find_package(libwebsockets)
+  if (NOT libwebsockets_FOUND)
+    gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+  endif()
+endif()
 
 #--------------------------------------
 # Find protobuf
@@ -199,7 +226,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs11_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python

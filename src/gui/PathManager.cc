@@ -27,6 +27,7 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
+#include <gz/transport/Node.hh>
 
 #include "gz/sim/Util.hh"
 
@@ -47,7 +48,8 @@ void onAddResourcePaths(const msgs::StringMsg_V &_msg)
 }
 
 //////////////////////////////////////////////////
-void onAddResourcePaths(const msgs::StringMsg_V &_res, const bool _result)
+void onAddResourcePathsService(const msgs::StringMsg_V &_res,
+                               const bool _result)
 {
   if (!_result)
   {
@@ -67,7 +69,7 @@ PathManager::PathManager()
 
   gzdbg << "Requesting resource paths through [" << service << "]"
          << std::endl;
-  this->node.Request(service, onAddResourcePaths);
+  this->node.Request(service, onAddResourcePathsService);
 
   // Get path updates through this topic
   this->node.Subscribe("/gazebo/resource_paths", onAddResourcePaths);

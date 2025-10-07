@@ -30,7 +30,7 @@ using namespace inspector;
 /////////////////////////////////////////////////
 Pose3d::Pose3d(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("Pose3dImpl", this);
+  _inspector->Context()->setContextProperty("_Pose3dImpl", this);
   this->inspector = _inspector;
 
   this->inspector->AddUpdateViewCb(components::Pose::typeId,

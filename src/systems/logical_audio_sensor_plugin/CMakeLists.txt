@@ -3,10 +3,10 @@ gz_add_system(logicalaudiosensorplugin
     LogicalAudioSensorPlugin.cc
     LogicalAudio.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-math${GZ_MATH_VER}::gz-math${GZ_MATH_VER}
-    gz-msgs${GZ_MSGS_VER}::gz-msgs${GZ_MSGS_VER}
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
+    gz-common::gz-common
+    gz-math::gz-math
+    gz-msgs::gz-msgs
+    gz-transport::gz-transport
 )
 
 set (gtest_sources

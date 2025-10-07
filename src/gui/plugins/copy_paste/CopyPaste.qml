@@ -20,7 +20,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 ToolBar {
   id: copyPaste
@@ -47,7 +47,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        CopyPaste.OnCopy()
+        _CopyPaste.OnCopy()
       }
     }
     ToolButton{
@@ -64,7 +64,7 @@ ToolBar {
         sourceSize.height: 24;
       }
       onClicked: {
-        CopyPaste.OnPaste()
+        _CopyPaste.OnPaste()
       }
     }
   }

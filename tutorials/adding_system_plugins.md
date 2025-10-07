@@ -46,7 +46,7 @@ your turtle does not sink anymore.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -O ~/gazebo_maritime/worlds/buoyant_turtle.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/adding_system_plugins/buoyant_turtle.sdf -O ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 ```

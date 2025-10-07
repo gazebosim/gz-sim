@@ -44,6 +44,7 @@ If you are an absolute beginner, start with the Tutorials section.
 ### Intermediate
 
 * \subpage light_config "Light config": Configure lights in the scene.
+* \subpage global_illumination "Global illumination": Enable global illumination for the GUI and for the sensor view.
 * \subpage entity_creation "Entity creation": Insert models or lights using services.
 * \subpage battery "Battery": Keep track of battery charge on robot models.
 * \subpage particle_emitter "Particle emitter": Use particle emitters in simulation
@@ -55,10 +56,13 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage auto_inertia_calculation "Automatic Inertia Calculation": Automatically compute inertia values(mass, mass matrix, center of mass) for SDFormat links.
 * \subpage jointcontrollers "Joint Controllers": Using available joint controller plugins to control joints.
 * \subpage shadow_texture_size "Shadow texture size": Change the texture size of shadows casted by lights.
+* \subpage websocket_server "Websocket server": Launch a websocket server for gzweb.
+* \subpage wheel_slip_systems "Wheel slip systems": Configure slip parameters for wheels.
 
 ### Advanced
 
 * \subpage physics "Physics engines": Load different physics engines.
+* \subpage hpc_clusters "Gazebo on HPC clusters": How to run rendering sensors.
 
 ### Developers
 

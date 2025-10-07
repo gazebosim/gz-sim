@@ -43,7 +43,7 @@ server.run(True, 1000, False)
 ## Run the example
 
 In the
-[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/main/examples/scripts/python_api)
+[examples/scripts/python_api](https://github.com/gazebosim/gz-sim/tree/gz-sim10/examples/scripts/python_api)
 folder there is a Python script that shows how to make use of this API.
 
 If you compiled Gazebo from source you should modify your `PYTHONPATH`:
@@ -96,8 +96,8 @@ Example python system:
 <!-- TODO(azeey) Allow including python files in doxygen -->
 <!-- \include examples/scripts/python_api/systems/test_system.py -->
 ```python
-from gz.math8 import Vector3d
-from gz.sim9 import Model, Link
+from gz.math import Vector3d
+from gz.sim import Model, Link
 import random
 
 

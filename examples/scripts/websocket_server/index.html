@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>WebSocket Test</title>
+  <script src='https://cdn.rawgit.com/dcodeIO/protobuf.js/6.8.8/dist/protobuf.min.js'></script>
+  <script src='eventemitter2.min.js'></script>
+  <script src='gz.js'></script>
+  <script src='gz3d.js'></script>
+
+  <script>
+    // Change the world name to match the world launched by gz-sim
+    const worldName = 'websocket_server';
+
+    // Create the Connection to the Gazebo websocket server
+    // This configuration does not use SSL or authentication.
+    // You can enable them by replacing `wss://` with `ws://`
+    // and uncommenting the`key` parameter.
+    // Make sure to also enable SSL and authentication in the
+    // websocket_server.sdf's websocket-server-system's plugin params.
+    var gz = new Gazebo({
+      url: 'ws://localhost:9002',
+      key: "auth_key"
+    });
+
+    // Listen for the 'connection' event.
+    gz.on('connection', function() {
+      var output = document.getElementById('status');
+      output.innerHTML = 'Status: connected';
+    });
+
+    gz.on('worlds', function(_worlds) {
+      // \todo Switch this to a service call when this issue is
+      // resolved:
+      // https://github.com/gazebosim/gz-transport/issues/135
+      gz.once('scene', function(_sceneInfo) {
+        // console.log(_sceneInfo);
+        for (var i = 0; i < _sceneInfo.model.length; ++i) {
+          var modelObj = createModelFromMsg(_sceneInfo.model[i]);
+          scene.add(modelObj);
+        }
+      });
+      gz.socket.send(buildMsg(['scene', worldName,'','']));
+    });
+
+    // Create the clock subscriber
+    var clockSub = new Topic({
+      gz: gz,
+      name: '/clock',
+      messageType : 'gz.msgs.Clock',
+      callback: function(msg) {
+        var output = document.getElementById('output');
+        output.innerHTML = 'Clock: ' + msg.sim.sec + '.' + msg.sim.nsec;
+      }
+    });
+
+    // Create the pos subscriber
+    var poseSub = new Topic({
+      gz: gz,
+      name: '/world/' + worldName + '/dynamic_pose/info',
+      messageType : 'gz.msgs.Pose_V',
+      callback: function(msg) {
+        for (var i = 0; i < msg.pose.length; ++i) {
+          var entity = scene.getByName(msg.pose[i].name);
+          if (entity && entity !== scene.modelManipulator.object
+              && entity.parent !== scene.modelManipulator.object) {
+            scene.updatePose(entity, msg.pose[i].position,
+              msg.pose[i].orientation);
+          }
+        }
+      }
+    });
+
+
+
+    var camera, renderer;
+
+    // Initialize GZ3D objects.
+    const shaders = new GZ3D.Shaders();
+    var scene = new GZ3D.Scene(shaders);
+    var sdfParser = new GZ3D.SdfParser(scene);
+    const ogre2json = new GZ3D.Ogre2Json();
+
+    entityMaterial = {};
+    protocol = "http:";
+    url = 'localhost';
+
+    function init() {
+      scene.grid.visible = true;
+      // The domElement the renderer will be appended to.
+      var sceneElement = window.document.getElementById('container');
+      if (sceneElement === undefined || sceneElement === null) {
+        console.log("Invalid scene element");
+      }
+
+      sceneElement.appendChild(scene.renderer.domElement);
+      scene.setSize(sceneElement.clientWidth, sceneElement.clientHeight);
+
+      /*
+      // Hide sun visual
+      const sunHelper = scene.scene.getObjectByName('sun_lightHelper');
+      if (sunHelper) {
+        sunHelper.visible = false;
+      }
+
+      // Delete ground plane
+      const ground = scene.scene.getObjectByName('ground_plane');
+      if (ground) {
+        scene.remove(ground);
+      }
+      */
+
+      resetCameraPose();
+
+      // And sun orientation
+      /*const sunLight = scene.scene.getObjectByName('sun').children[0];
+      const sunDir = new THREE.Vector3(-0.4, 0.4, -0.4);
+      console.log("2");
+
+      sunLight.direction = new THREE.Vector3();
+      sunLight.direction.copy(sunDir);
+      sunLight.target.position.copy(sunDir);
+      */
+
+      // Start rendering.
+      animate();
+
+      /*
+      var obj = scene.createSphere(1.0);
+      obj.updateMatrix();
+      scene.add(obj);
+      */
+    }
+
+    function resetCameraPose() {
+      const cam = scene.camera;
+      cam.position.x = 1.1;
+      cam.position.y = -1.4;
+      cam.position.z = 0.6;
+      cam.rotation.x = 67 * Math.PI / 180;
+      cam.rotation.y = 33 * Math.PI / 180;
+      cam.rotation.z = 12 * Math.PI / 180;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      scene.render();
+    }
+
+    function createModelFromMsg(model)
+    {
+      var modelObj = new THREE.Object3D();
+      modelObj.name = model.name;
+      modelObj.userData.id = model.id;
+      if (model.pose) {
+        scene.setPose(modelObj,
+          model.pose.position, model.pose.orientation);
+      }
+      for (var j = 0; j < model.link.length; ++j)
+      {
+        var link = model.link[j];
+        var linkObj = new THREE.Object3D();
+        linkObj.name = link.name;
+        linkObj.userData.id = link.id;
+        linkObj.serverProperties =
+            {
+              self_collide: link.self_collide,
+              gravity: link.gravity,
+              kinematic: link.kinematic
+            };
+
+        if (link.inertial)
+        {
+          var inertialPose, inertialMass, inertia = {};
+          linkObj.userData.inertial = {};
+          inertialPose = link.inertial.pose;
+          inertialMass = link.inertial.mass;
+          inertia.ixx = link.inertial.ixx;
+          inertia.ixy = link.inertial.ixy;
+          inertia.ixz = link.inertial.ixz;
+          inertia.iyy = link.inertial.iyy;
+          inertia.iyz = link.inertial.iyz;
+          inertia.izz = link.inertial.izz;
+          linkObj.userData.inertial.inertia = inertia;
+          if (inertialMass) {
+            linkObj.userData.inertial.mass = inertialMass;
+          }
+          if (inertialPose) {
+            linkObj.userData.inertial.pose = inertialPose;
+          }
+        }
+
+        if (link.pose) {
+          scene.setPose(linkObj, link.pose.position,
+              link.pose.orientation);
+        }
+        modelObj.add(linkObj);
+        for (var k = 0; k < link.visual.length; ++k)
+        {
+          var visual = link.visual[k];
+          var visualObj = createVisualFromMsg(visual);
+          if (visualObj && !visualObj.parent) {
+            linkObj.add(visualObj);
+          }
+        }
+
+        for (var l = 0; l < link.collision.length; ++l) {
+          var collision = link.collision[l];
+          for (var m = 0; m < link.collision[l].visual.length; ++m) {
+            var collisionVisual = link.collision[l].visual[m];
+            var collisionVisualObj = createVisualFromMsg(collisionVisual);
+            if (collisionVisualObj && !collisionVisualObj.parent) {
+              linkObj.add(collisionVisualObj);
+            }
+          }
+        }
+      }
+
+      if (model.joint) {
+        modelObj.joint = model.joint;
+      }
+
+      return modelObj;
+    }
+
+    function createVisualFromMsg(visual)
+    {
+      if (visual.geometry)
+      {
+        var geom = visual.geometry;
+        var visualObj = new THREE.Object3D();
+        visualObj.name = visual.name;
+        if (visual.pose)
+        {
+          scene.setPose(visualObj, visual.pose.position,
+              visual.pose.orientation);
+        }
+
+        visualObj.castShadow = visual.cast_shadows;
+        visualObj.receiveShadow = visual.receive_shadows;
+
+        createGeom(geom, visual.material, visualObj);
+
+        return visualObj;
+      }
+    }
+
+    function parseMaterial(material)
+    {
+      if (!material) {
+        return null;
+      }
+
+      var uriPath = protocol + '//' + url + '/assets';
+      var texture;
+      var normalMap;
+      var textureUri;
+      var ambient;
+      var diffuse;
+      var specular;
+      var opacity;
+      var scale;
+      var mat;
+
+      // get texture from material script
+      var script  = material.script;
+      if (script) {
+        if (script.name) {
+          mat = material[script.name];
+          if (mat) {
+            ambient = mat['ambient'];
+            diffuse = mat['diffuse'];
+            specular = mat['specular'];
+            opacity = mat['opacity'];
+            scale = mat['scale'];
+
+            var textureName = mat['texture'];
+            if (textureName) {
+              for (var i = 0; i < script.uri.length; ++i) {
+                // handle the weird case where empty scripts become converted to
+                // a single '__default__' script
+                var scriptUri = script.uri[i];
+                if (scriptUri === '__default__')
+                {
+                  scriptUri = 'file://media/materials/scripts/gazebo.material';
+                }
+
+                var type = scriptUri.substring(0,
+                      scriptUri.indexOf('://'));
+
+                if (type === 'model')
+                {
+                  if (scriptUri.indexOf('textures') > 0)
+                  {
+                    textureUri = scriptUri.substring(
+                        scriptUri.indexOf('://') + 3);
+                    break;
+                  }
+                }
+                else if (type === 'file')
+                {
+                  if (scriptUri.indexOf('materials') > 0)
+                  {
+                    textureUri = scriptUri.substring(
+                        scriptUri.indexOf('://') + 3,
+                        scriptUri.indexOf('materials') + 9) + '/textures';
+                    break;
+                  }
+                }
+              }
+              if (textureUri)
+              {
+                texture = uriPath + '/' +
+                    textureUri  + '/' + textureName;
+              }
+            }
+          }
+        }
+      }
+
+      // normal map
+      if (material.normal_map) {
+        var mapUri;
+        if (material.normal_map.indexOf('://') > 0)
+        {
+          mapUri = material.normal_map.substring(
+              material.normal_map.indexOf('://') + 3,
+              material.normal_map.lastIndexOf('/'));
+        }
+        else
+        {
+          mapUri = textureUri;
+        }
+        if (mapUri)
+        {
+          var startIndex = material.normal_map.lastIndexOf('/') + 1;
+          if (startIndex < 0)
+          {
+            startIndex = 0;
+          }
+          var normalMapName = material.normal_map.substr(startIndex,
+              material.normal_map.lastIndexOf('.') - startIndex);
+          normalMap = uriPath + '/' +
+            mapUri  + '/' + normalMapName + '.png';
+        }
+      }
+
+      return {
+          texture: texture,
+          normalMap: normalMap,
+          ambient: ambient,
+          diffuse: diffuse,
+          specular: specular,
+          opacity: opacity,
+          scale: scale
+      };
+    }
+
+    function createGeom (geom, material, parent)
+    {
+      var obj;
+      var uriPath = 'assets';
+      var that = this;
+      var mat = parseMaterial(material);
+
+      if (geom.box)
+      {
+        obj = scene.createBox(geom.box.size.x, geom.box.size.y,
+            geom.box.size.z);
+      }
+      else if (geom.cylinder)
+      {
+        obj = scene.createCylinder(geom.cylinder.radius,
+            geom.cylinder.length);
+      }
+      else if (geom.sphere)
+      {
+        obj = scene.createSphere(geom.sphere.radius);
+      }
+      else if (geom.plane)
+      {
+        obj = scene.createPlane(geom.plane.normal.x, geom.plane.normal.y,
+            geom.plane.normal.z, geom.plane.size.x, geom.plane.size.y);
+      }
+      else if (geom.mesh)
+      {
+        // get model name which the mesh is in
+        var rootModel = parent;
+        while (rootModel.parent)
+        {
+          rootModel = rootModel.parent;
+        }
+
+        // find model from database, download the mesh if it exists
+        // var manifestXML;
+        // var manifestURI = GAZEBO_MODEL_DATABASE_URI + '/manifest.xml';
+        // var request = new XMLHttpRequest();
+        // request.open('GET', manifestURI, false);
+        // request.onreadystatechange = function(){
+        //   if (request.readyState === 4)
+        //   {
+        //     if (request.status === 200 || request.status === 0)
+        //     {
+        //         manifestXML = request.responseXML;
+        //     }
+        //   }
+        // };
+        // request.send();
+
+        // var uriPath;
+        // var modelAvailable = false;
+        // var modelsElem = manifestXML.getElementsByTagName('models')[0];
+        // var i;
+        // for (i = 0; i < modelsElem.getElementsByTagName('uri').length; ++i)
+        // {
+        //   var uri = modelsElem.getElementsByTagName('uri')[i];
+        //   var model = uri.substring(uri.indexOf('://') + 3);
+        //   if (model === rootModel)
+        //   {
+        //     modelAvailable = true;
+        //   }
+        // }
+
+        // if (modelAvailable)
+        {
+          var meshUri = geom.mesh.filename;
+          var submesh = geom.mesh.submesh;
+          var centerSubmesh = geom.mesh.center_submesh;
+
+          var uriType = meshUri.substring(0, meshUri.indexOf('://'));
+          var modelName = '';
+          // file:// or model://
+          if (uriType === 'file' || uriType === 'model')
+          {
+            modelName = meshUri.substring(meshUri.indexOf('://') + 3);
+          }
+          // absolute path - happens when an urdf model is spawned
+          // into gazebo through gazebo_ros_pkgs
+          else if (meshUri.length > 0 && meshUri[0] === '/')
+          {
+            // hacky but try to guess the model name from uri based on the
+            // meshes directory string
+            var idx = meshUri.indexOf('/meshes/');
+            if (idx > 1)
+            {
+              modelName = meshUri.substring(meshUri.lastIndexOf('/', idx-1));
+            }
+          }
+          if (modelName.length > 0)
+          {
+            if (geom.mesh.scale)
+            {
+              parent.scale.x = geom.mesh.scale.x;
+              parent.scale.y = geom.mesh.scale.y;
+              parent.scale.z = geom.mesh.scale.z;
+            }
+
+            var modelUri = uriPath + '/' + modelName;
+            // Use coarse version on touch devices
+            if (modelUri.indexOf('.dae') !== -1 && isTouchDevice)
+            {
+              modelUri = modelUri.substring(0,modelUri.indexOf('.dae'));
+
+              var checkModel = new XMLHttpRequest();
+              checkModel.open('HEAD', modelUri+'_coarse.dae', false);
+              checkModel.send();
+              if (checkModel.status === 404)
+              {
+                modelUri = modelUri+'.dae';
+              }
+              else
+              {
+                modelUri = modelUri+'_coarse.dae';
+              }
+            }
+
+            var ext = modelUri.substr(-4).toLowerCase();
+            var materialName = parent.name + '::' + modelUri;
+            entityMaterial[materialName] = mat;
+
+            modelUri = protocol + '//' + url + '/' + modelUri;
+
+            scene.loadMeshFromUri(modelUri, submesh, centerSubmesh,
+              function(mesh) {
+                if (mat)
+                {
+                  // Because the stl mesh doesn't have any children we cannot set
+                  // the materials like other mesh types.
+                  if (modelUri.indexOf('.stl') === -1)
+                  {
+                    var allChildren = [];
+                    mesh.getDescendants(allChildren);
+                    for (var c = 0; c < allChildren.length; ++c)
+                    {
+                      if (allChildren[c] instanceof THREE.Mesh)
+                      {
+                        that.scene.setMaterial(allChildren[c], mat);
+                        break;
+                      }
+                    }
+                  }
+                  else
+                  {
+                    that.scene.setMaterial(mesh, mat);
+                  }
+                }
+                else
+                {
+                  if (ext === '.stl')
+                  {
+                    that.scene.setMaterial(mesh, {'ambient': [1,1,1,1]});
+                  }
+                }
+                parent.add(mesh);
+                loadGeom(parent);
+            });
+          }
+        }
+      }
+      else if (geom.heightmap)
+      {
+        var request = new ROSLIB.ServiceRequest({
+          name : that.scene.name
+        });
+
+        // redirect the texture paths to the assets dir
+        var textures = geom.heightmap.texture;
+        for ( var k = 0; k < textures.length; ++k)
+        {
+          textures[k].diffuse = parseUri(textures[k].diffuse);
+          textures[k].normal = parseUri(textures[k].normal);
+        }
+
+        var sizes = geom.heightmap.size;
+
+        // send service request and load heightmap on response
+        heightmapDataService.callService(request,
+            function(result)
+            {
+              var heightmap = result.heightmap;
+              // gazebo heightmap is always square shaped,
+              // and a dimension of: 2^N + 1
+              that.scene.loadHeightmap(heightmap.heights, heightmap.size.x,
+                  heightmap.size.y, heightmap.width, heightmap.height,
+                  heightmap.origin, textures,
+                  geom.heightmap.blend, parent);
+                //console.log('Result for service call on ' + result);
+            });
+
+        //scene.loadHeightmap(parent)
+      }
+
+      if (obj)
+      {
+        if (mat)
+        {
+          // texture mapping for simple shapes and planes only,
+          // not used by mesh and terrain
+          scene.setMaterial(obj, mat);
+        }
+        obj.updateMatrix();
+        parent.add(obj);
+        loadGeom(parent);
+      }
+
+      function loadGeom(visualObj)
+      {
+        var allChildren = [];
+        visualObj.getDescendants(allChildren);
+        for (var c = 0; c < allChildren.length; ++c)
+        {
+          if (allChildren[c] instanceof THREE.Mesh)
+          {
+            allChildren[c].castShadow = true;
+            allChildren[c].receiveShadow = true;
+
+            if (visualObj.castShadows)
+            {
+              allChildren[c].castShadow = visualObj.castShadows;
+            }
+            if (visualObj.receiveShadows)
+            {
+              allChildren[c].receiveShadow = visualObj.receiveShadows;
+            }
+
+            if (visualObj.name.indexOf('COLLISION_VISUAL') >= 0)
+            {
+              allChildren[c].castShadow = false;
+              allChildren[c].receiveShadow = false;
+
+              allChildren[c].visible = scene.showCollisions;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    function parseUri(uri) {
+      var uriPath = 'assets';
+      var idx = uri.indexOf('://');
+      if (idx > 0)
+      {
+        idx +=3;
+      }
+      return uriPath + '/' + uri.substring(idx);
+    }
+
+    // Todo: Get the meshes and other resource from the server.
+  </script>
+  </head>
+
+  <body onload="init()">
+    <div id='status'>Status: disconnected</div>
+    <div id='output'></div>
+
+    <div id="container" style="height: 800px">
+    </div>
+  </body>
+</html>

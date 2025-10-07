@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -76,10 +77,15 @@ namespace gz
 
       /// \brief Add logging record plugin.
       /// \param[in] _config Server configuration parameters.
-      public: void AddRecordPlugin(const ServerConfig &_config);
+      /// \param[out] _root SDF Root reference.
+      public: void AddRecordPlugin(const ServerConfig &_config,
+                                   sdf::Root &_root);
 
-      /// \brief Create all entities that exist in the sdf::Root object.
-      public: void CreateEntities();
+      /// \brief Create the simulation runners, on for each world in then
+      /// provided sdf::Root object. Entities within in the provided
+      /// sdf::Root object are not created.
+      /// \param[in] _sdfRoot The sdf root object.
+      public: void CreateSimulationRunners(const sdf::Root &_sdfRoot);
 
       /// \brief Stop server.
       public: void Stop();
@@ -102,8 +108,20 @@ namespace gz
       /// \brief Helper function that loads an SDF root object based on
       /// values in a ServerConfig object.
       /// \param[in] _config Server config to read from.
+      /// \param[out] _root SDF root object.
+      /// \param[in] _suppressConsole True to suppress console output.
       /// \return Set of SDF errors.
-      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config);
+      public: sdf::Errors LoadSdfRootHelper(const ServerConfig &_config,
+                                            sdf::Root &_root,
+                                            bool suppressConsole = false);
+
+      /// \brief Download simulation assets.
+      /// \param[in] _config Server configuration parameters. This function
+      /// will block if _config.WaitForAssets() is true.
+      public: void DownloadAssets(const ServerConfig &_config);
+
+      /// \brief Fetch the queued simulation assets.
+      private: void FetchQueuedAssets();
 
       /// \brief Signal handler callback
       /// \param[in] _sig The signal number
@@ -154,7 +172,10 @@ namespace gz
         const gz::msgs::ServerControl &_req, msgs::Boolean &_res);
 
       /// \brief A pool of worker threads.
-      public: common::WorkerPool workerPool{2};
+      /// \note We use optional here since most of the time, there will be a
+      /// single simulation runner and a workerpool is not needed. We will
+      /// initialize the workerpool as necessary later on.
+      public: std::optional<common::WorkerPool> workerPool;
 
       /// \brief All the simulation runners.
       public: std::vector<std::unique_ptr<SimulationRunner>> simRunners;
@@ -202,6 +223,12 @@ namespace gz
       /// material.
       public: static const char kClassicMaterialScriptUri[];
 
+      /// \brief Used to set whether models should be downloaded.
+      public: bool enableDownload = false;
+
+      /// \brief Thread used to download models in the background.
+      public: std::thread downloadThread;
+
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 
@@ -213,6 +240,15 @@ namespace gz
 
       /// \brief Publisher of resource paths.
       private: transport::Node::Publisher pathPub;
+
+      // \brief Simulation asset download queue.
+      private: std::map<std::string, std::string> uriDownloadQueue;
+
+      // \brief Download asset mutex.
+      private: std::mutex downloadAssetMutex;
+
+      // \brief Download asset condition variable.
+      private: std::condition_variable downloadAssetCv;
     };
     }
   }

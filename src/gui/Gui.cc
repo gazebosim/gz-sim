@@ -206,7 +206,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       {
         gzerr << "Failed to create the default config folder ["
           << defaultConfigFolder << "]\n";
-        return nullptr;
+        return "";
       }
     }
 
@@ -217,7 +217,7 @@ std::string defaultGuiConfigFile(bool _isPlayback,
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
              << std::endl;
-      return nullptr;
+      return "";
     }
     else
     {
@@ -332,6 +332,20 @@ std::unique_ptr<gz::gui::Application> createGui(
   gzmsg << "Gazebo Sim GUI    v" << GZ_SIM_VERSION_FULL
          << std::endl;
 
+  gzdbg << "Qt Prefix:"
+        << QLibraryInfo::path(QLibraryInfo::PrefixPath).toStdString() << "\n";
+  gzdbg << "Qt libs:"
+        << QLibraryInfo::path(QLibraryInfo::LibrariesPath).toStdString()
+        << "\n";
+  gzdbg << "Qt data:"
+        << QLibraryInfo::path(QLibraryInfo::DataPath).toStdString() << " arch:"
+        << QLibraryInfo::path(QLibraryInfo::ArchDataPath).toStdString() << "\n";
+  gzdbg << "Qt plugins:"
+        << QLibraryInfo::path(QLibraryInfo::PluginsPath).toStdString() << "\n";
+  gzdbg << "Qt imports:"
+        << QLibraryInfo::path(QLibraryInfo::QmlImportsPath).toStdString()
+        << "\n";
+
   // Set auto scaling factor for HiDPI displays
   if (QString::fromLocal8Bit(qgetenv("QT_AUTO_SCREEN_SCALE_FACTOR")).isEmpty())
   {
@@ -434,8 +448,8 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   // Let QML files use C++ functions and properties
   auto context = new QQmlContext(app->Engine()->rootContext());
-  context->setContextProperty("AboutDialogHandler", aboutDialogHandler);
-  context->setContextProperty("GuiFileHandler", guiFileHandler);
+  context->setContextProperty("_AboutDialogHandler", aboutDialogHandler);
+  context->setContextProperty("_GuiFileHandler", guiFileHandler);
 
   // Instantiate GazeboDrawer.qml file into a component
   QQmlComponent component(app->Engine(), ":/Gazebo/GazeboDrawer.qml");
@@ -452,6 +466,10 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
   else
   {
+    if (component.isError())
+    {
+      qWarning() << component.errors();
+    }
     gzerr << "Failed to instantiate custom drawer, drawer will be empty"
            << std::endl;
   }

@@ -15,11 +15,11 @@
  *
 */
 import QtQuick 2.9
-import QtQuick.Controls 1.4
+
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import "qrc:/ComponentInspector"
 
 // TODO
@@ -340,7 +340,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[13]
+            text: hasAddedMass ? componentData[13] : ""
           }
 
           Text {
@@ -348,7 +348,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[14]
+            text: hasAddedMass ? componentData[14] : ""
           }
 
           Text {
@@ -356,7 +356,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[15]
+            text: hasAddedMass ? componentData[15] : ""
           }
 
           Text {
@@ -364,7 +364,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[16]
+            text: hasAddedMass ? componentData[16] : ""
           }
 
           Text {
@@ -372,7 +372,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[17]
+            text: hasAddedMass ? componentData[17] : ""
           }
 
           Text {
@@ -380,7 +380,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[18]
+            text: hasAddedMass ? componentData[18] : ""
           }
 
           Text {
@@ -396,7 +396,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[14]
+            text: hasAddedMass ? componentData[14] : ""
           }
 
           Text {
@@ -404,7 +404,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[19]
+            text: hasAddedMass ? componentData[19] : ""
           }
 
           Text {
@@ -412,7 +412,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[20]
+            text: hasAddedMass ? componentData[20] : ""
           }
 
           Text {
@@ -420,7 +420,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[21]
+            text: hasAddedMass ? componentData[21] : ""
           }
 
           Text {
@@ -428,7 +428,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[22]
+            text: hasAddedMass ?  componentData[22] : ""
           }
 
           Text {
@@ -436,7 +436,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[23]
+            text: hasAddedMass ? componentData[23] : ""
           }
 
           Text {
@@ -452,7 +452,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[15]
+            text: hasAddedMass ? componentData[15] : ""
           }
 
           Text {
@@ -460,7 +460,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[20]
+            text: hasAddedMass ? componentData[20] : ""
           }
 
           Text {
@@ -468,7 +468,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[24]
+            text: hasAddedMass ? componentData[24] : ""
           }
 
           Text {
@@ -476,7 +476,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[25]
+            text: hasAddedMass ? componentData[25] : ""
           }
 
           Text {
@@ -484,7 +484,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[26]
+            text: hasAddedMass ? componentData[26] : ""
           }
 
           Text {
@@ -492,7 +492,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[27]
+            text: hasAddedMass ? componentData[27] : ""
           }
 
           Text {
@@ -508,7 +508,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[16]
+            text: hasAddedMass ? componentData[16] : ""
           }
 
           Text {
@@ -516,7 +516,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[21]
+            text: hasAddedMass ? componentData[21] : ""
           }
 
           Text {
@@ -524,7 +524,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[25]
+            text: hasAddedMass ? componentData[25] : ""
           }
 
           Text {
@@ -532,7 +532,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[28]
+            text: hasAddedMass ? componentData[28] : ""
           }
 
           Text {
@@ -540,7 +540,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[29]
+            text: hasAddedMass ? componentData[29] : ""
           }
 
           Text {
@@ -548,7 +548,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[30]
+            text: hasAddedMass ? componentData[30] : ""
           }
 
           Text {
@@ -564,7 +564,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[17]
+            text: hasAddedMass ? componentData[17] : ""
           }
 
           Text {
@@ -572,7 +572,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[22]
+            text: hasAddedMass ? componentData[22] : ""
           }
 
           Text {
@@ -580,7 +580,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[26]
+            text: hasAddedMass ? componentData[26] : ""
           }
 
           Text {
@@ -588,7 +588,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[29]
+            text: hasAddedMass ? componentData[29] : ""
           }
 
           Text {
@@ -596,7 +596,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[31]
+            text: hasAddedMass ? componentData[31] : ""
           }
 
           Text {
@@ -604,7 +604,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[32]
+            text: hasAddedMass ? componentData[32] : ""
           }
 
           Text {
@@ -620,7 +620,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[18]
+            text: hasAddedMass ? componentData[18] : ""
           }
 
           Text {
@@ -628,7 +628,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[23]
+            text: hasAddedMass ? componentData[23] : ""
           }
 
           Text {
@@ -636,7 +636,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[27]
+            text: hasAddedMass ? componentData[27] : ""
           }
 
           Text {
@@ -644,7 +644,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[30]
+            text: hasAddedMass ? componentData[30] : ""
           }
 
           Text {
@@ -652,7 +652,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[32]
+            text: hasAddedMass ? componentData[32] : ""
           }
 
           Text {
@@ -660,7 +660,7 @@ Rectangle {
             horizontalAlignment: Text.AlignRight
             color: valueColor
             font.pointSize: 12
-            text: componentData[33]
+            text: hasAddedMass ? componentData[33] : ""
           }
         }
       }

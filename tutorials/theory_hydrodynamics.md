@@ -9,7 +9,7 @@ understanding of its theory.
 # Understanding Hydrodynamic Forces
 
 The behavior of a moving body through water is different from the behavior of
-a ground based vehicle. In particular bodies moving underwater experience much
+a ground based vehicle. In particular bodies moving underwater experience many
 more forces derived from drag, buoyancy and lift. The way these forces act on
 a body can be seen in the following diagram:
 
@@ -88,7 +88,7 @@ in the positive `X` direction.
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -O ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/tutorials/files/theory_hydrodynamics/buoyant_cylinder.sdf -O ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 gz sim -r ~/gazebo_maritime/worlds/buoyant_cylinder.sdf
 ```
 

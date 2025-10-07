@@ -2,9 +2,9 @@ gz_add_system(dvl
   SOURCES
     DopplerVelocityLogSystem.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-common::gz-common
+    gz-rendering::gz-rendering
   PRIVATE_LINK_LIBS
-    gz-sensors${GZ_SENSORS_VER}::dvl
-    gz-sensors${GZ_SENSORS_VER}::rendering
+    gz-sensors::dvl
+    gz-sensors::rendering
 )

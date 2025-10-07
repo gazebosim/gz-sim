@@ -3,7 +3,7 @@ name: nightly docker image builds
 on:
   push:
     branches:
-      - 'gz-sim9'
+      - 'main'
   schedule:
     - cron: '0 6 * * *'
 
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: gazebosim/gz-sim
-          ref: gz-sim9
+          ref: main
           path: src
       - name: build base image
         uses: docker/build-push-action@v6

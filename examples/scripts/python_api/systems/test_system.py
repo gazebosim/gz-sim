@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from gz.math8 import Vector3d
-from gz.sim9 import Model, Link
+from gz.math import Vector3d
+from gz.sim import Model, Link
 import random
 
 

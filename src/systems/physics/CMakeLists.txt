@@ -2,11 +2,11 @@ gz_add_system(physics
   SOURCES
     Physics.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-common${GZ_COMMON_VER}::geospatial
-    gz-common${GZ_COMMON_VER}::graphics
-    gz-common${GZ_COMMON_VER}::profiler
-    gz-physics${GZ_PHYSICS_VER}::gz-physics${GZ_PHYSICS_VER}
+    gz-common::gz-common
+    gz-common::geospatial
+    gz-common::graphics
+    gz-common::profiler
+    gz-physics::gz-physics
 )
 
 set (gtest_sources
@@ -26,7 +26,8 @@ gz_build_tests(TYPE UNIT
   SOURCES
   ${gtest_sources}
   LIB_DEPS
-  gz-physics${GZ_PHYSICS_VER}::core
+  gz-physics::core
+  gz-plugin::loader
   ENVIRONMENT
   GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )

@@ -54,7 +54,7 @@ function(gz_add_system system_name)
       ${PROJECT_LIBRARY_TARGET_NAME}
     PRIVATE
       ${gz_add_system_PRIVATE_LINK_LIBS}
-      gz-plugin${GZ_PLUGIN_VER}::register
+      gz-plugin::register
   )
 
   if(gz_add_system_PRIVATE_INCLUDE_DIRS)
@@ -73,25 +73,6 @@ function(gz_add_system system_name)
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
   install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
-
-  # The library created by `gz_add_component` includes the gz-sim version
-  # (i.e. libgz-sim1-name-system.so), but for portability of SDF
-  # files, we also install an unversioned symlink into the same versioned folder.
-  #
-  # NOTE(CH3): On migration of the CMake project name, ignition-gazebo -> gz-sim
-  # so the generated library target WILL CHANGE
-  set(versioned ${CMAKE_SHARED_LIBRARY_PREFIX}${system_target}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(unversioned ${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME_NO_VERSION_LOWER}-${system_name}${CMAKE_SHARED_LIBRARY_SUFFIX})
-  if(WIN32)
-    # symlinks on Windows require admin privileges, fallback to copy
-    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy
-      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${versioned}
-      ${GZ_SIM_PLUGIN_INSTALL_DIR}\/${unversioned})")
-  else()
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E create_symlink ${versioned} ${unversioned} WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    INSTALL(FILES ${PROJECT_BINARY_DIR}/lib/${unversioned} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
-  endif()
 endfunction()
 
 add_subdirectory(ackermann_steering)
@@ -119,10 +100,12 @@ add_subdirectory(dvl)
 if (NOT WIN32)
 add_subdirectory(elevator)
 endif()
+add_subdirectory(entity_semantics)
 add_subdirectory(environment_preload)
 add_subdirectory(environmental_sensor_system)
 add_subdirectory(follow_actor)
 add_subdirectory(force_torque)
+add_subdirectory(free_space_explorer)
 add_subdirectory(hydrodynamics)
 add_subdirectory(imu)
 add_subdirectory(joint_controller)
@@ -138,6 +121,7 @@ add_subdirectory(log)
 add_subdirectory(log_video_recorder)
 add_subdirectory(logical_audio_sensor_plugin)
 add_subdirectory(logical_camera)
+add_subdirectory(lookup_wheel_slip)
 add_subdirectory(magnetometer)
 add_subdirectory(model_photo_shoot)
 add_subdirectory(mecanum_drive)
@@ -166,5 +150,8 @@ add_subdirectory(trajectory_follower)
 add_subdirectory(triggered_publisher)
 add_subdirectory(user_commands)
 add_subdirectory(velocity_control)
+if (libwebsockets_FOUND)
+  add_subdirectory(websocket_server)
+endif()
 add_subdirectory(wheel_slip)
 add_subdirectory(wind_effects)

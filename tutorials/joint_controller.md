@@ -40,7 +40,7 @@ mkdir gz_tutorial
 cd gz_turtorial
 ```
 
-2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf)).
+2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/joint_controller.sdf)).
 
 After changing the directory, name the SDF file as `example.sdf`
 
@@ -380,7 +380,7 @@ Message type: [`JointTrajectory`](https://github.com/gazebosim/gz-msgs/blob/gz-m
 
 ### Example usage:
 
-Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ([`joint_trajectory_controller.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
+Let’s set up a new model for this example. A two-linked manipulator arm which has a total of two joints to control ([`joint_trajectory_controller.sdf`](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/worlds/joint_trajectory_controller.sdf) is the original example). Name it as `example2.sdf`.
 
 - SDF file:
 

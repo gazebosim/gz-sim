@@ -19,24 +19,21 @@ set (test_plugins
   Null
 )
 
-# TODO: someone with knowledge of gz-plugin please resolve:
-# TestSystem.obj : error LNK2001: unresolved external symbol GzPluginHook
-if(NOT WIN32)
-  set (test_plugins
-    ${test_plugins}
-    TestSystem
-  )
-endif()
+set (test_plugins
+  ${test_plugins}
+  TestSystem
+)
 
 # Plugin shared libraries
 if(BUILD_TESTING)
   foreach (src ${test_plugins})
-    add_library(${src} SHARED ${src}.cc)
+    add_library(${src} MODULE ${src}.cc)
     target_link_libraries(${src}
       PRIVATE
-        gz-plugin${GZ_PLUGIN_VER}::register
-        gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-        gz-sim${PROJECT_VERSION_MAJOR}
+        gz-common::gz-common
+        gz-plugin::register
+        gz-transport::gz-transport
+        gz-sim
     )
 
     if (MSVC)
@@ -53,6 +50,7 @@ endif()
 # Statically linked test plugin
 add_library(TestStaticModelSystem STATIC TestStaticModelSystem.cc)
 target_link_libraries(TestStaticModelSystem PRIVATE
-    gz-plugin${GZ_PLUGIN_VER}::register
-    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-    gz-sim${PROJECT_VERSION_MAJOR})
+    gz-common::gz-common
+    gz-plugin::register
+    gz-transport::gz-transport
+    gz-sim)

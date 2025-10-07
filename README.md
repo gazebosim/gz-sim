@@ -1,18 +1,18 @@
 # Gazebo Sim : A Robotic Simulator
 
-**Maintainer:** michael AT openrobotics DOT org
+**Maintainer:** arjoc AT intrinsic DOT ai
 
 [![GitHub open issues](https://img.shields.io/github/issues-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/issues)
 [![GitHub open pull requests](https://img.shields.io/github/issues-pr-raw/gazebosim/gz-sim.svg)](https://github.com/gazebosim/gz-sim/pulls)
-[![Discourse topics](https://img.shields.io/discourse/https/community.gazebosim.org/topics.svg)](https://community.gazebosim.org)
+[![Discourse Topics](https://img.shields.io/discourse/topics?server=https%3A%2F%2Fdiscourse.openrobotics.org%2F)](https://discourse.openrobotics.org/c/gazebo)
 [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 Build | Status
 -- | --
-Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim9/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim9)
-Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim9-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim9-noble-amd64)
-Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim9-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim9-homebrew-amd64)
-Windows       | [![Build Status](https://build.osrfoundation.org/job/gz_sim-9-clowin/badge/icon)](https://build.osrfoundation.org/job/gz_sim-9-clowin/)
+Test coverage | [![codecov](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim10/graph/badge.svg)](https://codecov.io/gh/gazebosim/gz-sim/tree/gz-sim10)
+Ubuntu Noble  | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim10-noble-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim10-noble-amd64)
+Homebrew      | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-ci-gz-sim10-homebrew-amd64)](https://build.osrfoundation.org/job/gz_sim-ci-gz-sim10-homebrew-amd64)
+Windows       | [![Build Status](https://build.osrfoundation.org/buildStatus/icon?job=gz_sim-10-cnlwin)](https://build.osrfoundation.org/job/gz_sim-10-cnlwin/)
 
 Gazebo Sim is an open source robotics simulator. Through Gazebo Sim, users have access to high fidelity physics, rendering, and sensor models. Additionally, users and developers have multiple points of entry to simulation including a graphical user interface, plugins, and asynchronous message passing and services.
 
@@ -160,7 +160,7 @@ Please see the
 # Code of Conduct
 
 Please see
-[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/main/CODE_OF_CONDUCT.md).
+[CODE_OF_CONDUCT.md](https://github.com/gazebosim/gz-sim/blob/gz-sim10/CODE_OF_CONDUCT.md).
 
 # Versioning
 
@@ -168,4 +168,4 @@ This library uses [Semantic Versioning](https://semver.org/). Additionally, this
 
 # License
 
-This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/gazebosim/gz-sim/blob/main/LICENSE) file.
+This library is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0). See also the [LICENSE](https://github.com/gazebosim/gz-sim/blob/gz-sim10/LICENSE) file.

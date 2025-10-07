@@ -14,10 +14,11 @@
  * limitations under the License.
  *
 */
+import QtCore
 import QtQuick 2.9
-import QtQuick.Controls 2.2
+import QtQuick.Controls
 import QtQuick.Controls.Material 2.1
-import QtQuick.Dialogs 1.1
+import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
 
 /**
@@ -47,7 +48,7 @@ Rectangle {
       // Handle custom actions
       case "saveWorld":
         if (lastSaveSuccess)
-          GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
+          _GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig)
         else
           sdfGenConfigDialog.open();
         break
@@ -132,12 +133,11 @@ Rectangle {
   FileDialog {
     id: saveWorldDialog
     title: "Save world"
-    folder: shortcuts.home
+    currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
+    fileMode: FileDialog.OpenFile
     nameFilters: [ "SDF files (*.sdf)" ]
-    selectMultiple: false
-    selectExisting: false
     onAccepted: {
-      saveWorldFileText.text = fileUrl;
+      saveWorldFileText.text = selectedFile;
     }
   }
 
@@ -147,16 +147,15 @@ Rectangle {
   Dialog {
     id: aboutDialog
     title: "Gazebo Sim"
-
     modal: true
     focus: true
-    parent: ApplicationWindow.overlay
+    parent: Overlay.overlay
     width: parent.width / 3 > 500 ? 500 : parent.width / 3
     height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
-    standardButtons: StandardButton.Ok
+    standardButtons: Dialog.Ok
 
     Text {
       anchors.fill: parent
@@ -165,8 +164,8 @@ Rectangle {
       verticalAlignment: Text.AlignVCenter
       color: Material.theme == Material.Light ? "black" : "white"
       textFormat: Text.RichText
-      text: AboutDialogHandler.getVersionInformation()
-      onLinkActivated: AboutDialogHandler.openURL(link)
+      text: _AboutDialogHandler.getVersionInformation()
+      onLinkActivated: _AboutDialogHandler.openURL(link)
     }
   }
 
@@ -178,12 +177,14 @@ Rectangle {
     modal: true
     focus: true
     title: "File save options"
-    parent: ApplicationWindow.overlay
+    parent: Overlay.overlay
+    width: parent.width / 3 > 500 ? 500 : parent.width / 3
+    height: 300
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
     onAccepted: {
-      GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
+      _GuiFileHandler.SaveWorldAs(saveWorldFileText.text, sdfGenConfig);
     }
     Component.onCompleted: {
       dialogButtons.standardButton(Dialog.Ok).enabled = false
@@ -204,9 +205,9 @@ Rectangle {
           id: saveWorldFileText
           text: "file:///"
           selectByMouse: true
-          validator: RegExpValidator {
-            regExp: fileValidator
-          }
+          //validator: RegExpValidator {
+          //  regExp: fileValidator
+          //}
           onTextChanged: {
             var valid = saveWorldFileText.text.match(fileValidator)
             dialogButtons.standardButton(Dialog.Ok).enabled = valid
@@ -240,8 +241,8 @@ Rectangle {
   }
 
   Connections {
-    target: GuiFileHandler
-    onNewSaveWorldStatus: {
+    target: _GuiFileHandler
+    function onNewSaveWorldStatus() {
       console.log(_msg);
       lastSaveSuccess = _status
       if (!_status) {
@@ -252,7 +253,7 @@ Rectangle {
   }
 
   /**
-   * Message dialogs for failure messages emitted by GuiFileHandler
+   * Message dialogs for failure messages emitted by _GuiFileHandler
    */
   Dialog {
     id: fileSaveFailure
@@ -261,12 +262,12 @@ Rectangle {
 
     modal: true
     focus: true
-    parent: ApplicationWindow.overlay
+    parent: Overlay.overlay
     width: messageText.implicitWidth
     x: (parent.width - width) / 2
     y: (parent.height - height) / 2
     closePolicy: Popup.CloseOnEscape
-    standardButtons: StandardButton.Cancel | StandardButton.Retry
+    standardButtons: Dialog.Cancel | Dialog.Retry
 
     Label {
       anchors.fill: parent

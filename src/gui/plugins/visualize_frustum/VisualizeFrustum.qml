@@ -16,7 +16,7 @@
 */
 import QtQuick 2.9
 import QtQuick.Controls 2.1
-import QtQuick.Dialogs 1.0
+import QtQuick.Dialogs
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 import "qrc:/qml"
@@ -41,7 +41,7 @@ GridLayout {
     text: qsTr("Display Frustum Visual")
     checked: true
     onClicked: {
-      VisualizeFrustum.DisplayVisual(checked)
+      _VisualizeFrustum.DisplayVisual(checked)
     }
   }
 
@@ -51,7 +51,7 @@ GridLayout {
     Material.background: Material.primary
     onClicked: {
       combo.currentIndex = 0
-      VisualizeFrustum.OnRefresh();
+      _VisualizeFrustum.OnRefresh();
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay
@@ -63,12 +63,12 @@ GridLayout {
     Layout.columnSpan: 5
     id: combo
     Layout.fillWidth: true
-    model: VisualizeFrustum.topicList
+    model: _VisualizeFrustum.topicList
     currentIndex: 0
     onCurrentIndexChanged: {
       if (currentIndex < 0)
         return;
-      VisualizeFrustum.OnTopic(textAt(currentIndex));
+      _VisualizeFrustum.OnTopic(textAt(currentIndex));
     }
     ToolTip.visible: hovered
     ToolTip.delay: tooltipDelay

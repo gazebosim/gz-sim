@@ -1,7 +1,10 @@
 load("@gz-msgs//tools:gz_msgs_generate.bzl", "gz_proto_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header", "gz_export_header")
 load("@rules_license//rules:license.bzl", "license")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//bazel:gz_sim_system_libraries.bzl", "gz_sim_system_libraries")
 
 package(
     default_applicable_licenses = [":license"],
@@ -80,6 +83,7 @@ public_headers_no_gen = glob(
         "include/gz/sim/comms/*.hh",
         "include/gz/sim/components/*.hh",
         "include/gz/sim/detail/*.hh",
+        "include/gz/sim/physics/*.hh",
         "include/gz/sim/rendering/*.hh",
     ],
 )
@@ -136,6 +140,7 @@ cc_library(
         ":RenderingExport",
         ":gzsim_cc_proto",
         "@com_google_protobuf//:protobuf_lite",
+        "@eigen",
         "@gz-common",
         "@gz-common//events",
         "@gz-common//geospatial",
@@ -146,9 +151,9 @@ cc_library(
         "@gz-math",
         "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-physics",
         "@gz-plugin//:core",
         "@gz-plugin//:loader",
-        "@gz-plugin//:register",
         "@gz-rendering",
         "@gz-transport",
         "@gz-transport//parameters",
@@ -162,17 +167,67 @@ cc_library(
 test_sources = glob(
     include = ["src/*_TEST.cc"],
     exclude = [
-        # These tests currently fail in bazel build, either due to missing
-        # System plugin dependencies or due to incorrect resolved output paths.
-        "src/AddedMass_TEST.cc",
+        # - Requires a missing export for transport/log/sql/0.1.0.sql in
+        #   gz-transport
+        # - Uses versioned System plugin library names which are not supported
+        #   in Bazel build.
+        # - Expects test cwd to be different from PROJECT_SOURCE_PATH, which is
+        #   false in Bazel build.
         "src/Server_TEST.cc",
-        "src/ServerConfig_TEST.cc",
+        # Uses rendering engine which is not yet available in Bazel build.
         "src/Server_Rendering_TEST.cc",
+        # Some test cases fail in Bazel build.
         "src/SimulationRunner_TEST.cc",
+        # Uses versioned System plugin library names which are not supported in
+        # Bazel build.
         "src/SystemLoader_TEST.cc",
-        "src/SdfGenerator_TEST.cc",
-        "src/Util_TEST.cc",
     ],
+)
+
+# Genrule to copy the default server config to the test execroot.
+genrule(
+    name = "install_server_config",
+    testonly = True,
+    srcs = ["include/gz/sim/server.config"],
+    outs = ["server.config"],
+    cmd = "cp $(SRCS) $(OUTS)",
+)
+
+# Test systems are expected to be found under $(execroot)/lib
+# See test/helpers/EnvTestFixture.hh
+genrule(
+    name = "install_test_systems",
+    testonly = True,
+    srcs = [
+        "//test:MockSystem.so",
+        "//test:TestModelSystem.so",
+        "//test:TestSensorSystem.so",
+        "//test:TestVisualSystem.so",
+        "//test:TestWorldSystem.so",
+    ],
+    outs = [
+        "lib/libMockSystem.so",
+        "lib/libTestModelSystem.so",
+        "lib/libTestSensorSystem.so",
+        "lib/libTestVisualSystem.so",
+        "lib/libTestWorldSystem.so",
+    ],
+    cmd = """
+        source_files=($(SRCS));
+        destination_paths=($(OUTS));
+        for ((i=0; i < $${#source_files[@]}; i++)); do
+            cp "$${source_files[i]}" "$${destination_paths[i]}"
+        done
+    """,
+)
+
+# Install physics engine for tests at a known location.
+genrule(
+    name = "install_physics_engine",
+    testonly = True,
+    srcs = ["@gz-physics//dartsim:libgz-physics-dartsim-plugin.so"],
+    outs = ["physics_engine/libgz-physics-dartsim-plugin.so"],
+    cmd = "cp $(SRCS) $(OUTS)",
 )
 
 [cc_test(
@@ -181,10 +236,28 @@ test_sources = glob(
     # Some tests need private headers.
     copts = ["-Wno-private-header"],
     data = [
+        "include/gz/sim/playback_server.config",
+        "include/gz/sim/server.config",
+        "physics_engine/libgz-physics-dartsim-plugin.so",
+        ":gz-sim-air-pressure-system.so",
+        ":gz-sim-log-system.so",
+        ":gz-sim-physics-system.so",
+        ":gz-sim-scene-broadcaster-system.so",
+        ":gz-sim-user-commands-system.so",
+        ":gz-sim-velocity-control-system.so",
+        ":lib/libMockSystem.so",
+        ":lib/libTestModelSystem.so",
+        ":lib/libTestSensorSystem.so",
+        ":lib/libTestVisualSystem.so",
+        ":lib/libTestWorldSystem.so",
+        ":server.config",
+        "//test:media",
         "//test:worlds",
     ],
     env = {
         "GZ_BAZEL": "1",
+        "GZ_SIM_PHYSICS_ENGINE_PATH": "physics_engine",
+        "GZ_SIM_RESOURCE_PATH": "test/worlds",
     },
     deps = [
         ":gz-sim",
@@ -207,3 +280,1597 @@ test_sources = glob(
         "@tinyxml2",
     ],
 ) for src in test_sources]
+
+# Following systems are not yet supported in the Bazel BUILD:
+# - src/systems/camera_video_recorder (av sub-package in gz-common is not yet available in Bazel build)
+# - src/systems/elevator (doesn't build)
+# - src/systems/python_system_loader (missing pybind11 dep)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/ackermann_steering/**/*.cc",
+            "src/systems/ackermann_steering/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-ackermann-steering-system.so",
+    static_lib_name = "gz-sim-ackermann-steering-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/acoustic_comms/**/*.cc",
+            "src/systems/acoustic_comms/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-acoustic-comms-system.so",
+    static_lib_name = "gz-sim-acoustic-comms-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-plugin//:register",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/advanced_lift_drag/**/*.cc",
+            "src/systems/advanced_lift_drag/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-advanced-lift-drag-system.so",
+    static_lib_name = "gz-sim-advanced-lift-drag-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-physics",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/air_pressure/**/*.cc",
+            "src/systems/air_pressure/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-air-pressure-system.so",
+    static_lib_name = "gz-sim-air-pressure-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:air_pressure",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/air_speed/**/*.cc",
+            "src/systems/air_speed/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-air-speed-system.so",
+    static_lib_name = "gz-sim-air-speed-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:air_speed",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/altimeter/**/*.cc",
+            "src/systems/altimeter/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-altimeter-system.so",
+    static_lib_name = "gz-sim-altimeter-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:altimeter",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/apply_joint_force/**/*.cc",
+            "src/systems/apply_joint_force/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-apply-joint-force-system.so",
+    static_lib_name = "gz-sim-apply-joint-force-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/apply_link_wrench/**/*.cc",
+            "src/systems/apply_link_wrench/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-apply-link-wrench-system.so",
+    static_lib_name = "gz-sim-apply-link-wrench-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/battery_plugin/**/*.cc",
+            "src/systems/battery_plugin/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-linearbatteryplugin-system.so",
+    static_lib_name = "gz-sim-linearbatteryplugin-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/breadcrumbs/**/*.cc",
+            "src/systems/breadcrumbs/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-breadcrumbs-system.so",
+    static_lib_name = "gz-sim-breadcrumbs-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/buoyancy/**/*.cc",
+            "src/systems/buoyancy/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-buoyancy-system.so",
+    static_lib_name = "gz-sim-buoyancy-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//graphics",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/buoyancy_engine/**/*.cc",
+            "src/systems/buoyancy_engine/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-buoyancy-engine-system.so",
+    static_lib_name = "gz-sim-buoyancy-engine-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/collada_world_exporter/**/*.cc",
+            "src/systems/collada_world_exporter/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-collada-world-exporter-system.so",
+    static_lib_name = "gz-sim-collada-world-exporter-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//graphics",
+        "@gz-math",
+        "@gz-plugin//:register",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/comms_endpoint/**/*.cc",
+            "src/systems/comms_endpoint/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-comms-endpoint-system.so",
+    static_lib_name = "gz-sim-comms-endpoint-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@gz-utils//:ImplPtr",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/contact/**/*.cc",
+            "src/systems/contact/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-contact-system.so",
+    static_lib_name = "gz-sim-contact-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/detachable_joint/**/*.cc",
+            "src/systems/detachable_joint/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-detachable-joint-system.so",
+    static_lib_name = "gz-sim-detachable-joint-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/diff_drive/**/*.cc",
+            "src/systems/diff_drive/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-diff-drive-system.so",
+    static_lib_name = "gz-sim-diff-drive-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/drive_to_pose_controller/**/*.cc",
+            "src/systems/drive_to_pose_controller/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-drive-to-pose-controller-system.so",
+    static_lib_name = "gz-sim-drive-to-pose-controller-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/dvl/**/*.cc",
+            "src/systems/dvl/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-dvl-system.so",
+    static_lib_name = "gz-sim-dvl-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@gz-sensors",
+        "@gz-sensors//:dvl",
+        "@gz-transport",
+        "@gz-utils//:ImplPtr",
+    ],
+)
+
+# Doesn't build
+# gz_sim_system_libraries(
+#     srcs = glob(
+#         [
+#             "src/systems/elevator/**/*.cc",
+#             "src/systems/elevator/**/*.hh",
+#             "src/systems/elevator/**/*.hpp",
+#         ],
+#     ),
+#     includes = [
+#         "src/systems/elevator/utils",
+#         "src/systems/elevator/vender/afsm/include",
+#         "src/systems/elevator/vender/metapushkin/include",
+#     ],
+#     so_lib_name = "gz-sim-elevator-system.so",
+#     static_lib_name = "gz-sim-elevator-system-static",
+#     visibility = ["//visibility:public"],
+#     deps = [
+#         ":gz-sim",
+#         "@gz-plugin//:register",
+#     ],
+# )
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/entity_semantics/**/*.cc",
+            "src/systems/entity_semantics/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-entity-semantics-system.so",
+    static_lib_name = "gz-sim-entity-semantics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/environmental_sensor_system/**/*.cc",
+            "src/systems/environmental_sensor_system/**/*.hh",
+        ],
+        exclude = ["src/systems/environmental_sensor_system/*_TEST.cc"],
+    ),
+    so_lib_name = "gz-sim-environmental-sensor-system.so",
+    static_lib_name = "gz-sim-environmental-sensor-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-math",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+environmental_sensor_system_test_sources = glob([
+    "src/systems/environmental_sensor_system/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    # Some tests need private headers.
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim-environmental-sensor-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in environmental_sensor_system_test_sources]
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/environment_preload/**/*.cc",
+            "src/systems/environment_preload/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-environment-preload-system.so",
+    static_lib_name = "gz-sim-environment-preload-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//io",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/follow_actor/**/*.cc",
+            "src/systems/follow_actor/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-follow-actor-system.so",
+    static_lib_name = "gz-sim-follow-actor-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/force_torque/**/*.cc",
+            "src/systems/force_torque/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-forcetorque-system.so",
+    static_lib_name = "gz-sim-forcetorque-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:force_torque",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/free_space_explorer/**/*.cc",
+            "src/systems/free_space_explorer/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-free-space_explorer--system.so",
+    static_lib_name = "gz-sim-free-space-explorer-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//graphics",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@gz-utils//:ImplPtr",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/hydrodynamics/**/*.cc",
+            "src/systems/hydrodynamics/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-hydrodynamics-system.so",
+    static_lib_name = "gz-sim-hydrodynamics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@eigen",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/imu/**/*.cc",
+            "src/systems/imu/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-imu-system.so",
+    static_lib_name = "gz-sim-imu-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:imu",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/joint_controller/**/*.cc",
+            "src/systems/joint_controller/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-joint-controller-system.so",
+    static_lib_name = "gz-sim-joint-controller-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/joint_position_controller/**/*.cc",
+            "src/systems/joint_position_controller/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-joint-position-controller-system.so",
+    static_lib_name = "gz-sim-joint-position-controller-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@gz-transport//parameters",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/joint_state_publisher/**/*.cc",
+            "src/systems/joint_state_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-joint-state-publisher-system.so",
+    static_lib_name = "gz-sim-joint-state-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/joint_traj_control/**/*.cc",
+            "src/systems/joint_traj_control/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-joint-trajectory-controller-system.so",
+    static_lib_name = "gz-sim-joint-trajectory-controller-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/kinetic_energy_monitor/**/*.cc",
+            "src/systems/kinetic_energy_monitor/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-kinetic-energy-monitor-system.so",
+    static_lib_name = "gz-sim-kinetic-energy-monitor-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/label/**/*.cc",
+            "src/systems/label/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-label-system.so",
+    static_lib_name = "gz-sim-label-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-plugin//:register",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/lens_flare/**/*.cc",
+            "src/systems/lens_flare/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lens-flare-system.so",
+    static_lib_name = "gz-sim-lens-flare-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/lift_drag/**/*.cc",
+            "src/systems/lift_drag/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lift-drag-system.so",
+    static_lib_name = "gz-sim-lift-drag-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/lighter_than_air_dynamics/**/*.cc",
+            "src/systems/lighter_than_air_dynamics/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lighter-than-air-dynamics-system.so",
+    static_lib_name = "gz-sim-lighter-than-air-dynamics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@eigen",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/log/**/*.cc",
+            "src/systems/log/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-log-system.so",
+    static_lib_name = "gz-sim-log-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-fuel-tools",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@gz-transport//log",
+        "@sdformat",
+    ],
+)
+
+gz_export_header(
+    name = "LogicalAudioSensorSystemExport",
+    out = "include/gz/sim/logicalaudiosensorplugin-system/Export.hh",
+    export_base = "GZ_SIM_LOGICALAUDIOSENSORPLUGIN_SYSTEM",
+    lib_name = "gz-sim-logicalaudiosensorplugin-system",
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/logical_audio_sensor_plugin/**/*.cc",
+            "src/systems/logical_audio_sensor_plugin/**/*.hh",
+        ],
+        exclude = ["src/systems/logical_audio_sensor_plugin/**/*_TEST.cc"],
+    ) + ["include/gz/sim/logicalaudiosensorplugin-system/Export.hh"],
+    so_lib_name = "gz-sim-logicalaudiosensorplugin-system.so",
+    static_lib_name = "gz-sim-logicalaudiosensorplugin-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+logical_audio_sensor_plugin_test_sources = glob([
+    "src/systems/logical_audio_sensor_plugin/**/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    # Some tests need private headers.
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim-logicalaudiosensorplugin-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in logical_audio_sensor_plugin_test_sources]
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/logical_camera/**/*.cc",
+            "src/systems/logical_camera/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-logical-camera-system.so",
+    static_lib_name = "gz-sim-logical-camera-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:logical_camera",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/log_video_recorder/**/*.cc",
+            "src/systems/log_video_recorder/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-log-video-recorder-system.so",
+    static_lib_name = "gz-sim-log-video-recorder-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/lookup_wheel_slip/**/*.cc",
+            "src/systems/lookup_wheel_slip/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-lookup-wheel-slip-system.so",
+    static_lib_name = "gz-sim-lookup-wheel-slip-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//graphics",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-math",
+        "@gz-transport",
+        "@gz-transport//parameters",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/magnetometer/**/*.cc",
+            "src/systems/magnetometer/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-magnetometer-system.so",
+    static_lib_name = "gz-sim-magnetometer-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:magnetometer",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/mecanum_drive/**/*.cc",
+            "src/systems/mecanum_drive/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-mecanum-drive-system.so",
+    static_lib_name = "gz-sim-mecanum-drive-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/model_photo_shoot/**/*.cc",
+            "src/systems/model_photo_shoot/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-model-photo-shoot-system.so",
+    static_lib_name = "gz-sim-model-photo-shoot-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//graphics",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/multicopter_control/**/*.cc",
+            "src/systems/multicopter_control/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-multicopter-control-system.so",
+    static_lib_name = "gz-sim-multicopter-control-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@eigen",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-math//eigen3",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/multicopter_motor_model/**/*.cc",
+            "src/systems/multicopter_motor_model/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-multicopter-motor-model-system.so",
+    static_lib_name = "gz-sim-multicopter-motor-model-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/navsat/**/*.cc",
+            "src/systems/navsat/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-navsat-system.so",
+    static_lib_name = "gz-sim-navsat-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:navsat",
+        "@gz-transport",
+        "@gz-utils//:ImplPtr",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/odometry_publisher/**/*.cc",
+            "src/systems/odometry_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-odometry-publisher-system.so",
+    static_lib_name = "gz-sim-odometry-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/optical_tactile_plugin/**/*.cc",
+            "src/systems/optical_tactile_plugin/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-opticaltactileplugin-system.so",
+    static_lib_name = "gz-sim-opticaltactileplugin-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/particle_emitter/**/*.cc",
+            "src/systems/particle_emitter/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-particle-emitter-system.so",
+    static_lib_name = "gz-sim-particle-emitter-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/perfect_comms/**/*.cc",
+            "src/systems/perfect_comms/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-perfect-comms-system.so",
+    static_lib_name = "gz-sim-perfect-comms-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-utils//:ImplPtr",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/performer_detector/**/*.cc",
+            "src/systems/performer_detector/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-performer-detector-system.so",
+    static_lib_name = "gz-sim-performer-detector-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+# Targets including this under `deps` (for static linking) or under `data` (for
+# external library) should also include data deps on the physics engine
+# libraries that need to be supported. e.g.
+# cc_library(
+#     name = "my_gz_sim_server_with_bullet_featherstone_physics",
+#     srcs = my_sources_list,
+#     data = [
+#         "@gz-physics//bullet-featherstone:libgz-physics-bullet-featherstone-plugin.so",
+#     ],
+#     deps = [
+#         "@gz-sim",
+#         "@gz-sim//:gz-sim-physics-system-static",
+#     ]
+# )
+#
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/physics/**/*.cc",
+            "src/systems/physics/**/*.hh",
+        ],
+        exclude = ["src/systems/physics/**/*TEST.cc"],
+    ),
+    so_lib_name = "gz-sim-physics-system.so",
+    static_lib_name = "gz-sim-physics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//geospatial",
+        "@gz-common//graphics",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-math//eigen3",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-physics",
+        "@gz-physics//:heightmap",
+        "@gz-physics//:mesh",
+        "@gz-physics//:sdf",
+        "@gz-plugin//:core",
+        "@gz-plugin//:loader",
+        "@gz-plugin//:register",
+        "@sdformat",
+    ],
+)
+
+physics_test_sources = glob(["src/systems/physics/**/*TEST.cc"])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    # Some tests need private headers.
+    copts = ["-Wno-private-header"],
+    data = ["physics_engine/libgz-physics-dartsim-plugin.so"],
+    env = {
+        "GZ_BAZEL": "1",
+        "GZ_PLUGIN_PATH": "physics_engine",
+    },
+    deps = [
+        ":gz-sim",
+        ":gz-sim-physics-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-physics",
+        "@gz-plugin//:loader",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in physics_test_sources]
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/pose_publisher/**/*.cc",
+            "src/systems/pose_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-pose-publisher-system.so",
+    static_lib_name = "gz-sim-pose-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/rf_comms/**/*.cc",
+            "src/systems/rf_comms/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-rf-comms-system.so",
+    static_lib_name = "gz-sim-rf-comms-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-utils//:ImplPtr",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/scene_broadcaster/**/*.cc",
+            "src/systems/scene_broadcaster/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-scene-broadcaster-system.so",
+    static_lib_name = "gz-sim-scene-broadcaster-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/sensors/**/*.cc",
+            "src/systems/sensors/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-sensors-system.so",
+    static_lib_name = "gz-sim-sensors-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@gz-sensors",
+        "@gz-sensors//:boundingbox_camera",
+        "@gz-sensors//:camera",
+        "@gz-sensors//:depth_camera",
+        "@gz-sensors//:gpu_lidar",
+        "@gz-sensors//:rendering",
+        "@gz-sensors//:rgbd_camera",
+        "@gz-sensors//:segmentation_camera",
+        "@gz-sensors//:thermal_camera",
+        "@gz-sensors//:wide_angle_camera",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/shader_param/**/*.cc",
+            "src/systems/shader_param/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-shader-param-system.so",
+    static_lib_name = "gz-sim-shader-param-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-rendering",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/spacecraft_thruster_model/**/*.cc",
+            "src/systems/spacecraft_thruster_model/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-spacecraft-thruster-model-system.so",
+    static_lib_name = "gz-sim-spacecraft-thruster-model-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//:gz-common",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = [
+        "src/systems/thermal/Thermal.cc",
+        "src/systems/thermal/Thermal.hh",
+    ],
+    so_lib_name = "gz-sim-thermal-system.so",
+    static_lib_name = "gz-sim-thermal-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-plugin//:register",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = [
+        "src/systems/thermal/ThermalSensor.cc",
+        "src/systems/thermal/ThermalSensor.hh",
+    ],
+    so_lib_name = "gz-sim-thermal-sensor-system.so",
+    static_lib_name = "gz-sim-thermal-sensor-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-plugin//:register",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/thruster/**/*.cc",
+            "src/systems/thruster/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-thruster-system.so",
+    static_lib_name = "gz-sim-thruster-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/touch_plugin/**/*.cc",
+            "src/systems/touch_plugin/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-touchplugin-system.so",
+    static_lib_name = "gz-sim-touchplugin-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/track_controller/**/*.cc",
+            "src/systems/track_controller/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-track-controller-system.so",
+    static_lib_name = "gz-sim-track-controller-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-math",
+        "@gz-math//eigen3",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/tracked_vehicle/**/*.cc",
+            "src/systems/tracked_vehicle/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-tracked-vehicle-system.so",
+    static_lib_name = "gz-sim-tracked-vehicle-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/trajectory_follower/**/*.cc",
+            "src/systems/trajectory_follower/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-trajectory-follower-system.so",
+    static_lib_name = "gz-sim-trajectory-follower-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/triggered_publisher/**/*.cc",
+            "src/systems/triggered_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-triggered-publisher-system.so",
+    static_lib_name = "gz-sim-triggered-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:differencer",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/user_commands/**/*.cc",
+            "src/systems/user_commands/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-user-commands-system.so",
+    static_lib_name = "gz-sim-user-commands-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/velocity_control/**/*.cc",
+            "src/systems/velocity_control/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-velocity-control-system.so",
+    static_lib_name = "gz-sim-velocity-control-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/wheel_slip/**/*.cc",
+            "src/systems/wheel_slip/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-wheel-slip-system.so",
+    static_lib_name = "gz-sim-wheel-slip-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common",
+        "@gz-common//events",
+        "@gz-common//profiler",
+        "@gz-physics",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/wind_effects/**/*.cc",
+            "src/systems/wind_effects/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-wind-effects-system.so",
+    static_lib_name = "gz-sim-wind-effects-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)

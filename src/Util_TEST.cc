@@ -26,6 +26,7 @@
 #include <sdf/Types.hh>
 
 #include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
@@ -981,7 +982,8 @@ TEST_F(UtilTest, EntityFromMsg)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UtilTest, ResolveSdfWorldFile)
+// This test appears to be flaky on macOS (see https://github.com/gazebosim/gz-sim/issues/3031)
+TEST_F(UtilTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResolveSdfWorldFile))
 {
   // Test resolving a Fuel URI
   fuel_tools::ClientConfig config;
@@ -1135,4 +1137,13 @@ TEST_F(UtilTest, TransformAxisAlignedBoxFrame)
   transform.Pos() = randomVector3d(150);
   aabExp = aabExp + transform.Pos();
   EXPECT_EQ(aabExp, transformAxisAlignedBox(aab, transform));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, StaticPlugin)
+{
+  EXPECT_FALSE(staticPluginPrefixStr().empty());
+  EXPECT_FALSE(isStaticPlugin("my_plugin"));
+  EXPECT_FALSE(isStaticPlugin(""));
+  EXPECT_TRUE(isStaticPlugin(staticPluginPrefixStr() + "my_plugin"));
 }

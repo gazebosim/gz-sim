@@ -196,7 +196,7 @@ sure you're loading the correct plugins.
 Both simulators are installed with several built-in plugins.
 [Gazebo classic's plugins](https://github.com/osrf/gazebo/tree/gazebo11/plugins)
 and
-[Gazebo Sim's plugins](https://github.com/gazebosim/gz-sim/tree/main/src/systems)
+[Gazebo Sim's plugins](https://github.com/gazebosim/gz-sim/tree/gz-sim10/src/systems)
 have different file names. For example, to use Gazebo classic's differential drive
 plugin, the user can refer to it as follows:
 
@@ -250,7 +250,7 @@ side-by-side on the same file. Instead, keep separate files and inject the plugi
 needed.
 
 There isn't a built-in mechanism on SDFormat to inject plugins into files yet,
-but users can make use of templating tools like [ERB](https://github.com/gazebosim/gz-sim/blob/gz-sim9/tutorials/erb_template.md)
+but users can make use of templating tools like [ERB](https://github.com/gazebosim/gz-sim/blob/gz-sim10/tutorials/erb_template.md)
 and [xacro](http://wiki.ros.org/xacro) to generate SDF files with the correct plugins.
 
 ### Default plugins
@@ -260,8 +260,8 @@ For example, by default, Gazebo will load all the system plugins defined on
 the `~/.gz/sim/<#>/server.config` file and all GUI plugins defined on the
 `~/.gz/sim/<#>/gui.config` file. But the user can always remove plugins from
 those files, or choose different ones by adding `<plugin>` tags to the SDF file.
-(For more details, see the [Server configuration tutorial](https://github.com/gazebosim/gz-sim/blob/gz-sim9/tutorials/server_config.md)
-and the [GUI configuration tutorial](https://github.com/gazebosim/gz-sim/blob/gz-sim9/tutorials/gui_config.md)).
+(For more details, see the [Server configuration tutorial](https://github.com/gazebosim/gz-sim/blob/gz-sim10/tutorials/server_config.md)
+and the [GUI configuration tutorial](https://github.com/gazebosim/gz-sim/blob/gz-sim10/tutorials/gui_config.md)).
 
 This is important to keep in mind when migrating your SDF files, because files
 that worked on Gazebo classic may need more plugins on Gazebo.

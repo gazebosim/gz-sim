@@ -113,6 +113,15 @@ PathModel::PathModel() : QStandardItemModel()
 }
 
 /////////////////////////////////////////////////
+PathModel::~PathModel()
+{
+  // Disconnect all signals/slots manually. This prevents Qt from printing
+  // warnings when closing the plugin as it tries to disconnect signals/slots
+  // from the (already deleted) model.
+  this->disconnect();
+}
+
+/////////////////////////////////////////////////
 void PathModel::AddPath(const std::string &_path)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
@@ -152,6 +161,15 @@ QHash<int, QByteArray> PathModel::roleNames() const
 /////////////////////////////////////////////////
 ResourceModel::ResourceModel() : QStandardItemModel()
 {
+}
+
+/////////////////////////////////////////////////
+ResourceModel::~ResourceModel()
+{
+  // Disconnect all signals/slots manually. This prevents Qt from printing
+  // warnings when closing the plugin as it tries to disconnect signals/slots
+  // from the (already deleted) model.
+  this->disconnect();
 }
 
 /////////////////////////////////////////////////
@@ -553,7 +571,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   // Set the waiting cursor while the resource downloads
   QGuiApplication::setOverrideCursor(Qt::WaitCursor);
   if (this->dataPtr->fuelClient->DownloadModel(
-        common::URI(_path.toStdString(), true), localPath))
+      common::URI(_path.toStdString(), true), localPath))
   {
     // Successful download, set thumbnail
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
