@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_COMPONENTS_MODEL_HH_
 #define GZ_SIM_COMPONENTS_MODEL_HH_
 
+#include <memory>
 #include <mutex>
 #include <string>
 
