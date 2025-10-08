@@ -115,6 +115,9 @@ namespace serializers
         sdf::Errors errors;
         static std::mutex mutex;
         static sdf::SDFPtr sdfParsed;
+
+        std::cerr << "=================== Mutex address: " << &mutex << std::endl;
+
         std::lock_guard<std::mutex> lock(mutex);
         if (!sdfParsed)
         {
