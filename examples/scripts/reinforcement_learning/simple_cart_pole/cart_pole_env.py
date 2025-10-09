@@ -46,6 +46,9 @@ class GzRewardScorer:
         """
         on_pre_update is used to command the model vehicle.
         """
+        if info.paused:
+            # In the event a pause comes in, we want to be able to not crash when visuallizing
+            return
         world = World(world_entity(ecm))
         self.model = Model(world.model_by_name(ecm, "vehicle_green"))
         self.pole_entity = self.model.link_by_name(ecm, "pole")
@@ -64,6 +67,9 @@ class GzRewardScorer:
         on_post_update is used to read the current state of the world. We write the
         state to a local field.
         """
+        if info.paused:
+            # In the event a pause comes in, we want to be able to not crash when visuallizing
+            return
         pole_pose = self.pole.world_pose(ecm).rot().euler().y()
         if self.pole.world_angular_velocity(ecm) is not None:
             pole_angular_vel = self.pole.world_angular_velocity(ecm).y()
