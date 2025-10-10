@@ -37,6 +37,11 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace serializers
 {
+  class SdfModelDeserializerMutex
+  {
+    public: std::mutex mutex;
+  };
+
   class SdfModelSerializer
   {
     /// \brief Serialization for `sdf::Model`.
@@ -93,12 +98,6 @@ namespace serializers
       return _out;
     }
 
-    public: static std::mutex& Mutex() {
-        static std::mutex mutex;
-        std::cerr << "=================== Mutex address: " << &mutex << std::endl;
-        return mutex;
-    }
-
     /// \brief Deserialization for `sdf::Model`.
     /// \param[in] _in Input stream.
     /// \param[out] _model Model to populate
@@ -121,8 +120,10 @@ namespace serializers
         sdf::Errors errors;
         // static std::mutex mutex;
         static sdf::SDFPtr sdfParsed;
+        static SdfModelDeserializerMutex mtx;
 
-        std::lock_guard<std::mutex> lock(Mutex());
+        std::cerr << "=================== mtx" << &mtx.mutex << std::endl;
+        std::lock_guard<std::mutex> lock(mtx.mutex);
         std::cerr << "=================== locked " << std::endl;
         if (!sdfParsed)
         {
