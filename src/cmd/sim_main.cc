@@ -483,7 +483,13 @@ int main(int argc, char** argv)
     bool blocking = true;
 
     #ifdef WITH_GUI
+    // quick start dialog is not currently supported on Windows,
+    // see https://github.com/gazebosim/gz-sim/issues/3106
+    #ifndef _WIN32
     opt->waitGui = 1;
+    #else
+    opt->waitGui = 0;
+    #endif
     blocking = false;
 
     // Launch the GUI in a separate thread
