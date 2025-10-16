@@ -42,5 +42,9 @@ jobs:
         id: ci
         uses: ignition-tooling/action-ignition-ci@jammy
         with:
-          # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+          codecov-enabled: true
+          cppcheck-enabled: true
+          cpplint-enabled: true
+          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
