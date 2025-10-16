@@ -1924,7 +1924,11 @@ TEST_P(EntityComponentManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 
 /////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+<<<<<<< HEAD
        IGN_UTILS_TEST_DISABLED_ON_WIN32(ChangedStateComponents))
+=======
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ChangedStateComponents))
+>>>>>>> 0f2210f8 (Disable failing test on macOS in EntityComponentManager_TEST (#3113))
 {
   // Entity and component
   Entity e1{1};
@@ -3234,7 +3238,11 @@ TEST_P(EntityComponentManagerFixture,
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+<<<<<<< HEAD
     IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsStateMap))
+=======
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(AddRemoveAddComponentsStateMap))
+>>>>>>> 0f2210f8 (Disable failing test on macOS in EntityComponentManager_TEST (#3113))
 {
   Entity e1 = manager.CreateEntity();
   EXPECT_EQ(1u, manager.EntityCount());
