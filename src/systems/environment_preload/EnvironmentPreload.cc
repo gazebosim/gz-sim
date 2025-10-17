@@ -120,7 +120,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
     }
     this->samples = converted;
     this->visualize = true;
-    this->visualizationPtr->resample = true;
+    this->visualizationPtr->Resample();
   }
 
   //////////////////////////////////////////////////
@@ -282,7 +282,7 @@ class gz::sim::systems::EnvironmentPreloadPrivate
       using ComponentT = components::Environment;
       auto component = ComponentT{std::move(data)};
       _ecm.CreateComponent(worldEntity(_ecm), std::move(component));
-      this->visualizationPtr->resample = true;
+      this->visualizationPtr->Resample();
       this->fileLoaded = true;
     }
     catch (const std::invalid_argument &exc)
@@ -337,7 +337,7 @@ void EnvironmentPreload::PreUpdate(
         scopedName(world, _ecm) + "/environment/visualize/res"),
       &EnvironmentPreloadPrivate::OnVisualResChanged, this->dataPtr.get());
 
-    this->dataPtr->visualizationPtr->resample = true;
+    this->dataPtr->visualizationPtr->Resample();
     this->dataPtr->ReadSdf(_ecm);
   }
 

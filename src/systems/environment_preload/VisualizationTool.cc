@@ -53,7 +53,15 @@ void EnvironmentVisualizationTool::CreatePointCloudTopics(
 /////////////////////////////////////////////////
 void EnvironmentVisualizationTool::FileReloaded()
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
   this->finishedTime = false;
+}
+
+/////////////////////////////////////////////////
+void EnvironmentVisualizationTool::Resample()
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->resample = true;
 }
 
 /////////////////////////////////////////////////
@@ -63,6 +71,7 @@ void EnvironmentVisualizationTool::Step(
     const std::shared_ptr<components::EnvironmentalData> &_data,
     unsigned int _xSamples, unsigned int _ySamples, unsigned int _zSamples)
 {
+  std::lock_guard<std::mutex> lock(this->mutex);
   if (this->finishedTime)
   {
     return;
