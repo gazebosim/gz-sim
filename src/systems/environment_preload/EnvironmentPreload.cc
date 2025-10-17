@@ -349,7 +349,7 @@ void EnvironmentPreload::PreUpdate(
   if (this->dataPtr->visualize)
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->mtx);
-    auto samples = this->dataPtr->samples;
+    const auto &samples = this->dataPtr->samples;
     this->dataPtr->visualizationPtr->Step(_info, _ecm, this->dataPtr->envData,
       samples.X(), samples.Y(), samples.Z());
   }

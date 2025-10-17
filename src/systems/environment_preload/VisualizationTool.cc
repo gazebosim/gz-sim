@@ -37,8 +37,11 @@ void EnvironmentVisualizationTool::CreatePointCloudTopics(
     this->pubs.emplace(key, node.Advertise<gz::msgs::Float_V>(key));
     gz::msgs::Float_V msg;
     this->floatFields.emplace(key, msg);
+
     const double time = std::chrono::duration<double>(_info.simTime).count();
-    auto sess = _data->frame[key].CreateSession(time);
+    const auto sess = _data->staticTime ?
+        _data->frame[key].CreateSession(0.0) :
+        _data->frame[key].CreateSession(time);
     if (!_data->frame[key].IsValid(sess))
     {
       gzerr << key << "data is out of time bounds. Nothing will be published"
@@ -76,7 +79,7 @@ void EnvironmentVisualizationTool::Step(
   {
     return;
   }
-  auto now = std::chrono::steady_clock::now();
+  const auto now = std::chrono::steady_clock::now();
   std::chrono::duration<double> dt(now - this->lastTick);
 
   if (this->resample)
@@ -91,23 +94,25 @@ void EnvironmentVisualizationTool::Step(
     this->lastTick = now;
   }
 
-  // Progress session pointers to next time stamp
-  for (auto &it : this->sessions)
+  if (!_data->staticTime)
   {
-    auto res =
-      _data->frame[it.first].StepTo(it.second,
-        std::chrono::duration<double>(_info.simTime).count());
-    if (res.has_value())
+    // Progress session pointers to next time stamp
+    for (auto &it : this->sessions)
     {
-      it.second = res.value();
-    }
-    else
-    {
-      gzerr << "Data does not exist beyond this time."
-        << " Not publishing new environment visualization data."
-        << std::endl;
-      this->finishedTime = true;
-      return;
+      const auto time = std::chrono::duration<double>(_info.simTime).count();
+      const auto res = _data->frame[it.first].StepTo(it.second, time);
+      if (res.has_value())
+      {
+        it.second = res.value();
+      }
+      else
+      {
+        gzerr << "Data does not exist beyond this time (t = " << time << ")."
+          << " Not publishing new environment visualization data."
+          << std::endl;
+        this->finishedTime = true;
+        return;
+      }
     }
   }
 
@@ -127,24 +132,24 @@ void EnvironmentVisualizationTool::Visualize(
 {
   for (auto key : _data->frame.Keys())
   {
-    const auto session = this->sessions[key];
-    auto frame = _data->frame[key];
-    auto [lower_bound, upper_bound] = frame.Bounds(session);
-    auto step = upper_bound - lower_bound;
-    auto dx = step.X() / _xSamples;
-    auto dy = step.Y() / _ySamples;
-    auto dz = step.Z() / _zSamples;
+    const auto &session = this->sessions[key];
+    const auto &frame = _data->frame[key];
+    const auto [lower_bound, upper_bound] = frame.Bounds(session);
+    const auto step = upper_bound - lower_bound;
+    const auto dx = step.X() / _xSamples;
+    const auto dy = step.Y() / _ySamples;
+    const auto dz = step.Z() / _zSamples;
     std::size_t idx = 0;
     for (std::size_t x_steps = 0; x_steps < _xSamples; x_steps++)
     {
-      auto x = lower_bound.X() + x_steps * dx;
+      const auto x = lower_bound.X() + x_steps * dx;
       for (std::size_t y_steps = 0; y_steps < _ySamples; y_steps++)
       {
-        auto y = lower_bound.Y() + y_steps * dy;
+        const auto y = lower_bound.Y() + y_steps * dy;
         for (std::size_t z_steps = 0; z_steps < _zSamples; z_steps++)
         {
-          auto z = lower_bound.Z() + z_steps * dz;
-          auto res = frame.LookUp(session, math::Vector3d(x, y, z));
+          const auto z = lower_bound.Z() + z_steps * dz;
+          const auto res = frame.LookUp(session, math::Vector3d(x, y, z));
 
           if (res.has_value())
           {
@@ -185,21 +190,21 @@ void EnvironmentVisualizationTool::ResizeCloud(
   // Assume all data have same point cloud.
   gz::msgs::InitPointCloudPacked(pcMsg, "some_frame", true,
       {{"xyz", gz::msgs::PointCloudPacked::Field::FLOAT32}});
-  auto numberOfPoints = _numXSamples * _numYSamples * _numZSamples;
+  const auto numberOfPoints = _numXSamples * _numYSamples * _numZSamples;
   std::size_t dataSize{
     static_cast<std::size_t>(numberOfPoints * pcMsg.point_step())};
   pcMsg.mutable_data()->resize(dataSize);
   pcMsg.set_height(1);
   pcMsg.set_width(numberOfPoints);
 
-  auto session = this->sessions[this->pubs.begin()->first];
-  auto frame = _data->frame[this->pubs.begin()->first];
-  auto [lower_bound, upper_bound] = frame.Bounds(session);
+  const auto &session = this->sessions[this->pubs.begin()->first];
+  const auto &frame = _data->frame[this->pubs.begin()->first];
+  const auto [lower_bound, upper_bound] = frame.Bounds(session);
 
-  auto step = upper_bound - lower_bound;
-  auto dx = step.X() / _numXSamples;
-  auto dy = step.Y() / _numYSamples;
-  auto dz = step.Z() / _numZSamples;
+  const auto step = upper_bound - lower_bound;
+  const auto dx = step.X() / _numXSamples;
+  const auto dy = step.Y() / _numYSamples;
+  const auto dz = step.Z() / _numZSamples;
 
   // Populate point cloud
   gz::msgs::PointCloudPackedIterator<float> xIter(pcMsg, "x");
@@ -208,14 +213,15 @@ void EnvironmentVisualizationTool::ResizeCloud(
 
   for (std::size_t x_steps = 0; x_steps < _numXSamples; x_steps++)
   {
-    auto x = lower_bound.X() + x_steps * dx;
+    const auto x = lower_bound.X() + x_steps * dx;
     for (std::size_t y_steps = 0; y_steps < _numYSamples; y_steps++)
     {
-      auto y = lower_bound.Y() + y_steps * dy;
+      const auto y = lower_bound.Y() + y_steps * dy;
       for (std::size_t z_steps = 0; z_steps < _numZSamples; z_steps++)
       {
-        auto z = lower_bound.Z() + z_steps * dz;
-        auto coords = getGridFieldCoordinates(_ecm, math::Vector3d{x, y, z},
+        const auto z = lower_bound.Z() + z_steps * dz;
+        const auto coords = getGridFieldCoordinates(
+            _ecm, math::Vector3d{x, y, z},
           _data);
 
         if (!coords.has_value())
@@ -223,7 +229,7 @@ void EnvironmentVisualizationTool::ResizeCloud(
           continue;
         }
 
-        auto pos = coords.value();
+        const auto pos = coords.value();
         *xIter = pos.X();
         *yIter = pos.Y();
         *zIter = pos.Z();
