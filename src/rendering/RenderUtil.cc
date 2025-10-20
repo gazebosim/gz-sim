@@ -3797,7 +3797,7 @@ void RenderUtilPrivate::CreateVisual(
   sdf::Visual visual;
   visual.SetName(_name->Data());
   visual.SetRawPose(_pose->Data());
-  if(!(_geom))
+  if(!_geom)
   {
     gzwarn << "Visual entity [" << _entity
            << "] has no geometry component."
