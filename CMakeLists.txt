@@ -18,7 +18,7 @@ find_package(gz-cmake REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX pre1)
+gz_configure_project(VERSION_SUFFIX)
 
 #============================================================================
 # Set project-specific options
@@ -108,8 +108,11 @@ gz_find_package(gz-common
     graphics
     io
     profiler
+    testing
   REQUIRED
 )
+
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
@@ -223,7 +226,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs12_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python

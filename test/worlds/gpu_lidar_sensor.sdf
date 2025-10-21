@@ -146,7 +146,6 @@
               <resolution>0.01</resolution>
             </range>
           </ray>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
       </link>

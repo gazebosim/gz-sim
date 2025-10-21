@@ -21,6 +21,8 @@
 #include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 
+#include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,10 +32,12 @@
 #include <gz/transport/Node.hh>
 
 #include "gz/sim/components/Actuators.hh"
+#include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -76,6 +80,9 @@ class gz::sim::systems::JointControllerPrivate
   /// \brief True if force commands are internally used to keep the target
   /// velocity.
   public: bool useForceCommands{false};
+
+  /// \brief True if braking is disabled.
+  public: bool disableBraking{false};
 
   /// \brief Velocity PID controller.
   public: math::PID velPid;
@@ -146,6 +153,11 @@ void JointController::Configure(const Entity &_entity,
 
     this->dataPtr->velPid.Init(p, i, d, iMax, iMin, cmdMax, cmdMin, cmdOffset);
 
+    if (_sdf->HasElement("disable_braking"))
+    {
+      this->dataPtr->disableBraking = _sdf->Get<bool>("disable_braking");
+    }
+
     gzdbg << "[JointController] Force mode with parameters:" << std::endl;
     gzdbg << "p_gain: ["     << p         << "]"             << std::endl;
     gzdbg << "i_gain: ["     << i         << "]"             << std::endl;
@@ -155,6 +167,8 @@ void JointController::Configure(const Entity &_entity,
     gzdbg << "cmd_max: ["    << cmdMax    << "]"             << std::endl;
     gzdbg << "cmd_min: ["    << cmdMin    << "]"             << std::endl;
     gzdbg << "cmd_offset: [" << cmdOffset << "]"             << std::endl;
+    gzdbg << "disable_braking: [" << this->dataPtr->disableBraking
+          << "]" << std::endl;
   }
   else
   {
@@ -275,7 +289,35 @@ void JointController::PreUpdate(const UpdateInfo &_info,
     bool warned{false};
     for (const std::string &name : this->dataPtr->jointNames)
     {
-      Entity joint = this->dataPtr->model.JointByName(_ecm, name);
+      // First try to resolve by scoped name.
+      Entity joint = kNullEntity;
+      auto entities = entitiesFromScopedName(
+          name, _ecm, this->dataPtr->model.Entity());
+
+      if (!entities.empty())
+      {
+        if (entities.size() > 1)
+        {
+          gzwarn << "Multiple joint entities with name ["
+                << name << "] found. "
+                << "Using the first one." << std::endl;
+        }
+        joint = *entities.begin();
+
+        // Validate
+        if (!_ecm.EntityHasComponentType(joint, components::Joint::typeId))
+        {
+          gzerr << "Entity with name[" << name
+                << "] is not a joint" << std::endl;
+          joint = kNullEntity;
+        }
+        else
+        {
+          gzdbg << "Identified joint [" << name
+                << "] as Entity [" << joint << "]" << std::endl;
+        }
+      }
+
       if (joint != kNullEntity)
       {
         this->dataPtr->jointEntities.push_back(joint);
@@ -287,6 +329,7 @@ void JointController::PreUpdate(const UpdateInfo &_info,
       }
     }
   }
+
   if (this->dataPtr->jointEntities.empty())
     return;
 
@@ -316,9 +359,19 @@ void JointController::PreUpdate(const UpdateInfo &_info,
 
   double error = jointVelComp->Data().at(0) - targetVel;
 
+  // If braking is disabled only apply force if the actual velocity is below
+  // the target - i.e. allow joint to freewheel.
+  bool applyForce = true;
+  if (this->dataPtr->disableBraking)
+  {
+      double sgn = math::signum(targetVel);
+      applyForce = !math::equal(sgn, 0.0, 1e-16) && sgn * error <= 0.0;
+  }
+
   // Force mode.
   if ((this->dataPtr->useForceCommands) &&
-      (!jointVelComp->Data().empty()))
+      (!jointVelComp->Data().empty()) &&
+      (applyForce))
   {
     for (Entity joint : this->dataPtr->jointEntities)
     {

@@ -45,7 +45,7 @@ the [GUI Configuration](gui_config.html) tutorial for more information.
 If you launched Gazebo with the
 `video_record_dbl_pendulum.sdf` demo world, the GUI configurations are embedded
 in the world SDF file so you will need to download a copy of the
-[sdf file](https://raw.githubusercontent.com/gazebosim/gz-sim/main/examples/worlds/video_record_dbl_pendulum.sdf).
+[sdf file](https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim10/examples/worlds/video_record_dbl_pendulum.sdf).
 and modify the GUI configuration in that file. On the other hand, if you
 launched Gazebo with a world file that does not have GUI
 configurations, you will need to specify the settings in

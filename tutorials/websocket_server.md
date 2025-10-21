@@ -26,7 +26,7 @@ maximum number of client connections. Authorization and SSL settings can also
 be configured.
 
 See more information on the plugin parameters and how to launch gzweb in the
-[websocket server demo](https://github.com/gazebosim/gz-sim/blob/main/examples/scripts/websocket_server)
+[websocket server demo](https://github.com/gazebosim/gz-sim/blob/gz-sim10/examples/scripts/websocket_server)
 
 @image html files/websocket_server/fuel_visualization_gzweb.png
 
@@ -61,7 +61,7 @@ parameters that were available in gz-launch are supported in the gz-sim system.
 
 In gz-launch, the websocket server exists in the form of a "gz-launch plugin",
 which can be started from a launch file, see the example
-[websocket.gzlaunch](https://github.com/gazebosim/gz-launch/blob/main/examples/websocket.gzlaunch)
+[websocket.gzlaunch](https://github.com/gazebosim/gz-launch/blob/gz-sim10/examples/websocket.gzlaunch)
 file.
 
 Specifically, the gz-launch plugin has the following syntax:

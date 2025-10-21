@@ -134,10 +134,10 @@ Rectangle {
     id: saveWorldDialog
     title: "Save world"
     currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
-    fileMode: FileDialog.OpenFile
+    fileMode: FileDialog.SaveFile
     nameFilters: [ "SDF files (*.sdf)" ]
     onAccepted: {
-      saveWorldFileText.text = fileUrl;
+      saveWorldFileText.text = selectedFile;
     }
   }
 

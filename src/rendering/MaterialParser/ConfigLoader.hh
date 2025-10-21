@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 
+#include <gz/math/Color.hh>
+
 namespace gz
 {
 namespace sim
@@ -38,7 +40,7 @@ public:
 
   ConfigLoader();
 
-  ~ConfigLoader();
+  virtual ~ConfigLoader();
 
   // For a line like
   // entity animals/dog

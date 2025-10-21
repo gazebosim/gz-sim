@@ -1,0 +1,192 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header")
+
+package(
+    default_applicable_licenses = ["//:license"],
+    features = [
+        "layering_check",
+        "parse_headers",
+    ],
+)
+
+gz_configure_header(
+    name = "Config",
+    src = "test_config.hh.in",
+    out = "include/test_config.hh",
+    defines = [
+        "CMAKE_BINARY_DIR=.",
+        "PROJECT_SOURCE_DIR=.",
+    ],
+    package_xml = "//:package.xml",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+    ],
+)
+
+cc_library(
+    name = "MockSystem",
+    testonly = 1,
+    hdrs = ["plugins/MockSystem.hh"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//:gz-sim",
+    ],
+)
+
+cc_binary(
+    name = "MockSystem.so",
+    srcs = [
+        "plugins/MockSystem.cc",
+        "plugins/MockSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-plugin//:register",
+    ],
+)
+
+cc_library(
+    name = "Helpers",
+    testonly = 1,
+    hdrs = glob(["helpers/*.hh"]),
+    includes = [
+        ".",
+        "helpers",
+    ],
+    visibility = ["//:__subpackages__"],
+    deps = [
+        ":Config",
+        ":MockSystem",
+        "//:gz-sim",
+        "@googletest//:gtest",
+        "@gz-common",
+        "@gz-common//testing",
+        "@gz-math",
+        "@gz-transport",
+    ],
+)
+
+cc_library(
+    name = "TestStaticModelSystem",
+    testonly = 1,
+    srcs = [
+        "plugins/TestModelSystem.hh",
+        "plugins/TestStaticModelSystem.cc",
+    ],
+    deps = [
+        "//:gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+    alwayslink = 1,
+)
+
+cc_binary(
+    name = "TestModelSystem.so",
+    srcs = [
+        "plugins/TestModelSystem.cc",
+        "plugins/TestModelSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+cc_binary(
+    name = "TestSensorSystem.so",
+    srcs = [
+        "plugins/TestSensorSystem.cc",
+        "plugins/TestSensorSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+cc_binary(
+    name = "TestVisualSystem.so",
+    srcs = [
+        "plugins/TestVisualSystem.cc",
+        "plugins/TestVisualSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+cc_binary(
+    name = "TestWorldSystem.so",
+    srcs = [
+        "plugins/TestWorldSystem.cc",
+        "plugins/TestWorldSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-plugin//:register",
+    ],
+)
+
+cc_test(
+    name = "INTEGRATION_load_system_static_registry",
+    srcs = ["integration/load_system_static_registry.cc"],
+    env = {"GZ_BAZEL": "1"},
+    deps = [
+        ":Helpers",
+        ":MockSystem",
+        ":TestStaticModelSystem",
+        "//:gz-sim",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-common",
+    ],
+)
+
+cc_test(
+    name = "INTEGRATION_load_physics_system_static_registry",
+    srcs = ["integration/load_physics_system_static_registry.cc"],
+    env = {"GZ_BAZEL": "1"},
+    deps = [
+        ":Helpers",
+        ":MockSystem",
+        "//:gz-sim-physics-system-static",
+        "//:gz-sim",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-math//:gz-math",
+        "@gz-physics//dartsim:libgz-physics-dartsim-plugin-static",
+    ],
+)
+
+filegroup(
+    name = "worlds",
+    srcs = glob(["worlds/**"]),
+    visibility = ["//:__subpackages__"],
+)
+
+filegroup(
+    name = "media",
+    srcs = glob(["media/**"]),
+    visibility = ["//:__subpackages__"],
+)
