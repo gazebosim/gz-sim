@@ -169,6 +169,8 @@ int launchProcess(
     if(!CreateProcessA(NULL, commandVec.data(), NULL, NULL, FALSE, 0,
                        NULL, NULL, &si, &pi))
     {
+      gzerr << "Failure in creating process for command "
+            << command << std::endl;
       return -1;
     }
 
