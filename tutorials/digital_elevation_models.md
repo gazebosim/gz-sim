@@ -20,7 +20,7 @@ While this tutorial will be focusing more in depth with DEMs, we will provide a 
 
 ### Image heightmaps
 
-Image heightmaps use a 2D grayscale image, where each pixel coresponds to the elevation at that point. Black (or `0`) represents the lowest point and while (or `255`) represents the highest.
+Image heightmaps use a 2D grayscale image, where each pixel corresponds to the elevation at that point. Black (or `0`) represents the lowest point and while (or `255`) represents the highest.
 This is a simple and efficient way to store elevation data because it can use less memory compared to meshes and DEMs.
 
 The following example will look at the [demo created for Gazebo Fortress](https://app.gazebosim.org/OpenRobotics/fuel/models/Fortress%20heightmap). Below shows the black and white image is what gets referenced in SDF and fed into Gazebo (download the model from the previous link and look at the `model.sdf` file).
@@ -43,7 +43,7 @@ The supported file formats for meshes in Gazebo include DAE, GLTF, OBJ, and STL,
 ![Cave example](files/digital_elevation_models/mesh_cave.png)
 
 Meshes were the format used for the [Darpa Subterranean Challenge (SubT) simulation](https://github.com/osrf/subt/wiki)
-and most were created from point cloud converted data (check out this [tutorial on how to convert point cloud data to a 3D mesh model for Gazebo](http://gazebosim.org/api/sim/10/pointcloud.html)). 
+and most were created from point cloud converted data (check out this [tutorial on how to convert point cloud data to a 3D mesh model for Gazebo](http://gazebosim.org/api/sim/10/pointcloud.html)).
 These heightmap meshes can be found [here on Fuel](https://app.gazebosim.org/OpenRobotics/fuel/collections/SubT%20Tech%20Repo).
 
 ### Digital Elevation Models

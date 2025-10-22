@@ -303,8 +303,8 @@
               <geometry>
                   <heightmap>
                       <texture>
-                          <diffuse>materials/textures/moon_diffuse.png</diffuse>
-                          <normal>materials/textures/moon_normal.png</normal>
+                          <diffuse>textures/moon_diffuse.png</diffuse>
+                          <normal>textures/moon_normal.png</normal>
                           <size>250</size>
                       </texture>
                       <blend>
