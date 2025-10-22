@@ -292,14 +292,16 @@
                       <uri>half_dome.tif</uri>
                       <!-- gdalinfo -stats <dem_file> -->
                       <size>3793 3563 1481.398</size>
-                      <pos>0 0 -2694.987</pos> <!-- -(minimum elevation) -->
+                      <!--
+                        Here we're using z = -(max elevation) to move the model below the camera's default viewpoint
+                      -->
+                      <pos>0 0 -2694.987</pos>
                   </heightmap>
               </geometry>
           </collision>
           <visual name="visual">
               <geometry>
                   <heightmap>
-                      <use_terrain_paging>false</use_terrain_paging>
                       <texture>
                           <diffuse>materials/textures/moon_diffuse.png</diffuse>
                           <normal>materials/textures/moon_normal.png</normal>
@@ -316,7 +318,10 @@
                       <uri>half_dome.tif</uri>
                       <!-- gdalinfo -stats <dem_file> -->
                       <size>3793 3563 1481.398</size>
-                      <pos>0 0 -2694.987</pos> <!-- -(minimum elevation) -->
+                      <!--
+                        Here we're using z = -(max elevation) to move the model below the camera's default viewpoint
+                      -->
+                      <pos>0 0 -2694.987</pos>
                   </heightmap>
               </geometry>
           </visual>

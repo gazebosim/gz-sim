@@ -2,7 +2,7 @@
 
 ## What are heightmaps and why are they useful for simulation?
 
-Simply put, a heightmap is a 2D image where the value of each pixel or cell corresponds to the elevation or height of that specific point in the real world.
+Simply put, a heightmap is common term used in computer graphics to refer to a 2D image where the value of each pixel or cell corresponds to the elevation or height of that specific point in the real world.
 
 ![Visual example of grid of elevations](files/digital_elevation_models/ex_of_grid_of_elevations.png)
 Image reference: https://www.futurelearn.com/info/courses/advanced-archaeological-remote-sensing/0/steps/356833
@@ -11,17 +11,17 @@ They are useful for simulation because they offer a simple way to provide realis
 For fields like robotics, accurate topography can be beneficial for develop algorithms and/or models for autonomous navigation, motion planning, task planning, and control because they can provide cost effective, rapid development cycles.
 Engineers can develop and test algorithms in these environments before physical deployment.
 
-In this tutorial we'll dive deeper into what makes heightmaps, where to get them, and how to process them to use for simulation in modern Gazebo.
+In this tutorial we'll dive deeper into what makes heightmaps, where to get them, and how to process them to use for simulation in Gazebo.
 
 ## Gazebo's supported heightmap types
 
-Modern Gazebo supports image heightmaps, meshes, and Digital Elevation Models (DEMs).
+Gazebo supports creating a terrain from image heightmaps, meshes, and Digital Elevation Models (DEMs).
 While this tutorial will be focusing more in depth with DEMs, we will provide a quick overview of the other formats available to try out.
 
 ### Image heightmaps
 
 Image heightmaps use a 2D grayscale image, where each pixel coresponds to the elevation at that point. Black (or `0`) represents the lowest point and while (or `255`) represents the highest.
-This is a simple and efficient way to store elevation data because less memory compared to meshes and DEMs.
+This is a simple and efficient way to store elevation data because it can use less memory compared to meshes and DEMs.
 
 The following example will look at the [demo created for Gazebo Fortress](https://app.gazebosim.org/OpenRobotics/fuel/models/Fortress%20heightmap). Below shows the black and white image is what gets referenced in SDF and fed into Gazebo (download the model from the previous link and look at the `model.sdf` file).
 
@@ -36,8 +36,7 @@ What ends up getting rendered in Gazebo is shown below:
 ### Meshes
 
 Another format used for realistic topography are meshes, which are 3D polygonal models.
-The supported file formats for meshes in Gazebo are DAE, FBX, GLTF, OBJ, and STL.
-These models are best suited for worlds with tunnels, caves, or overhangs.
+The supported file formats for meshes in Gazebo include DAE, GLTF, OBJ, and STL, and more.These models are best suited for worlds with tunnels, caves, or overhangs.
 
 ![Tunnel example](files/digital_elevation_models/mesh_tunnel_entrance.png)
 
@@ -45,7 +44,7 @@ These models are best suited for worlds with tunnels, caves, or overhangs.
 
 Meshes were the format used for the [Darpa Subterranean Challenge (SubT) simulation](https://github.com/osrf/subt/wiki)
 and most were created from point cloud converted data (check out this [tutorial on how to convert point cloud data to a 3D mesh model for Gazebo](http://gazebosim.org/api/sim/10/pointcloud.html)). 
-These heightmap meshes can be found [here on fuel](https://app.gazebosim.org/OpenRobotics/fuel/collections/SubT%20Tech%20Repo).
+These heightmap meshes can be found [here on Fuel](https://app.gazebosim.org/OpenRobotics/fuel/collections/SubT%20Tech%20Repo).
 
 ### Digital Elevation Models
 
@@ -60,13 +59,13 @@ The terrain elevations for ground positions are sampled at regularly-spaced hori
 # Walkthrough with DEMs for Gazebo
 
 There are two main types of DEM formats, a vector-based Triangular Irregular Network (TIN) or a grid of elevations (raster).
-In Gazebo, maintainers have only tested raster based formats (more specifically GeoTiff or `.tif` files) but in theory Gazebo should be able to run any [GDAL](https://gdal.org/en/stable/index.html) default supported format
+In Gazebo, raster based formats (more specifically GeoTiff or `.tif` files) are the most tested formats but in theory Gazebo should be able to run any [GDAL](https://gdal.org/en/stable/index.html) default supported format
 (since GDAL is the backend library that Gazebo uses to read DEM files).
-Let's look at an example of getting DEMs from publically available data and using some common open source tools to them for Gazebo.
+Let's look at an example of getting DEMs from publicly available data and using some common open source tools to process them for Gazebo.
 
 ## Obtaining data
 
-Many resources for publically available data exist and include:
+Many resources for publicly available data exist and include:
 
 * [OpenTopography](https://portal.opentopography.org/datasets)
 * [earthexplorer.usgs.gov](http://earthexplorer.usgs.gov)
@@ -85,14 +84,14 @@ For our example, we will use [OpenTopography](https://portal.opentopography.org/
   * The data output format should be GeoTiff and Digital Terrain Model (DTM) should be checked for Layer types
   * Click Submit
 
-* Once the data has finished processing, download the bundled results and upzip the file
+* Once the data has finished processing, download the bundled results and unzip the file
 
 ## Processing data
 
 Common open source tools for geospatial data include:
 
 * [Geospatial Data Abstraction Library (GDAL)](https://gdal.org/en/stable/): is a library and command line toolkit for reading and maipulating DEMs.
-This is the library that is used in Gazebo for reading DEMs and will be instelld on your system if Gazebo is installed.
+This is the library that is used in Gazebo for reading DEMs and will be installed on your system if Gazebo is installed.
 * [QGIS](https://qgis.org/): a GUI for viewing, analyzing, editing, and publishing DEMs and relies on GDAL.
 
 Using [QGIS](https://qgis.org/),
@@ -113,7 +112,7 @@ Using [QGIS](https://qgis.org/),
 * If the Processing Toolbox panel isn't open, click the gear icon in the top toolbar
 
   * Search for "Clip raster by extent" and double click to open the dialog
-  * Input layer: should be the imported geotif
+  * Input layer: should be the imported GeoTiff
   * Clipping extent: click the down arrow and select "Draw on Map Canvas" to select your desired region
 
   ![QGIS draw on canvas](files/digital_elevation_models/qgis_draw_on_map_canvas.png)
@@ -150,10 +149,9 @@ The model should look similar to the following:
       <visual name="visual">
           <geometry>
               <heightmap>
-                  <use_terrain_paging>false</use_terrain_paging>
                   <texture>
-                      <diffuse>materials/textures/rocks_diffuse.png</diffuse>
-                      <normal>materials/textures/rocks_normal.png</normal>
+                      <diffuse>textures/rocks_diffuse.png</diffuse>
+                      <normal>textures/rocks_normal.png</normal>
                       <size>250</size>
                   </texture>
                   <blend>
@@ -175,10 +173,12 @@ The model should look similar to the following:
 </model>
 ```
 
-Launch Gazebo and it should look something like this:
+To launch the completed demo yourself, [download the files here](files/digital_elevation_models/half_dome_example/) then run:
+
+```bash
+cd /path/to/half_dome_example/
+
+gz sim -v 4 half_dome.sdf
+```
 
 ![Gazebo Half Dome](files/digital_elevation_models/gazebo_half_dome.png)
-
-To see the completed demo, [download here](files/digital_elevation_models/half_dome_example/).
-
-
