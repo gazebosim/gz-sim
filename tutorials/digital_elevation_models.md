@@ -1,3 +1,5 @@
+\page heightmap_dem Load image heightmaps and Digital Elevation Models (DEM)
+
 # Overview
 
 ## What are heightmaps and why are they useful for simulation?
@@ -5,6 +7,7 @@
 Simply put, a heightmap is common term used in computer graphics to refer to a 2D image where the value of each pixel or cell corresponds to the elevation or height of that specific point in the real world.
 
 ![Visual example of grid of elevations](files/digital_elevation_models/ex_of_grid_of_elevations.png)
+
 Image reference: https://www.futurelearn.com/info/courses/advanced-archaeological-remote-sensing/0/steps/356833
 
 They are useful for simulation because they offer a simple way to provide realistic digital representation of the terrain.
@@ -36,13 +39,15 @@ What ends up getting rendered in Gazebo is shown below:
 ### Meshes
 
 Another format used for realistic topography are meshes, which are 3D polygonal models.
-The supported file formats for meshes in Gazebo include DAE, GLTF, OBJ, and STL, and more.These models are best suited for worlds with tunnels, caves, or overhangs.
+The supported file formats for meshes in Gazebo include DAE, GLTF, OBJ, and STL, and more. These models are best suited for worlds with tunnels, caves, or overhangs.
 
-![Tunnel example](files/digital_elevation_models/mesh_tunnel_entrance.png)
+Examples:
 
-![Cave example](files/digital_elevation_models/mesh_cave.png)
+\image html files/digital_elevation_models/mesh_tunnel_entrance.png width=80%
 
-Meshes were the format used for the [Darpa Subterranean Challenge (SubT) simulation](https://github.com/osrf/subt/wiki)
+\image html files/digital_elevation_models/mesh_cave.png width=80%
+
+Meshes were the format used for the [DARPA Subterranean Challenge (SubT) simulation](https://github.com/osrf/subt/wiki)
 and most were created from point cloud converted data (check out this [tutorial on how to convert point cloud data to a 3D mesh model for Gazebo](http://gazebosim.org/api/sim/10/pointcloud.html)).
 These heightmap meshes can be found [here on Fuel](https://app.gazebosim.org/OpenRobotics/fuel/collections/SubT%20Tech%20Repo).
 
@@ -52,8 +57,7 @@ A Digital Elevation Model (DEM) is a 3D representation of a terrain's surface th
 DEMs are frequently created by using a combination of sensors, such as satellites, LIDAR, radar, or cameras.
 The terrain elevations for ground positions are sampled at regularly-spaced horizontal intervals.
 
-
-![Monterey bay DEM in Gazebo](files/digital_elevation_models/dem_monterey_bay.png)
+\image html files/digital_elevation_models/dem_monterey_bay.png width=80%
 
 <!-- TODO figure out better title -->
 # Walkthrough with DEMs for Gazebo
@@ -80,7 +84,8 @@ For our example, we will use [OpenTopography](https://portal.opentopography.org/
 * In the following page,
 
   * In the map, click the blue "Select a Region" button in the top left corner of the map to select the region to extract the DEM from
-  ![OpenTopography region selection](files/digital_elevation_models/open_topography_region_selection.png)
+  \image html files/digital_elevation_models/open_topography_region_selection.png width=80%
+
   * The data output format should be GeoTiff and Digital Terrain Model (DTM) should be checked for Layer types
   * Click Submit
 
@@ -96,18 +101,21 @@ This is the library that is used in Gazebo for reading DEMs and will be installe
 
 Using [QGIS](https://qgis.org/),
 
-* (optional) When working with earth DEMs, it can be helpful to add a Google Satellite layer (as the base layer) to verify the imported DEM is in the correct projection.
+* (optional) When working with earth DEMs, it can be helpful to add a map layer (as the base layer) to verify the imported DEM is in the correct projection.
 
-  * In the top toolbar, go to Layer > Add Layer > Add XYZ Connection...
-  * In the dropdown, select Google Satellite > Click 'Add' > then 'Close'
+  * In the top toolbar, go to Layer > Add Layer > Add XYZ Layer...
+  * In the dropdown menu under "XYZ Connections", select 'Google Satellite' or 'OpenStreetMap' > Click 'Add' > then 'Close'
 
 * In the top toolbar, go to Layer > Add Layer > Add Raster Layer...
 * Select the file that we downloaded and unzipped (from the instructions above) > Click 'Add' > then 'Close'
-* In the bottom bar, update "Scale" to `1:50000` and in the "Coordinate" textbot, enter the lat/lon coordinates retrieved from USGS earlier (i.e., `37.7444°, -119.5341°`) > hit the Enter key (this will move the viewpoint to the desired location)
+* Check the Coordinate Reference System button at the bottom right to make sure it is set to 'EPSG:4326'. If not click on it and search for 'EPSG:4326', choose 'WGS 84 - SPSG:4326' and click 'OK'
+* Enter the lat/lon coordinates retrieved from USGS earlier in the "Coordinate" textbox at the bottom (i.e., `37.7444, -119.5341`) > hit the Enter key (this will move the viewpoint to the desired location)
+* In the bottom bar, update "Scale" to `1:50000`
 
   * If the optional step was followed, QGIS should look something like the image below, otherwise only the DEM will be displayed
 
-![QGIS with Google Satellite as base layer and DEM](files/digital_elevation_models/qgis_satellite_and_dem.png)
+\image html files/digital_elevation_models/qgis_satellite_and_dem.png width=80%
+
 
 * If the Processing Toolbox panel isn't open, click the gear icon in the top toolbar
 
@@ -115,7 +123,7 @@ Using [QGIS](https://qgis.org/),
   * Input layer: should be the imported GeoTiff
   * Clipping extent: click the down arrow and select "Draw on Map Canvas" to select your desired region
 
-  ![QGIS draw on canvas](files/digital_elevation_models/qgis_draw_on_map_canvas.png)
+  \image html files/digital_elevation_models/qgis_draw_on_map_canvas.png width=80%
 
   * Clipped (extent): Click the button with the "..." dots > Save to File ... > select the desired save location and give the file a name
   * Click the "Run" button, this will add a new layer to the layers panel (on the left)
@@ -181,4 +189,4 @@ cd /path/to/half_dome_example/
 gz sim -v 4 half_dome.sdf
 ```
 
-![Gazebo Half Dome](files/digital_elevation_models/gazebo_half_dome.png)
+\image html files/digital_elevation_models/gazebo_half_dome.png width=80%
