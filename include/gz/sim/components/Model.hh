@@ -17,10 +17,13 @@
 #ifndef GZ_SIM_COMPONENTS_MODEL_HH_
 #define GZ_SIM_COMPONENTS_MODEL_HH_
 
+#include <memory>
+#include <mutex>
 #include <string>
 
 #include <sdf/Model.hh>
 #include <sdf/Root.hh>
+#include <sdf/parser.hh>
 
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
@@ -103,12 +106,34 @@ namespace serializers
         return _in;
       }
 
-      // Its super expensive to create an SDFElement for some reason
       sdf::Root root;
-      sdf::Errors errors = root.LoadSdfString(sdf);
+      {
+        // It's super expensive to create an sdf::SDFPtr object.
+        // Workaround this by making it a static object so we only initialize it
+        // once.
+        // https://github.com/gazebosim/sdformat/issues/1478
+        sdf::Errors errors;
+        static std::mutex mutex;
+        static sdf::SDFPtr sdfParsed;
+        std::lock_guard<std::mutex> lock(mutex);
+        if (!sdfParsed)
+        {
+          sdfParsed = std::make_shared<sdf::SDF>();
+          sdf::init(sdfParsed);
+        }
+        auto config = sdf::ParserConfig::GlobalConfig();
+        // Read an SDF string, and store the result in sdfParsed.
+        if (!sdf::readString(sdf, config, sdfParsed, errors))
+        {
+          gzwarn << "Unable to read SDF while deserializing sdf::Model "
+                 << sdf << std::endl;
+          return _in;
+        }
+        root.Load(sdfParsed, config);
+      }
       if (!root.Model())
       {
-        gzwarn << "Unable to deserialize sdf::Model " << sdf<< std::endl;
+        gzwarn << "Unable to deserialize sdf::Model " << sdf << std::endl;
         return _in;
       }
 
