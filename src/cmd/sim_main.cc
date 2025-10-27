@@ -31,6 +31,7 @@
 #include <gz/utils/Subprocess.hh>
 
 #include "gz/sim/config.hh"
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 #include "gz.hh"
@@ -493,7 +494,10 @@ int main(int argc, char** argv)
           utils::setenv(
               std::string("GZ_SIM_WAIT_GUI"),
               std::to_string(opt->waitGui));
-          launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
+          std::string gz_sim_gui_exe = gz::common::joinPaths(
+              sim::getInstallPrefix(),
+              GZ_SIM_GUI_EXE_RELATIVE_PATH);
+          launchProcess(gz_sim_gui_exe, createGuiCommand(opt));
         }
         catch (const std::exception &e)
         {
@@ -576,7 +580,10 @@ int main(int argc, char** argv)
     else if(opt->launchGui)
     {
       #ifdef WITH_GUI
-      launchProcess(std::string(GZ_SIM_GUI_EXE), createGuiCommand(opt));
+      std::string gz_sim_gui_exe = gz::common::joinPaths(
+          sim::getInstallPrefix(),
+          GZ_SIM_GUI_EXE_RELATIVE_PATH);
+      launchProcess(gz_sim_gui_exe, createGuiCommand(opt));
       #else
       std::cerr << "This version of Gazebo does not support GUI" << std::endl;
       #endif

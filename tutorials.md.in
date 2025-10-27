@@ -90,6 +90,7 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage collada_world_exporter "Collada World Exporter": Export an entire world to a single Collada mesh.
 * \subpage meshtofuel "Importing a Mesh to Fuel": Build a model directory around a mesh so it can be added to the Gazebo Fuel app.
 * \subpage pointcloud "Converting a Point Cloud to a 3D Model": Turn point cloud data into 3D models for use in simulations.
+* \subpage heightmap_dem "Terrain simulation": Load image heightmaps and Digital Elevation Models (DEM)
 
 ### Blender help
 
