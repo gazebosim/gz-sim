@@ -60,19 +60,20 @@ std::string meshModelStr(bool _static = false)
   // it should be able to load this as a mesh.
   // Similarly the user can create a common::Mesh object and add that
   // to the MeshManager by calling MeshManager::Instance()->AddMesh;
-  return std::string("<?xml version=\"1.0\" ?>") +
-      "<sdf version='1.6'>" +
-      "<model name='spawned_model'>" +
-      "<link name='link'>" +
-      "<visual name='visual'>" +
-      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>" +
-      "</visual>" +
-      "<collision name='visual'>" +
-      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>" +
-      "</collision>" +
-      "</link>" +
-      "<static>" + std::to_string(_static) + "</static>" +
-      "</model>" +
+  return std::string("<?xml version=\"1.0\" ?>"
+      "<sdf version='1.6'>"
+      "<model name='spawned_model'>"
+      "<link name='link'>"
+      "<visual name='visual'>"
+      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>"
+      "<material><emissive>1 1 1 1</emissive></material>"
+      "</visual>"
+      "<collision name='collision'>"
+      "<geometry><mesh><uri>name://unit_box</uri></mesh></geometry>"
+      "</collision>"
+      "</link>"
+      "<static>") + std::to_string(_static) + "</static>"
+      "</model>"
       "</sdf>";
 }
 
@@ -195,10 +196,9 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
   r = imageBuffer[midIdx];
   g = imageBuffer[midIdx + 1];
   b = imageBuffer[midIdx + 2];
-  // Default material is black
-  EXPECT_EQ(0u, r);
-  EXPECT_EQ(0u, g);
-  EXPECT_EQ(0u, b);
+  EXPECT_EQ(255u, r);
+  EXPECT_EQ(255u, g);
+  EXPECT_EQ(255u, b);
 
   // Spawn another box over the static one
   const std::string spawnedModel2Name = "spawned_model2";
