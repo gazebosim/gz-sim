@@ -140,7 +140,7 @@ class CustomCartPole(gym.Env):
 
 env = CustomCartPole({})
 model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=5)
+model.learn(total_timesteps=25_000)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
