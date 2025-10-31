@@ -46,6 +46,8 @@ class GzRewardScorer:
         """
         on_pre_update is used to command the model vehicle.
         """
+        if info.paused:
+            return
         world = World(world_entity(ecm))
         self.model = Model(world.model_by_name(ecm, "vehicle_green"))
         self.pole_entity = self.model.link_by_name(ecm, "pole")
@@ -64,6 +66,8 @@ class GzRewardScorer:
         on_post_update is used to read the current state of the world. We write the
         state to a local field.
         """
+        if info.paused:
+            return
         pole_pose = self.pole.world_pose(ecm).rot().euler().y()
         if self.pole.world_angular_velocity(ecm) is not None:
             pole_angular_vel = self.pole.world_angular_velocity(ecm).y()
@@ -136,7 +140,7 @@ class CustomCartPole(gym.Env):
 
 env = CustomCartPole({})
 model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=25_000)
+model.learn(total_timesteps=5)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
