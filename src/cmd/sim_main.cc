@@ -160,6 +160,8 @@ int launchProcess(
     if(!CreateProcessW(NULL, cmd_line, NULL, NULL, FALSE, 0,
                       NULL, NULL, &si, &pi))
     {
+      gzerr << "Failure in creating process for command "
+            << command << std::endl;
       return -1;
     }
 
