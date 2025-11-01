@@ -29,7 +29,9 @@ namespace python
 {
 void defineSimServerConfig(pybind11::object module)
 {
-  pybind11::class_<gz::sim::ServerConfig>(module, "ServerConfig")
+  pybind11::class_<gz::sim::ServerConfig>(module, "ServerConfig",
+    "Configuration for a simulation server. This class provides options "
+    "for setting up and initializing a server, such as specifying the SDF file to use. ")
   .def(pybind11::init<>())
   .def(
     "set_sdf_file", &gz::sim::ServerConfig::SetSdfFile,
