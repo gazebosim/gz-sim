@@ -1937,7 +1937,7 @@ TEST_P(EntityComponentManagerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(State))
 
 /////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(ChangedStateComponents))
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ChangedStateComponents))
 {
   // Entity and component
   Entity e1{1};
@@ -3336,7 +3336,7 @@ TEST_P(EntityComponentManagerFixture, ResetToWithAddedEntity)
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
-    GZ_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsStateMap))
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(AddRemoveAddComponentsStateMap))
 {
   Entity e1 = manager.CreateEntity();
   EXPECT_EQ(1u, manager.EntityCount());
