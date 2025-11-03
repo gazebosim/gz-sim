@@ -880,6 +880,17 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   GZ_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
 
+  // The Run method does not check for entity creation each iteration
+  // on network secondaries, so check here to ensure that performers
+  // have parents assigned.
+  if (this->networkMgr && this->networkMgr->IsSecondary())
+  {
+    if (this->createEntities)
+    {
+      this->CreateEntities();
+    }
+  }
+
   // Process new ECM state information, typically sent from the GUI after
   // a change was made to the GUI's ECM.
   this->ProcessNewWorldControlState();
