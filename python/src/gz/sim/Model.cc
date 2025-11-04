@@ -30,7 +30,10 @@ namespace python
 {
 void defineSimModel(py::object module)
 {
-  py::class_<gz::sim::Model>(module, "Model")
+  py::class_<gz::sim::Model>(module, "Model",
+  "A convenience wrapper around a model entity. This class provides easy "
+  "access to model properties (static, self-collide, wind mode) and child "
+  "entities (joints, links).")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Model>())
   .def("entity", &gz::sim::Model::Entity,
