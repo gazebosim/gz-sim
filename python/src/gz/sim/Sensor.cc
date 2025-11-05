@@ -30,7 +30,9 @@ namespace python
 {
 void defineSimSensor(py::object module)
 {
-  py::class_<gz::sim::Sensor>(module, "Sensor")
+  py::class_<gz::sim::Sensor>(module, "Sensor",
+    "A convenience wrapper around a sensor entity. This class provides easy "
+    "access to sensor properties such as pose, topic, and parent entity.")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Sensor>())
   .def("entity", &gz::sim::Sensor::Entity,
