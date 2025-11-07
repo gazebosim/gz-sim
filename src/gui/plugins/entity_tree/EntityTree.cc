@@ -485,8 +485,8 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
 
     if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
     {
-      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
-        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      gzerr << "Invalid URI: " << meshStr <<
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.\n";
       return;
     }
 
@@ -519,7 +519,10 @@ void EntityTree::OnLoadMesh(const QString &_mesh)
     gz::gui::App()->sendEvent(
         gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &event);
-
+  }
+  else
+  {
+    gzerr << meshStr << " should be local file\n";
   }
 }
 
