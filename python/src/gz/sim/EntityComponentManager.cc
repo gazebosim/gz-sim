@@ -27,7 +27,9 @@ namespace python
 void defineSimEntityComponentManager(pybind11::object module)
 {
   pybind11::class_<gz::sim::EntityComponentManager>(
-      module, "EntityComponentManager")
+      module, "EntityComponentManager",
+    "The Entity Component Manager (ECM) manages entities and their components "
+    "in the simulation.")
   .def(pybind11::init<>());
 }
 }  // namespace python
