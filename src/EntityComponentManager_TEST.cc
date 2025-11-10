@@ -1923,8 +1923,9 @@ TEST_P(EntityComponentManagerFixture, IGN_UTILS_TEST_DISABLED_ON_WIN32(State))
 }
 
 /////////////////////////////////////////////////
+// See https://github.com/gazebosim/gz-sim/issues/3089
 TEST_P(EntityComponentManagerFixture,
-       IGN_UTILS_TEST_DISABLED_ON_WIN32(ChangedStateComponents))
+       IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ChangedStateComponents))
 {
   // Entity and component
   Entity e1{1};
@@ -3233,8 +3234,9 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 //////////////////////////////////////////////////
+// See https://github.com/gazebosim/gz-sim/issues/3089
 TEST_P(EntityComponentManagerFixture,
-    IGN_UTILS_TEST_DISABLED_ON_WIN32(AddRemoveAddComponentsStateMap))
+    IGN_UTILS_TEST_ENABLED_ONLY_ON_LINUX(AddRemoveAddComponentsStateMap))
 {
   Entity e1 = manager.CreateEntity();
   EXPECT_EQ(1u, manager.EntityCount());
