@@ -27,6 +27,7 @@
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParticleEmitter.hh>
@@ -342,6 +343,7 @@ void ParticleEmitter::PreUpdate(const ignition::gazebo::UpdateInfo &_info,
   igndbg << "New ParticleEmitterCmd component created" << std::endl;
 }
 
+IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
 IGNITION_ADD_PLUGIN(ParticleEmitter,
                     ignition::gazebo::System,
                     ParticleEmitter::ISystemConfigure,
@@ -349,3 +351,4 @@ IGNITION_ADD_PLUGIN(ParticleEmitter,
 
 IGNITION_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "ignition::gazebo::systems::ParticleEmitter")
+IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
