@@ -673,6 +673,10 @@ bool GlobalIlluminationVct::HighQuality() const
 void GlobalIlluminationVct::SetAnisotropic(const bool _anisotropic)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  if (!this->dataPtr->gi || !this->dataPtr->enabled)
+  {
+    return;
+  }
   this->dataPtr->anisotropic = _anisotropic;
   this->dataPtr->lightingDirty = true;
 }
