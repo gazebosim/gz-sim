@@ -413,7 +413,7 @@ void SimulationRunner::UpdatePhysicsParams()
   }
  const auto& physicsParams = physicsCmdComp->Data();
 
- auto gravityComp = 
+ auto gravityComp =
     this->entityCompMgr.Component<components::Gravity>(worldEntity);
  if (gravityComp)
   {
