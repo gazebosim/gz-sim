@@ -2204,7 +2204,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
       int worldCount = engine->GetWorldCount();
-      if (worldCount){
+      if (worldCount)
+      {
         auto world = this->entityWorldMap.Get(_entity);
         auto new_grav =_gravity->Data();
         world->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});

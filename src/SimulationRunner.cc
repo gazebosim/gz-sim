@@ -416,7 +416,8 @@ void SimulationRunner::UpdatePhysicsParams()
 
  auto gravityComp = 
     this->entityCompMgr.Component<components::Gravity>(worldEntity);
- if (gravityComp){
+ if (gravityComp)
+  {
     const  gz::math::Vector3<double>  newGravity = {physicsParams.gravity().x(),physicsParams.gravity().y(),physicsParams.gravity().z()};
     gravityComp->Data() = newGravity;
     this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
