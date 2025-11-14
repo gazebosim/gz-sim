@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <gz/math/Vector3.hh>
-#include <iostream>
 #include <memory>
 #include <ostream>
 #include <unordered_set>

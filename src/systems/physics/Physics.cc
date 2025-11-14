@@ -23,7 +23,6 @@
 #include <gz/msgs/Utility.hh>
 
 #include <algorithm>
-#include <iostream>
 #include <deque>
 #include <map>
 #include <set>
