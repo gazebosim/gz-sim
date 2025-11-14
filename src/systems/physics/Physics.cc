@@ -175,7 +175,6 @@ class gz::sim::systems::PhysicsPrivate
           physics::Gravity,
           physics::FreeGroupFrameSemantics,
           physics::LinkFrameSemantics,
-          physics::GetWorldFromEngine,
           physics::ForwardStep,
           physics::RemoveModelFromWorld,
           physics::sdf::ConstructSdfModel,
@@ -2202,10 +2201,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   _ecm.Each<components::Gravity>(
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
-      int worldCount = engine->GetWorldCount();
-      if (worldCount)
+      auto world = this->entityWorldMap.Get(_entity);
+      if (world!=nullptr)
       {
-        auto world = this->entityWorldMap.Get(_entity);
         auto new_grav =_gravity->Data();
         world->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
         return true;
