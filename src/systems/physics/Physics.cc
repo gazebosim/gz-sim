@@ -173,8 +173,10 @@ class gz::sim::systems::PhysicsPrivate
   public: struct MinimumFeatureList : physics::FeatureList<
           physics::FindFreeGroupFeature,
           physics::SetFreeGroupWorldPose,
+          physics::Gravity,
           physics::FreeGroupFrameSemantics,
           physics::LinkFrameSemantics,
+          physics::GetWorldFromEngine,
           physics::ForwardStep,
           physics::RemoveModelFromWorld,
           physics::sdf::ConstructSdfModel,
@@ -2197,6 +2199,21 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
+  // Gravity state
+  _ecm.Each<components::Gravity>(
+      [&](const Entity & _entity, const components::Gravity *_gravity)
+      {
+      int worldCount = engine->GetWorldCount();
+      if (worldCount){
+        auto world = this->entityWorldMap.Get(_entity);
+        auto new_grav =_gravity->Data();
+        world->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
+        return true;
+      }
+      return false;
+  });
+
+
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)

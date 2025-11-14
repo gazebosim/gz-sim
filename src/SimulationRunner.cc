@@ -18,6 +18,8 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <gz/math/Vector3.hh>
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <unordered_set>
@@ -46,6 +48,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
@@ -409,10 +412,20 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
+ const auto& physicsParams = physicsCmdComp->Data();
+
+ auto gravityComp = 
+    this->entityCompMgr.Component<components::Gravity>(worldEntity);
+ if (gravityComp){
+    const  gz::math::Vector3<double>  newGravity = {physicsParams.gravity().x(),physicsParams.gravity().y(),physicsParams.gravity().z()};
+    gravityComp->Data() = newGravity;
+    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+          ComponentState::OneTimeChange);
+  }
+
   auto physicsComp =
     this->entityCompMgr.Component<components::Physics>(worldEntity);
 
-  const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
     std::chrono::duration<double>(physicsParams.max_step_size());
   const double newRTF = physicsParams.real_time_factor();
