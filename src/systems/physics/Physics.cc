@@ -93,6 +93,7 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
@@ -341,6 +342,14 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] _world The world to disable it for.
   public: void DisableContactSurfaceCustomization(const Entity &_world);
 
+  /// \brief Update the AxisAlignedBox for link entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateLinksBoundingBoxes(EntityComponentManager &_ecm);
+
+  /// \brief Update the AxisAlignedBox for model entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateModelsBoundingBoxes(EntityComponentManager &_ecm);
+
   /// \brief Cache the top-level model for each entity.
   /// The key is an entity and the value is its top level model.
   public: std::unordered_map<Entity, Entity> topLevelModelMap;
@@ -563,9 +572,9 @@ class gz::sim::systems::PhysicsPrivate
 
 
   //////////////////////////////////////////////////
-  // Bounding box
+  // Model Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : physics::FeatureList<
+  public: struct ModelBoundingBoxFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
@@ -582,6 +591,12 @@ class gz::sim::systems::PhysicsPrivate
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::SetFreeGroupGravityEnabled>{};
+
+  // Link Bounding box
+  /// \brief Feature list for model bounding box.
+  public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetLinkBoundingBox>{};
 
   //////////////////////////////////////////////////
   // enabled collision
@@ -709,7 +724,7 @@ class gz::sim::systems::PhysicsPrivate
             physics::Model,
             MinimumFeatureList,
             JointFeatureList,
-            BoundingBoxFeatureList,
+            ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
             ConstructSdfJointFeatureList>;
@@ -726,7 +741,8 @@ class gz::sim::systems::PhysicsPrivate
             CollisionFeatureList,
             HeightmapFeatureList,
             LinkForceFeatureList,
-            MeshFeatureList>;
+            MeshFeatureList,
+            LinkBoundingBoxFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -2957,46 +2973,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
 
   // Populate bounding box info
-  // Only compute bounding box if component exists to avoid unnecessary
-  // computations
-  _ecm.Each<components::Model, components::AxisAlignedBox>(
-      [&](const Entity &_entity, const components::Model *,
-          components::AxisAlignedBox *_bbox)
-      {
-        if (!this->entityModelMap.HasEntity(_entity))
-        {
-          gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
-          return true;
-        }
-
-        auto bbModel =
-            this->entityModelMap.EntityCast<BoundingBoxFeatureList>(_entity);
-
-        if (!bbModel)
-        {
-          static bool informed{false};
-          if (!informed)
-          {
-            gzdbg << "Attempting to get a bounding box, but the physics "
-                   << "engine doesn't support feature "
-                   << "[GetModelBoundingBox]. Bounding box won't be populated."
-                   << std::endl;
-            informed = true;
-          }
-
-          // Break Each call since no AxisAlignedBox'es can be processed
-          return false;
-        }
-
-        math::AxisAlignedBox bbox =
-            math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
-        auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
-            ComponentState::PeriodicChange :
-            ComponentState::NoChange;
-        _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
-
-        return true;
-      });
+  this->UpdateLinksBoundingBoxes(_ecm);
+  this->UpdateModelsBoundingBoxes(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
@@ -4422,6 +4400,107 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 
   gzmsg << "Disabled contact surface customization for world entity ["
          << _world << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for links.
+  _ecm.Each<components::Link, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Link *,
+        components::AxisAlignedBox *_bbox)
+    {
+      auto linkPhys = this->entityLinkMap.Get(_entity);
+      if (!linkPhys)
+      {
+        gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbLink = this->entityLinkMap.EntityCast<
+        LinkBoundingBoxFeatureList>(_entity);
+
+      // Bounding box expressed in the link frame
+      math::AxisAlignedBox bbox;
+
+      if (bbLink)
+      {
+        bbox = math::eigen3::convert(
+          bbLink->GetAxisAlignedBoundingBox(linkPhys->GetFrameID()));
+      }
+      else
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetLinkBoundingBox]. Link bounding boxes will be "
+                 << "computed from their collision shapes based on their "
+                 << "geometry properties in SDF." << std::endl;
+          informed = true;
+        }
+
+        // Fallback to SDF API to get the link AABB from its collision shapes.
+        // If the link has no collision shapes, the AABB will be invalid.
+        bbox = gz::sim::Link(_entity).ComputeAxisAlignedBox(_ecm).value_or(
+          math::AxisAlignedBox());
+      }
+
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for models.
+  _ecm.Each<components::Model, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Model *,
+        components::AxisAlignedBox *_bbox)
+    {
+      if (!this->entityModelMap.HasEntity(_entity))
+      {
+        gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbModel = this->entityModelMap.EntityCast<
+        ModelBoundingBoxFeatureList>(_entity);
+
+      if (!bbModel)
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetModelBoundingBox]. Bounding box won't be populated."
+                 << std::endl;
+          informed = true;
+        }
+
+        // Break Each call since no AxisAlignedBox'es can be processed
+        return false;
+      }
+
+      // Bounding box expressed in the world frame
+      math::AxisAlignedBox bbox =
+          math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
 }
 
 GZ_ADD_PLUGIN(Physics,

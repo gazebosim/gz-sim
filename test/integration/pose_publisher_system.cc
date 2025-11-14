@@ -761,5 +761,51 @@ TEST_F(PosePublisherTest,
     auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }
+}
 
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelPoseOnly))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/pose_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  poseMsgs.clear();
+
+  // subscribe to the pose publisher
+  transport::Node node;
+  node.Subscribe(std::string("/model/test_publish_only_model_pose/pose"),
+                 &poseCb);
+
+  // Run server
+  unsigned int iters = 1000u;
+  server.Run(true, iters, false);
+
+  // Wait for messages to be received
+  int sleep = 0;
+  while (poseMsgs.empty() && sleep++ < 30)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  EXPECT_TRUE(!poseMsgs.empty());
+
+  // only the pose of the model should be published and no other entity
+  std::string expectedEntityName = "test_publish_only_model_pose";
+  math::Pose3d expectedEntityPose(5, 5, 0, 0, 0, 0);
+  for (auto &msg : poseMsgs)
+  {
+    ASSERT_LT(1, msg.header().data_size());
+    ASSERT_LT(0, msg.header().data(1).value_size());
+    std::string childFrameId = msg.header().data(1).value(0);
+    EXPECT_EQ(expectedEntityName, childFrameId);
+    auto p = msgs::Convert(poseMsgs[0]);
+    EXPECT_EQ(expectedEntityPose, p);
+  }
 }

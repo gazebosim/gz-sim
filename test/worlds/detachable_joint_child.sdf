@@ -1,0 +1,232 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="detachable_joint_child">
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics"/>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="M1">
+      <pose>0 0 1 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>M2</child_model>
+        <child_link>body</child_link>
+      </plugin>
+    </model>
+
+    <model name="M2">
+      <pose>0 0 5 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+
+    <model name="M3">
+      <pose>10 0 1 0 0 0</pose>
+      <link name="body1">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <link name="body2">
+        <pose>0 0 5 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+        <parent_link>body1</parent_link>
+        <child_model>__model__</child_model>
+        <child_link>body2</child_link>
+      </plugin>
+    </model>
+
+    <model name="M4">
+      <pose>20 0 1 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <model name="child_model">
+        <pose>20 0 5 0 0 0</pose>
+        <link name="body">
+          <inertial>
+            <mass>1</mass>
+            <inertia>
+              <ixx>0.667</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.667</iyy>
+              <iyz>0</iyz>
+              <izz>0.667</izz>
+            </inertia>
+          </inertial>
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>2.0 2.0 2.0</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>child_model</child_model>
+        <child_link>body</child_link>
+      </plugin>
+    </model>
+
+    <model name="M5">
+      <pose>-20 0 1 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <model name="child_model">
+        <pose>-20 0 5 0 0 0</pose>
+        <link name="body">
+          <inertial>
+            <mass>1</mass>
+            <inertia>
+              <ixx>0.667</ixx>
+              <ixy>0</ixy>
+              <ixz>0</ixz>
+              <iyy>0.667</iyy>
+              <iyz>0</iyz>
+              <izz>0.667</izz>
+            </inertia>
+          </inertial>
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>2.0 2.0 2.0</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+      <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>child_model</child_model>
+        <child_link>body</child_link>
+      </plugin>
+    </model>
+  </world>
+</sdf>
