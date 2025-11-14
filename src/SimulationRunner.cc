@@ -18,7 +18,6 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
-#include <gz/math/Vector3.hh>
 #include <memory>
 #include <ostream>
 #include <unordered_set>
@@ -26,6 +25,7 @@
 #include <pybind11/pybind11.h>
 #endif
 
+#include <gz/math/Vector3.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>

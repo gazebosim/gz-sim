@@ -38,13 +38,13 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Physics.hh"
-#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/VisualCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
