@@ -1606,7 +1606,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   new_gravity.set_x(1.0);
   new_gravity.set_y(3.0);
   new_gravity.set_z(5.0);
-  req.set_allocated_gravity(&new_gravity);
+  req.mutable_gravity()->set_x(new_gravity.x());
+  req.mutable_gravity()->set_y(new_gravity.y());
+  req.mutable_gravity()->set_z(new_gravity.z());
 
   msgs::Boolean res;
   bool result;
