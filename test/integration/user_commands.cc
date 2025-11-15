@@ -1593,9 +1593,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
 
   auto gravity = gravityComp->Data();
-  EXPECT_DOUBLE_EQ(0.0,gravity.X());
-  EXPECT_DOUBLE_EQ(0.0,gravity.Y());
-  EXPECT_DOUBLE_EQ(-9.8,gravity.Z());
+  EXPECT_DOUBLE_EQ(0.0, gravity.X());
+  EXPECT_DOUBLE_EQ(0.0, gravity.Y());
+  EXPECT_DOUBLE_EQ(-9.8, gravity.Z());
 
   // Set physics properties
   msgs::Physics req;
@@ -1627,9 +1627,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Check updated gravity
   gravityComp = ecm->Component<components::Gravity>(worldEntity);
   gravity = gravityComp->Data();
-  EXPECT_DOUBLE_EQ(new_gravity.x(),gravity.X());
-  EXPECT_DOUBLE_EQ(new_gravity.y(),gravity.Y());
-  EXPECT_DOUBLE_EQ(new_gravity.z(),gravity.Z());
+  EXPECT_DOUBLE_EQ(new_gravity.x(), gravity.X());
+  EXPECT_DOUBLE_EQ(new_gravity.y(), gravity.Y());
+  EXPECT_DOUBLE_EQ(new_gravity.z(), gravity.Z());
 
   // Check updated physics properties
   physicsComp = ecm->Component<components::Physics>(worldEntity);

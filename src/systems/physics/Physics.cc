@@ -2202,10 +2202,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
       auto world = this->entityWorldMap.Get(_entity);
-      if (world!=nullptr)
+      if (world)
       {
-        auto new_grav =_gravity->Data();
-        world->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
+        auto new_grav = _gravity->Data();
+        world->SetGravity({new_grav.X(), new_grav.Y(), new_grav.Z()});
         return true;
       }
       return false;
