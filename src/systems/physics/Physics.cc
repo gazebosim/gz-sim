@@ -172,7 +172,6 @@ class gz::sim::systems::PhysicsPrivate
   public: struct MinimumFeatureList : physics::FeatureList<
           physics::FindFreeGroupFeature,
           physics::SetFreeGroupWorldPose,
-          physics::Gravity,
           physics::FreeGroupFrameSemantics,
           physics::LinkFrameSemantics,
           physics::ForwardStep,
@@ -483,6 +482,13 @@ class gz::sim::systems::PhysicsPrivate
   //////////////////////////////////////////////////
 
   //////////////////////////////////////////////////
+
+  // Gravity
+  public: struct GravityFeatureList
+    : physics::FeatureList<
+          MinimumFeatureList,
+          physics::Gravity>{};
+
   // Slip Compliance
 
   /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
@@ -694,6 +700,7 @@ class gz::sim::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
+          GravityFeatureList,
           RayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
@@ -2201,14 +2208,23 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   _ecm.Each<components::Gravity>(
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
-      auto world = this->entityWorldMap.Get(_entity);
-      if (world)
-      {
-        auto new_grav = _gravity->Data();
-        world->SetGravity({new_grav.X(), new_grav.Y(), new_grav.Z()});
-        return true;
-      }
-      return false;
+        auto gravityFeature = this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
+        if (!gravityFeature)
+        {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "physics engine doesn't support feature "
+                     << "[GravityFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return false;
+        }
+            auto new_grav =_gravity->Data();
+            gravityFeature->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
+            return true;
   });
 
 
