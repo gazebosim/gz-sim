@@ -2222,9 +2222,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             }
             return false;
         }
-            auto new_grav =_gravity->Data();
-            gravityFeature->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
-            return true;
+        auto new_grav =_gravity->Data();
+        gravityFeature->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
+        return true;
   });
 
 
