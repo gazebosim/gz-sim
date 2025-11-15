@@ -417,7 +417,7 @@ void SimulationRunner::UpdatePhysicsParams()
     this->entityCompMgr.Component<components::Gravity>(worldEntity);
  if (gravityComp)
   {
-    const  gz::math::Vector3<double>  newGravity = 
+    const  gz::math::Vector3<double>  newGravity =
     {
         physicsParams.gravity().x(),
         physicsParams.gravity().y(),
