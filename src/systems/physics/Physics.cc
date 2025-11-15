@@ -2208,7 +2208,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   _ecm.Each<components::Gravity>(
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
-        auto gravityFeature = this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
+        auto gravityFeature = 
+          this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
         if (!gravityFeature)
         {
             static bool informed{false};
@@ -2222,8 +2223,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             }
             return false;
         }
-        auto new_grav =_gravity->Data();
-        gravityFeature->SetGravity({new_grav.X(),new_grav.Y(),new_grav.Z()});
+        auto new_grav = _gravity->Data();
+        gravityFeature->SetGravity({new_grav.X(), new_grav.Y(), new_grav.Z()});
         return true;
   });
 
