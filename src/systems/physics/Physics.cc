@@ -2208,7 +2208,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   _ecm.Each<components::Gravity>(
       [&](const Entity & _entity, const components::Gravity *_gravity)
       {
-        auto gravityFeature = 
+        auto gravityFeature =
           this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
         if (!gravityFeature)
         {
