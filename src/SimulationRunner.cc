@@ -411,11 +411,11 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
- const auto& physicsParams = physicsCmdComp->Data();
+  const auto& physicsParams = physicsCmdComp->Data();
 
- auto gravityComp =
+  auto gravityComp =
     this->entityCompMgr.Component<components::Gravity>(worldEntity);
- if (gravityComp)
+  if (gravityComp)
   {
     const  gz::math::Vector3<double>  newGravity =
     {
