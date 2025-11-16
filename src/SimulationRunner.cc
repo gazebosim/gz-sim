@@ -19,6 +19,21 @@
 
 #include <algorithm>
 
+<<<<<<< HEAD
+=======
+#include <gz/math/Vector3.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/clock.pb.h>
+#include <gz/msgs/gui.pb.h>
+#include <gz/msgs/log_playback_control.pb.h>
+#include <gz/msgs/sdf_generator_config.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/world_control.pb.h>
+#include <gz/msgs/world_control_state.pb.h>
+#include <gz/msgs/world_stats.pb.h>
+
+#include <sdf/Physics.hh>
+>>>>>>> d2780bb0 (Gravity set command fixed (#3189))
 #include <sdf/Root.hh>
 #include <vector>
 
@@ -28,6 +43,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
@@ -362,10 +378,26 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
+  const auto& physicsParams = physicsCmdComp->Data();
+
+  auto gravityComp =
+    this->entityCompMgr.Component<components::Gravity>(worldEntity);
+  if (gravityComp)
+  {
+    const  gz::math::Vector3<double>  newGravity =
+    {
+        physicsParams.gravity().x(),
+        physicsParams.gravity().y(),
+        physicsParams.gravity().z()
+    };
+    gravityComp->Data() = newGravity;
+    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+          ComponentState::OneTimeChange);
+  }
+
   auto physicsComp =
     this->entityCompMgr.Component<components::Physics>(worldEntity);
 
-  const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
     std::chrono::duration<double>(physicsParams.max_step_size());
   const double newRTF = physicsParams.real_time_factor();
