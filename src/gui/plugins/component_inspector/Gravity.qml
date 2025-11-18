@@ -108,7 +108,7 @@ Rectangle {
 
           onGzVectorSet: {
             console.log("Vector changed")
-            componentInspector.onGravity(_x,_y,_z)
+            componentInspector.onGravity(_x, _y, _z)
           }
           // By default it is closed
           expand: false

@@ -276,7 +276,7 @@ namespace sim
 
     /// \brief Callback in Qt thread when gravity change.
     /// \param[in] _gravity vector
-    public: Q_INVOKABLE void OnGravity(double x,double y,double z);
+    public: Q_INVOKABLE void OnGravity(double x, double y, double z);
 
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size

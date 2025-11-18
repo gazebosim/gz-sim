@@ -113,8 +113,8 @@ Rectangle {
   /*
    * Forward physics changes to C++
    */
-  function onGravity(_x,_y,_z) {
-    _ComponentInspector.OnGravity(_x,_y,_z)
+  function onGravity(_x, _y, _z) {
+    _ComponentInspector.OnGravity(_x, _y, _z)
   }
 
   /*
