@@ -1123,7 +1123,6 @@ void ComponentInspector::OnLight(
 /////////////////////////////////////////////////
 void ComponentInspector::OnGravity(double x, double y, double z)
 {
-  std::cout<<"gravity set"<<std::endl;
   std::function<void(const msgs::Boolean &, const bool)> cb =
       [](const msgs::Boolean &/*_rep*/, const bool _result)
   {
@@ -1135,15 +1134,15 @@ void ComponentInspector::OnGravity(double x, double y, double z)
   req.mutable_gravity()->set_x(x);
   req.mutable_gravity()->set_y(y);
   req.mutable_gravity()->set_z(z);
-  auto physicsCmdService = "/world/" + this->dataPtr->worldName
+  auto gravityService = "/world/" + this->dataPtr->worldName
       + "/set_physics";
-  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
-  if (physicsCmdService.empty())
+  gravityService = transport::TopicUtils::AsValidTopic(gravityService);
+  if (gravityService.empty())
   {
     gzerr << "Invalid physics command service topic provided" << std::endl;
     return;
   }
-  this->dataPtr->node.Request(physicsCmdService, req, cb);
+  this->dataPtr->node.Request(gravityService, req, cb);
 }
 
 /////////////////////////////////////////////////
