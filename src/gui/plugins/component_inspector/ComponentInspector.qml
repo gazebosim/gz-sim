@@ -110,6 +110,12 @@ Rectangle {
                                _innerAngle, _outerAngle, _falloff, _intensity, _type,
                                _isLightOn, _visualizeVisual)
   }
+  /*
+   * Forward physics changes to C++
+   */
+  function onGravity(_x,_y,_z) {
+    _ComponentInspector.OnGravity(_x,_y,_z)
+  }
 
   /*
    * Forward physics changes to C++

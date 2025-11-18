@@ -675,7 +675,17 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
       if (comp)
       {
-        setData(item, comp->Data());
+        if (nullptr == item)
+            return;
+          
+        math::Vector3d _gravity = comp->Data();
+        item->setData(QString("Gravity"),
+            ComponentsModel::RoleNames().key("dataType"));
+        item->setData(QList({
+          QVariant(_gravity.X()),
+          QVariant(_gravity.Y()),
+          QVariant(_gravity.Z())
+        }), ComponentsModel::RoleNames().key("data"));
         setUnit(item, "m/s\u00B2");
       }
     }
@@ -1108,6 +1118,32 @@ void ComponentInspector::OnLight(
     return;
   }
   this->dataPtr->node.Request(lightConfigService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnGravity(double x, double y, double z)
+{
+  std::cout<<"gravity set"<<std::endl;
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        gzerr << "Error setting gravity" << std::endl;
+  };
+
+  msgs::Physics req;
+  req.mutable_gravity()->set_x(x);
+  req.mutable_gravity()->set_y(y);
+  req.mutable_gravity()->set_z(z);
+  auto physicsCmdService = "/world/" + this->dataPtr->worldName
+      + "/set_physics";
+  physicsCmdService = transport::TopicUtils::AsValidTopic(physicsCmdService);
+  if (physicsCmdService.empty())
+  {
+    gzerr << "Invalid physics command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(physicsCmdService, req, cb);
 }
 
 /////////////////////////////////////////////////
