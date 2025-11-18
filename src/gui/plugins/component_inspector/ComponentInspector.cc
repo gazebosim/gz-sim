@@ -677,7 +677,6 @@ void ComponentInspector::Update(const UpdateInfo &,
       {
         if (nullptr == item)
             return;
-          
         math::Vector3d _gravity = comp->Data();
         item->setData(QString("Gravity"),
             ComponentsModel::RoleNames().key("dataType"));
@@ -1139,7 +1138,7 @@ void ComponentInspector::OnGravity(double x, double y, double z)
   gravityService = transport::TopicUtils::AsValidTopic(gravityService);
   if (gravityService.empty())
   {
-    gzerr << "Invalid physics command service topic provided" << std::endl;
+    gzerr << "Invalid gravity command service topic provided" << std::endl;
     return;
   }
   this->dataPtr->node.Request(gravityService, req, cb);
