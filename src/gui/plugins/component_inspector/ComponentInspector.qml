@@ -111,7 +111,7 @@ Rectangle {
                                _isLightOn, _visualizeVisual)
   }
   /*
-   * Forward physics changes to C++
+   * Forward gravity changes to C++
    */
   function onGravity(_x, _y, _z) {
     _ComponentInspector.OnGravity(_x, _y, _z)

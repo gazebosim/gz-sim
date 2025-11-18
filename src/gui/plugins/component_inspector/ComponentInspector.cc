@@ -1120,7 +1120,7 @@ void ComponentInspector::OnLight(
 }
 
 /////////////////////////////////////////////////
-void ComponentInspector::OnGravity(double x, double y, double z)
+void ComponentInspector::OnGravity(double _x, double _y, double _z)
 {
   std::function<void(const msgs::Boolean &, const bool)> cb =
       [](const msgs::Boolean &/*_rep*/, const bool _result)
@@ -1130,9 +1130,9 @@ void ComponentInspector::OnGravity(double x, double y, double z)
   };
 
   msgs::Physics req;
-  req.mutable_gravity()->set_x(x);
-  req.mutable_gravity()->set_y(y);
-  req.mutable_gravity()->set_z(z);
+  req.mutable_gravity()->set_x(_x);
+  req.mutable_gravity()->set_y(_y);
+  req.mutable_gravity()->set_z(_z);
   auto gravityService = "/world/" + this->dataPtr->worldName
       + "/set_physics";
   gravityService = transport::TopicUtils::AsValidTopic(gravityService);
