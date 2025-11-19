@@ -85,7 +85,7 @@ class gz::sim::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateSensors(EntityComponentManager &_ecm);
+  public: void CreateSensors(const EntityComponentManager &_ecm);
 
   /// \brief Update and publish sensor data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -100,6 +100,11 @@ class gz::sim::systems::ContactPrivate
   /// \brief A map of Contact entity to its Contact sensor.
   public: std::unordered_map<Entity,
       std::unique_ptr<ContactSensor>> entitySensorMap;
+
+  /// \brief Keep list of sensors that were created during the previous
+  /// `PostUpdate`, so that components can be created during the next
+  /// `PreUpdate`.
+  public: std::unordered_set<Entity> newSensors;
 };
 
 //////////////////////////////////////////////////
@@ -154,7 +159,7 @@ void ContactSensor::Publish()
 }
 
 //////////////////////////////////////////////////
-void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
+void ContactPrivate::CreateSensors(const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("ContactPrivate::CreateSensors");
   _ecm.EachNew<components::ContactSensor>(
@@ -193,10 +198,6 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
             // We assume that if childEntities is not empty, it only has one
             // element.
             collisionEntities.push_back(childEntities.front());
-
-            // Create component to be filled by physics.
-            _ecm.CreateComponent(childEntities.front(),
-                                 components::ContactSensorData());
           }
         }
 
@@ -206,6 +207,7 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
         sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
         this->entitySensorMap.insert(
             std::make_pair(_entity, std::move(sensor)));
+        this->newSensors.insert(_entity);
 
         return true;
       });
@@ -218,12 +220,17 @@ void ContactPrivate::UpdateSensors(const UpdateInfo &_info,
   GZ_PROFILE("ContactPrivate::UpdateSensors");
   for (const auto &item : this->entitySensorMap)
   {
+    // Check if any new sensors have been created in the last preUpdate
+    // if yes, omit update for those
+    if (this->newSensors.find(item.first) != this->newSensors.end())
+    {
+        continue;
+    }
+
     for (const Entity &entity : item.second->collisionEntities)
     {
       auto contacts = _ecm.Component<components::ContactSensorData>(entity);
 
-      // We will assume that the ContactData component will have been created if
-      // this entity is in the collisionEntities list
       if (contacts->Data().contact_size() > 0)
       {
         item.second->AddContacts(_info.simTime, contacts->Data());
@@ -263,7 +270,25 @@ Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Contact::PreUpdate");
-  this->dataPtr->CreateSensors(_ecm);
+
+  // Create components
+  for (auto entity : this->dataPtr->newSensors)
+  {
+    auto it = this->dataPtr->entitySensorMap.find(entity);
+    if (it == this->dataPtr->entitySensorMap.end())
+    {
+      gzerr << "Entity [" << entity
+             << "] isn't in sensor map, this shouldn't happen." << std::endl;
+      continue;
+    }
+
+    for(const auto &collisionEntity : it->second->collisionEntities){
+      _ecm.CreateComponent(collisionEntity, components::ContactSensorData());
+    }
+
+  }
+
+  this->dataPtr->newSensors.clear();
 }
 
 //////////////////////////////////////////////////
@@ -279,6 +304,8 @@ void Contact::PostUpdate(const UpdateInfo &_info,
            << std::chrono::duration<double>(_info.dt).count()
            << "s]. System may not work properly." << std::endl;
   }
+
+  this->dataPtr->CreateSensors(_ecm);
 
   if (!_info.paused)
   {
