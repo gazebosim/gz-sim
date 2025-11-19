@@ -67,6 +67,14 @@ protected:
     bool OnPreupdate(const gz::msgs::SerializedStepMap& _req,
                      gz::msgs::Boolean& _rep);
 
+    /// \brief Callback for `Update` service.
+    bool OnUpdate(const gz::msgs::SerializedStepMap& _req,
+                  gz::msgs::Boolean& _rep);
+
+    /// \brief Callback for `PostUpdate` service.
+    bool OnPostUpdate(const gz::msgs::SerializedStepMap& _req,
+                      gz::msgs::Boolean& _rep);
+
     // TODO: publish stats
     // /// \brief Stats proto
     // lock_step::RuntimeStats stats;

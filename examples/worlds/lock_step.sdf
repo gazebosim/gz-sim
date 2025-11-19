@@ -67,5 +67,37 @@
       </link>
     </model>
 
+    <model name="camera1">
+      <pose>2.06894 0.446275 1.46987 -2.0404574 0.0535959 1.7185415</pose>
+      <static>true</static>
+      <link name="body2">
+        <sensor name="basler" type="camera">
+          <pose>0 0 0 1.57079632679 -1.57079632679 0</pose>
+          <update_rate>10.0</update_rate>
+          <camera name="head">
+            <horizontal_fov>1.20373566</horizontal_fov>
+            <distortion>
+              <center>0.49284207438 0.49741416989</center>
+            </distortion>
+            <image>
+              <width>1936</width>
+              <height>1216</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.02</near>
+              <far>300</far>
+            </clip>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.007</stddev>
+            </noise>
+          </camera>
+          <topic>/test/camera1</topic>
+        </sensor>
+      </link>
+    </model>
+
   </world>
 </sdf>

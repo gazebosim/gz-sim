@@ -56,7 +56,7 @@ void LockStep::Configure(const gz::sim::Entity &_entity,
     std::cerr << "LockStep::Configure() timeout" << std::endl;
     return;
   }
-  
+
   if (res)
   {
     std::cout << "LockStep::Configure() Correctly configured" << std::endl;
@@ -86,26 +86,74 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
   bool executed = node.Request("/PreUpdate", this->stepMsg, timeout, rep, res);
   if (!executed)
   {
-    std::cerr << "Service call timed out" << std::endl;
+    std::cerr << "Preupdate service call timed out" << std::endl;
     return;
   }
-  
+
   if (res)
-    std::cout << "Response: [" << rep.data() << "]" << std::endl;
+    std::cout << "Preupdate response: [" << rep.data() << "]" << std::endl;
   else
-    std::cout << "Service call failed" << std::endl;
+    std::cout << "Preupdate service call failed" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void LockStep::Update(const gz::sim::UpdateInfo &/*_info*/,
-                      gz::sim::EntityComponentManager &/*_ecm*/)
+void LockStep::Update(const gz::sim::UpdateInfo &_info,
+                      gz::sim::EntityComponentManager &_ecm)
 {
+  if (!this->configured)
+    return;
+
+  // Populate the message with the full ECM state.
+  this->stepMsg.Clear();
+  gz::sim::set(this->stepMsg.mutable_stats(), _info);
+  _ecm.State(*this->stepMsg.mutable_state(), {}, {}, true);
+
+  gz::msgs::Boolean rep;
+  bool res;
+  unsigned int timeout = 5000;
+
+  // Request the Update plugin service.
+  bool executed = node.Request("/Update", this->stepMsg, timeout, rep, res);
+  if (!executed)
+  {
+    std::cerr << "Update service call timed out" << std::endl;
+    return;
+  }
+
+  if (res)
+    std::cout << "Update response: [" << rep.data() << "]" << std::endl;
+  else
+    std::cout << "Update service call failed" << std::endl;
 }
 
 //////////////////////////////////////////////////
-void LockStep::PostUpdate(const gz::sim::UpdateInfo &/*_info*/,
-                          const gz::sim::EntityComponentManager &/*_ecm*/) 
+void LockStep::PostUpdate(const gz::sim::UpdateInfo &_info,
+                          const gz::sim::EntityComponentManager &_ecm)
 {
+  if (!this->configured)
+    return;
+
+  // Populate the message with the full ECM state.
+  this->stepMsg.Clear();
+  gz::sim::set(this->stepMsg.mutable_stats(), _info);
+  _ecm.State(*this->stepMsg.mutable_state(), {}, {}, true);
+
+  gz::msgs::Boolean rep;
+  bool res;
+  unsigned int timeout = 5000;
+
+  // Request the Update plugin service.
+  bool executed = node.Request("/PostUpdate", this->stepMsg, timeout, rep, res);
+  if (!executed)
+  {
+    std::cerr << "PostUpdate service call timed out" << std::endl;
+    return;
+  }
+
+  if (res)
+    std::cout << "PostUpdate response: [" << rep.data() << "]" << std::endl;
+  else
+    std::cout << "PostUpdate service call failed" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -118,7 +166,9 @@ void LockStep::Reset(const gz::sim::UpdateInfo &/*_info*/,
 GZ_ADD_PLUGIN(LockStep,
               System,
               LockStep::ISystemConfigure,
-              LockStep::ISystemPreUpdate)
+              LockStep::ISystemPreUpdate,
+              LockStep::ISystemUpdate,
+              LockStep::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(LockStep,
                     "gz::sim::systems::LockStep")

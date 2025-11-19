@@ -37,6 +37,12 @@ struct RuntimeConfig {
   /// \brief Service to advertise for PreUpdate call from server LockStep System
   std::string preupdateService = "/PreUpdate";
 
+  /// \brief Service to advertise for Update call from server LockStep System
+  std::string updateService = "/Update";
+
+  /// \brief Service to advertise for PostUpdate call from server LockStep System
+  std::string postupdateService = "/PostUpdate";
+
   /// \brief Topic on which stats should be advertised
   std::string statsTopic = "";
 

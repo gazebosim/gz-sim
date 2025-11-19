@@ -20,6 +20,7 @@
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/msgs/boolean.pb.h>
+#include <gz/sim/Conversions.hh>
 #include <gz/sim/SystemLoader.hh>
 #include <gz/sim/Util.hh>
 #include <sdf/sdf.hh>
@@ -70,6 +71,8 @@ LockStepRuntime::~LockStepRuntime()
 {
   this->node.UnadvertiseSrv(this->config.configureService);
   this->node.UnadvertiseSrv(this->config.preupdateService);
+  this->node.UnadvertiseSrv(this->config.updateService);
+  this->node.UnadvertiseSrv(this->config.postupdateService);
 }
 
 //////////////////////////////////////////////////
@@ -110,6 +113,34 @@ bool LockStepRuntime::InitServices()
             << this->config.preupdateService << "]\n";
   }
 
+  if (this->systemUpdate != nullptr)
+  {
+    bool success = this->node.Advertise(this->config.updateService,
+        &LockStepRuntime::OnUpdate, this);
+    if (!success)
+    {
+      gzerr << "Failed to advertise Update service on ["
+            << this->config.updateService << "]\n";
+      return false;
+    }
+    gzmsg << "Advertised Update service on ["
+            << this->config.updateService << "]\n";
+  }
+
+  if (this->systemPostupdate != nullptr)
+  {
+    bool success = this->node.Advertise(this->config.postupdateService,
+        &LockStepRuntime::OnPostUpdate, this);
+    if (!success)
+    {
+      gzerr << "Failed to advertise PostUpdate service on ["
+            << this->config.postupdateService << "]\n";
+      return false;
+    }
+    gzmsg << "Advertised PostUpdate service on ["
+            << this->config.postupdateService << "]\n";
+  }
+
   return true;
 }
 
@@ -141,6 +172,28 @@ bool LockStepRuntime::OnPreupdate(const gz::msgs::SerializedStepMap& _req,
                   gz::msgs::Boolean& _rep)
 {
   // TODO: implement
+  _rep.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool LockStepRuntime::OnUpdate(const gz::msgs::SerializedStepMap& _req,
+                  gz::msgs::Boolean& _rep)
+{
+  this->ecm.SetState(_req.state());
+  auto info = sim::convert<UpdateInfo>(_req.stats());
+  this->systemUpdate->Update(info, this->ecm);
+  _rep.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool LockStepRuntime::OnPostUpdate(const gz::msgs::SerializedStepMap& _req,
+                  gz::msgs::Boolean& _rep)
+{
+  this->ecm.SetState(_req.state());
+  auto info = sim::convert<UpdateInfo>(_req.stats());
+  this->systemPostupdate->PostUpdate(info, this->ecm);
   _rep.set_data(true);
   return true;
 }
