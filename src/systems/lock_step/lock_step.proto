@@ -1,0 +1,51 @@
+/*
+ * Copyright (C) 2019 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+syntax = "proto3";
+
+package gz.sim.lock_step;
+
+message RuntimeStats {
+  /// \brief Computed update rate in Hz based on sim time. Reports -1 if
+  /// state is Initialized or Configured, or if state is Running but
+  /// sufficient PreUpdate/ PostUpdate calls were not made to compute the
+  /// update rate.
+  double update_rate = 1;
+
+  /// \brief Name of the plugin.
+  string plugin_name = 2;
+
+  enum State {
+    /// \brief Unset
+    UNSET = 0;
+
+    /// \brief Initialized, waiting for Configure to be called.
+    INITIALIZED = 1;
+
+    /// \brief Failed to initialize due to plugin load error.
+    FAILED = 2;
+
+    /// \brief Configured, waiting for a PreUpdate/ Update/ PostUpdate call.
+    CONFIGURED = 3;
+
+    /// \brief Running
+    RUNNING = 4;
+  };
+
+  /// \brief Current state.
+  State state = 4;
+};
