@@ -73,17 +73,46 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
   if (!this->configured)
     return;
 
-  // Populate the message with the full ECM state.
+  const std::string preUpdateService = "/PreUpdate";
+  if (!shouldCallPreUpdate.has_value())
+  {
+    std::vector<transport::ServicePublisher> publishers;
+    if (!this->node.ServiceInfo(preUpdateService, publishers))
+    {
+      gzerr << "PreUpdate service publishers discovery failed. "
+               "Skipping PreUpdate\n";
+      shouldCallPreUpdate = false;
+      return;
+    }
+    if (publishers.empty())
+    {
+      gzmsg << "No publishers on PreUpdate service. "
+               "Skipping PreUpdate\n";
+      shouldCallPreUpdate = false;
+      return;
+    }
+    shouldCallPreUpdate = true;
+  }
+  if (!*shouldCallPreUpdate)
+  {
+    return;
+  }
+
+  // Populate the message with the full ECM state, but with only changed
+  // components.
   this->stepMsg.Clear();
   gz::sim::set(this->stepMsg.mutable_stats(), _info);
-  _ecm.State(*this->stepMsg.mutable_state(), {}, {}, true);
+  _ecm.State(*this->stepMsg.mutable_state());
+  this->stepMsg.mutable_state()->set_has_one_time_component_changes(
+    _ecm.HasOneTimeComponentChanges());
 
   gz::msgs::Boolean rep;
   bool res;
   unsigned int timeout = 5000;
 
   // Request the PreUpdate plugin service.
-  bool executed = node.Request("/PreUpdate", this->stepMsg, timeout, rep, res);
+  bool executed = node.Request(preUpdateService, this->stepMsg, timeout, rep,
+                               res);
   if (!executed)
   {
     std::cerr << "Preupdate service call timed out" << std::endl;
@@ -103,17 +132,45 @@ void LockStep::Update(const gz::sim::UpdateInfo &_info,
   if (!this->configured)
     return;
 
-  // Populate the message with the full ECM state.
+  const std::string updateService = "/Update";
+  if (!shouldCallUpdate.has_value())
+  {
+    std::vector<transport::ServicePublisher> publishers;
+    if (!this->node.ServiceInfo(updateService, publishers))
+    {
+      gzerr << "Update service publishers discovery failed. "
+               "Skipping Update\n";
+      shouldCallUpdate = false;
+      return;
+    }
+    if (publishers.empty())
+    {
+      gzmsg << "No publishers on Update service. "
+               "Skipping Update\n";
+      shouldCallUpdate = false;
+      return;
+    }
+    shouldCallUpdate = true;
+  }
+  if (!*shouldCallUpdate)
+  {
+    return;
+  }
+
+  // Populate the message with the full ECM state, but with only changed
+  // components.
   this->stepMsg.Clear();
   gz::sim::set(this->stepMsg.mutable_stats(), _info);
-  _ecm.State(*this->stepMsg.mutable_state(), {}, {}, true);
+  _ecm.State(*this->stepMsg.mutable_state());
+  this->stepMsg.mutable_state()->set_has_one_time_component_changes(
+    _ecm.HasOneTimeComponentChanges());
 
   gz::msgs::Boolean rep;
   bool res;
   unsigned int timeout = 5000;
 
   // Request the Update plugin service.
-  bool executed = node.Request("/Update", this->stepMsg, timeout, rep, res);
+  bool executed = node.Request(updateService, this->stepMsg, timeout, rep, res);
   if (!executed)
   {
     std::cerr << "Update service call timed out" << std::endl;
@@ -133,17 +190,46 @@ void LockStep::PostUpdate(const gz::sim::UpdateInfo &_info,
   if (!this->configured)
     return;
 
-  // Populate the message with the full ECM state.
+  const std::string postUpdateService = "/PostUpdate";
+  if (!shouldCallPostUpdate.has_value())
+  {
+    std::vector<transport::ServicePublisher> publishers;
+    if (!this->node.ServiceInfo(postUpdateService, publishers))
+    {
+      gzerr << "PostUpdate service publishers discovery failed. "
+               "Skipping PostUpdate\n";
+      shouldCallPostUpdate = false;
+      return;
+    }
+    if (publishers.empty())
+    {
+      gzmsg << "No publishers on PostUpdate service. "
+               "Skipping PostUpdate\n";
+      shouldCallPostUpdate = false;
+      return;
+    }
+    shouldCallPostUpdate = true;
+  }
+  if (!*shouldCallPostUpdate)
+  {
+    return;
+  }
+
+  // Populate the message with the full ECM state, but with only changed
+  // components.
   this->stepMsg.Clear();
   gz::sim::set(this->stepMsg.mutable_stats(), _info);
-  _ecm.State(*this->stepMsg.mutable_state(), {}, {}, true);
+  _ecm.State(*this->stepMsg.mutable_state());
+  this->stepMsg.mutable_state()->set_has_one_time_component_changes(
+    _ecm.HasOneTimeComponentChanges());
 
   gz::msgs::Boolean rep;
   bool res;
   unsigned int timeout = 5000;
 
   // Request the Update plugin service.
-  bool executed = node.Request("/PostUpdate", this->stepMsg, timeout, rep, res);
+  bool executed = node.Request(postUpdateService, this->stepMsg, timeout, rep,
+                               res);
   if (!executed)
   {
     std::cerr << "PostUpdate service call timed out" << std::endl;

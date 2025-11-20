@@ -76,6 +76,15 @@ namespace systems
 
     /// \brief True when plugin configured.
     private: bool configured = false;
+
+    /// \brief Whether pre-update should be called.
+    private: std::optional<bool> shouldCallPreUpdate = std::nullopt;
+
+    /// \brief Whether update should be called.
+    private: std::optional<bool> shouldCallUpdate = std::nullopt;
+
+    /// \brief Whether post-update should be called.
+    private: std::optional<bool> shouldCallPostUpdate = std::nullopt;
   };
 }
 }
