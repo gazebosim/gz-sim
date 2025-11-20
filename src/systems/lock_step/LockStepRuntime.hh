@@ -23,6 +23,7 @@
 #include <gz/msgs/world_stats.pb.h>
 #include <gz/sim/config.hh>
 #include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
 #include <gz/sim/SystemPluginPtr.hh>
 #include <gz/transport/Node.hh>
@@ -115,6 +116,9 @@ protected:
 
     /// \brief ECM used in this runtime. Periodically updated by service calls
     EntityComponentManager ecm;
+
+    /// \brief EventManager used in this runtime.
+    EventManager eventManager;
 };
 
 }

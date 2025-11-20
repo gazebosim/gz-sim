@@ -154,13 +154,11 @@ bool LockStepRuntime::OnConfigure(const gz::msgs::SerializedStepMap& _req,
             "OnConfigure should only be called for systems with Configure.");
   // TODO: parent entity should be populated in request.
   Entity worldEnt = sim::worldEntity(this->ecm);
-  // Dummy event manager since it is unused in the runtime.
-  EventManager dummyEventManager;
   this->systemConfigure->Configure(
                   worldEnt,
                   this->config.plugin.ToElement(),
                   this->ecm,
-                  dummyEventManager);
+                  this->eventManager);
   // TODO: reply should be SerializedStateMap to relay updates from the system
   // to the server.
   _rep.set_data(true);
@@ -195,5 +193,13 @@ bool LockStepRuntime::OnPostUpdate(const gz::msgs::SerializedStepMap& _req,
   auto info = sim::convert<UpdateInfo>(_req.stats());
   this->systemPostupdate->PostUpdate(info, this->ecm);
   _rep.set_data(true);
+
+  // Perform end-of step ECM operations
+  // TODO: move to a state machine to force a sequence to the calls.
+  this->ecm.ClearNewlyCreatedEntities();
+  this->ecm.ProcessRemoveEntityRequests();
+  this->ecm.ClearRemovedComponents();
+  this->ecm.SetAllComponentsUnchanged();
+
   return true;
 }
