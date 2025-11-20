@@ -16,6 +16,7 @@
  */
 
 #include <gz/msgs/boolean.pb.h>
+#include <chrono>
 #include <memory>
 #include <gz/common/Profiler.hh>
 #include <gz/common/Util.hh>
@@ -35,11 +36,17 @@ LockStep::~LockStep()
 
 //////////////////////////////////////////////////
 void LockStep::Configure(const gz::sim::Entity &_entity,
-                        const std::shared_ptr<const sdf::Element> &/*_element*/,
+                        const std::shared_ptr<const sdf::Element> &_sdf,
                         gz::sim::EntityComponentManager &_ecm,
                         gz::sim::EventManager &/*_eventManager*/)
 {
   std::cerr << "LockStep::Configure() on entity: " << _entity << std::endl;
+
+  // Initialize system update period.
+  double rate = _sdf->Get<double>("update_rate", 60).first;
+  std::chrono::duration<double> period{rate > 0 ? 1 / rate : 0};
+  this->updatePeriod =
+    std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
 
   // Populate the message with the full ECM state.
   this->stepMsg.Clear();
@@ -72,6 +79,16 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
 {
   if (!this->configured)
     return;
+
+  // Throttle update rate.
+  auto elapsed = _info.simTime - this->lastUpdateTime;
+  if (elapsed > std::chrono::steady_clock::duration::zero() &&
+      elapsed < this->updatePeriod)
+  {
+    return;
+  }
+  this->lastUpdateTime = _info.simTime;
+  this->skipUpdate = false;
 
   const std::string preUpdateService = "/PreUpdate";
   if (!shouldCallPreUpdate.has_value())
@@ -129,7 +146,7 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
 void LockStep::Update(const gz::sim::UpdateInfo &_info,
                       gz::sim::EntityComponentManager &_ecm)
 {
-  if (!this->configured)
+  if (!this->configured || this->skipUpdate)
     return;
 
   const std::string updateService = "/Update";
@@ -187,8 +204,10 @@ void LockStep::Update(const gz::sim::UpdateInfo &_info,
 void LockStep::PostUpdate(const gz::sim::UpdateInfo &_info,
                           const gz::sim::EntityComponentManager &_ecm)
 {
-  if (!this->configured)
+  if (!this->configured || this->skipUpdate)
     return;
+
+  this->skipUpdate = true;
 
   const std::string postUpdateService = "/PostUpdate";
   if (!shouldCallPostUpdate.has_value())

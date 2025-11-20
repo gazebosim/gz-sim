@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_LOCKSTEP_HH_
 
 #include <gz/msgs/serialized_map.pb.h>
+#include <chrono>
 #include <memory>
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/System.hh>
@@ -85,6 +86,16 @@ namespace systems
 
     /// \brief Whether post-update should be called.
     private: std::optional<bool> shouldCallPostUpdate = std::nullopt;
+
+    /// \brief System update period calculated from <update_rate>.
+    private: std::chrono::steady_clock::duration updatePeriod{0};
+
+    /// \brief Last system update simulation time.
+    private: std::chrono::steady_clock::duration lastUpdateTime{0};
+
+    /// \brief Whether we should skip all the updates due to the update_rate
+    /// or not.
+    private: bool skipUpdate = true;
   };
 }
 }
