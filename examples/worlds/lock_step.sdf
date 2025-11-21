@@ -27,6 +27,7 @@
     <plugin
       filename="gz-sim-lock-step-system"
       name="gz::sim::systems::LockStep">
+      <update_rate>0</update_rate>
     </plugin>
     <!-- <plugin filename="gz-sim-sensors-system"
             name="gz::sim::systems::Sensors">

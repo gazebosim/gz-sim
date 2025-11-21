@@ -137,7 +137,9 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
   }
 
   if (res)
-    std::cout << "Preupdate response: [" << rep.data() << "]" << std::endl;
+  {
+    // std::cout << "Preupdate response: [" << rep.data() << "]" << std::endl;
+  }
   else
     std::cout << "Preupdate service call failed" << std::endl;
 }
@@ -195,7 +197,9 @@ void LockStep::Update(const gz::sim::UpdateInfo &_info,
   }
 
   if (res)
-    std::cout << "Update response: [" << rep.data() << "]" << std::endl;
+  {
+    // std::cout << "Update response: [" << rep.data() << "]" << std::endl;
+  }
   else
     std::cout << "Update service call failed" << std::endl;
 }
@@ -256,7 +260,9 @@ void LockStep::PostUpdate(const gz::sim::UpdateInfo &_info,
   }
 
   if (res)
-    std::cout << "PostUpdate response: [" << rep.data() << "]" << std::endl;
+  {
+    // std::cout << "PostUpdate response: [" << rep.data() << "]" << std::endl;
+  }
   else
     std::cout << "PostUpdate service call failed" << std::endl;
 }
