@@ -5,8 +5,8 @@
 <sdf version="1.11">
   <world name="lock_step">
 
-    <physics name="1ms" type="ignored">
-      <max_step_size>0.1</max_step_size>
+    <physics name="5ms" type="ignored">
+      <max_step_size>0.005</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
     <plugin
@@ -21,10 +21,19 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
+
+    <!-- Uncomment the lock-step system AND comment out the Sensors system to use
+         the Sensors system from the remote lock step runtime. -->
     <plugin
       filename="gz-sim-lock-step-system"
       name="gz::sim::systems::LockStep">
     </plugin>
+    <!-- <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+      <background_color>0.5 0.5 0.5</background_color>
+      <ambient_light>0.5 0.5 0.5</ambient_light>
+    </plugin> -->
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -50,6 +59,11 @@
               <size>100 100</size>
             </plane>
           </geometry>
+          <surface>
+            <bounce>
+              <restitution_coefficient>1.0</restitution_coefficient>
+            </bounce>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry>
@@ -68,7 +82,7 @@
     </model>
 
     <model name="camera1">
-      <pose>2.06894 0.446275 1.46987 -2.0404574 0.0535959 1.7185415</pose>
+      <pose>4.06894 0.446275 3 -2.0404574 0.0535959 1.7185415</pose>
       <static>true</static>
       <link name="body2">
         <sensor name="basler" type="camera">
@@ -99,5 +113,505 @@
       </link>
     </model>
 
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 -4.5 1.0 0 0 0</pose>
+      <name>ball001</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 -3.5 1.0 0 0 0</pose>
+      <name>ball002</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 -2.5 1.0 0 0 0</pose>
+      <name>ball003</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 -1.5 1.0 0 0 0</pose>
+      <name>ball004</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 -0.5 1.0 0 0 0</pose>
+      <name>ball005</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 0.5 1.0 0 0 0</pose>
+      <name>ball006</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 1.5 1.0 0 0 0</pose>
+      <name>ball007</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 2.5 1.0 0 0 0</pose>
+      <name>ball008</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 3.5 1.0 0 0 0</pose>
+      <name>ball009</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-4.5 4.5 1.0 0 0 0</pose>
+      <name>ball010</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 -4.5 1.0 0 0 0</pose>
+      <name>ball011</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 -3.5 1.0 0 0 0</pose>
+      <name>ball012</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 -2.5 1.0 0 0 0</pose>
+      <name>ball013</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 -1.5 1.0 0 0 0</pose>
+      <name>ball014</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 -0.5 1.0 0 0 0</pose>
+      <name>ball015</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 0.5 1.0 0 0 0</pose>
+      <name>ball016</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 1.5 1.0 0 0 0</pose>
+      <name>ball017</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 2.5 1.0 0 0 0</pose>
+      <name>ball018</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 3.5 1.0 0 0 0</pose>
+      <name>ball019</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-3.5 4.5 1.0 0 0 0</pose>
+      <name>ball020</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 -4.5 1.0 0 0 0</pose>
+      <name>ball021</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 -3.5 1.0 0 0 0</pose>
+      <name>ball022</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 -2.5 1.0 0 0 0</pose>
+      <name>ball023</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 -1.5 1.0 0 0 0</pose>
+      <name>ball024</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 -0.5 1.0 0 0 0</pose>
+      <name>ball025</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 0.5 1.0 0 0 0</pose>
+      <name>ball026</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 1.5 1.0 0 0 0</pose>
+      <name>ball027</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 2.5 1.0 0 0 0</pose>
+      <name>ball028</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 3.5 1.0 0 0 0</pose>
+      <name>ball029</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-2.5 4.5 1.0 0 0 0</pose>
+      <name>ball030</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 -4.5 1.0 0 0 0</pose>
+      <name>ball031</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 -3.5 1.0 0 0 0</pose>
+      <name>ball032</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 -2.5 1.0 0 0 0</pose>
+      <name>ball033</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 -1.5 1.0 0 0 0</pose>
+      <name>ball034</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 -0.5 1.0 0 0 0</pose>
+      <name>ball035</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 0.5 1.0 0 0 0</pose>
+      <name>ball036</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 1.5 1.0 0 0 0</pose>
+      <name>ball037</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 2.5 1.0 0 0 0</pose>
+      <name>ball038</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 3.5 1.0 0 0 0</pose>
+      <name>ball039</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-1.5 4.5 1.0 0 0 0</pose>
+      <name>ball040</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 -4.5 1.0 0 0 0</pose>
+      <name>ball041</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 -3.5 1.0 0 0 0</pose>
+      <name>ball042</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 -2.5 1.0 0 0 0</pose>
+      <name>ball043</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 -1.5 1.0 0 0 0</pose>
+      <name>ball044</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 -0.5 1.0 0 0 0</pose>
+      <name>ball045</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 0.5 1.0 0 0 0</pose>
+      <name>ball046</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 1.5 1.0 0 0 0</pose>
+      <name>ball047</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 2.5 1.0 0 0 0</pose>
+      <name>ball048</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 3.5 1.0 0 0 0</pose>
+      <name>ball049</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>-0.5 4.5 1.0 0 0 0</pose>
+      <name>ball050</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 -4.5 1.0 0 0 0</pose>
+      <name>ball051</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 -3.5 1.0 0 0 0</pose>
+      <name>ball052</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 -2.5 1.0 0 0 0</pose>
+      <name>ball053</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 -1.5 1.0 0 0 0</pose>
+      <name>ball054</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 -0.5 1.0 0 0 0</pose>
+      <name>ball055</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 0.5 1.0 0 0 0</pose>
+      <name>ball056</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 1.5 1.0 0 0 0</pose>
+      <name>ball057</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 2.5 1.0 0 0 0</pose>
+      <name>ball058</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 3.5 1.0 0 0 0</pose>
+      <name>ball059</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>0.5 4.5 1.0 0 0 0</pose>
+      <name>ball060</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 -4.5 1.0 0 0 0</pose>
+      <name>ball061</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 -3.5 1.0 0 0 0</pose>
+      <name>ball062</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 -2.5 1.0 0 0 0</pose>
+      <name>ball063</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 -1.5 1.0 0 0 0</pose>
+      <name>ball064</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 -0.5 1.0 0 0 0</pose>
+      <name>ball065</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 0.5 1.0 0 0 0</pose>
+      <name>ball066</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 1.5 1.0 0 0 0</pose>
+      <name>ball067</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 2.5 1.0 0 0 0</pose>
+      <name>ball068</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 3.5 1.0 0 0 0</pose>
+      <name>ball069</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>1.5 4.5 1.0 0 0 0</pose>
+      <name>ball070</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 -4.5 1.0 0 0 0</pose>
+      <name>ball071</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 -3.5 1.0 0 0 0</pose>
+      <name>ball072</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 -2.5 1.0 0 0 0</pose>
+      <name>ball073</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 -1.5 1.0 0 0 0</pose>
+      <name>ball074</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 -0.5 1.0 0 0 0</pose>
+      <name>ball075</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 0.5 1.0 0 0 0</pose>
+      <name>ball076</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 1.5 1.0 0 0 0</pose>
+      <name>ball077</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 2.5 1.0 0 0 0</pose>
+      <name>ball078</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 3.5 1.0 0 0 0</pose>
+      <name>ball079</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>2.5 4.5 1.0 0 0 0</pose>
+      <name>ball080</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 -4.5 1.0 0 0 0</pose>
+      <name>ball081</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 -3.5 1.0 0 0 0</pose>
+      <name>ball082</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 -2.5 1.0 0 0 0</pose>
+      <name>ball083</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 -1.5 1.0 0 0 0</pose>
+      <name>ball084</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 -0.5 1.0 0 0 0</pose>
+      <name>ball085</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 0.5 1.0 0 0 0</pose>
+      <name>ball086</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 1.5 1.0 0 0 0</pose>
+      <name>ball087</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 2.5 1.0 0 0 0</pose>
+      <name>ball088</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 3.5 1.0 0 0 0</pose>
+      <name>ball089</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>3.5 4.5 1.0 0 0 0</pose>
+      <name>ball090</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 -4.5 1.0 0 0 0</pose>
+      <name>ball091</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 -3.5 1.0 0 0 0</pose>
+      <name>ball092</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 -2.5 1.0 0 0 0</pose>
+      <name>ball093</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 -1.5 1.0 0 0 0</pose>
+      <name>ball094</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 -0.5 1.0 0 0 0</pose>
+      <name>ball095</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 0.5 1.0 0 0 0</pose>
+      <name>ball096</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 1.5 1.0 0 0 0</pose>
+      <name>ball097</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 2.5 1.0 0 0 0</pose>
+      <name>ball098</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 3.5 1.0 0 0 0</pose>
+      <name>ball099</name>
+    </include>
+    <include>
+      <uri>model://bouncing_ball</uri>
+      <pose>4.5 4.5 1.0 0 0 0</pose>
+      <name>ball100</name>
+    </include>
   </world>
 </sdf>
