@@ -54,7 +54,7 @@ void LockStep::Configure(const gz::sim::Entity &_entity,
 
   gz::msgs::Boolean rep;
   bool res;
-  unsigned int timeout = 5000;
+  unsigned int timeout = 10000;
 
   // Request the PreUpdate plugin service.
   bool executed = node.Request("/Configure", this->stepMsg, timeout, rep, res);
@@ -125,7 +125,7 @@ void LockStep::PreUpdate(const gz::sim::UpdateInfo &_info,
 
   gz::msgs::Boolean rep;
   bool res;
-  unsigned int timeout = 5000;
+  unsigned int timeout = 10000;
 
   // Request the PreUpdate plugin service.
   bool executed = node.Request(preUpdateService, this->stepMsg, timeout, rep,
@@ -184,7 +184,7 @@ void LockStep::Update(const gz::sim::UpdateInfo &_info,
 
   gz::msgs::Boolean rep;
   bool res;
-  unsigned int timeout = 5000;
+  unsigned int timeout = 10000;
 
   // Request the Update plugin service.
   bool executed = node.Request(updateService, this->stepMsg, timeout, rep, res);
@@ -244,7 +244,7 @@ void LockStep::PostUpdate(const gz::sim::UpdateInfo &_info,
 
   gz::msgs::Boolean rep;
   bool res;
-  unsigned int timeout = 5000;
+  unsigned int timeout = 10000;
 
   // Request the Update plugin service.
   bool executed = node.Request(postUpdateService, this->stepMsg, timeout, rep,
