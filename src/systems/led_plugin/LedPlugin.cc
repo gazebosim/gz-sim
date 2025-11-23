@@ -26,6 +26,10 @@
 #include <gz/rendering/Visual.hh>
 #include <gz/rendering/RenderingIface.hh>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/visual.pb.h>
+
 #include <gz/math/Color.hh>
 
 #include <gz/transport/Node.hh>
@@ -52,7 +56,7 @@ struct LedModeStep
   bool alwaysOn{false};
 
   /// \brief Whether the LED should stay on indefinitely
-  math::Color ledColor{math::Color(1, 0, 0, 1)};
+  math::Color ledColor{math::Color(1, 1, 1, 1)};
 
   /// \brief Seconds for which the LED should stay on.
   /// Used when alwaysOn is false
@@ -86,6 +90,8 @@ struct LedMode
 
     ledMode.name = _sdf->Get<std::string>("name");
 
+    gzmsg << "Adding LED Mode: " << ledMode.name << std::endl;
+
     if (!_sdf->HasElement("step"))
     {
       gzerr << "[LED PLUGIN] [LED MODE] No steps are given for "
@@ -98,18 +104,20 @@ struct LedMode
     sdf::ElementConstPtr stepElem = _sdf->FindElement("step");
     while (stepElem)
     {
+      gzmsg << "Adding New LED Mode Step to mode: " << ledMode.name << std::endl;
       LedModeStep ledModeStep;
 
-      if (stepElem->HasAttribute("always_one"))
+      if (stepElem->HasAttribute("always_on"))
       {
-        bool alwaysOn = stepElem->Get<bool>("always_on");
-        ledModeStep.alwaysOn = alwaysOn;
+        ledModeStep.alwaysOn = stepElem->Get<bool>("always_on");
+        gzmsg << "Step is set to always on: " << ledModeStep.alwaysOn << std::endl;
       }
 
       if (stepElem->HasElement("color"))
       {
         math::Color ledColor = stepElem->Get<math::Color>("color");
         ledModeStep.ledColor = ledColor;
+        gzmsg << "Step color is set to: " << ledModeStep.ledColor << std::endl;
       }
 
       if (stepElem->HasElement("on_time"))
@@ -118,6 +126,7 @@ struct LedMode
         {
           ledModeStep.ledOnTime = std::chrono::duration<double>(
             stepElem->Get<double>("on_time"));
+          gzmsg << "Step is not always on so on time is: " << ledModeStep.ledOnTime.count() << std::endl;
         }
         else
         {
@@ -144,6 +153,12 @@ class gz::sim::systems::LedPluginPrivate
   public: rendering::VisualPtr FindEntityVisual(rendering::ScenePtr _scene,
     gz::sim::Entity _entity);
 
+  /// \brief Callback executed to change the current LED mode.
+  /// \param[in] _req String specifying the name of the required mode.
+  /// \param[out] _resp Boolean for successful mode change
+  public: bool OnLedModeChange(const msgs::StringMsg &_req,
+    msgs::Boolean &_resp);
+
   /// \brief Connection to the pre-render event
   public: common::ConnectionPtr sceneUpdateConn{nullptr};
 
@@ -162,8 +177,22 @@ class gz::sim::systems::LedPluginPrivate
   /// \brief Pointer to the Material of the visual
   public: rendering::MaterialPtr ledMaterial{nullptr};
 
+  /// \brief Gazebo communication node.
+  public: transport::Node node;
+
+  /// \brief String name of the LED
+  public: std::string ledName;
+
   /// \brief Default LED Mode to use
   public: LedMode defaultLedMode;
+
+  /// \brief Current LED Mode to use
+  public: LedMode currentLedMode;
+
+  /// \brief Index of the current step being executed of the mode
+  public: size_t currentModeStepIdx{0};
+
+  public: LedModeStep currentLedModeStep;
 
   /// \brief List of all the modes defined by the user
   public: std::vector<LedMode> allLedModes;
@@ -176,6 +205,8 @@ class gz::sim::systems::LedPluginPrivate
 
   /// \brief Mutex to protect sim time updates
   public: std::mutex mutex;
+
+  public: int counter{0};
 };
 
 /////////////////////////////////////////////////
@@ -198,6 +229,20 @@ void LedPlugin::Configure(
   this->dataPtr->eventMgr = &_eventMgr;
 
   this->dataPtr->allLedModes = std::vector<LedMode>();
+
+  std::string ledModeChangeSrvName;
+  if (_sdf->HasElement("led_name"))
+  {
+    this->dataPtr->ledName = _sdf->Get<std::string>("led_name");
+    ledModeChangeSrvName = "/" + this->dataPtr->ledName + "/change_mode";
+  }
+  else
+  {
+    gzwarn << "No name is specified for the led, led + entityID"
+           << " will be used for the service name" << std::endl;
+    this->dataPtr->ledName = "led" + std::to_string(_entity);
+    ledModeChangeSrvName = "/model/" + this->dataPtr->ledName + "/change_mode";
+  }
 
   if (_sdf->HasElement("mode"))
   {
@@ -240,7 +285,7 @@ void LedPlugin::Configure(
 
         return false;
       });
-    
+
     if (defaultModeIter == this->dataPtr->allLedModes.end())
     {
       gzwarn << "[LED PLUGIN] Could not find default mode name: " << defaultModeName
@@ -259,6 +304,7 @@ void LedPlugin::Configure(
     this->dataPtr->defaultLedMode = this->dataPtr->allLedModes.front();
   }
 
+  this->dataPtr->currentLedMode = this->dataPtr->defaultLedMode;
   gzmsg << "[LED PLUGIN] Successfully loaded the LED plugin with "
         << this->dataPtr->allLedModes.size() << " modes and "
         << this->dataPtr->defaultLedMode.name << " as the default mode" << std::endl;
@@ -266,6 +312,18 @@ void LedPlugin::Configure(
   // Connect to the pre render event
   this->dataPtr->sceneUpdateConn = this->dataPtr->eventMgr->Connect<gz::sim::events::SceneUpdate>(
       std::bind(&LedPluginPrivate::OnSceneUpdate, this->dataPtr.get()));
+
+  // Advertise the LED Mode change service
+  auto validModeChangeSrvName = transport::TopicUtils::AsValidTopic(ledModeChangeSrvName);
+  if (validModeChangeSrvName.empty())
+  {
+    gzerr << "Failed to create valid mode change service. Name not valid: ["
+            << ledModeChangeSrvName << "]" << std::endl;
+    return;
+  }
+
+  this->dataPtr->node.Advertise(validModeChangeSrvName,
+    &LedPluginPrivate::OnLedModeChange, this->dataPtr.get());
 
   gzmsg << "[LED PLUGIN] Initialized LedPlugin Plugin" << std::endl;
 }
@@ -300,10 +358,55 @@ gz::rendering::VisualPtr LedPluginPrivate::FindEntityVisual(
   return nullptr;
 }
 
+//////////////////////////////////////////////////
+bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
+  msgs::Boolean &_resp)
+{
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  std::string requestedModeName = _req.data();
+  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] received request to change mode to: "
+        << requestedModeName << std::endl;
+
+  auto ledModeIter = std::find_if(this->allLedModes.begin(), this->allLedModes.end(),
+    [&](LedMode _mode)
+    {
+      if (_mode.name == requestedModeName)
+      {
+        return true;
+      }
+      return false;
+    });
+
+  // If the requested mode was not found
+  if (ledModeIter == this->allLedModes.end())
+  {
+    gzerr << "[LED PLUGIN] Requested LED Mode: " << requestedModeName
+          << " was not described" << std::endl;
+    _resp.set_data(false);
+
+    return true;
+  }
+
+  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Changing led mode from: " << this->currentLedMode.name << " to: "
+        << requestedModeName << std::endl;
+
+  this->currentLedMode = *(ledModeIter);
+  this->currentModeStepIdx = 0;
+  this->cycleStartTime = std::chrono::duration<double>::zero();
+  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Current led mode set to: "
+        << this->currentLedMode.name << std::endl;
+
+  _resp.set_data(true);
+  return true;
+}
+
 /////////////////////////////////////////////////
 void LedPluginPrivate::OnSceneUpdate()
 {
   std::lock_guard<std::mutex> lock(this->mutex);
+
+  // gzmsg << "Started OnSceneUpdate()" << std::endl;
 
   // Get a pointer to the rendering scene
   if (!this->scene)
@@ -337,19 +440,62 @@ void LedPluginPrivate::OnSceneUpdate()
     return;
   }
 
+  // gzmsg << "Current led mode is: " << this->currentLedMode.name << std::endl;
+  this->currentLedModeStep = this->currentLedMode.modeSequenceSteps[this->currentModeStepIdx];
+
+  // gzmsg << "Current material color Diffuse: "
+  // << this->ledMaterial->Diffuse().R() << ", " << this->ledMaterial->Diffuse().G()
+  // << this->ledMaterial->Diffuse().B() << std::endl;
+
+  // Set the material of the visual with the current color
+  // gzmsg << "[LED PLUGIN] Setting led color: " << this->currentLedModeStep.ledColor.R()
+  //       << ", " << this->currentLedModeStep.ledColor.G() << ", "
+  //       << this->currentLedModeStep.ledColor.B() << std::endl;
+  this->ledMaterial->SetDiffuse(this->currentLedModeStep.ledColor);
+  this->ledMaterial->SetAmbient(this->currentLedModeStep.ledColor);
+  this->ledMaterial->SetEmissive(this->currentLedModeStep.ledColor);
+  this->ledMaterial->SetSpecular(this->currentLedModeStep.ledColor);
+
+  // If this step is supposed to be always on then just return
+  if (this->currentLedModeStep.alwaysOn)
+  {
+    // gzmsg << "[LED PLUGIN] Led is to always on" << std::endl;
+    return;
+  }
+
   // Set the cycle start time. This is used to calculate the elapsed time in every PreRender event
+    // gzmsg << "[LED PLUGIN] Cycle start time is: " << this->cycleStartTime.count() << std::endl;
   if (this->cycleStartTime == std::chrono::duration<double>::zero() ||
       this->cycleStartTime > this->currentSimTime)
   {
+    // gzmsg << "[LED PLUGIN] Reset cycle start time to sim time" << std::endl;
     this->cycleStartTime = this->currentSimTime;
   }
   std::chrono::duration<double> elapsed = this->currentSimTime - this->cycleStartTime;
 
-  // Set the material of the visual with the current color
-  // this->ledMaterial->SetDiffuse(this->currentColor);
-  // this->ledMaterial->SetAmbient(this->currentColor);
-  // this->ledMaterial->SetEmissive(this->currentColor);
-  // this->ledMaterial->SetSpecular(this->currentColor);
+  // gzmsg << "[LED PLUGIN] LED on time: " << this->currentLedModeStep.ledOnTime.count() << std::endl;
+  // gzmsg << "[LED PLUGIN] Elapsed time: " << elapsed.count() << std::endl;
+
+  // If we have crossed the elapsed time of the step on time, then move on to the next step
+  if (elapsed > this->currentLedModeStep.ledOnTime)
+  {
+    // gzmsg << "[LED PLUGIN] Elapsed Time has passed cycle time" << std::endl;
+    this->currentModeStepIdx++;
+
+    // If we have reached the end of the steps, cycle back to the first one
+    if (this->currentModeStepIdx == this->currentLedMode.modeSequenceSteps.size())
+    {
+      // gzmsg << "[LED PLUGIN] Completed mode steps cycle, resetting" << std::endl;
+      this->currentModeStepIdx = 0;
+    }
+
+    // Reset the cycle start time
+    this->cycleStartTime = std::chrono::duration<double>::zero();
+    // gzmsg << "[LED PLUGIN] Set cycle start time to 0" << std::endl;
+  }
+  // counter ++;
+  // gzmsg << "Counter is " << counter << std::endl;
+  // gzmsg << "Completed OnSceneUpdate()" << std::endl;
 }
 
 GZ_ADD_PLUGIN(LedPlugin,
