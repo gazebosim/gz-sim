@@ -43,6 +43,7 @@ namespace systems
   ///
   /// <plugin name="led" filename="libLedPlugin.so">
   ///
+  ///   <led_name>name</led_name>
   ///   <default_mode>mode_name</default_mode>
   ///   <create_light>true/false</create_light>
   ///   <light>
