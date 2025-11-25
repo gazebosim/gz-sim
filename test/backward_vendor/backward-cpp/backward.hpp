@@ -1987,6 +1987,8 @@ private:
 
         trace.inliners.push_back(sloc);
         break;
+      default:
+        break;
       };
     }
     ResolvedTrace &trace;
@@ -2038,6 +2040,8 @@ private:
         if (die_has_pc(die, pc)) {
           return result;
         }
+      default:
+        break;
       };
       bool declaration = false;
       Dwarf_Attribute attr_mem;
