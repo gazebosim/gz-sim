@@ -384,6 +384,8 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> staticStateCmdsToRemove;
 
+  /// \brief Entities whose gravity enabled commands have been processed and should be
+  /// deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
 
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
@@ -585,7 +587,7 @@ class gz::sim::systems::PhysicsPrivate
 
   //////////////////////////////////////////////////
   // enabled gravity
-  /// \brief Feature list for model static state.
+  /// \brief Feature list for model gravity enabled.
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::SetFreeGroupGravityEnabled>{};
@@ -2123,29 +2125,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
 
-  // _ecm.Each<components::Model, components::Name, components::Static>(
-  //     [&](const Entity & _entity,
-  //         const components::Model * _model,
-  //         const components::Name * _name,
-  //         const components::Static *_static) -> bool
-  //     {
-  //       bool is_static = this->staticEntities.find(_entity) !=
-  //           this->staticEntities.end();
-  //       if (is_static != _static->Data()) {
-  //         if (is_static) {
-  //           this->staticEntities.erase(_entity);
-  //           gzwarn << "UpdatePhysics static erase" << std::endl;
-  //         } else {
-  //           this->staticEntities.insert(_entity);
-  //           gzwarn << "UpdatePhysics static insert " << std::endl;
-  //           for (auto & lol : this->staticEntities) {
-  //             gzwarn << "lol " << lol << " " << _name->Data() << std::endl;
-  //           }
-  //         }
-  //       }
-  //       return true;
-  //     });
-
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2498,32 +2477,20 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           // Break Each call since no Static state'es can be processed
           return false;
         }
-        gzwarn << "_staticSateCmd->Data() " << _staticSateCmd->Data() << std::endl;
 
         bool is_static = this->staticEntities.find(_entity) !=
             this->staticEntities.end();
-        if (is_static != _staticSateCmd->Data()) {
-          if (is_static) {
+        if (is_static != _staticSateCmd->Data())
+        {
+          if (is_static)
+          {
             this->staticEntities.erase(_entity);
-            gzwarn << "UpdatePhysics static erase " << _name->Data() << std::endl;
-          } else {
+          }
+          else
+          {
             this->staticEntities.insert(_entity);
-            gzwarn << "UpdatePhysics static insert " << _name->Data() << std::endl;
-            // for (auto & lol : this->staticEntities) {
-            //   gzwarn << "lol " << lol << " " << _name->Data() << std::endl;
-            // }
           }
         }
-
-        // auto modelPtrPhys = this->entityModelMap.Get(_entity);
-        // if (nullptr == modelPtrPhys)
-        //   return true;
-
-        // // TODO(addisu) Store the free group instead of searching for it at
-        // // every iteration
-        // auto freeGroup = modelPtrPhys->FindFreeGroup();
-        // if (!freeGroup)
-        //   return true;
 
         ssModel->SetStaticState(_staticSateCmd->Data());
         return true;
@@ -2924,6 +2891,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
   this->staticStateCmdsToRemove.clear();
+  this->gravityEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);

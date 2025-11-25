@@ -195,7 +195,7 @@ namespace gz
 
       /// \brief Set a new state to change the model's gravity.
       /// \param[in] _ecm Entity-component manager.
-      /// \param[in] _gravity New model state.
+      /// \param[in] _enabled True gravity enabled false otherwise.
       public: void SetGravityEnabledCmd(EntityComponentManager &_ecm,
           bool _enabled);
 

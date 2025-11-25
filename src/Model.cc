@@ -220,10 +220,10 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
   }
 }
 
+//////////////////////////////////////////////////
 void Model::SetStaticStateCmd(EntityComponentManager &_ecm,
     bool _state)
 {
-  std::cout << "SetStaticState " << std::endl;
   auto staticComp = _ecm.Component<components::StaticStateCmd>(
       this->dataPtr->id);
   if (!staticComp)
@@ -239,10 +239,10 @@ void Model::SetStaticStateCmd(EntityComponentManager &_ecm,
   }
 }
 
+//////////////////////////////////////////////////
 void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
     bool _enabled)
 {
-  std::cout << "SetGravityEnabledCmd " << std::endl;
   auto staticComp = _ecm.Component<components::GravityEnabledCmd>(
       this->dataPtr->id);
   if (!staticComp)
