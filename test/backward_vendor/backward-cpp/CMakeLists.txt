@@ -76,6 +76,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 endif()
 
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/backward_vendor/backward-cpp/backward.cpp
+    PROPERTIES COMPILE_FLAGS "-Wno-switch-default"
+)
+
 ###############################################################################
 # BACKWARD INTERFACE
 ###############################################################################
