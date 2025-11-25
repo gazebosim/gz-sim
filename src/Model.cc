@@ -16,6 +16,7 @@
 */
 
 #include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
@@ -216,6 +217,44 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
         [](const math::Pose3d &, const math::Pose3d &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetStaticStateCmd(EntityComponentManager &_ecm,
+    bool _state)
+{
+  auto staticComp = _ecm.Component<components::StaticStateCmd>(
+      this->dataPtr->id);
+  if (!staticComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id, components::StaticStateCmd(_state));
+  }
+  else
+  {
+    staticComp->SetData(_state,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::StaticStateCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
+    bool _enabled)
+{
+  auto staticComp = _ecm.Component<components::GravityEnabledCmd>(
+      this->dataPtr->id);
+  if (!staticComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id, components::GravityEnabledCmd(_enabled));
+  }
+  else
+  {
+    staticComp->SetData(_enabled,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::GravityEnabledCmd::typeId, ComponentState::OneTimeChange);
   }
 }
 
