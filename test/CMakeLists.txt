@@ -13,3 +13,8 @@ add_subdirectory(performance)
 add_subdirectory(plugins)
 add_subdirectory(regression)
 add_subdirectory(worlds)
+
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/test/backward_vendor/backward-cpp/backward.cpp
+    PROPERTIES COMPILE_FLAGS "-Wno-switch-default"
+)
