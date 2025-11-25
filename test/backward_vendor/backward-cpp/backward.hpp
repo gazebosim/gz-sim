@@ -1962,13 +1962,14 @@ private:
     void operator()(Dwarf_Die *die) {
       switch (dwarf_tag(die)) {
         const char *name;
-      case DW_TAG_subprogram:
+      case DW_TAG_subprogram: {
         if ((name = dwarf_diename(die))) {
           trace.source.function = name;
         }
         break;
+      }
 
-      case DW_TAG_inlined_subroutine:
+      case DW_TAG_inlined_subroutine: {
         ResolvedTrace::SourceLoc sloc;
         Dwarf_Attribute attr_mem;
 
@@ -1987,6 +1988,7 @@ private:
 
         trace.inliners.push_back(sloc);
         break;
+      }
       default:
         break;
       };
