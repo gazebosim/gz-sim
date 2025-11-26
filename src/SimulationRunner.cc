@@ -25,6 +25,7 @@
 #include <pybind11/pybind11.h>
 #endif
 
+#include <gz/math/Vector3.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
@@ -46,6 +47,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
@@ -409,10 +411,26 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
+  const auto& physicsParams = physicsCmdComp->Data();
+
+  auto gravityComp =
+    this->entityCompMgr.Component<components::Gravity>(worldEntity);
+  if (gravityComp)
+  {
+    const  gz::math::Vector3<double>  newGravity =
+    {
+        physicsParams.gravity().x(),
+        physicsParams.gravity().y(),
+        physicsParams.gravity().z()
+    };
+    gravityComp->Data() = newGravity;
+    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+          ComponentState::OneTimeChange);
+  }
+
   auto physicsComp =
     this->entityCompMgr.Component<components::Physics>(worldEntity);
 
-  const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
     std::chrono::duration<double>(physicsParams.max_step_size());
   const double newRTF = physicsParams.real_time_factor();
@@ -913,6 +931,17 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 {
   GZ_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
+
+  // The Run method does not check for entity creation each iteration
+  // on network secondaries, so check here to ensure that performers
+  // have parents assigned.
+  if (this->networkMgr && this->networkMgr->IsSecondary())
+  {
+    if (this->createEntities)
+    {
+      this->CreateEntities();
+    }
+  }
 
   // Process new ECM state information, typically sent from the GUI after
   // a change was made to the GUI's ECM.
