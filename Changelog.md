@@ -1,5 +1,28 @@
 ## Gazebo Sim 9.x
 
+### Gazebo Sim 9.5.0 (2025-10-23)
+
+1. Clean up temporary home directory to make tests more robust
+    * [Pull request #3146](https://github.com/gazebosim/gz-sim/pull/3146)
+
+1. Fix UserCommands services so that they return the actual status the executed command
+    * [Pull request #2999](https://github.com/gazebosim/gz-sim/pull/2999)
+
+1. Add EntitySemantics system that enables setting categories and tags
+    * [Pull request #3005](https://github.com/gazebosim/gz-sim/pull/3005)
+
+1. Disable failing test on macOS in EntityComponentManager_TEST
+    * [Pull request #3113](https://github.com/gazebosim/gz-sim/pull/3113)
+
+1. Refactor Transport service handlers `UserCommands`
+    * [Pull request #2996](https://github.com/gazebosim/gz-sim/pull/2996)
+
+1. Expose APIs for clearing the ECMs internal state tracking addition and removal
+    * [Pull request #3002](https://github.com/gazebosim/gz-sim/pull/3002)
+
+1. Fix xml syntax in shadow texture size tutorial
+    * [Pull request #3111](https://github.com/gazebosim/gz-sim/pull/3111)
+
 ### Gazebo Sim 9.4.0 (2025-09-08)
 
 1. Fix crash when setting debug visualization mode while gi is disabled (backport #3059)
