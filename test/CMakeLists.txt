@@ -9,8 +9,14 @@ add_subdirectory(backward_vendor/backward-cpp)
 
 if (TARGET Backward::Interface)
   get_target_property(_inc Backward::Interface INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(_aliased Backward::Interface ALIASED_TARGET)
+  if (_aliased)
+    set(_target_name "${_aliased}")
+  else()
+    set(_target_name "Backward::Interface")
+  endif()
   if (_inc)
-    set_target_properties(Backward::Interface PROPERTIES
+    set_target_properties(${_target_name} PROPERTIES
       INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${_inc}")
   endif()
 else()
