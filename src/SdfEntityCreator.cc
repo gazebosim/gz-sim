@@ -328,6 +328,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       ++modelIndex)
   {
     const sdf::Model *model = _world->ModelByIndex(modelIndex);
+    gzdbg << "Try Create Default Level Model: " << model->Name() << std::endl;
     if (levelEntityNames.empty() ||
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
@@ -335,6 +336,8 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
       Entity modelEntity = this->CreateEntities(model, false);
 
       this->SetParent(modelEntity, _worldEntity);
+      gzdbg << "Created Default Level Model: " << model->Name()
+            << "[" << modelEntity << "]" << std::endl;
     }
   }
 
@@ -375,6 +378,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   {
     std::optional<Entity> parentEntity =
       this->dataPtr->ecm->EntityByName(_ref->Data());
+    gzdbg << "Try Find Performer Parent: " << _ref->Data() << std::endl;
     if (!parentEntity)
     {
       // Performers have not been created yet. Try to create the model
@@ -385,6 +389,8 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         Entity modelEntity = this->CreateEntities(model, false);
         this->SetParent(modelEntity, _worldEntity);
         this->SetParent(_entity, modelEntity);
+        gzdbg << "Created Performer Model: " << model->Name()
+              << "[" << modelEntity << "]" << std::endl;
       }
       else if (_world->ActorNameExists(_ref->Data()))
       {
