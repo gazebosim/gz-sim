@@ -154,7 +154,9 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   {
     GZ_PROFILE("Waiting for secondaries");
 
-    auto result = future.wait_for(10s);
+    //! @todo make this parameter - for debugging do not want the primary
+    //        to time out.
+    auto result = future.wait_for(10000s);
 
     if (std::future_status::ready != result)
     {
