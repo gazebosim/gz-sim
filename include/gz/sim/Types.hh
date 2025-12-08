@@ -20,6 +20,7 @@
 #include <chrono>
 #include <cstdint>
 #include <functional>
+#include <string>
 #include <utility>
 
 #include "gz/sim/Entity.hh"
@@ -59,6 +60,10 @@ namespace gz
       /// update state when paused is true.
       // cppcheck-suppress unusedStructMember
       bool paused{true};
+
+      /// \brief The namespace of the NetworkManagerSecondary if running a
+      /// distributed simulation. Empty otherwise.
+      std::string secondaryNamespace;
     };
 
     /// \brief Possible states for a component.
