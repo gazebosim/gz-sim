@@ -44,6 +44,9 @@ class gz::sim::systems::LevelDebugPrivate
 {
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief The performer entity if this model is a performer.
+  public: Entity performerEntity{kNullEntity};
 };
 
 //////////////////////////////////////////////////
@@ -66,6 +69,49 @@ void LevelDebug::Configure(const Entity &_entity,
           << "Failed to initialize." << std::endl;
     return;
   }
+
+  // Check if model is a performer
+  std::string modelName = this->dataPtr->model.Name(_ecm);
+  auto performerEntities = _ecm.ChildrenByComponents(
+      this->dataPtr->model.Entity(), components::Performer());
+
+  if (performerEntities.empty())
+  {
+    gzmsg << "Model: [" << modelName << "] "
+          << "is not a performer" <<  std::endl;
+  }
+  else if (performerEntities.size() > 1)
+  {
+    gzerr << "Model: [" << modelName << "] "
+          << "is associated with multiple performers. "
+          << "System incorrectly configured and will not be updated."
+          <<  std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->performerEntity = performerEntities[0];
+    gzmsg << "Model: [" << modelName << "] "
+          << "is a performer" <<  std::endl;
+  }
+
+  if (this->dataPtr->performerEntity != kNullEntity)
+  {
+    auto performerRef = _ecm.Component<components::PerformerRef>(
+        this->dataPtr->performerEntity);
+    auto performerName = _ecm.Component<components::Name>(
+        this->dataPtr->performerEntity);
+
+    if (performerName == nullptr || performerRef == nullptr)
+    {
+      this->dataPtr->performerEntity = kNullEntity;
+      gzerr << "Model: [" << modelName << "] "
+            << "has an incorrectly configured performer."
+            << "System incorrectly configured and will not be updated."
+            << std::endl;
+      return;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -73,12 +119,6 @@ void LevelDebug::PreUpdate(const UpdateInfo &_info,
                            EntityComponentManager &_ecm)
 {
   GZ_PROFILE("LevelDebug::PreUpdate");
-
-  //! @todo - all of these checks could be run at load
-  // and re-run only of the affinity changes. The expensive
-  // check for ChildrenByComponents only needs to run at configure/load.
-
-  std::string modelName = this->dataPtr->model.Name(_ecm);
 
   if (_info.secondaryNamespace.empty())
   {
@@ -88,41 +128,23 @@ void LevelDebug::PreUpdate(const UpdateInfo &_info,
   }
 
   // Is this model a performer?
-  //! @note expensive - returns a std::vector by value. Move to Configure.
-  auto performerEntities = _ecm.ChildrenByComponents(
-      this->dataPtr->model.Entity(), components::Performer());
-
-  if (performerEntities.empty())
+  std::string modelName = this->dataPtr->model.Name(_ecm);
+  if (this->dataPtr->performerEntity == kNullEntity)
   {
     gzmsg << "Model: [" << modelName << "] "
           << "is not a performer" <<  std::endl;
     return;
   }
 
-  if (performerEntities.size() > 1)
-  {
-    gzerr << "Model: [" << modelName << "] "
-          << "is associated with performers" <<  std::endl;
-    return;
-  }
-
-  auto performerEntity = performerEntities[0];
-  auto performerAffinity =
-      _ecm.Component<components::PerformerAffinity>(performerEntity);
-  auto performerRef =
-      _ecm.Component<components::PerformerRef>(performerEntity);
-  auto PerformerLevels =
-      _ecm.Component<components::PerformerLevels>(performerEntity);
-  auto performerName =
-      _ecm.Component<components::Name>(performerEntity);
-
-  if (performerName == nullptr || performerRef == nullptr)
-  {
-    gzerr << "Model: [" << modelName << "] "
-          << "has an incorrectly configured performer"
-          << std::endl;
-    return;
-  }
+  // auto performerEntity = performerEntities[0];
+  auto performerAffinity = _ecm.Component<components::PerformerAffinity>(
+      this->dataPtr->performerEntity);
+  auto performerLevels = _ecm.Component<components::PerformerLevels>(
+      this->dataPtr->performerEntity);
+  auto performerRef = _ecm.Component<components::PerformerRef>(
+      this->dataPtr->performerEntity);
+  auto performerName = _ecm.Component<components::Name>(
+      this->dataPtr->performerEntity);
 
   if (performerAffinity == nullptr ||
       performerAffinity->Data() != _info.secondaryNamespace)
@@ -134,29 +156,19 @@ void LevelDebug::PreUpdate(const UpdateInfo &_info,
     return;
   }
 
-  {
-    gzmsg << "Name: [" << performerName->Data() << "] "
-          << std::endl;
-  }
+  gzmsg << "Performer:" << std::endl;
+  gzmsg << "  Name: [" << performerName->Data() << "] " << std::endl;
+  gzmsg << "  Ref: [" << performerRef->Data() << "] " << std::endl;
+  gzmsg << "  Affinity: [" << performerAffinity->Data() << "] " << std::endl;
 
-  {
-    gzmsg << "Ref: [" << performerRef->Data() << "] "
-          << std::endl;
-  }
-
-  {
-    gzmsg << "Affinity: [" << performerAffinity->Data() << "] "
-          << std::endl;
-  }
-
-  // List all the model components in this ECM instance
+  // List all the model entities in this ECM instance
   gzmsg << "All Models:" << std::endl;
   auto modelEntities = _ecm.EntitiesByComponents(components::Model());
   for (const auto &entity : modelEntities)
   {
     auto model = Model(entity);
     auto name = model.Name(_ecm);
-    gzmsg << "[" << entity << "] " << name << std::endl;
+    gzmsg << "  Model: [" << entity << "] " << name << std::endl;
   }
 }
 
