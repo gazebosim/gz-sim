@@ -453,6 +453,29 @@ void LevelManager::UpdateLevelsState()
   std::vector<Entity> levelsToLoad;
   std::vector<Entity> levelsToUnload;
 
+  //! @todo the performer entities are assigned parents - but where?
+  // Ensure all performers have parent entities defined.
+  for (auto [modelName, performerEntity] :  this->performerMap)
+  {
+    auto parent = this->runner->entityCompMgr.Component<
+        components::ParentEntity>(performerEntity);
+    if (parent == nullptr)
+    {
+      Entity modelEntity = this->runner->entityCompMgr.EntityByComponents(
+          components::Name(modelName));
+      if (modelEntity != kNullEntity)
+      {
+        this->entityCreator->SetParent(performerEntity, modelEntity);
+      }
+      else
+      {
+        gzerr << "Unable to find model with name[" << modelName << "]. "
+          << "Performer [" << performerEntity << "] parent not set"
+          << std::endl;
+      }
+    }
+  }
+
   {
     std::lock_guard<std::mutex> lock(this->performerToAddMutex);
     auto iter = this->performersToAdd.begin();
