@@ -63,6 +63,7 @@
 #include "gz/sim/Util.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
+#include "network/NetworkManagerSecondary.hh"
 #include "LevelManager.hh"
 #include "SdfGenerator.hh"
 
@@ -264,6 +265,7 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
+  gzdbg << "SimulationRunner: createEntities: " << _createEntities << std::endl;
   if (_createEntities)
   {
     this->SetWorldSdf(_world);
@@ -720,6 +722,16 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr->IsSecondary())
     {
       gzdbg << "Secondary running." << std::endl;
+
+      //! @todo - can entities be created here instead of in ::Step
+      //          for Secondary?
+      // Create entities if set. This needs to be called before updating
+      // the systems.
+      if (this->createEntities)
+      {
+        this->CreateEntities();
+      }
+
       while (!this->stopReceived)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -731,7 +743,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
   if (!this->currentInfo.paused)
+  {
     this->realTimeWatch.Start();
+  }
 
   // Variables for time keeping.
   std::chrono::steady_clock::time_point startTime;
@@ -786,7 +800,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
+  {
     this->clockPub = this->node->Advertise<msgs::Clock>("clock");
+  }
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
@@ -937,10 +953,18 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   // have parents assigned.
   if (this->networkMgr && this->networkMgr->IsSecondary())
   {
-    if (this->createEntities)
-    {
-      this->CreateEntities();
-    }
+    auto netSecondary =
+        dynamic_cast<NetworkManagerSecondary *>(this->networkMgr.get());
+
+    gzdbg << "SimulationRunner: stepping secondary: "
+          << this->networkMgr->Namespace() << std::endl;
+
+
+    // Move to SimulationRunner::Run
+    // if (this->createEntities)
+    // {
+    //   this->CreateEntities();
+    // }
   }
 
   // Process new ECM state information, typically sent from the GUI after
