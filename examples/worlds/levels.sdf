@@ -4192,6 +4192,11 @@
       <wheel_radius>0.3</wheel_radius>
     </plugin>
 
+    <plugin
+      filename="gz-sim-level-debug-system"
+      name="gz::sim::systems::LevelDebug">
+    </plugin>
+
   </model>
 
   <plugin name="gz::sim" filename="dummy">
