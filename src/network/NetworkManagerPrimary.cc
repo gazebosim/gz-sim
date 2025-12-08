@@ -32,6 +32,7 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"
 #include "gz/sim/Conversions.hh"
@@ -233,7 +234,7 @@ void NetworkManagerPrimary::PopulateAffinities(
   // Previous performer-to-secondary mapping - may need updating
   std::map<Entity, std::string> pToSPrevious;
 
-  // Updated performer-to-level mapping - used to update affinities
+  // Updated level-to-performer mapping - used to update affinities
   std::map<Entity, std::set<Entity>> lToPNew;
 
   // All performers
@@ -264,9 +265,47 @@ void NetworkManagerPrimary::PopulateAffinities(
       return true;
     });
 
+  //! @note debug info
+  gzdbg << "PopulateAffinities..." << std::endl;
+  // all performers
+  gzdbg << "Performers:" << std::endl;
+  for (auto performer : allPerformers)
+  {
+    auto parent =
+        this->dataPtr->ecm->Component<components::ParentEntity>(performer);
+    if (parent == nullptr)
+    {
+      gzerr << "Failed to get parent for performer [" << performer << "]"
+             << std::endl;
+      continue;
+    }
+    auto parentEntity = parent->Data();
+    gzdbg << "  Performer: [" << performer << "], "
+          << "Parent: [" << parentEntity << "]"
+          <<  std:: endl;
+  }
+  // level to performer
+  gzdbg << "Levels:" << std::endl;
+  for (auto [level, perfEntities] : lToPNew)
+  {
+    gzdbg << "  Level: [" << level << "]" << std::endl;
+    for (auto performer : perfEntities)
+    {
+        gzdbg << "    Performer: [" << performer << "]" << std::endl;
+    }
+  }
+  // performer to secondary
+  gzdbg << "Secondary:" << std::endl;
+  for (auto [performer, secondary] : pToSPrevious)
+  {
+    gzdbg << "  Performer: [" << performer << "], "
+          << "Secondary: [" << secondary << "]" << std::endl;
+  }
+
   // First assignment: distribute levels evenly across secondaries
   if (pToSPrevious.empty())
   {
+    gzdbg << "Performer to secondary first assignment" << std::endl;
     auto secondaryIt = this->secondaries.begin();
 
     for (const auto &it : lToPNew)
