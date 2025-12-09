@@ -30,6 +30,7 @@
 #include <gz/common/SingletonT.hh>
 #include <gz/common/Util.hh>
 #include <gz/sim/components/Component.hh>
+#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
@@ -43,6 +44,15 @@
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #include <gz/sim/entt/entity/registry.hpp>
 #pragma GCC diagnostic pop
+
+#ifdef HAVE_PYBIND11
+  #include <gz/sim/detail/ComponentPybindRegistry.hh>
+  #define GZ_SIM_REGISTER_COMPONENT_PYBIND(_classname) \
+    [[maybe_unused]] static gz::sim::python::AddPybindGetterSetter<_classname> \
+        GzSimPybindComponentInitializer##_classname;
+#else
+  #define GZ_SIM_REGISTER_COMPONENT_PYBIND(_classname)
+#endif
 
 namespace gz
 {
@@ -495,5 +505,6 @@ class GzSimComponents##_classname \
 }; \
 static GzSimComponents##_classname\
   GzSimComponentsInitializer##_classname;
+GZ_SIM_REGISTER_COMPONENT_PYBIND(_classname)
 
 #endif
