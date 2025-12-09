@@ -20,7 +20,9 @@
 #include "gz/sim/private_msgs/simulation_step.pb.h"
 
 #include <algorithm>
+#include <map>
 #include <string>
+#include <vector>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -128,13 +130,30 @@ void NetworkManagerSecondary::OnStep(
           << std::endl;
   }
 
-  // Update affinities
+  // Performer-to-secondary mapping. Not using a set as we do not want sorting.
+  std::map<Entity, std::vector<std::string> > pToS;
   for (int i = 0; i < _msg.affinity_size(); ++i)
   {
     const auto &affinityMsg = _msg.affinity(i);
     const auto &perfEntity = affinityMsg.entity().id();
+    if (std::find(pToS[perfEntity].begin(), pToS[perfEntity].end(),
+        affinityMsg.secondary_prefix()) == pToS[perfEntity].end())
+    {
+      pToS[perfEntity].push_back(affinityMsg.secondary_prefix());
+    }
+  }
 
-    if (affinityMsg.secondary_prefix() == this->Namespace())
+  // Update affinities
+  // for (int i = 0; i < _msg.affinity_size(); ++i)
+  for (auto [perfEntity, secondaries] : pToS)
+  for (auto secondary :  secondaries)
+  {
+  {
+    // const auto &affinityMsg = _msg.affinity(i);
+    // const auto &perfEntity = affinityMsg.entity().id();
+    // const auto &secondary = affinityMsg.secondary_prefix();
+
+    if (secondary == this->Namespace())
     {
       this->performers.insert(perfEntity);
 
@@ -184,6 +203,7 @@ void NetworkManagerSecondary::OnStep(
         }
       }
     }
+  }
   }
 
   // Update info
