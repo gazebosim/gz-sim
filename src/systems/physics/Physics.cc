@@ -919,11 +919,13 @@ void Physics::Configure(const Entity &_entity,
     {
       engineNameWithVersion += "-" + engineVersion;
     }
-    auto enginePluginComp = _ecm.Component<components::PhysicsEnginePlugin>(_entity);
+    auto enginePluginComp =
+        _ecm.Component<components::PhysicsEnginePlugin>(_entity);
     if (enginePluginComp)
     {
       enginePluginComp->SetData(engineNameWithVersion,
-          [](const std::string &_a, const std::string &_b){return _a == _b;});
+          [](const std::string &_a, const std::string &_b)
+              {return _a == _b;});
     }
   }
   else
@@ -994,11 +996,13 @@ void Physics::Configure(const Entity &_entity,
         {
           engineNameWithVersion += "-" + engineVersion;
         }
-        auto enginePluginComp = _ecm.Component<components::PhysicsEnginePlugin>(_entity);
+        auto enginePluginComp =
+            _ecm.Component<components::PhysicsEnginePlugin>(_entity);
         if (enginePluginComp)
         {
           enginePluginComp->SetData(engineNameWithVersion,
-              [](const std::string &_a, const std::string &_b){return _a == _b;});
+              [](const std::string &_a, const std::string &_b)
+                  {return _a == _b;});
         }
         break;
       }
