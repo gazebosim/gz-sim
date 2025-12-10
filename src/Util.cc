@@ -1040,6 +1040,13 @@ std::string formatGpuInfo(
     const std::string &_gpuVendor,
     const std::string &_gpuApiVersion)
 {
+
+  gzwarn << "Preparing GPU info string from engine name ["
+         << _engineName << "], renderer [" << _renderer
+         << "], vendor [" << _gpuVendor
+         << "], api version [" << _gpuApiVersion << "]"
+         << std::endl;
+
   // Extract company name from vendor (e.g., "NVIDIA Corporation" -> "nvidia")
   std::string shortVendor;
   if (!_gpuVendor.empty())
