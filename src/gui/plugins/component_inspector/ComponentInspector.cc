@@ -39,6 +39,8 @@
 #include <gz/math/Vector3.hh>
 
 #include <gz/plugin/Register.hh>
+#include <gz/rendering/RenderEngine.hh>
+#include <gz/rendering/RenderingIface.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AngularAcceleration.hh"
@@ -88,6 +90,7 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/Util.hh"
 
 #include "Inertial.hh"
 #include "Pose3d.hh"
@@ -794,14 +797,65 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
           this->dataPtr->entity);
       if (comp)
+      {
+        // Display render engine plugin name
         setData(item, comp->Data());
+
+        // Add GPU information
+        auto loadedEngNames = rendering::loadedEngines();
+        if (!loadedEngNames.empty())
+        {
+          auto engineName = loadedEngNames[0];
+          auto engine = rendering::engine(engineName);
+          if (engine && engine->IsInitialized())
+          {
+            std::string gpuInfo = formatGpuInfo(
+                engineName,
+                engine->GpuRenderer(),
+                engine->GpuVendor(),
+                engine->GpuApiVersion());
+
+            if (!gpuInfo.empty())
+            {
+              QString fullData = QString::fromStdString(comp->Data()) +
+                                 " " + QString::fromStdString(gpuInfo);
+              setData(item, fullData.toStdString());
+            }
+          }
+        }
+      }
     }
     else if (typeId == components::RenderEngineServerPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
           this->dataPtr->entity);
       if (comp)
+      {
+        // Display render engine plugin name
         setData(item, comp->Data());
+
+        // Add GPU information
+        auto loadedEngNames = rendering::loadedEngines();
+        if (!loadedEngNames.empty())
+        {
+          auto engineName = loadedEngNames[0];
+          auto engine = rendering::engine(engineName);
+          if (engine && engine->IsInitialized())
+          {
+            std::string gpuInfo = formatGpuInfo(
+                engineName,
+                engine->GpuRenderer(),
+                engine->GpuVendor(),
+                engine->GpuApiVersion());
+            if (!gpuInfo.empty())
+            {
+              QString fullData = QString::fromStdString(comp->Data()) +
+                                 " " + QString::fromStdString(gpuInfo);
+              setData(item, fullData.toStdString());
+            }
+          }
+        }
+      }
     }
     else if (typeId == components::RenderEngineServerApiBackend::typeId)
     {
@@ -1004,6 +1058,7 @@ void ComponentInspector::SetEntity(const Entity &_entity)
   {
     this->dataPtr->entity = _entity;
   }
+
   this->EntityChanged();
 }
 

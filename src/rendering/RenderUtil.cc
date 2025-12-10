@@ -2638,6 +2638,20 @@ void RenderUtil::Init()
     this->dataPtr->engine = rendering::engine("ogre2", params);
   }
 
+  // Log GPU information
+  if (this->dataPtr->engine)
+  {
+    std::string gpuInfo = formatGpuInfo(
+        this->dataPtr->engine->Name(),
+        this->dataPtr->engine->GpuRenderer(),
+        this->dataPtr->engine->GpuVendor(),
+        this->dataPtr->engine->GpuApiVersion());
+    if (!gpuInfo.empty())
+    {
+      gzmsg << "Loaded rendering engine: " << gpuInfo << std::endl;
+    }
+  }
+
   // Scene
   this->dataPtr->scene =
       this->dataPtr->engine->SceneByName(this->dataPtr->sceneName);

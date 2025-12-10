@@ -351,6 +351,21 @@ namespace gz
     /// \return True if input filename has a static plugin string format.
     GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
 
+    /// \brief Generate a concise GPU information string from rendering engine.
+    /// Extracts and formats GPU vendor and API version information in a compact
+    /// format suitable for display (e.g., "ogre2-nvidia-opengl4.6").
+    /// \param[in] _engineName Name of the rendering engine (e.g., "ogre2")
+    /// \param[in] _renderer GPU renderer string (e.g., "OpenGL 3+ Rendering Subsystem")
+    /// \param[in] _gpuVendor GPU vendor string (e.g., "NVIDIA Corporation")
+    /// \param[in] _gpuApiVersion GPU API version string (e.g., "4.6.0")
+    /// \return Formatted GPU info string (e.g., "ogre2-nvidia-opengl4.6") or empty
+    /// string if no valid data is provided
+    GZ_SIM_VISIBLE std::string formatGpuInfo(
+        const std::string &_engineName,
+        const std::string &_renderer,
+        const std::string &_gpuVendor,
+        const std::string &_gpuApiVersion);
+
     /// \brief Environment variable holding resource paths.
     const std::string kResourcePathEnv{"GZ_SIM_RESOURCE_PATH"};
 

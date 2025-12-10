@@ -1033,6 +1033,113 @@ bool isStaticPlugin(const std::string &_filename)
         staticPluginPrefixStr();
 }
 
+//////////////////////////////////////////////////
+std::string formatGpuInfo(
+    const std::string &_engineName,
+    const std::string &_renderer,
+    const std::string &_gpuVendor,
+    const std::string &_gpuApiVersion)
+{
+  // Extract company name from vendor (e.g., "NVIDIA Corporation" -> "nvidia")
+  std::string shortVendor;
+  if (!_gpuVendor.empty())
+  {
+    std::string lowerVendor = _gpuVendor;
+    std::transform(lowerVendor.begin(), lowerVendor.end(),
+                   lowerVendor.begin(), ::tolower);
+    if (lowerVendor.find("nvidia") != std::string::npos)
+      shortVendor = "nvidia";
+    else if (lowerVendor.find("amd") != std::string::npos)
+      shortVendor = "amd";
+    else if (lowerVendor.find("intel") != std::string::npos)
+      shortVendor = "intel";
+    else
+    {
+      // Take first word from vendor string
+      auto spacePos = _gpuVendor.find(' ');
+      if (spacePos != std::string::npos)
+        shortVendor = _gpuVendor.substr(0, spacePos);
+      else
+        shortVendor = _gpuVendor;
+      std::transform(shortVendor.begin(), shortVendor.end(),
+                     shortVendor.begin(), ::tolower);
+    }
+  }
+
+  std::string shortApiVersion;
+  // Extract first two version numbers (e.g., "4.6.0" -> "4.6") from "OpenGL 3+ Rendering Subsystem 4.6.0.0"
+  if (!_gpuApiVersion.empty())
+  {
+    std::string::size_type versionPos = _gpuApiVersion.find_last_of(' ');
+    if (versionPos != std::string::npos)
+      versionPos += 1;
+    else
+      versionPos = 0;
+
+    std::string::size_type firstDot = _gpuApiVersion.find('.', versionPos);
+    if (firstDot != std::string::npos)
+    {
+      size_t secondDot = _gpuApiVersion.find('.', firstDot + 1);
+      if (secondDot != std::string::npos)
+        shortApiVersion = _gpuApiVersion.substr(versionPos, secondDot - versionPos);
+      else
+        shortApiVersion = _gpuApiVersion.substr(versionPos);
+    }
+    else
+    {
+      shortApiVersion = _gpuApiVersion.substr(versionPos);
+    }
+  }
+
+  // Extract API name from api version and combine with version
+  // (e.g., "OpenGL 3+ Rendering Subsystem" -> "opengl4.6")
+  std::string shortApiName;
+  if (!_gpuApiVersion.empty())
+  {
+    std::string lowerApiVersion = _gpuApiVersion;
+    std::transform(lowerApiVersion.begin(), lowerApiVersion.end(),
+                   lowerApiVersion.begin(), ::tolower);
+
+    if (lowerApiVersion.find("opengl") != std::string::npos)
+      shortApiName = "opengl";
+    else if (lowerApiVersion.find("vulkan") != std::string::npos)
+      shortApiName = "vulkan";
+    else if (lowerApiVersion.find("metal") != std::string::npos)
+      shortApiName = "metal";
+
+    if (!shortApiVersion.empty())
+      shortApiName += shortApiVersion;
+  }
+
+  // Combine engine-vendor-api format (e.g., "ogre2-nvidia-opengl4.6")
+  std::string result;
+
+  // Convert engine name to lowercase
+  if (!_engineName.empty())
+  {
+    std::string lowerEngineName = _engineName;
+    std::transform(lowerEngineName.begin(), lowerEngineName.end(),
+                   lowerEngineName.begin(), ::tolower);
+    result = lowerEngineName;
+  }
+
+  if (!shortVendor.empty())
+  {
+    if (!result.empty())
+      result += "-";
+    result += shortVendor;
+  }
+
+  if (!shortApiName.empty())
+  {
+    if (!result.empty())
+      result += "-";
+    result += shortApiName;
+  }
+
+  return result;
+}
+
 }
 }
 }
