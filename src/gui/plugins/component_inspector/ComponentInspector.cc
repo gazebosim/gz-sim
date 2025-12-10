@@ -154,6 +154,12 @@ namespace gz::sim
 
     /// \brief Whether GPU info has been computed
     public: bool gpuInfoComputed{false};
+
+    /// \brief Helper method to set render engine data with GPU info
+    /// \param[in] _item Item to update
+    /// \param[in] _pluginName Render engine plugin name
+    private: void SetRenderEngineData(QStandardItem *_item,
+        const std::string &_pluginName);
   };
 }
 
@@ -179,6 +185,45 @@ void removeSuffix(const std::string &_suffix, std::string &_s)
 
 using namespace gz;
 using namespace sim;
+
+//////////////////////////////////////////////////
+void ComponentInspectorPrivate::SetRenderEngineData(QStandardItem *_item,
+    const std::string &_pluginName)
+{
+  // Display render engine plugin name
+  setData(_item, _pluginName);
+
+  // Add GPU information (compute once and cache)
+  if (!this->gpuInfoComputed)
+  {
+    auto loadedEngNames = rendering::loadedEngines();
+    if (!loadedEngNames.empty())
+    {
+      auto engineName = loadedEngNames[0];
+      auto engine = rendering::engine(engineName);
+      if (engine && engine->IsInitialized())
+      {
+        this->cachedGpuInfo = formatGpuInfo(
+            engineName,
+            engine->GpuRenderer(),
+            engine->GpuVendor(),
+            engine->GpuApiVersion());
+        // Only mark as computed if we successfully got the info
+        if (!this->cachedGpuInfo.empty())
+        {
+          this->gpuInfoComputed = true;
+        }
+      }
+    }
+  }
+
+  if (!this->cachedGpuInfo.empty())
+  {
+    QString fullData = QString::fromStdString(_pluginName) +
+                       " " + QString::fromStdString(this->cachedGpuInfo);
+    setData(_item, fullData.toStdString());
+  }
+}
 
 //////////////////////////////////////////////////
 template<>
@@ -803,82 +848,14 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
           this->dataPtr->entity);
       if (comp)
-      {
-        // Display render engine plugin name
-        setData(item, comp->Data());
-
-        // Add GPU information (compute once and cache)
-        if (!this->dataPtr->gpuInfoComputed)
-        {
-          auto loadedEngNames = rendering::loadedEngines();
-          if (!loadedEngNames.empty())
-          {
-            auto engineName = loadedEngNames[0];
-            auto engine = rendering::engine(engineName);
-            if (engine && engine->IsInitialized())
-            {
-              this->dataPtr->cachedGpuInfo = formatGpuInfo(
-                  engineName,
-                  engine->GpuRenderer(),
-                  engine->GpuVendor(),
-                  engine->GpuApiVersion());
-              // Only mark as computed if we successfully got the info
-              if (!this->dataPtr->cachedGpuInfo.empty())
-              {
-                this->dataPtr->gpuInfoComputed = true;
-              }
-            }
-          }
-        }
-
-        if (!this->dataPtr->cachedGpuInfo.empty())
-        {
-          QString fullData = QString::fromStdString(comp->Data()) +
-                             " " + QString::fromStdString(this->dataPtr->cachedGpuInfo);
-          setData(item, fullData.toStdString());
-        }
-      }
+        this->dataPtr->SetRenderEngineData(item, comp->Data());
     }
     else if (typeId == components::RenderEngineServerPlugin::typeId)
     {
       auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
           this->dataPtr->entity);
       if (comp)
-      {
-        // Display render engine plugin name
-        setData(item, comp->Data());
-
-        // Add GPU information (compute once and cache)
-        if (!this->dataPtr->gpuInfoComputed)
-        {
-          auto loadedEngNames = rendering::loadedEngines();
-          if (!loadedEngNames.empty())
-          {
-            auto engineName = loadedEngNames[0];
-            auto engine = rendering::engine(engineName);
-            if (engine && engine->IsInitialized())
-            {
-              this->dataPtr->cachedGpuInfo = formatGpuInfo(
-                  engineName,
-                  engine->GpuRenderer(),
-                  engine->GpuVendor(),
-                  engine->GpuApiVersion());
-              // Only mark as computed if we successfully got the info
-              if (!this->dataPtr->cachedGpuInfo.empty())
-              {
-                this->dataPtr->gpuInfoComputed = true;
-              }
-            }
-          }
-        }
-
-        if (!this->dataPtr->cachedGpuInfo.empty())
-        {
-          QString fullData = QString::fromStdString(comp->Data()) +
-                             " " + QString::fromStdString(this->dataPtr->cachedGpuInfo);
-          setData(item, fullData.toStdString());
-        }
-      }
+        this->dataPtr->SetRenderEngineData(item, comp->Data());
     }
     else if (typeId == components::RenderEngineServerApiBackend::typeId)
     {
