@@ -1062,14 +1062,26 @@ std::string formatGpuInfo(
       shortVendor = "intel";
     else
     {
-      // Take first word from vendor string
-      auto spacePos = _gpuVendor.find(' ');
-      if (spacePos != std::string::npos)
-        shortVendor = _gpuVendor.substr(0, spacePos);
-      else
-        shortVendor = _gpuVendor;
-      std::transform(shortVendor.begin(), shortVendor.end(),
-                     shortVendor.begin(), ::tolower);
+      if (!_renderer.empty())
+      {
+        // Extract the first word in renderer if vendor is not recognized
+        // i.e: llvmpipe (LLVM 20.1.2, 256 bits
+        auto spacePos = _renderer.find(' ');
+        if (spacePos != std::string::npos)
+          shortVendor = _renderer.substr(0, spacePos);
+        else
+          shortVendor = _renderer;
+
+      } else {
+        // Take first word from vendor string
+        auto spacePos = _gpuVendor.find(' ');
+        if (spacePos != std::string::npos)
+          shortVendor = _gpuVendor.substr(0, spacePos);
+        else
+          shortVendor = _gpuVendor;
+      }
+       std::transform(shortVendor.begin(), shortVendor.end(),
+                        shortVendor.begin(), ::tolower);
     }
   }
 
