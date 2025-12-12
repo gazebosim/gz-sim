@@ -1,3 +1,4 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
 load("@gz-msgs//tools:gz_msgs_generate.bzl", "gz_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
@@ -1186,8 +1187,8 @@ gz_sim_system_libraries(
         "@gz-common",
         "@gz-common//graphics",
         "@gz-common//profiler",
-        "@gz-plugin//:register",
         "@gz-math",
+        "@gz-plugin//:register",
         "@gz-transport",
         "@sdformat",
     ],
@@ -1867,4 +1868,20 @@ gz_sim_system_libraries(
         "@gz-transport",
         "@sdformat",
     ],
+)
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+)
+
+buildifier_test(
+    name = "buildifier.test",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "warn",
+    mode = "diff",
+    no_sandbox = True,
+    workspace = "//:MODULE.bazel",
 )
