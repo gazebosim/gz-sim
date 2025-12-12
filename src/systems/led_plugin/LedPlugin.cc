@@ -156,8 +156,7 @@ class gz::sim::systems::LedPluginPrivate
   /// \brief Callback executed to change the current LED mode.
   /// \param[in] _req String specifying the name of the required mode.
   /// \param[out] _resp Boolean for successful mode change
-  public: bool OnLedModeChange(const msgs::StringMsg &_req,
-    msgs::Boolean &_resp);
+  public: void OnLedModeChange(const msgs::StringMsg &_req);
 
   /// \brief Connection to the pre-render event
   public: common::ConnectionPtr sceneUpdateConn{nullptr};
@@ -230,18 +229,18 @@ void LedPlugin::Configure(
 
   this->dataPtr->allLedModes = std::vector<LedMode>();
 
-  std::string ledModeChangeSrvName;
+  std::string ledModeChangeTopicName;
   if (_sdf->HasElement("led_name"))
   {
     this->dataPtr->ledName = _sdf->Get<std::string>("led_name");
-    ledModeChangeSrvName = "/" + this->dataPtr->ledName + "/change_mode";
+    ledModeChangeTopicName = "/" + this->dataPtr->ledName + "/change_mode";
   }
   else
   {
     gzwarn << "No name is specified for the led, led + entityID"
            << " will be used for the service name" << std::endl;
     this->dataPtr->ledName = "led" + std::to_string(_entity);
-    ledModeChangeSrvName = "/model/" + this->dataPtr->ledName + "/change_mode";
+    ledModeChangeTopicName = "/model/" + this->dataPtr->ledName + "/change_mode";
   }
 
   if (_sdf->HasElement("mode"))
@@ -314,15 +313,15 @@ void LedPlugin::Configure(
       std::bind(&LedPluginPrivate::OnSceneUpdate, this->dataPtr.get()));
 
   // Advertise the LED Mode change service
-  auto validModeChangeSrvName = transport::TopicUtils::AsValidTopic(ledModeChangeSrvName);
-  if (validModeChangeSrvName.empty())
+  auto validModeChangeTopicName = transport::TopicUtils::AsValidTopic(ledModeChangeTopicName);
+  if (validModeChangeTopicName.empty())
   {
     gzerr << "Failed to create valid mode change service. Name not valid: ["
-            << ledModeChangeSrvName << "]" << std::endl;
+            << validModeChangeTopicName << "]" << std::endl;
     return;
   }
 
-  this->dataPtr->node.Advertise(validModeChangeSrvName,
+  this->dataPtr->node.Subscribe(validModeChangeTopicName,
     &LedPluginPrivate::OnLedModeChange, this->dataPtr.get());
 
   gzmsg << "[LED PLUGIN] Initialized LedPlugin Plugin" << std::endl;
@@ -359,8 +358,7 @@ gz::rendering::VisualPtr LedPluginPrivate::FindEntityVisual(
 }
 
 //////////////////////////////////////////////////
-bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
-  msgs::Boolean &_resp)
+void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
 
@@ -383,9 +381,7 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
   {
     gzerr << "[LED PLUGIN] Requested LED Mode: " << requestedModeName
           << " was not described" << std::endl;
-    _resp.set_data(false);
-
-    return true;
+    return;
   }
 
   gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Changing led mode from: " << this->currentLedMode.name << " to: "
@@ -396,9 +392,6 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
   this->cycleStartTime = std::chrono::duration<double>::zero();
   gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Current led mode set to: "
         << this->currentLedMode.name << std::endl;
-
-  _resp.set_data(true);
-  return true;
 }
 
 /////////////////////////////////////////////////
