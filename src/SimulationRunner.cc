@@ -265,7 +265,8 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->levelMgr = std::make_unique<LevelManager>(this,
       this->serverConfig.UseLevels());
 
-  gzdbg << "SimulationRunner: createEntities: " << _createEntities << std::endl;
+  gzdbg << "CreateEntities: [" << _createEntities << "]"
+        << std::endl;
   if (_createEntities)
   {
     this->SetWorldSdf(_world);
@@ -956,8 +957,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
     auto netSecondary =
         dynamic_cast<NetworkManagerSecondary *>(this->networkMgr.get());
 
-    gzdbg << "SimulationRunner: stepping secondary: "
-          << this->networkMgr->Namespace() << std::endl;
+    gzdbg << "Stepping secondary: ["
+          << this->networkMgr->Namespace() << "]" << std::endl;
 
 
     // Move to SimulationRunner::Run
