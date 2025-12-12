@@ -1,94 +1,28 @@
-## MODULE.bazel
 module(
     name = "gz-sim",
-    repo_name = "org_gazebosim_gz-sim",
+    compatibility_level = 9,
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1")
 bazel_dep(name = "eigen", version = "3.4.0.bcr.3")
-bazel_dep(name = "googletest", version = "1.15.2")
-bazel_dep(name = "protobuf", version = "29.4", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "googletest", version = "1.17.0")
+bazel_dep(name = "protobuf", version = "30.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_cc", version = "0.2.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
 
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
-bazel_dep(name = "gz-common")
-bazel_dep(name = "gz-fuel-tools")
-bazel_dep(name = "gz-math")
-bazel_dep(name = "gz-msgs")
-bazel_dep(name = "gz-physics")
-bazel_dep(name = "gz-plugin")
-bazel_dep(name = "gz-rendering")
-bazel_dep(name = "gz-sensors")
-bazel_dep(name = "gz-transport")
-bazel_dep(name = "gz-utils")
-bazel_dep(name = "sdformat")
-
-archive_override(
-    module_name = "gz-common",
-    strip_prefix = "gz-common-gz-common6",
-    urls = ["https://github.com/gazebosim/gz-common/archive/refs/heads/gz-common6.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-fuel-tools",
-    strip_prefix = "gz-fuel-tools-gz-fuel-tools10",
-    urls = ["https://github.com/gazebosim/gz-fuel-tools/archive/refs/heads/gz-fuel-tools10.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-math",
-    strip_prefix = "gz-math-gz-math8",
-    urls = ["https://github.com/gazebosim/gz-math/archive/refs/heads/gz-math8.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-msgs",
-    strip_prefix = "gz-msgs-gz-msgs11",
-    urls = ["https://github.com/gazebosim/gz-msgs/archive/refs/heads/gz-msgs11.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-physics",
-    strip_prefix = "gz-physics-gz-physics8",
-    urls = ["https://github.com/gazebosim/gz-physics/archive/refs/heads/gz-physics8.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-plugin",
-    strip_prefix = "gz-plugin-gz-plugin3",
-    urls = ["https://github.com/gazebosim/gz-plugin/archive/refs/heads/gz-plugin3.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-rendering",
-    strip_prefix = "gz-rendering-gz-rendering9",
-    urls = ["https://github.com/gazebosim/gz-rendering/archive/refs/heads/gz-rendering9.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-sensors",
-    strip_prefix = "gz-sensors-gz-sensors9",
-    urls = ["https://github.com/gazebosim/gz-sensors/archive/refs/heads/gz-sensors9.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-transport",
-    strip_prefix = "gz-transport-gz-transport14",
-    urls = ["https://github.com/gazebosim/gz-transport/archive/refs/heads/gz-transport14.tar.gz"],
-)
-
-archive_override(
-    module_name = "gz-utils",
-    strip_prefix = "gz-utils-gz-utils3",
-    urls = ["https://github.com/gazebosim/gz-utils/archive/refs/heads/gz-utils3.tar.gz"],
-)
-
-archive_override(
-    module_name = "sdformat",
-    strip_prefix = "sdformat-sdf15",
-    urls = ["https://github.com/gazebosim/sdformat/archive/refs/heads/sdf15.tar.gz"],
-)
+bazel_dep(name = "gz-common", version = "6.2.1")
+bazel_dep(name = "gz-fuel-tools", version = "10.1.0")
+bazel_dep(name = "gz-math", version = "8.1.1.bcr.1")
+bazel_dep(name = "gz-msgs", version = "11.1.0.bcr.2")
+bazel_dep(name = "gz-physics", version = "8.3.0.bcr.1")
+bazel_dep(name = "gz-plugin", version = "3.1.0")
+bazel_dep(name = "gz-rendering", version = "9.4.0")
+bazel_dep(name = "gz-sensors", version = "9.2.0.bcr.1")
+bazel_dep(name = "gz-transport", version = "14.2.0.bcr.1")
+bazel_dep(name = "gz-utils", version = "3.1.1")
+bazel_dep(name = "sdformat", version = "15.3.0.bcr.2")
