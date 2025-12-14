@@ -43,52 +43,6 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- <model name="camera">
-      <pose>4 0 1.0 0 0.0 3.14</pose>
-      <link name="link">
-        <pose>0.05 0.05 0.05 0 0 0</pose>
-        <inertial>
-          <mass>0.1</mass>
-          <inertia>
-            <ixx>0.000166667</ixx>
-            <iyy>0.000166667</iyy>
-            <izz>0.000166667</izz>
-          </inertia>
-        </inertial>
-        <collision name="collision">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
-        <sensor name="camera" type="camera">
-          <camera>
-            <horizontal_fov>1.047</horizontal_fov>
-            <image>
-              <width>320</width>
-              <height>240</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-          </camera>
-          <always_on>1</always_on>
-          <update_rate>30</update_rate>
-          <visualize>true</visualize>
-          <topic>camera</topic>
-        </sensor>
-      </link>
-    </model> -->
-
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -201,6 +155,41 @@
             <diffuse>1.0 1.0 1.0 1</diffuse>
             <specular>1.0 1.0 1.0 1</specular>
           </material>
+          <plugin filename="gz-sim-led-plugin-system"
+            name="gz::sim::systems::LedPlugin">
+            <led_name>front_led</led_name>
+            <default_mode>idle</default_mode>
+            <mode name="idle">
+              <step always_on="false">
+                <color>0 1 1 1</color>
+                <on_time>1.0</on_time>
+              </step>
+              <step always_on="false">
+                <color>1 1 1 1</color>
+                <on_time>1.0</on_time>
+              </step>
+            </mode>
+            <mode name="emergency">
+              <step always_on="true">
+                <color>1 0 0 1</color>
+              </step>
+            </mode>
+            <mode name="navigation">
+              <step always_on="true">
+                <color>0 1 1 1</color>
+              </step>
+            </mode>
+            <mode name="docking">
+              <step always_on="false">
+                <color>0.5 0 1 1</color>
+                <on_time>1.0</on_time>
+              </step>
+              <step always_on="false">
+                <color>1 1 1 1</color>
+                <on_time>1.0</on_time>
+              </step>
+            </mode>
+          </plugin>
         </visual>
         <collision name="front_led_collision">
           <geometry>
@@ -209,18 +198,6 @@
             </box>
           </geometry>
         </collision>
-        <light type="point" name="link_light_point">
-          <pose>0 0 0.025 0 0 0</pose>
-          <diffuse>0 0 1 1</diffuse>
-          <specular>.1 .1 .1 1</specular>
-          <attenuation>
-            <range>2</range>
-            <linear>0.02</linear>
-            <constant>0.05</constant>
-            <quadratic>0.01</quadratic>
-          </attenuation>
-          <cast_shadows>false</cast_shadows>
-        </light>
       </link>
 
       <link name="back_led">
@@ -237,7 +214,6 @@
             <diffuse>1.0 1.0 1.0 0.5</diffuse>
             <specular>1.0 1.0 1.0 0.5</specular>
           </material>
-
           <plugin filename="gz-sim-led-plugin-system"
             name="gz::sim::systems::LedPlugin">
             <led_name>back_led</led_name>
