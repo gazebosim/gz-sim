@@ -21,11 +21,15 @@
 #include <set>
 #include <string>
 
+#include <gz/utils/SuppressWarning.hh>
+
 #include <gz/common/Profiler.hh>
 #include <gz/math/Color.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
+IGN_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
 #include <gz/plugin/Register.hh>
+IGN_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 #include <gz/transport/Node.hh>
 
 #include <gz/sim/components/Name.hh>
