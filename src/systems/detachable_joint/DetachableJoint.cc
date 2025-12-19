@@ -334,7 +334,7 @@ void DetachableJoint::PreUpdate(
       igndbg << "Attaching entity: " << this->detachableJointEntity
               << std::endl;
     }
-    else
+    else if (!this->suppressChildWarning)
     {
       ignwarn << "Child Link " << this->childLinkName
               << " could not be found.\n";
