@@ -1041,7 +1041,7 @@ TEST_F(UtilTest, LoadMesh)
   EXPECT_TRUE(meshSdf.SetOptimization("convex_decomposition"));
   sdf::ConvexDecomposition convexDecomp;
   convexDecomp.SetMaxConvexHulls(16u);
-  convexDecomp.SetResolution(50000u);
+  convexDecomp.SetVoxelResolution(50000u);
   meshSdf.SetConvexDecomposition(convexDecomp);
   auto *optimizedMesh = loadMesh(meshSdf);
   EXPECT_NE(nullptr, optimizedMesh);
