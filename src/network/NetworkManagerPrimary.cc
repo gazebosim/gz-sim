@@ -32,6 +32,7 @@
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"
 #include "gz/sim/Conversions.hh"
@@ -154,7 +155,9 @@ bool NetworkManagerPrimary::Step(const UpdateInfo &_info)
   {
     GZ_PROFILE("Waiting for secondaries");
 
-    auto result = future.wait_for(10s);
+    //! @todo make this parameter - for debugging do not want the primary
+    //        to time out.
+    auto result = future.wait_for(10000s);
 
     if (std::future_status::ready != result)
     {
@@ -231,7 +234,7 @@ void NetworkManagerPrimary::PopulateAffinities(
   // Previous performer-to-secondary mapping - may need updating
   std::map<Entity, std::string> pToSPrevious;
 
-  // Updated performer-to-level mapping - used to update affinities
+  // Updated level-to-performer mapping - used to update affinities
   std::map<Entity, std::set<Entity>> lToPNew;
 
   // All performers
@@ -262,23 +265,68 @@ void NetworkManagerPrimary::PopulateAffinities(
       return true;
     });
 
+  //! @note debug info
+  gzdbg << "PopulateAffinities..." << std::endl;
+  // all performers
+  gzdbg << "Performers:" << std::endl;
+  for (auto performer : allPerformers)
+  {
+    auto parent =
+        this->dataPtr->ecm->Component<components::ParentEntity>(performer);
+    if (parent == nullptr)
+    {
+      gzerr << "Failed to get parent for performer [" << performer << "]"
+             << std::endl;
+      continue;
+    }
+    auto parentEntity = parent->Data();
+    gzdbg << "  Performer: [" << performer << "], "
+          << "Parent: [" << parentEntity << "]"
+          <<  std:: endl;
+  }
+  // level to performer
+  gzdbg << "Levels:" << std::endl;
+  for (auto [level, perfEntities] : lToPNew)
+  {
+    gzdbg << "  Level: [" << level << "]" << std::endl;
+    for (auto performer : perfEntities)
+    {
+        gzdbg << "    Performer: [" << performer << "]" << std::endl;
+    }
+  }
+  // performer to secondary
+  gzdbg << "Secondary:" << std::endl;
+  for (auto [performer, secondary] : pToSPrevious)
+  {
+    gzdbg << "  Performer: [" << performer << "], "
+          << "Secondary: [" << secondary << "]" << std::endl;
+  }
+
   // First assignment: distribute levels evenly across secondaries
   if (pToSPrevious.empty())
   {
+    // Ensure assignments are unique
+    std::map<Entity, std::string> pToS;
+
+    gzdbg << "Performer to secondary first assignment" << std::endl;
     auto secondaryIt = this->secondaries.begin();
 
     for (const auto &it : lToPNew)
     {
       for (const auto &performer : it.second)
       {
-        this->SetAffinity(performer, secondaryIt->second->prefix,
-            _msg.add_affinity());
+        if (pToS.find(performer) == pToS.end())
+        {
+          pToS[performer] = secondaryIt->second->prefix;
+          this->SetAffinity(performer, secondaryIt->second->prefix,
+              _msg.add_affinity());
+        }
 
         // Remove performers as they are assigned
         allPerformers.erase(performer);
       }
 
-      // Round-robin levels
+      // Round-robin secondaries
       secondaryIt++;
       if (secondaryIt == this->secondaries.end())
       {
@@ -289,10 +337,14 @@ void NetworkManagerPrimary::PopulateAffinities(
     // Also assign level-less performers
     for (auto performer : allPerformers)
     {
-      this->SetAffinity(performer, secondaryIt->second->prefix,
-          _msg.add_affinity());
+      if (pToS.find(performer) == pToS.end())
+      {
+        pToS[performer] = secondaryIt->second->prefix;
+        this->SetAffinity(performer, secondaryIt->second->prefix,
+            _msg.add_affinity());
+      }
 
-      // Round-robin performers
+      // Round-robin secondaries
       secondaryIt++;
       if (secondaryIt == this->secondaries.end())
       {

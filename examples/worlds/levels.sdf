@@ -2,7 +2,7 @@
 <!--
   Gazebo level manager demo
 
-  Start gazebo using the "--levels" flag.
+  Start gazebo using the "-/-levels" flag.
   Start the simulation and try sending commands:
 
     gz topic -t "/model/vehicle_blue/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 4.0}"
@@ -3833,8 +3833,6 @@
       </link>
     </model>
 
-
-
   <model name='vehicle_red'>
     <pose>0 0 0.325 0 0 0</pose>
     <link name='chassis'>
@@ -4009,6 +4007,11 @@
       <right_joint>right_wheel_joint</right_joint>
       <wheel_separation>1.25</wheel_separation>
       <wheel_radius>0.3</wheel_radius>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-level-debug-system"
+      name="gz::sim::systems::LevelDebug">
     </plugin>
 
   </model>
@@ -4189,8 +4192,12 @@
       <wheel_radius>0.3</wheel_radius>
     </plugin>
 
-  </model>
+    <plugin
+      filename="gz-sim-level-debug-system"
+      name="gz::sim::systems::LevelDebug">
+    </plugin>
 
+  </model>
 
   <plugin name="gz::sim" filename="dummy">
 
@@ -4212,8 +4219,6 @@
       </geometry>
     </performer>
 
-
-
     <level name="level0">
       <pose>20 -40 2.5 0 0 0</pose>
       <geometry>
@@ -4232,6 +4237,26 @@
         </box>
       </geometry>
       <ref>tile_2</ref>
+    </level>
+
+    <level name="level2">
+      <pose>20 0 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>40 40 1000</size>
+        </box>
+      </geometry>
+      <ref>tile_3</ref>
+    </level>
+
+    <level name="level2">
+      <pose>20 0 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>40 40 1000</size>
+        </box>
+      </geometry>
+      <ref>tile_3</ref>
     </level>
 
     <level name="level3">
@@ -4403,8 +4428,6 @@
       </geometry>
       <ref>tile_20</ref>
     </level>
-
-
 
   </plugin>
 

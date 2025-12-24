@@ -200,7 +200,7 @@ namespace gz
       private: Duration heartbeatPeriod {std::chrono::milliseconds(100)};
 
       /// \brief Timeout to mark a peer as stale.
-      private: size_t staleMultiplier {100};
+      private: size_t staleMultiplier {10000};
 
       /// \brief Peer information that this tracker announces.
       private: PeerInfo info;
