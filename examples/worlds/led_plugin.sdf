@@ -155,41 +155,6 @@
             <diffuse>1.0 1.0 1.0 1</diffuse>
             <specular>1.0 1.0 1.0 1</specular>
           </material>
-          <plugin filename="gz-sim-led-plugin-system"
-            name="gz::sim::systems::LedPlugin">
-            <led_name>front_led</led_name>
-            <default_mode>idle</default_mode>
-            <mode name="idle">
-              <step always_on="false">
-                <color>0 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-              <step always_on="false">
-                <color>1 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-            </mode>
-            <mode name="emergency">
-              <step always_on="true">
-                <color>1 0 0 1</color>
-              </step>
-            </mode>
-            <mode name="navigation">
-              <step always_on="true">
-                <color>0 1 1 1</color>
-              </step>
-            </mode>
-            <mode name="docking">
-              <step always_on="false">
-                <color>0.5 0 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-              <step always_on="false">
-                <color>1 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-            </mode>
-          </plugin>
         </visual>
         <collision name="front_led_collision">
           <geometry>
@@ -214,41 +179,6 @@
             <diffuse>1.0 1.0 1.0 0.5</diffuse>
             <specular>1.0 1.0 1.0 0.5</specular>
           </material>
-          <plugin filename="gz-sim-led-plugin-system"
-            name="gz::sim::systems::LedPlugin">
-            <led_name>back_led</led_name>
-            <default_mode>idle</default_mode>
-            <mode name="idle">
-              <step always_on="false">
-                <color>0 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-              <step always_on="false">
-                <color>1 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-            </mode>
-            <mode name="emergency">
-              <step always_on="true">
-                <color>1 0 0 1</color>
-              </step>
-            </mode>
-            <mode name="navigation">
-              <step always_on="true">
-                <color>0 1 1 1</color>
-              </step>
-            </mode>
-            <mode name="docking">
-              <step always_on="false">
-                <color>0.5 0 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-              <step always_on="false">
-                <color>1 1 1 1</color>
-                <on_time>1.0</on_time>
-              </step>
-            </mode>
-          </plugin>
         </visual>
         <collision name="back_led_collision">
           <geometry>
@@ -455,6 +385,63 @@
         <min_angular_velocity>-1</min_angular_velocity>
       </plugin>
 
+      <plugin
+        filename="gz-sim-led-plugin-system"
+        name="gz::sim::systems::LedPlugin">
+
+        <!-- LED group name -->
+        <!-- <led_group_name>my_robot</led_group_name> -->
+
+        <!-- All the LEDs belonging to this group/model -->
+        <led name="back_led">
+          <visual_name>back_led::back_led_visual</visual_name>
+        </led>
+        <led name="front_led">
+          <visual_name>front_led::front_led_visual</visual_name>
+        </led>
+
+        <default_mode>idle</default_mode>
+
+        <mode name="idle">
+          <!-- <step always_on="false">
+            <color>0 1 1 1</color>
+            <on_time>1.0</on_time>
+          </step>
+          <step always_on="false">
+            <color>1 1 1 1</color>
+            <on_time>1.0</on_time>
+          </step> -->
+        </mode>
+
+        <!-- <mode name="emergency">
+          <step always_on="false">
+            <color>1 0 0 1</color>
+            <on_time>1.0</on_time>
+          </step>
+          <step always_on="false">
+            <color>1 1 1 1</color>
+            <on_time>1.0</on_time>
+          </step>
+        </mode>
+
+        <mode name="front_navigation">
+          <active_leds>
+            <led>front_led</led>
+          </active_leds>
+          <step always_on="true">
+            <color>0 1 1 1</color>
+          </step>
+        </mode>
+
+        <mode name="reverse_navigation">
+          <active_leds>
+            <led>back_led</led>
+          </active_leds>
+          <step always_on="true">
+            <color>0 1 1 1</color>
+          </step>
+        </mode> -->
+      </plugin>
     </model>
   </world>
 </sdf>
