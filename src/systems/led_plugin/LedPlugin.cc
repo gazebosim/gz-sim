@@ -15,16 +15,15 @@
  *
 */
 
+#include <string>
 #include <mutex>
 #include <chrono>
 #include <optional>
+#include <vector>
 
 #include <gz/plugin/Register.hh>
 
-#include <gz/rendering/Material.hh>
-#include <gz/rendering/Scene.hh>
-#include <gz/rendering/Visual.hh>
-#include <gz/rendering/RenderingIface.hh>
+#include "gz/common/Profiler.hh"
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
@@ -38,10 +37,13 @@
 #include <gz/sim/Events.hh>
 #include <gz/sim/EventManager.hh>
 #include <gz/sim/Util.hh>
+#include <gz/sim/Types.hh>
 #include "gz/sim/Model.hh"
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/components/Visual.hh>
-#include <gz/sim/rendering/Events.hh>
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/VisualCmd.hh"
+#include "gz/sim/components/LightCmd.hh"
 
 #include "LedPlugin.hh"
 
@@ -156,9 +158,6 @@ struct LedMode
   /// \brief Name of the LED Mode
   std::string name{""};
 
-  /// \brief List of active LEDs for this mode
-  std::vector<std::reference_wrapper<Led>> activeLedRefs;
-
   /// \brief List of string names of the active LEDs in this mode
   std::vector<std::string> activeLedNames;
 
@@ -192,7 +191,7 @@ struct LedMode
 
       if (activeLedsElem->HasElement("led"))
       {
-        sdf::ElementConstPtr ledElem = _sdf->FindElement("led");
+        sdf::ElementConstPtr ledElem = activeLedsElem->FindElement("led");
 
         while (ledElem)
         {
@@ -261,10 +260,6 @@ class gz::sim::systems::LedPluginPrivate
   /// \brief Callback invoked by the rendering thread before a render update
   public: void OnSceneUpdate();
 
-  /// \brief Function to search for Visual By Entity ID
-  public: rendering::VisualPtr FindEntityVisual(rendering::ScenePtr _scene,
-    gz::sim::Entity _entity);
-
   /// \brief Callback executed to change the current LED mode.
   /// \param[in] _req String specifying the name of the required mode.
   /// \param[out] _resp Boolean for successful mode change
@@ -275,7 +270,7 @@ class gz::sim::systems::LedPluginPrivate
   /// \param[in] _ecm
   /// \param[in] _materialColor
   public: void SetVisualProperties(const Entity &_visualEntity,
-    const EntityComponentManager &_ecm, const math::Color &_materialColor);
+    EntityComponentManager &_ecm, const math::Color &_materialColor);
 
   /// \brief
   /// \param[in] _lightEntity
@@ -284,17 +279,11 @@ class gz::sim::systems::LedPluginPrivate
   public: void SetLightProperties(const Entity &_lightEntity,
     const EntityComponentManager &_ecm, const math::Color &_lightColor);
 
-  /// \brief Connection to the pre-render event
-  // public: common::ConnectionPtr sceneUpdateConn{nullptr};
-
-  /// \brief Pointer to EventManager
-  // public: EventManager *eventMgr{nullptr};
-
   /// \brief Model interface
   public: Model model{kNullEntity};
 
   /// \brief Pointer to the rendering scene
-  public: rendering::ScenePtr scene{nullptr};
+  // public: rendering::ScenePtr scene{nullptr};
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -473,10 +462,6 @@ void LedPlugin::Configure(
         << this->dataPtr->allLedModes.size() << " modes and "
         << this->dataPtr->defaultLedMode.name << " as the default mode" << std::endl;
 
-  // Connect to the pre render event
-  // this->dataPtr->sceneUpdateConn = this->dataPtr->eventMgr->Connect<gz::sim::events::SceneUpdate>(
-  //     std::bind(&LedPluginPrivate::OnSceneUpdate, this->dataPtr.get()));
-
   // Advertise the LED Mode change service
   auto validModeChangeServiceName = transport::TopicUtils::AsValidTopic(modeChangeServiceName);
   if (validModeChangeServiceName.empty())
@@ -517,17 +502,44 @@ void LedPlugin::PreUpdate(
   // Set the current step from the current LED Mode
   LedModeStep currentLedModeStep = this->dataPtr->currentLedMode.modeSequenceSteps[this->dataPtr->currentModeStepIdx];
 
+  // Change the visual and light properties of the LEDs based on the current mode
   if (this->dataPtr->currentLedMode.activeLedNames.empty())
   {
     // Set the state of all LEDs in the group according to the current LED Mode
-    for (const auto& led : this->dataPtr->allLedsInGroup)
+    for (const auto &led : this->dataPtr->allLedsInGroup)
     {
+      // Set the visual properties if the visual entity is not null
+      if (led.second.ledVisualEntity != kNullEntity)
+      {
+        this->dataPtr->SetVisualProperties(led.second.ledVisualEntity, _ecm, currentLedModeStep.ledColor);
+      }
 
+      // Set the light properties if the light entity is not null
+      if (led.second.ledLightEntity != kNullEntity)
+      {
+        this->dataPtr->SetLightProperties(led.second.ledLightEntity, _ecm, currentLedModeStep.ledColor);
+      }
     }
   }
   else
   {
     // Set the state of the LEDs in the activeLedNames for the current LED Mode
+    for (const std::string &ledName : this->dataPtr->currentLedMode.activeLedNames)
+    {
+      // Set the visual properties if the visual entity is not null
+      if (this->dataPtr->allLedsInGroup[ledName].ledVisualEntity != kNullEntity)
+      {
+        this->dataPtr->SetVisualProperties(this->dataPtr->allLedsInGroup[ledName].ledVisualEntity,
+          _ecm, currentLedModeStep.ledColor);
+      }
+
+      // Set the light properties if the light entity is not null
+      if (this->dataPtr->allLedsInGroup[ledName].ledLightEntity != kNullEntity)
+      {
+        this->dataPtr->SetLightProperties(this->dataPtr->allLedsInGroup[ledName].ledLightEntity,
+          _ecm, currentLedModeStep.ledColor);
+      }
+    }
   }
 
   // If this step is supposed to be always on then just return
@@ -561,29 +573,85 @@ void LedPlugin::PreUpdate(
 }
 
 //////////////////////////////////////////////////
-// gz::rendering::VisualPtr LedPluginPrivate::FindEntityVisual(
-//   gz::rendering::ScenePtr _scene, gz::sim::Entity _entity)
-// {
-//   for (unsigned int i = 0; i < _scene->VisualCount(); ++i)
-//   {
-//     gz::rendering::VisualPtr visual = _scene->VisualByIndex(i);
-//     if (visual->HasUserData("gazebo-entity"))
-//     {
-//       auto userData = visual->UserData("gazebo-entity");
-//       if (_entity == std::get<uint64_t>(userData))
-//       {
-//         return visual;
-//       }
-//     }
-//   }
-//   return nullptr;
-// }
-
-//////////////////////////////////////////////////
 void LedPluginPrivate::SetVisualProperties(const Entity &_visualEntity,
-  const EntityComponentManager &_ecm, const math::Color &_materialColor)
+  EntityComponentManager &_ecm, const math::Color &_materialColor)
 {
+  msgs::Visual visualMsg;
+  visualMsg.set_id(_visualEntity);
 
+  visualMsg.mutable_material()->mutable_ambient()->set_r(_materialColor.R());
+  visualMsg.mutable_material()->mutable_ambient()->set_g(_materialColor.G());
+  visualMsg.mutable_material()->mutable_ambient()->set_b(_materialColor.B());
+  visualMsg.mutable_material()->mutable_ambient()->set_a(_materialColor.A());
+
+  visualMsg.mutable_material()->mutable_diffuse()->set_r(_materialColor.R());
+  visualMsg.mutable_material()->mutable_diffuse()->set_g(_materialColor.G());
+  visualMsg.mutable_material()->mutable_diffuse()->set_b(_materialColor.B());
+  visualMsg.mutable_material()->mutable_diffuse()->set_a(_materialColor.A());
+
+  visualMsg.mutable_material()->mutable_specular()->set_r(_materialColor.R());
+  visualMsg.mutable_material()->mutable_specular()->set_g(_materialColor.G());
+  visualMsg.mutable_material()->mutable_specular()->set_b(_materialColor.B());
+  visualMsg.mutable_material()->mutable_specular()->set_a(_materialColor.A());
+
+  visualMsg.mutable_material()->mutable_emissive()->set_r(_materialColor.R());
+  visualMsg.mutable_material()->mutable_emissive()->set_g(_materialColor.G());
+  visualMsg.mutable_material()->mutable_emissive()->set_b(_materialColor.B());
+  visualMsg.mutable_material()->mutable_emissive()->set_a(_materialColor.A());
+
+  std::function<bool(const msgs::Visual &, const msgs::Visual &)> visualEq =
+  [](const msgs::Visual &_a, const msgs::Visual &_b)
+  {
+    auto aMaterial = _a.material(), bMaterial = _b.material();
+
+    return
+      _a.name() == _b.name() &&
+      _a.id() == _b.id() &&
+      math::equal(
+        aMaterial.ambient().r(), bMaterial.ambient().r(), 1e-6f) &&
+      math::equal(
+        aMaterial.ambient().g(), bMaterial.ambient().g(), 1e-6f) &&
+      math::equal(
+        aMaterial.ambient().b(), bMaterial.ambient().b(), 1e-6f) &&
+      math::equal(
+        aMaterial.ambient().a(), bMaterial.ambient().a(), 1e-6f) &&
+      math::equal(
+        aMaterial.diffuse().r(), bMaterial.diffuse().r(), 1e-6f) &&
+      math::equal(
+        aMaterial.diffuse().g(), bMaterial.diffuse().g(), 1e-6f) &&
+      math::equal(
+        aMaterial.diffuse().b(), bMaterial.diffuse().b(), 1e-6f) &&
+      math::equal(
+        aMaterial.diffuse().a(), bMaterial.diffuse().a(), 1e-6f) &&
+      math::equal(
+        aMaterial.specular().r(), bMaterial.specular().r(), 1e-6f) &&
+      math::equal(
+        aMaterial.specular().g(), bMaterial.specular().g(), 1e-6f) &&
+      math::equal(
+        aMaterial.specular().b(), bMaterial.specular().b(), 1e-6f) &&
+      math::equal(
+        aMaterial.specular().a(), bMaterial.specular().a(), 1e-6f) &&
+      math::equal(
+        aMaterial.emissive().r(), bMaterial.emissive().r(), 1e-6f) &&
+      math::equal(
+        aMaterial.emissive().g(), bMaterial.emissive().g(), 1e-6f) &&
+      math::equal(
+        aMaterial.emissive().b(), bMaterial.emissive().b(), 1e-6f) &&
+      math::equal(
+        aMaterial.emissive().a(), bMaterial.emissive().a(), 1e-6f);
+  };
+
+  auto visualCmdComp = _ecm.Component<components::VisualCmd>(_visualEntity);
+  if (!visualCmdComp)
+  {
+    _ecm.CreateComponent(_visualEntity, components::VisualCmd(visualMsg));
+  }
+  else
+  {
+    auto state = visualCmdComp->SetData(visualMsg, visualEq) ?
+      ComponentState::OneTimeChange : ComponentState::NoChange;
+    _ecm.SetChanged(_visualEntity, components::VisualCmd::typeId, state);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -635,94 +703,6 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
   _resp.set_data(true);
   return true;
 }
-
-/////////////////////////////////////////////////
-// void LedPluginPrivate::OnSceneUpdate()
-// {
-//   std::lock_guard<std::mutex> lock(this->mutex);
-
-//   // Get a pointer to the rendering scene
-//   if (!this->scene)
-//   {
-//     this->scene = rendering::sceneFromFirstRenderEngine();
-//   }
-
-//   if (!this->scene->IsInitialized())
-//   {
-//     gzmsg << "Scene is not initialized" << std::endl;
-//     return;
-//   }
-
-//   // Set the visuals, lights and materials for each LEDs in the group
-//   if (!this->ledsReady)
-//   {
-//     for (Led led : this->allLedsInGroup)
-//     {
-//       led.ledVisual = this->scene->VisualByName(led.visualName);
-//       led.ledVisMaterial = led.ledVisual->GeometryByIndex(0u)->Material();
-//       led.ledLight = this->scene->LightByName(led.lightName);
-//     }
-
-//     this->ledsReady = true;
-//   }
-
-//   LedModeStep currentLedModeStep = this->currentLedMode.modeSequenceSteps[this->currentModeStepIdx];
-
-//   // Cycle through all the active leds for the current mode
-//   if (this->currentLedMode.activeLeds.empty())
-//   {
-//     for (Led& led : this->allLedsInGroup)
-//     {
-//       // Change the visuals according to the current mode step if set
-//       if (led.ledVisMaterial)
-//       {
-//         led.ledVisMaterial->SetDiffuse(currentLedModeStep.ledColor);
-//         led.ledVisMaterial->SetAmbient(currentLedModeStep.ledColor);
-//         led.ledVisMaterial->SetEmissive(currentLedModeStep.ledColor);
-//         led.ledVisMaterial->SetSpecular(currentLedModeStep.ledColor);
-//       }
-
-//       // Change the light according to the current mode step if set
-//       if (led.ledLight)
-//       {
-
-//       }
-//     }
-//   }
-//   else
-//   {
-
-//   }
-
-//   // If this step is supposed to be always on then just return
-//   if (currentLedModeStep.alwaysOn)
-//   {
-//     return;
-//   }
-
-//   // Set the cycle start time. This is used to calculate the elapsed time in every PreRender event
-//   if (this->cycleStartTime == std::chrono::duration<double>::zero() ||
-//       this->cycleStartTime > this->currentSimTime)
-//   {
-//     this->cycleStartTime = this->currentSimTime;
-//   }
-//   std::chrono::duration<double> elapsed = this->currentSimTime - this->cycleStartTime;
-
-//   // If we have crossed the elapsed time of the step on time, then move on to the next step
-//   if (elapsed > currentLedModeStep.ledOnTime)
-//   {
-//     this->currentModeStepIdx++;
-
-//     // If we have reached the end of the steps, cycle back to the first one
-//     if (this->currentModeStepIdx == this->currentLedMode.modeSequenceSteps.size())
-//     {
-//       this->currentModeStepIdx = 0;
-//     }
-
-//     // Reset the cycle start time
-//     this->cycleStartTime = std::chrono::duration<double>::zero();
-//   }
-// }
 
 GZ_ADD_PLUGIN(LedPlugin,
               System,
