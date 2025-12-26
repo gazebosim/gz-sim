@@ -74,7 +74,10 @@ Gazebo Sim through socket-based message passing using
 [Gazebo Transport](https://github.com/gazebosim/gz-transport).
 
 * **Command line tools**: Extensive command line tools for increased simulation
-introspection and control.
+introspection and control* **Dynamics simulation**: Access multiple high-performance physics engines
+through
+[Gazebo Physics](https://github.com/gazebosim/gz-physics).
+
 
 # Install
 
