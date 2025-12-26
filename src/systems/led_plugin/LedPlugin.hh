@@ -43,40 +43,53 @@ namespace systems
   ///
   /// <plugin name="led" filename="libLedPlugin.so">
   ///
-  ///   <led_name>name</led_name>
+  ///   <!-- Name of the whole LED system / group -->
+  ///   <led_group_name>group_name</led_group_name>
+  ///
   ///   <default_mode>mode_name</default_mode>
-  ///   <create_light>true/false</create_light>
-  ///   <light>
-  ///     .
-  ///     .
-  ///     .
-  ///   </light>
-  ///   <led_modes>
-  ///     <mode name=”mode_name1”>
-  ///       <step always_on=”false”>
-  ///         <color>r g b a</color>
-  ///         <on_time>time(s)<on_time>
-  ///       </step>
-  ///       <step always_on=”false”>
-  ///         <color>r g b a</color>
-  ///         <on_time>time(s)<on_time>
-  ///       </step>
-  ///       <step always_on=”false”>
-  ///         <color>r g b a</color>
-  ///         <on_time>time(s)<on_time>
-  ///       </step>
-  ///     </mode>
-  ///     <mode name=”mode_name2”>
-  ///       <step always_on=”true”>
-  ///         <color>r g b a</color>
-  ///       </step>
-  ///     </mode>
-  ///     <mode name=”mode_name3”>
+  ///
+  ///   <!-- Define individual LEDs composed of either visual or lights -->
+  ///   <led name="led1">
+  ///     <visual_name>visual_name</visual_name>
+  ///     <light_name>light_name</light_name>
+  ///   </led>
+  ///   <led name="led2">
+  ///     <visual_name>visual_name</visual_name>
+  ///     <light_name>light_name</light_name>
+  ///   </led>
+  ///   <led name="led3">
+  ///     <light_name>light_name</light_name>
+  ///   </led>
+  ///
+  ///   <!-- Different LED modes -->
+  ///   <mode name=”mode_name1”>
+  ///     <!-- Active LEDs for this specific mode -->
+  ///     <active_leds>
+  ///       <led>led1</led>
+  ///     </active_leds>
+  ///     <step always_on=”false”>
+  ///       <color>r g b a</color>
+  ///       <on_time>time(s)<on_time>
+  ///     </step>
+  ///     <step always_on=”false”>
+  ///       <color>r g b a</color>
+  ///       <on_time>time(s)<on_time>
+  ///     </step>
+  ///     <step always_on=”false”>
+  ///       <color>r g b a</color>
+  ///       <on_time>time(s)<on_time>
+  ///     </step>
+  ///   </mode>
+  ///   <mode name=”mode_name2”>
+  ///     <step always_on=”true”>
+  ///       <color>r g b a</color>
+  ///     </step>
+  ///   </mode>
+  ///   <mode name=”mode_name3”>
   /// 	.
   /// 	.
   /// 	.
-  ///     </mode>
-  ///   </led_modes>
+  ///   </mode>
   /// </plugin>
 
   class LedPlugin:
