@@ -188,9 +188,9 @@
             </box>
           </geometry>
           <material>
-            <ambient>1.0 1.0 1.0 0.5</ambient>
-            <diffuse>1.0 1.0 1.0 0.5</diffuse>
-            <specular>1.0 1.0 1.0 0.5</specular>
+            <ambient>1.0 1.0 1.0 1.0</ambient>
+            <diffuse>1.0 1.0 1.0 1.0</diffuse>
+            <specular>1.0 1.0 1.0 1.0</specular>
           </material>
         </visual>
         <collision name="back_led_collision">
@@ -403,7 +403,7 @@
         name="gz::sim::systems::LedPlugin">
 
         <!-- LED group name -->
-        <!-- <led_group_name>my_robot</led_group_name> -->
+        <led_group_name>my_robot</led_group_name>
 
         <!-- All the LEDs belonging to this group/model -->
         <led name="back_led">
@@ -422,10 +422,12 @@
           <step always_on="false">
             <color>0 1 1 1</color>
             <on_time>1.0</on_time>
+            <intensity>4.0</intensity>
           </step>
           <step always_on="false">
             <color>1 1 1 1</color>
             <on_time>1.0</on_time>
+            <intensity>4.0</intensity>
           </step>
         </mode>
 
@@ -433,10 +435,12 @@
           <step always_on="false">
             <color>1 0 0 1</color>
             <on_time>1.0</on_time>
+            <intensity>4.0</intensity>
           </step>
           <step always_on="false">
             <color>1 1 1 1</color>
             <on_time>1.0</on_time>
+            <intensity>4.0</intensity>
           </step>
         </mode>
 
@@ -455,6 +459,72 @@
           </active_leds>
           <step always_on="true">
             <color>0 1 1 1</color>
+          </step>
+        </mode>
+
+        <mode name="led_power_breathe">
+          <active_leds>
+            <led>bottom_led</led>
+          </active_leds>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>4.0</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>3.6</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>3.2</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.8</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.4</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.0</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>1.6</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>1.2</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>0.8</intensity>
+            <on_time>0.12</on_time>
+          </step>
+
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>0.4</intensity>
+            <on_time>0.12</on_time>
           </step>
         </mode>
       </plugin>
