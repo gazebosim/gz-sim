@@ -23,11 +23,10 @@
 
 #include <gz/plugin/Register.hh>
 
-#include "gz/common/Profiler.hh"
-
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/visual.pb.h>
+#include <gz/msgs/light.pb.h>
 
 #include <gz/math/Color.hh>
 
@@ -277,7 +276,7 @@ class gz::sim::systems::LedPluginPrivate
   /// \param[in] _ecm
   /// \param[in] _lightColor
   public: void SetLightProperties(const Entity &_lightEntity,
-    const EntityComponentManager &_ecm, const math::Color &_lightColor);
+    EntityComponentManager &_ecm, const math::Color &_lightColor);
 
   /// \brief Model interface
   public: Model model{kNullEntity};
@@ -656,9 +655,66 @@ void LedPluginPrivate::SetVisualProperties(const Entity &_visualEntity,
 
 //////////////////////////////////////////////////
 void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
-  const EntityComponentManager &_ecm, const math::Color &_lightColor)
+  EntityComponentManager &_ecm, const math::Color &_lightColor)
 {
+  const auto* currentLightMsg = _ecm.Component<components::Light>(_lightEntity);
 
+  msgs::Light lightMsg;
+  lightMsg.set_id(_lightEntity);
+
+  lightMsg.mutable_diffuse()->set_r(_lightColor.R());
+  lightMsg.mutable_diffuse()->set_g(_lightColor.G());
+  lightMsg.mutable_diffuse()->set_b(_lightColor.B());
+  lightMsg.mutable_diffuse()->set_a(_lightColor.A());
+
+  lightMsg.mutable_specular()->set_r(_lightColor.R());
+  lightMsg.mutable_specular()->set_g(_lightColor.G());
+  lightMsg.mutable_specular()->set_b(_lightColor.B());
+  lightMsg.mutable_specular()->set_a(_lightColor.A());
+
+  // Set the rest of the properties with the current Light component data
+  lightMsg.set_intensity(currentLightMsg->Data().Intensity());
+  lightMsg.set_range(currentLightMsg->Data().AttenuationRange());
+  lightMsg.set_attenuation_constant(currentLightMsg->Data().ConstantAttenuationFactor());
+  lightMsg.set_attenuation_linear(currentLightMsg->Data().LinearAttenuationFactor());
+  lightMsg.set_attenuation_quadratic(currentLightMsg->Data().QuadraticAttenuationFactor());
+
+  std::function<bool(const msgs::Light &, const msgs::Light &)> lightEq =
+  [](const msgs::Light &_a, const msgs::Light &_b)
+  {
+    return
+      _a.name() == _b.name() &&
+      _a.id() == _b.id() &&
+      _a.type() == _b.type() &&
+      math::equal(
+        _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
+      math::equal(
+        _a.diffuse().g(), _b.diffuse().g(), 1e-6f) &&
+      math::equal(
+        _a.diffuse().b(), _b.diffuse().b(), 1e-6f) &&
+      math::equal(
+        _a.diffuse().a(), _b.diffuse().a(), 1e-6f) &&
+      math::equal(
+        _a.specular().r(), _b.specular().r(), 1e-6f) &&
+      math::equal(
+        _a.specular().g(), _b.specular().g(), 1e-6f) &&
+      math::equal(
+        _a.specular().b(), _b.specular().b(), 1e-6f) &&
+      math::equal(
+        _a.specular().a(), _b.specular().a(), 1e-6f);
+  };
+
+  auto lightCmdComp = _ecm.Component<components::LightCmd>(_lightEntity);
+  if (!lightCmdComp)
+  {
+    _ecm.CreateComponent(_lightEntity, components::LightCmd(lightMsg));
+  }
+  else
+  {
+    auto state = lightCmdComp->SetData(lightMsg, lightEq) ?
+      ComponentState::OneTimeChange : ComponentState::NoChange;
+    _ecm.SetChanged(_lightEntity, components::LightCmd::typeId, state);
+  }
 }
 
 //////////////////////////////////////////////////

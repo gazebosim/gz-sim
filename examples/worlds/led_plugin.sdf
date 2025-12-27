@@ -105,6 +105,19 @@
             </box>
           </geometry>
         </collision>
+        <light name="point_light_down" type="point">
+          <pose>0 0 0.284363 0 0 0</pose>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <intensity>5.0</intensity>
+          <attenuation>
+            <range>1.5</range>
+            <constant>0.8</constant>
+            <linear>0.5</linear>
+            <quadratic>0.5</quadratic>
+          </attenuation>
+          <cast_shadows>true</cast_shadows>
+        </light>
       </link>
 
       <link name="chassis_top">
@@ -399,21 +412,24 @@
         <led name="front_led">
           <visual_name>front_led::front_led_visual</visual_name>
         </led>
+        <led name="bottom_led">
+          <light_name>chassis_base::point_light_down</light_name>
+        </led>
 
         <default_mode>idle</default_mode>
 
         <mode name="idle">
-          <!-- <step always_on="false">
+          <step always_on="false">
             <color>0 1 1 1</color>
             <on_time>1.0</on_time>
           </step>
           <step always_on="false">
             <color>1 1 1 1</color>
             <on_time>1.0</on_time>
-          </step> -->
+          </step>
         </mode>
 
-        <!-- <mode name="emergency">
+        <mode name="emergency">
           <step always_on="false">
             <color>1 0 0 1</color>
             <on_time>1.0</on_time>
@@ -440,7 +456,7 @@
           <step always_on="true">
             <color>0 1 1 1</color>
           </step>
-        </mode> -->
+        </mode>
       </plugin>
     </model>
   </world>
