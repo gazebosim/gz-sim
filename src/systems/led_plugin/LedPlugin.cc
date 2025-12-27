@@ -63,6 +63,10 @@ struct LedModeStep
   /// \brief Seconds for which the LED should stay on.
   /// Used when alwaysOn is false
   std::chrono::duration<double> ledOnTime{1s};
+
+  /// \brief Intensity for any lights as part of the LED
+  /// Defaults to 1.0
+  double lightIntensity{1.0};
 };
 
 /// \brief Struct to define the individual LED
@@ -245,6 +249,11 @@ struct LedMode
         }
       }
 
+      if (stepElem->HasElement("intensity"))
+      {
+        ledModeStep.lightIntensity = stepElem->Get<double>("intensity");
+      }
+
       ledMode.modeSequenceSteps.push_back(ledModeStep);
       stepElem = stepElem->GetNextElement("step");
     }
@@ -256,9 +265,6 @@ struct LedMode
 // Private data class
 class gz::sim::systems::LedPluginPrivate
 {
-  /// \brief Callback invoked by the rendering thread before a render update
-  public: void OnSceneUpdate();
-
   /// \brief Callback executed to change the current LED mode.
   /// \param[in] _req String specifying the name of the required mode.
   /// \param[out] _resp Boolean for successful mode change
@@ -276,13 +282,15 @@ class gz::sim::systems::LedPluginPrivate
   /// \param[in] _ecm
   /// \param[in] _lightColor
   public: void SetLightProperties(const Entity &_lightEntity,
-    EntityComponentManager &_ecm, const math::Color &_lightColor);
+    EntityComponentManager &_ecm, const math::Color &_lightColor,
+    const double _lightIntensity);
+
+  /// \brief
+  /// \param[in] _ecm
+  public: void ResetLEDs(EntityComponentManager &_ecm);
 
   /// \brief Model interface
   public: Model model{kNullEntity};
-
-  /// \brief Pointer to the rendering scene
-  // public: rendering::ScenePtr scene{nullptr};
 
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -334,8 +342,6 @@ void LedPlugin::Configure(
   const gz::sim::Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
   gz::sim::EntityComponentManager &_ecm, gz::sim::EventManager &)
 {
-  // this->dataPtr->eventMgr = &_eventMgr;
-
   // Create a Model interface instance from the model entity of this plugin
   this->dataPtr->model = Model(_entity);
   if (!this->dataPtr->model.Valid(_ecm))
@@ -498,6 +504,13 @@ void LedPlugin::PreUpdate(
     return;
   }
 
+  // Reset the LEDs if they are not ready at the moment
+  if (!this->dataPtr->ledsReady)
+  {
+    this->dataPtr->ResetLEDs(_ecm);
+    this->dataPtr->ledsReady = true;
+  }
+
   // Set the current step from the current LED Mode
   LedModeStep currentLedModeStep = this->dataPtr->currentLedMode.modeSequenceSteps[this->dataPtr->currentModeStepIdx];
 
@@ -516,7 +529,8 @@ void LedPlugin::PreUpdate(
       // Set the light properties if the light entity is not null
       if (led.second.ledLightEntity != kNullEntity)
       {
-        this->dataPtr->SetLightProperties(led.second.ledLightEntity, _ecm, currentLedModeStep.ledColor);
+        this->dataPtr->SetLightProperties(led.second.ledLightEntity, _ecm, currentLedModeStep.ledColor,
+          currentLedModeStep.lightIntensity);
       }
     }
   }
@@ -536,7 +550,7 @@ void LedPlugin::PreUpdate(
       if (this->dataPtr->allLedsInGroup[ledName].ledLightEntity != kNullEntity)
       {
         this->dataPtr->SetLightProperties(this->dataPtr->allLedsInGroup[ledName].ledLightEntity,
-          _ecm, currentLedModeStep.ledColor);
+          _ecm, currentLedModeStep.ledColor, currentLedModeStep.lightIntensity);
       }
     }
   }
@@ -655,12 +669,13 @@ void LedPluginPrivate::SetVisualProperties(const Entity &_visualEntity,
 
 //////////////////////////////////////////////////
 void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
-  EntityComponentManager &_ecm, const math::Color &_lightColor)
+  EntityComponentManager &_ecm, const math::Color &_lightColor, const double _lightIntensity)
 {
   const auto* currentLightMsg = _ecm.Component<components::Light>(_lightEntity);
 
   msgs::Light lightMsg;
   lightMsg.set_id(_lightEntity);
+  lightMsg.set_intensity(_lightIntensity);
 
   lightMsg.mutable_diffuse()->set_r(_lightColor.R());
   lightMsg.mutable_diffuse()->set_g(_lightColor.G());
@@ -673,7 +688,6 @@ void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
   lightMsg.mutable_specular()->set_a(_lightColor.A());
 
   // Set the rest of the properties with the current Light component data
-  lightMsg.set_intensity(currentLightMsg->Data().Intensity());
   lightMsg.set_range(currentLightMsg->Data().AttenuationRange());
   lightMsg.set_attenuation_constant(currentLightMsg->Data().ConstantAttenuationFactor());
   lightMsg.set_attenuation_linear(currentLightMsg->Data().LinearAttenuationFactor());
@@ -686,6 +700,8 @@ void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
       _a.name() == _b.name() &&
       _a.id() == _b.id() &&
       _a.type() == _b.type() &&
+      math::equal(
+        _a.intensity(), _b.intensity(), 1e-6f) &&
       math::equal(
         _a.diffuse().r(), _b.diffuse().r(), 1e-6f) &&
       math::equal(
@@ -714,6 +730,23 @@ void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
     auto state = lightCmdComp->SetData(lightMsg, lightEq) ?
       ComponentState::OneTimeChange : ComponentState::NoChange;
     _ecm.SetChanged(_lightEntity, components::LightCmd::typeId, state);
+  }
+}
+
+//////////////////////////////////////////////////
+void LedPluginPrivate::ResetLEDs(EntityComponentManager &_ecm)
+{
+  for (const auto &led : this->allLedsInGroup)
+  {
+    if (led.second.ledVisualEntity != kNullEntity)
+    {
+      this->SetVisualProperties(led.second.ledVisualEntity, _ecm, math::Color::White);
+    }
+
+    if (led.second.ledLightEntity != kNullEntity)
+    {
+      this->SetLightProperties(led.second.ledLightEntity, _ecm, math::Color::Black, 0.0);
+    }
   }
 }
 
@@ -757,6 +790,10 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
         << this->currentLedMode.name << std::endl;
 
   _resp.set_data(true);
+
+  // Setting LEDs as not ready as we want them to be reset after a mode change
+  // This is done because we cannot directly reset the LEDs from here as ECM is required
+  this->ledsReady = false;
   return true;
 }
 

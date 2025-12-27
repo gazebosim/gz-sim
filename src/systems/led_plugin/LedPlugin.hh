@@ -70,6 +70,7 @@ namespace systems
   ///     <step always_on=”false”>
   ///       <color>r g b a</color>
   ///       <on_time>time(s)<on_time>
+  ///       <intensity>1.0</intensity>
   ///     </step>
   ///     <step always_on=”false”>
   ///       <color>r g b a</color>
