@@ -1,6 +1,9 @@
 <?xml version="1.0" ?>
 <!--
-  Gazebo blink visual plugin demo
+  Gazebo led plugin demo
+
+  Change the led modes by calling the service led_group_name/change_led_mode 
+  with the required mode name as a string
 -->
 
 <sdf version="1.11">
@@ -34,6 +37,7 @@
       <pose>0 0 10 0 0 0</pose>
       <diffuse>1 1 1 1</diffuse>
       <specular>0.5 0.5 0.5 1</specular>
+      <intensity>0.3</intensity>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
@@ -68,6 +72,308 @@
           </material>
         </visual>
       </link>
+    </model>
+
+    <model name='another_vehicle_blue'>
+      <pose>0 -3.0 0.325 0 -0 0</pose>
+
+      <link name='chassis_base'>
+        <pose>-0.151427 -0 0.175 0 -0 0</pose>
+        <inertial>
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.126164</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.416519</iyy>
+            <iyz>0</iyz>
+            <izz>0.481014</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>2.0 1 0.568726</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 1.0 1</ambient>
+            <diffuse>0.5 0.5 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>2.0 1 0.568726</size>
+            </box>
+          </geometry>
+        </collision>
+        <light name="point_light_down" type="point">
+          <pose>0 0 0.284363 0 0 0</pose>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <intensity>5.0</intensity>
+          <attenuation>
+            <range>1.5</range>
+            <constant>0.8</constant>
+            <linear>0.5</linear>
+            <quadratic>0.5</quadratic>
+          </attenuation>
+          <cast_shadows>true</cast_shadows>
+        </light>
+      </link>
+
+      <link name='left_wheel'>
+        <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
+        </collision>
+      </link>
+
+      <link name='right_wheel'>
+        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.145833</iyy>
+            <iyz>0</iyz>
+            <izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1</mu>
+                <mu2>1</mu2>
+                <slip1>0.035</slip1>
+                <slip2>0</slip2>
+                <fdir1>0 0 1</fdir1>
+              </ode>
+              <bullet>
+                <friction>1</friction>
+                <friction2>1</friction2>
+                <rolling_friction>0.1</rolling_friction>
+              </bullet>
+            </friction>
+          </surface>
+        </collision>
+      </link>
+
+      <link name='caster'>
+        <pose>-0.957138 -0 -0.125 0 -0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.1</iyy>
+            <iyz>0</iyz>
+            <izz>0.1</izz>
+          </inertia>
+        </inertial>
+        <visual name='visual'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.2 1</ambient>
+            <diffuse>0.2 0.2 0.2 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+          </material>
+        </visual>
+        <collision name='collision'>
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name='left_wheel_joint' type='revolute'>
+        <parent>chassis_base</parent>
+        <child>left_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='right_wheel_joint' type='revolute'>
+        <parent>chassis_base</parent>
+        <child>right_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name='caster_wheel' type='ball'>
+        <parent>chassis_base</parent>
+        <child>caster</child>
+      </joint>
+
+      <plugin
+        filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>1</odom_publish_frequency>
+        <max_linear_acceleration>1</max_linear_acceleration>
+        <min_linear_acceleration>-1</min_linear_acceleration>
+        <max_angular_acceleration>2</max_angular_acceleration>
+        <min_angular_acceleration>-2</min_angular_acceleration>
+        <max_linear_velocity>0.5</max_linear_velocity>
+        <min_linear_velocity>-0.5</min_linear_velocity>
+        <max_angular_velocity>1</max_angular_velocity>
+        <min_angular_velocity>-1</min_angular_velocity>
+      </plugin>
+
+      <plugin
+        filename="gz-sim-led-plugin-system"
+        name="gz::sim::systems::LedPlugin">
+
+        <!-- LED group name -->
+        <led_group_name>another_vehicle_blue_led</led_group_name>
+
+        <led name="bottom_led">
+          <light_name>another_vehicle_blue::chassis_base::point_light_down</light_name>
+        </led>
+
+        <default_mode>led_power_breathe</default_mode>
+
+        <mode name="led_power_breathe">
+          <active_leds>
+            <led>bottom_led</led>
+          </active_leds>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>4.0</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>3.6</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>3.2</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.8</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.4</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>2.0</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>1.6</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>1.2</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>0.8</intensity>
+            <on_time>0.12</on_time>
+          </step>
+          <step>
+            <color>0.3 1.0 0.6 1.0</color>
+            <intensity>0.4</intensity>
+            <on_time>0.12</on_time>
+          </step>
+        </mode>
+      </plugin>
     </model>
 
     <model name='vehicle_blue'>
@@ -109,7 +415,7 @@
           <pose>0 0 0.284363 0 0 0</pose>
           <diffuse>1 1 1 1</diffuse>
           <specular>0.1 0.1 0.1 1</specular>
-          <intensity>5.0</intensity>
+          <intensity>2.0</intensity>
           <attenuation>
             <range>1.5</range>
             <constant>0.8</constant>
@@ -403,7 +709,7 @@
         name="gz::sim::systems::LedPlugin">
 
         <!-- LED group name -->
-        <led_group_name>my_robot</led_group_name>
+        <led_group_name>vehicle_blue_led</led_group_name>
 
         <!-- All the LEDs belonging to this group/model -->
         <led name="back_led">
@@ -422,12 +728,12 @@
           <step always_on="false">
             <color>0 1 1 1</color>
             <on_time>1.0</on_time>
-            <intensity>4.0</intensity>
+            <intensity>2.0</intensity>
           </step>
           <step always_on="false">
             <color>1 1 1 1</color>
             <on_time>1.0</on_time>
-            <intensity>4.0</intensity>
+            <intensity>0.0</intensity>
           </step>
         </mode>
 
@@ -435,12 +741,12 @@
           <step always_on="false">
             <color>1 0 0 1</color>
             <on_time>1.0</on_time>
-            <intensity>4.0</intensity>
+            <intensity>2.0</intensity>
           </step>
           <step always_on="false">
             <color>1 1 1 1</color>
             <on_time>1.0</on_time>
-            <intensity>4.0</intensity>
+            <intensity>0.0</intensity>
           </step>
         </mode>
 
@@ -461,83 +767,14 @@
             <color>0 1 1 1</color>
           </step>
         </mode>
-
-        <mode name="led_power_breathe">
-          <active_leds>
-            <led>bottom_led</led>
-          </active_leds>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>4.0</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>3.6</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>3.2</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>2.8</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>2.4</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>2.0</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>1.6</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>1.2</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>0.8</intensity>
-            <on_time>0.12</on_time>
-          </step>
-
-          <step>
-            <color>0.3 1.0 0.6 1.0</color>
-            <intensity>0.4</intensity>
-            <on_time>0.12</on_time>
-          </step>
-        </mode>
       </plugin>
     </model>
 
     <model name="tower_lamp">
-      <pose>-1.0 0.35 0.8 0 0 0</pose>
+      <pose>-1.0 0.35 1.0 0 0 0</pose>
 
-      <!-- ===================== -->
-      <!-- Bottom mounting stand -->
-      <!-- ===================== -->
       <link name="lamp_stand">
-        <pose>0 0 0.12 0 0 0</pose>
+        <pose>0 0 0.0 0 0 0</pose>
 
         <inertial>
           <mass>0.3</mass>
@@ -552,7 +789,7 @@
           <geometry>
             <cylinder>
               <radius>0.025</radius>
-              <length>0.20</length>
+              <length>0.50</length>
             </cylinder>
           </geometry>
           <material>
@@ -566,15 +803,12 @@
           <geometry>
             <cylinder>
               <radius>0.025</radius>
-              <length>0.20</length>
+              <length>0.50</length>
             </cylinder>
           </geometry>
         </collision>
       </link>
 
-      <!-- ===================== -->
-      <!-- Red LED section -->
-      <!-- ===================== -->
       <link name="lamp_red">
         <pose>0 0 0.28 0 0 0</pose>
 
@@ -626,9 +860,6 @@
         </light>
       </link>
 
-      <!-- ===================== -->
-      <!-- Yellow LED section -->
-      <!-- ===================== -->
       <link name="lamp_yellow">
         <pose>0 0 0.40 0 0 0</pose>
 
@@ -680,9 +911,6 @@
         </light>
       </link>
 
-      <!-- ===================== -->
-      <!-- Green LED section -->
-      <!-- ===================== -->
       <link name="lamp_green">
         <pose>0 0 0.52 0 0 0</pose>
 
@@ -734,9 +962,6 @@
         </light>
       </link>
 
-      <!-- ===================== -->
-      <!-- Fixed joints -->
-      <!-- ===================== -->
       <joint name="stand_to_red" type="fixed">
         <parent>lamp_stand</parent>
         <child>lamp_red</child>
