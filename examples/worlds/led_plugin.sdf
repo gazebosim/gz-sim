@@ -71,7 +71,7 @@
     </model>
 
     <model name='vehicle_blue'>
-      <pose>0 2 0.325 0 -0 0</pose>
+      <pose>0 0 0.325 0 -0 0</pose>
 
       <link name='chassis_base'>
         <pose>-0.151427 -0 0.175 0 -0 0</pose>
@@ -527,6 +527,312 @@
             <on_time>0.12</on_time>
           </step>
         </mode>
+      </plugin>
+    </model>
+
+    <model name="tower_lamp">
+      <pose>-1.0 0.35 0.8 0 0 0</pose>
+
+      <!-- ===================== -->
+      <!-- Bottom mounting stand -->
+      <!-- ===================== -->
+      <link name="lamp_stand">
+        <pose>0 0 0.12 0 0 0</pose>
+
+        <inertial>
+          <mass>0.3</mass>
+          <inertia>
+            <ixx>0.0006</ixx>
+            <iyy>0.0006</iyy>
+            <izz>0.0003</izz>
+          </inertia>
+        </inertial>
+
+        <visual name="lamp_stand_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.025</radius>
+              <length>0.20</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+          </material>
+        </visual>
+
+        <collision name="lamp_stand_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.025</radius>
+              <length>0.20</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+
+      <!-- ===================== -->
+      <!-- Red LED section -->
+      <!-- ===================== -->
+      <link name="lamp_red">
+        <pose>0 0 0.28 0 0 0</pose>
+
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0004</ixx>
+            <iyy>0.0004</iyy>
+            <izz>0.0002</izz>
+          </inertia>
+        </inertial>
+
+        <visual name="lamp_red_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.4 0.0 0.0 1</ambient>
+            <diffuse>0.8 0.0 0.0 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+            <emissive>0.0 0.0 0.0 1</emissive>
+          </material>
+        </visual>
+
+        <collision name="lamp_red_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <light name="emergency_light" type="point">
+          <pose>0 0 0.0 0 0 0</pose>
+          <diffuse>0.8 0.0 0 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <intensity>5.0</intensity>
+          <attenuation>
+            <range>1.5</range>
+            <constant>0.8</constant>
+            <linear>0.5</linear>
+            <quadratic>0.5</quadratic>
+          </attenuation>
+          <cast_shadows>true</cast_shadows>
+        </light>
+      </link>
+
+      <!-- ===================== -->
+      <!-- Yellow LED section -->
+      <!-- ===================== -->
+      <link name="lamp_yellow">
+        <pose>0 0 0.40 0 0 0</pose>
+
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0004</ixx>
+            <iyy>0.0004</iyy>
+            <izz>0.0002</izz>
+          </inertia>
+        </inertial>
+
+        <visual name="lamp_yellow_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.4 0.4 0.0 1</ambient>
+            <diffuse>0.8 0.8 0.0 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+            <emissive>0.0 0.0 0.0 1</emissive>
+          </material>
+        </visual>
+
+        <collision name="lamp_yellow_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <light name="warning_light" type="point">
+          <pose>0 0 0.0 0 0 0</pose>
+          <diffuse>0.8 0.8 0 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <intensity>5.0</intensity>
+          <attenuation>
+            <range>1.5</range>
+            <constant>0.8</constant>
+            <linear>0.5</linear>
+            <quadratic>0.5</quadratic>
+          </attenuation>
+          <cast_shadows>true</cast_shadows>
+        </light>
+      </link>
+
+      <!-- ===================== -->
+      <!-- Green LED section -->
+      <!-- ===================== -->
+      <link name="lamp_green">
+        <pose>0 0 0.52 0 0 0</pose>
+
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0004</ixx>
+            <iyy>0.0004</iyy>
+            <izz>0.0002</izz>
+          </inertia>
+        </inertial>
+
+        <visual name="lamp_green_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.0 0.4 0.0 1</ambient>
+            <diffuse>0.0 0.8 0.0 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+            <emissive>0.0 0.0 0.0 1</emissive>
+          </material>
+        </visual>
+
+        <collision name="lamp_green_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.065</radius>
+              <length>0.12</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <light name="ready_light" type="point">
+          <pose>0 0 0.0 0 0 0</pose>
+          <diffuse>0.0 0.8 0 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <intensity>2.0</intensity>
+          <attenuation>
+            <range>1.5</range>
+            <constant>0.8</constant>
+            <linear>0.5</linear>
+            <quadratic>0.5</quadratic>
+          </attenuation>
+          <cast_shadows>true</cast_shadows>
+        </light>
+      </link>
+
+      <!-- ===================== -->
+      <!-- Fixed joints -->
+      <!-- ===================== -->
+      <joint name="stand_to_red" type="fixed">
+        <parent>lamp_stand</parent>
+        <child>lamp_red</child>
+      </joint>
+
+      <joint name="red_to_yellow" type="fixed">
+        <parent>lamp_red</parent>
+        <child>lamp_yellow</child>
+      </joint>
+
+      <joint name="yellow_to_green" type="fixed">
+        <parent>lamp_yellow</parent>
+        <child>lamp_green</child>
+      </joint>
+
+      <plugin
+        filename="gz-sim-led-plugin-system"
+        name="gz::sim::systems::LedPlugin">
+
+        <led_group_name>tower_lamp</led_group_name>
+
+        <led name="emergency_led">
+          <visual_name>lamp_red::lamp_red_visual</visual_name>
+          <light_name>lamp_red::emergency_light</light_name>
+          <default_state>
+            <color>0.3 0 0 1.0</color>
+            <intensity>0.0</intensity>
+          </default_state>
+        </led>
+        <led name="warning_led">
+          <visual_name>lamp_yellow::lamp_yellow_visual</visual_name>
+          <light_name>lamp_yellow::warning_light</light_name>
+          <default_state>
+            <color>0.3 0.3 0 1.0</color>
+            <intensity>0.0</intensity>
+          </default_state>
+        </led>
+        <led name="ready_led">
+          <visual_name>lamp_green::lamp_green_visual</visual_name>
+          <light_name>lamp_green::ready_light</light_name>
+          <default_state>
+            <color>0.0 0.3 0 1.0</color>
+            <intensity>0.0</intensity>
+          </default_state>
+        </led>
+
+        <default_mode>ready</default_mode>
+
+        <mode name="ready">
+          <active_leds>
+            <led>ready_led</led>
+          </active_leds>
+          <step always_on="false">
+            <color>0.0 1.0 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>2.0</intensity>
+          </step>
+          <step always_on="false">
+            <color>0.0 0.3 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>0.0</intensity>
+          </step>
+        </mode>
+
+        <mode name="emergency">
+          <active_leds>
+            <led>emergency_led</led>
+          </active_leds>
+          <step always_on="false">
+            <color>1.0 0.0 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>2.0</intensity>
+          </step>
+          <step always_on="false">
+            <color>0.3 0.0 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>0.0</intensity>
+          </step>
+        </mode>
+
+        <mode name="warning">
+          <active_leds>
+            <led>warning_led</led>
+          </active_leds>
+          <step always_on="false">
+            <color>0.8 0.8 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>2.0</intensity>
+          </step>
+          <step always_on="false">
+            <color>0.3 0.3 0.0 1</color>
+            <on_time>1.0</on_time>
+            <intensity>0.0</intensity>
+          </step>
+        </mode>
+
       </plugin>
     </model>
   </world>
