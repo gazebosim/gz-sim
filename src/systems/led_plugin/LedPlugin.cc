@@ -390,7 +390,7 @@ void LedPlugin::Configure(
     this->dataPtr->ledGroupName = "led_" + this->dataPtr->model.Name(_ecm);
   }
 
-  modeChangeServiceName = "/" + this->dataPtr->ledGroupName + "/change_mode";
+  modeChangeServiceName = "/" + this->dataPtr->ledGroupName + "/change_led_mode";
 
   // Read and create different LEDs as part of the group
   if (_sdf->HasElement("led"))
