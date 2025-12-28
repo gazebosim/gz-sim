@@ -58,7 +58,7 @@ struct LedModeStep
   bool alwaysOn{false};
 
   /// \brief Whether the LED should stay on indefinitely
-  math::Color ledColor{math::Color(1, 1, 1, 1)};
+  math::Color ledColor{math::Color::White};
 
   /// \brief Seconds for which the LED should stay on.
   /// Used when alwaysOn is false
@@ -87,6 +87,12 @@ struct Led
   /// \brief Entity of the light to be used with this LED
   sim::Entity ledLightEntity{kNullEntity};
 
+  /// \brief The default color to use when the LED is reset
+  math::Color defaultColor{math::Color::White};
+
+  /// \brief The default intensity to use for the light when LED is reset
+  double defaultIntensity{0.0};
+
   public: static std::optional<Led> fromSDF(sdf::ElementConstPtr _sdf,
     const EntityComponentManager &_ecm)
   {
@@ -102,6 +108,7 @@ struct Led
     led.ledName = _sdf->Get<std::string>("name");
     gzmsg << "[LED PLUGIN][LED] Creating led: " << led.ledName << std::endl;
 
+    // Use the visual name to find the Visual entity provided for LED
     if (_sdf->HasElement("visual_name"))
     {
       led.scopedVisualName = _sdf->Get<std::string>("visual_name");
@@ -126,6 +133,7 @@ struct Led
       }
     }
 
+    // Use the light name to find the Light entity provided for LED
     if (_sdf->HasElement("light_name"))
     {
       led.scopedLightName = _sdf->Get<std::string>("light_name");
@@ -148,6 +156,22 @@ struct Led
         }
 
         led.ledLightEntity = *lightEntities.begin();
+      }
+    }
+
+    // Read the default state of the LED if provided
+    if (_sdf->HasElement("default_state"))
+    {
+      sdf::ElementConstPtr defaultStateElem = _sdf->FindElement("default_state");
+
+      if (defaultStateElem->HasElement("color"))
+      {
+        led.defaultColor = defaultStateElem->Get<math::Color>("color");
+      }
+
+      if (defaultStateElem->HasElement("intensity"))
+      {
+        led.defaultIntensity = defaultStateElem->Get<double>("intensity");
       }
     }
 
@@ -740,12 +764,13 @@ void LedPluginPrivate::ResetLEDs(EntityComponentManager &_ecm)
   {
     if (led.second.ledVisualEntity != kNullEntity)
     {
-      this->SetVisualProperties(led.second.ledVisualEntity, _ecm, math::Color::White);
+      this->SetVisualProperties(led.second.ledVisualEntity, _ecm, led.second.defaultColor);
     }
 
     if (led.second.ledLightEntity != kNullEntity)
     {
-      this->SetLightProperties(led.second.ledLightEntity, _ecm, math::Color::Black, 0.0);
+      this->SetLightProperties(led.second.ledLightEntity, _ecm,
+        led.second.defaultColor, led.second.defaultIntensity);
     }
   }
 }
