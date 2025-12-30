@@ -1265,7 +1265,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
                     << "is not positive definite. "
                     << "Resetting to default to prevent physics engine crash."
                     << std::endl;
-              
+
               // Explicitly create a valid inertial with Mass=1.0.
               // A default constructed Inertiald() has Mass=0, which can cause
               // other assertions (e.g., division by zero) in dynamic bodies.
