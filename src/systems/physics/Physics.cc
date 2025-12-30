@@ -1265,11 +1265,17 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
                     << "is not positive definite. "
                     << "Resetting to default to prevent physics engine crash."
                     << std::endl;
-
-              // Reset to default (Mass=1, Identity Inertia, Zero Added Mass)
-              // const_cast is needed as we are sanitizing the source SDF.
-              const_cast<sdf::Link *>(sdfLink)->SetInertial(
-                  gz::math::Inertiald());
+              
+              // Explicitly create a valid inertial with Mass=1.0.
+              // A default constructed Inertiald() has Mass=0, which can cause
+              // other assertions (e.g., division by zero) in dynamic bodies.
+              gz::math::MassMatrix3d safeMass(
+                  1.0, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+              gz::math::Inertiald safeInertial(
+                  safeMass, gz::math::Pose3d::Zero);
+              // Use const_cast to sanitize the source SDF data
+              auto mutableLink = const_cast<sdf::Link *>(sdfLink);
+              mutableLink->SetInertial(safeInertial);
             }
           }
         }
@@ -1491,8 +1497,13 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
                   << "not positive definite. Resetting to default."
                   << std::endl;
 
-            // Set safe default for physics
-            link.SetInertial(gz::math::Inertiald());
+            // Reset to Mass=1.0 to ensure positive definiteness and avoid
+            // zero-mass singularities in the solver.
+            gz::math::MassMatrix3d safeMass(
+                1.0, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+            gz::math::Inertiald safeInertial(
+                safeMass, gz::math::Pose3d::Zero);
+            link.SetInertial(safeInertial);
           }
         }
 
