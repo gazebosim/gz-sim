@@ -1242,6 +1242,38 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         root.SetModel(model);
         root.UpdateGraphs();
 
+        // Sanitize inertial properties to prevent physics engine crashes.
+        // Specifically, DART asserts on NaN if the spatial inertia matrix
+        // (mass + inertia + fluid added mass) is not positive definite.
+        const sdf::Model *safeModel = root.Model();
+        if (safeModel)
+        {
+          for (uint64_t i = 0; i < safeModel->LinkCount(); ++i)
+          {
+            auto sdfLink = safeModel->LinkByIndex(i);
+            if (!sdfLink) continue;
+
+            // Convert to Eigen to check positive definiteness via LLT
+            Eigen::Matrix<double, 6, 6> spatialM =
+                gz::math::eigen3::convert(sdfLink->Inertial().SpatialMatrix());
+
+            if (spatialM.llt().info() != Eigen::Success)
+            {
+              gzerr << "Invalid inertial properties detected for Link ["
+                    << sdfLink->Name() << "] in Model [" << safeModel->Name()
+                    << "]. The spatial inertia matrix (including added mass) "
+                    << "is not positive definite. "
+                    << "Resetting to default to prevent physics engine crash."
+                    << std::endl;
+
+              // Reset to default (Mass=1, Identity Inertia, Zero Added Mass)
+              // const_cast is needed as we are sanitizing the source SDF.
+              const_cast<sdf::Link *>(sdfLink)->SetInertial(
+                  gz::math::Inertiald());
+            }
+          }
+        }
+
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
@@ -1439,9 +1471,29 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
 
         // get link inertial
         auto inertial = _ecm.Component<components::Inertial>(_entity);
+        // Check inertial validity
         if (inertial)
         {
-          link.SetInertial(inertial->Data());
+          // Convert matrix6 to Eigen for validation
+          Eigen::Matrix<double, 6, 6> spatialM =
+              gz::math::eigen3::convert(inertial->Data().SpatialMatrix());
+
+          // Use LLT decomposition to check if matrix is positive definite.
+          // This prevents crashes in physics engines like DART.
+          if (spatialM.llt().info() == Eigen::Success)
+          {
+            link.SetInertial(inertial->Data());
+          }
+          else
+          {
+            gzerr << "Invalid inertial properties for dynamic Link ["
+                  << _name->Data() << "]. The spatial inertia matrix is "
+                  << "not positive definite. Resetting to default."
+                  << std::endl;
+
+            // Set safe default for physics
+            link.SetInertial(gz::math::Inertiald());
+          }
         }
 
         // get link gravity
