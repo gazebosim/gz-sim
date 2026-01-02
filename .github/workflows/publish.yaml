@@ -1,0 +1,44 @@
+# Publish new releases to Bazel Central Registry.
+name: Publish to BCR
+on:
+  # For now, the workflow must be manually triggered.
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: git tag being released
+        required: true
+        type: string
+jobs:
+  # The publish-to-bcr reusable workflow expects the version name to be in
+  # semver-(optional build metadata postfix) format, but the repo tags are in
+  # branch_semver-postfix format. This job extracts the branch name as a prefix
+  # to pass to publish-to-bcr.
+  extract_tag_prefix:
+    runs-on: ubuntu-latest
+    outputs:
+      prefix: ${{ steps.extract.outputs.prefix }}
+    steps:
+      - name: Extract the tag prefix from the tag name.
+        id: extract
+        run: |
+          branch=$(echo "${{ inputs.tag_name }}" | cut -d'_' -f1)
+          prefix="${branch}_"
+          echo "prefix=${prefix}" | tee -a "$GITHUB_OUTPUT"
+
+  publish:
+    needs: extract_tag_prefix
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.0.0
+    with:
+      tag_name: ${{ inputs.tag_name }}
+      # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
+      registry_fork: gazebo-forks/bazel-central-registry
+      attest: false
+      tag_prefix: ${{ needs.extract_tag_prefix.outputs.prefix }}
+
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    secrets:
+      # Necessary to push to the BCR fork, and to open a pull request against a registry
+      publish_token: ${{ secrets.publish_token || secrets.BCR_PUBLISH_TOKEN }}
