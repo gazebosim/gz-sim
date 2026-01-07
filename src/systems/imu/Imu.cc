@@ -323,7 +323,7 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           auto gravity = _ecm.Component<components::Gravity>(worldEntity);
           if (nullptr != gravity)
           {
-          it->second->SetGravity(gravity->Data());
+            it->second->SetGravity(gravity->Data());
           }
           else
           {
