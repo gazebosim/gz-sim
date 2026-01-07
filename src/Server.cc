@@ -85,19 +85,28 @@ Server::Server(const ServerConfig &_config)
   sdf::Root sdfRoot;
 
   // Loads the SDF root object based on values in a ServerConfig object.
-  // Ignore the sdf::Errors returned by this function. The errors will be
-  // displayed later in the downloadThread.
   ServerConfig cfg = _config;
   cfg.SetBehaviorOnSdfErrors(
     ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
   sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(
     cfg, sdfRoot);
 
+  // Output any errors.
+  if (!errors.empty())
+  {
+    for (auto &err : errors)
+      gzerr << err << "\n";
+  }
+
   // Add record plugin
   if (_config.UseLogRecord())
   {
     this->dataPtr->AddRecordPlugin(_config, sdfRoot);
   }
+
+  // Storing the sdf root. This object is used in the DownloadAssets
+  // function to avoid parsing the SDF file twice.
+  this->dataPtr->sdfRoot = sdfRoot;
 
   // Remove all the models, lights, and actors from the primary sdfRoot object
   // so that they can be downloaded and added to simulation in the background.
@@ -110,13 +119,6 @@ Server::Server(const ServerConfig &_config)
 
   // This will create the simulation runners, but not entities.
   this->dataPtr->CreateSimulationRunners(sdfRoot);
-
-  // Storing the sdf root. The ServerPrivate.hh header file mentions
-  // that other classes may keep pointers to child nodes of the root,
-  // so we need to keep this object around.
-  // However, everything seems to work fine without storing this.
-  // \todo(nkoenig): Look into removing the sdfRoot member variable.
-  this->dataPtr->sdfRoot = sdfRoot;
 
   // Establish publishers and subscribers. Setup transport before
   // downloading simulation assets so that the GUI is not blocked during

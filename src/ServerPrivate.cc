@@ -782,23 +782,11 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     // Fetch queued assets
     this->FetchQueuedAssets();
 
-    // Reload the SDF root, which will cause the models to download.
-    sdf::Root localRoot;
-    sdf::Errors localErrors = this->LoadSdfRootHelper(_config,
-        localRoot, true);
-
-    // Output any errors.
-    if (!localErrors.empty())
-    {
-      for (auto &err : localErrors)
-        gzerr << err << "\n";
-    }
-
     // Add the models back into the worlds.
     for (auto &runner : this->simRunners)
     {
       // Get a pointer to the SDF world
-      sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
+      sdf::World *world = this->sdfRoot.WorldByName(runner->WorldSdf().Name());
       if (!world)
       {
         gzerr << "Unable to find world with name["
