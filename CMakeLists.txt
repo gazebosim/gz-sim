@@ -10,7 +10,7 @@ set (GZ_DISTRIBUTION "Jetty")
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake REQUIRED)
+find_package(gz-cmake 5 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -84,24 +84,24 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat REQUIRED)
+gz_find_package(sdformat VERSION 16 REQUIRED)
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin REQUIRED COMPONENTS loader register)
+gz_find_package(gz-plugin VERSION 4 REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
+gz_find_package(gz-transport VERSION 15 REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs REQUIRED)
+gz_find_package(gz-msgs VERSION 12 REQUIRED)
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common
+gz_find_package(gz-common VERSION 7
   COMPONENTS
     av
     events
@@ -116,13 +116,13 @@ list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools REQUIRED)
+gz_find_package(gz-fuel_tools VERSION 11 REQUIRED)
 
 # Option to build gz-sim with GUI support
 option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
-  gz_find_package(gz-gui REQUIRED)
+  gz_find_package(gz-gui VERSION 10 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
@@ -145,7 +145,7 @@ endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics
+gz_find_package(gz-physics VERSION 9
   COMPONENTS
     heightmap
     mesh
@@ -155,7 +155,7 @@ gz_find_package(gz-physics
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors REQUIRED
+gz_find_package(gz-sensors VERSION 10 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -186,11 +186,11 @@ gz_find_package(gz-sensors REQUIRED
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering REQUIRED)
+gz_find_package(gz-rendering VERSION 10 REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math REQUIRED COMPONENTS eigen3)
+gz_find_package(gz-math VERSION 9 REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
@@ -206,7 +206,7 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils REQUIRED COMPONENTS cli)
+gz_find_package(gz-utils VERSION 4 REQUIRED COMPONENTS cli)
 
 
 #--------------------------------------
