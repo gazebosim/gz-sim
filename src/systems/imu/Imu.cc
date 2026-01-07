@@ -327,8 +327,8 @@ void ImuPrivate::Update(const EntityComponentManager &_ecm)
           }
           else
           {
-            gzerr << "World missing gravity."<<
-            "Gravity used by imu sensor may be outdated" << std::endl;
+            gzerr << "World missing gravity."  <<
+              "Gravity used by imu sensor may be outdated" << std::endl;
           }
           // Set the IMU angular velocity (defined in imu's local frame)
           it->second->SetAngularVelocity(_angularVel->Data());
