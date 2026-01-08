@@ -1259,21 +1259,27 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
 
             if (spatialM.llt().info() != Eigen::Success)
             {
+              auto originalInertial = sdfLink->Inertial();
+              double origMass = originalInertial.MassMatrix().Mass();
+              gz::math::Pose3d origPose = originalInertial.Pose();
+
+              // Keep original mass if valid (>0)
+              // otherwise default to 1.0 to prevent crashes.
+              double safeMass = (origMass > 1e-6) ? origMass : 1.0;
+
               gzerr << "Invalid inertial properties detected for Link ["
                     << sdfLink->Name() << "] in Model [" << safeModel->Name()
-                    << "]. The spatial inertia matrix (including added mass) "
-                    << "is not positive definite. "
-                    << "Resetting to default to prevent physics engine crash."
-                    << std::endl;
+                    << "]. Spatial inertia is not positive definite. "
+                    << "Resetting inertia tensor to Identity but preserving "
+                    << "Mass (" << safeMass << ") and CoM Pose." << std::endl;
 
-              // Explicitly create a valid inertial with Mass=1.0.
-              // A default constructed Inertiald() has Mass=0, which can cause
-              // other assertions (e.g., division by zero) in dynamic bodies.
-              gz::math::MassMatrix3d safeMass(
-                  1.0, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
-              gz::math::Inertiald safeInertial(
-                  safeMass, gz::math::Pose3d::Zero);
-              // Use const_cast to sanitize the source SDF data
+              // Create safe matrix
+              gz::math::MassMatrix3d safeMatrix(
+                  safeMass, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+
+              // Apply safe matrix and original pose
+              gz::math::Inertiald safeInertial(safeMatrix, origPose);
+
               auto mutableLink = const_cast<sdf::Link *>(sdfLink);
               mutableLink->SetInertial(safeInertial);
             }
@@ -1492,17 +1498,25 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           }
           else
           {
+            double origMass = inertial->Data().MassMatrix().Mass();
+            gz::math::Pose3d origPose = inertial->Data().Pose();
+
+            // Keep original mass if valid (>0), else default to 1.0
+            double safeMass = (origMass > 1e-6) ? origMass : 1.0;
+
             gzerr << "Invalid inertial properties for dynamic Link ["
-                  << _name->Data() << "]. The spatial inertia matrix is "
-                  << "not positive definite. Resetting to default."
+                  << _name->Data() << "]. Spatial inertia is not positive "
+                  << "definite. Resetting inertia tensor to Identity but "
+                  << "preserving Mass (" << safeMass << ") and CoM Pose."
                   << std::endl;
 
-            // Reset to Mass=1.0 to ensure positive definiteness and avoid
-            // zero-mass singularities in the solver.
-            gz::math::MassMatrix3d safeMass(
-                1.0, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
-            gz::math::Inertiald safeInertial(
-                safeMass, gz::math::Pose3d::Zero);
+            // Create safe matrix: preserved mass, identity inertia
+            gz::math::MassMatrix3d safeMatrix(
+                safeMass, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+
+            // Apply safe matrix with original CoM pose
+            gz::math::Inertiald safeInertial(safeMatrix, origPose);
+
             link.SetInertial(safeInertial);
           }
         }
