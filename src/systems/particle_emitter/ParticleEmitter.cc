@@ -21,7 +21,6 @@
 #include <map>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/msgs/Utility.hh>
@@ -154,19 +153,6 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
         {
           std::string topic = _emitter->Data().topic().data();
 
-          // Get the topic information from the header, which is currently a
-          // hack to avoid breaking the particle_emitter.proto message.
-          if (topic.empty() && _emitter->Data().has_header())
-          {
-            for (const auto & data : _emitter->Data().header().data())
-            {
-              if (data.key() == "topic" && !data.value().empty())
-              {
-                topic = data.value(0);
-              }
-            }
-          }
-
           // If a topic has not been specified, then generate topic based
           // on the scoped name.
           if (topic.empty())
@@ -196,14 +182,6 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
             this->dataPtr->serviceMsg.add_particle_emitter();
           emitterMsg->CopyFrom(_emitter->Data());
           msgs::Set(emitterMsg->mutable_pose(), _pose->Data());
-
-          // Set the topic information if it was not set via SDF.
-          if (!emitterMsg->has_header())
-          {
-            auto headerData = emitterMsg->mutable_header()->add_data();
-            headerData->set_key("topic");
-            headerData->add_value(topic);
-          }
 
           // Set the particle emitter frame
           auto frameData = emitterMsg->mutable_header()->add_data();
