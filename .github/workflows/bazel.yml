@@ -22,3 +22,4 @@ jobs:
         [
           {"folder": ".", "bzlmodEnabled": false},
         ]
+      exclude_windows: true
