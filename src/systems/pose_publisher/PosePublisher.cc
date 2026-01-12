@@ -533,6 +533,9 @@ void PosePublisherPrivate::PublishPoses(
 {
   GZ_PROFILE("PosePublisher::PublishPoses");
 
+  if (_poses.empty())
+    return;
+
   // publish poses
   msgs::Pose *msg = nullptr;
   if (this->usePoseV)
