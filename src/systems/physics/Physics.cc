@@ -1245,6 +1245,10 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         // Sanitize inertial properties to prevent physics engine crashes.
         // Specifically, DART asserts on NaN if the spatial inertia matrix
         // (mass + inertia + fluid added mass) is not positive definite.
+        // Incorrect or inconsistent fluid_added_mass coefficients can make the
+        // combined 6x6 spatial inertia have negative eigenvalues (i.e., become
+        // non-positive definite), so we detect that here and fall back to a
+        // safe inertia to keep the engine stable.
         const sdf::Model *safeModel = root.Model();
         if (safeModel)
         {
