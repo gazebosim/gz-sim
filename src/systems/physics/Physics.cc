@@ -1510,13 +1510,19 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
 
             gzerr << "Invalid inertial properties for dynamic Link ["
                   << _name->Data() << "]. Spatial inertia is not positive "
-                  << "definite. Resetting inertia tensor to Identity but "
-                  << "preserving Mass (" << safeMass << ") and CoM Pose."
+                  << "definite. Resetting inertia tensor to a simple "
+                  << "mass-proportional default while preserving Mass ("
+                  << safeMass << ") and CoM Pose."
                   << std::endl;
 
-            // Create safe matrix: preserved mass, identity inertia
+            // Create safe matrix: preserved mass, inertia based on a
+            // simple reference geometry (solid sphere with radius 0.5 m).
+            // I_sphere = (2/5) * m * r^2; with r = 0.5 -> I = 0.1 * m
+            const double inertiaDiag = 0.1 * safeMass;
             gz::math::MassMatrix3d safeMatrix(
-                safeMass, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+                safeMass,
+                gz::math::Vector3d(inertiaDiag, inertiaDiag, inertiaDiag),
+                gz::math::Vector3d::Zero);
 
             // Apply safe matrix with original CoM pose
             gz::math::Inertiald safeInertial(safeMatrix, origPose);
