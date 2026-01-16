@@ -846,7 +846,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
-  auto nextUpdateTime = std::chrono::steady_clock::now();
+  auto nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
@@ -904,20 +904,24 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       std::this_thread::sleep_until(nextUpdateTime);
 
       // Schedule the next update time.
-      // If the work took longer than the update period, this will be in the
-      // past, and the next sleep will be skipped to catch up.
+      auto now = std::chrono::steady_clock::now();
       nextUpdateTime += this->updatePeriod;
+      if (nextUpdateTime < now)
+      {
+        nextUpdateTime = now + this->updatePeriod;
+      }
     }
     else
     {
-      // When paused, we don't want to advance the update schedule.
-      // We'll reset it to the current time, so that when we unpause,
-      // it starts fresh.
-      nextUpdateTime = std::chrono::steady_clock::now();
       // We still need a small sleep to prevent this loop from spinning
       // at 100% CPU when paused.
       using namespace std::chrono_literals;
       std::this_thread::sleep_for(1ms);
+
+      // When paused, pre-schedule the next update time for the near future.
+      // This ensures that when the simulation is un-paused, the first step
+      // has a valid schedule to meet, preventing a jump in RTF.
+      nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
     }
   }
 
