@@ -733,14 +733,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
-  // Variables for time keeping.
-  std::chrono::steady_clock::time_point startTime;
-  std::chrono::steady_clock::duration sleepTime;
-  std::chrono::steady_clock::duration actualSleep;
-
   this->running = true;
-
-  this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
@@ -900,8 +893,34 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     // Only sleep when not paused.
     if (!this->currentInfo.paused)
     {
-      // Sleep until the next scheduled update time.
-      std::this_thread::sleep_until(nextUpdateTime);
+      // A hybrid sleep/busy-wait strategy is used for precise timing. A simple
+      // sleep can suffer from wake-up latency due to CPU power-saving states
+      // (C-states), which causes RTF to undershoot. This strategy sleeps for
+      // long waits but busy-waits for the final moments to ensure precision.
+      // The threshold is a conservative value based on typical C-state
+      // latencies.
+      using namespace std::chrono_literals;
+
+      // Threshold at which we switch from sleeping to spinning. This should be
+      // larger than the typical OS + CPU C-state latency.
+      constexpr auto kSpinThreshold = 200us;
+
+      // If the scheduled update time is in the future...
+      if (nextUpdateTime > std::chrono::steady_clock::now())
+      {
+        // ...sleep until we are close to the target time.
+        auto sleepTarget = nextUpdateTime - kSpinThreshold;
+        if (sleepTarget > std::chrono::steady_clock::now())
+        {
+          std::this_thread::sleep_until(sleepTarget);
+        }
+
+        // ...then busy-wait for the final moments for precision.
+        while (std::chrono::steady_clock::now() < nextUpdateTime)
+        {
+          // Spin.
+        }
+      }
 
       // Schedule the next update time.
       auto now = std::chrono::steady_clock::now();
