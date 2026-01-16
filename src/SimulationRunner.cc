@@ -740,6 +740,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   this->running = true;
 
+  this->prevUpdateRealTime = std::chrono::steady_clock::now();
+
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
   {
@@ -844,6 +846,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
+  auto nextUpdateTime = std::chrono::steady_clock::now();
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
@@ -858,32 +861,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
-
-    // Compute the time to sleep in order to match, as closely as possible,
-    // the update period.
-    sleepTime = 0ns;
-    actualSleep = 0ns;
-
-    sleepTime = std::max(0ns, this->prevUpdateRealTime +
-        this->updatePeriod - std::chrono::steady_clock::now() -
-        this->sleepOffset);
-
-    // Only sleep if needed.
-    if (sleepTime > 0ns)
-    {
-      GZ_PROFILE("Sleep");
-      // Get the current time, sleep for the duration needed to match the
-      // updatePeriod, and then record the actual time slept.
-      startTime = std::chrono::steady_clock::now();
-      std::this_thread::sleep_for(sleepTime);
-      actualSleep = std::chrono::steady_clock::now() - startTime;
-    }
-
-    // Exponentially average out the difference between expected sleep time
-    // and actual sleep time.
-    this->sleepOffset =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-          (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
     // Update time information. This will update the iteration count, RTF,
     // and other values.
@@ -919,6 +896,29 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
 
     this->resetInitiated = false;
+
+    // Only sleep when not paused.
+    if (!this->currentInfo.paused)
+    {
+      // Sleep until the next scheduled update time.
+      std::this_thread::sleep_until(nextUpdateTime);
+
+      // Schedule the next update time.
+      // If the work took longer than the update period, this will be in the
+      // past, and the next sleep will be skipped to catch up.
+      nextUpdateTime += this->updatePeriod;
+    }
+    else
+    {
+      // When paused, we don't want to advance the update schedule.
+      // We'll reset it to the current time, so that when we unpause,
+      // it starts fresh.
+      nextUpdateTime = std::chrono::steady_clock::now();
+      // We still need a small sleep to prevent this loop from spinning
+      // at 100% CPU when paused.
+      using namespace std::chrono_literals;
+      std::this_thread::sleep_for(1ms);
+    }
   }
 
   this->running = false;
@@ -949,9 +949,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Publish info
   this->PublishStats();
-
-  // Record when the update step starts.
-  this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
   this->levelMgr->UpdateLevelsState();
 
