@@ -22,6 +22,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Joint.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -136,3 +137,26 @@ TEST(JointTest, Sensors)
   gz::sim::Joint jointC(jointCEntity);
   EXPECT_EQ(0u, jointC.Sensors(ecm).size());
 }
+
+/////////////////////////////////////////////////
+TEST(JointTest, VelocityLimits)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetMaxVelocity(5.0);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.VelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0].X(), -5.0);
+  EXPECT_DOUBLE_EQ((*limits)[0].Y(),  5.0);
+}
+

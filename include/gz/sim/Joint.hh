@@ -275,6 +275,12 @@ namespace gz
       public: std::optional<Model> ParentModel(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get joint velocity limits.
+      /// \param[in] _ecm Entity component manager.
+      /// \return Velocity limits if available.
+      public: std::optional<std::vector<gz::math::Vector2d>>
+      VelocityLimits(const EntityComponentManager &_ecm) const;
+
       /// \brief Private data pointer.
       GZ_UTILS_IMPL_PTR(dataPtr)
     };
