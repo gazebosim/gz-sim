@@ -167,4 +167,3 @@ TEST(JointTest, VelocityLimitsMultiAxis)
   EXPECT_DOUBLE_EQ((*limits)[1].Y(),  2.0);
 }
 
-
