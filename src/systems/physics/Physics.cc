@@ -1274,8 +1274,9 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
               gzerr << "Invalid inertial properties detected for Link ["
                     << sdfLink->Name() << "] in Model [" << safeModel->Name()
                     << "]. Spatial inertia is not positive definite. "
-                    << "Resetting inertia tensor to Identity but preserving "
-                    << "Mass (" << safeMass << ") and CoM Pose." << std::endl;
+                    << "Resetting inertia tensor to diagonal [1, 1, 1] "
+                    << "while preserving mass (" << safeMass << ") and CoM pose."
+                    << std::endl;
 
               // Create safe matrix
               gz::math::MassMatrix3d safeMatrix(
