@@ -165,3 +165,40 @@ TEST(JointTest, VelocityLimitsMultiAxis)
   EXPECT_DOUBLE_EQ((*limits)[1].X(), -2.0);
   EXPECT_DOUBLE_EQ((*limits)[1].Y(),  2.0);
 }
+
+/////////////////////////////////////////////////
+TEST(JointTest, VelocityLimitsSingleAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetMaxVelocity(3.0);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.VelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0].X(), -3.0);
+  EXPECT_DOUBLE_EQ((*limits)[0].Y(),  3.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, VelocityLimitsNoAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.VelocityLimits(ecm);
+
+  EXPECT_FALSE(limits.has_value());
+}
