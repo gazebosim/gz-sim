@@ -136,3 +136,32 @@ TEST(JointTest, Sensors)
   gz::sim::Joint jointC(jointCEntity);
   EXPECT_EQ(0u, jointC.Sensors(ecm).size());
 }
+
+/////////////////////////////////////////////////
+TEST(JointTest, VelocityLimitsMultiAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis1;
+  axis1.Data().SetMaxVelocity(5.0);
+  ecm.CreateComponent(jointEntity, axis1);
+
+  gz::sim::components::JointAxis2 axis2;
+  axis2.Data().SetMaxVelocity(2.0);
+  ecm.CreateComponent(jointEntity, axis2);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.VelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 2u);
+
+  EXPECT_DOUBLE_EQ((*limits)[0].X(), -5.0);
+  EXPECT_DOUBLE_EQ((*limits)[0].Y(),  5.0);
+  EXPECT_DOUBLE_EQ((*limits)[1].X(), -2.0);
+  EXPECT_DOUBLE_EQ((*limits)[1].Y(),  2.0);
+}
