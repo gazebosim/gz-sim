@@ -387,7 +387,7 @@ std::optional<Model> Joint::ParentModel(const EntityComponentManager &_ecm)
 
 //////////////////////////////////////////////////
 std::optional<std::vector<double>>
-Joint::VelocityLimits(const EntityComponentManager &_ecm) const
+Joint::MaxVelocityLimits(const EntityComponentManager &_ecm) const
 {
   std::vector<double> limits;
 
