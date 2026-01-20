@@ -138,7 +138,7 @@ TEST(JointTest, Sensors)
 }
 
 /////////////////////////////////////////////////
-TEST(JointTest, VelocityLimitsMultiAxis)
+TEST(JointTest, MaxVelocityLimitsMultiAxis)
 {
   gz::sim::EntityComponentManager ecm;
 
@@ -155,7 +155,7 @@ TEST(JointTest, VelocityLimitsMultiAxis)
 
   gz::sim::Joint joint(jointEntity);
 
-  auto limits = joint.VelocityLimits(ecm);
+  auto limits = joint.MaxVelocityLimits(ecm);
 
   ASSERT_TRUE(limits.has_value());
   ASSERT_EQ(limits->size(), 2u);
@@ -165,7 +165,7 @@ TEST(JointTest, VelocityLimitsMultiAxis)
 }
 
 /////////////////////////////////////////////////
-TEST(JointTest, VelocityLimitsSingleAxis)
+TEST(JointTest, MaxVelocityLimitsSingleAxis)
 {
   gz::sim::EntityComponentManager ecm;
 
@@ -178,7 +178,7 @@ TEST(JointTest, VelocityLimitsSingleAxis)
 
   gz::sim::Joint joint(jointEntity);
 
-  auto limits = joint.VelocityLimits(ecm);
+  auto limits = joint.MaxVelocityLimits(ecm);
 
   ASSERT_TRUE(limits.has_value());
   ASSERT_EQ(limits->size(), 1u);
@@ -186,7 +186,7 @@ TEST(JointTest, VelocityLimitsSingleAxis)
 }
 
 /////////////////////////////////////////////////
-TEST(JointTest, VelocityLimitsNoAxis)
+TEST(JointTest, MaxVelocityLimitsNoAxis)
 {
   gz::sim::EntityComponentManager ecm;
 
@@ -195,7 +195,7 @@ TEST(JointTest, VelocityLimitsNoAxis)
 
   gz::sim::Joint joint(jointEntity);
 
-  auto limits = joint.VelocityLimits(ecm);
+  auto limits = joint.MaxVelocityLimits(ecm);
 
   EXPECT_FALSE(limits.has_value());
 }
