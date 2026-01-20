@@ -87,13 +87,13 @@ Rectangle {
         propagateComposedEvents: true
         onPressed: (mouse) => {
           var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
-          if (copyButton.contains(local)) {
+          if (copyButton.enabled && copyButton.contains(local)) {
             mouse.accepted = false
           }
         }
         onClicked: (mouse) => {
           var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
-          if (copyButton.contains(local)) {
+          if (copyButton.enabled && copyButton.contains(local)) {
             mouse.accepted = false
             return
           }

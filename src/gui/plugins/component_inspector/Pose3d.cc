@@ -18,6 +18,8 @@
 #include <string>
 #include <QGuiApplication>
 #include <QClipboard>
+#include <iomanip>
+#include <limits>
 #include <sstream>
 
 #include <gz/msgs/boolean.pb.h>
@@ -74,6 +76,7 @@ void Pose3d::CopySdfPose(const QVariantList &_pose)
     return;
 
   std::ostringstream ss;
+  ss << std::setprecision(std::numeric_limits<double>::max_digits10);
   ss << "<pose>"
      << _pose[0].toDouble() << " "
      << _pose[1].toDouble() << " "
