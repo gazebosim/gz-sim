@@ -276,15 +276,13 @@ namespace gz
           const EntityComponentManager &_ecm) const;
 
       /// \brief Get joint velocity limits.
-      /// \details For each axis, the X() component of the gz::math::Vector2d
-      /// specifies the minimum velocity limit, and the Y() component specifies
-      /// the maximum velocity limit. The size of the returned vector corresponds
-      /// to the joint's degrees of freedom. For multi-axis joints, limits are
-      /// returned for each axis in order (for example, including both JointAxis
-      /// and JointAxis2 when applicable).
+      /// \details For each axis, returns the maximum velocity limit. The size of
+      /// the returned vector corresponds to the joint's degrees of freedom. For
+      /// multi-axis joints, limits are returned for each axis in order (for
+      /// example, including both JointAxis and JointAxis2 when applicable).
       /// \param[in] _ecm Entity component manager.
       /// \return Velocity limits if available.
-      public: std::optional<std::vector<gz::math::Vector2d>>
+      public: std::optional<std::vector<double>>
       VelocityLimits(const EntityComponentManager &_ecm) const;
 
       /// \brief Private data pointer.
