@@ -1,0 +1,65 @@
+load(
+    "@gz//bazel/skylark:build_defs.bzl",
+    "GZ_FEATURES",
+    "GZ_ROOT",
+    "GZ_VISIBILITY",
+    "gz_configure_header",
+    "gz_export_header",
+    "gz_include_header",
+)
+load(
+    "@gz//msgs/tools:gz_msgs_generate.bzl",
+    "gz_proto_factory",
+    "gz_proto_library",
+)
+
+package(
+    default_visibility = GZ_VISIBILITY,
+    features = GZ_FEATURES,
+)
+
+licenses(["notice"])  # Apache-2.0
+
+exports_files(["LICENSE"])
+
+protos = glob(["src/proto/gz/sim/private_msgs/*.proto"])
+
+# Create a library of our protobuf message files
+proto_library(
+    name = "gzsim_proto",
+    srcs = protos,
+    strip_import_prefix = "src/proto",
+    deps = [
+        GZ_ROOT + "msgs:gzmsgs_proto",
+    ],
+)
+
+gz_proto_library(
+    name = "gzsim_cc_proto",
+    proto_deps = [":gzsim_proto"],
+    deps = [
+        "@com_google_protobuf//:protobuf",
+        GZ_ROOT + "msgs:gzmsgs_cc_proto",
+    ],
+)
+
+gz_proto_factory(
+    name = "gzsim_proto_factory",
+    cc_output = "RegisterMsgs.cc",
+    hh_output = "include/gz/sim/private_msgs/MessageTypes.hh",
+    deps = [":gzsim_proto"],
+)
+
+cc_binary(
+    name = "test_executable",
+    srcs = [
+        "RegisterMsgs.cc",
+        "include/gz/sim/private_msgs/MessageTypes.hh",
+        "test_executable.cc",
+    ],
+    includes = ["include"],
+    deps = [
+        ":gzsim_cc_proto",
+        GZ_ROOT + "msgs",
+    ],
+)
