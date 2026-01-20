@@ -16,6 +16,9 @@
 */
 
 #include <string>
+#include <QGuiApplication>
+#include <QClipboard>
+#include <sstream>
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
@@ -62,4 +65,26 @@ void Pose3d::OnPose(double _x, double _y, double _z, double _roll,
   std::string poseCmdService("/world/" + this->inspector->WorldName()
       + "/set_pose");
   this->inspector->TransportNode().Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void Pose3d::CopySdfPose(const QVariantList &_pose)
+{
+  if (_pose.size() != 6)
+    return;
+
+  std::ostringstream ss;
+  ss << "<pose>"
+     << _pose[0].toDouble() << " "
+     << _pose[1].toDouble() << " "
+     << _pose[2].toDouble() << " "
+     << _pose[3].toDouble() << " "
+     << _pose[4].toDouble() << " "
+     << _pose[5].toDouble()
+     << "</pose>";
+
+  if (auto *clipboard = QGuiApplication::clipboard())
+  {
+    clipboard->setText(QString::fromStdString(ss.str()));
+  }
 }
