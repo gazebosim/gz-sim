@@ -1,0 +1,84 @@
+<?xml version='1.0'?>
+<sdf version="1.9">
+  <world name="drive_to_pose_controller">
+    <gravity>0 0 -9.8</gravity>
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="DeliveryBot">
+      <include>
+        <pose>0 0 0.1 0 0 0</pose>
+        <uri>
+          https://fuel.gazebosim.org/1.0/OpenRobotics/models/DeliveryBot
+        </uri>
+
+        <!-- Differential Drive -->
+        <plugin
+          filename="gz-sim-diff-drive-system"
+          name="gz::sim::systems::DiffDrive">
+          <left_joint>joint_tire_left</left_joint>
+          <right_joint>joint_tire_right</right_joint>
+          <wheel_separation>0.52</wheel_separation>
+          <wheel_radius>0.06137</wheel_radius>
+          <max_linear_acceleration>1</max_linear_acceleration>
+          <min_linear_acceleration>-1</min_linear_acceleration>
+          <max_angular_acceleration>2</max_angular_acceleration>
+          <min_angular_acceleration>-2</min_angular_acceleration>
+          <max_linear_velocity>1.0</max_linear_velocity>
+          <min_linear_velocity>-1.0</min_linear_velocity>
+          <max_angular_velocity>1</max_angular_velocity>
+          <min_angular_velocity>-1</min_angular_velocity>
+        </plugin>
+
+        <!-- Odometry Publisher -->
+        <plugin
+          filename="gz-sim-odometry-publisher-system"
+          name="gz::sim::systems::OdometryPublisher">
+        </plugin>
+
+        <!-- Drive To Pose Controller -->
+        <plugin
+          filename="gz-sim-drive-to-pose-controller-system"
+          name="gz::sim::systems::DriveToPoseController">
+          <linear_p_gain>1.0</linear_p_gain>
+          <angular_p_gain>2.0</angular_p_gain>
+          <linear_deviation>0.1</linear_deviation>
+          <angular_deviation>0.05</angular_deviation>
+        </plugin>
+      </include>
+    </model>
+  </world>
+</sdf>
