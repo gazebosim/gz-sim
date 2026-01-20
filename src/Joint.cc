@@ -386,23 +386,21 @@ std::optional<Model> Joint::ParentModel(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-std::optional<std::vector<gz::math::Vector2d>>
+std::optional<std::vector<double>>
 Joint::VelocityLimits(const EntityComponentManager &_ecm) const
 {
-  std::vector<gz::math::Vector2d> limits;
+  std::vector<double> limits;
 
   auto axis1 = _ecm.Component<components::JointAxis>(this->dataPtr->id);
   if (!axis1)
     return std::nullopt;
 
-  const double maxVel1 = axis1->Data().MaxVelocity();
-  limits.emplace_back(-maxVel1, maxVel1);
+  limits.push_back(axis1->Data().MaxVelocity());
 
   auto axis2 = _ecm.Component<components::JointAxis2>(this->dataPtr->id);
   if (axis2)
   {
-    const double maxVel2 = axis2->Data().MaxVelocity();
-    limits.emplace_back(-maxVel2, maxVel2);
+    limits.push_back(axis2->Data().MaxVelocity());
   }
 
   return limits;

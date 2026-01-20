@@ -160,10 +160,8 @@ TEST(JointTest, VelocityLimitsMultiAxis)
   ASSERT_TRUE(limits.has_value());
   ASSERT_EQ(limits->size(), 2u);
 
-  EXPECT_DOUBLE_EQ((*limits)[0].X(), -5.0);
-  EXPECT_DOUBLE_EQ((*limits)[0].Y(),  5.0);
-  EXPECT_DOUBLE_EQ((*limits)[1].X(), -2.0);
-  EXPECT_DOUBLE_EQ((*limits)[1].Y(),  2.0);
+  EXPECT_DOUBLE_EQ((*limits)[0], 5.0);
+  EXPECT_DOUBLE_EQ((*limits)[1], 2.0);
 }
 
 /////////////////////////////////////////////////
@@ -184,8 +182,7 @@ TEST(JointTest, VelocityLimitsSingleAxis)
 
   ASSERT_TRUE(limits.has_value());
   ASSERT_EQ(limits->size(), 1u);
-  EXPECT_DOUBLE_EQ((*limits)[0].X(), -3.0);
-  EXPECT_DOUBLE_EQ((*limits)[0].Y(),  3.0);
+  EXPECT_DOUBLE_EQ((*limits)[0],  3.0);
 }
 
 /////////////////////////////////////////////////
