@@ -1,0 +1,558 @@
+<sdf version="1.11">
+  <!--
+    This example world demonstrates two plugins for joint control:
+
+    * ResetJointVelocityNearPosition sets the JointVelocityReset component
+      to a fixed value when the measured joint position is near a trigger
+      position. This can create a bouncing behavior of a pendulum if the
+      trigger position is the bottom stable equilibrium.
+      To adjust the bounce height, modify the velocity_after_reset parameter
+      in the plugin definition.
+    * PulseJointVelocityCommand applies pulses of joint velocity commands
+      as a square wave with a specified time period between pulses.
+      To adjust the velocity pulses, modify the velocity_command and
+      pulse_seconds parameters in the plugin definition.
+
+    The world contains three pendulum models:
+
+    * Model pendulum_bounce_at_bottom is on the far left and has only the
+      ResetJointVelocityNearPosition with a trigger position at the downward
+      stable eqilibrium point. This exhibits a bouncing behavior.
+    * Model pendulum_with_velocity_pulses is on the far right and has only the
+      PulseJointVelocityCommand. It starts out stationary, then alternates
+      between moving at constant velocity and swinging passively.
+    * Model pendulum_reset_and_pulse_velocity is in the center and has both
+      plugins enabled and experiences pulses of constant velocity alternating
+      with passive swinging and bouncing at the bottom.
+  -->
+
+  <world name="default">
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"></plugin>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"></plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"></plugin>
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>0.3 -0.3 -0.9</direction>
+    </light>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pendulum_bounce_at_bottom">
+      <pose degrees="true">0 3 0 0 0 180</pose>
+      <frame name="base_plate_center" attached_to="base">
+        <pose>0 0 0.01 0 0 0</pose>
+      </frame>
+      <frame name="base_pole_center" attached_to="base">
+        <pose>-0.275 0 1.1 0 0 0</pose>
+      </frame>
+      <link name="base">
+        <inertial>
+          <pose>-0.188749 0 0.75813399999999997 -0.13567899999999999 0 1.5708</pose>
+          <mass>2500</mass>
+          <inertia>
+            <ixx>154.202</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>152.286</iyy>
+            <iyz>0</iyz>
+            <izz>28.8249</izz>
+          </inertia>
+        </inertial>
+        <collision name="col_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <frame name="base_top_mount" attached_to="base">
+        <pose relative_to="base_pole_center">0.1 0 1.0 0 0 0</pose>
+      </frame>
+      <!-- upper link, length 1 -->
+      <link name="upper_link">
+        <pose degrees="true" relative_to="base_top_mount">0.15 0 0 -180 0 0</pose>
+        <self_collide>0</self_collide>
+        <inertial auto="true" />
+        <collision name="col_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- pin joint for upper link, at origin of upper link -->
+      <joint name="upper_joint" type="revolute">
+        <parent>base</parent>
+        <child>upper_link</child>
+        <axis>
+          <xyz>1.0 0 0</xyz>
+        </axis>
+      </joint>
+
+      <plugin name="joint_control::ResetJointVelocityNearPosition"
+          filename="libResetJointVelocityNearPosition.so">
+        <trigger_position>0.0</trigger_position>
+        <velocity_after_reset>2.0</velocity_after_reset>
+      </plugin>
+    </model>
+
+    <model name="pendulum_reset_and_pulse_velocity">
+      <pose degrees="true">0 0 0 0 0 180</pose>
+      <frame name="base_plate_center" attached_to="base">
+        <pose>0 0 0.01 0 0 0</pose>
+      </frame>
+      <frame name="base_pole_center" attached_to="base">
+        <pose>-0.275 0 1.1 0 0 0</pose>
+      </frame>
+      <link name="base">
+        <inertial>
+          <pose>-0.188749 0 0.75813399999999997 -0.13567899999999999 0 1.5708</pose>
+          <mass>2500</mass>
+          <inertia>
+            <ixx>154.202</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>152.286</iyy>
+            <iyz>0</iyz>
+            <izz>28.8249</izz>
+          </inertia>
+        </inertial>
+        <collision name="col_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <frame name="base_top_mount" attached_to="base">
+        <pose relative_to="base_pole_center">0.1 0 1.0 0 0 0</pose>
+      </frame>
+      <!-- upper link, length 1 -->
+      <link name="upper_link">
+        <pose degrees="true" relative_to="base_top_mount">0.15 0 0 -180 0 0</pose>
+        <self_collide>0</self_collide>
+        <inertial auto="true" />
+        <collision name="col_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- pin joint for upper link, at origin of upper link -->
+      <joint name="upper_joint" type="revolute">
+        <parent>base</parent>
+        <child>upper_link</child>
+        <axis>
+          <xyz>1.0 0 0</xyz>
+        </axis>
+      </joint>
+
+      <plugin name="joint_control::ResetJointVelocityNearPosition"
+          filename="libResetJointVelocityNearPosition.so">
+        <trigger_position>0.0</trigger_position>
+        <velocity_after_reset>2.0</velocity_after_reset>
+      </plugin>
+
+      <plugin name="joint_control::PulseJointVelocityCommand"
+          filename="libPulseJointVelocityCommand.so">
+        <pulse_seconds>2.0</pulse_seconds>
+        <velocity_command>1.0</velocity_command>
+      </plugin>
+    </model>
+
+    <model name="pendulum_with_velocity_pulses">
+      <pose degrees="true">0 -3 0 0 0 180</pose>
+      <frame name="base_plate_center" attached_to="base">
+        <pose>0 0 0.01 0 0 0</pose>
+      </frame>
+      <frame name="base_pole_center" attached_to="base">
+        <pose>-0.275 0 1.1 0 0 0</pose>
+      </frame>
+      <link name="base">
+        <inertial>
+          <pose>-0.188749 0 0.75813399999999997 -0.13567899999999999 0 1.5708</pose>
+          <mass>2500</mass>
+          <inertia>
+            <ixx>154.202</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>152.286</iyy>
+            <iyz>0</iyz>
+            <izz>28.8249</izz>
+          </inertia>
+        </inertial>
+        <collision name="col_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_plate_on_ground">
+          <pose relative_to="base_plate_center"/>
+          <geometry>
+            <cylinder>
+              <radius>0.8</radius>
+              <length>0.02</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="vis_pole">
+          <pose relative_to="base_pole_center"/>
+          <geometry>
+            <box>
+              <size>0.2 0.2 2.2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <frame name="base_top_mount" attached_to="base">
+        <pose relative_to="base_pole_center">0.1 0 1.0 0 0 0</pose>
+      </frame>
+      <!-- upper link, length 1 -->
+      <link name="upper_link">
+        <pose degrees="true" relative_to="base_top_mount">0.15 0 0 -180 0 0</pose>
+        <self_collide>0</self_collide>
+        <inertial auto="true" />
+        <collision name="col_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_upper_joint">
+          <pose degrees="true">0 0 0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_bob">
+          <pose degrees="true">0 0 1.0 0 90 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.3</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+        <collision name="col_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="vis_long_cylinder">
+          <pose>0 0 0.5 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.1</radius>
+              <length>0.9</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <!-- pin joint for upper link, at origin of upper link -->
+      <joint name="upper_joint" type="revolute">
+        <parent>base</parent>
+        <child>upper_link</child>
+        <axis>
+          <xyz>1.0 0 0</xyz>
+        </axis>
+      </joint>
+
+      <plugin name="joint_control::PulseJointVelocityCommand"
+          filename="libPulseJointVelocityCommand.so">
+        <pulse_seconds>2.0</pulse_seconds>
+        <velocity_command>1.0</velocity_command>
+      </plugin>
+    </model>
+  </world>
+</sdf>
