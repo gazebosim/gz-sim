@@ -1,0 +1,9 @@
+namespace ExternalRenderer;
+
+table Position {
+  x:float;
+  y:float;
+  z:float;
+}
+
+root_type Position;
