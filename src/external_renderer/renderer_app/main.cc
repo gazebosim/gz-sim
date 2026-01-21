@@ -35,66 +35,66 @@ class ContextManager {
 public:
     void CaptureGzContext() {
 #if __APPLE__
-        gz_ctx = CGLGetCurrentContext();
+        this->gzCtx = CGLGetCurrentContext();
 #elif _WIN32
-        gz_ctx = wglGetCurrentContext();
-        gz_display = wglGetCurrentDC();
+        this->gzCtx = wglGetCurrentContext();
+        this->gzDisplay = wglGetCurrentDC();
 #else
-        gz_ctx = glXGetCurrentContext();
-        gz_display = glXGetCurrentDisplay();
-        gz_drawable = glXGetCurrentDrawable();
+        this->gzCtx = glXGetCurrentContext();
+        this->gzDisplay = glXGetCurrentDisplay();
+        this->gzDrawable = glXGetCurrentDrawable();
 #endif
     }
 
     void CaptureGlfwContext() {
 #if __APPLE__
-        glfw_ctx = CGLGetCurrentContext();
+        this->glfwCtx = CGLGetCurrentContext();
 #elif _WIN32
-        glfw_ctx = wglGetCurrentContext();
-        glfw_display = wglGetCurrentDC();
+        this->glfwCtx = wglGetCurrentContext();
+        this->glfwDisplay = wglGetCurrentDC();
 #else
-        glfw_ctx = glXGetCurrentContext();
-        glfw_display = glXGetCurrentDisplay();
-        glfw_drawable = glXGetCurrentDrawable();
+        this->glfwCtx = glXGetCurrentContext();
+        this->glfwDisplay = glXGetCurrentDisplay();
+        this->glfwDrawable = glXGetCurrentDrawable();
 #endif
     }
 
     void SwitchToGz() {
 #if __APPLE__
-        CGLSetCurrentContext(gz_ctx);
+        CGLSetCurrentContext(this->gzCtx);
 #elif _WIN32
-        wglMakeCurrent(gz_display, gz_ctx);
+        wglMakeCurrent(this->gzDisplay, this->gzCtx);
 #else
-        if (gz_display) glXMakeCurrent(gz_display, gz_drawable, gz_ctx);
+        if (this->gzDisplay) glXMakeCurrent(this->gzDisplay, this->gzDrawable, this->gzCtx);
 #endif
     }
 
     void SwitchToGlfw() {
 #if __APPLE__
-        CGLSetCurrentContext(glfw_ctx);
+        CGLSetCurrentContext(this->glfwCtx);
 #elif _WIN32
-        wglMakeCurrent(glfw_display, glfw_ctx);
+        wglMakeCurrent(this->glfwDisplay, this->glfwCtx);
 #else
-        glXMakeCurrent(glfw_display, glfw_drawable, glfw_ctx);
+        glXMakeCurrent(this->glfwDisplay, this->glfwDrawable, this->glfwCtx);
 #endif
     }
 
 private:
 #if __APPLE__
-    CGLContextObj gz_ctx;
-    CGLContextObj glfw_ctx;
+    CGLContextObj gzCtx;
+    CGLContextObj glfwCtx;
 #elif _WIN32
-    HGLRC gz_ctx = 0;
-    HDC gz_display = 0;
-    HGLRC glfw_ctx = 0;
-    HDC glfw_display = 0;
+    HGLRC gzCtx = 0;
+    HDC gzDisplay = 0;
+    HGLRC glfwCtx = 0;
+    HDC glfwDisplay = 0;
 #else
-    GLXContext gz_ctx;
-    Display *gz_display;
-    GLXDrawable gz_drawable;
-    GLXContext glfw_ctx;
-    Display *glfw_display;
-    GLXDrawable glfw_drawable;
+    GLXContext gzCtx;
+    Display *gzDisplay;
+    GLXDrawable gzDrawable;
+    GLXContext glfwCtx;
+    Display *glfwDisplay;
+    GLXDrawable glfwDrawable;
 #endif
 };
 
@@ -106,9 +106,9 @@ struct {
 } g_pos;
 
 // --- Callbacks ---
-void signal_handler(int) { g_running = false; }
+void SignalHandler(int) { g_running = false; }
 
-void on_position(const zenoh::Sample& sample) {
+void OnPosition(const zenoh::Sample& sample) {
     const auto buf = sample.get_payload().as_vector();
     auto pos = ExternalRenderer::GetPosition(buf.data());
     std::lock_guard<std::mutex> lock(g_pos.mutex);
@@ -117,7 +117,7 @@ void on_position(const zenoh::Sample& sample) {
     g_pos.z = pos->z();
 }
 
-void key_callback(GLFWwindow* window, int key, int, int action, int) {
+void KeyCallback(GLFWwindow* window, int key, int, int action, int) {
     if (action == GLFW_PRESS && (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
         g_running = false;
@@ -125,8 +125,8 @@ void key_callback(GLFWwindow* window, int key, int, int action, int) {
 }
 
 int main(int, char**) {
-    std::signal(SIGINT, signal_handler);
-    std::signal(SIGTERM, signal_handler);
+    std::signal(SIGINT, SignalHandler);
+    std::signal(SIGTERM, SignalHandler);
 
     const unsigned int width = 800;
     const unsigned int height = 600;
@@ -138,14 +138,14 @@ int main(int, char**) {
     params["metal"] = "1";
 #endif
 
-    auto* render_engine = gz::rendering::engine("ogre2", params);
-    if (!render_engine) {
+    auto* renderEngine = gz::rendering::engine("ogre2", params);
+    if (!renderEngine) {
         std::cerr << "Failed to load Ogre2 engine" << std::endl;
         return 1;
     }
 
     // 2. Setup Scene
-    auto scene = render_engine->CreateScene("external_scene");
+    auto scene = renderEngine->CreateScene("external_scene");
     scene->SetBackgroundColor(0.1, 0.1, 0.1);
     scene->SetAmbientLight(0.4, 0.4, 0.4);
 
@@ -173,16 +173,16 @@ int main(int, char**) {
     auto image = std::make_shared<Image>(camera->CreateImage());
 
     // 3. Setup Zenoh
-    auto z_config = zenoh::Config::create_default();
-    auto z_session = zenoh::Session::open(std::move(z_config));
-    auto z_sub = z_session.declare_subscriber(
+    auto zConfig = zenoh::Config::create_default();
+    auto zSession = zenoh::Session::open(std::move(zConfig));
+    auto zSub = zSession.declare_subscriber(
         zenoh::KeyExpr("external_renderer/position"),
-        [](const zenoh::Sample& s) { on_position(s); },
+        [](const zenoh::Sample& s) { OnPosition(s); },
         zenoh::closures::none);
 
     // 4. Setup Window & Contexts
-    ContextManager ctx_mgr;
-    ctx_mgr.CaptureGzContext(); // Capture the hidden Ogre context
+    ContextManager ctxMgr;
+    ctxMgr.CaptureGzContext(); // Capture the hidden Ogre context
 
     // Initial capture forces engine initialization
     camera->Capture(*image);
@@ -200,9 +200,9 @@ int main(int, char**) {
     }
 
     glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, KeyCallback);
     
-    ctx_mgr.CaptureGlfwContext(); // Capture our new visible context
+    ctxMgr.CaptureGlfwContext(); // Capture our new visible context
 
     std::cout << "Renderer started. Waiting for position updates..." << std::endl;
 
@@ -215,11 +215,11 @@ int main(int, char**) {
         }
 
         // Render Offscreen (Gz Context)
-        ctx_mgr.SwitchToGz();
+        ctxMgr.SwitchToGz();
         camera->Capture(*image);
 
         // Render to Window (GLFW Context)
-        ctx_mgr.SwitchToGlfw();
+        ctxMgr.SwitchToGlfw();
         
         glClearColor(0.5, 0.5, 0.5, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
