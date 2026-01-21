@@ -2,9 +2,6 @@
 
 ### Gazebo Sim 10.1.0 (2026-01-20)
 
-1. [bazel] Fix CI on MacOS
-    * [Pull request #3274](https://github.com/gazebosim/gz-sim/pull/3274)
-
 1. Improve RTF Stability and Precision
     * [Pull request #3269](https://github.com/gazebosim/gz-sim/pull/3269)
 
@@ -23,20 +20,17 @@
 1. prevent crash by adding zero check after convex decomposition (#3236)
     * [Pull request #3237](https://github.com/gazebosim/gz-sim/pull/3237)
 
-1. [bazel/infra] Add manual BCR release workflow
+1. Bazel updates
+    * [Pull request #3216](https://github.com/gazebosim/gz-sim/pull/3216)
     * [Pull request #3221](https://github.com/gazebosim/gz-sim/pull/3221)
-
-1. [bazel/infra] Disable windows CI
     * [Pull request #3222](https://github.com/gazebosim/gz-sim/pull/3222)
+    * [Pull request #3274](https://github.com/gazebosim/gz-sim/pull/3274)
 
 1. Suppress child link warning in DetachableJoint (#3231)
     * [Pull request #3234](https://github.com/gazebosim/gz-sim/pull/3234)
 
 1. Make tests more robust
     * [Pull request #3224](https://github.com/gazebosim/gz-sim/pull/3224)
-
-1. Bazel updates: prep for BCR automation
-    * [Pull request #3216](https://github.com/gazebosim/gz-sim/pull/3216)
 
 1. Gravity update Gui (#3197)
     * [Pull request #3198](https://github.com/gazebosim/gz-sim/pull/3198)
