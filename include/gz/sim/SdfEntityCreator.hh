@@ -190,11 +190,11 @@ namespace gz
       /// \param[in] _model SDF model object.
       /// \param[in] _staticParent True if parent is static, false otherwise.
       /// \return Model entity.
-      private: Entity CreateEntities(const sdf::Model *_model,
-                                     bool _staticParent);
+      public: Entity CreateEntities(const sdf::Model *_model,
+                                    bool _staticParent);
 
       /// \brief Load plugins for all models
-      private: void LoadModelPlugins();
+      public: void LoadModelPlugins();
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
