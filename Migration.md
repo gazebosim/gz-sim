@@ -5,6 +5,10 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+
+## Gazebo Sim 10.X to 11.X
+
+
 ## Gazebo Sim 9.x to 10.0
 
 * Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
