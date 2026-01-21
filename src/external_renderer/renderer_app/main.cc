@@ -6,6 +6,7 @@
 #include <atomic>
 #include <csignal>
 #include <vector>
+#include <zenoh.hxx>
 
 #if __APPLE__
   #include <OpenGL/gl.h>
@@ -36,7 +37,6 @@
 #include <gz/rendering/Geometry.hh>
 #include <gz/rendering/Image.hh>
 
-#include <zenoh.hxx>
 #include "position_generated.h"
 
 // Global variables for windowing
