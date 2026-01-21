@@ -278,8 +278,8 @@ namespace gz
       /// \brief Get joint velocity limits.
       /// \details For each axis, returns the maximum absolute velocity limit.
       /// The size of the returned vector corresponds to the joint's degrees
-      /// of freedom. For multi-axis joints, limits are returned for each axis 
-      /// in order (for example, including both JointAxis and JointAxis2 
+      /// of freedom. For multi-axis joints, limits are returned for each axis
+      /// in order (for example, including both JointAxis and JointAxis2
       /// when applicable).
       /// \param[in] _ecm Entity component manager.
       /// \return Velocity limits if available.
