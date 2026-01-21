@@ -9,6 +9,12 @@ find_package(gz-rendering REQUIRED)
 find_package(Flatbuffers REQUIRED)
 find_package(zenohc REQUIRED)
 find_package(zenohcxx REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(OpenGL REQUIRED)
+
+if (NOT APPLE)
+  find_package(GLEW REQUIRED)
+endif()
 
 # Flatbuffers schema generation
 find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
@@ -41,9 +47,19 @@ target_link_libraries(producer_app PRIVATE
 
 # Renderer App
 add_executable(renderer_app renderer_app/main.cc ${FB_GENERATED_HEADERS})
-target_include_directories(renderer_app PRIVATE ${GEN_DIR})
+target_include_directories(renderer_app PRIVATE ${GEN_DIR} ${GLFW3_INCLUDE_DIRS} ${OpenGL_INCLUDE_DIRS})
+if (GLEW_FOUND)
+  target_include_directories(renderer_app PRIVATE ${GLEW_INCLUDE_DIRS})
+endif()
+
 target_link_libraries(renderer_app PRIVATE 
     gz-rendering::gz-rendering
     zenohcxx::zenohc
     flatbuffers::flatbuffers
+    glfw
+    ${OPENGL_LIBRARIES}
 )
+
+if (GLEW_FOUND)
+  target_link_libraries(renderer_app PRIVATE ${GLEW_LIBRARIES})
+endif()
