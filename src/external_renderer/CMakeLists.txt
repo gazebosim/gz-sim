@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 project(external_renderer)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,8 +9,6 @@ find_package(gz-rendering REQUIRED)
 find_package(Flatbuffers REQUIRED)
 find_package(zenohc REQUIRED)
 find_package(zenohcxx REQUIRED)
-find_package(GLUT REQUIRED)
-find_package(OpenGL REQUIRED)
 
 # Flatbuffers schema generation
 find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
@@ -48,10 +46,4 @@ target_link_libraries(renderer_app PRIVATE
     gz-rendering::gz-rendering
     zenohcxx::zenohc
     flatbuffers::flatbuffers
-    ${GLUT_LIBRARIES}
-    ${OPENGL_LIBRARIES}
 )
-
-if (APPLE)
-    target_link_libraries(renderer_app PRIVATE "-framework GLUT" "-framework OpenGL")
-endif()
