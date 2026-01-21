@@ -1,5 +1,100 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.1.0 (2026-01-20)
+
+1. Improve RTF Stability and Precision
+    * [Pull request #3269](https://github.com/gazebosim/gz-sim/pull/3269)
+
+1. Prevent publishing empty poses in pose publisher
+    * [Pull request #3262](https://github.com/gazebosim/gz-sim/pull/3262)
+
+1. Find jetty packages with explicit version
+    * [Pull request #3256](https://github.com/gazebosim/gz-sim/pull/3256)
+
+1. IMU system: react to gravity changes
+    * [Pull request #3254](https://github.com/gazebosim/gz-sim/pull/3254)
+
+1. ParticleEmitter can use topic from sdf (#3244)
+    * [Pull request #3259](https://github.com/gazebosim/gz-sim/pull/3259)
+
+1. prevent crash by adding zero check after convex decomposition (#3236)
+    * [Pull request #3237](https://github.com/gazebosim/gz-sim/pull/3237)
+
+1. Bazel updates
+    * [Pull request #3216](https://github.com/gazebosim/gz-sim/pull/3216)
+    * [Pull request #3221](https://github.com/gazebosim/gz-sim/pull/3221)
+    * [Pull request #3222](https://github.com/gazebosim/gz-sim/pull/3222)
+    * [Pull request #3274](https://github.com/gazebosim/gz-sim/pull/3274)
+
+1. Suppress child link warning in DetachableJoint (#3231)
+    * [Pull request #3234](https://github.com/gazebosim/gz-sim/pull/3234)
+
+1. Make tests more robust
+    * [Pull request #3224](https://github.com/gazebosim/gz-sim/pull/3224)
+
+1. Gravity update Gui (#3197)
+    * [Pull request #3198](https://github.com/gazebosim/gz-sim/pull/3198)
+
+1. Gravity set command fixed (#3189)
+    * [Pull request #3192](https://github.com/gazebosim/gz-sim/pull/3192)
+
+1. Fix crash and synchronize gui when disabling gi with active debug visualization mode
+    * [Pull request #3062](https://github.com/gazebosim/gz-sim/pull/3062)
+
+1. Fix crash when setting debug visualization mode while gi is disabled
+    * [Pull request #3059](https://github.com/gazebosim/gz-sim/pull/3059)
+
+1. Fix crash when setting Anisotropic property after Global Illumination disabled by adding validity checks for GI and enabled state
+    * [Pull request #3084](https://github.com/gazebosim/gz-sim/pull/3084)
+
+1. Fixes the RL Demo Crash (issue #3100)
+    * [Pull request #3165](https://github.com/gazebosim/gz-sim/pull/3165)
+
+1. Open file dialog for mesh selection with less confusing filter
+    * [Pull request #3167](https://github.com/gazebosim/gz-sim/pull/3167)
+
+1. Clean up temporary home directory to make tests more robust
+    * [Pull request #3146](https://github.com/gazebosim/gz-sim/pull/3146)
+
+1. Fix websocket server proto definitions to include top-level enums
+    * [Pull request #3130](https://github.com/gazebosim/gz-sim/pull/3130)
+
+1. Fix help text display issue in JointPositionController plugin
+    * [Pull request #3118](https://github.com/gazebosim/gz-sim/pull/3118)
+
+1. NetworkManager: fix entity creation in network secondary
+    * [Pull request #3160](https://github.com/gazebosim/gz-sim/pull/3160)
+
+1. Add class-level docstrings to Python bindings
+    * [Pull request #3164](https://github.com/gazebosim/gz-sim/pull/3164)
+
+1. sim_main: Print clear error in case CreateProcessA fails
+    * [Pull request #3104](https://github.com/gazebosim/gz-sim/pull/3104)
+
+1. Update terrain color in DEM tutorial
+    * [Pull request #3151](https://github.com/gazebosim/gz-sim/pull/3151)
+
+1. Digital Elevation Model (DEM) tutorial
+    * [Pull request #2985](https://github.com/gazebosim/gz-sim/pull/2985)
+
+1. EnvironmentPreload visualise static environments
+    * [Pull request #3138](https://github.com/gazebosim/gz-sim/pull/3138)
+
+1. Fix xml syntax in shadow texture size tutorial (#3111)
+    * [Pull request #3114](https://github.com/gazebosim/gz-sim/pull/3114)
+
+1. Disable failing test on macOS in EntityComponentManager_TEST
+    * [Pull request #3113](https://github.com/gazebosim/gz-sim/pull/3113)
+
+1. Fix FileDialog when saving world
+    * [Pull request #3110](https://github.com/gazebosim/gz-sim/pull/3110)
+
+1. Fix relocatibility of gz-sim-main executable
+    * [Pull request #3105](https://github.com/gazebosim/gz-sim/pull/3105)
+
+1. Disable Quick Start Dialog on Windows
+    * [Pull request #3108](https://github.com/gazebosim/gz-sim/pull/3108)
+
 ### Gazebo Sim 10.0.0 (2025-09-30)
 
 1. **Baseline:** this includes all changes from 9.3.0 and earlier.
