@@ -123,6 +123,7 @@ const char *kind_to_str(zenoh::SampleKind kind) {
 
 void OnPosition(zenoh::Sample& sample) {
 
+  #ifdef DEBUG_SHM
   // if Zenoh is built without SHM support, the only buffer type it can receive is RAW
 #if !defined(Z_FEATURE_SHARED_MEMORY)
       const char *payload_type = "RAW";
@@ -150,6 +151,7 @@ void OnPosition(zenoh::Sample& sample) {
 
       std::cout << ">> [Subscriber] Received [" << payload_type << "] " << kind_to_str(sample.get_kind()) << " ('"
                 << sample.get_keyexpr().as_string_view() << ")\n";
+#endif
 
     const uint8_t* data_ptr = nullptr;
     std::vector<uint8_t> buf_copy;
@@ -228,7 +230,6 @@ int main(int, char**) {
 
     // 3. Setup Zenoh
     auto zConfig = zenoh::Config::create_default();
-    zConfig.insert_json5("transport/shared_memory/enabled", "true");
     auto zSession = zenoh::Session::open(std::move(zConfig));
     auto zSub = zSession.declare_subscriber(
         zenoh::KeyExpr("external_renderer/position"),
@@ -287,7 +288,7 @@ int main(int, char**) {
         glfwSwapBuffers(window);
         glfwPollEvents();
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); 
     }
 
     glfwDestroyWindow(window);
