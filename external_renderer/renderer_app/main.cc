@@ -1,3 +1,5 @@
+#define Z_FEATURE_SHARED_MEMORY
+#define Z_FEATURE_UNSTABLE_API
 #include <zenoh.hxx>
 #include <atomic>
 #include <chrono>
@@ -108,13 +110,65 @@ struct {
 // --- Callbacks ---
 void SignalHandler(int) { g_running = false; }
 
-void OnPosition(const zenoh::Sample& sample) {
-    const auto buf = sample.get_payload().as_vector();
-    auto pos = ExternalRenderer::GetPosition(buf.data());
-    std::lock_guard<std::mutex> lock(g_pos.mutex);
-    g_pos.x = pos->x();
-    g_pos.y = pos->y();
-    g_pos.z = pos->z();
+const char *kind_to_str(zenoh::SampleKind kind) {
+    switch (kind) {
+    case zenoh::SampleKind::Z_SAMPLE_KIND_PUT:
+            return "PUT";
+    case zenoh::SampleKind::Z_SAMPLE_KIND_DELETE:
+            return "DELETE";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+void OnPosition(zenoh::Sample& sample) {
+
+  // if Zenoh is built without SHM support, the only buffer type it can receive is RAW
+#if !defined(Z_FEATURE_SHARED_MEMORY)
+      const char *payload_type = "RAW";
+#endif
+
+  // if Zenoh is built with SHM support but without SHM API (that is unstable), it can
+  // receive buffers of any type, but there is no way to detect the buffer type
+#if defined(Z_FEATURE_SHARED_MEMORY) && !defined(Z_FEATURE_UNSTABLE_API)
+      const char *payload_type = "UNKNOWN";
+#endif
+
+  // if Zenoh is built with SHM support and with SHM API, we can detect the exact buffer type
+#if defined(Z_FEATURE_SHARED_MEMORY) && defined(Z_FEATURE_UNSTABLE_API)
+      const char *payload_type = "RAW";
+      {
+          // try to convert sample payload into SHM buffer. The conversion will succeed
+          // only if payload is carrying underlying SHM buffer
+          auto shm = sample.get_payload().as_shm();
+          if (shm.has_value()) {
+              // try to get mutable access to SHM buffer
+              payload_type = zenoh::ZShm::try_mutate(shm.value()).has_value() ? "SHM (MUT)" : "SHM (IMMUT)";
+          }
+      }
+#endif
+
+      std::cout << ">> [Subscriber] Received [" << payload_type << "] " << kind_to_str(sample.get_kind()) << " ('"
+                << sample.get_keyexpr().as_string_view() << ")\n";
+
+    const uint8_t* data_ptr = nullptr;
+    std::vector<uint8_t> buf_copy;
+
+    auto shm = sample.get_payload().as_shm();
+    if (shm.has_value()) {
+        data_ptr = reinterpret_cast<const uint8_t*>(shm.value().get().data());
+    } else {
+        buf_copy = sample.get_payload().as_vector();
+        data_ptr = buf_copy.data();
+    }
+
+    if (data_ptr) {
+        auto pos = ExternalRenderer::GetPosition(data_ptr);
+        std::lock_guard<std::mutex> lock(g_pos.mutex);
+        g_pos.x = pos->x();
+        g_pos.y = pos->y();
+        g_pos.z = pos->z();
+    }
 }
 
 void KeyCallback(GLFWwindow* window, int key, int, int action, int) {
@@ -174,10 +228,11 @@ int main(int, char**) {
 
     // 3. Setup Zenoh
     auto zConfig = zenoh::Config::create_default();
+    zConfig.insert_json5("transport/shared_memory/enabled", "true");
     auto zSession = zenoh::Session::open(std::move(zConfig));
     auto zSub = zSession.declare_subscriber(
         zenoh::KeyExpr("external_renderer/position"),
-        [](const zenoh::Sample& s) { OnPosition(s); },
+        [](zenoh::Sample& s) { OnPosition(s); },
         zenoh::closures::none);
 
     // 4. Setup Window & Contexts
