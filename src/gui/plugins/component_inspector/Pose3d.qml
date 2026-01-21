@@ -78,7 +78,7 @@ Rectangle {
           onClicked: {
             _Pose3dImpl.CopySdfPose(model.data)
           }
-        }         
+        }
       }
       MouseArea {
         anchors.fill: parent

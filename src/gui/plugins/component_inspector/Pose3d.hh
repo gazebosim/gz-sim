@@ -92,7 +92,7 @@ namespace inspector
     /// \brief Copy current pose to clipboard in SDF format
     /// \param[in] _pose Pose values as [x, y, z, roll, pitch, yaw].
     public: Q_INVOKABLE void CopySdfPose(const QVariantList &_pose);
-            
+
     /// \brief Pointer to the component inspector. This is used to add
     /// callbacks.
     private: ComponentInspector *inspector{nullptr};
