@@ -22,6 +22,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Joint.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Sensor.hh"
