@@ -913,7 +913,7 @@ void Physics::Configure(const Entity &_entity,
 
     // Update the PhysicsEnginePlugin component to include version
     std::string engineName = this->dataPtr->engine->GetName();
-    std::string engineVersion = this->dataPtr->engine->GetVersion();
+    std::string engineVersion = this->dataPtr->engine->GetVersion().Version();
     std::string engineNameWithVersion = engineName;
     if (!engineVersion.empty())
     {
@@ -990,7 +990,7 @@ void Physics::Configure(const Entity &_entity,
 
         // Update the PhysicsEnginePlugin component to include version
         std::string engineName = this->dataPtr->engine->GetName();
-        std::string engineVersion = this->dataPtr->engine->GetVersion();
+        std::string engineVersion = this->dataPtr->engine->GetVersion().Version();
         std::string engineNameWithVersion = engineName;
         if (!engineVersion.empty())
         {
