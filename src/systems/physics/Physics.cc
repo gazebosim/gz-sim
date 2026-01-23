@@ -113,6 +113,7 @@
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/DetachableJoint.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAcceleration.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointEffortLimitsCmd.hh"
 #include "gz/sim/components/JointPosition.hh"
@@ -4058,6 +4059,23 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
                ++i)
           {
             _jointVel->Data()[i] = jointPhys->GetVelocity(i);
+          }
+        }
+        return true;
+      });
+
+  // Update joint Accelerations
+  _ecm.Each<components::Joint, components::JointAcceleration>(
+      [&](const Entity &_entity, components::Joint *,
+          components::JointAcceleration *_jointAccel) -> bool
+      {
+        if (auto jointPhys = this->entityJointMap.Get(_entity))
+        {
+          _jointAccel->Data().resize(jointPhys->GetDegreesOfFreedom());
+          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
+               ++i)
+          {
+            _jointAccel->Data()[i] = jointPhys->GetAcceleration(i);
           }
         }
         return true;
