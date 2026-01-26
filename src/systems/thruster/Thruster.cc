@@ -223,7 +223,8 @@ void Thruster::Configure(
   // Create model object, to access convenient functions
   this->dataPtr->modelEntity = _entity;
   auto model = Model(_entity);
-  auto modelName = model.Name(_ecm);
+  const auto modelName = model.Name(_ecm)
+      .value_or(std::to_string(model.Entity()));
 
   // Get namespace
   std::string ns = modelName;

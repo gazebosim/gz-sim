@@ -393,6 +393,9 @@ void AckermannSteering::Configure(const Entity &_entity,
   // Subscribe to commands
   std::vector<std::string> topics;
 
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
+
 
   if (_sdf->HasElement("topic"))
   {
@@ -400,13 +403,13 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
   else if (_sdf->HasElement("sub_topic"))
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+    topics.push_back("/model/" + modelName +
       "/" + _sdf->Get<std::string>("sub_topic"));
   }
   else if ((this->dataPtr->steeringOnly) &&
     (!this->dataPtr->useActuatorMsg))
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+    topics.push_back("/model/" + modelName +
       "/steer_angle");
   }
   else if ((this->dataPtr->steeringOnly) &&
@@ -416,7 +419,7 @@ void AckermannSteering::Configure(const Entity &_entity,
   }
   else if (!this->dataPtr->steeringOnly)
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+    topics.push_back("/model/" + modelName + "/cmd_vel");
   }
 
   auto topic = validTopic(topics);
@@ -459,7 +462,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     {
       odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
     }
-    odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+    odomTopics.push_back("/model/" + modelName +
         "/odometry");
     auto odomTopic = validTopic(odomTopics);
     if (topic.empty())
@@ -477,7 +480,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     {
       tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
     }
-    tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
+    tfTopics.push_back("/model/" + modelName +
       "/tf");
     auto tfTopic = validTopic(tfTopics);
     if (tfTopic.empty())
@@ -514,7 +517,8 @@ void AckermannSteering::PreUpdate(const UpdateInfo &_info,
 
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
-  auto modelName = this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
   if (!this->dataPtr->steeringOnly &&
       (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty()))
@@ -768,11 +772,13 @@ void AckermannSteeringPrivate::UpdateOdometry(
       convert<msgs::Time>(_info.simTime));
 
   // Set the frame id.
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
   if (this->sdfFrameId.empty())
   {
-    frame->add_value(this->model.Name(_ecm) + "/odom");
+    frame->add_value(modelName + "/odom");
   }
   else
   {
@@ -786,7 +792,7 @@ void AckermannSteeringPrivate::UpdateOdometry(
     {
       auto childFrame = msg.mutable_header()->add_data();
       childFrame->set_key("child_frame_id");
-      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
+      childFrame->add_value(modelName + "/" + *linkName);
     }
   }
   else

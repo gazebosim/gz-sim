@@ -192,7 +192,9 @@ void Elevator::Configure(const Entity &_entity,
   std::string cabinJointName =
       _sdf->Get<std::string>("cabin_joint", "lift").first;
 
-  std::string topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
+  std::string topicPrefix = "/model/" + modelName;
 
   if (!this->dataPtr->InitCabin(cabinJointName, floorLinkPrefix, topicPrefix,
                                 _ecm))
@@ -230,7 +232,7 @@ void Elevator::Configure(const Entity &_entity,
       _sdf->Get<std::string>("cmd_topic", topicPrefix + "/cmd").first;
   this->dataPtr->node.Subscribe(cmdTopicName, &ElevatorPrivate::OnCmdMsg,
                                 this->dataPtr.get());
-  gzmsg << "System " << this->dataPtr->model.Name(_ecm) << " subscribed to "
+  gzmsg << "System " << modelName << " subscribed to "
          << cmdTopicName << " for command messages" << std::endl;
 }
 

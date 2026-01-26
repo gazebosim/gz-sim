@@ -154,7 +154,9 @@ void CommsEndpoint::Configure(const Entity &_entity,
 
   // Prepare the bind parameters.
   this->dataPtr->bindReq.add_data(this->dataPtr->address);
-  this->dataPtr->bindReq.add_data(this->dataPtr->model.Name(_ecm));
+  this->dataPtr->bindReq.add_data(
+      this->dataPtr->model.Name(_ecm)
+          .value_or(std::to_string(this->dataPtr->model.Entity())));
   this->dataPtr->bindReq.add_data(this->dataPtr->topic);
 
   // Prepare the unbind parameters.

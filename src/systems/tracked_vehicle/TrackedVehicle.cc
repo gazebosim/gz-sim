@@ -225,7 +225,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
     return;
   }
 
-  const auto& modelName = this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
 
   // Get the canonical link
   std::vector<Entity> links = _ecm.ChildrenByComponents(
@@ -366,7 +367,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
       this->dataPtr->trackHeight/2, this->dataPtr->trackHeight/2);
 
   // Subscribe to commands
-  const auto topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  const auto topicPrefix = "/model/" + modelName;
 
   const auto kDefaultCmdVelTopic {topicPrefix + "/cmd_vel"};
   const auto topic = validTopic({
@@ -423,8 +424,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
   this->dataPtr->debug = _sdf->Get<bool>("debug", false).first;
   if (this->dataPtr->debug)
   {
-    this->dataPtr->debugMarker.set_ns(
-      this->dataPtr->model.Name(_ecm) + "/cor");
+    this->dataPtr->debugMarker.set_ns(modelName + "/cor");
     this->dataPtr->debugMarker.set_action(msgs::Marker::ADD_MODIFY);
     this->dataPtr->debugMarker.set_type(msgs::Marker::SPHERE);
     this->dataPtr->debugMarker.set_visibility(msgs::Marker::GUI);
@@ -464,7 +464,8 @@ void TrackedVehicle::PreUpdate(const UpdateInfo &_info,
 
   // If the links haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
-  auto modelName = this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
 
   if (this->dataPtr->bodyLink == kNullEntity)
   {
@@ -590,11 +591,13 @@ void TrackedVehiclePrivate::UpdateOdometry(
       convert<msgs::Time>(_info.simTime));
 
   // Set the frame id.
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
   if (this->sdfFrameId.empty())
   {
-    frame->add_value(this->model.Name(_ecm) + "/odom");
+    frame->add_value(modelName + "/odom");
   }
   else
   {
@@ -607,7 +610,7 @@ void TrackedVehiclePrivate::UpdateOdometry(
     {
       auto childFrame = msg.mutable_header()->add_data();
       childFrame->set_key("child_frame_id");
-      childFrame->add_value(this->model.Name(_ecm) + "/" + this->bodyLinkName);
+      childFrame->add_value(modelName + "/" + this->bodyLinkName);
     }
   }
   else
@@ -737,7 +740,9 @@ void TrackedVehiclePrivate::UpdateVelocity(
 
   if (this->debug)
   {
-    gzdbg << "Tracked Vehicle " << this->model.Name(_ecm) << ":" << std::endl;
+    const auto modelName = this->model.Name(_ecm)
+        .value_or(std::to_string(this->model.Entity()));
+    gzdbg << "Tracked Vehicle " << modelName << ":" << std::endl;
     gzdbg << "- cmd vel v=" << linVel << ", w=" << angVel
            << (hadNewCommand ? " (new command)" : "") << std::endl;
     gzdbg << "- left v=" << this->leftSpeed

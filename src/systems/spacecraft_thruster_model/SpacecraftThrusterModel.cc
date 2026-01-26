@@ -145,7 +145,8 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   else
   {
     gzwarn << "No topic set using entity name.\n";
-    this->dataPtr->topic = this->dataPtr->model.Name(_ecm);
+    this->dataPtr->topic = this->dataPtr->model.Name(_ecm)
+        .value_or(std::to_string(this->dataPtr->model.Entity()));
   }
 
   if (sdfClone->HasElement("link_name"))

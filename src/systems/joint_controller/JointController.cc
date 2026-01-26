@@ -193,11 +193,13 @@ void JointController::Configure(const Entity &_entity,
 
   // Subscribe to commands
   std::string topic;
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
   if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
     && (!this->dataPtr->useActuatorMsg))
   {
     topic = transport::TopicUtils::AsValidTopic("/model/" +
-        this->dataPtr->model.Name(_ecm) + "/joint/" +
+        modelName + "/joint/" +
         this->dataPtr->jointNames[0] + "/cmd_vel");
     if (topic.empty())
     {
@@ -222,13 +224,13 @@ void JointController::Configure(const Entity &_entity,
   if (_sdf->HasElement("sub_topic"))
   {
     topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/" +
+      modelName + "/" +
         _sdf->Get<std::string>("sub_topic"));
 
     if (topic.empty())
     {
       gzerr << "Failed to create topic from sub_topic [/model/"
-             << this->dataPtr->model.Name(_ecm) << "/"
+             << modelName << "/"
              << _sdf->Get<std::string>("sub_topic")
              << "]" << " for joint [" << this->dataPtr->jointNames[0]
              << "]" << std::endl;

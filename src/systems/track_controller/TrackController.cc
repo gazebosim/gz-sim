@@ -249,7 +249,9 @@ void TrackController::Configure(const Entity &_entity,
     }
   );
 
-  const auto topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm) +
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
+  const auto topicPrefix = "/model/" + modelName +
     "/link/" + this->dataPtr->linkName;
 
   const auto kDefaultVelTopic = topicPrefix + "/track_cmd_vel";

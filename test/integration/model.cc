@@ -83,11 +83,11 @@ TEST_F(ModelIntegrationTest, Name)
   Model model(id);
 
   // No name
-  EXPECT_TRUE(model.Name(ecm).empty());
+  EXPECT_FALSE(model.Name(ecm).has_value());
 
   // Add name
   ecm.CreateComponent<components::Name>(id, components::Name("model_name"));
-  EXPECT_EQ("model_name", model.Name(ecm));
+  EXPECT_EQ("model_name", model.Name(ecm).value());
 }
 
 //////////////////////////////////////////////////

@@ -53,6 +53,9 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
+
   if (_sdf->HasElement("parent_link"))
   {
     auto parentLinkName = _sdf->Get<std::string>("parent_link");
@@ -60,7 +63,7 @@ void DetachableJoint::Configure(const Entity &_entity,
     if (kNullEntity == this->parentLinkEntity)
     {
       gzerr << "Link with name " << parentLinkName
-             << " not found in model " << this->model.Name(_ecm)
+             << " not found in model " << modelName
              << ". Make sure the parameter 'parent_link' has the "
              << "correct value. Failed to initialize.\n";
       return;
@@ -101,7 +104,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   {
     detachTopics.push_back(_sdf->Get<std::string>("detach_topic"));
   }
-  detachTopics.push_back("/model/" + this->model.Name(_ecm) +
+  detachTopics.push_back("/model/" + modelName +
       "/detachable_joint/detach");
 
   if (_sdf->HasElement("topic"))
@@ -149,7 +152,7 @@ void DetachableJoint::Configure(const Entity &_entity,
   {
     attachTopics.push_back(_sdf->Get<std::string>("attach_topic"));
   }
-  attachTopics.push_back("/model/" + this->model.Name(_ecm) +
+  attachTopics.push_back("/model/" + modelName +
       "/detachable_joint/attach");
   this->attachTopic = validTopic(attachTopics);
   if (this->attachTopic.empty())

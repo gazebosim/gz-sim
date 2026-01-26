@@ -224,7 +224,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     return;
   }
   this->dataPtr->model = model;
-  this->dataPtr->modelName = model.Name(_ecm);
+  this->dataPtr->modelName = model.Name(_ecm)
+      .value_or(std::to_string(model.Entity()));
 
   if (_sdf->HasElement("open_circuit_voltage_constant_coef"))
     this->dataPtr->e0 = _sdf->Get<double>("open_circuit_voltage_constant_coef");
@@ -418,7 +419,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
       components::BatterySoC(this->dataPtr->soc));
 
   // Setup battery state topic
-  std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+  std::string stateTopic{"/model/" + this->dataPtr->modelName +
     "/battery/" + this->dataPtr->battery->Name() + "/state"};
 
   auto validStateTopic = transport::TopicUtils::AsValidTopic(stateTopic);

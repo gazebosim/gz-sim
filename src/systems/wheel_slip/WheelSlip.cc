@@ -178,7 +178,8 @@ class gz::sim::systems::WheelSlipPrivate
 bool WheelSlipPrivate::Load(EntityComponentManager &_ecm,
                             sdf::ElementPtr _sdf)
 {
-  const std::string modelName = this->model.Name(_ecm);
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
 
   if (!_sdf->HasElement("wheel"))
   {

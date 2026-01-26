@@ -18,6 +18,7 @@
 #define GZ_SIM_MODEL_HH_
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -54,7 +55,7 @@ namespace gz
     /// a simpler function call:
     ///
     ///    Model model(entity);
-    ///    std::string name = model.Name(ecm);
+    ///    std::string name = model.Name(ecm).value_or("");
     ///
     /// \todo(louise) Store the ecm instead of passing it at every API call.
     class GZ_SIM_VISIBLE Model {
@@ -95,8 +96,9 @@ namespace gz
 
       /// \brief Get the model's unscoped name.
       /// \param[in] _ecm Entity-component manager.
-      /// \return Model's name.
-      public: std::string Name(const EntityComponentManager &_ecm) const;
+      /// \return Model's name or nullopt if the entity does not have a
+      /// components::Name component.
+      public: std::optional<std::string> Name(const EntityComponentManager &_ecm) const;
 
       /// \brief Get whether this model is static.
       /// \param[in] _ecm Entity-component manager.

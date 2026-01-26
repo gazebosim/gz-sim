@@ -51,6 +51,8 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
 {
   RotorConfiguration out;
   std::size_t count = 0;
+  const auto modelName = _model.Name(_ecm)
+      .value_or(std::to_string(_model.Entity()));
   for (sdf::ElementPtr elem = _sdf->GetFirstElement(); elem;
         elem = elem->GetNextElement("rotor"), ++count)
   {
@@ -68,8 +70,8 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     if (kNullEntity == joint)
     {
       gzerr << "Joint with name " << jointName << " could not be found in "
-              << "model " << _model.Name(_ecm) << " while processing rotor "
-              << "index " << count << std::endl;
+            << "model " << modelName << " while processing rotor "
+            << "index " << count << std::endl;
       continue;
     }
 
@@ -89,7 +91,7 @@ RotorConfiguration loadRotorConfiguration(const EntityComponentManager &_ecm,
     {
       gzerr << "Child link of joint " << jointName << " with name "
               << childLinkName << " could not be found in  model "
-              << _model.Name(_ecm) << " while processing rotor index " << count
+            << modelName << " while processing rotor index " << count
               << std::endl;
       continue;
     }

@@ -188,7 +188,8 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
       convert<msgs::Time>(_info.simTime));
 
   // Set the name and ID.
-  msg.set_name(this->model.Name(_ecm));
+  msg.set_name(this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity())));
   msg.set_id(this->model.Entity());
 
   // Set the model pose

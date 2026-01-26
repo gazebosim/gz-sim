@@ -138,8 +138,10 @@ void Breadcrumbs::Configure(const Entity &_entity,
   {
     topics.push_back(_sdf->Get<std::string>("topic"));
   }
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
   topics.push_back("/model/" +
-      this->model.Name(_ecm) + "/breadcrumbs/" +
+      modelName + "/breadcrumbs/" +
       this->modelRoot.Model()->Name() + "/deploy");
   this->topic = validTopic(topics);
 

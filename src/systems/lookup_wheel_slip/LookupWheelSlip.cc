@@ -273,8 +273,10 @@ void LookupWheelSlip::Configure(const Entity &_entity,
     auto link = Link(this->dataPtr->model.LinkByName(_ecm, linkName));
     if (!link.Valid(_ecm))
     {
+      const auto modelName = this->dataPtr->model.Name(_ecm)
+          .value_or(std::to_string(this->dataPtr->model.Entity()));
       gzerr << "Could not find link named [" << linkName
-            << "] in model [" << this->dataPtr->model.Name(_ecm) << "]"
+            << "] in model [" << modelName << "]"
             << std::endl;
       continue;
     }

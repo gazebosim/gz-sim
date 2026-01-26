@@ -324,16 +324,18 @@ void JointTrajectoryController::Configure(
 {
   // Make sure the controller is attached to a valid model
   const auto model = Model(_entity);
+  const auto modelName = model.Name(_ecm)
+      .value_or(std::to_string(model.Entity()));
   if (!model.Valid(_ecm))
   {
     gzerr << "[JointTrajectoryController] Failed to initialize because ["
-           << model.Name(_ecm) << "(Entity=" << _entity
+           << modelName << "(Entity=" << _entity
            << ")] is not a model. Please make sure that"
               " JointTrajectoryController is attached to a valid model.\n";
     return;
   }
   gzmsg << "[JointTrajectoryController] Setting up controller for ["
-         << model.Name(_ecm) << "(Entity=" << _entity << ")].\n";
+         << modelName << "(Entity=" << _entity << ")].\n";
 
   // Get list of enabled joints
   const auto enabledJoints = this->dataPtr->GetEnabledJoints(_entity,
@@ -358,7 +360,7 @@ void JointTrajectoryController::Configure(
   if (this->dataPtr->actuatedJoints.empty())
   {
     gzerr << "[JointTrajectoryController] Failed to initialize because ["
-           << model.Name(_ecm) << "(Entity=" << _entity
+          << modelName << "(Entity=" << _entity
            << ")] has no supported joints.\n";
     return;
   }
@@ -379,7 +381,7 @@ void JointTrajectoryController::Configure(
   if (trajectoryTopic.empty())
   {
     // If not specified, use the default topic based on model name
-    trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
+    trajectoryTopic = "/model/" + modelName + "/joint_trajectory";
   }
   // Make sure the topic is valid
   const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(

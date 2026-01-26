@@ -258,7 +258,9 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
     this->forceZeroAngVel = _sdf->Get<bool>("zero_vel_on_bearing_reached");
 
   // Parse the optional <topic> element.
-  this->topic = "/model/" + this->model.Name(_ecm) +
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
+  this->topic = "/model/" + modelName +
     "/trajectory_follower/pause";
 
   if (_sdf->HasElement("topic"))
@@ -269,7 +271,7 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
 
   gzmsg << "TrajectoryFollower["
-      << this->model.Name(_ecm) << "] subscribed "
+      << modelName << "] subscribed "
       << "to pause messages on topic[" << this->topic << "]\n";
 
   // If we have waypoints to visit, read the first one.

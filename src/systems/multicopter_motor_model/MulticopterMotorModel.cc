@@ -255,7 +255,8 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   else
   {
     gzwarn << "No robotNamespace set using entity name.\n";
-    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm);
+    this->dataPtr->robotNamespace = this->dataPtr->model.Name(_ecm)
+        .value_or(std::to_string(this->dataPtr->model.Entity()));
   }
 
   // Get params from SDF
