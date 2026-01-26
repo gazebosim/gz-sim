@@ -140,8 +140,10 @@ void BuoyancyEnginePlugin::Configure(
     model.LinkByName(_ecm, _sdf->Get<std::string>("link_name"));
   if (this->dataPtr->linkEntity == kNullEntity)
   {
+    const auto modelName = model.Name(_ecm)
+        .value_or(std::to_string(model.Entity()));
     gzerr << "Link [" << _sdf->Get<std::string>("link_name")
-      << "] was not found in model [" << model.Name(_ecm) << "]" << std::endl;
+      << "] was not found in model [" << modelName << "]" << std::endl;
     return;
   }
 

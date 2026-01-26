@@ -105,8 +105,10 @@ void ApplyJointForce::Configure(const Entity &_entity,
 
   // Subscribe to commands
   //! [cmdTopic]
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
   auto topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
+      modelName + "/joint/" + this->dataPtr->jointName +
       "/cmd_force");
   //! [cmdTopic]
   if (topic.empty())

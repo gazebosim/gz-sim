@@ -264,6 +264,9 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
+
   bool touching{false};
   // Iterate through all the target entities and check if there is a contact
   // between the target entity and this model
@@ -294,7 +297,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
     std::lock_guard<std::mutex> lock(this->serviceMutex);
     if (this->touchStart != DurationType::zero())
     {
-      gzdbg << "Model [" << this->model.Name(_ecm)
+      gzdbg << "Model [" << modelName
              << "] not touching anything at [" << _info.simTime.count()
              << "]" << std::endl;
     }
@@ -310,7 +313,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
       this->touchStart =
         std::chrono::duration_cast<DurationType>(_info.simTime);
 
-      gzdbg << "Model [" << this->model.Name(_ecm) << "] started touching ["
+      gzdbg << "Model [" << modelName << "] started touching ["
         << this->targetName << "] at " << this->touchStart.count() << " s"
         << std::endl;
     }
@@ -324,7 +327,7 @@ void TouchPluginPrivate::Update(const UpdateInfo &_info,
   // and stop updating
   if (completed)
   {
-    gzdbg << "Model [" << this->model.Name(_ecm) << "] touched ["
+    gzdbg << "Model [" << modelName << "] touched ["
       << this->targetName << "] exclusively for "
       << this->targetTime.count() << " s" << std::endl;
 

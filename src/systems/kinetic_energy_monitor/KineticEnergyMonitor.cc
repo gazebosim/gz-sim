@@ -99,7 +99,8 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
     return;
   }
 
-  this->dataPtr->modelName = this->dataPtr->model.Name(_ecm);
+  this->dataPtr->modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
 
   auto sdfClone = _sdf->Clone();
   std::string linkName;

@@ -145,8 +145,10 @@ void VelocityControl::Configure(const Entity &_entity,
   {
     modelTopics.push_back(_sdf->Get<std::string>("topic"));
   }
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
   modelTopics.push_back(
-    "/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+    "/model/" + modelName + "/cmd_vel");
   auto modelTopic = validTopic(modelTopics);
   this->dataPtr->node.Subscribe(
     modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
@@ -167,7 +169,7 @@ void VelocityControl::Configure(const Entity &_entity,
   // Subscribe to link commands
   for (const auto &linkName : this->dataPtr->linkNames)
   {
-    std::string linkTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
+    std::string linkTopic{"/model/" + modelName +
                              "/link/" + linkName + "/cmd_vel"};
     linkTopic = transport::TopicUtils::AsValidTopic(linkTopic);
     this->dataPtr->node.Subscribe(
@@ -206,7 +208,8 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
 
   // If there are links, create link components
   // If the link hasn't been identified yet, look for it
-  auto modelName = this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
 
   if (this->dataPtr->linkNames.empty())
     return;

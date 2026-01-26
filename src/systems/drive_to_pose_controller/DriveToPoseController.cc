@@ -139,7 +139,9 @@ void DriveToPoseController::Configure(
   }
 
   // Topic namespace for publish and subscribe
-  std::string topicNamespace = "/model/" + this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
+  std::string topicNamespace = "/model/" + modelName;
 
   // Subscribe to odometry pose publisher
   this->dataPtr->node.Subscribe(

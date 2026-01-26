@@ -297,7 +297,9 @@ void MecanumDrive::Configure(const Entity &_entity,
   {
     topics.push_back(_sdf->Get<std::string>("topic"));
   }
-  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
+  topics.push_back("/model/" + modelName + "/cmd_vel");
   auto topic = validTopic(topics);
 
   this->dataPtr->node.Subscribe(topic, &MecanumDrivePrivate::OnCmdVel,
@@ -308,15 +310,13 @@ void MecanumDrive::Configure(const Entity &_entity,
   {
     odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/odometry");
+  odomTopics.push_back("/model/" + modelName + "/odometry");
   auto odomTopic = validTopic(odomTopics);
 
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/tf"};
+  std::string tfTopic{"/model/" + modelName + "/tf"};
   if (_sdf->HasElement("tf_topic"))
     tfTopic = _sdf->Get<std::string>("tf_topic");
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
@@ -351,7 +351,8 @@ void MecanumDrive::PreUpdate(const UpdateInfo &_info,
 
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
-  auto modelName = this->dataPtr->model.Name(_ecm);
+  const auto modelName = this->dataPtr->model.Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model.Entity()));
   if (this->dataPtr->frontLeftJoints.empty() ||
       this->dataPtr->frontRightJoints.empty() ||
       this->dataPtr->backLeftJoints.empty() ||
@@ -516,6 +517,8 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("MecanumDrive::UpdateOdometry");
+  const auto modelName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -583,7 +586,7 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
   frame->set_key("frame_id");
   if (this->sdfFrameId.empty())
   {
-    frame->add_value(this->model.Name(_ecm) + "/odom");
+    frame->add_value(modelName + "/odom");
   }
   else
   {
@@ -597,7 +600,7 @@ void MecanumDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
     {
       auto childFrame = msg.mutable_header()->add_data();
       childFrame->set_key("child_frame_id");
-      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
+      childFrame->add_value(modelName + "/" + *linkName);
     }
   }
   else

@@ -112,7 +112,8 @@ void ModelPhotoShoot::Configure(const gz::sim::Entity &_entity,
           this->dataPtr.get()));
 
   this->dataPtr->model = std::make_shared<gz::sim::Model>(_entity);
-  this->dataPtr->modelName = this->dataPtr->model->Name(_ecm);
+  this->dataPtr->modelName = this->dataPtr->model->Name(_ecm)
+      .value_or(std::to_string(this->dataPtr->model->Entity()));
   // Get the pose of the model
   this->dataPtr->modelPose3D =
       gz::sim::worldPose(this->dataPtr->model->Entity(), _ecm);

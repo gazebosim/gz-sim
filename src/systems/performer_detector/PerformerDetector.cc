@@ -55,7 +55,8 @@ void PerformerDetector::Configure(const Entity &_entity,
     return;
   }
 
-  this->detectorName = this->model.Name(_ecm);
+  this->detectorName = this->model.Name(_ecm)
+      .value_or(std::to_string(this->model.Entity()));
 
   auto sdfClone = _sdf->Clone();
   bool hasGeometry{false};
@@ -116,7 +117,7 @@ void PerformerDetector::Configure(const Entity &_entity,
     }
   }
 
-  std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
+  std::string defaultTopic{"/model/" + this->detectorName +
                              "/performer_detector/status"};
   auto topic = _sdf->Get<std::string>("topic", defaultTopic).first;
 

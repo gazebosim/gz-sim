@@ -505,7 +505,8 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
     {
       this->sensorCollisionEntity = colEntity;
 
-      this->modelName = this->model.Name(_ecm);
+      this->modelName = this->model.Name(_ecm)
+          .value_or(std::to_string(this->model.Entity()));
 
       // Get the size of the collision element
       const auto geometry =

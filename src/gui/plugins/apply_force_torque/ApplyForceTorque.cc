@@ -422,7 +422,8 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
       }
 
       this->dataPtr->modelName = QString::fromStdString(
-        parentModel.Name(_ecm));
+        parentModel.Name(_ecm)
+          .value_or(std::to_string(parentModel.Entity())));
       this->dataPtr->selectedEntity = selectedLink.Entity();
 
       // Put all of the model's links into the list
