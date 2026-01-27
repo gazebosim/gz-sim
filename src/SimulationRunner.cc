@@ -709,6 +709,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // in the design.
   GZ_PROFILE_THREAD_NAME("SimulationRunner");
 
+  if (this->exitedWithErrors)
+  {
+    gzwarn << "SimulationRunner cannot run because it previously exited with "
+           << "errors." << std::endl;
+    return false;
+  }
+
   // Initialize network communications.
   if (this->networkMgr)
   {
@@ -1275,6 +1282,14 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
 bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     msgs::Boolean &_res)
 {
+  if (this->exitedWithErrors)
+  {
+    gzwarn << "Ignoring world control request because the simulation "
+              "has exited with errors." << std::endl;
+    _res.set_data(false);
+    return true;
+  }
+
   std::lock_guard<std::mutex> lock(this->msgBufferMutex);
 
   // Copy the state information if it exists
@@ -1526,6 +1541,12 @@ void SimulationRunner::SetStepSize(
     const std::chrono::steady_clock::duration &_step)
 {
   this->stepSize = _step;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetExitedWithErrors()
+{
+  this->exitedWithErrors = true;
 }
 
 /////////////////////////////////////////////////

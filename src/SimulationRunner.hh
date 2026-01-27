@@ -292,6 +292,8 @@ namespace gz
       public: void SetStepSize(
           const std::chrono::steady_clock::duration &_step);
 
+      public: void SetExitedWithErrors();
+
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
@@ -578,6 +580,8 @@ namespace gz
       /// \brief True to create entities.
       private: bool createEntities{false};
       private: bool entitiesCreated{false};
+
+      private: bool exitedWithErrors{false};
 
       friend class LevelManager;
     };
