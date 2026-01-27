@@ -22,6 +22,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Joint.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -135,4 +136,67 @@ TEST(JointTest, Sensors)
 
   gz::sim::Joint jointC(jointCEntity);
   EXPECT_EQ(0u, jointC.Sensors(ecm).size());
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsMultiAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis1;
+  axis1.Data().SetMaxVelocity(5.0);
+  ecm.CreateComponent(jointEntity, axis1);
+
+  gz::sim::components::JointAxis2 axis2;
+  axis2.Data().SetMaxVelocity(2.0);
+  ecm.CreateComponent(jointEntity, axis2);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 2u);
+
+  EXPECT_DOUBLE_EQ((*limits)[0], 5.0);
+  EXPECT_DOUBLE_EQ((*limits)[1], 2.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsSingleAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetMaxVelocity(3.0);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0],  3.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsNoAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  EXPECT_FALSE(limits.has_value());
 }
