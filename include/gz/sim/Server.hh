@@ -115,6 +115,12 @@ namespace gz
     ///
     class GZ_SIM_VISIBLE Server
     {
+      public: enum class Status {
+        EXITED,
+        STOPPED,
+        RUNNING
+      };
+
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.
       /// \param[in] _config Server configuration parameters. If this
@@ -344,6 +350,8 @@ namespace gz
       /// \param[in] runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
+
+      public: Status GetStatus() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

@@ -229,6 +229,8 @@ namespace gz
       /// \brief Thread used to download models in the background.
       public: std::thread downloadThread;
 
+      public: bool exitedWithErrors{false};
+
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
 
