@@ -116,7 +116,13 @@ Server::Server(const ServerConfig &_config)
 }
 
 /////////////////////////////////////////////////
-Server::~Server() = default;
+Server::~Server() {
+  // Clear findfile callback to avoid lifetime mismatches between callbacks and
+  // pointers stored in the callbacks in case a new instance of Server is
+  // created afterward (e.g. in tests).
+  common::systemPaths()->ClearFindFileCallbacks();
+  common::systemPaths()->ClearFindFileURICallbacks();
+}
 
 /////////////////////////////////////////////////
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
