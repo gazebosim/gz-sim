@@ -9,29 +9,6 @@ on:
       - 'main'
 
 jobs:
-  bionic-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Bionic CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Compile and test
-        id: ci
-        uses: ignition-tooling/action-ignition-ci@bionic
-        with:
-          codecov-enabled: true
-          cmake-args: "-DCMAKE_INSTALL_PREFIX=/usr"
-  focal-ci:
-    runs-on: ubuntu-latest
-    name: Ubuntu Focal CI
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Compile and test
-        id: ci
-        uses: ignition-tooling/action-ignition-ci@focal
-        with:
-          cmake-args: "-DCMAKE_INSTALL_PREFIX=/usr"
   jammy-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Jammy CI
@@ -44,3 +21,4 @@ jobs:
         with:
           # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
+          codecov-enabled: true
