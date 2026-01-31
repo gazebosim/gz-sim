@@ -405,3 +405,45 @@ Joint::MaxVelocityLimits(const EntityComponentManager &_ecm) const
 
   return limits;
 }
+
+//////////////////////////////////////////////////
+std::optional<std::vector<double>>
+Joint::EffortLimits(const EntityComponentManager &_ecm) const
+{
+  std::vector<double> limits;
+
+  auto axis1 = _ecm.Component<components::JointAxis>(this->dataPtr->id);
+  if (!axis1)
+    return std::nullopt;
+
+  limits.push_back(std::abs(axis1->Data().Effort()));
+
+  auto axis2 = _ecm.Component<components::JointAxis2>(this->dataPtr->id);
+  if (axis2)
+  {
+    limits.push_back(std::abs(axis2->Data().Effort()));
+  }
+
+  return limits;
+}
+
+//////////////////////////////////////////////////
+std::optional<std::vector<math::Vector2d>>
+Joint::PositionLimits(const EntityComponentManager &_ecm) const
+{
+  std::vector<math::Vector2d> limits;
+
+  auto axis1 = _ecm.Component<components::JointAxis>(this->dataPtr->id);
+  if (!axis1)
+    return std::nullopt;
+
+  limits.emplace_back(axis1->Data().Lower(), axis1->Data().Upper());
+
+  auto axis2 = _ecm.Component<components::JointAxis2>(this->dataPtr->id);
+  if (axis2)
+  {
+    limits.emplace_back(axis2->Data().Lower(), axis2->Data().Upper());
+  }
+
+  return limits;
+}
