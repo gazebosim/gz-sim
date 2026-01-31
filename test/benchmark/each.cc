@@ -30,6 +30,11 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
 
+#ifdef BENCHMARK_INTERNAL
+using Benchmark = ::benchmark::internal::Benchmark;
+#else
+using Benchmark = ::benchmark::Benchmark;
+#endif
 
 using namespace gz;
 using namespace sim;
@@ -361,7 +366,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
 
 /// Method to generate test argument combinations.  google/benchmark does
 /// powers of 2 by default, which looks kind of ugly.
-static void EachTestArgs(benchmark::internal::Benchmark *_b)
+static void EachTestArgs(Benchmark *_b)
 {
   int maxEntityCount = 1000;
   int step = maxEntityCount/5;
