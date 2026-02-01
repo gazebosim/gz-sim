@@ -590,6 +590,9 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -610,6 +613,9 @@ TEST_P(ServerFixture, RunNonBlocking)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -763,6 +769,9 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
