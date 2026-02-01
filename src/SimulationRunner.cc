@@ -41,6 +41,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/common/StringUtils.hh"
 #include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -100,6 +101,36 @@ struct MaybeGilScopedRelease
     MaybeGilScopedRelease(){}
   };
 #endif
+
+// Normalize deprecated ignition plugin identifiers to gz equivalents for
+// duplicate detection while keeping namespace-safe behavior.
+std::string NormalizePluginName(const std::string &_name)
+{
+  if (_name.empty())
+    return _name;
+
+  const std::string prefix{"ignition::gazebo::"};
+  if (common::StartsWith(_name, prefix))
+  {
+    return "gz::sim::" + _name.substr(prefix.size());
+  }
+
+  return _name;
+}
+
+std::string NormalizePluginFilename(const std::string &_filename)
+{
+  if (_filename.empty())
+    return _filename;
+
+  const std::string prefix{"ignition-gazebo-"};
+  if (common::StartsWith(_filename, prefix))
+  {
+    return "gz-sim-" + _filename.substr(prefix.size());
+  }
+
+  return _filename;
+}
 }
 
 
@@ -1716,15 +1747,32 @@ void SimulationRunner::CreateEntities()
     }
     else
     {
-      std::unordered_set<std::string> loadedWorldPluginFileNames;
+      StringSet loadedWorldPluginNames;
+      StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        loadedWorldPluginFileNames.insert(pl.fname);
+        auto name = NormalizePluginName(pl.name);
+        if (!name.empty())
+          loadedWorldPluginNames.insert(name);
+
+        auto filename = NormalizePluginFilename(pl.fname);
+        if (!filename.empty())
+          loadedWorldPluginFileNames.insert(filename);
       }
       auto isPluginLoaded =
-          [&loadedWorldPluginFileNames](const ServerConfig::PluginInfo &_pl)
+          [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
+              const ServerConfig::PluginInfo &_pl)
       {
-          return loadedWorldPluginFileNames.count(_pl.Plugin().Filename()) != 0;
+          auto name = NormalizePluginName(_pl.Plugin().Name());
+          if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
+            return true;
+
+          auto filename = NormalizePluginFilename(_pl.Plugin().Filename());
+          if (!filename.empty() &&
+              loadedWorldPluginFileNames.count(filename) > 0)
+            return true;
+
+          return false;
       };
 
       // Remove plugin if it's already loaded so as to not duplicate world
