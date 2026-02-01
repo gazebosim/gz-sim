@@ -123,13 +123,18 @@ std::string NormalizePluginFilename(const std::string &_filename)
   if (_filename.empty())
     return _filename;
 
-  const std::string prefix{"ignition-gazebo-"};
-  if (common::StartsWith(_filename, prefix))
+  const std::string deprecated{"ignition-gazebo"};
+  const std::string current{"gz-sim"};
+
+  std::string result = _filename;
+  std::size_t pos = 0;
+  while ((pos = result.find(deprecated, pos)) != std::string::npos)
   {
-    return "gz-sim-" + _filename.substr(prefix.size());
+    result.replace(pos, deprecated.size(), current);
+    pos += current.size();
   }
 
-  return _filename;
+  return result;
 }
 }
 
