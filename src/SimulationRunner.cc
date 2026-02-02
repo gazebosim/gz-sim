@@ -112,6 +112,9 @@ std::string NormalizePluginName(const std::string &_name)
   const std::string prefix{"ignition::gazebo::"};
   if (common::StartsWith(_name, prefix))
   {
+    gzmsg << "[Deprecated] Plugin name '" << _name
+          << "' uses legacy ignition identifiers. "
+          << "Please migrate your SDF to use 'gz::sim::'.\n";
     return "gz::sim::" + _name.substr(prefix.size());
   }
 
