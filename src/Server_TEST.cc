@@ -1302,18 +1302,16 @@ TEST_P(ServerFixture, GetStatusLifecycle)
   server.Run(false, 0, false);
 
   // Wait briefly for thread start
-  GZ_SLEEP_MS(100);
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  while (*server.IterationCount() < 1)
+    GZ_SLEEP_MS(100);
 
   // State should be RUNNING
   EXPECT_EQ(Server::Status::RUNNING, server.GetStatus());
 
-  // Stop the server
+  // Stop the server and verify that state is STOPPED
   server.Stop();
 
-  // Wait briefly for thread stop
-  GZ_SLEEP_MS(100);
-
-  // State should be STOPPED
   EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
 }
 
