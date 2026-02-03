@@ -163,13 +163,13 @@ namespace gz
     /// \brief Normalize deprecated ignition plugin identifiers in a plugin
     /// name to gz equivalents.
     /// \return Normalized plugin name.
-    std::string GZ_SIM_VISIBLE NormalizePluginName(
+    std::string GZ_SIM_VISIBLE normalizePluginName(
       const std::string &_name);
 
     /// \brief Normalize deprecated ignition plugin identifiers in a plugin
     /// filename to gz equivalents.
     /// \return Normalized plugin filename.
-    std::string GZ_SIM_VISIBLE NormalizePluginFilename(
+    std::string GZ_SIM_VISIBLE normalizePluginFilename(
       const std::string &_filename);
 
     /// \brief Combine a URI and a file path into a full path.

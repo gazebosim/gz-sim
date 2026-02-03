@@ -41,7 +41,6 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
-#include "gz/common/StringUtils.hh"
 #include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -111,7 +110,7 @@ std::string NormalizePluginName(const std::string &_name)
   {
     gzmsg << "[Deprecated] Plugin name '" << _name
           << "' uses legacy ignition identifiers. "
-          << "Please migrate your SDF to use 'gz::sim::'.\n";
+          << "Please migrate your SDF to use 'gz::sim::'." << std::endl;
   }
 
   return normalized;
