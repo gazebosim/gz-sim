@@ -147,6 +147,12 @@ Server::~Server() = default;
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
     const bool _paused)
 {
+  if (this->GetStatus() == Server::Status::EXITED)
+  {
+    gzwarn << "The server has exited with errors and cannot be run.\n";
+    return false;
+  }
+
   // Set the initial pause state of each simulation runner.
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
     runner->SetPaused(_paused);
@@ -193,6 +199,12 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
 /////////////////////////////////////////////////
 bool Server::RunOnce(const bool _paused)
 {
+  if (this->GetStatus() == Server::Status::EXITED)
+  {
+    gzwarn << "The server has exited with errors and cannot be run.\n";
+    return false;
+  }
+
   if (_paused)
   {
     for (auto &runner : this->dataPtr->simRunners)
@@ -418,4 +430,16 @@ bool Server::Reset(const std::size_t _runnerId)
 void Server::Stop()
 {
   this->dataPtr->Stop();
+}
+
+//////////////////////////////////////////////////
+Server::Status gz::sim::Server::GetStatus() const
+{
+  if (this->dataPtr->exitedWithErrors)
+    return Server::Status::EXITED;
+
+  if (this->dataPtr->running)
+    return Server::Status::RUNNING;
+
+  return Server::Status::STOPPED;
 }
