@@ -1767,17 +1767,21 @@ void SimulationRunner::CreateEntities()
           [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
               const ServerConfig::PluginInfo &_pl)
       {
-          auto name = normalizePluginName(_pl.Plugin().Name());
-          if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
-            return true;
+        auto name = normalizePluginName(_pl.Plugin().Name());
+        if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
+        {
+          return true;
+        }
 
-            auto filename =
-              gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
-          if (!filename.empty() &&
-              loadedWorldPluginFileNames.count(filename) > 0)
-            return true;
+        auto filename =
+          gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
+        if (!filename.empty() &&
+            loadedWorldPluginFileNames.count(filename) > 0)
+        {
+          return true;
+        }
 
-          return false;
+        return false;
       };
 
       // Remove plugin if it's already loaded so as to not duplicate world
