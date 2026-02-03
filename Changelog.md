@@ -1,5 +1,16 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.1.1 (2026-02-03)
+
+1. [bazel/infra] Create BCR PRs as ready for review and automatically when a tag is pushed
+    * [Pull request #3302](https://github.com/gazebosim/gz-sim/pull/3302)
+
+1. Fix regression in Server behavior when it is run with a bad sdf file
+    * [Pull request #3290](https://github.com/gazebosim/gz-sim/pull/3290)
+
+1. Fix deprecation warning in `benchmark`
+    * [Pull request #3296](https://github.com/gazebosim/gz-sim/pull/3296)
+
 ### Gazebo Sim 10.1.0 (2026-01-20)
 
 1. Improve RTF Stability and Precision
