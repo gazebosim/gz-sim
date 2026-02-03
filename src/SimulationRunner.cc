@@ -101,19 +101,6 @@ struct MaybeGilScopedRelease
   };
 #endif
 
-// Normalize deprecated ignition plugin identifiers and warn once per call.
-std::string normalizePluginNameWithWarning(const std::string &_name)
-{
-  auto normalized = gz::sim::normalizePluginName(_name);
-  if (normalized != _name)
-  {
-    gzmsg << "[Deprecated] Plugin name '" << _name
-          << "' uses legacy ignition identifiers. "
-          << "Please migrate your SDF to use 'gz::sim::'." << std::endl;
-  }
-
-  return normalized;
-}
 }
 
 
@@ -1754,7 +1741,7 @@ void SimulationRunner::CreateEntities()
       StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        auto name = normalizePluginNameWithWarning(pl.name);
+        auto name = gz::sim::normalizePluginName(pl.name);
         if (!name.empty())
           loadedWorldPluginNames.insert(name);
 
@@ -1766,7 +1753,7 @@ void SimulationRunner::CreateEntities()
           [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
               const ServerConfig::PluginInfo &_pl)
       {
-          auto name = normalizePluginNameWithWarning(_pl.Plugin().Name());
+          auto name = gz::sim::normalizePluginName(_pl.Plugin().Name());
           if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
             return true;
 
