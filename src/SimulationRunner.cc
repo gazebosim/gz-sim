@@ -115,11 +115,6 @@ std::string normalizePluginName(const std::string &_name)
 
   return normalized;
 }
-
-std::string normalizePluginFilename(const std::string &_filename)
-{
-  return gz::sim::normalizePluginFilename(_filename);
-}
 }
 
 
@@ -1764,7 +1759,7 @@ void SimulationRunner::CreateEntities()
         if (!name.empty())
           loadedWorldPluginNames.insert(name);
 
-        auto filename = normalizePluginFilename(pl.fname);
+        auto filename = gz::sim::normalizePluginFilename(pl.fname);
         if (!filename.empty())
           loadedWorldPluginFileNames.insert(filename);
       }
@@ -1776,7 +1771,8 @@ void SimulationRunner::CreateEntities()
           if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
             return true;
 
-          auto filename = normalizePluginFilename(_pl.Plugin().Filename());
+            auto filename =
+              gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
           if (!filename.empty() &&
               loadedWorldPluginFileNames.count(filename) > 0)
             return true;
