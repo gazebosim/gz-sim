@@ -1153,14 +1153,16 @@ TEST_F(UtilTest, NormalizePluginIdentifiers)
   EXPECT_EQ("gz::sim::systems::Physics",
     normalizePluginName("ignition::gazebo::systems::Physics"));
   EXPECT_EQ("gz::sim::systems::Physics",
-    normalizePluginName("ignition::gazebo::ignition::gazebo::systems::Physics"));
+    normalizePluginName("ignition::gazebo::"
+                        "ignition::gazebo::systems::Physics"));
   EXPECT_EQ("gz::sim::systems::SceneBroadcaster",
     normalizePluginName("gz::sim::systems::SceneBroadcaster"));
 
   EXPECT_EQ("gz-sim-physics-system",
     normalizePluginFilename("ignition-gazebo-physics-system"));
   EXPECT_EQ("gz-sim-gz-sim-physics-system",
-    normalizePluginFilename("ignition-gazebo-ignition-gazebo-physics-system"));
+    normalizePluginFilename("ignition-gazebo-"
+                            "ignition-gazebo-physics-system"));
   EXPECT_EQ("gz-sim-user-commands-system",
     normalizePluginFilename("gz-sim-user-commands-system"));
 }
