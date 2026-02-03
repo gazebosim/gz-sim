@@ -101,9 +101,8 @@ struct MaybeGilScopedRelease
   };
 #endif
 
-// Normalize deprecated ignition plugin identifiers to gz equivalents for
-// duplicate detection while keeping namespace-safe behavior.
-std::string normalizePluginName(const std::string &_name)
+// Normalize deprecated ignition plugin identifiers and warn once per call.
+std::string normalizePluginNameWithWarning(const std::string &_name)
 {
   auto normalized = gz::sim::normalizePluginName(_name);
   if (normalized != _name)
@@ -1755,7 +1754,7 @@ void SimulationRunner::CreateEntities()
       StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        auto name = normalizePluginName(pl.name);
+        auto name = normalizePluginNameWithWarning(pl.name);
         if (!name.empty())
           loadedWorldPluginNames.insert(name);
 
@@ -1767,21 +1766,17 @@ void SimulationRunner::CreateEntities()
           [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
               const ServerConfig::PluginInfo &_pl)
       {
-        auto name = normalizePluginName(_pl.Plugin().Name());
-        if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
-        {
-          return true;
-        }
+          auto name = normalizePluginNameWithWarning(_pl.Plugin().Name());
+          if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
+            return true;
 
-        auto filename =
-          gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
-        if (!filename.empty() &&
-            loadedWorldPluginFileNames.count(filename) > 0)
-        {
-          return true;
-        }
+          auto filename =
+              gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
+          if (!filename.empty() &&
+              loadedWorldPluginFileNames.count(filename) > 0)
+            return true;
 
-        return false;
+          return false;
       };
 
       // Remove plugin if it's already loaded so as to not duplicate world
