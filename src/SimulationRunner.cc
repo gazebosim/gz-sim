@@ -105,7 +105,7 @@ struct MaybeGilScopedRelease
 // duplicate detection while keeping namespace-safe behavior.
 std::string NormalizePluginName(const std::string &_name)
 {
-  auto normalized = gz::sim::NormalizePluginName(_name);
+  auto normalized = gz::sim::normalizePluginName(_name);
   if (normalized != _name)
   {
     gzmsg << "[Deprecated] Plugin name '" << _name
@@ -118,7 +118,7 @@ std::string NormalizePluginName(const std::string &_name)
 
 std::string NormalizePluginFilename(const std::string &_filename)
 {
-  return gz::sim::NormalizePluginFilename(_filename);
+  return gz::sim::normalizePluginFilename(_filename);
 }
 }
 

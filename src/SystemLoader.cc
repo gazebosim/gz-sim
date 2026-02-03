@@ -65,7 +65,7 @@ class gz::sim::SystemLoaderPrivate
   //////////////////////////////////////////////////
   public: std::string FixDeprecatedPluginName(const std::string &_pluginName)
   {
-    std::string newPluginName = NormalizePluginName(_pluginName);
+    std::string newPluginName = normalizePluginName(_pluginName);
     if (newPluginName != _pluginName)
     {
       gzwarn << "Trying to load deprecated plugin name [" << _pluginName
@@ -120,7 +120,7 @@ class gz::sim::SystemLoaderPrivate
               gz::plugin::PluginPtr &_gzPlugin)
   {
     auto filename = _sdfPlugin.Filename();
-    auto normalizedFilename = NormalizePluginFilename(filename);
+    auto normalizedFilename = normalizePluginFilename(filename);
     if (normalizedFilename != filename)
     {
       gzwarn << "Trying to load deprecated plugin [" << _sdfPlugin.Filename()
