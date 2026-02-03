@@ -106,38 +106,20 @@ struct MaybeGilScopedRelease
 // duplicate detection while keeping namespace-safe behavior.
 std::string NormalizePluginName(const std::string &_name)
 {
-  if (_name.empty())
-    return _name;
-
-  const std::string prefix{"ignition::gazebo::"};
-  if (common::StartsWith(_name, prefix))
+  auto normalized = gz::sim::NormalizePluginName(_name);
+  if (normalized != _name)
   {
     gzmsg << "[Deprecated] Plugin name '" << _name
           << "' uses legacy ignition identifiers. "
           << "Please migrate your SDF to use 'gz::sim::'.\n";
-    return "gz::sim::" + _name.substr(prefix.size());
   }
 
-  return _name;
+  return normalized;
 }
 
 std::string NormalizePluginFilename(const std::string &_filename)
 {
-  if (_filename.empty())
-    return _filename;
-
-  const std::string deprecated{"ignition-gazebo"};
-  const std::string current{"gz-sim"};
-
-  std::string result = _filename;
-  std::size_t pos = 0;
-  while ((pos = result.find(deprecated, pos)) != std::string::npos)
-  {
-    result.replace(pos, deprecated.size(), current);
-    pos += current.size();
-  }
-
-  return result;
+  return gz::sim::NormalizePluginFilename(_filename);
 }
 }
 

@@ -184,6 +184,34 @@ std::string scopedName(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
+std::string NormalizePluginName(const std::string &_name)
+{
+  std::string result = _name;
+  const std::string deprecated{"ignition::gazebo"};
+  const std::string current{"gz::sim"};
+  auto pos = result.find(deprecated);
+  if (pos != std::string::npos)
+  {
+    result.replace(pos, deprecated.size(), current);
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
+std::string NormalizePluginFilename(const std::string &_filename)
+{
+  std::string result = _filename;
+  const std::string deprecated{"ignition-gazebo"};
+  const std::string current{"gz-sim"};
+  auto pos = result.find(deprecated);
+  if (pos != std::string::npos)
+  {
+    result.replace(pos, deprecated.size(), current);
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
 std::unordered_set<Entity> entitiesFromScopedName(
     const std::string &_scopedName, const EntityComponentManager &_ecm,
     Entity _relativeTo, const std::string &_delim)
