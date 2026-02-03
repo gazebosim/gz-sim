@@ -103,7 +103,7 @@ struct MaybeGilScopedRelease
 
 // Normalize deprecated ignition plugin identifiers to gz equivalents for
 // duplicate detection while keeping namespace-safe behavior.
-std::string NormalizePluginName(const std::string &_name)
+std::string normalizePluginName(const std::string &_name)
 {
   auto normalized = gz::sim::normalizePluginName(_name);
   if (normalized != _name)
@@ -116,7 +116,7 @@ std::string NormalizePluginName(const std::string &_name)
   return normalized;
 }
 
-std::string NormalizePluginFilename(const std::string &_filename)
+std::string normalizePluginFilename(const std::string &_filename)
 {
   return gz::sim::normalizePluginFilename(_filename);
 }
@@ -1760,11 +1760,11 @@ void SimulationRunner::CreateEntities()
       StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        auto name = NormalizePluginName(pl.name);
+        auto name = normalizePluginName(pl.name);
         if (!name.empty())
           loadedWorldPluginNames.insert(name);
 
-        auto filename = NormalizePluginFilename(pl.fname);
+        auto filename = normalizePluginFilename(pl.fname);
         if (!filename.empty())
           loadedWorldPluginFileNames.insert(filename);
       }
@@ -1772,11 +1772,11 @@ void SimulationRunner::CreateEntities()
           [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
               const ServerConfig::PluginInfo &_pl)
       {
-          auto name = NormalizePluginName(_pl.Plugin().Name());
+          auto name = normalizePluginName(_pl.Plugin().Name());
           if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
             return true;
 
-          auto filename = NormalizePluginFilename(_pl.Plugin().Filename());
+          auto filename = normalizePluginFilename(_pl.Plugin().Filename());
           if (!filename.empty() &&
               loadedWorldPluginFileNames.count(filename) > 0)
             return true;

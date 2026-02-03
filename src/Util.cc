@@ -184,7 +184,7 @@ std::string scopedName(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
-std::string NormalizePluginName(const std::string &_name)
+std::string normalizePluginName(const std::string &_name)
 {
   std::string result = _name;
   const std::string deprecated{"ignition::gazebo"};
@@ -198,7 +198,7 @@ std::string NormalizePluginName(const std::string &_name)
 }
 
 //////////////////////////////////////////////////
-std::string NormalizePluginFilename(const std::string &_filename)
+std::string normalizePluginFilename(const std::string &_filename)
 {
   std::string result = _filename;
   const std::string deprecated{"ignition-gazebo"};
