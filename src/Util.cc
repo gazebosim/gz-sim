@@ -195,6 +195,11 @@ std::string normalizePluginName(const std::string &_name)
     result.replace(pos, deprecated.size(), current);
     pos += current.size();
   }
+  const std::string duplicated{current + "::" + current};
+  while ((pos = result.find(duplicated)) != std::string::npos)
+  {
+    result.replace(pos, duplicated.size(), current);
+  }
   return result;
 }
 
@@ -209,6 +214,11 @@ std::string normalizePluginFilename(const std::string &_filename)
   {
     result.replace(pos, deprecated.size(), current);
     pos += current.size();
+  }
+  const std::string duplicated{current + "-" + current};
+  while ((pos = result.find(duplicated)) != std::string::npos)
+  {
+    result.replace(pos, duplicated.size(), current);
   }
   return result;
 }
