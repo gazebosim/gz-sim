@@ -1,17 +1,19 @@
 # Publish new releases to Bazel Central Registry.
 name: Publish to BCR
 on:
-  # For now, the workflow must be manually triggered.
+  # Manual trigger
   workflow_dispatch:
     inputs:
       tag_name:
         description: git tag being released
         required: true
         type: string
-    push:
-      tags:
-        # Glob pattern: branch_semver-postfix
-        - 'gz-sim[1-9]?[0-9]_[0-9]+.[0-9]+.[0-9]+*'
+
+  # Automated trigger on git tag push
+  push:
+    tags:
+      # Glob pattern: branch_semver-postfix
+      - 'gz-sim[1-9]?[0-9]_[0-9]+.[0-9]+.[0-9]+*'
 jobs:
   # The publish-to-bcr reusable workflow expects the version name to be in
   # semver-(optional build metadata postfix) format, but the repo tags are in
