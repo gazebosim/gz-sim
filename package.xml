@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>gz-sim</name>
-  <version>10.1.0</version>
+  <version>10.1.1</version>
   <description>Gazebo Sim : A Robotic Simulator</description>
   <maintainer email="mjcarroll@intrinsic.ai">Michael Carroll</maintainer>
   <license>Apache License 2.0</license>
