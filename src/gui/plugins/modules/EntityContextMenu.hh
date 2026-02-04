@@ -38,7 +38,7 @@ namespace sim
     // unique id
     Q_PLUGIN_METADATA(IID "GzSim/1.0")
 
-    /// \brief Overrided function that registers C++ class as a QML type
+    /// \brief Overridden function that registers C++ class as a QML type
     /// \param[in] _uri Plugin uri.
     public: void registerTypes(const char *_uri) override;
   };
