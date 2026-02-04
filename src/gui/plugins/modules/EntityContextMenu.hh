@@ -38,7 +38,7 @@ namespace sim
     // unique id
     Q_PLUGIN_METADATA(IID "GzSim/1.0")
 
-    /// \brief Overridden function that registers C++ class as a QML type
+    /// \brief Overrided function that registers C++ class as a QML type
     /// \param[in] _uri Plugin uri.
     public: void registerTypes(const char *_uri) override;
   };
@@ -87,6 +87,10 @@ namespace sim
     /// \param[in] _data Request data
     public: Q_INVOKABLE void OnRequest(const QString &_request,
         const QString &_data);
+
+    /// \brief Select an entity for inspection
+    /// \param[in] _entityId Entity id as string
+    public: Q_INVOKABLE void OnInspect(const QString &_entityId);
 
     /// \internal
     /// \brief Pointer to private data.
