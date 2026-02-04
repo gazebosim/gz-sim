@@ -21,6 +21,7 @@
 #include <gz/msgs/server_control.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
+#include <gz/msgs/world_control.pb.h>
 
 #include <csignal>
 #include <vector>
@@ -1284,6 +1285,100 @@ TEST_P(ServerFixture, Stop)
   server.Stop();
   EXPECT_FALSE(*server.Running(0));
   EXPECT_FALSE(server.Running());
+}
+
+TEST_P(ServerFixture, GetStatusLifecycle)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  sim::Server server(serverConfig);
+
+  // Initial state should be STOPPED
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+
+  // Run non-blocking
+  server.Run(false, 0, false);
+
+  // Wait briefly for thread start
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  while (*server.IterationCount() < 1)
+    GZ_SLEEP_MS(100);
+
+  // State should be RUNNING
+  EXPECT_EQ(Server::Status::RUNNING, server.GetStatus());
+
+  // Stop the server and verify that state is STOPPED
+  server.Stop();
+
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+}
+
+TEST_P(ServerFixture, SdfErrorExit)
+{
+  // Define an SDF with errors (model without links)
+  std::string badSdf = R"(
+    <sdf version="1.12">
+      <world name="test">
+        <model name="bad_model_no_link" />
+      </world>
+    </sdf>)";
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(badSdf);
+  serverConfig.SetWaitForAssets(true);
+  // Set SdfErrorBehavior::EXIT_IMMEDIATELY so that the server exits on SDF
+  // errors.
+  serverConfig.SetBehaviorOnSdfErrors(
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY);
+
+  sim::Server server(serverConfig);
+
+  // Check that server caught the error and is in EXITED state
+  EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
+
+  // Attempt to Run, expect failure
+  EXPECT_FALSE(server.Run(true, 1, false));
+
+  // Attempt to RunOnce, expect failure
+  EXPECT_FALSE(server.RunOnce(false));
+}
+
+TEST_P(ServerFixture, WorldControlIgnoredOnExit)
+{
+  std::string badSdf = R"(
+    <sdf version="1.12">
+      <world name="test">
+        <model name="bad_model_no_link" />
+      </world>
+    </sdf>)";
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(badSdf);
+  serverConfig.SetWaitForAssets(true);
+  // Set SdfErrorBehavior::EXIT_IMMEDIATELY so that the server exits on SDF
+  // errors.
+  serverConfig.SetBehaviorOnSdfErrors(
+      ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY);
+
+  sim::Server server(serverConfig);
+  EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
+
+  // Setup transport to call the service
+  transport::Node node;
+  msgs::WorldControl req;
+  msgs::Boolean res;
+  bool result{false};
+
+  // Calling the world control service should result with a boolean
+  // False response, indicating the request was rejected.
+  const std::string worldControlService = "/world/test/control";
+  ASSERT_TRUE(test::waitForService(node, worldControlService, 1000));
+  bool executed = node.Request(worldControlService, req, 1000, res, result);
+  EXPECT_TRUE(executed);
+  EXPECT_TRUE(result);
+  EXPECT_FALSE(res.data());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

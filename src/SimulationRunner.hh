@@ -292,6 +292,12 @@ namespace gz
       public: void SetStepSize(
           const std::chrono::steady_clock::duration &_step);
 
+      /// \brief Mark the runner as having exited with errors.
+      /// \details This is called by the Server when a critical error occurs
+      /// during initialization (e.g. invalid SDF). A runner in this state
+      /// will refuse to run simulation steps.
+      public: void SetExitedWithErrors();
+
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
@@ -578,6 +584,11 @@ namespace gz
       /// \brief True to create entities.
       private: bool createEntities{false};
       private: bool entitiesCreated{false};
+
+      /// \brief Flag indicating if the server encountered errors during
+      /// initialization and should exit immediately. See
+      /// `SetExitedWithErrors()`.
+      private: bool exitedWithErrors{false};
 
       friend class LevelManager;
     };
