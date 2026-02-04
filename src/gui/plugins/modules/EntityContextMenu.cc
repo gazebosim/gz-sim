@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include <QTimer>
+
 #include <gz/common/Console.hh>
 #include <gz/sim/Conversions.hh>
 #include <gz/sim/gui/GuiEvents.hh>
@@ -370,6 +372,7 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
   }
 
   bool inspectorOpen{false};
+  bool inspectorJustLoaded{false};
   auto plugins = mainWindow->findChildren<gz::gui::Plugin *>();
   for (const auto plugin : plugins)
   {
@@ -399,9 +402,25 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
     {
       gzerr << "Failed to load ComponentInspector plugin." << std::endl;
     }
+    else
+    {
+      inspectorJustLoaded = true;
+    }
   }
 
   std::vector<Entity> entitySet{static_cast<Entity>(id)};
-  gui::events::EntitiesSelected event(entitySet, true);
-  gz::gui::App()->sendEvent(mainWindow, &event);
+  auto sendSelection = [mainWindow, entitySet]()
+  {
+    gui::events::EntitiesSelected event(entitySet, true);
+    gz::gui::App()->sendEvent(mainWindow, &event);
+  };
+
+  if (inspectorJustLoaded)
+  {
+    QTimer::singleShot(0, mainWindow, sendSelection);
+  }
+  else
+  {
+    sendSelection();
+  }
 }

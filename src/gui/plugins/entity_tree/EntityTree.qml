@@ -404,7 +404,7 @@ Rectangle {
               var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
               var type = _EntityTreeModel.EntityType(mi)
               var scopedName = _EntityTreeModel.ScopedName(mi)
-              var entityId = EntityTreeModel.EntityId(styleData.index)
+              var entityId = _EntityTreeModel.EntityId(mi)
               var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
               entityContextMenu.open(scopedName, type,
                 entityId.toString(), posInTree.x, posInTree.y)
