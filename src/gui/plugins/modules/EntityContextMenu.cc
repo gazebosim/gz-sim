@@ -401,6 +401,7 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
     if (!gz::gui::App()->LoadPlugin("ComponentInspector"))
     {
       gzerr << "Failed to load ComponentInspector plugin." << std::endl;
+      return;
     }
     else
     {

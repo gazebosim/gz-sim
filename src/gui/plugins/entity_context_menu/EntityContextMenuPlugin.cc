@@ -17,6 +17,7 @@
 
 #include "EntityContextMenuPlugin.hh"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -214,7 +215,7 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
 
     emit ContextMenuRequested(
       visual->Name().c_str(),
-      QString::number(static_cast<unsigned long long>(entityId)),
+      QString::number(static_cast<uint64_t>(entityId)),
       _mouseEvent.Pos().X(), _mouseEvent.Pos().Y());
   }
 }
