@@ -184,6 +184,46 @@ std::string scopedName(const Entity &_entity,
 }
 
 //////////////////////////////////////////////////
+std::string normalizePluginName(const std::string &_name)
+{
+  std::string result = _name;
+  const std::string deprecated{"ignition::gazebo"};
+  const std::string current{"gz::sim"};
+  std::string::size_type pos = 0;
+  while ((pos = result.find(deprecated, pos)) != std::string::npos)
+  {
+    result.replace(pos, deprecated.size(), current);
+    pos += current.size();
+  }
+  const std::string duplicated{current + "::" + current};
+  while ((pos = result.find(duplicated)) != std::string::npos)
+  {
+    result.replace(pos, duplicated.size(), current);
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
+std::string normalizePluginFilename(const std::string &_filename)
+{
+  std::string result = _filename;
+  const std::string deprecated{"ignition-gazebo"};
+  const std::string current{"gz-sim"};
+  std::string::size_type pos = 0;
+  while ((pos = result.find(deprecated, pos)) != std::string::npos)
+  {
+    result.replace(pos, deprecated.size(), current);
+    pos += current.size();
+  }
+  const std::string duplicated{current + "-" + current};
+  while ((pos = result.find(duplicated)) != std::string::npos)
+  {
+    result.replace(pos, duplicated.size(), current);
+  }
+  return result;
+}
+
+//////////////////////////////////////////////////
 std::unordered_set<Entity> entitiesFromScopedName(
     const std::string &_scopedName, const EntityComponentManager &_ecm,
     Entity _relativeTo, const std::string &_delim)
