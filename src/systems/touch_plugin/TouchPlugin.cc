@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
@@ -147,12 +148,24 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
 
   this->AddTargetEntities(_ecm, potentialEntities);
 
+  std::unordered_set<std::string> collisionNames;
+  if (_sdf->HasElement("collision"))
+  {
+    sdf::ElementConstPtr sdfElem = _sdf->FindElement("collision");
+    while (sdfElem)
+    {
+      const auto &collisionName = sdfElem->Get<std::string>();
+      if (!collisionName.empty())
+        collisionNames.insert(collisionName);
+      sdfElem = sdfElem->GetNextElement("collision");
+    }
+  }
+
   // Create a list of collision entities that have been marked as contact
   // sensors in this model. These are collisions that have a ContactSensorData
   // component
   auto allLinks =
       _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
-
   for (const Entity linkEntity : allLinks)
   {
     auto linkCollisions =
@@ -162,7 +175,33 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
       if (_ecm.EntityHasComponentType(colEntity,
                                       components::ContactSensorData::typeId))
       {
-        this->collisionEntities.push_back(colEntity);
+        // if no <collision> elements specified, add all collisions that
+        // have a ContactSensorData component
+        if (collisionNames.empty())
+        {
+          this->collisionEntities.push_back(colEntity);
+        }
+        // Otherwise add only collisions that have a ContactSensorData component
+        // and match the specified name
+        else
+        {
+          // Try scoped name first
+          std::string colNameScoped = scopedName(colEntity, _ecm);
+          if (collisionNames.find(colNameScoped) != collisionNames.end())
+          {
+            this->collisionEntities.push_back(colEntity);
+          }
+          else
+          {
+            // Try unscoped name
+            std::string colName =
+                _ecm.Component<components::Name>(colEntity)->Data();
+            if (collisionNames.find(colName) != collisionNames.end())
+            {
+              this->collisionEntities.push_back(colEntity);
+            }
+          }
+        }
       }
     }
   }
