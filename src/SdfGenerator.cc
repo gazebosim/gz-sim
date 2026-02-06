@@ -79,7 +79,7 @@ namespace sdf_generator
   template <typename ComponentT>
   static bool copySdf(ComponentT *_comp, const sdf::ElementPtr &_elem)
   {
-    if (nullptr != _comp)
+    if (nullptr != _comp && nullptr != _comp->Data().Element())
     {
       _elem->Copy(_comp->Data().Element());
       return true;
@@ -245,20 +245,17 @@ namespace sdf_generator
     {
       auto uriElem = _elem->GetElement("uri");
       auto uriStr = uriElem->Get<std::string>();
-      // If the URI starts with "file://", it is assumed to be an
-      // absolute path, so there is no need to update it.
-      if (uriStr.find("file://") == std::string::npos &&
-          uriStr.find("http://") == std::string::npos &&
-          uriStr.find("https://") == std::string::npos)
+      // The URI starts with model:// or package://, resolve the path
+      std::string path = asFullPath(uriStr, _elem->FilePath());
+
+      auto foundPath = common::findFile(path);
+      if (foundPath.empty())
       {
-        if (uriStr[0] != '/')
-        {
-          // relative uri
-          uriStr = common::joinPaths(_prefixPath, uriStr);
-        }
-        uriStr = std::string("file://") + uriStr;
-        uriElem->Set(uriStr);
+        gzerr << "Could not resolve uri: " << uriStr << "\n";
+        return;
       }
+      uriStr = std::string("file://") + foundPath;
+      uriElem->Set(uriStr);
     }
     else
     {
