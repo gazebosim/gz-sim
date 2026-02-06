@@ -141,7 +141,8 @@ Server::Server(const ServerConfig &_config)
 }
 
 /////////////////////////////////////////////////
-Server::~Server() {
+Server::~Server()
+{
   // Clear findfile callback to avoid lifetime mismatches between callbacks and
   // pointers stored in the callbacks in case a new instance of Server is
   // created afterward (e.g. in tests).
