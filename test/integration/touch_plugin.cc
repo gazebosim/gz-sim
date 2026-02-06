@@ -22,6 +22,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
+#include <gz/msgs/convert/Pose.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -236,7 +237,7 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 {
   std::string whiteBox = R"EOF(
   <?xml version="1.0" ?>
-  <sdf version="1.6">
+  <sdf version="1.9">
       <model name="white_box">
         <pose>0 0 4 0 0 0</pose>
         <link name="link">
@@ -266,7 +267,7 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 
   std::string greenBox = R"EOF(
   <?xml version="1.0" ?>
-  <sdf version="1.6">
+  <sdf version="1.9">
       <model name="green_box_for_white">
         <static>1</static>
         <pose>0 0 0.5 0 0 0</pose>
@@ -347,4 +348,188 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
   // Test different spawn orders
   testFunc(whiteBox, greenBox);
   testFunc(greenBox, whiteBox);
+}
+
+TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CollisionFilter))
+{
+  // Spawn white box over one of the 2 collisions in the green box.
+  // There are 2 touch plugins in the green box, and each one specifies a
+  // different collision. Drop the white box over one of the collisions in the
+  // green box and verify that the correct touch event is published. Repeat
+  // and drop the white box onto the other collision.
+  std::string whiteBox = R"EOF(
+  <?xml version="1.0" ?>
+  <sdf version="1.6">
+      <model name="white_box">
+        <pose>0 0 8 0 0 0</pose>
+        <link name="link">
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>0.5 0.5 0.5</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+  </sdf>)EOF";
+
+  std::string greenBox = R"EOF(
+  <?xml version="1.0" ?>
+  <sdf version="1.6">
+      <model name="green_box_for_white">
+        <static>1</static>
+        <pose>0 0 0.5 0 0 0</pose>
+        <link name="link">
+          <collision name="collision_01">
+            <pose>0 1 0 0 0 0</pose>
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+          <collision name="collision_02">
+            <pose>0 -1 0 0 0 0</pose>
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+          <sensor name="collision_sensor" type="contact">
+            <contact>
+              <collision>collision_01</collision>
+              <collision>collision_02</collision>
+            </contact>
+          </sensor>
+        </link>
+        <plugin
+          filename="gz-sim-touchplugin-system"
+          name="gz::sim::systems::TouchPlugin">
+          <target>white_box</target>
+          <collision>collision_01</collision>
+          <time>0.2</time>
+          <namespace>white_touches_green_collision_01</namespace>
+          <enabled>true</enabled>
+        </plugin>
+        <plugin
+          filename="gz-sim-touchplugin-system"
+          name="gz::sim::systems::TouchPlugin">
+          <target>white_box</target>
+          <collision>collision_02</collision>
+          <time>0.2</time>
+          <namespace>white_touches_green_collision_02</namespace>
+          <enabled>true</enabled>
+        </plugin>
+      </model>
+  </sdf>)EOF";
+
+  transport::Node node;
+
+  bool col01Touched{false};
+  auto col01TouchCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        col01Touched = true;
+      });
+  node.Subscribe("/white_touches_green_collision_01/touched",
+                 col01TouchCb);
+
+  bool col02Touched{false};
+  auto col02TouchCb = std::function<void(const msgs::Boolean &)>(
+      [&](const msgs::Boolean &)
+      {
+        col02Touched = true;
+      });
+  node.Subscribe("/white_touches_green_collision_02/touched",
+                 col02TouchCb);
+
+  // Request entity spawn
+  msgs::EntityFactory req;
+  unsigned int timeout = 5000;
+  std::string service{"/world/empty/create"};
+  std::string setPoseService{"/world/empty/set_pose"};
+  std::string col01EnableService{"/white_touches_green_collision_01/enable"};
+  std::string col02EnableService{"/white_touches_green_collision_02/enable"};
+
+  msgs::Boolean res;
+  bool result;
+
+  this->server.reset();
+  this->StartServer("/test/worlds/empty.sdf");
+
+  req.set_sdf(greenBox);
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  server->Run(true, 100, false);
+
+  req.set_sdf(whiteBox);
+  gz::msgs::Set(req.mutable_pose(), math::Pose3d(0, 0, 8, 0, 0, 0));
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+  server->Run(true, 100, false);
+
+  auto testFunc = [&](const math::Pose3d &_pose)
+  {
+    col01Touched = false;
+    col02Touched = false;
+
+    // Enable the touch plugins
+    msgs::Empty emptyRes;
+    msgs::Boolean enableReq;
+    enableReq.set_data(true);
+    EXPECT_TRUE(node.Request(col01EnableService, enableReq, timeout, emptyRes,
+                             result));
+    EXPECT_TRUE(node.Request(col02EnableService, enableReq, timeout, emptyRes,
+                             result));
+
+    // Process the service calls
+    server->Run(true, 100, false);
+
+    // Spawn white box at specified box above collision
+    msgs::Pose poseReq;
+    poseReq.set_name("white_box");
+    msgs::Set(poseReq.mutable_position(), _pose.Pos());
+    msgs::Set(poseReq.mutable_orientation(), _pose.Rot());
+    EXPECT_TRUE(node.Request(setPoseService, poseReq, timeout, res, result));
+
+    // Check boxes haven't touched yet
+    EXPECT_FALSE(col01Touched);
+    EXPECT_FALSE(col02Touched);
+
+    // Let white box fall on top of green box at the specified pose
+    server->Run(true, 500, false);
+
+    // Check it hasn't touched for long enough
+    EXPECT_FALSE(col01Touched);
+    EXPECT_FALSE(col02Touched);
+
+    // Give it time to touch for at least 0.2 seconds
+    server->Run(true, 1000, false);
+
+    // Only one touched event should be received
+    if (_pose.Pos().Y() > 0.0)
+    {
+      for (int sleep = 0; sleep < 50 && !col01Touched; ++sleep)
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+      EXPECT_TRUE(col01Touched);
+      EXPECT_FALSE(col02Touched);
+    }
+    else
+    {
+      for (int sleep = 0; sleep < 50 && !col02Touched; ++sleep)
+        std::this_thread::sleep_for(std::chrono::milliseconds(30));
+      EXPECT_FALSE(col01Touched);
+      EXPECT_TRUE(col02Touched);
+    }
+  };
+
+  math::Pose3d spawnPoseOverCol01(0, 1.0, 8, 0, 0, 0);
+  math::Pose3d spawnPoseOverCol02(0, -1.0, 8, 0, 0, 0);
+  testFunc(spawnPoseOverCol01);
+  testFunc(spawnPoseOverCol02);
 }
