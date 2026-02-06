@@ -15,7 +15,7 @@ bazel_dep(name = "tinyxml2", version = "10.0.0")
 
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
-bazel_dep(name = "gz-common", version = "6.2.1")
+bazel_dep(name = "gz-common", version = "6.3.0")
 bazel_dep(name = "gz-fuel-tools", version = "10.1.0")
 bazel_dep(name = "gz-math", version = "8.1.1.bcr.1")
 bazel_dep(name = "gz-msgs", version = "11.1.0.bcr.2")
