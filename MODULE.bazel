@@ -1,32 +1,34 @@
-## MODULE.bazel
 module(
     name = "gz-sim",
-    repo_name = "org_gazebosim_gz-sim",
+    compatibility_level = 9,
 )
 
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "buildifier_prebuilt", version = "8.2.1")
 bazel_dep(name = "eigen", version = "3.4.0.bcr.3")
-bazel_dep(name = "googletest", version = "1.15.2")
-bazel_dep(name = "protobuf", version = "29.4", repo_name = "com_google_protobuf")
-bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "googletest", version = "1.17.0")
+bazel_dep(name = "protobuf", version = "30.1", repo_name = "com_google_protobuf")
+bazel_dep(name = "rules_cc", version = "0.2.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
 
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
-bazel_dep(name = "gz-common")
-bazel_dep(name = "gz-fuel-tools")
-bazel_dep(name = "gz-math")
-bazel_dep(name = "gz-msgs")
-bazel_dep(name = "gz-physics")
-bazel_dep(name = "gz-plugin")
-bazel_dep(name = "gz-rendering")
-bazel_dep(name = "gz-sensors")
-bazel_dep(name = "gz-transport")
-bazel_dep(name = "gz-utils")
-bazel_dep(name = "sdformat")
+bazel_dep(name = "gz-common", version = "7.0.0")
+bazel_dep(name = "gz-fuel-tools", version = "11.0.0")
+bazel_dep(name = "gz-math", version = "9.0.0")
+bazel_dep(name = "gz-msgs", version = "12.0.0")
+bazel_dep(name = "gz-physics", version = "9.0.0")
+bazel_dep(name = "gz-plugin", version = "4.0.0")
+bazel_dep(name = "gz-rendering", version = "10.0.0")
+bazel_dep(name = "gz-sensors", version = "10.0.0")
+bazel_dep(name = "gz-transport", version = "15.0.0")
+bazel_dep(name = "gz-utils", version = "4.0.0")
+bazel_dep(name = "sdformat", version = "16.0.0")
 
+# Override Gz deps to be pulled from the `main` branches so that CI uses deps
+# from HEAD on `main`.
 archive_override(
     module_name = "gz-common",
     strip_prefix = "gz-common-main",
