@@ -90,6 +90,15 @@ void defineSimJoint(py::object module)
       py::arg("ecm"),
       py::arg("limits"),
       "Set the velocity limits on a joint axis.")
+  .def("max_velocity_limits", &gz::sim::Joint::MaxVelocityLimits,
+      py::arg("ecm"),
+      "Get the maximum velocity limit for each joint axis.")
+  .def("effort_limits", &gz::sim::Joint::EffortLimits,
+      py::arg("ecm"),
+      "Get the maximum effort limit for each joint axis.")
+  .def("position_limits", &gz::sim::Joint::PositionLimits,
+      py::arg("ecm"),
+      "Get the position limits for each joint axis.")
   .def("set_effort_limits", &gz::sim::Joint::SetEffortLimits,
       py::arg("ecm"),
       py::arg("limits"),
