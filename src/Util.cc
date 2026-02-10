@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <gz/msgs/entity.pb.h>
@@ -187,19 +188,16 @@ std::string scopedName(const Entity &_entity,
 std::string normalizePluginName(const std::string &_name)
 {
   std::string result = _name;
-  const std::string deprecated{"ignition::gazebo"};
-  const std::string current{"gz::sim"};
-  std::string::size_type pos = 0;
-  while ((pos = result.find(deprecated, pos)) != std::string::npos)
-  {
-    result.replace(pos, deprecated.size(), current);
-    pos += current.size();
-  }
-  const std::string duplicated{current + "::" + current};
-  while ((pos = result.find(duplicated)) != std::string::npos)
-  {
-    result.replace(pos, duplicated.size(), current);
-  }
+  constexpr std::string_view deprecated{"ignition::gazebo"};
+  constexpr std::string_view current{"gz::sim"};
+  if (result.rfind(deprecated, 0) != 0)
+    return result;
+
+  if (result.find(deprecated, deprecated.size()) != std::string::npos)
+    return result;
+
+  result.replace(0, deprecated.size(), current);
+
   return result;
 }
 
@@ -207,19 +205,16 @@ std::string normalizePluginName(const std::string &_name)
 std::string normalizePluginFilename(const std::string &_filename)
 {
   std::string result = _filename;
-  const std::string deprecated{"ignition-gazebo"};
-  const std::string current{"gz-sim"};
-  std::string::size_type pos = 0;
-  while ((pos = result.find(deprecated, pos)) != std::string::npos)
-  {
-    result.replace(pos, deprecated.size(), current);
-    pos += current.size();
-  }
-  const std::string duplicated{current + "-" + current};
-  while ((pos = result.find(duplicated)) != std::string::npos)
-  {
-    result.replace(pos, duplicated.size(), current);
-  }
+  constexpr std::string_view deprecated{"ignition-gazebo"};
+  constexpr std::string_view current{"gz-sim"};
+  if (result.rfind(deprecated, 0) != 0)
+    return result;
+
+  if (result.find(deprecated, deprecated.size()) != std::string::npos)
+    return result;
+
+  result.replace(0, deprecated.size(), current);
+
   return result;
 }
 

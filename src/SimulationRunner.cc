@@ -1737,26 +1737,17 @@ void SimulationRunner::CreateEntities()
     }
     else
     {
-      StringSet loadedWorldPluginNames;
       StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        auto name = gz::sim::normalizePluginName(pl.name);
-        if (!name.empty())
-          loadedWorldPluginNames.insert(name);
-
         auto filename = gz::sim::normalizePluginFilename(pl.fname);
         if (!filename.empty())
           loadedWorldPluginFileNames.insert(filename);
       }
       auto isPluginLoaded =
-          [&loadedWorldPluginNames, &loadedWorldPluginFileNames](
+          [&loadedWorldPluginFileNames](
               const ServerConfig::PluginInfo &_pl)
       {
-          auto name = gz::sim::normalizePluginName(_pl.Plugin().Name());
-          if (!name.empty() && loadedWorldPluginNames.count(name) > 0)
-            return true;
-
           auto filename =
               gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
           if (!filename.empty() &&
