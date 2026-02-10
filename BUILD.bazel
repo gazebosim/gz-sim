@@ -243,8 +243,11 @@ genrule(
         ":gz-sim-air-pressure-system.so",
         ":gz-sim-log-system.so",
         ":gz-sim-physics-system.so",
-        ":gz-sim-scene-broadcaster-system.so",
-        ":gz-sim-user-commands-system.so",
+        # TODO: Add back these default systems once --dynamic_mode=off is
+        # removed from .bazelrc.
+        # See https://github.com/gazebosim/gz-sim/issues/3273 for details.
+        # ":gz-sim-scene-broadcaster-system.so",
+        # ":gz-sim-user-commands-system.so",
         ":gz-sim-velocity-control-system.so",
         ":lib/libMockSystem.so",
         ":lib/libTestModelSystem.so",
@@ -836,9 +839,11 @@ gz_sim_system_libraries(
         ":gz-sim",
         "@gz-common//graphics",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
+        "@gz-utils//:ImplPtr",
     ],
 )
 
@@ -1190,6 +1195,7 @@ gz_sim_system_libraries(
         "@gz-math",
         "@gz-plugin//:register",
         "@gz-transport",
+        "@gz-transport//parameters",
         "@sdformat",
     ],
 )
@@ -1840,7 +1846,10 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@gz-common",
+        "@gz-common//events",
         "@gz-common//profiler",
+        "@gz-physics",
         "@gz-plugin//:register",
         "@gz-transport",
     ],
