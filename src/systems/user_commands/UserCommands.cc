@@ -1026,7 +1026,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
   {
     auto model = *root.Model();
     model.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&model, false);
+    entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
   else if (isLight && isRoot)
   {
