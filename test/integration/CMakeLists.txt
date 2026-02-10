@@ -20,6 +20,7 @@ set(tests
   detachable_joint.cc
   diff_drive_system.cc
   drive_to_pose_controller_system.cc
+  dynamic_detachable_joint.cc
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
