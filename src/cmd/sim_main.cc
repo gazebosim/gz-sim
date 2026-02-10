@@ -461,7 +461,15 @@ int main(int argc, char** argv)
 
   app.formatter(std::make_shared<GzFormatter>(&app));
   CLI11_PARSE(app, argc, argv);
-
+  // check for invalid combination to avoid thread issue
+  if (!opt->file.empty() && !opt->playback.empty())
+  {
+    gzerr << "Both an SDF file and the playback "
+          << "flag (--playback) are specified. "
+          << "Specify only one of these arguments."
+          << std::endl;
+    return -1;
+  }
   std::string parsedSdfFile;
   if(!opt->launchServer && !opt->launchGui)
   {
