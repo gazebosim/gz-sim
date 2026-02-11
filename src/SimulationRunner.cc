@@ -100,6 +100,7 @@ struct MaybeGilScopedRelease
     MaybeGilScopedRelease(){}
   };
 #endif
+
 }
 
 
@@ -1768,15 +1769,24 @@ void SimulationRunner::CreateEntities()
     }
     else
     {
-      std::unordered_set<std::string> loadedWorldPluginFileNames;
+      StringSet loadedWorldPluginFileNames;
       for (const auto &pl : loadedWorldPlugins)
       {
-        loadedWorldPluginFileNames.insert(pl.fname);
+        auto filename = gz::sim::normalizePluginFilename(pl.fname);
+        if (!filename.empty())
+          loadedWorldPluginFileNames.insert(filename);
       }
       auto isPluginLoaded =
-          [&loadedWorldPluginFileNames](const ServerConfig::PluginInfo &_pl)
+          [&loadedWorldPluginFileNames](
+              const ServerConfig::PluginInfo &_pl)
       {
-          return loadedWorldPluginFileNames.count(_pl.Plugin().Filename()) != 0;
+          auto filename =
+              gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
+          if (!filename.empty() &&
+              loadedWorldPluginFileNames.count(filename) > 0)
+            return true;
+
+          return false;
       };
 
       // Remove plugin if it's already loaded so as to not duplicate world
