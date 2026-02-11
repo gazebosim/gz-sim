@@ -23,6 +23,14 @@
 
 namespace custom
 {
+  // Create a custom component to store the sensor date
+  using OdometerComponent =
+      gz::sim::components::Component<std::shared_ptr<Odometer>, class OdometerComponentTag>;
+
+  // Use this macro to register a component. Give it a unique name across the
+  // entire simulation.
+  GZ_SIM_REGISTER_COMPONENT("custom::OdometerComponent", OdometerComponent)
+
   /// \brief Example showing how to tie a custom sensor, in this case an
   /// odometer, into simulation
   class OdometerSystem:
@@ -41,16 +49,6 @@ namespace custom
     // Also remove sensors that have been deleted.
     public: void PostUpdate(const gz::sim::UpdateInfo &_info,
         const gz::sim::EntityComponentManager &_ecm) final;
-
-    /// \brief Remove custom sensors if their entities have been removed from
-    /// simulation.
-    /// \param[in] _ecm Immutable reference to ECM.
-    private: void RemoveSensorEntities(
-        const gz::sim::EntityComponentManager &_ecm);
-
-    /// \brief A map of custom entities to their sensors
-    private: std::unordered_map<gz::sim::Entity,
-        std::shared_ptr<Odometer>> entitySensorMap;
   };
 }
 #endif
