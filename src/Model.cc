@@ -21,6 +21,8 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/PoseCmd.hh"
 #include "gz/sim/components/SelfCollide.hh"
 #include "gz/sim/components/SourceFilePath.hh"
@@ -216,6 +218,66 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
         [](const math::Pose3d &, const math::Pose3d &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetStaticStateCmd(EntityComponentManager &_ecm,
+    bool _static)
+{
+  auto staticCmdComp =
+      _ecm.Component<components::StaticStateCmd>(this->dataPtr->id);
+  if (!staticCmdComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::StaticStateCmd(_static));
+  }
+  else
+  {
+    staticCmdComp->SetData(_static,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::StaticStateCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
+    bool _enabled)
+{
+  auto gravityCmdComp =
+      _ecm.Component<components::GravityEnabledCmd>(this->dataPtr->id);
+  if (!gravityCmdComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::GravityEnabledCmd(_enabled));
+  }
+  else
+  {
+    gravityCmdComp->SetData(_enabled,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::GravityEnabledCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetCollisionEnabledCmd(EntityComponentManager &_ecm,
+    bool _enabled)
+{
+  auto collisionCmdComp =
+      _ecm.Component<components::CollisionEnabledCmd>(this->dataPtr->id);
+  if (!collisionCmdComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::CollisionEnabledCmd(_enabled));
+  }
+  else
+  {
+    collisionCmdComp->SetData(_enabled,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::CollisionEnabledCmd::typeId, ComponentState::OneTimeChange);
   }
 }
 

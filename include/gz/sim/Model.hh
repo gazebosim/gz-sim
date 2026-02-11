@@ -187,6 +187,24 @@ namespace gz
       public: void SetWorldPoseCmd(EntityComponentManager &_ecm,
           const math::Pose3d &_pose);
 
+      /// \brief Set a command to change the model's static state.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _static New static state.
+      public: void SetStaticStateCmd(EntityComponentManager &_ecm,
+          bool _static);
+
+      /// \brief Set a command to change the model's gravity enabled state.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _enabled New gravity enabled state.
+      public: void SetGravityEnabledCmd(EntityComponentManager &_ecm,
+          bool _enabled);
+
+      /// \brief Set a command to change the model's collision enabled state.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _enabled New collision enabled state.
+      public: void SetCollisionEnabledCmd(EntityComponentManager &_ecm,
+          bool _enabled);
+
       /// \brief Get the model's canonical link entity.
       /// \param[in] _ecm Entity-component manager.
       /// \return Link entity.

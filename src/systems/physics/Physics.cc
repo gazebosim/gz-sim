@@ -387,6 +387,18 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
+  /// \brief Entities whose static state commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> staticStateCmdsToRemove;
+
+  /// \brief Entities whose gravity enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
+
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -634,6 +646,24 @@ class gz::sim::systems::PhysicsPrivate
             physics::FeatureList<
               physics::SetFreeGroupWorldVelocity>{};
 
+  //////////////////////////////////////////////////
+  /// \brief Feature list for model static state.
+  public: struct StaticStateFeatureList :
+            physics::FeatureList<
+              physics::SetFreeGroupStaticState>{};
+
+  //////////////////////////////////////////////////
+  /// \brief Feature list for model gravity enabled.
+  public: struct GravityEnabledFeatureList :
+            physics::FeatureList<
+              physics::SetFreeGroupGravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  /// \brief Feature list for model collision enabled.
+  public: struct CollisionEnabledFeatureList :
+            physics::FeatureList<
+              physics::SetFreeGroupCollisionEnabled>{};
+
 
   //////////////////////////////////////////////////
   // Meshes
@@ -778,7 +808,10 @@ class gz::sim::systems::PhysicsPrivate
   public: using EntityFreeGroupMap = EntityFeatureMap3d<
             physics::FreeGroup,
             MinimumFeatureList,
-            WorldVelocityCommandFeatureList
+            WorldVelocityCommandFeatureList,
+            StaticStateFeatureList,
+            GravityEnabledFeatureList,
+            CollisionEnabledFeatureList
             >;
 
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
@@ -2623,6 +2656,124 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
   }
 
+  // Update model static state
+  auto olderStaticStateCmdsToRemove =
+      std::move(this->staticStateCmdsToRemove);
+  this->staticStateCmdsToRemove.clear();
+
+  _ecm.Each<components::Model, components::StaticStateCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::StaticStateCmd *_staticCmd)
+      {
+        this->staticStateCmdsToRemove.insert(_entity);
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto freeGroupStaticFeature =
+            this->entityFreeGroupMap
+            .EntityCast<StaticStateFeatureList>(_entity);
+        if (!freeGroupStaticFeature)
+          return true;
+
+        freeGroupStaticFeature->SetStaticState(_staticCmd->Data());
+
+        if (_staticCmd->Data())
+        {
+          this->staticEntities.insert(_entity);
+        }
+        else
+        {
+          this->staticEntities.erase(_entity);
+        }
+
+        return true;
+      });
+
+  for (const Entity &entity : olderStaticStateCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::StaticStateCmd>(entity);
+  }
+
+  // Update model gravity enabled
+  auto olderGravityEnabledCmdsToRemove =
+      std::move(this->gravityEnabledCmdsToRemove);
+  this->gravityEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model, components::GravityEnabledCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::GravityEnabledCmd *_gravityCmd)
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto freeGroupGravityFeature =
+            this->entityFreeGroupMap
+            .EntityCast<GravityEnabledFeatureList>(_entity);
+        if (!freeGroupGravityFeature)
+          return true;
+
+        freeGroupGravityFeature->SetGravityEnabled(_gravityCmd->Data());
+
+        return true;
+      });
+
+  for (const Entity &entity : olderGravityEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
+  }
+
+  // Update model collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+      std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model, components::CollisionEnabledCmd>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionCmd)
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto freeGroup = modelPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        auto freeGroupCollisionFeature =
+            this->entityFreeGroupMap
+            .EntityCast<CollisionEnabledFeatureList>(_entity);
+        if (!freeGroupCollisionFeature)
+          return true;
+
+        freeGroupCollisionFeature->SetCollisionEnabled(
+            _collisionCmd->Data());
+
+        return true;
+      });
+
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
+
   // Slip compliance on Collisions
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &_entity,
@@ -2996,6 +3147,9 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
+  this->staticStateCmdsToRemove.clear();
+  this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);

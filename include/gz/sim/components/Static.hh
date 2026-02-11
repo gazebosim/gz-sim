@@ -33,6 +33,11 @@ namespace components
   /// moveable).
   using Static = Component<bool, class StaticTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
+
+  /// \brief Store the static state cmd.
+  using StaticStateCmd = Component<bool, class StaticStateCmdTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.StaticStateCmd",
+                             StaticStateCmd)
 }
 }
 }
