@@ -45,6 +45,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  legacy_default_plugins.cc
   light.cc
   lighter_than_air_dynamics.cc
   link.cc
