@@ -206,6 +206,12 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     }
   }
 
+  if (this->collisionEntities.empty())
+  {
+    gzerr << "No contact sensor collisions found in parent model." << std::endl;
+    return;
+  }
+
   // Namespace
   if (!_sdf->HasElement("namespace"))
   {
