@@ -353,8 +353,10 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedEntities))
 TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CollisionFilter))
 {
   // Spawn white box over one of the 2 collisions in the green box.
-  // There are 2 touch plugins in the green box, and each one specifies a
-  // different collision. Drop the white box over one of the collisions in the
+  // There are 3 touch plugins in the green box, and each one specifies a
+  // different collision. One of the touch plugin specifies a collision
+  // that does not exist so it should not trigger any events.
+  // Drop the white box over one of the collisions in the
   // green box and verify that the correct touch event is published. Repeat
   // and drop the white box onto the other collision.
   std::string whiteBox = R"EOF(
@@ -422,6 +424,15 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CollisionFilter))
           <namespace>white_touches_green_collision_02</namespace>
           <enabled>true</enabled>
         </plugin>
+        <plugin
+          filename="gz-sim-touchplugin-system"
+          name="gz::sim::systems::TouchPlugin">
+          <target>white_box</target>
+          <collision>collision_03</collision>
+          <time>0.2</time>
+          <namespace>white_touches_green_collision_03</namespace>
+          <enabled>true</enabled>
+        </plugin>
       </model>
   </sdf>)EOF";
 
@@ -472,6 +483,15 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CollisionFilter))
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
   server->Run(true, 100, false);
+
+  // Verify that the /white_touches_green_collision_03/touched service is not
+  // available because the contact sensor collision, collision_03, does not
+  // exist
+  std::vector<std::string> serviceList;
+  node.ServiceList(serviceList);
+  EXPECT_EQ(std::find(serviceList.begin(), serviceList.end(),
+                      "/white_touches_green_collision_03/touched"),
+            serviceList.end());
 
   auto testFunc = [&](const math::Pose3d &_pose)
   {
