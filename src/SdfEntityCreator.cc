@@ -332,7 +332,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
         levelEntityNames.find(model->Name()) != levelEntityNames.end())
 
     {
-      Entity modelEntity = this->CreateEntities(model, false);
+      Entity modelEntity = this->CreateEntitiesWithoutLoadingPlugins(model);
 
       this->SetParent(modelEntity, _worldEntity);
     }
@@ -470,12 +470,22 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model)
 {
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::Model)");
 
-  auto ent = this->CreateEntities(_model, false);
+  auto ent = this->CreateEntitiesWithoutLoadingPlugins(_model);
 
   // Load all model plugins afterwards, so we get scoped name for nested models.
   this->LoadModelPlugins();
 
   return ent;
+}
+
+//////////////////////////////////////////////////
+Entity SdfEntityCreator::CreateEntitiesWithoutLoadingPlugins(
+    const sdf::Model *_model)
+{
+  GZ_PROFILE(
+      "SdfEntityCreator::CreateEntitiesWithoutLoadingPlugins(sdf::Model)");
+
+  return this->CreateEntities(_model, false);
 }
 
 //////////////////////////////////////////////////

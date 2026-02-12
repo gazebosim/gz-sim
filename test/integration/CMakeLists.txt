@@ -45,6 +45,7 @@ set(tests
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
+  legacy_default_plugins.cc
   light.cc
   lighter_than_air_dynamics.cc
   link.cc
@@ -173,6 +174,7 @@ gz_build_tests(TYPE INTEGRATION
     ${PROJECT_LIBRARY_TARGET_NAME}-rendering
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 
@@ -251,8 +253,7 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
 endif()
 
 if (TARGET INTEGRATION_python_system_loader)
-  set_tests_properties(INTEGRATION_python_system_loader PROPERTIES
-    ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
+  set_property(TEST INTEGRATION_python_system_loader  APPEND PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
 endif()
 
 if (TARGET INTEGRATION_load_system_static_registry)
