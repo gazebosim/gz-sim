@@ -26,6 +26,8 @@
 
 #include <gz/rendering/Camera.hh>
 
+#include <gz/sim/Entity.hh>
+
 namespace gz
 {
 namespace sim
@@ -70,7 +72,7 @@ namespace sim
 
     /// \brief Signal fired when context menu event is triggered
     /// \param[in] _entity Scoped name of entity.
-    signals: void ContextMenuRequested(QString _entity);
+    signals: void ContextMenuRequested(QString _entity, uint64_t _entityId);
   };
 
   /// \brief A QQUickItem that manages the render window
@@ -91,11 +93,12 @@ namespace sim
     /// Note that the function name needs to start with lowercase in order for
     /// the connection to work on the QML side
     /// \param[in] _entity Scoped name of entity.
-    signals: void openContextMenu(QString _entity); // NOLINT
+    signals: void openContextMenu(QString _entity, uint64_t _entiyI); // NOLINT
 
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
-    public slots: void OnContextMenuRequested(QString _entity);
+    public slots: void OnContextMenuRequested(QString _entity,
+      uint64_t _entityId);
   };
 }
 }
