@@ -21,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
@@ -195,7 +196,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     for (const auto& colName : collisionNames)
     {
       bool colFound = false;
-      for (const auto& colEntity: colEntities)
+      for (const auto& colEntity : colEntities)
       {
         // Try scoped name first
         std::string colNameScoped = scopedName(colEntity, _ecm);
