@@ -110,6 +110,11 @@
 
 1. **Baseline:** this includes all changes from 9.3.0 and earlier.
 
+1. Update `PhysicsEnginePlugin` component to display physics engine version
+    * Adds `GetEngineInfo` feature to physics engine to retrieve name and version separately
+    * Updates `PhysicsEnginePlugin` component to store "name-version" format (e.g., "dartsim-6.13.0")
+    * Engine version displayed in Component Inspector for world entity
+
 1. Don't install vendored backward files
     * [Pull request #3088](https://github.com/gazebosim/gz-sim/pull/3088)
 

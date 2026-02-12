@@ -179,7 +179,8 @@ class gz::sim::systems::PhysicsPrivate
           physics::sdf::ConstructSdfModel,
           physics::sdf::ConstructSdfWorld,
           physics::GetLinkFromModel,
-          physics::GetShapeFromLink
+          physics::GetShapeFromLink,
+          physics::GetEngineInfo
           >{};
 
   /// \brief Engine type with just the minimum features.
@@ -863,6 +864,9 @@ void Physics::Configure(const Entity &_entity,
         [](const std::string &_a, const std::string &_b){return _a == _b;});
   }
 
+  // Store the engine version/name after the engine is loaded
+  // This will be populated later in the Configure function
+
   // Check if entity names should be populated in contact points.
   auto contactsElement = _sdf->FindElement("contacts");
   if (contactsElement)
@@ -906,6 +910,23 @@ void Physics::Configure(const Entity &_entity,
     }
     gzdbg << "Loaded [" << pluginLib <<"] from the static plugin registry"
           << std::endl;
+
+    // Update the PhysicsEnginePlugin component to include version
+    std::string engineName = this->dataPtr->engine->GetName();
+    std::string engineVersion = this->dataPtr->engine->GetVersion().Version();
+    std::string engineNameWithVersion = engineName;
+    if (!engineVersion.empty())
+    {
+      engineNameWithVersion += "-" + engineVersion;
+    }
+    auto enginePluginComp =
+        _ecm.Component<components::PhysicsEnginePlugin>(_entity);
+    if (enginePluginComp)
+    {
+      enginePluginComp->SetData(engineNameWithVersion,
+          [](const std::string &_a, const std::string &_b)
+              {return _a == _b;});
+    }
   }
   else
   {
@@ -966,6 +987,23 @@ void Physics::Configure(const Entity &_entity,
       {
         gzdbg << "Loaded [" << className << "] from library ["
                << pathToLib << "]" << std::endl;
+
+        // Update the PhysicsEnginePlugin component to include version
+        std::string engineName = this->dataPtr->engine->GetName();
+        std::string engineVersion = this->dataPtr->engine->GetVersion().Version();
+        std::string engineNameWithVersion = engineName;
+        if (!engineVersion.empty())
+        {
+          engineNameWithVersion += "-" + engineVersion;
+        }
+        auto enginePluginComp =
+            _ecm.Component<components::PhysicsEnginePlugin>(_entity);
+        if (enginePluginComp)
+        {
+          enginePluginComp->SetData(engineNameWithVersion,
+              [](const std::string &_a, const std::string &_b)
+                  {return _a == _b;});
+        }
         break;
       }
 
