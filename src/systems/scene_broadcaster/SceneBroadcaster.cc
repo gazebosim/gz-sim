@@ -130,6 +130,10 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \param[in] _manager The entity component manager
   public: void SceneGraphAddEntities(const EntityComponentManager &_manager);
 
+  /// \brief Seed the scene graph from existing entities when loaded late
+  /// \param[in] _manager The entity component manager
+  public: void SeedSceneGraphFromExisting(const EntityComponentManager &_manager);
+
   /// \brief Updates the scene graph when entities are removed
   /// \param[in] _manager The entity component manager
   public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
@@ -348,6 +352,10 @@ void SceneBroadcaster::Configure(
     this->dataPtr->sceneGraph.AddVertex(this->dataPtr->worldName, nullptr,
                                         this->dataPtr->worldEntity);
   }
+
+  // If the SceneBroadcaster is loaded after world creation, populate the
+  // scene graph from existing entities so the GUI can visualize immediately.
+  this->dataPtr->SeedSceneGraphFromExisting(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -1173,6 +1181,148 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     AddModels(&sceneMsg, this->worldEntity, newGraph);
 
     // Add lights
+    AddLights(&sceneMsg, this->worldEntity, newGraph);
+    this->scenePub.Publish(sceneMsg);
+  }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
+    const EntityComponentManager &_manager)
+{
+  bool newEntity{false};
+
+  SceneGraphType newGraph;
+  auto worldVertex = this->sceneGraph.VertexFromId(this->worldEntity);
+  if (!worldVertex.Valid())
+    return;
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    if (!this->sceneGraph.AdjacentsFrom(this->worldEntity).empty())
+      return;
+  }
+  newGraph.AddVertex(worldVertex.Name(), worldVertex.Data(), worldVertex.Id());
+
+  // Models
+  _manager.Each<components::Model, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto modelMsg = std::make_shared<msgs::Model>();
+        modelMsg->set_id(_entity);
+        modelMsg->set_name(_nameComp->Data());
+        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Links
+  _manager.Each<components::Link, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto linkMsg = std::make_shared<msgs::Link>();
+        linkMsg->set_id(_entity);
+        linkMsg->set_name(_nameComp->Data());
+        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Visuals
+  _manager.Each<components::Visual, components::Name,
+                components::ParentEntity,
+                components::CastShadows,
+                components::Pose>(
+      [&](const Entity &_entity, const components::Visual *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::CastShadows *_castShadowsComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto visualMsg = std::make_shared<msgs::Visual>();
+        visualMsg->set_id(_entity);
+        visualMsg->set_parent_id(_parentComp->Data());
+        visualMsg->set_name(_nameComp->Data());
+        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+        visualMsg->set_cast_shadows(_castShadowsComp->Data());
+
+        auto geometryComp = _manager.Component<components::Geometry>(_entity);
+        if (geometryComp)
+        {
+          visualMsg->mutable_geometry()->CopyFrom(
+              convert<msgs::Geometry>(geometryComp->Data()));
+        }
+
+        auto materialComp = _manager.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          visualMsg->mutable_material()->CopyFrom(
+              convert<msgs::Material>(materialComp->Data()));
+        }
+
+        newGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Lights
+  _manager.Each<components::Light, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Light *_lightComp,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto lightMsg = std::make_shared<msgs::Light>();
+        lightMsg->CopyFrom(convert<msgs::Light>(_lightComp->Data()));
+        lightMsg->set_id(_entity);
+        lightMsg->set_parent_id(_parentComp->Data());
+        lightMsg->set_name(_nameComp->Data());
+        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  if (newEntity)
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    for (const auto &[id, vert] : newGraph.Vertices())
+    {
+      if (!this->sceneGraph.VertexFromId(id).Valid())
+        this->sceneGraph.AddVertex(vert.get().Name(), vert.get().Data(), id);
+    }
+    for (const auto &[id, edge] : newGraph.Edges())
+    {
+      if (!this->sceneGraph.EdgeFromVertices(edge.get().Vertices().first,
+            edge.get().Vertices().second).Valid())
+      {
+        this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
+      }
+    }
+
+    if (!this->node)
+      this->SetupTransport(this->worldName);
+
+    msgs::Scene sceneMsg;
+    sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
+    AddModels(&sceneMsg, this->worldEntity, newGraph);
     AddLights(&sceneMsg, this->worldEntity, newGraph);
     this->scenePub.Publish(sceneMsg);
   }

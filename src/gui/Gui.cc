@@ -15,7 +15,11 @@
  *
  */
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/gui.pb.h>
+#include <gz/msgs/scene.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
@@ -242,6 +246,45 @@ std::unique_ptr<gz::gui::Application> createGui(
       std::string(_guiConfig) != "_playback_");
 
   transport::Node node;
+
+  auto ensureSceneBroadcaster = [&](const std::string &worldName)
+  {
+    const unsigned int timeout = 1000;
+    bool sceneBroadcasterFound = false;
+    bool sceneResult = false;
+    msgs::Empty sceneReq;
+    msgs::Scene sceneRes;
+    auto sceneService = transport::TopicUtils::AsValidTopic(
+      "/world/" + worldName + "/scene/info");
+    if (!sceneService.empty() &&
+        node.Request(sceneService, sceneReq, timeout, sceneRes, sceneResult) &&
+        sceneResult)
+    {
+      sceneBroadcasterFound = true;
+    }
+
+    if (!sceneBroadcasterFound)
+    {
+      gzwarn << "SceneBroadcaster is missing. Attempting to load it so the "
+             << "scene can be visualized." << std::endl;
+
+      msgs::EntityPlugin_V addReq;
+      addReq.mutable_entity()->set_id(0u);
+      auto addPlugin = addReq.add_plugins();
+      addPlugin->set_name("gz::sim::systems::SceneBroadcaster");
+      addPlugin->set_filename("gz-sim-scene-broadcaster-system");
+      addPlugin->set_innerxml("");
+
+      msgs::Boolean addRes;
+      bool addResult = false;
+      auto addService = transport::TopicUtils::AsValidTopic(
+        "/world/" + worldName + "/entity/system/add");
+      if (!addService.empty())
+      {
+        node.Request(addService, addReq, timeout, addRes, addResult);
+      }
+    }
+  };
 
   // Quick start dialog if no specific SDF file was passed and it's not playback
   std::string startingWorld;
@@ -479,6 +522,11 @@ std::unique_ptr<gz::gui::Application> createGui(
             fileName = "MinimalScene";
           }
 
+          if (fileName == "MinimalScene")
+          {
+            ensureSceneBroadcaster(worldName);
+          }
+
           std::string pluginStr = "<plugin filename='" + fileName + "'>" +
             plugin.innerxml() + "</plugin>";
 
@@ -508,6 +556,10 @@ std::unique_ptr<gz::gui::Application> createGui(
       gzerr << "Failed to load config file[" << defaultConfig << "]."
              << std::endl;
       return nullptr;
+    }
+    for (int w = 0; w < worldsMsg.data_size(); ++w)
+    {
+      ensureSceneBroadcaster(worldsMsg.data(w));
     }
   }
   return app;
