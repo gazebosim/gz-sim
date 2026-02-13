@@ -17,6 +17,7 @@
       name="gz::sim::systems::CpuLidar">
     </plugin>
 
+    <!-- Ground plane: static model with minimal collision geometry -->
     <model name="ground_plane">
       <static>true</static>
       <link name="link">
@@ -28,17 +29,10 @@
             </plane>
           </geometry>
         </collision>
-        <visual name="visual">
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-        </visual>
       </link>
     </model>
 
+    <!-- Box obstacle: static model with minimal collision geometry -->
     <model name="box">
       <static>true</static>
       <pose>2 0 0.5 0 0 0</pose>
@@ -50,29 +44,16 @@
             </box>
           </geometry>
         </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>1 1 1</size>
-            </box>
-          </geometry>
-        </visual>
       </link>
     </model>
 
+    <!-- CPU Lidar sensor model: static with embedded sensor -->
     <model name="cpu_lidar_model">
       <static>true</static>
       <pose>0 0 0.5 0 0 0</pose>
       <link name="link">
         <pose>0.05 0.05 0.05 0 0 0</pose>
-        <inertial>
-          <mass>0.1</mass>
-          <inertia>
-            <ixx>0.000166667</ixx>
-            <iyy>0.000166667</iyy>
-            <izz>0.000166667</izz>
-          </inertia>
-        </inertial>
+        <!-- Static models do not require inertial properties -->
         <collision name="collision">
           <geometry>
             <box>
@@ -80,13 +61,6 @@
             </box>
           </geometry>
         </collision>
-        <visual name="visual">
-          <geometry>
-            <box>
-              <size>0.1 0.1 0.1</size>
-            </box>
-          </geometry>
-        </visual>
         <sensor name="cpu_lidar" type="lidar">
           <topic>/test/cpu_lidar</topic>
           <update_rate>10</update_rate>

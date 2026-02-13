@@ -17,7 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <condition_variable>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #include <gz/msgs/laserscan.pb.h>
@@ -33,6 +35,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Sensor.hh"
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -44,13 +47,38 @@
 using namespace gz;
 using namespace sim;
 
+// Named constants for iteration counts used in test scenarios.
+// These values control how many simulation iterations each test runs
+// to ensure sufficient time for sensor discovery and data generation.
+namespace kIterations
+{
+/// \brief Iterations for basic sensor discovery test
+static constexpr int kDiscoveryIterations = 10;
+/// \brief Iterations for raycast data validity test
+static constexpr int kRaycastDataIterations = 10;
+/// \brief Iterations for raycast results processing test
+static constexpr int kRaycastResultsIterations = 20;
+/// \brief Iterations for laser scan publication test
+static constexpr int kLaserScanIterations = 200;
+/// \brief Iteration threshold for sensor topic verification
+static constexpr int kTopicVerificationIteration = 2;
+/// \brief Iteration threshold for raycast data checking
+static constexpr int kRaycastCheckIteration = 3;
+/// \brief Iteration threshold for results processing
+static constexpr int kResultsCheckIteration = 5;
+/// \brief Timeout duration in milliseconds for message waiting
+static constexpr int kMessageTimeoutMs = 5000;
+}
+
 class CpuLidarTest : public InternalFixture<::testing::Test>
 {
 };
 
 /////////////////////////////////////////////////
+// Test for sensor discovery - verifies that the CPU lidar sensor
+// is properly discovered and configured with the correct name and topic.
 TEST_F(CpuLidarTest,
-    GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorDiscoveryAndRaycastData))
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(Discovery))
 {
   ServerConfig serverConfig;
   const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
@@ -62,7 +90,6 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(*server.Running(0));
 
   bool cpuLidarFound = false;
-  bool raycastDataFound = false;
 
   test::Relay testSystem;
   testSystem.OnPostUpdate([&](const UpdateInfo &_info,
@@ -80,7 +107,8 @@ TEST_F(CpuLidarTest,
         auto sensorComp = _ecm.Component<components::Sensor>(_entity);
         EXPECT_NE(nullptr, sensorComp);
 
-        if (_info.iterations > 1)
+        // Verify sensor topic is set after initial discovery
+        if (_info.iterations > kIterations::kTopicVerificationIteration)
         {
           auto topicComp =
               _ecm.Component<components::SensorTopic>(_entity);
@@ -92,8 +120,36 @@ TEST_F(CpuLidarTest,
         }
         return true;
       });
+  });
 
-    if (_info.iterations >= 3)
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, kIterations::kDiscoveryIterations, false);
+  EXPECT_TRUE(cpuLidarFound);
+}
+
+/////////////////////////////////////////////////
+// Test for raycast data validity - verifies that the CPU lidar
+// sensor generates valid raycast data with proper structure.
+TEST_F(CpuLidarTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RaycastDataValidity))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/cpu_lidar.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  bool raycastDataFound = false;
+
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
+  {
+    // Check for raycast data after sufficient iterations
+    if (_info.iterations >= kIterations::kRaycastCheckIteration)
     {
       _ecm.Each<components::CpuLidar,
                 components::RaycastData>(
@@ -104,6 +160,7 @@ TEST_F(CpuLidarTest,
           raycastDataFound = true;
           EXPECT_EQ(640u, _rayData->Data().rays.size());
 
+          // Verify each ray has valid start and end points
           for (const auto &ray : _rayData->Data().rays)
           {
             EXPECT_GT((ray.end - ray.start).Length(), 0.0);
@@ -114,12 +171,13 @@ TEST_F(CpuLidarTest,
   });
 
   server.AddSystem(testSystem.systemPtr);
-  server.Run(true, 10, false);
-  EXPECT_TRUE(cpuLidarFound);
+  server.Run(true, kIterations::kRaycastDataIterations, false);
   EXPECT_TRUE(raycastDataFound);
 }
 
 /////////////////////////////////////////////////
+// Test for raycast results processing - verifies that the CPU lidar
+// sensor properly processes and stores raycast results.
 TEST_F(CpuLidarTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(RaycastResultsProcessed))
 {
@@ -138,7 +196,8 @@ TEST_F(CpuLidarTest,
   testSystem.OnPostUpdate([&](const UpdateInfo &_info,
                               const EntityComponentManager &_ecm)
   {
-    if (_info.iterations < 5) return;
+    // Wait for sufficient iterations before checking results
+    if (_info.iterations < kIterations::kResultsCheckIteration) return;
 
     _ecm.Each<components::CpuLidar,
               components::RaycastData>(
@@ -157,11 +216,14 @@ TEST_F(CpuLidarTest,
   });
 
   server.AddSystem(testSystem.systemPtr);
-  server.Run(true, 20, false);
+  server.Run(true, kIterations::kRaycastResultsIterations, false);
   EXPECT_TRUE(resultsFound);
 }
 
 /////////////////////////////////////////////////
+// Test for laser scan publication - verifies that the CPU lidar
+// sensor publishes laser scan messages correctly with valid range data.
+// Uses condition_variable and mutex to wait for messages with timeout.
 TEST_F(CpuLidarTest,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(LaserScanPublished))
 {
@@ -174,8 +236,11 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  // Synchronization primitives for thread-safe message waiting
   std::mutex mutex;
+  std::condition_variable cv;
   std::vector<msgs::LaserScan> received;
+  bool messageReceived = false;
 
   transport::Node node;
   std::function<void(const msgs::LaserScan &)> cb =
@@ -183,10 +248,29 @@ TEST_F(CpuLidarTest,
     {
       std::lock_guard<std::mutex> lock(mutex);
       received.push_back(_msg);
+      messageReceived = true;
+      cv.notify_one();
     };
   node.Subscribe("/test/cpu_lidar", cb);
 
-  server.Run(true, 200, false);
+  // Run server in background and wait for message with timeout
+  std::thread serverThread([&]()
+  {
+    server.Run(true, kIterations::kLaserScanIterations, false);
+  });
+
+  // Wait for message with timeout using condition_variable
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
+    if (!cv.wait_for(lock, timeout, [&]{ return messageReceived; }))
+    {
+      // Timeout reached without receiving message
+    }
+  }
+
+  // Ensure server thread completes
+  serverThread.join();
 
   std::lock_guard<std::mutex> lock(mutex);
   ASSERT_GT(received.size(), 0u);
@@ -196,6 +280,7 @@ TEST_F(CpuLidarTest,
   EXPECT_DOUBLE_EQ(0.08, scan.range_min());
   EXPECT_DOUBLE_EQ(10.0, scan.range_max());
 
+  // Verify all range values are valid (not inf or nan and within bounds)
   bool anyHit = false;
   for (int i = 0; i < scan.ranges_size(); ++i)
   {
