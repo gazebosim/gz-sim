@@ -254,12 +254,23 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic = topicFromScopedName(_entity, _ecm, true) + "/pose";
+  std::string poseTopic;
+  if (_sdf->HasElement("topic"))
+  {
+    if (transport::TopicUtils::IsValidTopic(_sdf->Get<std::string>("topic")))
+    {
+      poseTopic = _sdf->Get<std::string>("topic");
+    }
+  }
+  if (poseTopic.empty())
+  {
+    poseTopic = topicFromScopedName(_entity, _ecm, true) + "/pose";
+  }
   if (poseTopic.empty())
   {
     poseTopic = "/pose";
     gzerr << "Empty pose topic generated for pose_publisher system. "
-           << "Setting to " << poseTopic << std::endl;
+             "Setting to " << poseTopic << std::endl;
   }
   std::string staticPoseTopic = poseTopic + "_static";
 
