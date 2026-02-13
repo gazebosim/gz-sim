@@ -25,6 +25,8 @@
 
 #include <QScreen>
 
+#include <unordered_set>
+
 #include <gz/common/Console.hh>
 #include <gz/common/SignalHandler.hh>
 #include <gz/common/Filesystem.hh>
@@ -247,26 +249,42 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   transport::Node node;
 
+  std::unordered_set<std::string> injectedWorlds;
   auto ensureSceneBroadcaster = [&](const std::string &worldName)
   {
-    const unsigned int timeout = 1000;
+    const unsigned int timeout = 2000;
     bool sceneBroadcasterFound = false;
     bool sceneResult = false;
     msgs::Empty sceneReq;
     msgs::Scene sceneRes;
     auto sceneService = transport::TopicUtils::AsValidTopic(
       "/world/" + worldName + "/scene/info");
-    if (!sceneService.empty() &&
-        node.Request(sceneService, sceneReq, timeout, sceneRes, sceneResult) &&
-        sceneResult)
+    for (int attempt = 0; attempt < 2 && !sceneBroadcasterFound; ++attempt)
     {
-      sceneBroadcasterFound = true;
+        if (!sceneService.empty() &&
+          node.Request(sceneService, sceneReq, timeout, sceneRes,
+            sceneResult) &&
+          sceneResult)
+      {
+        sceneBroadcasterFound = true;
+        break;
+      }
+
+      if (attempt == 0)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
     }
 
     if (!sceneBroadcasterFound)
     {
+      if (injectedWorlds.count(worldName) > 0)
+        return;
+
       gzwarn << "SceneBroadcaster is missing. Attempting to load it so the "
              << "scene can be visualized." << std::endl;
+
+      injectedWorlds.insert(worldName);
 
       msgs::EntityPlugin_V addReq;
       addReq.mutable_entity()->set_id(0u);
@@ -277,11 +295,23 @@ std::unique_ptr<gz::gui::Application> createGui(
 
       msgs::Boolean addRes;
       bool addResult = false;
+      bool addRequestOk = false;
       auto addService = transport::TopicUtils::AsValidTopic(
         "/world/" + worldName + "/entity/system/add");
       if (!addService.empty())
       {
-        node.Request(addService, addReq, timeout, addRes, addResult);
+        addRequestOk = node.Request(addService, addReq, timeout,
+            addRes, addResult);
+      }
+
+      if (!addRequestOk || !addResult || !addRes.data())
+      {
+        gzerr << "Failed to load SceneBroadcaster for world [" << worldName
+               << "]" << std::endl;
+      }
+      else
+      {
+        node.Request(sceneService, sceneReq, timeout, sceneRes, sceneResult);
       }
     }
   };
@@ -430,6 +460,10 @@ std::unique_ptr<gz::gui::Application> createGui(
     {
       gzwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
+    }
+    else
+    {
+      ensureSceneBroadcaster(worldsMsg.data(0));
     }
   }
   // GUI configuration from SDF (request to server)
