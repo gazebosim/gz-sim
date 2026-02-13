@@ -130,6 +130,11 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// \param[in] _manager The entity component manager
   public: void SceneGraphAddEntities(const EntityComponentManager &_manager);
 
+  /// \brief Seed the scene graph from existing entities when loaded late
+  /// \param[in] _manager The entity component manager
+  public: void SeedSceneGraphFromExisting(
+    const EntityComponentManager &_manager);
+
   /// \brief Updates the scene graph when entities are removed
   /// \param[in] _manager The entity component manager
   public: void SceneGraphRemoveEntities(const EntityComponentManager &_manager);
@@ -348,6 +353,10 @@ void SceneBroadcaster::Configure(
     this->dataPtr->sceneGraph.AddVertex(this->dataPtr->worldName, nullptr,
                                         this->dataPtr->worldEntity);
   }
+
+  // If the SceneBroadcaster is loaded after world creation, populate the
+  // scene graph from existing entities so the GUI can visualize immediately.
+  this->dataPtr->SeedSceneGraphFromExisting(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -1176,6 +1185,388 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
     AddLights(&sceneMsg, this->worldEntity, newGraph);
     this->scenePub.Publish(sceneMsg);
   }
+}
+
+//////////////////////////////////////////////////
+void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
+    const EntityComponentManager &_manager)
+{
+  bool newEntity{false};
+
+  SceneGraphType newGraph;
+  std::string worldNameLocal;
+  Entity worldEntityLocal{kNullEntity};
+  std::shared_ptr<google::protobuf::Message> worldDataLocal;
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    auto worldVertex = this->sceneGraph.VertexFromId(this->worldEntity);
+    if (!worldVertex.Valid())
+      return;
+    if (!this->sceneGraph.AdjacentsFrom(this->worldEntity).empty())
+      return;
+    worldNameLocal = worldVertex.Name();
+    worldEntityLocal = worldVertex.Id();
+    worldDataLocal = worldVertex.Data();
+  }
+  newGraph.AddVertex(worldNameLocal, worldDataLocal, worldEntityLocal);
+
+  // Models
+  _manager.Each<components::Model, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto modelMsg = std::make_shared<msgs::Model>();
+        modelMsg->set_id(_entity);
+        modelMsg->set_name(_nameComp->Data());
+        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Links
+  _manager.Each<components::Link, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto linkMsg = std::make_shared<msgs::Link>();
+        linkMsg->set_id(_entity);
+        linkMsg->set_name(_nameComp->Data());
+        linkMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Visuals
+  _manager.Each<components::Visual, components::Name,
+                components::ParentEntity,
+                components::CastShadows,
+                components::Pose>(
+      [&](const Entity &_entity, const components::Visual *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::CastShadows *_castShadowsComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto visualMsg = std::make_shared<msgs::Visual>();
+        visualMsg->set_id(_entity);
+        visualMsg->set_parent_id(_parentComp->Data());
+        visualMsg->set_name(_nameComp->Data());
+        visualMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+        visualMsg->set_cast_shadows(_castShadowsComp->Data());
+
+        auto geometryComp = _manager.Component<components::Geometry>(_entity);
+        if (geometryComp)
+        {
+          visualMsg->mutable_geometry()->CopyFrom(
+              convert<msgs::Geometry>(geometryComp->Data()));
+        }
+
+        auto materialComp = _manager.Component<components::Material>(_entity);
+        if (materialComp)
+        {
+          visualMsg->mutable_material()->CopyFrom(
+              convert<msgs::Material>(materialComp->Data()));
+        }
+
+        newGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Lights
+  _manager.Each<components::Light, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Light *_lightComp,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto lightMsg = std::make_shared<msgs::Light>();
+        lightMsg->CopyFrom(convert<msgs::Light>(_lightComp->Data()));
+        lightMsg->set_id(_entity);
+        lightMsg->set_parent_id(_parentComp->Data());
+        lightMsg->set_name(_nameComp->Data());
+        lightMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Sensors
+  _manager.Each<components::Sensor, components::Name,
+                components::ParentEntity, components::Pose>(
+      [&](const Entity &_entity, const components::Sensor *,
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto sensorMsg = std::make_shared<msgs::Sensor>();
+        sensorMsg->set_id(_entity);
+        sensorMsg->set_parent_id(_parentComp->Data());
+        sensorMsg->set_name(_nameComp->Data());
+        sensorMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        auto altimeterComp = _manager.Component<components::Altimeter>(_entity);
+        if (altimeterComp)
+        {
+          sensorMsg->set_type("altimeter");
+        }
+        auto airPressureComp = _manager.Component<
+          components::AirPressureSensor>(_entity);
+        if (airPressureComp)
+        {
+          sensorMsg->set_type("air_pressure");
+        }
+        auto airSpeedComp = _manager.Component<
+          components::AirSpeedSensor>(_entity);
+        if (airSpeedComp)
+        {
+          sensorMsg->set_type("air_speed");
+        }
+        auto cameraComp = _manager.Component<components::Camera>(_entity);
+        if (cameraComp)
+        {
+          sensorMsg->set_type("camera");
+          msgs::CameraSensor * cameraSensorMsg = sensorMsg->mutable_camera();
+          const auto * camera = cameraComp->Data().CameraSensor();
+          if (camera)
+          {
+            cameraSensorMsg->set_horizontal_fov(
+              camera->HorizontalFov().Radian());
+            cameraSensorMsg->mutable_image_size()->set_x(camera->ImageWidth());
+            cameraSensorMsg->mutable_image_size()->set_y(camera->ImageHeight());
+            cameraSensorMsg->set_image_format(camera->PixelFormatStr());
+            cameraSensorMsg->set_near_clip(camera->NearClip());
+            cameraSensorMsg->set_far_clip(camera->FarClip());
+            msgs::Distortion *distortionMsg =
+              cameraSensorMsg->mutable_distortion();
+            if (distortionMsg)
+            {
+              distortionMsg->mutable_center()->set_x(
+                camera->DistortionCenter().X());
+              distortionMsg->mutable_center()->set_y(
+                camera->DistortionCenter().Y());
+              distortionMsg->set_k1(camera->DistortionK1());
+              distortionMsg->set_k2(camera->DistortionK2());
+              distortionMsg->set_k3(camera->DistortionK3());
+              distortionMsg->set_p1(camera->DistortionP1());
+              distortionMsg->set_p2(camera->DistortionP2());
+            }
+          }
+        }
+        auto contactSensorComp = _manager.Component<
+          components::ContactSensor>(_entity);
+        if (contactSensorComp)
+        {
+          sensorMsg->set_type("contact_sensor");
+        }
+        auto depthCameraSensorComp = _manager.Component<
+          components::DepthCamera>(_entity);
+        if (depthCameraSensorComp)
+        {
+          sensorMsg->set_type("depth_camera");
+        }
+        auto gpuLidarComp = _manager.Component<components::GpuLidar>(_entity);
+        if (gpuLidarComp)
+        {
+          sensorMsg->set_type("gpu_lidar");
+          msgs::LidarSensor * lidarSensorMsg = sensorMsg->mutable_lidar();
+          const auto * lidar = gpuLidarComp->Data().LidarSensor();
+
+          if (lidar && lidarSensorMsg)
+          {
+            lidarSensorMsg->set_horizontal_samples(
+              lidar->HorizontalScanSamples());
+            lidarSensorMsg->set_horizontal_resolution(
+              lidar->HorizontalScanResolution());
+            lidarSensorMsg->set_horizontal_min_angle(
+              lidar->HorizontalScanMinAngle().Radian());
+            lidarSensorMsg->set_horizontal_max_angle(
+              lidar->HorizontalScanMaxAngle().Radian());
+            lidarSensorMsg->set_vertical_samples(lidar->VerticalScanSamples());
+            lidarSensorMsg->set_vertical_resolution(
+              lidar->VerticalScanResolution());
+            lidarSensorMsg->set_vertical_min_angle(
+              lidar->VerticalScanMinAngle().Radian());
+            lidarSensorMsg->set_vertical_max_angle(
+              lidar->VerticalScanMaxAngle().Radian());
+            lidarSensorMsg->set_range_min(lidar->RangeMin());
+            lidarSensorMsg->set_range_max(lidar->RangeMax());
+            lidarSensorMsg->set_range_resolution(lidar->RangeResolution());
+            msgs::SensorNoise *sensorNoise = lidarSensorMsg->mutable_noise();
+            if (sensorNoise)
+            {
+              const auto noise = lidar->LidarNoise();
+              switch(noise.Type())
+              {
+                case sdf::NoiseType::GAUSSIAN:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN);
+                  break;
+                case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+                  sensorNoise->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+                  break;
+                default:
+                  sensorNoise->set_type(msgs::SensorNoise::NONE);
+              }
+              sensorNoise->set_mean(noise.Mean());
+              sensorNoise->set_stddev(noise.StdDev());
+              sensorNoise->set_bias_mean(noise.BiasMean());
+              sensorNoise->set_bias_stddev(noise.BiasStdDev());
+              sensorNoise->set_precision(noise.Precision());
+              sensorNoise->set_dynamic_bias_stddev(noise.DynamicBiasStdDev());
+              sensorNoise->set_dynamic_bias_correlation_time(
+                noise.DynamicBiasCorrelationTime());
+            }
+          }
+        }
+        auto imuComp = _manager.Component<components::Imu>(_entity);
+        if (imuComp)
+        {
+          sensorMsg->set_type("imu");
+          msgs::IMUSensor * imuMsg = sensorMsg->mutable_imu();
+          const auto * imu = imuComp->Data().ImuSensor();
+
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_x_noise(),
+              imu->LinearAccelerationXNoise());
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_y_noise(),
+              imu->LinearAccelerationYNoise());
+          set(
+              imuMsg->mutable_linear_acceleration()->mutable_z_noise(),
+              imu->LinearAccelerationZNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_x_noise(),
+              imu->AngularVelocityXNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_y_noise(),
+              imu->AngularVelocityYNoise());
+          set(
+              imuMsg->mutable_angular_velocity()->mutable_z_noise(),
+              imu->AngularVelocityZNoise());
+        }
+        auto laserRetroComp = _manager.Component<
+          components::LaserRetro>(_entity);
+        if (laserRetroComp)
+        {
+          sensorMsg->set_type("laser_retro");
+        }
+        auto lidarComp = _manager.Component<components::Lidar>(_entity);
+        if (lidarComp)
+        {
+          sensorMsg->set_type("lidar");
+        }
+        auto logicalCamera = _manager.Component<
+          components::LogicalCamera>(_entity);
+        if (logicalCamera)
+        {
+          sensorMsg->set_type("logical_camera");
+        }
+        auto rgbdCameraComp = _manager.Component<
+          components::RgbdCamera>(_entity);
+        if (rgbdCameraComp)
+        {
+          sensorMsg->set_type("rgbd_camera");
+        }
+        auto thermalCameraComp = _manager.Component<
+          components::ThermalCamera>(_entity);
+        if (thermalCameraComp)
+        {
+          sensorMsg->set_type("thermal_camera");
+        }
+
+        newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Particle emitters
+  _manager.Each<components::ParticleEmitter, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::ParticleEmitter *_emitterComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto emitterMsg = std::make_shared<msgs::ParticleEmitter>();
+        emitterMsg->CopyFrom(_emitterComp->Data());
+        emitterMsg->set_id(_entity);
+        emitterMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  // Projectors
+  _manager.Each<components::Projector, components::ParentEntity,
+    components::Pose>(
+      [&](const Entity &_entity,
+          const components::Projector *_projectorComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
+      {
+        auto projectorMsg = std::make_shared<msgs::Projector>();
+        projectorMsg->CopyFrom(
+            convert<msgs::Projector>(_projectorComp->Data()));
+        // TODO(anyone) add id field to projector msg
+        // projectorMsg->set_id(_entity);
+        projectorMsg->mutable_pose()->CopyFrom(
+            msgs::Convert(_poseComp->Data()));
+
+        newGraph.AddVertex(projectorMsg->name(), projectorMsg, _entity);
+        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+        newEntity = true;
+        return true;
+      });
+
+  {
+    std::lock_guard<std::mutex> lock(this->graphMutex);
+    for (const auto &[id, vert] : newGraph.Vertices())
+    {
+      if (!this->sceneGraph.VertexFromId(id).Valid())
+        this->sceneGraph.AddVertex(vert.get().Name(), vert.get().Data(), id);
+    }
+    for (const auto &[id, edge] : newGraph.Edges())
+    {
+      if (!this->sceneGraph.EdgeFromVertices(edge.get().Vertices().first,
+            edge.get().Vertices().second).Valid())
+      {
+        this->sceneGraph.AddEdge(edge.get().Vertices(), edge.get().Data());
+      }
+    }
+  }
+
+  if (!this->node)
+    this->SetupTransport(this->worldName);
+
+  auto sceneComponent =
+      _manager.Component<components::Scene>(this->worldEntity);
+  if (sceneComponent)
+    this->sdfScene = sceneComponent->Data();
+
+  msgs::Scene sceneMsg;
+  sceneMsg.CopyFrom(convert<msgs::Scene>(this->sdfScene));
+  AddModels(&sceneMsg, this->worldEntity, newGraph);
+  AddLights(&sceneMsg, this->worldEntity, newGraph);
+  this->scenePub.Publish(sceneMsg);
 }
 
 //////////////////////////////////////////////////

@@ -15,11 +15,17 @@
  *
  */
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/gui.pb.h>
+#include <gz/msgs/scene.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <QScreen>
+
+#include <unordered_set>
 
 #include <gz/common/Console.hh>
 #include <gz/common/SignalHandler.hh>
@@ -243,6 +249,73 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   transport::Node node;
 
+  std::unordered_set<std::string> injectedWorlds;
+  auto ensureSceneBroadcaster = [&](const std::string &worldName)
+  {
+    const unsigned int timeout = 2000;
+    bool sceneBroadcasterFound = false;
+    bool sceneResult = false;
+    msgs::Empty sceneReq;
+    msgs::Scene sceneRes;
+    auto sceneService = transport::TopicUtils::AsValidTopic(
+      "/world/" + worldName + "/scene/info");
+    for (int attempt = 0; attempt < 2 && !sceneBroadcasterFound; ++attempt)
+    {
+        if (!sceneService.empty() &&
+          node.Request(sceneService, sceneReq, timeout, sceneRes,
+            sceneResult) &&
+          sceneResult)
+      {
+        sceneBroadcasterFound = true;
+        break;
+      }
+
+      if (attempt == 0)
+      {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+    }
+
+    if (!sceneBroadcasterFound)
+    {
+      if (injectedWorlds.count(worldName) > 0)
+        return;
+
+      gzwarn << "SceneBroadcaster is missing. Attempting to load it so the "
+             << "scene can be visualized." << std::endl;
+
+      injectedWorlds.insert(worldName);
+
+      msgs::EntityPlugin_V addReq;
+      addReq.mutable_entity()->set_id(0u);
+      auto addPlugin = addReq.add_plugins();
+      addPlugin->set_name("gz::sim::systems::SceneBroadcaster");
+      addPlugin->set_filename("gz-sim-scene-broadcaster-system");
+      addPlugin->set_innerxml("");
+
+      msgs::Boolean addRes;
+      bool addResult = false;
+      bool addRequestOk = false;
+      auto addService = transport::TopicUtils::AsValidTopic(
+        "/world/" + worldName + "/entity/system/add");
+      if (!addService.empty())
+      {
+        addRequestOk = node.Request(addService, addReq, timeout,
+            addRes, addResult);
+      }
+
+      if (!addRequestOk || !addResult || !addRes.data())
+      {
+        gzerr << "Failed to load SceneBroadcaster for world [" << worldName
+               << "]" << std::endl;
+      }
+      else
+      {
+        node.Request(sceneService, sceneReq, timeout, sceneRes, sceneResult);
+      }
+    }
+  };
+
   // Quick start dialog if no specific SDF file was passed and it's not playback
   std::string startingWorld;
   if (!hasSdfFile && _waitGui && !isPlayback)
@@ -388,6 +461,10 @@ std::unique_ptr<gz::gui::Application> createGui(
       gzwarn << "Failed to load config file[" << _guiConfig << "]."
               << std::endl;
     }
+    else
+    {
+      ensureSceneBroadcaster(worldsMsg.data(0));
+    }
   }
   // GUI configuration from SDF (request to server)
   else
@@ -479,6 +556,11 @@ std::unique_ptr<gz::gui::Application> createGui(
             fileName = "MinimalScene";
           }
 
+          if (fileName == "MinimalScene")
+          {
+            ensureSceneBroadcaster(worldName);
+          }
+
           std::string pluginStr = "<plugin filename='" + fileName + "'>" +
             plugin.innerxml() + "</plugin>";
 
@@ -508,6 +590,10 @@ std::unique_ptr<gz::gui::Application> createGui(
       gzerr << "Failed to load config file[" << defaultConfig << "]."
              << std::endl;
       return nullptr;
+    }
+    for (int w = 0; w < worldsMsg.data_size(); ++w)
+    {
+      ensureSceneBroadcaster(worldsMsg.data(w));
     }
   }
   return app;

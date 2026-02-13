@@ -20,6 +20,7 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/empty.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/particle_emitter.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/projector.pb.h>
@@ -158,6 +159,107 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneInfo))
   EXPECT_TRUE(result);
 
   EXPECT_TRUE(google::protobuf::util::MessageDifferencer::Equals(res, res2));
+}
+
+/////////////////////////////////////////////////
+TEST_P(SceneBroadcasterTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SceneBroadcasterLateLoad))
+{
+  std::string sdfStr = R"(
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="late_load_world">
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>)";
+
+  sim::ServerConfig serverConfig;
+  serverConfig.SetSdfString(sdfStr);
+
+  sim::Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+
+  server.Run(true, 1, false);
+
+  msgs::EntityPlugin_V addReq;
+  addReq.mutable_entity()->set_id(0u);
+  auto addPlugin = addReq.add_plugins();
+  addPlugin->set_name("gz::sim::systems::SceneBroadcaster");
+  addPlugin->set_filename("gz-sim-scene-broadcaster-system");
+  addPlugin->set_innerxml("");
+
+  msgs::Boolean addRes;
+  bool addResult = false;
+  unsigned int timeout = 5000;
+  bool addRequestOk = node.Request(
+      "/world/late_load_world/entity/system/add",
+      addReq, timeout, addRes, addResult);
+  EXPECT_TRUE(addRequestOk);
+  EXPECT_TRUE(addResult);
+  EXPECT_TRUE(addRes.data());
+
+  bool requestOk = false;
+  bool sceneResult = false;
+  msgs::Scene sceneRes;
+  unsigned int sleep = 0u;
+  unsigned int maxSleep = 30u;
+  while (sleep++ < maxSleep && !(requestOk && sceneResult))
+  {
+    server.Run(true, 1, false);
+    requestOk = node.Request("/world/late_load_world/scene/info",
+        timeout, sceneRes, sceneResult);
+    if (!(requestOk && sceneResult))
+      GZ_SLEEP_MS(100);
+  }
+
+  EXPECT_TRUE(requestOk);
+  EXPECT_TRUE(sceneResult);
+
+  bool found = false;
+  for (int i = 0; i < sceneRes.model_size(); ++i)
+  {
+    if (sceneRes.model(i).name() == "ground_plane")
+    {
+      found = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found);
 }
 
 /////////////////////////////////////////////////
