@@ -106,6 +106,13 @@ namespace gz
       /// \return Model entity.
       public: Entity CreateEntities(const sdf::Model *_model);
 
+      /// \brief Create all entities that exist in the sdf::Model object but
+      /// do not load their plugins.
+      /// \param[in] _model SDF model object.
+      /// \return Model entity.
+      public: Entity CreateEntitiesWithoutLoadingPlugins(
+          const sdf::Model *_model);
+
       /// \brief Create all entities that exist in the sdf::Actor object and
       /// load their plugins.
       /// \param[in] _actor SDF actor object.
@@ -184,6 +191,9 @@ namespace gz
       /// \param[in] _parent Entity which should be _child's parent.
       public: void SetParent(Entity _child, Entity _parent);
 
+      /// \brief Load plugins for all models
+      public: void LoadModelPlugins();
+
       /// \brief Overloaded function to recursively create model entities
       /// making sure to override the nested model's static property to true if
       /// its parent is static
@@ -192,9 +202,6 @@ namespace gz
       /// \return Model entity.
       private: Entity CreateEntities(const sdf::Model *_model,
                                      bool _staticParent);
-
-      /// \brief Load plugins for all models
-      private: void LoadModelPlugins();
 
       /// \brief Pointer to private data.
       private: std::unique_ptr<SdfEntityCreatorPrivate> dataPtr;
