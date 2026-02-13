@@ -70,7 +70,11 @@ namespace sim
 
     /// \brief Signal fired when context menu event is triggered
     /// \param[in] _entity Scoped name of entity.
-    signals: void ContextMenuRequested(QString _entity);
+    /// \param[in] _entityId Entity id as string.
+    /// \param[in] _mouseX X coordinate of the right click
+    /// \param[in] _mouseY Y coordinate of the right click
+    signals: void ContextMenuRequested(
+      QString _entity, QString _entityId, int _mouseX, int _mouseY);
   };
 
   /// \brief A QQUickItem that manages the render window
@@ -91,11 +95,19 @@ namespace sim
     /// Note that the function name needs to start with lowercase in order for
     /// the connection to work on the QML side
     /// \param[in] _entity Scoped name of entity.
-    signals: void openContextMenu(QString _entity); // NOLINT
+    /// \param[in] _entityId Entity id as string.
+    /// \param[in] _mouseX X coordinate of the right click
+    /// \param[in] _mouseY Y coordinate of the right click
+    signals: void openContextMenu(QString _entity, QString _entityId,
+      int _mouseX, int _mouseY); // NOLINT
 
     /// \brief Qt callback when context menu request is received
     /// \param[in] _entity Scoped name of entity.
-    public slots: void OnContextMenuRequested(QString _entity);
+    /// \param[in] _entityId Entity id as string.
+    /// \param[in] _mouseX X coordinate of the right click
+    /// \param[in] _mouseY Y coordinate of the right click
+    public slots: void OnContextMenuRequested(
+      QString _entity, QString _entityId, int _mouseX, int _mouseY);
   };
 }
 }

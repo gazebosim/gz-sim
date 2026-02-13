@@ -88,6 +88,10 @@ namespace sim
     public: Q_INVOKABLE void OnRequest(const QString &_request,
         const QString &_data);
 
+    /// \brief Select an entity for inspection
+    /// \param[in] _entityId Entity id as string
+    public: Q_INVOKABLE void OnInspect(const QString &_entityId);
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<EntityContextMenuPrivate> dataPtr;
