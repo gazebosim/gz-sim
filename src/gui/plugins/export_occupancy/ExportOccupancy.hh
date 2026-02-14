@@ -1,0 +1,116 @@
+/*
+ * Copyright (C) 2025 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+#ifndef GZ_SIM_GUI_EXPORT_OCCUPANCY_HH_
+#define GZ_SIM_GUI_EXPORT_OCCUPANCY_HH_
+
+#include <cstddef>
+#include <memory>
+#include <QImage>
+#include <QQuickImageProvider>
+
+#include <gz/gui/qt.h>
+#include <gz/msgs/image.pb.h>
+#include <gz/utils/ImplPtr.hh>
+
+#include "gz/sim/gui/GuiSystem.hh"
+
+namespace gz
+{
+namespace sim
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+  /// Helper Image provider class for image view.
+  class ImageProvider : public QQuickImageProvider
+  {
+    public: ImageProvider()
+       : QQuickImageProvider(QQuickImageProvider::Image)
+    {
+    }
+
+    public: QImage requestImage(const QString &, QSize *,
+        const QSize &) override
+    {
+      if (!this->img.isNull())
+      {
+        // Must return a copy
+        return this->img;
+      }
+
+      // Placeholder in case we have no image yet
+      QImage i(400, 400, QImage::Format_RGB888);
+      i.fill(QColor(128, 128, 128, 100));
+      return i;
+    }
+
+    public: void SetImage(const QImage &_image)
+    {
+      this->img = _image;
+    }
+
+    private: QImage img;
+  };
+
+  /// \brief A GUI plugin for a user to export the occupancy
+  /// grid of the current world.
+  class ExportOccupancyUi : public gz::sim::GuiSystem
+  {
+    Q_OBJECT
+    /// \brief Constructor
+    public: ExportOccupancyUi();
+
+    /// \brief Destructor
+    public: ~ExportOccupancyUi() override;
+
+    // Documentation inherited
+    public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;
+
+    // Documentation inherited
+    public: void Update(const UpdateInfo &,
+                        EntityComponentManager &_ecm) override;
+
+    /// Triggers the export of our occupancy grid
+    public: Q_INVOKABLE void StartExport(double _samples, double _range,
+      double _rangeRes, double _angularRes,
+      double _distanceFromGround, double _gridResolution,
+      std::size_t _numWidth, std::size_t _numHeight);
+
+    /// Callback for when an occupancy scan is received
+    private: void OnImageMsg(const gz::msgs::Image &img);
+
+    /// Trigger scan start
+    public: Q_INVOKABLE void StartExploration();
+
+    /// Needed to scope image display
+    public: Q_INVOKABLE void RegisterImageProvider(const QString &_uniqueName);
+
+    /// Save Dialog
+    public: Q_INVOKABLE void Save();
+
+    /// \brief Notify that a new image has been received.
+    signals: void newImage();
+
+    /// \internal
+    /// \brief Pointer to private data
+    private:  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr);
+  };
+}
+}
+}
+#endif
