@@ -1242,6 +1242,55 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         root.SetModel(model);
         root.UpdateGraphs();
 
+        // Sanitize inertial properties to prevent physics engine crashes.
+        // Specifically, DART asserts on NaN if the spatial inertia matrix
+        // (mass + inertia + fluid added mass) is not positive definite.
+        // Incorrect or inconsistent fluid_added_mass coefficients can make the
+        // combined 6x6 spatial inertia have negative eigenvalues (i.e., become
+        // non-positive definite), so we detect that here and fall back to a
+        // safe inertia to keep the engine stable.
+        const sdf::Model *safeModel = root.Model();
+        if (safeModel)
+        {
+          for (uint64_t i = 0; i < safeModel->LinkCount(); ++i)
+          {
+            auto sdfLink = safeModel->LinkByIndex(i);
+            if (!sdfLink) continue;
+
+            // Convert to Eigen to check positive definiteness via LLT
+            Eigen::Matrix<double, 6, 6> spatialM =
+                gz::math::eigen3::convert(sdfLink->Inertial().SpatialMatrix());
+
+            if (spatialM.llt().info() != Eigen::Success)
+            {
+              auto originalInertial = sdfLink->Inertial();
+              double origMass = originalInertial.MassMatrix().Mass();
+              gz::math::Pose3d origPose = originalInertial.Pose();
+
+              // Keep original mass if valid (>0)
+              // otherwise default to 1.0 to prevent crashes.
+              double safeMass = (origMass > 1e-6) ? origMass : 1.0;
+
+              gzerr << "Invalid inertial properties detected for Link ["
+                    << sdfLink->Name() << "] in Model [" << safeModel->Name()
+                    << "]. Spatial inertia is not positive definite. "
+                    << "Resetting inertia tensor to diagonal [1, 1, 1] "
+                    << "while preserving mass (" << safeMass << ") and CoM pose."
+                    << std::endl;
+
+              // Create safe matrix
+              gz::math::MassMatrix3d safeMatrix(
+                  safeMass, gz::math::Vector3d::One, gz::math::Vector3d::Zero);
+
+              // Apply safe matrix and original pose
+              gz::math::Inertiald safeInertial(safeMatrix, origPose);
+
+              auto mutableLink = const_cast<sdf::Link *>(sdfLink);
+              mutableLink->SetInertial(safeInertial);
+            }
+          }
+        }
+
         auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
@@ -1439,9 +1488,48 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
 
         // get link inertial
         auto inertial = _ecm.Component<components::Inertial>(_entity);
+        // Check inertial validity
         if (inertial)
         {
-          link.SetInertial(inertial->Data());
+          // Convert matrix6 to Eigen for validation
+          Eigen::Matrix<double, 6, 6> spatialM =
+              gz::math::eigen3::convert(inertial->Data().SpatialMatrix());
+
+          // Use LLT decomposition to check if matrix is positive definite.
+          // This prevents crashes in physics engines like DART.
+          if (spatialM.llt().info() == Eigen::Success)
+          {
+            link.SetInertial(inertial->Data());
+          }
+          else
+          {
+            double origMass = inertial->Data().MassMatrix().Mass();
+            gz::math::Pose3d origPose = inertial->Data().Pose();
+
+            // Keep original mass if valid (>0), else default to 1.0
+            double safeMass = (origMass > 1e-6) ? origMass : 1.0;
+
+            gzerr << "Invalid inertial properties for dynamic Link ["
+                  << _name->Data() << "]. Spatial inertia is not positive "
+                  << "definite. Resetting inertia tensor to a simple "
+                  << "mass-proportional default while preserving Mass ("
+                  << safeMass << ") and CoM Pose."
+                  << std::endl;
+
+            // Create safe matrix: preserved mass, inertia based on a
+            // simple reference geometry (solid sphere with radius 0.5 m).
+            // I_sphere = (2/5) * m * r^2; with r = 0.5 -> I = 0.1 * m
+            const double inertiaDiag = 0.1 * safeMass;
+            gz::math::MassMatrix3d safeMatrix(
+                safeMass,
+                gz::math::Vector3d(inertiaDiag, inertiaDiag, inertiaDiag),
+                gz::math::Vector3d::Zero);
+
+            // Apply safe matrix with original CoM pose
+            gz::math::Inertiald safeInertial(safeMatrix, origPose);
+
+            link.SetInertial(safeInertial);
+          }
         }
 
         // get link gravity
