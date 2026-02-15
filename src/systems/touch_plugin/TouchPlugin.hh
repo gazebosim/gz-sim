@@ -52,6 +52,13 @@ namespace systems
   ///              collisions (scoped name
   ///              `/model_name/link_name/collision_name`).
   ///
+  /// - `<collision>` Optional parameter. Multiple <collision> elements are
+  ///                 allowed. If specified, a touch event will only be emitted
+  ///                 if contact occurs with the specified contact sensor
+  ///                 collision in the model that the touch plugin is
+  ///                 attached to. If no <collision> elements are specified,
+  ///                 all contact sensor collisions are used.
+  ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<namespace>` Namespace for transport topics/services:
