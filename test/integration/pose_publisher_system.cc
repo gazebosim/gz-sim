@@ -16,6 +16,7 @@
 */
 
 #include <gtest/gtest.h>
+#include <chrono>
 #include <list>
 #include <mutex>
 
@@ -23,6 +24,7 @@
 #include <gz/msgs/pose_v.pb.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
@@ -39,9 +41,12 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/TestFixture.hh"
 
 using namespace gz;
 using namespace sim;
+using namespace std::literals::chrono_literals;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>
@@ -803,38 +808,16 @@ TEST_F(PosePublisherTest,
 TEST_F(PosePublisherTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(UserDefinedTopic))
 {
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/pose_publisher.sdf");
+  const auto worldFile = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "pose_publisher.sdf");
 
-  Server server(serverConfig);
-  ASSERT_FALSE(server.Running());
-  ASSERT_FALSE(*server.Running(0));
+  ::TestFixture fixture(worldFile);
 
-  {
-    const std::lock_guard<std::mutex> lock(mutex);
-    poseMsgs.clear();
-  }
-
-  // expect messages will be published to a custom topic
   transport::Node node;
-  node.Subscribe(std::string("/my/little/topic"), &poseCb);
+  Subscription<msgs::Pose> poseSubscription;
+  poseSubscription.Subscribe(node, "/my/little/topic", 1);
 
-  // Run server
-  unsigned int iters = 100u;
-  server.Run(true, iters, false);
+  fixture.Step(50ms);
 
-  bool received = false;
-  for (int sleep = 0; sleep < 30; ++sleep)
-  {
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      received = !poseMsgs.empty();
-    }
-
-    if (received)
-      break;
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_TRUE(received);
+  ASSERT_TRUE(poseSubscription.WaitForMessages(1, 100ms));
 }

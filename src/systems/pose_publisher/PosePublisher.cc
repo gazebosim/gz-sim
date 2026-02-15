@@ -261,6 +261,11 @@ void PosePublisher::Configure(const Entity &_entity,
     {
       poseTopic = _sdf->Get<std::string>("topic");
     }
+    else
+    {
+      gzerr << "Provided topic: " << _sdf->Get<std::string>("topic")
+            << " is not a valid topic." << std::endl;
+    }
   }
   if (poseTopic.empty())
   {

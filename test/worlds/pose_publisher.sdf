@@ -529,7 +529,7 @@
       </plugin>
     </model>
 
-    <model name="test_publish_custom_topic">
+    <model name="test_user_defined_topic">
       <pose>5 5 5 0 0 0</pose>
       <link name="link1"/>
       <plugin
