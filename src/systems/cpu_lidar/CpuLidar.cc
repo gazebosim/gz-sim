@@ -101,7 +101,7 @@ CpuLidar::CpuLidar() : System(), dataPtr(std::make_unique<CpuLidarPrivate>())
 CpuLidar::~CpuLidar() = default;
 
 //////////////////////////////////////////////////
-void CpuLidar::PreUpdate(const UpdateInfo &/*_info*/,
+void CpuLidar::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("CpuLidar::PreUpdate");
@@ -129,6 +129,24 @@ void CpuLidar::PreUpdate(const UpdateInfo &/*_info*/,
     _ecm.CreateComponent(entity, components::RaycastData(raycastData));
   }
   this->dataPtr->newSensors.clear();
+
+  // Gate raycasting to the sensor's own update frequency.
+  // Physics runs at the physics rate (e.g. 1 kHz); sensors fire much less
+  // frequently (e.g. 10 Hz). Setting needsRaycast only when a scan is due
+  // avoids 100× wasted raycast work per real scan.
+  if (!_info.paused)
+  {
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      auto *comp = _ecm.Component<components::RaycastData>(it.first);
+      if (comp)
+      {
+        comp->Data().needsRaycast =
+          (it.second->NextDataUpdateTime() <= _info.simTime &&
+           it.second->HasConnections());
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////

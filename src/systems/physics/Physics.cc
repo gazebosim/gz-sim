@@ -4333,6 +4333,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             components::RaycastData *_raycastData,
             components::Pose */*_pose*/) -> bool
         {
+          if (!_raycastData->Data().needsRaycast)
+            return true;
+          _raycastData->Data().needsRaycast = false;
+
           const auto &rays = _raycastData->Data().rays;
           auto &results = _raycastData->Data().results;
           results.clear();
@@ -4407,6 +4411,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           components::RaycastData *_raycastData,
           components::Pose */*_pose*/) -> bool
       {
+        if (!_raycastData->Data().needsRaycast)
+          return true;
+        _raycastData->Data().needsRaycast = false;
+
         const auto &rays = _raycastData->Data().rays;
 
         auto &results = _raycastData->Data().results;
