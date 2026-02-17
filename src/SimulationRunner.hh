@@ -292,6 +292,12 @@ namespace gz
       public: void SetStepSize(
           const std::chrono::steady_clock::duration &_step);
 
+      /// \brief Mark the runner as having exited with errors.
+      /// \details This is called by the Server when a critical error occurs
+      /// during initialization (e.g. invalid SDF). A runner in this state
+      /// will refuse to run simulation steps.
+      public: void SetExitedWithErrors();
+
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
       /// function.
@@ -448,13 +454,6 @@ namespace gz
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
 
-      /// \brief Wall time of the previous update.
-      private: std::chrono::steady_clock::time_point prevUpdateRealTime;
-
-      /// \brief A duration used to account for inaccuracies associated with
-      /// sleep durations.
-      private: std::chrono::steady_clock::duration sleepOffset{0};
-
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};
@@ -585,6 +584,11 @@ namespace gz
       /// \brief True to create entities.
       private: bool createEntities{false};
       private: bool entitiesCreated{false};
+
+      /// \brief Flag indicating if the server encountered errors during
+      /// initialization and should exit immediately. See
+      /// `SetExitedWithErrors()`.
+      private: bool exitedWithErrors{false};
 
       friend class LevelManager;
     };

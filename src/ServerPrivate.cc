@@ -792,6 +792,20 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     {
       for (auto &err : localErrors)
         gzerr << err << "\n";
+
+      if (_config.BehaviorOnSdfErrors() ==
+          ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
+      {
+        this->exitedWithErrors = true;
+        for (auto &runner : this->simRunners)
+        {
+          // Ensure that future calls to runner->Run() will be ignored.
+          runner->SetExitedWithErrors();
+          runner->Stop();
+        }
+        if (_config.WaitForAssets())
+          this->downloadAssetCv.notify_one();
+      }
     }
 
     // Add the models back into the worlds.

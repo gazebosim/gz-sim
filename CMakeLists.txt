@@ -134,13 +134,6 @@ if(ENABLE_GUI)
       QuickControls2
     REQUIRED
     PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
-
-  set(CMAKE_AUTOMOC TRUE)
-  set(CMAKE_AUTOUIC TRUE)
-  set(CMAKE_AUTORCC TRUE)
-  if(POLICY CMP0100)
-    cmake_policy(SET CMP0100 NEW)
-  endif()
 endif()
 
 #--------------------------------------
