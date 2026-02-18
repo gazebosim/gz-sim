@@ -4375,6 +4375,15 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           const math::Vector3d normal =
             math::eigen3::convert(rayIntersectionResult.normal);
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+
+          // Map physics shape ID to gz-sim Entity
+          auto *extraData = rayIntersectionResult.template
+              Query<ExtraRayIntersectionData>();
+          if (extraData && extraData->collisionShapeId != 0)          
+          {
+            result.entity = this->entityCollisionMap.GetByPhysicsId(
+                extraData->collisionShapeId);
+          }
         }
         return true;
       });
