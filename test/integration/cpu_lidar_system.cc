@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <gz/msgs/laserscan.pb.h>
+#include <gz/msgs/pointcloud_packed.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -68,6 +69,8 @@ static constexpr int kRaycastCheckIteration = 3;
 static constexpr int kResultsCheckIteration = 5;
 /// \brief Timeout duration in milliseconds for message waiting
 static constexpr int kMessageTimeoutMs = 5000;
+/// \brief Iterations for point cloud publication test
+static constexpr int kPointCloudIterations = 200;
 }
 
 class CpuLidarTest : public InternalFixture<::testing::Test>
@@ -292,4 +295,60 @@ TEST_F(CpuLidarTest,
     }
   }
   EXPECT_TRUE(anyHit);
+}
+
+/////////////////////////////////////////////////
+// Test for point cloud publication - verifies that the CPU lidar
+// sensor publishes PointCloudPacked messages with valid data.
+TEST_F(CpuLidarTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(PointCloudPublished))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/cpu_lidar.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  std::mutex mutex;
+  std::condition_variable cv;
+  std::vector<msgs::PointCloudPacked> received;
+  bool messageReceived = false;
+
+  transport::Node node;
+  std::function<void(const msgs::PointCloudPacked &)> cb =
+    [&](const msgs::PointCloudPacked &_msg)
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      received.push_back(_msg);
+      messageReceived = true;
+      cv.notify_one();
+    };
+  node.Subscribe("/test/cpu_lidar/points", cb);
+
+  std::thread serverThread([&]()
+  {
+    server.Run(true, kIterations::kPointCloudIterations, false);
+  });
+
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
+    if (!cv.wait_for(lock, timeout, [&]{ return messageReceived; }))
+    {
+    }
+  }
+
+  serverThread.join();
+
+  std::lock_guard<std::mutex> lock(mutex);
+  ASSERT_GT(received.size(), 0u);
+
+  auto &msg = received.back();
+  EXPECT_EQ(640u, msg.width());
+  EXPECT_EQ(1u, msg.height());
+  EXPECT_GT(msg.data().size(), 0u);
+  EXPECT_GT(msg.point_step(), 0u);
 }
