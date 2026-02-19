@@ -98,9 +98,6 @@ add_library(Backward::Interface ALIAS backward_interface)
 add_library(backward_object OBJECT backward.cpp)
 set_target_properties(backward_object PROPERTIES EXPORT_NAME Object)
 target_link_libraries(backward_object PUBLIC Backward::Interface)
-if(MSVC)
-    target_compile_options(backward_object PRIVATE /EHsc)
-endif()
 add_library(Backward::Object ALIAS backward_object)
 
 ###############################################################################
@@ -116,9 +113,6 @@ endif()
 add_library(backward ${libtype} backward.cpp)
 set_target_properties(backward PROPERTIES EXPORT_NAME Backward)
 target_link_libraries(backward PUBLIC Backward::Interface)
-if(MSVC)
-    target_compile_options(backward PRIVATE /EHsc)
-endif()
 add_library(Backward::Backward ALIAS backward)
 
 ###############################################################################
