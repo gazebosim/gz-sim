@@ -72,7 +72,7 @@ if(ENABLE_GUI)
   target_compile_definitions(${sim_executable} PRIVATE WITH_GUI)
   target_compile_definitions(${sim_executable}
     PRIVATE
-      "GZ_SIM_GUI_EXE=\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${gui_executable}>\""
+      "GZ_SIM_GUI_EXE_RELATIVE_PATH=\"${CMAKE_INSTALL_LIBEXECDIR}/gz/${GZ_DESIGNATION}${PROJECT_VERSION_MAJOR}/$<TARGET_FILE_NAME:${gui_executable}>\""
   )
 endif()
 
