@@ -36,7 +36,6 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/Sensor.hh"
-#include "gz/sim/components/Sensor.hh"
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -336,9 +335,8 @@ TEST_F(CpuLidarTest,
   {
     std::unique_lock<std::mutex> lock(mutex);
     auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
-    if (!cv.wait_for(lock, timeout, [&]{ return messageReceived; }))
-    {
-    }
+    static_cast<void>(
+      cv.wait_for(lock, timeout, [&]{ return messageReceived; }));
   }
 
   serverThread.join();
