@@ -559,8 +559,6 @@ class gz::sim::systems::PhysicsPrivate
             physics::GetRayIntersectionFromLastStepFeature>{};
 
   /// \brief Feature list for batched ray intersection queries.
-  /// Physics engines that implement this feature process all rays for a
-  /// sensor in a single call, avoiding per-ray virtual dispatch overhead.
   public: struct BatchRayIntersectionFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GetBatchRayIntersectionFromLastStepFeature>{};
@@ -4316,8 +4314,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Prefer the batched API: one virtual call processes all rays for a sensor
-  // rather than one call per ray, eliminating per-ray overhead.
+  // Prefer the batched ray intersection API when available.
   auto worldBatchRayFeature =
       this->entityWorldMap
         .EntityCast<BatchRayIntersectionFeatureList>(worldEntity);
@@ -4344,7 +4341,6 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 
           const auto &entityWorldPose = worldPose(_entity, _ecm);
 
-          // Transform all ray endpoints to world frame in one pass
           std::vector<RayQuery> batchInput;
           batchInput.reserve(rays.size());
           for (const auto &ray : rays)
@@ -4359,12 +4355,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             batchInput.push_back(q);
           }
 
-          // Single call for the entire ray set
           const auto batchOutput =
             worldBatchRayFeature->GetBatchRayIntersectionFromLastStep(
               batchInput);
 
-          // Convert results back to entity frame
           for (const auto &hit : batchOutput)
           {
             results.emplace_back();
@@ -4385,7 +4379,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Fallback: single-ray loop for engines that don't support the batch API
+  // Fallback: single-ray intersection
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
@@ -4403,8 +4397,6 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Go through each entity that has a RaycastData component, trace the
-  // rays and store the results
   _ecm.Each<components::RaycastData,
             components::Pose>(
       [&](const Entity &_entity,
@@ -4425,13 +4417,11 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 
         for (const auto &ray : rays)
         {
-          // Convert ray to world frame
           const math::Vector3d rayStart = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.start);
           const math::Vector3d rayEnd = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.end);
 
-          // Perform ray intersection
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
               math::eigen3::convert(rayStart),
@@ -4444,7 +4434,6 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           results.emplace_back();
           auto &result = results.back();
 
-          // Convert result to entity frame and store
           const math::Vector3d intersectionPoint =
             math::eigen3::convert(rayIntersectionResult.point);
           result.point = entityWorldPose.Rot().RotateVectorReverse(

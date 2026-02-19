@@ -34,9 +34,7 @@ namespace systems
 
   /// \class CpuLidar CpuLidar.hh gz/sim/systems/CpuLidar.hh
   /// \brief This system manages all CPU-based lidar sensors in simulation.
-  /// It generates rays from the sensor's SDF lidar configuration, populates
-  /// RaycastData components for the Physics system to process, then feeds
-  /// the raycast results back into the CpuLidarSensor for publishing.
+  /// Each sensor publishes lidar scan data over Gazebo Transport.
   class CpuLidar:
     public System,
     public ISystemPreUpdate,

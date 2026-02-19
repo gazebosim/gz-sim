@@ -31,9 +31,8 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component type that contains a CPU Lidar sensor,
-  /// sdf::Sensor, information. This is for lidar sensors that use
-  /// the physics engine for raycasting instead of the rendering engine.
+  /// \brief A component type that contains a CPU lidar sensor,
+  /// sdf::Sensor, information.
   using CpuLidar = Component<sdf::Sensor, class CpuLidarTag,
       serializers::SensorSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CpuLidar", CpuLidar)

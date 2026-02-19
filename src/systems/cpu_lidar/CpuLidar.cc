@@ -130,10 +130,7 @@ void CpuLidar::PreUpdate(const UpdateInfo &_info,
   }
   this->dataPtr->newSensors.clear();
 
-  // Gate raycasting to the sensor's own update frequency.
-  // Physics runs at the physics rate (e.g. 1 kHz); sensors fire much less
-  // frequently (e.g. 10 Hz). Setting needsRaycast only when a scan is due
-  // avoids 100× wasted raycast work per real scan.
+  // Only raycast when the sensor needs fresh data.
   if (!_info.paused)
   {
     for (auto &it : this->dataPtr->entitySensorMap)

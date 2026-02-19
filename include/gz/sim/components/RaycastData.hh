@@ -68,11 +68,7 @@ struct RaycastDataInfo
   /// @brief The results of the raycasting.
   std::vector<RaycastResultInfo> results;
 
-  /// @brief Set to true by the sensor in PreUpdate when it needs fresh
-  /// raycast results for the current physics step. The physics system
-  /// reads this flag and only performs raycasting when true, then clears
-  /// it. This avoids raycasting at the physics rate (e.g. 1 kHz) when the
-  /// sensor only needs data at its own update rate (e.g. 10 Hz).
+  /// @brief Whether the sensor needs fresh raycast results this step.
   bool needsRaycast = false;
 };
 }
