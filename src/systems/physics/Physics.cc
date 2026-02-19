@@ -4397,31 +4397,38 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
+  // Go through each entity that has a RaycastData components, trace the
+  // rays and store the results
   _ecm.Each<components::RaycastData,
             components::Pose>(
       [&](const Entity &_entity,
           components::RaycastData *_raycastData,
           components::Pose */*_pose*/) -> bool
       {
+        // Retrieve the rays from the RaycastData component
         if (!_raycastData->Data().needsRaycast)
           return true;
         _raycastData->Data().needsRaycast = false;
 
         const auto &rays = _raycastData->Data().rays;
 
+        // Clear the previous results
         auto &results = _raycastData->Data().results;
         results.clear();
         results.reserve(rays.size());
 
+        // Get the entity's world pose
         const auto &entityWorldPose = worldPose(_entity, _ecm);
 
         for (const auto &ray : rays)
         {
+          // Convert ray to world frame
           const math::Vector3d rayStart = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.start);
           const math::Vector3d rayEnd = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.end);
 
+          // Perform ray intersection
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
               math::eigen3::convert(rayStart),
@@ -4434,6 +4441,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           results.emplace_back();
           auto &result = results.back();
 
+          // Convert result to entity frame and store
           const math::Vector3d intersectionPoint =
             math::eigen3::convert(rayIntersectionResult.point);
           result.point = entityWorldPose.Rot().RotateVectorReverse(
