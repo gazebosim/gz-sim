@@ -127,8 +127,9 @@ class TestFixture
       const double stepSize =
           std::chrono::duration<double>(deadline - this->info.simTime).count();
       uint64_t previous_iterations = this->Iterations();
-      simulator->Run(
-          blocking, std::ceil(stepSize / this->maxStepSize), this->paused);
+      simulator->Run(blocking,
+          static_cast<uint64_t>(std::ceil(stepSize / this->maxStepSize)),
+          this->paused);
       iterations += this->Iterations() - previous_iterations;
     } while (this->info.simTime < deadline);
     return iterations;
