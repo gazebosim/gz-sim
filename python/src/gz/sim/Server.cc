@@ -32,7 +32,7 @@ void defineSimServer(pybind11::object module)
 {
   pybind11::class_<gz::sim::Server,
     std::shared_ptr<gz::sim::Server>>(module, "Server",
-    "The main simulation server class. This class manages the simulation "
+    "The main simuulation server class. This class manages the simulation "
     "execution and provides control over running, pausing, and stepping "
     "through simulations.")
   .def(pybind11::init<gz::sim::ServerConfig &>())
