@@ -69,7 +69,7 @@ struct RaycastDataInfo
   std::vector<RaycastResultInfo> results;
 
   /// @brief Whether the sensor needs fresh raycast results this step.
-  bool needsRaycast = false;
+  bool needsRaycast = true;
 };
 }
 

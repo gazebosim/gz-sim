@@ -57,7 +57,7 @@ static constexpr int kDiscoveryIterations = 10;
 /// \brief Iterations for raycast data validity test
 static constexpr int kRaycastDataIterations = 10;
 /// \brief Iterations for raycast results processing test
-static constexpr int kRaycastResultsIterations = 20;
+static constexpr int kRaycastResultsIterations = 200;
 /// \brief Iterations for laser scan publication test
 static constexpr int kLaserScanIterations = 200;
 /// \brief Iteration threshold for sensor topic verification
@@ -193,6 +193,13 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(*server.Running(0));
 
   bool resultsFound = false;
+
+  // Subscribe to the sensor topic so HasConnections() returns true
+  // and the system requests raycasts from Physics.
+  transport::Node node;
+  std::function<void(const msgs::LaserScan &)> cb =
+    [](const msgs::LaserScan &){};
+  node.Subscribe("/test/cpu_lidar", cb);
 
   test::Relay testSystem;
   testSystem.OnPostUpdate([&](const UpdateInfo &_info,
