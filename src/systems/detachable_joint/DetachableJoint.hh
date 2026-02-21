@@ -50,6 +50,11 @@ namespace systems
   /// - `<child_link>`: Name of the link in the child model to be used in
   /// creating a fixed joint with a link in the parent model.
   ///
+  /// - `<initial_attach>` (optional): If true, the joint starts attached when
+  /// the system loads. If false, the joint starts detached (no initial joint is
+  /// created until an attach request is received). Defaults to true to preserve
+  /// backward compatibility.
+  ///
   /// - `<topic>` (optional): Topic name to be used for detaching connections.
   /// Using <detach_topic> is preferred.
   ///
