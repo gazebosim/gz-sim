@@ -39,6 +39,13 @@ endif()
 set(BACKWARD_TESTS OFF)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
 
+# Fix C4530 warning on MSVC: backward-cpp uses exceptions but /EHsc is not
+# set by default. Applied here instead of in vendor/ to survive updates.
+if(MSVC)
+  target_compile_options(backward_object PRIVATE /EHsc)
+  target_compile_options(backward PRIVATE /EHsc)
+endif()
+
 # Using other CMake interfaces from backwards won't work here since
 # CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
 # using backward_object set the object file path.
