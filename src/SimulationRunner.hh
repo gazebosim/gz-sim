@@ -426,13 +426,6 @@ namespace gz
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
 
-      /// \brief Wall time of the previous update.
-      private: std::chrono::steady_clock::time_point prevUpdateRealTime;
-
-      /// \brief A duration used to account for inaccuracies associated with
-      /// sleep durations.
-      private: std::chrono::steady_clock::duration sleepOffset{0};
-
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};

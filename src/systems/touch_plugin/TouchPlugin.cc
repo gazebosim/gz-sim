@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <optional>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
@@ -147,12 +149,26 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
 
   this->AddTargetEntities(_ecm, potentialEntities);
 
+  std::unordered_set<std::string> collisionNames;
+  if (_sdf->HasElement("collision"))
+  {
+    sdf::ElementConstPtr sdfElem = _sdf->FindElement("collision");
+    while (sdfElem)
+    {
+      const auto &collisionName = sdfElem->Get<std::string>();
+      if (!collisionName.empty())
+        collisionNames.insert(collisionName);
+      sdfElem = sdfElem->GetNextElement("collision");
+    }
+  }
+
+
+  std::vector<Entity> colEntities;
   // Create a list of collision entities that have been marked as contact
   // sensors in this model. These are collisions that have a ContactSensorData
   // component
   auto allLinks =
       _ecm.ChildrenByComponents(this->model.Entity(), components::Link());
-
   for (const Entity linkEntity : allLinks)
   {
     auto linkCollisions =
@@ -162,9 +178,60 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
       if (_ecm.EntityHasComponentType(colEntity,
                                       components::ContactSensorData::typeId))
       {
-        this->collisionEntities.push_back(colEntity);
+        colEntities.push_back(colEntity);
       }
     }
+  }
+
+  // if no <collision> elements specified, add all collisions that
+  // have a ContactSensorData component
+  if (collisionNames.empty())
+  {
+    this->collisionEntities = std::move(colEntities);
+  }
+  // Otherwise add only collisions that have a ContactSensorData component
+  // and match the specified name
+  else
+  {
+    for (const auto& colName : collisionNames)
+    {
+      bool colFound = false;
+      for (const auto& colEntity : colEntities)
+      {
+        // Try scoped name first
+        std::string colNameScoped = scopedName(colEntity, _ecm);
+        if (colName == colNameScoped)
+        {
+          this->collisionEntities.push_back(colEntity);
+          colFound = true;
+          break;
+        }
+        else
+        {
+          // Try unscoped name
+          std::string colNameUnscoped =
+              _ecm.Component<components::Name>(colEntity)->Data();
+          if (colName == colNameUnscoped)
+          {
+            this->collisionEntities.push_back(colEntity);
+            colFound = true;
+            break;
+          }
+        }
+      }
+      if (!colFound)
+      {
+        gzerr << "Unable to find the specified contact sensor collision: "
+              << colName << " in model: " << this->model.Name(_ecm)
+              << std::endl;
+      }
+    }
+  }
+
+  if (this->collisionEntities.empty())
+  {
+    gzerr << "No contact sensor collisions found in parent model." << std::endl;
+    return;
   }
 
   // Namespace

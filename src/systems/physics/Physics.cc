@@ -23,7 +23,6 @@
 #include <gz/msgs/Utility.hh>
 
 #include <algorithm>
-#include <iostream>
 #include <deque>
 #include <map>
 #include <set>
@@ -480,6 +479,13 @@ class gz::sim::systems::PhysicsPrivate
   //////////////////////////////////////////////////
 
   //////////////////////////////////////////////////
+
+  // Gravity
+  public: struct GravityFeatureList
+    : physics::FeatureList<
+          MinimumFeatureList,
+          physics::Gravity>{};
+
   // Slip Compliance
 
   /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
@@ -699,6 +705,7 @@ class gz::sim::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
+          GravityFeatureList,
           RayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
@@ -2124,6 +2131,29 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
+  // Gravity state
+  _ecm.Each<components::Gravity>(
+      [&](const Entity & _entity, const components::Gravity *_gravity)
+      {
+        auto gravityFeature =
+          this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
+        if (!gravityFeature)
+        {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "physics engine doesn't support feature "
+                     << "[GravityFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return false;
+        }
+        auto new_grav = _gravity->Data();
+        gravityFeature->SetGravity({new_grav.X(), new_grav.Y(), new_grav.Z()});
+        return true;
+  });
 
   // Battery state
   _ecm.Each<components::BatterySoC>(
