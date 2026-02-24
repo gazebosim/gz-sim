@@ -391,8 +391,8 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> staticStateCmdsToRemove;
 
-  /// \brief Entities whose gravity enabled commands have been processed and should be
-  /// deleted the following iteration.
+  /// \brief Entities whose gravity enabled commands have been processed and
+  /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
 
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
@@ -601,13 +601,6 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
-  //////////////////////////////////////////////////
-  // Link Bounding box
-  /// \brief Feature list for model bounding box.
-  public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
-            MinimumFeatureList,
-            physics::GetLinkBoundingBox>{};
-
   // static
   /// \brief Feature list for model static state.
   public: struct StaticStateFeatureList : physics::FeatureList<
@@ -620,6 +613,12 @@ class gz::sim::systems::PhysicsPrivate
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::SetFreeGroupGravityEnabled>{};
+
+  // Link Bounding box
+  /// \brief Feature list for model bounding box.
+  public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetLinkBoundingBox>{};
 
   //////////////////////////////////////////////////
   // Joint velocity command
@@ -2251,7 +2250,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
   });
 
-
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2586,7 +2584,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
         auto ssModel =
-            this->entityFreeGroupMap.EntityCast<StaticStateFeatureList>(_entity);
+          this->entityFreeGroupMap.EntityCast<StaticStateFeatureList>(_entity);
 
         if (!ssModel)
         {
@@ -2631,7 +2629,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
   }
 
   // update Gravity enabled
-  auto olderGravityEnabledCmdsToRemove = std::move(this->gravityEnabledCmdsToRemove);
+  auto olderGravityEnabledCmdsToRemove =
+    std::move(this->gravityEnabledCmdsToRemove);
   this->gravityEnabledCmdsToRemove.clear();
 
   _ecm.Each<components::Model,
@@ -2654,7 +2653,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
 
         auto ssModel =
-            this->entityFreeGroupMap.EntityCast<GravityEnabledFeatureList>(_entity);
+          this->entityFreeGroupMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
 
         if (!ssModel)
         {
@@ -2672,8 +2672,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           // Break Each call since no Static state'es can be processed
           return false;
         }
-        gzwarn << "_gravityEnabledCmd->Data() " << _gravityEnabledCmd->Data() << std::endl;
-
         ssModel->SetGravityEnabled(_gravityEnabledCmd->Data());
         return true;
       });

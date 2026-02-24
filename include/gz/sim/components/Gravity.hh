@@ -44,7 +44,8 @@ namespace components
 
   /// \brief Store the gravity enabled CMD.
   using GravityEnabledCmd = Component<bool, class GravityEnabledCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.GravityEnabledCmd", GravityEnabledCmd)
+  GZ_SIM_REGISTER_COMPONENT(
+    "gz_sim_components.GravityEnabledCmd", GravityEnabledCmd)
 }
 }
 }
