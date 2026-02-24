@@ -79,7 +79,7 @@ namespace systems
     /** \code{.sh}
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key \
             -out server.cert
-    */
+    \endcode */
     ///  Use "localhost" for the  "Common Name" question. If you are testing
     ///  with a browser, first navigate to "https://localhost:<port>" and
     ///  accept the self-signed certificate.
