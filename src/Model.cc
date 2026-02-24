@@ -247,7 +247,8 @@ void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
       this->dataPtr->id);
   if (!staticComp)
   {
-    _ecm.CreateComponent(this->dataPtr->id, components::GravityEnabledCmd(_enabled));
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::GravityEnabledCmd(_enabled));
   }
   else
   {
