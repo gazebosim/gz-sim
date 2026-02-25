@@ -20,6 +20,8 @@
 #include <chrono>
 #include <optional>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <gz/plugin/Register.hh>
 
@@ -112,21 +114,29 @@ struct Led
     if (_sdf->HasElement("visual_name"))
     {
       led.scopedVisualName = _sdf->Get<std::string>("visual_name");
-      std::unordered_set<Entity> visualEntities = gz::sim::entitiesFromScopedName(led.scopedVisualName, _ecm);
-      gzmsg << "Found " << visualEntities.size() << " entities for the visual named: "
+      std::unordered_set<Entity> visualEntities =
+        gz::sim::entitiesFromScopedName(led.scopedVisualName, _ecm);
+      gzmsg << "Found " << visualEntities.size()
+            << " entities for the visual named: "
             << led.scopedVisualName << std::endl;
 
       if (visualEntities.empty())
       {
-        gzerr << "[LED PLUGIN][LED] No visuals found with the name: "
-              << led.scopedVisualName << ". Can't use visuals for the LED" << std::endl;
+        gzerr << "[LED PLUGIN][LED] No visuals found"
+              << " with the name: "
+              << led.scopedVisualName
+              << ". Can't use visuals for the LED"
+              << std::endl;
       }
       else
       {
         if (visualEntities.size() > 1)
         {
-          gzerr << "[LED PLUGIN][LED] Multiple visuals found with the name: "
-                << led.scopedVisualName << ". Using the first one found" << std::endl;
+          gzerr << "[LED PLUGIN][LED] Multiple visuals"
+                << " found with the name: "
+                << led.scopedVisualName
+                << ". Using the first one found"
+                << std::endl;
         }
 
         led.ledVisualEntity = *visualEntities.begin();
@@ -137,22 +147,30 @@ struct Led
     if (_sdf->HasElement("light_name"))
     {
       led.scopedLightName = _sdf->Get<std::string>("light_name");
-      std::unordered_set<Entity> lightEntities = gz::sim::entitiesFromScopedName(led.scopedLightName, _ecm);
+      std::unordered_set<Entity> lightEntities =
+        gz::sim::entitiesFromScopedName(led.scopedLightName, _ecm);
 
-      gzmsg << "Found " << lightEntities.size() << " entities for the light named: "
+      gzmsg << "Found " << lightEntities.size()
+            << " entities for the light named: "
             << led.scopedLightName << std::endl;
 
       if (lightEntities.empty())
       {
-        gzerr << "[LED PLUGIN][LED] No lights found with the name: "
-              << led.scopedLightName << ". Can't use lights for the LED" << std::endl;
+        gzerr << "[LED PLUGIN][LED] No lights found"
+              << " with the name: "
+              << led.scopedLightName
+              << ". Can't use lights for the LED"
+              << std::endl;
       }
       else
       {
         if (lightEntities.size() > 1)
         {
-          gzerr << "[LED PLUGIN][LED] Multiple lights found with the name: "
-                << led.scopedLightName << ". Using the first one found" << std::endl;
+          gzerr << "[LED PLUGIN][LED] Multiple lights"
+                << " found with the name: "
+                << led.scopedLightName
+                << ". Using the first one found"
+                << std::endl;
         }
 
         led.ledLightEntity = *lightEntities.begin();
@@ -162,7 +180,8 @@ struct Led
     // Read the default state of the LED if provided
     if (_sdf->HasElement("default_state"))
     {
-      sdf::ElementConstPtr defaultStateElem = _sdf->FindElement("default_state");
+      sdf::ElementConstPtr defaultStateElem =
+        _sdf->FindElement("default_state");
 
       if (defaultStateElem->HasElement("color"))
       {
@@ -292,7 +311,8 @@ class gz::sim::systems::LedPluginPrivate
   /// \brief Callback executed to change the current LED mode.
   /// \param[in] _req String specifying the name of the required mode.
   /// \param[out] _resp Boolean for successful mode change
-  public: bool OnLedModeChange(const msgs::StringMsg &_req, msgs::Boolean &_resp);
+  public: bool OnLedModeChange(
+    const msgs::StringMsg &_req, msgs::Boolean &_resp);
 
   /// \brief
   /// \param[in] _visualEntity
@@ -363,7 +383,8 @@ LedPlugin::~LedPlugin()
 
 /////////////////////////////////////////////////
 void LedPlugin::Configure(
-  const gz::sim::Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
+  const gz::sim::Entity &_entity,
+  const std::shared_ptr<const sdf::Element> &_sdf,
   gz::sim::EntityComponentManager &_ecm, gz::sim::EventManager &)
 {
   // Create a Model interface instance from the model entity of this plugin
@@ -390,7 +411,9 @@ void LedPlugin::Configure(
     this->dataPtr->ledGroupName = "led_" + this->dataPtr->model.Name(_ecm);
   }
 
-  modeChangeServiceName = "/" + this->dataPtr->ledGroupName + "/change_led_mode";
+  modeChangeServiceName =
+    "/" + this->dataPtr->ledGroupName
+    + "/change_led_mode";
 
   // Read and create different LEDs as part of the group
   if (_sdf->HasElement("led"))
@@ -403,7 +426,8 @@ void LedPlugin::Configure(
 
       if (led.has_value())
       {
-        this->dataPtr->allLedsInGroup.insert({led.value().ledName, led.value()});
+        this->dataPtr->allLedsInGroup.insert(
+          {led.value().ledName, led.value()});
       }
 
       ledElem = ledElem->GetNextElement("led");
@@ -461,8 +485,12 @@ void LedPlugin::Configure(
 
       if (defaultModeIter == this->dataPtr->allLedModes.end())
       {
-        gzwarn << "[LED PLUGIN] Could not find default mode name: " << defaultModeName
-              << " in the led modes mentioned. Using the first mode as default." << std::endl;
+        gzwarn << "[LED PLUGIN] Could not find"
+              << " default mode name: "
+              << defaultModeName
+              << " in the led modes mentioned."
+              << " Using the first mode as default."
+              << std::endl;
         this->dataPtr->defaultLedMode = this->dataPtr->allLedModes.front();
       }
       else
@@ -472,8 +500,9 @@ void LedPlugin::Configure(
     }
     else
     {
-      gzwarn << "[LED PLUGIN] No default led mode mentioned."
-            << " in the led modes mentioned. Using the first mode as default." << std::endl;
+      gzwarn << "[LED PLUGIN] No default led mode"
+            << " mentioned. Using the first"
+            << " mode as default." << std::endl;
       this->dataPtr->defaultLedMode = this->dataPtr->allLedModes.front();
     }
   }
@@ -489,10 +518,12 @@ void LedPlugin::Configure(
   gzmsg << "[LED PLUGIN] Successfully loaded the LED plugin with "
         << this->dataPtr->allLedsInGroup.size() << " LEDs, "
         << this->dataPtr->allLedModes.size() << " modes and "
-        << this->dataPtr->defaultLedMode.name << " as the default mode" << std::endl;
+        << this->dataPtr->defaultLedMode.name
+        << " as the default mode" << std::endl;
 
   // Advertise the LED Mode change service
-  auto validModeChangeServiceName = transport::TopicUtils::AsValidTopic(modeChangeServiceName);
+  auto validModeChangeServiceName =
+    transport::TopicUtils::AsValidTopic(modeChangeServiceName);
   if (validModeChangeServiceName.empty())
   {
     gzerr << "Failed to create valid mode change service. Name not valid: ["
@@ -514,7 +545,9 @@ void LedPlugin::PreUpdate(
   // Set the current sim time in the PreUpdate function
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime =
-    std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1, 1>>>(_info.simTime);
+    std::chrono::duration_cast<
+      std::chrono::duration<double,
+        std::ratio<1, 1>>>(_info.simTime);
 
   // Return if no LEDs were created successfully
   if (this->dataPtr->allLedsInGroup.empty())
@@ -536,9 +569,12 @@ void LedPlugin::PreUpdate(
   }
 
   // Set the current step from the current LED Mode
-  LedModeStep currentLedModeStep = this->dataPtr->currentLedMode.modeSequenceSteps[this->dataPtr->currentModeStepIdx];
+  LedModeStep currentLedModeStep =
+    this->dataPtr->currentLedMode.modeSequenceSteps[
+      this->dataPtr->currentModeStepIdx];
 
-  // Change the visual and light properties of the LEDs based on the current mode
+  // Change the visual and light properties of the
+  // LEDs based on the current mode
   if (this->dataPtr->currentLedMode.activeLedNames.empty())
   {
     // Set the state of all LEDs in the group according to the current LED Mode
@@ -547,34 +583,44 @@ void LedPlugin::PreUpdate(
       // Set the visual properties if the visual entity is not null
       if (led.second.ledVisualEntity != kNullEntity)
       {
-        this->dataPtr->SetVisualProperties(led.second.ledVisualEntity, _ecm, currentLedModeStep.ledColor);
+        this->dataPtr->SetVisualProperties(
+          led.second.ledVisualEntity, _ecm, currentLedModeStep.ledColor);
       }
 
       // Set the light properties if the light entity is not null
       if (led.second.ledLightEntity != kNullEntity)
       {
-        this->dataPtr->SetLightProperties(led.second.ledLightEntity, _ecm, currentLedModeStep.ledColor,
+        this->dataPtr->SetLightProperties(
+          led.second.ledLightEntity, _ecm,
+          currentLedModeStep.ledColor,
           currentLedModeStep.lightIntensity);
       }
     }
   }
   else
   {
-    // Set the state of the LEDs in the activeLedNames for the current LED Mode
-    for (const std::string &ledName : this->dataPtr->currentLedMode.activeLedNames)
+    // Set the state of the LEDs in the activeLedNames
+    // for the current LED Mode
+    for (const std::string &ledName :
+      this->dataPtr->currentLedMode.activeLedNames)
     {
       // Set the visual properties if the visual entity is not null
       if (this->dataPtr->allLedsInGroup[ledName].ledVisualEntity != kNullEntity)
       {
-        this->dataPtr->SetVisualProperties(this->dataPtr->allLedsInGroup[ledName].ledVisualEntity,
+        this->dataPtr->SetVisualProperties(
+          this->dataPtr->allLedsInGroup[ledName]
+            .ledVisualEntity,
           _ecm, currentLedModeStep.ledColor);
       }
 
       // Set the light properties if the light entity is not null
       if (this->dataPtr->allLedsInGroup[ledName].ledLightEntity != kNullEntity)
       {
-        this->dataPtr->SetLightProperties(this->dataPtr->allLedsInGroup[ledName].ledLightEntity,
-          _ecm, currentLedModeStep.ledColor, currentLedModeStep.lightIntensity);
+        this->dataPtr->SetLightProperties(
+          this->dataPtr->allLedsInGroup[ledName]
+            .ledLightEntity,
+          _ecm, currentLedModeStep.ledColor,
+          currentLedModeStep.lightIntensity);
       }
     }
   }
@@ -585,21 +631,26 @@ void LedPlugin::PreUpdate(
     return;
   }
 
-  // Set the cycle start time. This is used to calculate the elapsed time in every PreUpdate event
+  // Set the cycle start time. This is used to calculate
+  // the elapsed time in every PreUpdate event
   if (this->dataPtr->cycleStartTime == std::chrono::duration<double>::zero() ||
       this->dataPtr->cycleStartTime > this->dataPtr->currentSimTime)
   {
     this->dataPtr->cycleStartTime = this->dataPtr->currentSimTime;
   }
-  std::chrono::duration<double> elapsed = this->dataPtr->currentSimTime - this->dataPtr->cycleStartTime;
+  std::chrono::duration<double> elapsed =
+    this->dataPtr->currentSimTime
+    - this->dataPtr->cycleStartTime;
 
-  // If we have crossed the elapsed time of the step on time, then move on to the next step
+  // If we have crossed the elapsed time of
+  // the step on time, then move on to the next step
   if (elapsed > currentLedModeStep.ledOnTime)
   {
     this->dataPtr->currentModeStepIdx++;
 
     // If we have reached the end of the steps, cycle back to the first one
-    if (this->dataPtr->currentModeStepIdx == this->dataPtr->currentLedMode.modeSequenceSteps.size())
+    if (this->dataPtr->currentModeStepIdx ==
+        this->dataPtr->currentLedMode.modeSequenceSteps.size())
     {
       this->dataPtr->currentModeStepIdx = 0;
     }
@@ -692,8 +743,11 @@ void LedPluginPrivate::SetVisualProperties(const Entity &_visualEntity,
 }
 
 //////////////////////////////////////////////////
-void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
-  EntityComponentManager &_ecm, const math::Color &_lightColor, const double _lightIntensity)
+void LedPluginPrivate::SetLightProperties(
+  const Entity &_lightEntity,
+  EntityComponentManager &_ecm,
+  const math::Color &_lightColor,
+  const double _lightIntensity)
 {
   const auto* currentLightMsg = _ecm.Component<components::Light>(_lightEntity);
 
@@ -713,9 +767,12 @@ void LedPluginPrivate::SetLightProperties(const Entity &_lightEntity,
 
   // Set the rest of the properties with the current Light component data
   lightMsg.set_range(currentLightMsg->Data().AttenuationRange());
-  lightMsg.set_attenuation_constant(currentLightMsg->Data().ConstantAttenuationFactor());
-  lightMsg.set_attenuation_linear(currentLightMsg->Data().LinearAttenuationFactor());
-  lightMsg.set_attenuation_quadratic(currentLightMsg->Data().QuadraticAttenuationFactor());
+  lightMsg.set_attenuation_constant(
+    currentLightMsg->Data().ConstantAttenuationFactor());
+  lightMsg.set_attenuation_linear(
+    currentLightMsg->Data().LinearAttenuationFactor());
+  lightMsg.set_attenuation_quadratic(
+    currentLightMsg->Data().QuadraticAttenuationFactor());
 
   std::function<bool(const msgs::Light &, const msgs::Light &)> lightEq =
   [](const msgs::Light &_a, const msgs::Light &_b)
@@ -764,7 +821,9 @@ void LedPluginPrivate::ResetLEDs(EntityComponentManager &_ecm)
   {
     if (led.second.ledVisualEntity != kNullEntity)
     {
-      this->SetVisualProperties(led.second.ledVisualEntity, _ecm, led.second.defaultColor);
+      this->SetVisualProperties(
+        led.second.ledVisualEntity,
+        _ecm, led.second.defaultColor);
     }
 
     if (led.second.ledLightEntity != kNullEntity)
@@ -785,7 +844,9 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
   gzmsg << "[LED PLUGIN] [ON MODE CHANGE] received request to change mode to: "
         << requestedModeName << std::endl;
 
-  auto ledModeIter = std::find_if(this->allLedModes.begin(), this->allLedModes.end(),
+  auto ledModeIter = std::find_if(
+    this->allLedModes.begin(),
+    this->allLedModes.end(),
     [&](LedMode _mode)
     {
       if (_mode.name == requestedModeName)
@@ -806,7 +867,9 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
   }
 
   gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Changing led mode from: "
-        << this->currentLedMode.name << " to: " << requestedModeName << std::endl;
+        << this->currentLedMode.name
+        << " to: " << requestedModeName
+        << std::endl;
 
   this->currentLedMode = *(ledModeIter);
   this->currentModeStepIdx = 0;
@@ -816,8 +879,10 @@ bool LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_req,
 
   _resp.set_data(true);
 
-  // Setting LEDs as not ready as we want them to be reset after a mode change
-  // This is done because we cannot directly reset the LEDs from here as ECM is required
+  // Setting LEDs as not ready as we want them
+  // to be reset after a mode change
+  // This is done because we cannot directly reset
+  // the LEDs from here as ECM is required
   this->ledsReady = false;
   return true;
 }
