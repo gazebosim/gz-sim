@@ -614,10 +614,10 @@ void SimulationRunner::UpdateSystems()
     GZ_PROFILE("Update");
     if (!this->checkedUpdateSystems && this->systemMgr->SystemsUpdate().empty())
     {
-      gzerr << "No update systems are running."
-            << " Adding a custom world plugin disables default plugins." 
-            << " Please add at least the physics engine plugin to your SDF."
-            << std::endl;
+      gzwarn << "No update systems are running."
+             << " Adding a custom world plugin disables default plugins."
+             << " Please add at least the physics engine plugin to your SDF."
+             << std::endl;
       this->checkedUpdateSystems = true;
     }
     for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
