@@ -36,7 +36,8 @@ namespace systems
   /** \class LedPlugin LedPlugin.hh \
    * gz/sim/systems/LedPlugin.hh
   **/
-  /// \brief Plugin that makes a visual blink between two colors. This can be used to simulate
+  /// \brief Plugin that makes a visual blink
+  /// between two colors. This can be used to simulate
   /// LEDs .See the example usage below:
   ///
   /// ## System Parameters:
@@ -87,9 +88,9 @@ namespace systems
   ///     </step>
   ///   </mode>
   ///   <mode name=”mode_name3”>
-  /// 	.
-  /// 	.
-  /// 	.
+  ///   .
+  ///   .
+  ///   .
   ///   </mode>
   /// </plugin>
 
