@@ -115,6 +115,20 @@ namespace gz
     ///
     class GZ_SIM_VISIBLE Server
     {
+      /// \brief Lifecycle states of the server.
+      public: enum class Status {
+        /// \brief The server encountered a critical error during initialization
+        /// (e.g., an SDF parsing error while SdfErrorBehavior is set to
+        /// EXIT_IMMEDIATELY) and is in a terminal state.
+        /// Calls to Run() or RunOnce() will return false.
+        EXITED,
+        /// \brief The server is initialized and ready, but not currently
+        /// running.
+        STOPPED,
+        /// \brief The server is currently running.
+        RUNNING
+      };
+
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.
       /// \param[in] _config Server configuration parameters. If this
@@ -344,6 +358,10 @@ namespace gz
       /// \param[in] runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
+
+      /// \brief Get the current lifecycle status of the server.
+      /// \return The current status (EXITED, STOPPED, or RUNNING).
+      public: Status GetStatus() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

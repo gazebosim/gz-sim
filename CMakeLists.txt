@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim VERSION 10.0.0)
+project(gz-sim VERSION 10.1.1)
 set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake REQUIRED)
+find_package(gz-cmake 5 REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -38,6 +38,13 @@ endif()
 
 set(BACKWARD_TESTS OFF)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
+
+# Fix C4530 warning on MSVC: backward-cpp uses exceptions but /EHsc is not
+# set by default. Applied here instead of in vendor/ to survive updates.
+if(MSVC)
+  target_compile_options(backward_object PRIVATE /EHsc)
+  target_compile_options(backward PRIVATE /EHsc)
+endif()
 
 # Using other CMake interfaces from backwards won't work here since
 # CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
@@ -84,24 +91,24 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat REQUIRED)
+gz_find_package(sdformat VERSION 16 REQUIRED)
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin REQUIRED COMPONENTS loader register)
+gz_find_package(gz-plugin VERSION 4 REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
+gz_find_package(gz-transport VERSION 15 REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs REQUIRED)
+gz_find_package(gz-msgs VERSION 12 REQUIRED)
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common
+gz_find_package(gz-common VERSION 7
   COMPONENTS
     av
     events
@@ -116,13 +123,13 @@ list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools REQUIRED)
+gz_find_package(gz-fuel_tools VERSION 11 REQUIRED)
 
 # Option to build gz-sim with GUI support
 option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
-  gz_find_package(gz-gui REQUIRED)
+  gz_find_package(gz-gui VERSION 10 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
@@ -134,18 +141,11 @@ if(ENABLE_GUI)
       QuickControls2
     REQUIRED
     PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
-
-  set(CMAKE_AUTOMOC TRUE)
-  set(CMAKE_AUTOUIC TRUE)
-  set(CMAKE_AUTORCC TRUE)
-  if(POLICY CMP0100)
-    cmake_policy(SET CMP0100 NEW)
-  endif()
 endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics
+gz_find_package(gz-physics VERSION 9
   COMPONENTS
     heightmap
     mesh
@@ -155,7 +155,7 @@ gz_find_package(gz-physics
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors REQUIRED
+gz_find_package(gz-sensors VERSION 10 REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
@@ -186,11 +186,11 @@ gz_find_package(gz-sensors REQUIRED
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering REQUIRED)
+gz_find_package(gz-rendering VERSION 10 REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math REQUIRED COMPONENTS eigen3)
+gz_find_package(gz-math VERSION 9 REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
@@ -206,7 +206,7 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils REQUIRED COMPONENTS cli)
+gz_find_package(gz-utils VERSION 4 REQUIRED COMPONENTS cli)
 
 
 #--------------------------------------
@@ -288,26 +288,21 @@ configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim${PROJECT_VERSION_MAJOR}.desktop)
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo${PROJECT_VERSION_MAJOR}.svg)
 
-# disable doxygen on macOS due to issues with doxygen 1.9.0
-# there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/gazebosim/gz-sim/issues/520
-if (NOT APPLE)
-  gz_create_docs(
-    API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-    TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
-    ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
-    IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
-    TAGFILES
-     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
-  )
-endif()
+gz_create_docs(
+  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
+  ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+  IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
+  TAGFILES
+   "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+   "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+   "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+   "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+   "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+   "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+   "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+   "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
+)
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
