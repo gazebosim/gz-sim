@@ -252,7 +252,7 @@ std::unique_ptr<gz::gui::Application> createGui(
   std::unordered_set<std::string> injectedWorlds;
   auto ensureSceneBroadcaster = [&](const std::string &worldName)
   {
-    const unsigned int timeout = 2000;
+    const unsigned int timeout = 5000;
     bool sceneBroadcasterFound = false;
     bool sceneResult = false;
     msgs::Empty sceneReq;
@@ -509,6 +509,7 @@ std::unique_ptr<gz::gui::Application> createGui(
       ++runnerCount;
 
       // Load plugins after creating GuiRunner, so they can access worldName
+      bool hasMinimalScene = false;
       if (_loadPluginsFromSdf)
       {
         for (int p = 0; p < res.plugin_size(); ++p)
@@ -558,7 +559,7 @@ std::unique_ptr<gz::gui::Application> createGui(
 
           if (fileName == "MinimalScene")
           {
-            ensureSceneBroadcaster(worldName);
+            hasMinimalScene = true;
           }
 
           std::string pluginStr = "<plugin filename='" + fileName + "'>" +
@@ -570,6 +571,10 @@ std::unique_ptr<gz::gui::Application> createGui(
           app->LoadPlugin(fileName,
               pluginDoc.FirstChildElement("plugin"));
         }
+      }
+      if (hasMinimalScene)
+      {
+        ensureSceneBroadcaster(worldName);
       }
     }
     mainWin->configChanged();

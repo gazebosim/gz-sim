@@ -293,6 +293,10 @@ class gz::sim::systems::SceneBroadcasterPrivate
   /// This is currently only used in playback mode.
   public: bool pubPeriodicChanges{false};
 
+  /// \brief Flag to seed the scene graph on the next PostUpdate when loaded
+  /// late (after world creation).
+  public: bool needsSeed{false};
+
   /// \brief Stores a cache of components that are changed. (This prevents
   ///  dropping of periodic change components which may not be updated
   ///  frequently enough)
@@ -354,9 +358,10 @@ void SceneBroadcaster::Configure(
                                         this->dataPtr->worldEntity);
   }
 
-  // If the SceneBroadcaster is loaded after world creation, populate the
-  // scene graph from existing entities so the GUI can visualize immediately.
-  this->dataPtr->SeedSceneGraphFromExisting(_ecm);
+  // Schedule a seed check on the next PostUpdate. If loaded late,
+  // HasNewEntities() will be false and SeedSceneGraphFromExisting will run.
+  // On normal startup, HasNewEntities() will be true so seeding is skipped.
+  this->dataPtr->needsSeed = true;
 }
 
 //////////////////////////////////////////////////
@@ -364,6 +369,16 @@ void SceneBroadcaster::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_manager)
 {
   GZ_PROFILE("SceneBroadcaster::PostUpdate");
+
+  // If loaded late, seed the scene graph now that the ECM is fully committed.
+  if (this->dataPtr->needsSeed)
+  {
+    this->dataPtr->needsSeed = false;
+    if (!_manager.HasNewEntities())
+    {
+      this->dataPtr->SeedSceneGraphFromExisting(_manager);
+    }
+  }
 
   // Update scene graph with added entities before populating pose message
   if (_manager.HasNewEntities())
@@ -1191,8 +1206,6 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
 void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
     const EntityComponentManager &_manager)
 {
-  bool newEntity{false};
-
   SceneGraphType newGraph;
   std::string worldNameLocal;
   Entity worldEntityLocal{kNullEntity};
@@ -1225,7 +1238,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1244,7 +1256,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(_nameComp->Data(), linkMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1282,7 +1293,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(_nameComp->Data(), visualMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1303,7 +1313,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(_nameComp->Data(), lightMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1492,7 +1501,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(_nameComp->Data(), sensorMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1511,7 +1519,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(emitterMsg->name(), emitterMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
@@ -1533,7 +1540,6 @@ void SceneBroadcasterPrivate::SeedSceneGraphFromExisting(
 
         newGraph.AddVertex(projectorMsg->name(), projectorMsg, _entity);
         newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-        newEntity = true;
         return true;
       });
 
