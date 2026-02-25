@@ -541,6 +541,9 @@ namespace gz
       private: bool threadsNeedCleanUp{false};
 
       private: bool resetInitiated{false};
+
+      /// @brief True if the check for empty update systems is performed.
+      private: bool checkedUpdateSystems{false};
       friend class LevelManager;
     };
     }
