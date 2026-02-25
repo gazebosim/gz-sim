@@ -32,61 +32,105 @@ View::View(const std::set<ComponentTypeId>& _compIds)
 }
 
 //////////////////////////////////////////////////
+const std::vector<Entity> &View::ValidEntities() const
+{
+  return this->validEntities;
+}
+
+//////////////////////////////////////////////////
+const std::vector<View::ComponentData> &View::ValidComponentData() const
+{
+  return this->validData;
+}
+
+//////////////////////////////////////////////////
+const std::vector<View::ConstComponentData>
+    &View::ValidConstComponentData() const
+{
+  return this->validConstData;
+}
+
+//////////////////////////////////////////////////
 const std::vector<const components::BaseComponent *>
     &View::EntityComponentConstData(const Entity _entity) const
 {
-  return this->validConstData.at(_entity);
+  auto it = std::lower_bound(this->validEntities.begin(),
+                             this->validEntities.end(), _entity);
+  if (it != this->validEntities.end() && *it == _entity)
+  {
+    return this->validConstData.at(
+        std::distance(this->validEntities.begin(), it));
+  }
+  return this->validConstData.at(0);  // Should not happen based on API contract
 }
 
 //////////////////////////////////////////////////
 const std::vector<components::BaseComponent *> &View::EntityComponentData(
     const Entity _entity) const
 {
-  return this->validData.at(_entity);
+  auto it = std::lower_bound(this->validEntities.begin(),
+                             this->validEntities.end(), _entity);
+  if (it != this->validEntities.end() && *it == _entity)
+  {
+    return this->validData.at(std::distance(this->validEntities.begin(), it));
+  }
+  return this->validData.at(0);  // Should not happen based on API contract
 }
 
 //////////////////////////////////////////////////
 bool View::HasCachedComponentData(const Entity _entity) const
 {
-  auto cachedComps =
-    this->validData.find(_entity) != this->validData.end() ||
-    this->invalidData.find(_entity) != this->invalidData.end();
-  auto cachedConstComps =
-    this->validConstData.find(_entity) != this->validConstData.end() ||
-    this->invalidConstData.find(_entity) != this->invalidConstData.end();
-
-  if (cachedComps && !cachedConstComps)
+  auto it = std::lower_bound(this->validEntities.begin(),
+                             this->validEntities.end(), _entity);
+  if (it != this->validEntities.end() && *it == _entity)
   {
-    gzwarn << "Non-const component data is cached for entity " << _entity
-      << ", but const component data is not cached." << std::endl;
-  }
-  else if (cachedConstComps && !cachedComps)
-  {
-    gzwarn << "Const component data is cached for entity " << _entity
-      << ", but non-const component data is not cached." << std::endl;
+    auto index = std::distance(this->validEntities.begin(), it);
+    return !this->validData[index].empty() &&
+           !this->validConstData[index].empty();
   }
 
-  return cachedComps && cachedConstComps;
+  return std::binary_search(this->invalidEntities.begin(),
+                            this->invalidEntities.end(), _entity);
 }
 
 //////////////////////////////////////////////////
 bool View::RemoveEntity(const Entity _entity)
 {
-  this->invalidData.erase(_entity);
-  this->invalidConstData.erase(_entity);
-  this->missingCompTracker.erase(_entity);
+  bool removed = false;
 
-  if (!this->HasEntity(_entity) && !this->IsEntityMarkedForAddition(_entity))
-    return false;
+  auto invalidIt = std::lower_bound(this->invalidEntities.begin(),
+                                    this->invalidEntities.end(), _entity);
+  if (invalidIt != this->invalidEntities.end() && *invalidIt == _entity)
+  {
+    auto index = std::distance(this->invalidEntities.begin(), invalidIt);
+    this->invalidEntities.erase(invalidIt);
+    this->invalidData.erase(this->invalidData.begin() + index);
+    this->invalidConstData.erase(this->invalidConstData.begin() + index);
+    this->missingCompTracker.erase(_entity);
+    removed = true;
+  }
 
-  this->entities.erase(_entity);
-  this->newEntities.erase(_entity);
-  this->toRemoveEntities.erase(_entity);
-  this->toAddEntities.erase(_entity);
-  this->validData.erase(_entity);
-  this->validConstData.erase(_entity);
+  auto validIt = std::lower_bound(this->validEntities.begin(),
+                                  this->validEntities.end(), _entity);
+  if (validIt != this->validEntities.end() && *validIt == _entity)
+  {
+    auto index = std::distance(this->validEntities.begin(), validIt);
+    this->validEntities.erase(validIt);
+    this->validData.erase(this->validData.begin() + index);
+    this->validConstData.erase(this->validConstData.begin() + index);
+    removed = true;
+  }
 
-  return true;
+  if (this->HasEntity(_entity) || this->IsEntityMarkedForAddition(_entity))
+  {
+    this->entities.erase(_entity);
+    this->newEntities.erase(_entity);
+    this->toRemoveEntities.erase(_entity);
+    this->toAddEntities.erase(_entity);
+    removed = true;
+  }
+
+  return removed;
 }
 
 //////////////////////////////////////////////////
@@ -113,10 +157,34 @@ bool View::NotifyComponentAddition(const Entity _entity,
   // view, then add the entity back to the view
   if (missingCompsIter->second.empty())
   {
-    auto nh = this->invalidData.extract(_entity);
-    this->validData.insert(std::move(nh));
-    auto constCompNh = this->invalidConstData.extract(_entity);
-    this->validConstData.insert(std::move(constCompNh));
+    // Move from invalid to valid
+    auto invalidIt = std::lower_bound(this->invalidEntities.begin(),
+                                      this->invalidEntities.end(), _entity);
+    if (invalidIt != this->invalidEntities.end() && *invalidIt == _entity)
+    {
+      auto index = std::distance(this->invalidEntities.begin(), invalidIt);
+      
+      // Extract data
+      auto data = std::move(this->invalidData[index]);
+      auto constData = std::move(this->invalidConstData[index]);
+
+      // Remove from invalid
+      this->invalidEntities.erase(invalidIt);
+      this->invalidData.erase(this->invalidData.begin() + index);
+      this->invalidConstData.erase(this->invalidConstData.begin() + index);
+
+      // Insert into valid (maintaining sort)
+      auto validIt = std::lower_bound(this->validEntities.begin(),
+                                      this->validEntities.end(), _entity);
+      auto validIndex = std::distance(this->validEntities.begin(), validIt);
+      
+      this->validEntities.insert(validIt, _entity);
+      this->validData.insert(this->validData.begin() + validIndex,
+                             std::move(data));
+      this->validConstData.insert(this->validConstData.begin() + validIndex,
+                                  std::move(constData));
+    }
+    
     this->entities.insert(_entity);
     if (_newEntity)
       this->newEntities.insert(_entity);
@@ -143,15 +211,33 @@ bool View::NotifyComponentRemoval(const Entity _entity,
   // if the component being removed is the first component that causes _entity
   // to be invalid for this view, move _entity from validData to invalidData
   // since _entity should no longer be considered a part of the view
-  auto it = this->validData.find(_entity);
-  auto constCompIt = this->validConstData.find(_entity);
-  if (it != this->validData.end() &&
-      constCompIt != this->validConstData.end())
+  auto validIt = std::lower_bound(this->validEntities.begin(),
+                                  this->validEntities.end(), _entity);
+
+  if (validIt != this->validEntities.end() && *validIt == _entity)
   {
-    auto nh = this->validData.extract(it);
-    this->invalidData.insert(std::move(nh));
-    auto constCompNh = this->validConstData.extract(constCompIt);
-    this->invalidConstData.insert(std::move(constCompNh));
+    auto index = std::distance(this->validEntities.begin(), validIt);
+
+    // Extract data
+    auto data = std::move(this->validData[index]);
+    auto constData = std::move(this->validConstData[index]);
+
+    // Remove from valid
+    this->validEntities.erase(validIt);
+    this->validData.erase(this->validData.begin() + index);
+    this->validConstData.erase(this->validConstData.begin() + index);
+
+    // Insert into invalid (maintaining sort)
+    auto invalidIt = std::lower_bound(this->invalidEntities.begin(),
+                                      this->invalidEntities.end(), _entity);
+    auto invalidIndex = std::distance(this->invalidEntities.begin(), invalidIt);
+
+    this->invalidEntities.insert(invalidIt, _entity);
+    this->invalidData.insert(this->invalidData.begin() + invalidIndex,
+                             std::move(data));
+    this->invalidConstData.insert(this->invalidConstData.begin() + invalidIndex,
+                                  std::move(constData));
+
     this->entities.erase(_entity);
     this->newEntities.erase(_entity);
   }
@@ -172,8 +258,10 @@ void View::Reset()
   this->toAddEntities.clear();
 
   // reset all data structures unique to the templated view
+  this->validEntities.clear();
   this->validData.clear();
   this->validConstData.clear();
+  this->invalidEntities.clear();
   this->invalidData.clear();
   this->invalidConstData.clear();
   this->missingCompTracker.clear();

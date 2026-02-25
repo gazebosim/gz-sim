@@ -120,14 +120,27 @@ class GZ_SIM_VISIBLE View : public BaseView
   /// \brief Documentation inherited
   public: void Reset() override;
 
-  /// \brief A map of entities to their component data. Since tuples are defined
-  /// at compile time, we need separate containers that have tuples for both
-  /// non-const and const component pointers (calls to ECM::Each can have a
-  /// method signature that uses either non-const or const pointers)
-  private: std::unordered_map<Entity, ComponentData> validData;
-  private: std::unordered_map<Entity, ConstComponentData> validConstData;
+  /// \brief Get the list of entities that have valid component data.
+  /// \return Vector of entities.
+  public: const std::vector<Entity> &ValidEntities() const;
 
-  /// \brief A map of invalid entities to their component data. The difference
+  /// \brief Get the list of component data for valid entities.
+  /// \return Vector of component data.
+  public: const std::vector<ComponentData> &ValidComponentData() const;
+
+  /// \brief Get the list of const component data for valid entities.
+  /// \return Vector of const component data.
+  public: const std::vector<ConstComponentData> &ValidConstComponentData() const;
+
+  /// \brief Vectors of entities and their component data. Since vectors are
+  /// defined at compile time, we need separate containers that have vectors
+  /// for both non-const and const component pointers (calls to ECM::Each can
+  /// have a method signature that uses either non-const or const pointers).
+  private: std::vector<Entity> validEntities;
+  private: std::vector<ComponentData> validData;
+  private: std::vector<ConstComponentData> validConstData;
+
+  /// \brief A vector of invalid entities to their component data. The difference
   /// between invalidData and validData is that the entities in invalidData were
   /// once in validData, but they had a component removed, so the entity no
   /// longer meets the component requirements of the view. If the missing
@@ -140,13 +153,14 @@ class GZ_SIM_VISIBLE View : public BaseView
   /// The reason for moving entities with missing components to invalidData
   /// instead of completely deleting them from the view is because if components
   /// are added back later and the entity needs to be re-added to the view,
-  /// tuple creation can be costly. So, this approach is used instead to
-  /// maintain runtime performance (the tradeoff of mainting performance is
+  /// vector re-creation can be costly. So, this approach is used instead to
+  /// maintain runtime performance (the tradeoff of maintaining performance is
   /// increased complexity and memory usage).
   ///
   /// \sa missingCompTracker
-  private: std::unordered_map<Entity, ComponentData> invalidData;
-  private: std::unordered_map<Entity, ConstComponentData> invalidConstData;
+  private: std::vector<Entity> invalidEntities;
+  private: std::vector<ComponentData> invalidData;
+  private: std::vector<ConstComponentData> invalidConstData;
 
   /// \brief A map that keeps track of which component types for entities in
   /// invalidData need to be added back to the entity in order to move the
@@ -165,11 +179,33 @@ template <typename... ComponentTypeTs>
 void View::AddEntityWithConstComps(const Entity &_entity, const bool _new,
                                    const ComponentTypeTs *... _compPtrs)
 {
-  this->validConstData[_entity] =
-      std::vector<const components::BaseComponent *>{_compPtrs...};
-  this->entities.insert(_entity);
-  if (_new)
-    this->newEntities.insert(_entity);
+  auto it = std::lower_bound(this->validEntities.begin(),
+                             this->validEntities.end(), _entity);
+  auto index = std::distance(this->validEntities.begin(), it);
+
+  if (it == this->validEntities.end() || *it != _entity)
+  {
+    this->validEntities.insert(it, _entity);
+    this->validConstData.insert(this->validConstData.begin() + index,
+        std::vector<const components::BaseComponent *>{_compPtrs...});
+    // Initialize validData with an empty vector if it's not already present
+    this->validData.emplace(this->validData.begin() + index);
+  }
+  else
+  {
+    this->validConstData[index] =
+        std::vector<const components::BaseComponent *>{_compPtrs...};
+  }
+
+  // Only add the entity to the base class if we have both const and non-const
+  // pointers.
+  if (this->entities.find(_entity) == this->entities.end() &&
+      !this->validData[index].empty())
+  {
+    this->entities.insert(_entity);
+    if (_new)
+      this->newEntities.insert(_entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -177,11 +213,42 @@ template <typename... ComponentTypeTs>
 void View::AddEntityWithComps(const Entity &_entity, const bool _new,
                               ComponentTypeTs *... _compPtrs)
 {
-  this->validData[_entity] =
-      std::vector<components::BaseComponent *>{_compPtrs...};
-  this->entities.insert(_entity);
-  if (_new)
-    this->newEntities.insert(_entity);
+  auto it = std::lower_bound(this->validEntities.begin(),
+                             this->validEntities.end(), _entity);
+  auto index = std::distance(this->validEntities.begin(), it);
+
+  if (it == this->validEntities.end() || *it != _entity)
+  {
+    this->validEntities.insert(it, _entity);
+    this->validData.insert(this->validData.begin() + index,
+        std::vector<components::BaseComponent *>{_compPtrs...});
+    // Initialize validConstData with an empty vector if it's not already
+    // present
+    this->validConstData.insert(this->validConstData.begin() + index,
+        std::vector<const components::BaseComponent *>{});
+  }
+  else
+  {
+    this->validData[index] =
+        std::vector<components::BaseComponent *>{_compPtrs...};
+
+    // If we have const pointers as well, then update them.
+    if (!this->validConstData[index].empty())
+    {
+      this->validConstData[index] =
+        std::vector<const components::BaseComponent *>{_compPtrs...};
+    }
+  }
+
+  // Only add the entity to the base class if we have both const and non-const
+  // pointers.
+  if (this->entities.find(_entity) == this->entities.end() &&
+      !this->validConstData[index].empty())
+  {
+    this->entities.insert(_entity);
+    if (_new)
+      this->newEntities.insert(_entity);
+  }
 }
 }  // namespace detail
 }  // namespace GZ_SIM_VERSION_NAMESPACE

@@ -6,6 +6,7 @@ if (GzBenchmark_FOUND)
   set(tests
     each.cc
     ecm_serialize.cc
+    benchmark_ecm.cc
   )
 
   gz_add_benchmarks(SOURCES ${tests})

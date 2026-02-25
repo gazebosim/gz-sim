@@ -397,12 +397,12 @@ void EntityComponentManager::Each(typename identity<std::function<
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
 
-  // Iterate over the entities in the view, and invoke the callback
-  // function.
-  for (const Entity entity : view->Entities())
+  const auto &entities = view->ValidEntities();
+  const auto &data = view->ValidComponentData();
+  for (size_t i = 0; i < entities.size(); ++i)
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
+    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entities[i],
+          data[i]))
     {
       break;
     }
@@ -420,10 +420,12 @@ void EntityComponentManager::Each(typename identity<std::function<
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->Entities())
+  const auto &entities = view->ValidEntities();
+  const auto &data = view->ValidComponentData();
+  for (size_t i = 0; i < entities.size(); ++i)
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<ComponentTypeTs...>(_f, entity, data))
+    if (!detail::applyFunction<ComponentTypeTs...>(_f, entities[i],
+          data[i]))
     {
       break;
     }
