@@ -542,7 +542,8 @@ namespace gz
 
       private: bool resetInitiated{false};
 
-      /// @brief True if the check for empty update systems is performed.
+      /// \brief True if the warning for empty update systems has already
+      /// been emitted.
       private: bool checkedUpdateSystems{false};
       friend class LevelManager;
     };
