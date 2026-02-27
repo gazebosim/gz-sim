@@ -26,6 +26,7 @@
 #include <sdf/Types.hh>
 
 #include <gz/fuel_tools/ClientConfig.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
@@ -981,7 +982,8 @@ TEST_F(UtilTest, EntityFromMsg)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UtilTest, ResolveSdfWorldFile)
+// This test appears to be flaky on macOS (see https://github.com/gazebosim/gz-sim/issues/3031)
+TEST_F(UtilTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResolveSdfWorldFile))
 {
   // Test resolving a Fuel URI
   fuel_tools::ClientConfig config;
@@ -1041,6 +1043,7 @@ TEST_F(UtilTest, LoadMesh)
   EXPECT_TRUE(meshSdf.SetOptimization("convex_decomposition"));
   sdf::ConvexDecomposition convexDecomp;
   convexDecomp.SetMaxConvexHulls(16u);
+  convexDecomp.SetVoxelResolution(50000u);
   meshSdf.SetConvexDecomposition(convexDecomp);
   auto *optimizedMesh = loadMesh(meshSdf);
   EXPECT_NE(nullptr, optimizedMesh);
@@ -1144,4 +1147,24 @@ TEST_F(UtilTest, StaticPlugin)
   EXPECT_FALSE(isStaticPlugin("my_plugin"));
   EXPECT_FALSE(isStaticPlugin(""));
   EXPECT_TRUE(isStaticPlugin(staticPluginPrefixStr() + "my_plugin"));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, NormalizePluginIdentifiers)
+{
+  EXPECT_EQ("gz::sim::systems::Physics",
+    normalizePluginName("ignition::gazebo::systems::Physics"));
+  EXPECT_EQ("ignition::gazebo::ignition::gazebo::systems::Physics",
+    normalizePluginName("ignition::gazebo::"
+                        "ignition::gazebo::systems::Physics"));
+  EXPECT_EQ("gz::sim::systems::SceneBroadcaster",
+    normalizePluginName("gz::sim::systems::SceneBroadcaster"));
+
+  EXPECT_EQ("gz-sim-physics-system",
+    normalizePluginFilename("ignition-gazebo-physics-system"));
+  EXPECT_EQ("ignition-gazebo-ignition-gazebo-physics-system",
+    normalizePluginFilename("ignition-gazebo-"
+                            "ignition-gazebo-physics-system"));
+  EXPECT_EQ("gz-sim-user-commands-system",
+    normalizePluginFilename("gz-sim-user-commands-system"));
 }

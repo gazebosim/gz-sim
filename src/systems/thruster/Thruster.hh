@@ -42,7 +42,7 @@ namespace systems
   /// force to be applied using the said equation. In the default mode the
   /// plugin will publish angular velocity in radians per second on
   /// `/model/{ns}/joint/{joint_name}/ang_vel` as a gz.msgs.double. If
-  /// <use_angvel_cmd> is set to true it publishes force in Newtons instead to
+  /// `<use_angvel_cmd>` is set to true it publishes force in Newtons instead to
   /// `/model/{ns}/joint/{joint_name}/force`.
   ///
   /// ## System Parameters
@@ -123,17 +123,17 @@ namespace systems
   /// gz sim auv_controls.sdf
   /// ```
   /// To control the rudder of the craft run the following:
-  /** ```
+  /** \code{.sh}
       gz topic -t /model/tethys/joint/vertical_fins_joint/0/cmd_pos \
          -m gz.msgs.Double -p 'data: -0.17'
-      ```
-  **/
+      \endcode
+  */
   /// To apply a thrust you may run the following command:
-  /** ```
+  /** \code{.sh}
       gz topic -t /model/tethys/joint/propeller_joint/cmd_thrust \
          -m gz.msgs.Double -p 'data: -31'
-      ```
-  **/
+      \endcode
+  */
   /// The vehicle should move in a circle.
   class Thruster:
     public gz::sim::System,
