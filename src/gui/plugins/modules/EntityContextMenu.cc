@@ -202,7 +202,7 @@ void EntityContextMenu::OnRemove(
 {
   if (this->dataPtr->worldName.empty())
   {
-    auto runners = gui::App()->findChildren<GuiRunner *>();
+    auto runners = gz::gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
       gzerr << "Internal error: no GuiRunner found." << std::endl;
