@@ -715,10 +715,14 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
     gzdbg << "Protos request received\n";
 
     std::string allProtos = "syntax = \"proto3\";\n";
-    allProtos += "package gz.msgs;\n";
+    allProtos += "package gz.msgs;\n\n";
 
     std::vector<std::string> types;
     gz::msgs::Factory::Types(types);
+
+    // Track processed files and enums to avoid duplicates
+    std::set<const google::protobuf::FileDescriptor*> processedFiles;
+    std::set<const google::protobuf::EnumDescriptor*> processedEnums;
 
     // Get all the messages, and build a single proto to send to the client.
     for (auto const &type : types)
@@ -739,7 +743,28 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
           continue;
 
         if (descriptor)
+        {
+          auto fileDescriptor = descriptor->file();
+
+          // Only process each file once to extract top-level enums
+          if (processedFiles.insert(fileDescriptor).second)
+          {
+            // Extract all top-level enums from this file
+            for (int i = 0; i < fileDescriptor->enum_type_count(); ++i)
+            {
+              auto enumDescriptor = fileDescriptor->enum_type(i);
+              if (processedEnums.insert(enumDescriptor).second)
+              {
+                allProtos += enumDescriptor->DebugString();
+                allProtos += "\n";
+              }
+            }
+          }
+
+          // Add the message definition (without file-level import statements)
           allProtos += descriptor->DebugString();
+          allProtos += "\n";
+        }
         else
         {
           gzerr << "Failed to get the descriptor for message["

@@ -1026,7 +1026,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
   {
     auto model = *root.Model();
     model.SetName(desiredName);
-    entity = this->iface->creator->CreateEntities(&model);
+    entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
   else if (isLight && isRoot)
   {
@@ -1047,6 +1047,12 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
   }
 
   this->iface->creator->SetParent(entity, this->iface->worldEntity);
+
+  // Load model plugins after the world parent is set.
+  // This is so that the world entity is available to the plugins
+  // e.g. Utils' scopedName function can generate scoped names with
+  // world prefix.
+  this->iface->creator->LoadModelPlugins();
 
   // Pose
   std::optional<math::Pose3d> createPose;

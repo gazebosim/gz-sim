@@ -274,13 +274,17 @@ namespace sim
       double _falloff, double _intensity, int _type, bool _isLightOn,
       bool _visualizeVisual);
 
+    /// \brief Callback in Qt thread when gravity change.
+    /// \param[in] _gravity vector
+    public: Q_INVOKABLE void OnGravity(double _x, double _y, double _z);
+
     /// \brief Callback in Qt thread when physics' properties change.
     /// \param[in] _stepSize step size
     /// \param[in] _realTimeFactor real time factor
     public: Q_INVOKABLE void OnPhysics(double _stepSize,
         double _realTimeFactor);
 
-    // \brief Callback in Qt thread when material color changes for a visual
+    /// \brief Callback in Qt thread when material color changes for a visual
     /// \param[in] _rAmbient ambient red
     /// \param[in] _gAmbient ambient green
     /// \param[in] _bAmbient ambient blue

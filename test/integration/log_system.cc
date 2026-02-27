@@ -331,12 +331,6 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
-  // Change environment variable so that test files aren't written to $HOME
-  std::string homeOrig;
-  common::env(GZ_HOMEDIR, homeOrig);
-  std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
-
   // Test case 1:
   // No path specified on command line. This does not go through
   // gz.cc, recording should take place in the `.gz` directory
@@ -359,10 +353,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     recordServer.Run(true, 200, false);
   }
 
-  // We should expect to see "auto_default.log"  and "state.tlog"
+  // We should expect to see "state.tlog"
   EXPECT_FALSE(gzLogDirectory().empty());
-  EXPECT_TRUE(common::exists(
-        common::joinPaths(gzLogDirectory(), "auto_default.log")));
   EXPECT_TRUE(common::exists(
         common::joinPaths(gzLogDirectory(), "state.tlog")));
 
@@ -380,7 +372,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // should be recorded here.
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
+  auto logPath = common::joinPaths(this->kFakeHome, ".gz", "sim",
       "log");
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
@@ -420,9 +412,6 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
 #endif
-
-  // Revert environment variable after test is done
-  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////

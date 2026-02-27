@@ -69,7 +69,7 @@ ToolBar {
 
     Dialog {
       id: mismatchDialog
-      title: "Enconding and filename mismatch"
+      title: "Encoding and filename mismatch"
       modal: true
       focus: false
       width: 700

@@ -100,7 +100,7 @@ Let's change the shadow texture size for directional light with the SDF file bel
 2) Add the following lines to the Minimal Scene GUI plugin.
 
 ```xml
-</shadows>
+<shadows>
   <texture_size light_type="directional">8192</texture_size>
 </shadows>
 ```
