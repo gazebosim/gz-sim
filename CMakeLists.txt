@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 # Initialize the project
 #============================================================================
 project(gz-sim VERSION 11.0.0)
-set (GZ_DISTRIBUTION "Jetty")
+set (GZ_DISTRIBUTION "Kura")
 
 #============================================================================
 # Find gz-cmake
