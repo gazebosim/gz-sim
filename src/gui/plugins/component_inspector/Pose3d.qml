@@ -47,7 +47,7 @@ Rectangle {
     Rectangle {
       id: header
       width: parent.width
-      height: typeHeader.height
+      height: Math.max(typeHeader.height, copyButton.implicitHeight)
       color: "transparent"
 
       RowLayout {
@@ -70,12 +70,33 @@ Rectangle {
         Item {
           Layout.fillWidth: true
         }
+        Button {
+          id: copyButton
+          text: "COPY SDF POSE"
+          Layout.alignment: Qt.AlignVCenter
+          enabled: model !== null
+          onClicked: {
+            _Pose3dImpl.CopySdfPose(model.data)
+          }
+        }
       }
       MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
+        propagateComposedEvents: true
+        onPressed: (mouse) => {
+          var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
+          if (copyButton.enabled && copyButton.contains(local)) {
+            mouse.accepted = false
+          }
+        }
+        onClicked: (mouse) => {
+          var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
+          if (copyButton.enabled && copyButton.contains(local)) {
+            mouse.accepted = false
+            return
+          }
           gzPoseInstance.expand = !gzPoseInstance.expand
         }
         onEntered: {

@@ -36,6 +36,7 @@
       name="gz::sim::systems::EnvironmentPreload">
       <data>environmental_data.csv</data>
       <dimensions>
+        <ignore_time>0</ignore_time>
         <time>timestamp</time>
         <space>
           <x>x</x>

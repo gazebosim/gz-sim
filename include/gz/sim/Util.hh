@@ -160,6 +160,20 @@ namespace gz
     std::string GZ_SIM_VISIBLE removeParentScope(
         const std::string &_name, const std::string &_delim);
 
+    /// \brief Normalize deprecated ignition plugin identifiers in a plugin
+    /// name to gz equivalents.
+    /// \param[in] _name Plugin name to normalize.
+    /// \return Normalized plugin name.
+    std::string GZ_SIM_VISIBLE normalizePluginName(
+      const std::string &_name);
+
+    /// \brief Normalize deprecated ignition plugin identifiers in a plugin
+    /// filename to gz equivalents.
+    /// \param[in] _filename Plugin filename to normalize.
+    /// \return Normalized plugin filename.
+    std::string GZ_SIM_VISIBLE normalizePluginFilename(
+      const std::string &_filename);
+
     /// \brief Combine a URI and a file path into a full path.
     /// If the URI is already a full path or contains a scheme, it won't be
     /// modified.

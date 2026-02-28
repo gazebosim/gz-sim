@@ -124,7 +124,6 @@
             <horizontal_fov>1.04719755</horizontal_fov>
             <aspect_ratio>1.778</aspect_ratio>
           </logical_camera>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
       </link>
@@ -156,7 +155,6 @@
             <horizontal_fov>1.04719755</horizontal_fov>
             <aspect_ratio>1.778</aspect_ratio>
           </logical_camera>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
         </sensor>
       </link>
