@@ -1495,7 +1495,8 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         // Check inertial validity
         if (inertial)
         {
-          auto safeInertial = ResolveValidInertial(inertial->Data(), _name->Data());
+          auto safeInertial = ResolveValidInertial(
+              inertial->Data(), _name->Data());
           link.SetInertial(safeInertial);
         }
 
