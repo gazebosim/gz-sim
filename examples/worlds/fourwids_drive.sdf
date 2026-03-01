@@ -545,6 +545,14 @@
         <limit_speed_on_steering_err>true</limit_speed_on_steering_err>
         <steering_err_threshold>0.314159</steering_err_threshold>
         <speed_limit_power>2</speed_limit_power>
+        <min_linear_acceleration>-5.0</min_linear_acceleration>
+        <max_linear_acceleration>5.0</max_linear_acceleration>
+        <min_angular_acceleration>-5.0</min_angular_acceleration>
+        <max_angular_acceleration>5.0</max_angular_acceleration>
+        <min_linear_velocity>-3.0</min_linear_velocity>
+        <max_linear_velocity>3.0</max_linear_velocity>
+        <min_angular_velocity>-6.0</min_angular_velocity>
+        <max_angular_velocity>6.0</max_angular_velocity>
         <steer_p_gain>1</steer_p_gain>
       </plugin>
 

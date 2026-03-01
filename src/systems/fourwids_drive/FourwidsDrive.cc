@@ -353,42 +353,77 @@ void FourwidsDrive::Configure(const Entity &_entity,
   this->dataPtr->limiterAng = std::make_unique<gz::math::SpeedLimiter>();
 
   // Parse speed limiter parameters.
-  // TODO(C88): Separate speed limiter parameters for linear and angular
-  if (_sdf->HasElement("min_velocity"))
+
+  // Min Velocity
+  if (_sdf->HasElement("min_linear_velocity"))
   {
-    double minVel = _sdf->Get<double>("min_velocity");
-    this->dataPtr->limiterLin->SetMinVelocity(minVel);
-    this->dataPtr->limiterAng->SetMinVelocity(minVel);
+    const double minLinVel = _sdf->Get<double>("min_linear_velocity");
+    this->dataPtr->limiterLin->SetMinVelocity(minLinVel);
   }
-  if (_sdf->HasElement("max_velocity"))
+  if (_sdf->HasElement("min_angular_velocity"))
   {
-    double maxVel = _sdf->Get<double>("max_velocity");
-    this->dataPtr->limiterLin->SetMaxVelocity(maxVel);
-    this->dataPtr->limiterAng->SetMaxVelocity(maxVel);
+    const double minAngVel = _sdf->Get<double>("min_angular_velocity");
+    this->dataPtr->limiterAng->SetMinVelocity(minAngVel);
   }
-  if (_sdf->HasElement("min_acceleration"))
+
+  // Max Velocity
+  if (_sdf->HasElement("max_linear_velocity"))
   {
-    double minAccel = _sdf->Get<double>("min_acceleration");
-    this->dataPtr->limiterLin->SetMinAcceleration(minAccel);
-    this->dataPtr->limiterAng->SetMinAcceleration(minAccel);
+    const double maxLinVel = _sdf->Get<double>("max_linear_velocity");
+    this->dataPtr->limiterLin->SetMaxVelocity(maxLinVel);
   }
-  if (_sdf->HasElement("max_acceleration"))
+  if (_sdf->HasElement("max_angular_velocity"))
   {
-    double maxAccel = _sdf->Get<double>("max_acceleration");
-    this->dataPtr->limiterLin->SetMaxAcceleration(maxAccel);
-    this->dataPtr->limiterAng->SetMaxAcceleration(maxAccel);
+    const double maxAngVel = _sdf->Get<double>("max_angular_velocity");
+    this->dataPtr->limiterAng->SetMaxVelocity(maxAngVel);
   }
-  if (_sdf->HasElement("min_jerk"))
+
+  // Min Acceleration
+  if (_sdf->HasElement("min_linear_acceleration"))
   {
-    double minJerk = _sdf->Get<double>("min_jerk");
-    this->dataPtr->limiterLin->SetMinJerk(minJerk);
-    this->dataPtr->limiterAng->SetMinJerk(minJerk);
+    const double minLinAccel = _sdf->Get<double>("min_linear_acceleration");
+    this->dataPtr->limiterLin->SetMinAcceleration(minLinAccel);
   }
-  if (_sdf->HasElement("max_jerk"))
+  if (_sdf->HasElement("min_angular_acceleration"))
   {
-    double maxJerk = _sdf->Get<double>("max_jerk");
-    this->dataPtr->limiterLin->SetMaxJerk(maxJerk);
-    this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
+    const double minAngAccel = _sdf->Get<double>("min_angular_acceleration");
+    this->dataPtr->limiterAng->SetMinAcceleration(minAngAccel);
+  }
+
+  // Max Acceleration
+  if (_sdf->HasElement("max_linear_acceleration"))
+  {
+    const double maxLinAccel = _sdf->Get<double>("max_linear_acceleration");
+    this->dataPtr->limiterLin->SetMaxAcceleration(maxLinAccel);
+  }
+  if (_sdf->HasElement("max_angular_acceleration"))
+  {
+    const double maxAngAccel = _sdf->Get<double>("max_angular_acceleration");
+    this->dataPtr->limiterAng->SetMaxAcceleration(maxAngAccel);
+  }
+
+  // Min Jerk
+  if (_sdf->HasElement("min_linear_jerk"))
+  {
+    const double minLinJerk = _sdf->Get<double>("min_linear_jerk");
+    this->dataPtr->limiterLin->SetMinJerk(minLinJerk);
+  }
+  if (_sdf->HasElement("min_angular_jerk"))
+  {
+    const double minAngJerk = _sdf->Get<double>("min_angular_jerk");
+    this->dataPtr->limiterAng->SetMinJerk(minAngJerk);
+  }
+
+  // Max Jerk
+  if (_sdf->HasElement("max_linear_jerk"))
+  {
+    const double maxLinJerk = _sdf->Get<double>("max_linear_jerk");
+    this->dataPtr->limiterLin->SetMaxJerk(maxLinJerk);
+  }
+  if (_sdf->HasElement("max_angular_jerk"))
+  {
+    const double maxAngJerk = _sdf->Get<double>("max_angular_jerk");
+    this->dataPtr->limiterAng->SetMaxJerk(maxAngJerk);
   }
 
   double odomFreq = _sdf->Get<double>("odom_publish_frequency", 50).first;
