@@ -1,6 +1,6 @@
-gz_add_system(fourwids-drive
+gz_add_system(swerve-drive
   SOURCES
-    FourwidsDrive.cc
+    SwerveDrive.cc
   PUBLIC_LINK_LIBS
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )

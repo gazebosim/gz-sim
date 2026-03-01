@@ -14,8 +14,8 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_SIM_SYSTEMS_FOURWIDSDRIVE_HH_
-#define GZ_SIM_SYSTEMS_FOURWIDSDRIVE_HH_
+#ifndef GZ_SIM_SYSTEMS_SWERVEDRIVE_HH_
+#define GZ_SIM_SYSTEMS_SWERVEDRIVE_HH_
 
 #include <memory>
 
@@ -30,9 +30,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
   // Forward declaration
-  class FourwidsDrivePrivate;
+  class SwerveDrivePrivate;
 
-  /// \brief Fourwids drive controller which can be attached to a model
+  /// \brief Swerve drive controller which can be attached to a model
   /// with exactly one rotational joint and one steering joint for each of
   /// the four wheels (front-left, front-right, back-left, and back-right).
   ///
@@ -114,17 +114,17 @@ namespace systems
   /// `gz.msgs.Pose_V` message and the `<odom_topic>`
   /// `gz.msgs.Odometry` message. This element if optional,
   /// and the default value is `{name_of_model}/{name_of_link}`.
-  class FourwidsDrive
+  class SwerveDrive
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: FourwidsDrive();
+    public: SwerveDrive();
 
     /// \brief Destructor
-    public: ~FourwidsDrive() override = default;
+    public: ~SwerveDrive() override = default;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -143,7 +143,7 @@ namespace systems
                 const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
-    private: std::unique_ptr<FourwidsDrivePrivate> dataPtr;
+    private: std::unique_ptr<SwerveDrivePrivate> dataPtr;
   };
   }
 }

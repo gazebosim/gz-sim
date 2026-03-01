@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-#include "FourwidsDrive.hh"
+#include "SwerveDrive.hh"
 
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -28,7 +28,7 @@
 #include <vector>
 
 #include <gz/common/Profiler.hh>
-#include <gz/math/FourwidsDriveOdometry.hh>
+#include <gz/math/SwerveDriveOdometry.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Angle.hh>
 #include <gz/math/SpeedLimiter.hh>
@@ -63,7 +63,7 @@ struct Commands
   Commands() : lin(0.0), lat(0.0), ang(0.0) {}
 };
 
-class gz::sim::systems::FourwidsDrivePrivate
+class gz::sim::systems::SwerveDrivePrivate
 {
   /// \brief Callback for velocity subscription
   /// \param[in] _msg Velocity message
@@ -196,13 +196,13 @@ class gz::sim::systems::FourwidsDrivePrivate
   /// \brief Last sim time odom was published.
   public: std::chrono::steady_clock::duration lastOdomPubTime{0};
 
-  /// \brief Fourwids drive odometry.
-  public: math::FourwidsDriveOdometry odom;
+  /// \brief Swerve drive odometry.
+  public: math::SwerveDriveOdometry odom;
 
-  /// \brief Fourwids drive odometry message publisher.
+  /// \brief Swerve drive odometry message publisher.
   public: transport::Node::Publisher odomPub;
 
-  /// \brief Fourwids drive tf message publisher.
+  /// \brief Swerve drive tf message publisher.
   public: transport::Node::Publisher tfPub;
 
   /// \brief Linear velocity limiter.
@@ -234,13 +234,13 @@ class gz::sim::systems::FourwidsDrivePrivate
 };
 
 //////////////////////////////////////////////////
-FourwidsDrive::FourwidsDrive()
-  : dataPtr(std::make_unique<FourwidsDrivePrivate>())
+SwerveDrive::SwerveDrive()
+  : dataPtr(std::make_unique<SwerveDrivePrivate>())
 {
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrive::Configure(const Entity &_entity,
+void SwerveDrive::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
     EventManager &/*_eventMgr*/)
@@ -255,7 +255,7 @@ void FourwidsDrive::Configure(const Entity &_entity,
 
   if (!this->dataPtr->model.Valid(_ecm))
   {
-    gzerr << "FourwidsDrive plugin should be attached to a model entity. "
+    gzerr << "SwerveDrive plugin should be attached to a model entity. "
            << "Failed to initialize." << std::endl;
     return;
   }
@@ -448,7 +448,7 @@ void FourwidsDrive::Configure(const Entity &_entity,
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
 
-  this->dataPtr->node.Subscribe(topic, &FourwidsDrivePrivate::OnCmdVel,
+  this->dataPtr->node.Subscribe(topic, &SwerveDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
   std::vector<std::string> odomTopics;
@@ -476,18 +476,18 @@ void FourwidsDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  gzmsg << "FourwidsDrive publishing odom messages on [" << odomTopic << "]"
+  gzmsg << "SwerveDrive publishing odom messages on [" << odomTopic << "]"
          << std::endl;
 
-  gzmsg << "FourwidsDrive subscribing to twist messages on [" << topic << "]"
+  gzmsg << "SwerveDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrive::PreUpdate(const UpdateInfo &_info,
+void SwerveDrive::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("FourwidsDrive::PreUpdate");
+  GZ_PROFILE("SwerveDrive::PreUpdate");
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -778,10 +778,10 @@ void FourwidsDrive::PreUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrive::PostUpdate(const UpdateInfo &_info,
+void SwerveDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("FourwidsDrive::PostUpdate");
+  GZ_PROFILE("SwerveDrive::PostUpdate");
   // Nothing left to do if paused.
   if (_info.paused)
     return;
@@ -791,11 +791,11 @@ void FourwidsDrive::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrivePrivate::UpdateOdometry(
+void SwerveDrivePrivate::UpdateOdometry(
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("FourwidsDrive::UpdateOdometry");
+  GZ_PROFILE("SwerveDrive::UpdateOdometry");
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
@@ -925,11 +925,11 @@ void FourwidsDrivePrivate::UpdateOdometry(
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrivePrivate::UpdateVelocity(
+void SwerveDrivePrivate::UpdateVelocity(
     const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("FourwidsDrive::UpdateVelocity");
+  GZ_PROFILE("SwerveDrive::UpdateVelocity");
 
   double linVel;
   double latVel;
@@ -1033,7 +1033,7 @@ void FourwidsDrivePrivate::UpdateVelocity(
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrivePrivate::OptimizeWheelCmd(
+void SwerveDrivePrivate::OptimizeWheelCmd(
   double &_steeringDeltaAngle,
   double &_wheelSpeed)
 {
@@ -1059,17 +1059,17 @@ void FourwidsDrivePrivate::OptimizeWheelCmd(
 }
 
 //////////////////////////////////////////////////
-void FourwidsDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
+void SwerveDrivePrivate::OnCmdVel(const msgs::Twist &_msg)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
   this->targetVel = _msg;
 }
 
-GZ_ADD_PLUGIN(FourwidsDrive,
+GZ_ADD_PLUGIN(SwerveDrive,
               System,
-              FourwidsDrive::ISystemConfigure,
-              FourwidsDrive::ISystemPreUpdate,
-              FourwidsDrive::ISystemPostUpdate)
+              SwerveDrive::ISystemConfigure,
+              SwerveDrive::ISystemPreUpdate,
+              SwerveDrive::ISystemPostUpdate)
 
-GZ_ADD_PLUGIN_ALIAS(FourwidsDrive,
-                    "gz::sim::systems::FourwidsDrive")
+GZ_ADD_PLUGIN_ALIAS(SwerveDrive,
+                    "gz::sim::systems::SwerveDrive")

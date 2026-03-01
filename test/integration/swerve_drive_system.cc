@@ -47,8 +47,8 @@ using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
 
-/// \brief Test FourwidsDrive system
-class FourwidsDriveTest : public InternalFixture<::testing::Test>
+/// \brief Test SwerveDrive system
+class SwerveDriveTest : public InternalFixture<::testing::Test>
 {
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _cmdVelTopic Command velocity topic.
@@ -244,30 +244,30 @@ class FourwidsDriveTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest, PublishCmd)
+TEST_F(SwerveDriveTest, PublishCmd)
 {
   TestPublishCmd(common::joinPaths(
-      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "fourwids_drive.sdf"),
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "swerve_drive.sdf"),
       "/model/vehicle_blue/cmd_vel", "/model/vehicle_blue/odometry");
 }
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest,
+TEST_F(SwerveDriveTest,
        GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomTopics))
 {
   TestPublishCmd(common::joinPaths(
       std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "fourwids_drive_custom_topics.sdf"),
+      "test", "worlds", "swerve_drive_custom_topics.sdf"),
       "/model/foo/cmdvel", "/model/bar/odom");
 }
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
+TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "fourwids_drive.sdf"));
+      "test", "worlds", "swerve_drive.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -320,12 +320,12 @@ TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
+TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "fourwids_drive_custom_frame_id.sdf"));
+      "test", "worlds", "swerve_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -377,12 +377,12 @@ TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
+TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "fourwids_drive_custom_frame_id.sdf"));
+      "test", "worlds", "swerve_drive_custom_frame_id.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
@@ -437,12 +437,12 @@ TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 }
 
 /////////////////////////////////////////////////
-TEST_F(FourwidsDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
+TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
   // Start server
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-      "test", "worlds", "fourwids_drive_custom_tf_topic.sdf"));
+      "test", "worlds", "swerve_drive_custom_tf_topic.sdf"));
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());

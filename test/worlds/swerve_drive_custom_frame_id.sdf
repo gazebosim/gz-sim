@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <world name="fourwids_drive">
+  <world name="swerve_drive">
 
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -517,8 +517,8 @@
       </joint>
 
       <plugin
-        filename="gz-sim-fourwids-drive-system"
-        name="gz::sim::systems::FourwidsDrive">
+        filename="gz-sim-swerve-drive-system"
+        name="gz::sim::systems::SwerveDrive">
         <front_left_joint>front_left_wheel_joint</front_left_joint>
         <front_right_joint>front_right_wheel_joint</front_right_joint>
         <back_left_joint>back_left_wheel_joint</back_left_joint>
