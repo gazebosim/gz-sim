@@ -30,6 +30,7 @@ set(tests
   examples_build.cc
   follow_actor_system.cc
   force_torque_system.cc
+  fourwids_drive_system.cc
   fuel_cached_server.cc
   halt_motion.cc
   hydrodynamics.cc
