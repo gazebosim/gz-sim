@@ -225,7 +225,7 @@ TEST_P(SceneBroadcasterTest,
 
   msgs::Boolean addPluginRes;
   bool addResult = false;
-  unsigned int timeout = 5000;
+  unsigned int timeout{5000};
   bool addRequestOk = node.Request(
       "/world/late_load_world/entity/system/add",
       addReq, timeout, addPluginRes, addResult);
@@ -236,8 +236,8 @@ TEST_P(SceneBroadcasterTest,
   bool requestOk = false;
   bool sceneResult = false;
   msgs::Scene sceneRes;
-  unsigned int sleep = 0u;
-  unsigned int maxSleep = 30u;
+  unsigned int sleep{0u};
+  unsigned int maxSleep{30u};
   while (sleep++ < maxSleep && !(requestOk && sceneResult))
   {
     server.Run(true, 1, false);
@@ -495,7 +495,7 @@ TEST_P(SceneBroadcasterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedModel))
     msgs::EntityFactory req;
     msgs::Boolean res;
     bool result;
-    unsigned int timeout = 5000;
+    unsigned int timeout{5000};
     req.set_sdf(modelStr);
     EXPECT_TRUE(node.Request("/world/default/create",
           req, timeout, res, result));
@@ -944,8 +944,8 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
   std::function<void(bool)> runServerOnce =
       [&](bool _shouldHaveState)
       {
-        unsigned int sleep = 0u;
-        unsigned int maxSleep = 30u;
+        unsigned int sleep{0u};
+        unsigned int maxSleep{30u};
         received = false;
         hasState = false;
 
@@ -993,7 +993,7 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
   server.Run(true, 10, false);
   // (wait for a bit after running the server in case gz-transport is still
   // processing messages)
-  unsigned int sleep = 0u;
+  unsigned int sleep{0u};
   unsigned int maxSleep = 50u;
   // cppcheck-suppress unmatchedSuppression
   // cppcheck-suppress knownConditionTrueFalse
