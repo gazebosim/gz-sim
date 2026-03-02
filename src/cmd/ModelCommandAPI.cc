@@ -610,8 +610,8 @@ void printLinks(const uint64_t _modelEntity,
                 const std::string &_sensorName,
                 int _spaces)
 {
-  const auto links = _ecm.EntitiesByComponents(
-      components::ParentEntity(_modelEntity), components::Link());
+  const auto links = _ecm.ChildrenByComponents(
+      _modelEntity, components::Link());
   for (const auto &entity : links)
   {
     const auto nameComp = _ecm.Component<components::Name>(entity);
@@ -667,8 +667,8 @@ void printLinks(const uint64_t _modelEntity,
       spaces += 2;
     }
 
-    const auto sensors = _ecm.EntitiesByComponents(
-      components::ParentEntity(entity), components::Sensor());
+    const auto sensors = _ecm.ChildrenByComponents(
+      entity, components::Sensor());
     for (const auto &sensor : sensors)
     {
       const auto sensorNameComp = _ecm.Component<components::Name>(sensor);
@@ -719,8 +719,8 @@ void printJoints(const uint64_t _modelEntity,
     {sdf::JointType::UNIVERSAL, "universal"}
   };
 
-  const auto joints = _ecm.EntitiesByComponents(
-      components::ParentEntity(_modelEntity), components::Joint());
+  const auto joints = _ecm.ChildrenByComponents(
+      _modelEntity, components::Joint());
 
   for (const auto &entity : joints)
   {
@@ -794,8 +794,8 @@ void cmdModelList()
     return;
   }
 
-  const auto models = ecm.EntitiesByComponents(
-    components::ParentEntity(world), components::Model());
+  const auto models = ecm.ChildrenByComponents(
+    world, components::Model());
 
   if (models.size() == 0)
   {

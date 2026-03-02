@@ -141,8 +141,8 @@ Entity World::LightByName(const EntityComponentManager &_ecm,
 {
   // Can't use components::Light in EntityByComponents, see
   // https://github.com/gazebosim/gz-sim/issues/376
-  auto entities = _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  auto entities = _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Name(_name));
 
   for (const auto &entity : entities)
@@ -159,8 +159,8 @@ Entity World::ActorByName(const EntityComponentManager &_ecm,
 {
   // Can't use components::Actor in EntityByComponents, see
   // https://github.com/gazebosim/gz-sim/issues/376
-  auto entities = _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  auto entities = _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Name(_name));
 
   for (const auto &entity : entities)
@@ -218,9 +218,7 @@ std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::vector<Entity> World::Models(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
-      components::Model());
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Model());
 }
 
 //////////////////////////////////////////////////
