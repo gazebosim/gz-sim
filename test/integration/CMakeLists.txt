@@ -30,7 +30,6 @@ set(tests
   examples_build.cc
   follow_actor_system.cc
   force_torque_system.cc
-  swerve_drive_system.cc
   fuel_cached_server.cc
   halt_motion.cc
   hydrodynamics.cc
@@ -85,6 +84,7 @@ set(tests
   sdf_include.cc
   sensor.cc
   spherical_coordinates.cc
+  swerve_drive_system.cc
   thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
