@@ -198,7 +198,7 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
         double v0 = 0;
         double v = d / t;
         double a = (v - v0) / t;
-        
+
         // The vehicle should not exceed the max velocity and acceleration
         // notice the limits for the x and y direction are separately
         // enforced

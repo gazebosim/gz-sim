@@ -968,7 +968,7 @@ void SwerveDrivePrivate::UpdateVelocity(
   double backLeftLatVel = latVel - angVel * halfWheelbase;
   double backRightLinVel = linVel + angVel * halfWheelSeparation;
   double backRightLatVel = latVel - angVel * halfWheelbase;
-  
+
   this->frontLeftJointSpeed = sqrt(pow(frontLeftLinVel, 2)
       + pow(frontLeftLatVel, 2)) / wheelRadius;
   this->frontRightJointSpeed = sqrt(pow(frontRightLinVel, 2)
@@ -1049,12 +1049,14 @@ void SwerveDrivePrivate::OptimizeWheelCmd(
   }
 
   // Apply speed scaling during large steering error (if enabled).
-  if (this->limitSpeedOnSteeringErr && 
-    std::abs(_steeringDeltaAngle) > this->steeringErrThreshold)
+  if (this->limitSpeedOnSteeringErr &&
+      std::abs(_steeringDeltaAngle) > this->steeringErrThreshold)
   {
-    // If the steering angle is greater than steeringErrThreshold, reduce the wheel speed
-    // to prevent slipping.
-    _wheelSpeed = std::pow(std::cos(_steeringDeltaAngle), this->speedLimitPower) * _wheelSpeed;
+    // If the steering angle is greater than steeringErrThreshold, reduce the
+    // wheel speed to prevent slipping.
+    const double scale =
+      std::pow(std::cos(_steeringDeltaAngle), this->speedLimitPower);
+    _wheelSpeed *= scale;
   }
 }
 

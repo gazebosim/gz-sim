@@ -75,18 +75,18 @@ namespace systems
   /// default value is 0.15m.
   ///
   /// - `<limit_speed_on_steering_err>`: Enable wheel speed limiting when the
-  /// steering angle has not yet reached the commanded value. This element is
-  /// optional, and the default value is true.
+  /// steering angle has not yet reached the commanded value. The default
+  /// value is true.
   ///
   /// - `<steering_err_threshold>`: Steering angle error threshold in radians.
   /// When `<limit_speed_on_steering_err>` is true and the absolute steering
-  /// error exceeds this value, wheel speed scaling is applied. This element is
-  /// optional, and the default value is pi/10.
+  /// error exceeds this value, wheel speed scaling is applied. The default
+  /// value is pi/10.
   ///
   /// - `<speed_limit_power>`: Exponent used in the cosine-based wheel speed
-  /// scaling factor. When `<limit_speed_on_steering_err>` is true, higher values
-  /// result in stronger speed reduction as steering error increases. This
-  /// element is optional, and the default value is 2.
+  /// scaling factor. When `<limit_speed_on_steering_err>` is true, higher
+  /// values result in stronger speed reduction as steering error increases.
+  /// The default value is 2.
   ///
   /// - `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
