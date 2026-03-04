@@ -796,12 +796,6 @@ void SwerveDrivePrivate::UpdateOdometry(
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("SwerveDrive::UpdateOdometry");
-  // Initialize, if not already initialized.
-  if (!this->odom.Initialized())
-  {
-    this->odom.Init(std::chrono::steady_clock::time_point(_info.simTime));
-    return;
-  }
 
   if (this->frontLeftJoints.empty() ||
       this->frontRightJoints.empty() ||
@@ -833,6 +827,22 @@ void SwerveDrivePrivate::UpdateOdometry(
     this->backLeftSteeringJoints[0]);
   auto backRightSteeringPos = _ecm.Component<components::JointPosition>(
     this->backRightSteeringJoints[0]);
+
+  // Initialize, if not already initialized.
+  if (!this->odom.Initialized())
+  {
+    this->odom.Init(
+      frontLeftPos->Data()[0],
+      frontRightPos->Data()[0],
+      backLeftPos->Data()[0],
+      backRightPos->Data()[0],
+      frontLeftSteeringPos->Data()[0],
+      frontRightSteeringPos->Data()[0],
+      backLeftSteeringPos->Data()[0],
+      backRightSteeringPos->Data()[0],
+      std::chrono::steady_clock::time_point(_info.simTime));
+    return;
+  }
 
   // Abort if the joints were not found or just created.
   if (!frontLeftPos || frontLeftPos->Data().empty() ||
