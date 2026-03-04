@@ -1565,7 +1565,15 @@ class procedural_dataset_generator(sdf_model_exporter):
         """
 
         # Try to find the corresponding ID of the input attribute
-        input_id: Optional[str] = None
+      # Blender 4.x compatibility: node_group was renamed to node_tree
+    node_tree = getattr(modifier, 'node_group', None) or getattr(modifier, 'noode_tree is None:
+               cls._print_bpy(
+                 
+                f"Warn: Modifier '{modifier.name}' on object '{obj.name}' has no node tree.",
+                file=sys.stderr,
+            )
+        return
+    for attribute in node_tree.inputs:      input_id: Optional[str] = None
         for attribute in modifier.node_group.inputs:
             if cls._unify_string(attribute.name) in lookup_phrases:
                 input_id = attribute.identifier
