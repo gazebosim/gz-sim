@@ -40,6 +40,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
@@ -775,6 +776,39 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
     _ecm.CreateComponent(this->dataPtr->backRightSteeringJoints[0],
         components::JointPosition());
   }
+
+  // Create the angular velocity components if they don't exist.
+  auto frontLeftAngVel = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->frontLeftJoints[0]);
+  if (!frontLeftAngVel && _ecm.HasEntity(this->dataPtr->frontLeftJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->frontLeftJoints[0],
+        components::JointVelocity());
+  }
+
+  auto frontRightAngVel = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->frontRightJoints[0]);
+  if (!frontRightAngVel && _ecm.HasEntity(this->dataPtr->frontRightJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->frontRightJoints[0],
+        components::JointVelocity());
+  }
+
+  auto backLeftAngVel = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->backLeftJoints[0]);
+  if (!backLeftAngVel && _ecm.HasEntity(this->dataPtr->backLeftJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->backLeftJoints[0],
+        components::JointVelocity());
+  }
+
+  auto backRightAngVel = _ecm.Component<components::JointVelocity>(
+      this->dataPtr->backRightJoints[0]);
+  if (!backRightAngVel && _ecm.HasEntity(this->dataPtr->backRightJoints[0]))
+  {
+    _ecm.CreateComponent(this->dataPtr->backRightJoints[0],
+        components::JointVelocity());
+  }
 }
 
 //////////////////////////////////////////////////
@@ -809,16 +843,17 @@ void SwerveDrivePrivate::UpdateOdometry(
     return;
   }
 
-  // Get the first joint positions for each wheel joint.
-  auto frontLeftPos = _ecm.Component<components::JointPosition>(
+  // Get the angular velocities for each wheel joint.
+  auto frontLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
     this->frontLeftJoints[0]);
-  auto frontRightPos = _ecm.Component<components::JointPosition>(
+  auto frontRightWheelAngVel = _ecm.Component<components::JointVelocity>(
     this->frontRightJoints[0]);
-  auto backLeftPos = _ecm.Component<components::JointPosition>(
+  auto backLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
     this->backLeftJoints[0]);
-  auto backRightPos = _ecm.Component<components::JointPosition>(
+  auto backRightWheelAngVel = _ecm.Component<components::JointVelocity>(
     this->backRightJoints[0]);
 
+  // Get the positions for each steering joint.
   auto frontLeftSteeringPos = _ecm.Component<components::JointPosition>(
     this->frontLeftSteeringJoints[0]);
   auto frontRightSteeringPos = _ecm.Component<components::JointPosition>(
@@ -831,24 +866,15 @@ void SwerveDrivePrivate::UpdateOdometry(
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
   {
-    this->odom.Init(
-      frontLeftPos->Data()[0],
-      frontRightPos->Data()[0],
-      backLeftPos->Data()[0],
-      backRightPos->Data()[0],
-      frontLeftSteeringPos->Data()[0],
-      frontRightSteeringPos->Data()[0],
-      backLeftSteeringPos->Data()[0],
-      backRightSteeringPos->Data()[0],
-      std::chrono::steady_clock::time_point(_info.simTime));
+    this->odom.Init(std::chrono::steady_clock::time_point(_info.simTime));
     return;
   }
 
   // Abort if the joints were not found or just created.
-  if (!frontLeftPos || frontLeftPos->Data().empty() ||
-      !frontRightPos || frontRightPos->Data().empty() ||
-      !backLeftPos || backLeftPos->Data().empty() ||
-      !backRightPos || backRightPos->Data().empty() ||
+  if (!frontLeftWheelAngVel || frontLeftWheelAngVel->Data().empty() ||
+      !frontRightWheelAngVel || frontRightWheelAngVel->Data().empty() ||
+      !backLeftWheelAngVel || backLeftWheelAngVel->Data().empty() ||
+      !backRightWheelAngVel || backRightWheelAngVel->Data().empty() ||
       !frontLeftSteeringPos || frontLeftSteeringPos->Data().empty() ||
       !frontRightSteeringPos || frontRightSteeringPos->Data().empty() ||
       !backLeftSteeringPos || backLeftSteeringPos->Data().empty() ||
@@ -858,10 +884,10 @@ void SwerveDrivePrivate::UpdateOdometry(
   }
 
   this->odom.Update(
-      frontLeftPos->Data()[0],
-      frontRightPos->Data()[0],
-      backLeftPos->Data()[0],
-      backRightPos->Data()[0],
+      frontLeftWheelAngVel->Data()[0],
+      frontRightWheelAngVel->Data()[0],
+      backLeftWheelAngVel->Data()[0],
+      backRightWheelAngVel->Data()[0],
       frontLeftSteeringPos->Data()[0],
       frontRightSteeringPos->Data()[0],
       backLeftSteeringPos->Data()[0],
