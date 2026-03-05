@@ -503,4 +503,8 @@ IGNITION_ADD_PLUGIN(ShaderParam,
                     ShaderParam::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
+  "gz::sim::systems::ShaderParam")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(ShaderParam,
   "ignition::gazebo::systems::ShaderParam")
