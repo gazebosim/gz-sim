@@ -38,17 +38,17 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<front_left_joint>`: Name of a joint that controls a front left wheel.
-  /// This element must appear exactly once.
+  /// - `<front_left_wheel_joint>`: Name of a joint that controls a front
+  /// left wheel. This element must appear exactly once.
   ///
-  /// - `<front_right_joint>`: Name of a joint that controls a front right
-  /// wheel. This element must appear exactly once.
+  /// - `<front_right_wheel_joint>`: Name of a joint that controls a front
+  /// right wheel. This element must appear exactly once.
   ///
-  /// - `<back_left_joint>`: Name of a joint that controls a back left wheel.
-  /// This element must appear exactly once.
+  /// - `<back_left_wheel_joint>`: Name of a joint that controls a back
+  /// left wheel. This element must appear exactly once.
   ///
-  /// - `<back_right_joint>`: Name of a joint that controls a back right wheel.
-  /// This element must appear exactly once.
+  /// - `<back_right_wheel_joint>`: Name of a joint that controls a back
+  /// right wheel. This element must appear exactly once.
   ///
   /// - `<front_left_steering_joint>`: Name of a joint that controls steering
   /// for front left wheel. This element must appear exactly once.

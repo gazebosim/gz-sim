@@ -108,7 +108,7 @@
         </collision>
       </link>
 
-      <link name='front_left_wheel'>
+      <link name='front_left_wheel_link'>
         <pose>0.22 0.22 -0.29 -1.5707 0 0</pose>
         <inertial>
           <mass>0.35</mass>
@@ -158,7 +158,7 @@
         </collision>
       </link>
 
-      <link name='front_right_wheel'>
+      <link name='front_right_wheel_link'>
         <pose>0.22 -0.22 -0.29 -1.5707 0 0</pose>
         <inertial>
           <mass>0.35</mass>
@@ -208,7 +208,7 @@
         </collision>
       </link>
 
-      <link name='back_left_wheel'>
+      <link name='back_left_wheel_link'>
         <pose>-0.62 0.22 -0.29 -1.5707 0 0</pose>
         <inertial>
           <mass>0.35</mass>
@@ -258,7 +258,7 @@
         </collision>
       </link>
 
-      <link name='back_right_wheel'>
+      <link name='back_right_wheel_link'>
         <pose>-0.62 -0.22 -0.29 -1.5707 0 0</pose>
         <inertial>
           <mass>0.35</mass>
@@ -308,7 +308,7 @@
         </collision>
       </link>
 
-      <link name="front_left_wheel_steering_link">
+      <link name="front_left_steering_link">
         <pose>0.22 0.22 -0.16 0 0 0</pose>
         <inertial>
           <mass>0.08</mass>
@@ -333,7 +333,7 @@
         </visual>
       </link>
 
-      <link name="front_right_wheel_steering_link">
+      <link name="front_right_steering_link">
         <pose>0.22 -0.22 -0.16 0 0 0</pose>
         <inertial>
           <mass>0.08</mass>
@@ -358,7 +358,7 @@
         </visual>
       </link>
 
-      <link name="back_left_wheel_steering_link">
+      <link name="back_left_steering_link">
         <pose>-0.62 0.22 -0.16 0 0 0</pose>
         <inertial>
           <mass>0.08</mass>
@@ -383,7 +383,7 @@
         </visual>
       </link>
 
-      <link name="back_right_wheel_steering_link">
+      <link name="back_right_steering_link">
         <pose>-0.62 -0.22 -0.16 0 0 0</pose>
         <inertial>
           <mass>0.08</mass>
@@ -409,8 +409,8 @@
       </link>
 
       <joint name="front_left_steering_joint" type="revolute">
-        <child>front_left_wheel_steering_link</child>
         <parent>chassis</parent>
+        <child>front_left_steering_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -425,7 +425,7 @@
 
       <joint name="front_right_steering_joint" type="revolute">
         <parent>chassis</parent>
-        <child>front_right_wheel_steering_link</child>
+        <child>front_right_steering_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -439,8 +439,8 @@
       </joint>
 
       <joint name="back_left_steering_joint" type="revolute">
-        <child>back_left_wheel_steering_link</child>
         <parent>chassis</parent>
+        <child>back_left_steering_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -455,7 +455,7 @@
 
       <joint name="back_right_steering_joint" type="revolute">
         <parent>chassis</parent>
-        <child>back_right_wheel_steering_link</child>
+        <child>back_right_steering_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -469,8 +469,8 @@
       </joint>
 
       <joint name='front_left_wheel_joint' type='revolute'>
-        <parent>front_left_wheel_steering_link</parent>
-        <child>front_left_wheel</child>
+        <parent>front_left_steering_link</parent>
+        <child>front_left_wheel_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -481,8 +481,8 @@
       </joint>
 
       <joint name='front_right_wheel_joint' type='revolute'>
-        <parent>front_right_wheel_steering_link</parent>
-        <child>front_right_wheel</child>
+        <parent>front_right_steering_link</parent>
+        <child>front_right_wheel_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -493,8 +493,8 @@
       </joint>
 
       <joint name='back_left_wheel_joint' type='revolute'>
-        <parent>back_left_wheel_steering_link</parent>
-        <child>back_left_wheel</child>
+        <parent>back_left_steering_link</parent>
+        <child>back_left_wheel_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -505,8 +505,8 @@
       </joint>
 
       <joint name='back_right_wheel_joint' type='revolute'>
-        <parent>back_right_wheel_steering_link</parent>
-        <child>back_right_wheel</child>
+        <parent>back_right_steering_link</parent>
+        <child>back_right_wheel_link</child>
         <axis>
           <xyz>0 0 1</xyz>
           <limit>
@@ -519,10 +519,10 @@
       <plugin
         filename="gz-sim-swerve-drive-system"
         name="gz::sim::systems::SwerveDrive">
-        <front_left_joint>front_left_wheel_joint</front_left_joint>
-        <front_right_joint>front_right_wheel_joint</front_right_joint>
-        <back_left_joint>back_left_wheel_joint</back_left_joint>
-        <back_right_joint>back_right_wheel_joint</back_right_joint>
+        <front_left_wheel_joint>front_left_wheel_joint</front_left_wheel_joint>
+        <front_right_wheel_joint>front_right_wheel_joint</front_right_wheel_joint>
+        <back_left_wheel_joint>back_left_wheel_joint</back_left_wheel_joint>
+        <back_right_wheel_joint>back_right_wheel_joint</back_right_wheel_joint>
         <front_left_steering_joint>front_left_steering_joint</front_left_steering_joint>
         <front_right_steering_joint>front_right_steering_joint</front_right_steering_joint>
         <back_left_steering_joint>back_left_steering_joint</back_left_steering_joint>
