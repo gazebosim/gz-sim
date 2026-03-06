@@ -1064,4 +1064,9 @@ IGNITION_ADD_PLUGIN(JointTrajectoryController,
                     JointTrajectoryController::ISystemPreUpdate)
 IGNITION_ADD_PLUGIN_ALIAS(
     JointTrajectoryController,
+    "gz::sim::systems::JointTrajectoryController")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(
+    JointTrajectoryController,
     "ignition::gazebo::systems::JointTrajectoryController")
