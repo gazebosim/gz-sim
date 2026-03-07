@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<sdf version="1.12">
+  <world name="half_dome">
+    <gravity>0 0 -9.8</gravity>
+    <physics name="fast" type="ignored">
+      <max_step_size>0.004</max_step_size>
+      <dart>
+        <!-- Heightmaps behave better with the bullet collision detector -->
+        <collision_detector>bullet</collision_detector>
+      </dart>
+    </physics>
+
+    <scene>
+      <grid>false</grid>
+      <sky></sky>
+    </scene>
+
+    <gz:policies>
+      <include_gui_default_plugins>true</include_gui_default_plugins>
+    </gz:policies>
+
+    <gui fullscreen="0">
+      <!-- 3D scene -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>1.0 1.0 1.0</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose>
+        <camera_clip>
+          <near>0.25</near>
+          <far>25000</far>
+        </camera_clip>
+      </plugin>
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.01 0.01 0.01 1</specular>
+      <direction>0.4 -0.6 -0.9</direction>
+      <visualize>false</visualize>
+    </light>
+
+    <model name="half_dome">
+      <static>true</static>
+      <link name="link">
+          <collision name="collision">
+              <geometry>
+                  <heightmap>
+                      <uri>half_dome.tif</uri>
+                      <!-- gdalinfo -stats <dem_file> -->
+                      <size>3793 3563 1481.398</size>
+                      <!--
+                        Here we're using z = -(max elevation) to move the model below the camera's default viewpoint
+                      -->
+                      <pos>0 0 -2694.987</pos>
+                  </heightmap>
+              </geometry>
+          </collision>
+          <visual name="visual">
+              <geometry>
+                  <heightmap>
+                      <texture>
+                          <diffuse>textures/rocks_diffuse.png</diffuse>
+                          <normal>textures/rocks_normal.png</normal>
+                          <size>250</size>
+                      </texture>
+                      <blend>
+                          <min_height>2</min_height>
+                          <fade_dist>5</fade_dist>
+                      </blend>
+                      <blend>
+                          <min_height>4</min_height>
+                          <fade_dist>5</fade_dist>
+                      </blend>
+                      <uri>half_dome.tif</uri>
+                      <!-- gdalinfo -stats <dem_file> -->
+                      <size>3793 3563 1481.398</size>
+                      <!--
+                        Here we're using z = -(max elevation) to move the model below the camera's default viewpoint
+                      -->
+                      <pos>0 0 -2694.987</pos>
+                  </heightmap>
+              </geometry>
+          </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

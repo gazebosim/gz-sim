@@ -32,7 +32,10 @@ namespace python
 {
 void defineSimJoint(py::object module)
 {
-  py::class_<gz::sim::Joint>(module, "Joint")
+  py::class_<gz::sim::Joint>(module, "Joint",
+    "A convenience wrapper around a joint entity. This class provides easy "
+    "access to joint properties such as pose, axis, type, position, velocity, "
+    "and forces.")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Joint>())
   .def("entity", &gz::sim::Joint::Entity,

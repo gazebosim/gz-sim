@@ -99,7 +99,7 @@ class Subscription
   public: MessageT GetMessageByIndex(int _index)
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    return this->messageHistory[_index];
+    return this->messageHistory.at(_index);
   }
 
   /// \brief Reset the messageHistory container by clearing
