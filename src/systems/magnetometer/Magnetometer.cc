@@ -28,6 +28,7 @@
 
 #include <sdf/Sensor.hh>
 
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Profiler.hh>
 
 #include <gz/transport/Node.hh>
@@ -45,6 +46,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
@@ -346,7 +348,18 @@ void Magnetometer::Configure(const Entity &/*_entity*/,
             _sdf->Get<double>("wmm_recalculation_distance");
       }
 
-      if (!this->dataPtr->wmm.Load(cofFile, decimalYear))
+      // Try to load the COF file directly, then fall back to the
+      // installed data directory (<prefix>/share/gz/gz-sim/wmm/).
+      bool loaded = this->dataPtr->wmm.Load(cofFile, decimalYear);
+      if (!loaded)
+      {
+        std::string installedPath = common::joinPaths(
+            gz::sim::getInstallPrefix(),
+            GZ_SIM_WMM_INSTALL_PATH, cofFile);
+        loaded = this->dataPtr->wmm.Load(installedPath, decimalYear);
+      }
+
+      if (!loaded)
       {
         gzwarn << "Magnetometer: Failed to load World Magnetic Model from ["
                << cofFile << "]. Falling back to built-in lookup tables."
