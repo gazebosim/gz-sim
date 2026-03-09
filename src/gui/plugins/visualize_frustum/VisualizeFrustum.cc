@@ -17,15 +17,19 @@
 
 #include "VisualizeFrustum.hh"
 
+#include <cmath>
 #include <cstddef>
+#include <memory>
 #include <mutex>
 #include <ostream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
+#include <gz/common/StringUtils.hh>
 
 #include <gz/plugin/Register.hh>
 
@@ -79,14 +83,22 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Topic name to subscribe
     public: std::string topicName;
 
-    /// \brief List of topics publishing LogicalCameraSensor messages.
+    /// \brief List of topics publishing supported camera messages.
     public: QStringList topicList;
+
+    /// \brief Mapping of topic names to message types.
+    public: std::unordered_map<std::string, std::string> topicTypes;
+
+    /// \brief Default near clip for CameraInfo-derived frustums.
+    public: double defaultNearClip{0.1};
+
+    /// \brief Default far clip for CameraInfo-derived frustums.
+    public: double defaultFarClip{10.0};
 
     /// \brief Entity representing the sensor in the world
     public: sim::Entity frustumEntity;
 
-    /// \brief Mutex for variable mutated by the checkbox
-    /// callbacks.
+    /// \brief Mutex for variables mutated by callbacks.
     public: std::mutex serviceMutex;
 
     /// \brief Initialization flag
@@ -95,10 +107,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Reset visual flag
     public: bool resetVisual{false};
 
-    /// \brief frustum visual display dirty flag
+    /// \brief Frustum visual display dirty flag
     public: bool visualDirty{false};
 
-    /// \brief frustum sensor entity dirty flag
+    /// \brief Frustum sensor entity dirty flag
     public: bool frustumEntityDirty{true};
   };
 }
@@ -118,7 +130,85 @@ VisualizeFrustum::VisualizeFrustum()
 VisualizeFrustum::~VisualizeFrustum()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->scene->DestroyVisual(this->dataPtr->frustum);
+  if (this->dataPtr->scene && this->dataPtr->frustum)
+    this->dataPtr->scene->DestroyVisual(this->dataPtr->frustum);
+}
+
+/////////////////////////////////////////////////
+std::string VisualizeFrustum::FrameIdFromHeader(
+    const msgs::Header &_header) const
+{
+  for (const auto &dataValues : _header.data())
+  {
+    if (dataValues.key() == "frame_id" && dataValues.value_size() > 0)
+    {
+      return common::trimmed(dataValues.value(0));
+    }
+  }
+  return "";
+}
+
+/////////////////////////////////////////////////
+bool VisualizeFrustum::FrustumDataFromLogicalCamera(
+    const msgs::LogicalCameraSensor &_msg,
+    FrustumData &_data) const
+{
+  _data.nearClip = _msg.near_clip();
+  _data.farClip = _msg.far_clip();
+  _data.horizontalFov = _msg.horizontal_fov();
+  _data.aspectRatio = _msg.aspect_ratio();
+  _data.frameId = this->FrameIdFromHeader(_msg.header());
+  _data.valid = !_data.frameId.empty();
+
+  return _data.valid;
+}
+
+/////////////////////////////////////////////////
+bool VisualizeFrustum::FrustumDataFromCameraInfo(
+    const msgs::CameraInfo &_msg,
+    FrustumData &_data) const
+{
+  if (_msg.width() == 0 || _msg.height() == 0)
+    return false;
+
+  const auto &intrinsics = _msg.intrinsics();
+  if (intrinsics.k_size() < 9)
+    return false;
+
+  const double width = static_cast<double>(_msg.width());
+  const double height = static_cast<double>(_msg.height());
+  const double fx = intrinsics.k(0);
+
+  if (fx <= 0.0)
+    return false;
+
+  _data.aspectRatio = width / height;
+  _data.horizontalFov = 2.0 * std::atan(width / (2.0 * fx));
+  _data.nearClip = this->dataPtr->defaultNearClip;
+  _data.farClip = this->dataPtr->defaultFarClip;
+  _data.frameId = this->FrameIdFromHeader(_msg.header());
+  _data.valid = !_data.frameId.empty();
+
+  return _data.valid;
+}
+
+/////////////////////////////////////////////////
+void VisualizeFrustum::ApplyFrustumData(const FrustumData &_data)
+{
+  if (!this->dataPtr->initialized || !this->dataPtr->frustum || !_data.valid)
+    return;
+
+  this->dataPtr->frustum->SetNearClipPlane(_data.nearClip);
+  this->dataPtr->frustum->SetFarClipPlane(_data.farClip);
+  this->dataPtr->frustum->SetHFOV(_data.horizontalFov);
+  this->dataPtr->frustum->SetAspectRatio(_data.aspectRatio);
+  this->dataPtr->visualDirty = true;
+
+  if (this->dataPtr->frustumString != _data.frameId)
+  {
+    this->dataPtr->frustumString = _data.frameId;
+    this->dataPtr->frustumEntityDirty = true;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -138,8 +228,8 @@ void VisualizeFrustum::LoadFrustum()
   // Create a frustum visual
   // \todo(iche033) uncomment and use official API in gz-rendering10
   // this->dataPtr->frustum = scene->CreateFrustumVisual();
-    this->dataPtr->frustum =
-      std::dynamic_pointer_cast<rendering::FrustumVisual>(
+  this->dataPtr->frustum =
+    std::dynamic_pointer_cast<rendering::FrustumVisual>(
       scene->Extension()->CreateExt("frustum_visual"));
   if (!this->dataPtr->frustum)
   {
@@ -261,7 +351,7 @@ void VisualizeFrustum::Update(const UpdateInfo &,
           if (!foundChild)
           {
             gzerr << "The entity could not be found."
-                  << "Error displaying frustum visual" <<std::endl;
+                  << "Error displaying frustum visual" << std::endl;
             return;
           }
         }
@@ -294,42 +384,66 @@ void VisualizeFrustum::OnTopic(const QString &_topicName)
       !this->dataPtr->node.Unsubscribe(this->dataPtr->topicName))
   {
     gzerr << "Unable to unsubscribe from topic ["
-          << this->dataPtr->topicName <<"]" <<std::endl;
+          << this->dataPtr->topicName << "]" << std::endl;
   }
 
   this->dataPtr->topicName = _topicName.toStdString();
+
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
 
-  // Reset visualization
   this->dataPtr->resetVisual = true;
+  this->dataPtr->visualDirty = false;
 
-  // Create new subscription
-  if (!this->dataPtr->node.Subscribe(this->dataPtr->topicName,
-                            &VisualizeFrustum::OnScan, this))
+  const auto typeIt =
+      this->dataPtr->topicTypes.find(this->dataPtr->topicName);
+  if (typeIt == this->dataPtr->topicTypes.end())
   {
-    gzerr << "Unable to subscribe to topic ["
-          << this->dataPtr->topicName << "]\n";
+    gzerr << "Unknown message type for topic ["
+          << this->dataPtr->topicName << "]" << std::endl;
     return;
   }
-  this->dataPtr->visualDirty = false;
+
+  bool subscribed = false;
+  if (typeIt->second == "gz.msgs.LogicalCameraSensor")
+  {
+    subscribed = this->dataPtr->node.Subscribe(
+        this->dataPtr->topicName,
+        &VisualizeFrustum::OnScan,
+        this);
+  }
+  else if (typeIt->second == "gz.msgs.CameraInfo")
+  {
+    subscribed = this->dataPtr->node.Subscribe(
+        this->dataPtr->topicName,
+        &VisualizeFrustum::OnCameraInfo,
+        this);
+  }
+
+  if (!subscribed)
+  {
+    gzerr << "Unable to subscribe to topic ["
+          << this->dataPtr->topicName << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
 void VisualizeFrustum::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->frustum->SetVisible(_value);
-  gzdbg << "Frustum Visual Display " << (_value ? "ON." : "OFF.")
-        << std::endl;
+  if (this->dataPtr->frustum)
+  {
+    this->dataPtr->frustum->SetVisible(_value);
+    gzdbg << "Frustum Visual Display " << (_value ? "ON." : "OFF.")
+          << std::endl;
+  }
 }
 
 /////////////////////////////////////////////////
 void VisualizeFrustum::OnRefresh()
 {
-  // Clear
   this->dataPtr->topicList.clear();
+  this->dataPtr->topicTypes.clear();
 
-  // Get updated list
   std::vector<std::string> allTopics;
   this->dataPtr->node.TopicList(allTopics);
   for (const auto &topic : allTopics)
@@ -339,13 +453,17 @@ void VisualizeFrustum::OnRefresh()
     this->dataPtr->node.TopicInfo(topic, publishers, subscribers);
     for (const auto &pub : publishers)
     {
-      if (pub.MsgTypeName() == "gz.msgs.LogicalCameraSensor")
+      const auto &msgType = pub.MsgTypeName();
+      if (msgType == "gz.msgs.LogicalCameraSensor" ||
+          msgType == "gz.msgs.CameraInfo")
       {
         this->dataPtr->topicList.push_back(QString::fromStdString(topic));
+        this->dataPtr->topicTypes[topic] = msgType;
         break;
       }
     }
   }
+
   if (!this->dataPtr->topicList.empty())
   {
     this->OnTopic(this->dataPtr->topicList.at(0));
@@ -371,31 +489,34 @@ void VisualizeFrustum::SetTopicList(const QStringList &_topicList)
 void VisualizeFrustum::OnScan(const msgs::LogicalCameraSensor &_msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  if (this->dataPtr->initialized)
+
+  FrustumData data;
+  if (!this->FrustumDataFromLogicalCamera(_msg, data))
   {
-    this->dataPtr->frustum->SetNearClipPlane(_msg.near_clip());
-    this->dataPtr->frustum->SetFarClipPlane(_msg.far_clip());
-    this->dataPtr->frustum->SetHFOV(_msg.horizontal_fov());
-    this->dataPtr->frustum->SetAspectRatio(_msg.aspect_ratio());
-
-    this->dataPtr->visualDirty = true;
-
-    for (const auto &data_values : _msg.header().data())
-    {
-      if (data_values.key() == "frame_id")
-      {
-        if (this->dataPtr->frustumString !=
-            common::trimmed(data_values.value(0)))
-        {
-          this->dataPtr->frustumString = common::trimmed(data_values.value(0));
-          this->dataPtr->frustumEntityDirty = true;
-          break;
-        }
-      }
-    }
+    gzwarn << "Unable to compute frustum from LogicalCameraSensor message."
+           << std::endl;
+    return;
   }
+
+  this->ApplyFrustumData(data);
+}
+
+//////////////////////////////////////////////////
+void VisualizeFrustum::OnCameraInfo(const msgs::CameraInfo &_msg)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+
+  FrustumData data;
+  if (!this->FrustumDataFromCameraInfo(_msg, data))
+  {
+    gzwarn << "Unable to compute frustum from CameraInfo message."
+           << std::endl;
+    return;
+  }
+
+  this->ApplyFrustumData(data);
 }
 
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::VisualizeFrustum,
-                    gz::gui::Plugin)
+              gz::gui::Plugin)
