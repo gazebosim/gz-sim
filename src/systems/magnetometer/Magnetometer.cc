@@ -350,19 +350,36 @@ void Magnetometer::Configure(const Entity &/*_entity*/,
 
       // Try to load the COF file directly, then fall back to the
       // installed data directory (<prefix>/share/gz/gz-sim/wmm/).
-      bool loaded = this->dataPtr->wmm.Load(cofFile, decimalYear);
+      // Try user-provided path first, then the installed data directory.
+      // We check existence before calling Load() to avoid spurious error
+      // messages from the first attempt.
+      bool loaded = false;
+      std::string resolvedPath = cofFile;
+
+      if (std::ifstream(cofFile).good())
+      {
+        loaded = this->dataPtr->wmm.Load(cofFile, decimalYear);
+      }
+
       if (!loaded)
       {
         std::string installedPath = common::joinPaths(
             gz::sim::getInstallPrefix(),
             GZ_SIM_WMM_INSTALL_PATH, cofFile);
-        loaded = this->dataPtr->wmm.Load(installedPath, decimalYear);
+        if (std::ifstream(installedPath).good())
+        {
+          resolvedPath = installedPath;
+          loaded = this->dataPtr->wmm.Load(installedPath, decimalYear);
+        }
       }
 
       if (!loaded)
       {
-        gzwarn << "Magnetometer: Failed to load World Magnetic Model from ["
-               << cofFile << "]. Falling back to built-in lookup tables."
+        gzwarn << "Magnetometer: Failed to load World Magnetic Model. Tried ["
+               << cofFile << "] and [" << common::joinPaths(
+                  gz::sim::getInstallPrefix(),
+                  GZ_SIM_WMM_INSTALL_PATH, cofFile)
+               << "]. Falling back to built-in lookup tables."
                << std::endl;
         this->dataPtr->useWMM = false;
       }
