@@ -175,7 +175,39 @@ gz_build_tests(TYPE INTEGRATION
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
+  TEST_LIST integration_test_targets
 )
+
+# Precompiled headers for integration tests
+if(BUILD_TESTING AND integration_test_targets)
+  # Create a PCH holder target with matching compile environment
+  add_library(_gz_sim_integration_pch OBJECT
+    ${CMAKE_CURRENT_SOURCE_DIR}/pch_dummy.cc)
+  target_link_libraries(_gz_sim_integration_pch PRIVATE
+    gtest
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering)
+  target_include_directories(_gz_sim_integration_pch PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}/test)
+  target_precompile_headers(_gz_sim_integration_pch PRIVATE
+    <gtest/gtest.h>
+    <string>
+    <vector>
+    <gz/common/Console.hh>
+    <gz/common/Util.hh>
+    <gz/utils/ExtraTestMacros.hh>
+  )
+
+  # Reuse the PCH across all integration test targets
+  foreach(target ${integration_test_targets})
+    if(TARGET ${target})
+      target_precompile_headers(${target} REUSE_FROM _gz_sim_integration_pch)
+    endif()
+  endforeach()
+endif()
 
 
 # For INTEGRATION_physics_system, we need to check what version of DART is

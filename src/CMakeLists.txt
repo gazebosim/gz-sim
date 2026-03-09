@@ -235,7 +235,36 @@ gz_build_tests(TYPE UNIT
     gz-sim
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  TEST_LIST unit_test_targets
 )
+
+# Precompiled headers for unit tests
+if(BUILD_TESTING AND unit_test_targets)
+  add_library(_gz_sim_unit_pch OBJECT
+    ${PROJECT_SOURCE_DIR}/test/integration/pch_dummy.cc)
+  target_link_libraries(_gz_sim_unit_pch PRIVATE
+    gtest
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
+    gz-sim)
+  target_include_directories(_gz_sim_unit_pch PRIVATE
+    ${PROJECT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR}
+    ${PROJECT_SOURCE_DIR}/test)
+  target_precompile_headers(_gz_sim_unit_pch PRIVATE
+    <gtest/gtest.h>
+    <string>
+    <vector>
+    <gz/common/Console.hh>
+    <gz/common/Util.hh>
+  )
+
+  foreach(target ${unit_test_targets})
+    if(TARGET ${target})
+      target_precompile_headers(${target} REUSE_FROM _gz_sim_unit_pch)
+    endif()
+  endforeach()
+endif()
 
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
