@@ -105,9 +105,33 @@ ign_find_package(ignition-common4 VERSION 4.5.1
 set(IGN_COMMON_VER ${ignition-common4_VERSION_MAJOR})
 
 #--------------------------------------
+<<<<<<< HEAD
 # Find ignition-fuel_tools
 ign_find_package(ignition-fuel_tools7 REQUIRED)
 set(IGN_FUEL_TOOLS_VER ${ignition-fuel_tools7_VERSION_MAJOR})
+=======
+# Find gz-fuel_tools
+gz_find_package(gz-fuel_tools VERSION 11 REQUIRED)
+
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
+
+if(ENABLE_GUI)
+  gz_find_package(gz-gui VERSION 10 REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
+
+  set(QT_MAJOR_VERSION 6)
+  set(QT_MINOR_VERSION 4)
+  gz_find_package (Qt${QT_MAJOR_VERSION}
+    VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+endif()
+>>>>>>> f598d5b8 (Added explicit find package for TINYXML to CMakelist at root (#3360))
 
 #--------------------------------------
 # Find ignition-gui
