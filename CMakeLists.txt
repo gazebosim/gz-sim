@@ -111,6 +111,7 @@ set(GZ_COMMON_VER ${gz-common5_VERSION_MAJOR})
 gz_find_package(gz-fuel_tools9 REQUIRED)
 set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
 
+<<<<<<< HEAD
 #--------------------------------------
 # Find gz-gui
 gz_find_package(gz-gui8 REQUIRED)
@@ -122,6 +123,26 @@ gz_find_package (Qt5
     QuickControls2
   REQUIRED
   PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+=======
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
+
+if(ENABLE_GUI)
+  gz_find_package(gz-gui VERSION 10 REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
+
+  set(QT_MAJOR_VERSION 6)
+  set(QT_MINOR_VERSION 4)
+  gz_find_package (Qt${QT_MAJOR_VERSION}
+    VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+endif()
+>>>>>>> f598d5b8 (Added explicit find package for TINYXML to CMakelist at root (#3360))
 
 #--------------------------------------
 # Find gz-physics
