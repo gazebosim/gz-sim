@@ -4293,6 +4293,12 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
+
+  using Policy = physics::FeaturePolicy3d;
+  using ExtraRayIntersectionData =
+      physics::GetRayIntersectionFromLastStepFeature::ExtraRayIntersectionDataT<
+          Policy>;
+
   // Quit early if the RaycastData component hasn't been created.
   // This means there are no systems that need raycasting information
   if (!_ecm.HasComponentType(components::RaycastData::typeId))
@@ -4377,9 +4383,9 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
 
           // Map physics shape ID to gz-sim Entity
-          auto *extraData = rayIntersectionResult.template
-              Query<ExtraRayIntersectionData>();
-          if (extraData && extraData->collisionShapeId != 0)          
+          auto *extraData =
+              rayIntersection.template Query<ExtraRayIntersectionData>();
+          if (extraData && extraData->collisionShapeId != 0)
           {
             result.entity = this->entityCollisionMap.GetByPhysicsId(
                 extraData->collisionShapeId);
