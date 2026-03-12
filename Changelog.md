@@ -1,5 +1,55 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.11.0 (2026-03-12)
+
+1. Add missing include in lrauv_control example
+    * [Pull request #3354](https://github.com/gazebosim/gz-sim/pull/3354)
+
+1. Add `<collision>` parameter to TouchPlugin
+    * [Pull request #3320](https://github.com/gazebosim/gz-sim/pull/3320)
+
+1. Fix SDF generation (world saving) when schemed URIs are used for resource URIs
+    * [Pull request #3286](https://github.com/gazebosim/gz-sim/pull/3286)
+
+1. Fix deprecation warning in `benchmark`
+    * [Pull request #3296](https://github.com/gazebosim/gz-sim/pull/3296)
+
+1. Improve RTF Stability and Precision
+    * [Pull request #3269](https://github.com/gazebosim/gz-sim/pull/3269)
+
+1. Prevent publishing empty poses in pose publisher
+    * [Pull request #3262](https://github.com/gazebosim/gz-sim/pull/3262)
+
+1. ParticleEmitter can use topic from sdf
+    * [Pull request #3244](https://github.com/gazebosim/gz-sim/pull/3244)
+
+1. Suppress child link warning in DetachableJoint
+    * [Pull request #3231](https://github.com/gazebosim/gz-sim/pull/3231)
+
+1. Make tests more robust
+    * [Pull request #3224](https://github.com/gazebosim/gz-sim/pull/3224)
+
+1. Fix: silence backward switch default warning
+    * [Pull request #3203](https://github.com/gazebosim/gz-sim/pull/3203)
+
+1. Gravity set command fixed
+    * [Pull request #3189](https://github.com/gazebosim/gz-sim/pull/3189)
+
+1. Set non-unique material to submesh when updating cast shadows property
+    * [Pull request #3085](https://github.com/gazebosim/gz-sim/pull/3085)
+
+1. Fix crash when setting Anisotropic property after Global Illumination disabled by adding validity checks for GI and enabled state
+    * [Pull request #3084](https://github.com/gazebosim/gz-sim/pull/3084)
+
+1. Open file dialog for mesh selection with less confusing filter
+    * [Pull request #3167](https://github.com/gazebosim/gz-sim/pull/3167)
+
+1. Fix configuring global illumination GUI plugin parameters
+    * [Pull request #2594](https://github.com/gazebosim/gz-sim/pull/2594)
+
+1. Fix generating gz-sim8 doxygen files on Jammy
+    * [Pull request #3156](https://github.com/gazebosim/gz-sim/pull/3156)
+
 ### Gazebo Sim 8.10.0 (2025-10-23)
 
 1. Clean up temporary home directory to make tests more robust
