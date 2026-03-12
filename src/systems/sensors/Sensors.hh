@@ -51,7 +51,7 @@ namespace systems
   /// battery plugin charge reaches zero. Sensors that are in nested
   /// models are also affected.
   ///
-  /// \TODO(louise) Have one system for all sensors, or one per
+  /// \todo(louise) Have one system for all sensors, or one per
   /// sensor / sensor type?
   class Sensors:
     public System,
