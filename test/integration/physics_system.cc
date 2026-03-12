@@ -3113,14 +3113,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
           _ecm.Component<components::RaycastData>(testEntity1)->Data().results;
         ASSERT_EQ(rays1.size(), results1.size());
 
-        Entity groundCollision{kNullEntity};
-        _ecm.Each<components::Collision, components::ParentEntity>(
-            [&](const Entity &_entity, const components::Collision *,
-                const components::ParentEntity *) -> bool
-            {
-              groundCollision = _entity;
-              return true;
-            });
+        auto groundCollision = _ecm.EntityByComponents(
+            components::Collision());
         ASSERT_NE(groundCollision, kNullEntity);
         for (size_t i = 0; i < results1.size(); ++i) {
           ASSERT_EQ(results1[i].point, math::Vector3d(0, 0, -10));
