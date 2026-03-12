@@ -3121,7 +3121,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
               groundCollision = _entity;
               return true;
             });
-        ASSERT_NE(groundCollision, kNullEntity);        
+        ASSERT_NE(groundCollision, kNullEntity);
         for (size_t i = 0; i < results1.size(); ++i) {
           ASSERT_EQ(results1[i].point, math::Vector3d(0, 0, -10));
           ASSERT_EQ(results1[i].normal, math::Vector3d(0, 0, 1));
@@ -3146,7 +3146,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
             math::eigen3::convert(results2[i].normal).array().isNaN().all());
           ASSERT_TRUE(
             std::isnan(results2[i].fraction));
-          EXPECT_EQ(results2[i].entity, kNullEntity);  
+          EXPECT_EQ(results2[i].entity, kNullEntity);
         }
       });
 
