@@ -731,7 +731,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
 
   msgs::StringMsg sdfMsg;
-  sdfMsg.ParseFromString(recordedIter->Data());
+  EXPECT_TRUE(sdfMsg.ParseFromString(recordedIter->Data()));
   EXPECT_FALSE(sdfMsg.data().empty());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
@@ -745,7 +745,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
   msgs::SerializedStateMap stateMsg;
-  stateMsg.ParseFromString(recordedIter->Data());
+  EXPECT_TRUE(stateMsg.ParseFromString(recordedIter->Data()));
   // entity size = 28 in dbl pendulum + 4 in nested model
   EXPECT_EQ(33, stateMsg.entities_size());
   EXPECT_NE(batch.end(), ++recordedIter);
@@ -770,7 +770,7 @@ TEST_F(LogSystemTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
         // Get next recorded message
         EXPECT_EQ("ignition.msgs.SerializedStateMap", recordedIter->Type());
         EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
-        stateMsg.ParseFromString(recordedIter->Data());
+        EXPECT_TRUE(stateMsg.ParseFromString(recordedIter->Data()));
 
         // Loop through all recorded poses, and check them against the
         // playedback poses.
