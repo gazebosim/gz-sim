@@ -63,7 +63,7 @@ TEST_F(PerfectCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(PerfectComms))
     std::string expected = "hello world " + std::to_string(msgCounter);
 
     ignition::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
+    EXPECT_TRUE(receivedMsg.ParseFromString(_msg.data()));
     EXPECT_EQ(expected, receivedMsg.data());
     msgCounter++;
   };
