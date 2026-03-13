@@ -44,17 +44,17 @@ class EnvironmentalSensorSystemPrivate;
 ///    of output data desired.
 ///  `<environment_variable>` - Only for scalar type. The name of the column of
 ///    the CSV file to be used.
-///  `<environment_variable_x>` - The name of the field to be used as the x value
-///    in global frame for vector3 fields. Note: If this is left out and
+///  `<environment_variable_x>` - The name of the field to be used as the x
+///    value in global frame for vector3 fields. Note: If this is left out and
 ///    vector3 is set, then the x value defaults to zero.
-///  `<environment_variable_y>` - The name of the field to be used as the y value
-///    in global frame for vector3 fields. Note: If this is left out and
+///  `<environment_variable_y>` - The name of the field to be used as the y
+///    value in global frame for vector3 fields. Note: If this is left out and
 ///    vector3 is set, then the y value defaults to zero.
-///  `<environment_variable_z>` - The name of the field to be used as the z value
-///    in global frame vector3 fields. Note: If this is left out and
+///  `<environment_variable_z>` - The name of the field to be used as the z
+///    value in global frame vector3 fields. Note: If this is left out and
 ///    vector3 is set, then the z value defaults to zero.
-///  `<transform_type>` - When handling vector2 or vector3 types it may be in our
-///    interest to transform them to local coordinate frames. For instance
+///  `<transform_type>` - When handling vector2 or vector3 types it may be in
+///    our interest to transform them to local coordinate frames. For instance
 ///    measurements of ocean currents or wind depend on the orientation and
 ///    velocity of the sensor. This field can have 4 values:
 ///      * GLOBAL - Don't transform the vectors to a local frame.
