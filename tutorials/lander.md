@@ -235,16 +235,16 @@ However, it's generating very little buoyancy.
 Let's now compute the reference volume that will make the lander neutrally
 buoyant.
 
-$$volume\\_neutral = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683$$
+\f[volume\_neutral = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683\f]
 
 Now, let's account for the volume that our lander already has thanks to the
 low-volume outer collision elements:
 
-$$outer\\_volume = 2*1.1325*1.1503*0.000001 + 2*0.000001*1.1503*1.5 + 2*1.325* 0.000001*1.5 = 1.00313295e-05$$
+\f[outer\_volume = 2*1.1325*1.1503*0.000001 + 2*0.000001*1.1503*1.5 + 2*1.325* 0.000001*1.5 = 1.00313295e-05\f]
 
 Let's now compute the volume of the main buoyancy `<collision>` element:
 
-$$main\\_buoyancy\\_volume = 1.1796829268292683 - 1.00313295e-05 = 1.1796728954997684$$
+\f[main\_buoyancy\_volume = 1.1796829268292683 - 1.00313295e-05 = 1.1796728954997684\f]
 
 Let's verify that our lander is neutrally buoyant now. Add the following
 collision element to your `base_link`:
@@ -381,9 +381,9 @@ Let's add the following SDF block to your `model.sdf`:
 The mass of the drop weight changes the buoyancy properties of the lander. Let's
 calculate the reference values:
 
-$$volume\\_neutral\\_with\\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175 + 120}{1025} = 1.2967560975609755$$
+\f[volume\_neutral\_with\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175 + 120}{1025} = 1.2967560975609755\f]
 
-$$volume\\_neutral\\_without\\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683$$
+\f[volume\_neutral\_without\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683\f]
 
 We're looking for a volume that's lower than `volume_neutral_with_dropweight` to
 cause the lander to sink from its initial configuration, and bigger than
