@@ -3827,7 +3827,6 @@ void RenderUtilPrivate::CreateVisual(
   {
     visual.SetVisibilityFlags(_visibilityFlags->Data());
   }
-    
 
   // Optional components
   auto material = _ecm.Component<components::Material>(_entity);
