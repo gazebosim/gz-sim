@@ -1,3 +1,4 @@
+load("@buildifier_prebuilt//:rules.bzl", "buildifier", "buildifier_test")
 load("@gz-msgs//tools:gz_msgs_generate.bzl", "gz_proto_library")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
@@ -242,8 +243,11 @@ genrule(
         ":gz-sim-air-pressure-system.so",
         ":gz-sim-log-system.so",
         ":gz-sim-physics-system.so",
-        ":gz-sim-scene-broadcaster-system.so",
-        ":gz-sim-user-commands-system.so",
+        # TODO: Add back these default systems once --dynamic_mode=off is
+        # removed from .bazelrc.
+        # See https://github.com/gazebosim/gz-sim/issues/3273 for details.
+        # ":gz-sim-scene-broadcaster-system.so",
+        # ":gz-sim-user-commands-system.so",
         ":gz-sim-velocity-control-system.so",
         ":lib/libMockSystem.so",
         ":lib/libTestModelSystem.so",
@@ -835,9 +839,11 @@ gz_sim_system_libraries(
         ":gz-sim",
         "@gz-common//graphics",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
+        "@gz-utils//:ImplPtr",
     ],
 )
 
@@ -1186,9 +1192,10 @@ gz_sim_system_libraries(
         "@gz-common",
         "@gz-common//graphics",
         "@gz-common//profiler",
-        "@gz-plugin//:register",
         "@gz-math",
+        "@gz-plugin//:register",
         "@gz-transport",
+        "@gz-transport//parameters",
         "@sdformat",
     ],
 )
@@ -1839,7 +1846,10 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@gz-common",
+        "@gz-common//events",
         "@gz-common//profiler",
+        "@gz-physics",
         "@gz-plugin//:register",
         "@gz-transport",
     ],
@@ -1867,4 +1877,20 @@ gz_sim_system_libraries(
         "@gz-transport",
         "@sdformat",
     ],
+)
+
+buildifier(
+    name = "buildifier.fix",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+)
+
+buildifier_test(
+    name = "buildifier.test",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "warn",
+    mode = "diff",
+    no_sandbox = True,
+    workspace = "//:MODULE.bazel",
 )

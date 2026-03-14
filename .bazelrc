@@ -17,3 +17,7 @@ build --process_headers_in_dependencies
 # Workaround for bug in rules_foreign_cc when linking libzip.
 # Similar to https://github.com/bazel-contrib/rules_foreign_cc/issues/1164
 build --dynamic_mode=off
+
+# OS specific settings
+build --enable_platform_specific_config
+build:macos --macos_minimum_os=10.15

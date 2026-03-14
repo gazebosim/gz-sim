@@ -164,7 +164,7 @@ Rectangle {
         FileDialog {
           id: loadFileDialog
           title: "Load mesh"
-          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          nameFilters: [ "Supported mesh files (*.dae *.fbx *.glb *.gltf *.obj *.stl *.stla *.stlb)" ]
           fileMode: FileDialog.OpenFile
           currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
           onAccepted: {

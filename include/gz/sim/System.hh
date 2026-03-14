@@ -128,7 +128,7 @@ namespace gz
       constexpr System::PriorityType kPostPhysicsSensorPriority = -32;
     }
 
-    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
+    /// \class ISystemConfigure System.hh gz/sim/System.hh
     /// \brief Interface for a system that implements optional configuration
     ///
     /// Configure is called after the system is instantiated and all entities
@@ -151,7 +151,7 @@ namespace gz
                   EventManager &_eventMgr) = 0;
     };
 
-    /// \class ISystemConfigure ISystem.hh gz/sim/System.hh
+    /// \class ISystemConfigure System.hh gz/sim/System.hh
     /// \brief Interface for a system that implements optional configuration
     /// of the default priority value.
     ///
@@ -167,7 +167,7 @@ namespace gz
       public: virtual System::PriorityType ConfigurePriority() = 0;
     };
 
-    /// \class ISystemConfigureParameters ISystem.hh gz/sim/System.hh
+    /// \class ISystemConfigureParameters System.hh gz/sim/System.hh
     /// \brief Interface for a system that declares parameters.
     ///
     /// ISystemConfigureParameters::ConfigureParameters is called after
@@ -189,7 +189,7 @@ namespace gz
                                  EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemPreUpdate ISystem.hh gz/sim/System.hh
+    /// \class ISystemPreUpdate System.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PreUpdate phase
     class ISystemPreUpdate {
       public: virtual ~ISystemPreUpdate() = default;
@@ -197,7 +197,7 @@ namespace gz
                                      EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemUpdate ISystem.hh gz/sim/System.hh
+    /// \class ISystemUpdate System.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the Update phase
     class ISystemUpdate {
       public: virtual ~ISystemUpdate() = default;
@@ -205,7 +205,7 @@ namespace gz
                                   EntityComponentManager &_ecm) = 0;
     };
 
-    /// \class ISystemPostUpdate ISystem.hh gz/sim/System.hh
+    /// \class ISystemPostUpdate System.hh gz/sim/System.hh
     /// \brief Interface for a system that uses the PostUpdate phase
     class ISystemPostUpdate{
       public: virtual ~ISystemPostUpdate() = default;
