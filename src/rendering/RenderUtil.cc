@@ -3794,21 +3794,40 @@ void RenderUtilPrivate::CreateVisual(
     const components::VisibilityFlags *_visibilityFlags,
     const components::ParentEntity *_parent)
 {
-  sdf::Visual visual;
-  visual.SetName(_name->Data());
-  visual.SetRawPose(_pose->Data());
-  if(!_geom)
+  if (!_name || !_pose || !_parent)
   {
     gzwarn << "Visual entity [" << _entity
-           << "] has no geometry component."
-           << "Skipping visual creation."
+           << "] missing required components (name / pose / parent). "
+           << "Skipping visual creation." << std::endl;
+    return;
+  }
+
+  if (!_geom)
+  {
+    gzwarn << "Visual entity [" << _entity
+           << "] has no geometry component. Skipping visual creation."
            << std::endl;
     return;
   }
+
+  sdf::Visual visual;
+  visual.SetName(_name->Data());
+  visual.SetRawPose(_pose->Data());
   visual.SetGeom(_geom->Data());
-  visual.SetCastShadows(_castShadows->Data());
-  visual.SetTransparency(_transparency->Data());
-  visual.SetVisibilityFlags(_visibilityFlags->Data());
+
+  if (_castShadows)
+  {
+    visual.SetCastShadows(_castShadows->Data());
+  }
+  if (_transparency)
+  {
+    visual.SetTransparency(_transparency->Data());
+  }
+  if (_visibilityFlags)
+  {
+    visual.SetVisibilityFlags(_visibilityFlags->Data());
+  }
+    
 
   // Optional components
   auto material = _ecm.Component<components::Material>(_entity);
