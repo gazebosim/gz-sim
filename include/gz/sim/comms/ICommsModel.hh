@@ -47,23 +47,24 @@ namespace comms
   /// parameters:
   ///
   /// * Optional parameters:
-  /// <step_size> If defined this will allow the comms model to run at a
+  /// `<step_size>` If defined this will allow the comms model to run at a
   /// higher frequency than the physics engine. This is useful when dealing
-  /// with ranging. If the <step_size> is set larger than the physics engine dt
+  /// with ranging. If the `<step_size>` is set larger than the physics
+  /// engine dt
   /// then the comms model step size will default to dt.
   /// Note: for consistency it is advised that the dt is a multiple of timestep.
   /// Units are in seconds.
   ///
   /// Here's an example:
-  /// <physics name="1ms" type="ignored">
-  ///   <max_step_size>2</max_step_size>
-  ///   <real_time_factor>1.0</real_time_factor>
-  /// </physics>
-  /// <plugin
-  ///   filename="gz-sim-perfect-comms-system"
-  ///   name="gz::sim::systems::PerfectComms">
-  ///   <step_size>1</step_size>
-  /// </plugin>
+  /// `<physics name="1ms" type="ignored">`
+  ///   `<max_step_size>2</max_step_size>`
+  ///   `<real_time_factor>1.0</real_time_factor>`
+  /// `</physics>`
+  /// `<plugin`
+  ///   `filename="gz-sim-perfect-comms-system"`
+  ///   `name="gz::sim::systems::PerfectComms">`
+  ///   `<step_size>1</step_size>`
+  /// `</plugin>`
   class GZ_SIM_VISIBLE ICommsModel:
 #ifdef _MSC_VER
   #pragma warning(push)
