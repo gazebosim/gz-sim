@@ -63,25 +63,25 @@ namespace comms
   /// The broker can be configured with the following SDF parameters:
   ///
   /// * Optional parameters:
-  /// <broker> Element used to capture the broker parameters. This block can
-  ///          contain any of the next parameters:
-  ///    <messages_topic>: Topic name where the broker receives all the incoming
-  ///                      messages. The default value is "/broker/msgs"
-  ///    <bind_service>: Service name used to bind an address.
-  ///                    The default value is "/broker/bind"
-  ///    <unbind_service>: Service name used to unbind from an address.
-  ///                      The default value is "/broker/unbind"
+  /// `<broker>` Element used to capture the broker parameters. This block can
+  /// contain any of the next parameters:
+  ///    `<messages_topic>`: Topic name where the broker receives all the
+  ///      incoming messages. The default value is "/broker/msgs"
+  ///    `<bind_service>`: Service name used to bind an address.
+  ///      The default value is "/broker/bind"
+  ///    `<unbind_service>`: Service name used to unbind from an address.
+  ///      The default value is "/broker/unbind"
   ///
   /// Here's an example:
-  /// <plugin
-  ///   filename="gz-sim-perfect-comms-system"
-  ///   name="gz::sim::systems::PerfectComms">
-  ///   <broker>
-  ///     <messages_topic>/broker/inbound</messages_topic>
-  ///     <bind_service>/broker/bind_address</bind_service>
-  ///     <unbind_service>/broker/unbind_address</unbind_service>
-  ///   </broker>
-  /// </plugin>
+  /// `<plugin`
+  ///   `filename="gz-sim-perfect-comms-system"`
+  ///   `name="gz::sim::systems::PerfectComms">`
+  ///   `<broker>`
+  ///     `<messages_topic>/broker/inbound</messages_topic>`
+  ///     `<bind_service>/broker/bind_address</bind_service>`
+  ///     `<unbind_service>/broker/unbind_address</unbind_service>`
+  ///   `</broker>`
+  /// `</plugin>`
   class GZ_SIM_VISIBLE Broker
   {
     /// \brief Constructor.
