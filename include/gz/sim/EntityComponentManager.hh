@@ -72,12 +72,12 @@ namespace gz
       /// \brief Destructor
       public: ~EntityComponentManager();
 
-      /// \brief Copies the contents of `_from` into this object.
+      /// \brief Copies the contents of `_fromEcm` into this object.
       /// \note This is a member function instead of a copy constructor so that
       /// it can have additional parameters if the need arises in the future.
       /// Additionally, not every data member is copied making its behavior
       /// different from what would be expected from a copy constructor.
-      /// \param[in] _from Object to copy from
+      /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
@@ -244,7 +244,7 @@ namespace gz
       /// \return A pointer to the component that was created. nullptr is
       /// returned if the component was not able to be created. If _entity
       /// does not exist, nullptr will be returned.
-      public: template<typename ComponentTypeT>
+     public: template<typename ComponentTypeT>
               ComponentTypeT *CreateComponent(
                   const Entity _entity,
                   const ComponentTypeT &_data);
@@ -576,7 +576,7 @@ namespace gz
       /// exist within the ECM.
       /// \sa EntityComponentManager::PeriodicStateFromCache
       public: void UpdatePeriodicChangeCache(std::unordered_map<ComponentTypeId,
-        std::unordered_set<Entity>>&) const;
+        std::unordered_set<Entity>>&_changes) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -714,6 +714,7 @@ namespace gz
       /// removing the entities.
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
+      /// \param[in] _diff The diff to apply to this EntityComponentManager.
       protected: void ApplyEntityDiff(const EntityComponentManager &_other,
                                       const EntityComponentManagerDiff &_diff);
 

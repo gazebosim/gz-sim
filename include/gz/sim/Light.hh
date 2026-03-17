@@ -213,6 +213,7 @@ namespace gz
       /// \brief Set whether the light casts shadows.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _bool True to cast shadows, false to not cast shadows.
+      /// \param[in] _castShadows True to cast shadows, false to not cast shadows.
       public: void SetCastShadows(EntityComponentManager &_ecm,
           bool _castShadows);
 
@@ -271,7 +272,7 @@ namespace gz
 
       /// \brief Set fall off value for this light. Applies to spot lights only.
       /// \param[in] _ecm Entity-component manager.
-      /// \param[in] _fallOff Fall off value
+      /// \param[in] _falloff Fall off value
       public: void SetSpotFalloff(EntityComponentManager &_ecm,
           double _falloff);
 
