@@ -115,6 +115,7 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools9_VERSION_MAJOR})
 # Find gz-gui
 gz_find_package(gz-gui8 REQUIRED)
 set(GZ_GUI_VER ${gz-gui8_VERSION_MAJOR})
+gz_find_package(TINYXML2 REQUIRED)
 gz_find_package (Qt5
   COMPONENTS
     Core
