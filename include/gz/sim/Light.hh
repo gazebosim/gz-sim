@@ -212,8 +212,10 @@ namespace gz
 
       /// \brief Set whether the light casts shadows.
       /// \param[in] _ecm Entity-component manager.
-      /// \param[in] _bool True to cast shadows, false to not cast shadows.
-      /// \param[in] _castShadows True to cast shadows, false to not cast shadows.
+      /// \param[in] _bool True to cast shadows, 
+      /// false to not cast shadows.
+      /// \param[in] _castShadows True to cast shadows, 
+      /// false to not cast shadows.
       public: void SetCastShadows(EntityComponentManager &_ecm,
           bool _castShadows);
 
