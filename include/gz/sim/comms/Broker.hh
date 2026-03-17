@@ -73,15 +73,17 @@ namespace comms
   ///      The default value is "/broker/unbind"
   ///
   /// Here's an example:
-  /// `<plugin`
-  ///   `filename="gz-sim-perfect-comms-system"`
-  ///   `name="gz::sim::systems::PerfectComms">`
-  ///   `<broker>`
-  ///     `<messages_topic>/broker/inbound</messages_topic>`
-  ///     `<bind_service>/broker/bind_address</bind_service>`
-  ///     `<unbind_service>/broker/unbind_address</unbind_service>`
-  ///   `</broker>`
-  /// `</plugin>`
+  /// \code{.xml}
+  /// <plugin
+  ///   filename="gz-sim-perfect-comms-system"
+  ///   name="gz::sim::systems::PerfectComms">
+  ///   <broker>
+  ///     <messages_topic>/broker/inbound</messages_topic>
+  ///     <bind_service>/broker/bind_address</bind_service>
+  ///     <unbind_service>/broker/unbind_address</unbind_service>
+  ///   </broker>
+  /// </plugin>
+  /// \endcode
   class GZ_SIM_VISIBLE Broker
   {
     /// \brief Constructor.

@@ -39,7 +39,7 @@ namespace systems
   /// the image's RGB channels.
   /// This plugin needs to be used together with the WheelSlip system.
   /// LookupWheelSlip system params:
-  /// * <slip_map>: (Required) Lookup slip map filename. This needs to be an
+  /// * `<slip_map>`: (Required) Lookup slip map filename. This needs to be an
   ///   8 bit RGB image.
   ///   * Channels:
   ///     * Red - updates lateral slip
@@ -57,15 +57,16 @@ namespace systems
   ///       below.
   ///   To visualize the lookup map, set the model's visual diffuse texture to
   ///   this file, e.g. set this texture to a plane or heightmap.
-  /// * <size_x>: (Required) x size of lookup slip map in meters.
-  /// * <size_y>: (Required) y size of lookup slip map in meters.
-  /// * <wheel_link_name>: (Required) The wheel link name from the
-  ///   WheelSlip system. Specify one <wheel_link_name> per wheel link.
-  /// * <slip_compliance_lateral_delta>`: (Optional) The increase / decrease
+  /// * `<size_x>`: (Required) x size of lookup slip map in meters.
+  /// * `<size_y>`: (Required) y size of lookup slip map in meters.
+  /// * `<wheel_link_name>`: (Required) The wheel link name from the
+  ///   WheelSlip system. Specify one `<wheel_link_name>` per wheel link.
+  /// * `<slip_compliance_lateral_delta>`: (Optional) The increase / decrease
   ///   step to be applied to the lateral slip. Default is 0.05
-  /// * <slip_compliance_longitudinal_delta>: (Optional) The increase / decrease
-  ///   step to be applied to the longitudinal slip. Default is 0.005
-  /// * <friction_delta>: (Optional) The increase/decrease step to be applied
+  /// * `<slip_compliance_longitudinal_delta>`: (Optional) The
+  ///   increase / decrease step to be applied to the longitudinal
+  ///   slip. Default is 0.005
+  /// * `<friction_delta>`: (Optional) The increase/decrease step to be applied
   ///   to the friction coefficients in the primary and secondary directions.
   ///   Default is 0.5
   class LookupWheelSlip
