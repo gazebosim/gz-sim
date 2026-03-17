@@ -63,8 +63,9 @@ namespace systems
   ///   WheelSlip system. Specify one `<wheel_link_name>` per wheel link.
   /// * `<slip_compliance_lateral_delta>`: (Optional) The increase / decrease
   ///   step to be applied to the lateral slip. Default is 0.05
-  /// * `<slip_compliance_longitudinal_delta>`: (Optional) The increase / decrease
-  ///   step to be applied to the longitudinal slip. Default is 0.005
+  /// * `<slip_compliance_longitudinal_delta>`: (Optional) The
+  ///   increase / decrease step to be applied to the longitudinal
+  ///   slip. Default is 0.005
   /// * `<friction_delta>`: (Optional) The increase/decrease step to be applied
   ///   to the friction coefficients in the primary and secondary directions.
   ///   Default is 0.5

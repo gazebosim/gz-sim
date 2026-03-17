@@ -100,7 +100,8 @@ namespace systems
   ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
   ///   * `<default_current>` - A generic current.
   ///      [vector3d m/s, optional, default = [0,0,0]m/s]
-  ///   * `<disable_coriolis>` - Disable Coriolis force [Boolean, Default: false]
+  ///   * `<disable_coriolis>` - Disable Coriolis force
+  ///     [Boolean, Default: false]
   ///   * `<disable_added_mass>` - Disable Added Mass [Boolean, Default: false].
   ///     To be deprecated in Garden.
   ///

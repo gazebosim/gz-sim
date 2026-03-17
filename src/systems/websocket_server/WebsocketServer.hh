@@ -86,8 +86,8 @@ namespace systems
     ///
     ///     * `<cert_file>`: Child element of `<ssl>` that contains the path to
     ///                     the SSL certificate file.
-    ///     * `<private_key_file>`: Child element of `<ssl>` that contains the path
-    ///                           to SSL private key file.
+    ///     * `<private_key_file>`: Child element of `<ssl>` that
+    ///       contains the path to SSL private key file.
     ///
     /// # Websocket Server Interface
     ///
