@@ -36,6 +36,7 @@ namespace sim
 
     /// \brief Callback in Qt thread when joint type changes.
     /// \param[in] _surface Surface model
+    /// \param[in] _jointType The joint type.
     public: Q_INVOKABLE void OnJointType(QString _jointType);
 
     /// \brief Pointer to the component inspector. This is used to add
