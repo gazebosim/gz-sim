@@ -30,6 +30,7 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -651,24 +652,6 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor)
 
   transport::Node node;
 
-  bool col01Touched{false};
-  auto col01TouchCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
-      {
-        col01Touched = true;
-      });
-  node.Subscribe("/white_touches_green_collision_01/touched",
-                 col01TouchCb);
-
-  bool col02Touched{false};
-  auto col02TouchCb = std::function<void(const msgs::Boolean &)>(
-      [&](const msgs::Boolean &)
-      {
-        col02Touched = true;
-      });
-  node.Subscribe("/white_touches_green_collision_02/touched",
-                 col02TouchCb);
-
   // Request entity spawn
   msgs::EntityFactory req;
   unsigned int timeout = 5000;
@@ -708,8 +691,12 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor)
 
   auto testFunc = [&](const math::Pose3d &_pose)
   {
-    col01Touched = false;
-    col02Touched = false;
+    Subscription<msgs::Boolean> col01TouchSubscription;
+    col01TouchSubscription.Subscribe(node,
+        "/white_touches_green_collision_01/touched", 1);
+    Subscription<msgs::Boolean> col02TouchSubscription;
+    col02TouchSubscription.Subscribe(node,
+        "/white_touches_green_collision_02/touched", 1);
 
     // Enable the touch plugins
     msgs::Empty emptyRes;
@@ -731,15 +718,20 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor)
     EXPECT_TRUE(node.Request(setPoseService, poseReq, timeout, res, result));
 
     // Check boxes haven't touched yet
-    EXPECT_FALSE(col01Touched);
-    EXPECT_FALSE(col02Touched);
+    EXPECT_FALSE(col01TouchSubscription.WaitForMessages(1,
+        std::chrono::milliseconds(100)));
+    EXPECT_FALSE(col02TouchSubscription.WaitForMessages(1,
+        std::chrono::milliseconds(100)));
 
     // Let white box fall on top of green box at the specified pose
     server->Run(true, 500, false);
 
     // Check it hasn't touched for long enough
-    EXPECT_FALSE(col01Touched);
-    EXPECT_FALSE(col02Touched);
+    EXPECT_FALSE(col01TouchSubscription.WaitForMessages(1,
+        std::chrono::milliseconds(100)));
+    EXPECT_FALSE(col02TouchSubscription.WaitForMessages(1,
+        std::chrono::milliseconds(100)));
+
 
     // Give it time to touch for at least 0.2 seconds
     server->Run(true, 1000, false);
@@ -747,17 +739,18 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor)
     // Only one touched event should be received
     if (_pose.Pos().Y() > 0.0)
     {
-      for (int sleep = 0; sleep < 50 && !col01Touched; ++sleep)
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));
-      EXPECT_TRUE(col01Touched);
-      EXPECT_FALSE(col02Touched);
+      EXPECT_TRUE(col01TouchSubscription.WaitForMessages(1,
+          std::chrono::milliseconds(100)));
+      EXPECT_FALSE(col02TouchSubscription.WaitForMessages(1,
+          std::chrono::milliseconds(100)));
+
     }
     else
     {
-      for (int sleep = 0; sleep < 50 && !col02Touched; ++sleep)
-        std::this_thread::sleep_for(std::chrono::milliseconds(30));
-      EXPECT_FALSE(col01Touched);
-      EXPECT_TRUE(col02Touched);
+      EXPECT_FALSE(col01TouchSubscription.WaitForMessages(1,
+          std::chrono::milliseconds(100)));
+      EXPECT_TRUE(col02TouchSubscription.WaitForMessages(1,
+          std::chrono::milliseconds(100)));
     }
   };
 
