@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <cmath>
 #include <string>
 
 #include <Eigen/Eigen>
@@ -36,6 +37,7 @@
 #include "gz/transport/Node.hh"
 
 #include "Hydrodynamics.hh"
+#include "HydrodynamicsUtils.hh"
 
 using namespace gz;
 using namespace sim;
@@ -55,9 +57,6 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Contains the linear stability derivatives like $X_u, Y_v,$ etc.
   public: double stabilityLinearTerms[36] = {0};
 
-  /// \brief Water density [kg/m^3].
-  public: double waterDensity;
-
   /// \brief The Gazebo Transport node
   public: transport::Node node;
 
@@ -74,13 +73,20 @@ class gz::sim::systems::HydrodynamicsPrivateData
 
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
-  public: Eigen::MatrixXd Ma;
+  public: Eigen::Matrix<double, 6, 6> Ma;
 
   /// \brief Previous state.
-  public: Eigen::VectorXd prevState;
+  public: Eigen::Matrix<double, 6, 1> prevState;
 
-  /// \brief Previous derivative of the state
-  public: Eigen::VectorXd prevStateDot;
+  /// \brief Whether this is the first simulation iteration.
+  public: bool firstIteration {true};
+
+  /// \brief Whether this link has <fluid_added_mass> in SDF.
+  public: bool hasFluidAddedMass {false};
+
+  /// \brief Fluid added mass matrix (positive physical values) from SDF.
+  /// Only valid when hasFluidAddedMass is true.
+  public: Eigen::Matrix<double, 6, 6> fluidAddedMass;
 
   /// \brief Use current table if true
   public: bool useCurrentTable {false};
@@ -293,7 +299,6 @@ void Hydrodynamics::Configure(
   gz::sim::EventManager &/*_eventMgr*/
 )
 {
-  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "water_density", 998);
   // Load stability derivatives
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
@@ -345,7 +350,7 @@ void Hydrodynamics::Configure(
   // Note: Adding added mass here is deprecated and will be removed in
   // Gazebo J as this formulation has instabilities.
   bool addedMassSpecified = false;
-  this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
+  this->dataPtr->Ma = Eigen::Matrix<double, 6, 6>::Zero();
   for(auto i = 0; i < 6; i++)
   {
     for(auto j = 0; j < 6; j++)
@@ -404,12 +409,27 @@ void Hydrodynamics::Configure(
     return;
   }
 
+  // Cache the fluid added mass matrix if present on this link.
+  // This is used for the Coriolis current-velocity correction.
+  {
+    gz::sim::Link link(this->dataPtr->linkEntity);
+    auto fluidMa = link.WorldFluidAddedMassMatrix(_ecm);
+    if (fluidMa.has_value())
+    {
+      this->dataPtr->hasFluidAddedMass = true;
+      const auto &m = fluidMa.value();
+      for (int i = 0; i < 6; ++i)
+        for (int j = 0; j < 6; ++j)
+          this->dataPtr->fluidAddedMass(i, j) = m(i, j);
+    }
+  }
+
   if(_sdf->HasElement("default_current"))
   {
     this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
   }
 
-  this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
+  this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
 
   if(_sdf->HasElement("lookup_current_x"))
   {
@@ -443,11 +463,6 @@ void Hydrodynamics::PreUpdate(
       const gz::sim::UpdateInfo &_info,
       gz::sim::EntityComponentManager &_ecm)
 {
-  if (this->dataPtr->useCurrentTable)
-  {
-    this->dataPtr->SetWaterCurrentTable(_ecm, _info.simTime);
-  }
-
   if (_info.paused)
     return;
 
@@ -458,10 +473,10 @@ void Hydrodynamics::PreUpdate(
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
   // `Ma` is the added mass.
-  Eigen::VectorXd stateDot = Eigen::VectorXd(6);
-  Eigen::VectorXd state    = Eigen::VectorXd(6);
-  Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
+  Eigen::Matrix<double, 6, 1> stateDot;
+  Eigen::Matrix<double, 6, 1> state;
+  Eigen::Matrix<double, 6, 6> Cmat = Eigen::Matrix<double, 6, 6>::Zero();
+  Eigen::Matrix<double, 6, 6> Dmat = Eigen::Matrix<double, 6, 6>::Zero();
 
   // Get vehicle state
   gz::sim::Link baseLink(this->dataPtr->linkEntity);
@@ -508,14 +523,30 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
+  // On the first iteration, initialize prevState from the actual velocity
+  // to avoid a transient spike in the acceleration estimate.
+  if (this->dataPtr->firstIteration)
+  {
+    this->dataPtr->prevState = state;
+    this->dataPtr->firstIteration = false;
+  }
+
   auto dt = static_cast<double>(_info.dt.count())/1e9;
   stateDot = (state - this->dataPtr->prevState)/dt;
 
   this->dataPtr->prevState = state;
 
+  Eigen::Matrix<double, 6, 1> kTotalWrench =
+    Eigen::Matrix<double, 6, 1>::Zero();
+
   // The added mass
-  // Negative sign signifies the behaviour change
-  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
+  if (!this->dataPtr->disableAddedMass)
+  {
+    // Negative sign signifies the behaviour change
+    const Eigen::Matrix<double, 6, 1> kAmassVec =
+      - this->dataPtr->Ma * stateDot;
+    kTotalWrench += kAmassVec;
+  }
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
@@ -523,58 +554,52 @@ void Hydrodynamics::PreUpdate(
   // diagonal terms here. Have yet to add the cross terms here. Also note, since
   // $M_a(0,0) = \dot X_u $ , $M_a(1,1) = \dot Y_v $ and so forth, we simply
   // load the stability derivatives from $M_a$.
-  Cmat(0, 4) = - this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(0, 5) = - this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(1, 3) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(1, 5) = - this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(2, 3) = - this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(2, 4) =   this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(3, 1) = - this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(3, 2) =   this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(3, 4) = - this->dataPtr->Ma(5, 5) * state(5);
-  Cmat(3, 5) =   this->dataPtr->Ma(4, 4) * state(4);
-  Cmat(4, 0) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(4, 2) = - this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(4, 3) =   this->dataPtr->Ma(5, 5) * state(5);
-  Cmat(4, 5) = - this->dataPtr->Ma(3, 3) * state(3);
-  Cmat(5, 0) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(5, 1) =   this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(5, 3) = - this->dataPtr->Ma(4, 4) * state(4);
-  Cmat(5, 4) =   this->dataPtr->Ma(3, 3) * state(3);
-  const Eigen::VectorXd kCmatVec = - Cmat * state;
-
-  // Damping forces
-  for(int i = 0; i < 6; i++)
-  {
-    for(int j = 0; j < 6; j++)
-    {
-      auto coeff = - this->dataPtr->stabilityLinearTerms[i * 6 + j];
-      for(int k = 0; k < 6; k++)
-      {
-        auto index = i * 36 + j * 6 + k;
-        auto absCoeff =
-          this->dataPtr->stabilityQuadraticAbsDerivative[index] * abs(state(k));
-        coeff -= absCoeff;
-        auto velCoeff =
-          this->dataPtr->stabilityQuadraticDerivative[index] * state(k);
-        coeff -= velCoeff;
-      }
-
-      Dmat(i, j) = coeff;
-    }
-  }
-
-  const Eigen::VectorXd kDvec = Dmat * state;
-
-  Eigen::VectorXd kTotalWrench = kDvec;
-
-  if (!this->dataPtr->disableAddedMass)
-  {
-    kTotalWrench += kAmassVec;
-  }
   if (!this->dataPtr->disableCoriolis)
   {
+    Cmat = hydrodynamics::buildCoriolisMatrix(this->dataPtr->Ma, state);
+    const Eigen::Matrix<double, 6, 1> kCmatVec = - Cmat * state;
     kTotalWrench += kCmatVec;
+  }
+
+  // Damping forces
+  Dmat = hydrodynamics::buildDampingMatrix(
+    this->dataPtr->stabilityLinearTerms,
+    this->dataPtr->stabilityQuadraticAbsDerivative,
+    this->dataPtr->stabilityQuadraticDerivative,
+    state);
+
+  const Eigen::Matrix<double, 6, 1> kDvec = Dmat * state;
+
+  kTotalWrench += kDvec;
+
+  // Coriolis current-velocity correction for <fluid_added_mass>.
+  //
+  // DART implicitly computes C_A(v)*v using the body's absolute velocity v.
+  // Fossen's equations require C_A(v_r)*v_r where v_r = v - v_current.
+  // We apply a correction wrench so the net effect uses relative velocity:
+  //   Applied = -kTotalWrench, so we add (Ca_rel*v_r - Ca_abs*v) to
+  //   kTotalWrench, which produces external force (Ca_abs*v - Ca_rel*v_r).
+  //   Combined with DART's implicit -C_A(v)*v, the total becomes -C_A(v_r)*v_r.
+  if (this->dataPtr->hasFluidAddedMass)
+  {
+    // Build absolute body-frame velocity (without current subtraction).
+    // Angular velocity is unaffected by ocean current.
+    Eigen::Matrix<double, 6, 1> absState;
+    auto localAbsLinearVelocity = pose->Rot().Inverse() *
+      linearVelocity->Data();
+    absState(0) = localAbsLinearVelocity.X();
+    absState(1) = localAbsLinearVelocity.Y();
+    absState(2) = localAbsLinearVelocity.Z();
+    absState(3) = localRotationalVelocity.X();
+    absState(4) = localRotationalVelocity.Y();
+    absState(5) = localRotationalVelocity.Z();
+
+    auto Ca_abs = hydrodynamics::buildFullCoriolisMatrix(
+      this->dataPtr->fluidAddedMass, absState);
+    auto Ca_rel = hydrodynamics::buildFullCoriolisMatrix(
+      this->dataPtr->fluidAddedMass, state);
+
+    kTotalWrench += Ca_rel * state - Ca_abs * absState;
   }
 
   math::Vector3d totalForce(

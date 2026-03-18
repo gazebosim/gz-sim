@@ -21,59 +21,52 @@ To approximate the motion of the vehicle in the ocean environment, we adapt
 Fossen’s six degree-of-freedom robot-like vectorial model for marine craft [2]
 expressed as
 
-$$M ẍ + D(ẋ)ẋ + C(ẋ)ẋ = F$$
+$$M ẍ + C(ẋ)ẋ + D(ẋ)ẋ = F$$
 
-where `M` is the added mass matrix, `D(ẋ)` is the damping matrix, `C(ẋ)` is the
-Coriolis matrix, and `ẋ` is the velocity six-vector.
+where `M` is the inertia matrix (including added mass), `C(ẋ)` is the
+Coriolis-centripetal matrix, `D(ẋ)` is the damping matrix, and `ẋ` is the
+velocity six-vector.
 
-If present, ocean current is approximated by adding a term `vc` to the velocity:
+If present, ocean current is approximated by using the relative velocity
+`ẋr = ẋ − vc`:
 
-$$M ẍ + D(ẋ − vc )(ẋ − vc ) + C(ẋ − vc )(ẋ − vc ) = F$$
+$$M ẍ + C(ẋ_r)ẋ_r + D(ẋ_r)ẋ_r = F$$
 
-The hydrodynamic forces include the added mass terms due to inertia of the
-surrounding fluid, the Coriolis-centripetal matrix for the added mass, and
-hydrodynamic damping. The hydrodynamic damping includes forces due to
-radiation-induced potential damping, skin friction, wave drift damping, vortex
-shedding and lifting forces. These effects are aggregated in the hydrodynamic
-damping matrix. This approximation of the hydrodynamic effects is implemented in
-this Gazebo plugin. The user defines the characteristics of the vessel under
-test through a vessel-specific configuration that includes the hydrodynamic
-derivatives. During each time step of the simulation, the plugin is executed
-with access to the state of the vessel and environment. The hydrodynamic force
-terms are calculated based on this state information and the user-defined vessel
-characteristics. The resulting force and moment values are then applied to the
-vessel through the Gazebo API for inclusion in the next iteration of the physics
-engine.
+**Added mass and Coriolis** (`M` and `C` terms) are handled by the physics
+engine via the SDF `<fluid_added_mass>` tag on the link’s `<inertial>` element.
+This provides implicit integration that is unconditionally stable.
+See the [SDF specification](http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass)
+for details.
 
-The parameters of the plugin are configured via SDF in the model file.
-The next table summarizes all the available SDF parameters.
+**Hydrodynamic damping** (`D` term) is handled by the Hydrodynamics plugin.
+This includes forces due to radiation-induced potential damping, skin friction,
+wave drift damping, vortex shedding and lifting forces. These effects are
+aggregated in the damping matrix. The user defines the vessel’s damping
+characteristics through SDF parameters using the SNAME naming convention. During
+each time step, the plugin computes the damping force using the velocity
+relative to the ocean current and applies it to the vessel.
+
+When both `<fluid_added_mass>` and an ocean current are present, the plugin also
+applies a Coriolis correction so that the added-mass Coriolis force uses the
+relative velocity rather than the absolute velocity.
+
+The next table summarizes the available SDF parameters for the plugin.
 
 Parameter         | Description
 ------------------| -------------
-<xDotU>           | Added mass in surge
-<yDotV>           | Added mass in sway
-<zDotW>           | Added mass in heave
-<kDotP>           | Added mass in roll
-<mDotQ>           | Added mass in pitch
-<nDotR>           | Added mass in yaw
-<xUabsU>          | Quadratic drag in surge
-<xU>              | Linear drag in surge
-<yVabsV>          | Quadratic drag in sway
-<yV>              | Linear drag in sway
-<zWabsW>          | Quadratic drag in heave
-<zW>              | Linear drag in heave
-<kPabsP>          | Quadratic drag in roll
-<kP>              | Linear drag in roll
-<mQabsQ>          | Quadratic drag in pitch
-<mQ>              | Linear drag in pitch
-<nRabsR>          | Quadratic drag in yaw
-<nR>              | Linear drag in yaw
-<default_current> | Default ocean current vector
-
-**Note about added mass**: SDFormat also supports added mass natively. Until we
-deprecate the added mass parameters of this plugin, do not set the added mass
-parameters in both places, choose one (either in this plugin or under
-`<inertial>` of your link).
+\<xUabsU\>       | Quadratic drag in surge
+\<xU\>           | Linear drag in surge
+\<yVabsV\>       | Quadratic drag in sway
+\<yV\>           | Linear drag in sway
+\<zWabsW\>       | Quadratic drag in heave
+\<zW\>           | Linear drag in heave
+\<kPabsP\>       | Quadratic drag in roll
+\<kP\>           | Linear drag in roll
+\<mQabsQ\>       | Quadratic drag in pitch
+\<mQ\>           | Linear drag in pitch
+\<nRabsR\>       | Quadratic drag in yaw
+\<nR\>           | Linear drag in yaw
+\<default_current\> | Default ocean current vector
 
 # A simple example
 
@@ -134,10 +127,11 @@ damping in the surge axis, causing the vehicle to slowly move towards its goal.
 
 # Experimental - How to tune the parameters
 
-The hydrodynamics plugin requires a large number of parameters to model the
-added mass and drag behaviors of underwater vehicles. This section describes a
-method to generate an initial set of parameters for the hydrodynamics plugin.
-Note these parameters need to be tested and possibly tweaked to guarantee model stability.
+The hydrodynamics plugin requires a number of parameters to model the drag
+behavior of underwater vehicles. The added mass is specified separately using the
+SDF `<fluid_added_mass>` tag. This section describes methods to determine these
+parameters. Note these parameters need to be tested and possibly tweaked to
+guarantee model stability.
 
 ## Added mass
 
@@ -154,6 +148,24 @@ in infinitely deep water respectively) [1] (p.14), [2] (p.18).
 
 Furthermore, it is recommended to use a simplified mesh when computing the added
 mass with Capytaine, since a complex mesh is computationally prohibitive.
+
+Once you have the added mass values, specify them using the `<fluid_added_mass>`
+tag in your link's `<inertial>` element. For example, for diagonal added mass:
+
+```xml
+<inertial>
+  <fluid_added_mass>
+    <xx>4.876</xx>
+    <yy>126.325</yy>
+    <zz>126.325</zz>
+    <qq>33.46</qq>
+    <rr>33.46</rr>
+  </fluid_added_mass>
+</inertial>
+```
+
+Note that `<fluid_added_mass>` uses positive values, unlike the deprecated
+plugin parameters which used the negative Fossen sign convention.
 
 ## Linear and quadratic damping
 
