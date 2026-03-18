@@ -555,7 +555,8 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CollisionFilter))
   testFunc(spawnPoseOverCol02);
 }
 
-TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor))
+TEST_F(TouchPluginTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AutoCreateContactSensor))
 {
   // Spawn white box over collisions in the green box.
   // There are 3 touch plugins in the green box, and each one specifies a
