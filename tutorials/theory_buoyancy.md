@@ -32,7 +32,7 @@ to match your expected center of buoyancy.
 The buoyancy force is proportional to the volume of air in the vehicle according
 to this equation:
 
-$$volume\\_neutral = \frac{mass}{waterDensity}$$
+\f[volume\_neutral = \frac{mass}{waterDensity}\f]
 
 Pure water's density is `1000 kgm^-3` and seawater's density is `1025 kgm^-3`
 approximately. The mass of your vehicle is something that you'll decide or know
