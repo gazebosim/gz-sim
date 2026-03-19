@@ -143,7 +143,7 @@ Gazebo will look for URIs (path / URL) in the following, in order:
 \* The `GZ_FILE_PATH` environment variable also works in some scenarios, but
   it's not recommended when using Gazebo.
 
-If a <geometry><mesh><uri>` starts with the `name://` scheme,
+If a `<geometry><mesh><uri>` starts with the `name://` scheme,
 e.g. `name://my_mesh_name`, Gazebo will check to see if a mesh with the
 specified name exists in the Mesh Manager and load that mesh if it exists.
 This can happen when a `common::Mesh` object is created in memory and
