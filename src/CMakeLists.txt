@@ -72,6 +72,7 @@ set (sources
   BaseView.cc
   Conversions.cc
   ComponentFactory.cc
+  EnttComponentManager.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
   InstallationDirectories.cc
@@ -110,6 +111,7 @@ set (gtest_sources
   ComponentFactory_TEST.cc
   Component_TEST.cc
   Conversions_TEST.cc
+  EnttComponentManager_TEST.cc
   EntityComponentManager_TEST.cc
   EventManager_TEST.cc
   Joint_TEST.cc
