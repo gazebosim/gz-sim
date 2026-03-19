@@ -50,25 +50,25 @@ The next table summarizes all the available SDF parameters.
 
 Parameter         | Description
 ------------------| -------------
-<xDotU>           | Added mass in surge
-<yDotV>           | Added mass in sway
-<zDotW>           | Added mass in heave
-<kDotP>           | Added mass in roll
-<mDotQ>           | Added mass in pitch
-<nDotR>           | Added mass in yaw
-<xUabsU>          | Quadratic drag in surge
-<xU>              | Linear drag in surge
-<yVabsV>          | Quadratic drag in sway
-<yV>              | Linear drag in sway
-<zWabsW>          | Quadratic drag in heave
-<zW>              | Linear drag in heave
-<kPabsP>          | Quadratic drag in roll
-<kP>              | Linear drag in roll
-<mQabsQ>          | Quadratic drag in pitch
-<mQ>              | Linear drag in pitch
-<nRabsR>          | Quadratic drag in yaw
-<nR>              | Linear drag in yaw
-<default_current> | Default ocean current vector
+`<xDotU>`           | Added mass in surge
+`<yDotV>`           | Added mass in sway
+`<zDotW>`           | Added mass in heave
+`<kDotP>`           | Added mass in roll
+`<mDotQ>`           | Added mass in pitch
+`<nDotR>`           | Added mass in yaw
+`<xUabsU>`          | Quadratic drag in surge
+`<xU>`              | Linear drag in surge
+`<yVabsV>`          | Quadratic drag in sway
+`<yV>`              | Linear drag in sway
+`<zWabsW>`          | Quadratic drag in heave
+`<zW>`              | Linear drag in heave
+`<kPabsP>`          | Quadratic drag in roll
+`<kP>`              | Linear drag in roll
+`<mQabsQ>`          | Quadratic drag in pitch
+`<mQ>`              | Linear drag in pitch
+`<nRabsR>`          | Quadratic drag in yaw
+`<nR>`            | Linear drag in yaw
+`<default_current>` | Default ocean current vector
 
 **Note about added mass**: SDFormat also supports added mass natively. Until we
 deprecate the added mass parameters of this plugin, do not set the added mass
