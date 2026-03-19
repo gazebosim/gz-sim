@@ -57,18 +57,19 @@ namespace systems
   ///       below.
   ///   To visualize the lookup map, set the model's visual diffuse texture to
   ///   this file, e.g. set this texture to a plane or heightmap.
-  /// * `<size_x>`: (Required) x size of lookup slip map in meters.
-  /// * `<size_y>`: (Required) y size of lookup slip map in meters.
-  /// * `<wheel_link_name>`: (Required) The wheel link name from the
-  ///   WheelSlip system. Specify one `<wheel_link_name>` per wheel link.
-  /// * `<slip_compliance_lateral_delta>`: (Optional) The increase / decrease
-  ///   step to be applied to the lateral slip. Default is 0.05
-  /// * `<slip_compliance_longitudinal_delta>`: (Optional) The
-  ///   increase / decrease step to be applied to the longitudinal
-  ///   slip. Default is 0.005
-  /// * `<friction_delta>`: (Optional) The increase/decrease step to be applied
-  ///   to the friction coefficients in the primary and secondary directions.
-  ///   Default is 0.5
+  /// * `&lt;size_x&gt;`: (Required) x size of lookup slip map in meters.
+  /// * `&lt;size_y&gt;`: (Required) y size of lookup slip map in meters.
+  /// * `&lt;wheel_link_name&gt;`: (Required) The wheel link name from the
+  ///   WheelSlip system. Specify one `&lt;wheel_link_name&gt;` per wheel link.
+  /// * `&lt;slip_compliance_lateral_delta&gt;`: (Optional)
+  ///    The increase/ decrease step to be applied to the lateral slip.
+  ///    Default is 0.05
+  /// * `&lt;slip_compliance_longitudinal_delta&gt;`: (Optional) The
+  ///   increase / decrease step to be applied to the longitudinal slip.
+  ///   Default is 0.005
+  /// * `&lt;friction_delta&gt;`: (Optional) The increase/decrease step to be
+  ///   applied to the friction coefficients in the primary
+  ///   and secondary directions. Default is 0.5
   class LookupWheelSlip
       : public System,
         public ISystemConfigure,
