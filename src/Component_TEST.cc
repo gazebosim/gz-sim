@@ -535,6 +535,29 @@ TEST_F(ComponentTest, TypeId)
 
     EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
   }
+
+  // Constexpr TypeId
+  {
+    using ConstexprComp = components::Component<int, class ConstexprTag>;
+    GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
+
+    static_assert(ConstexprComp::typeIdStatic() ==
+        common::hash64("gz_sim_components.ConstexprComp"));
+
+    EXPECT_EQ(ConstexprComp::typeIdStatic(), ConstexprComp::typeId);
+
+    // EnTT integration
+    EXPECT_EQ(ConstexprComp::typeIdStatic(), entt::type_hash<ConstexprComp>::value());
+  }
+
+  // Pre-registered component
+  {
+    EXPECT_EQ(components::Name::typeIdStatic(),
+              common::hash64("gz_sim_components.Name"));
+    EXPECT_EQ(components::Name::typeIdStatic(), components::Name::typeId);
+    EXPECT_EQ(components::Name::typeIdStatic(),
+              entt::type_hash<components::Name>::value());
+  }
 }
 
 //////////////////////////////////////////////////

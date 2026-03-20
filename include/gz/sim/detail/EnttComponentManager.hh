@@ -89,12 +89,16 @@ auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
   return false;
 };
 
-/*
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EnttComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
+  if (!this->HasEntity(_entity))
+    return nullptr;
+  this->registry.emplace_or_replace<ComponentTypeT>(_entity, _data);
+  return &this->registry.get<ComponentTypeT>(_entity);
+  /*
   auto updateData = this->CreateComponentImplementation(_entity,
       ComponentTypeT::typeId, &_data);
   auto comp = this->Component<ComponentTypeT>(_entity);
@@ -110,6 +114,7 @@ ComponentTypeT *EnttComponentManager::CreateComponent(const Entity _entity,
     *comp = _data;
   }
   return comp;
+  */
 }
 
 //////////////////////////////////////////////////
@@ -117,22 +122,28 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EnttComponentManager::Component(
     const Entity _entity) const
 {
+  return this->registry.try_get<const ComponentTypeT>(_entity);
+  /*
   // Get a unique identifier to the component type
   const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<const ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
+      */
 }
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EnttComponentManager::Component(const Entity _entity)
 {
+  return this->registry.try_get<ComponentTypeT>(_entity);
   // Get a unique identifier to the component type
+  /*`
   const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
+      */
 }
 
 //////////////////////////////////////////////////
@@ -140,6 +151,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EnttComponentManager::ComponentDefault(Entity _entity,
     const typename ComponentTypeT::Type &_default)
 {
+  // TODO(luca) a get or emplace?
   auto comp = this->Component<ComponentTypeT>(_entity);
   if (!comp)
   {
@@ -161,6 +173,7 @@ std::optional<typename ComponentTypeT::Type>
   return std::make_optional(comp->Data());
 }
 
+/*
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 bool EnttComponentManager::SetComponentData(const Entity _entity,
@@ -573,6 +586,7 @@ detail::View *EnttComponentManager::FindView() const
   return static_cast<detail::View *>(baseViewPtr);
 }
 
+*/
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 bool EnttComponentManager::RemoveComponent(Entity _entity)
@@ -580,7 +594,6 @@ bool EnttComponentManager::RemoveComponent(Entity _entity)
   const auto typeId = ComponentTypeT::typeId;
   return this->RemoveComponent(_entity, typeId);
 }
-*/
 }
 }
 }

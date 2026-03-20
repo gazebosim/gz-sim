@@ -31,6 +31,7 @@
 #include <gz/common/Util.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
+#include <gz/sim/entt.hpp>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
@@ -404,41 +405,54 @@ namespace components
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
   };
+}
+}
+}
+}
 
-  /// \brief Static component registration macro.
-  ///
-  /// Use this macro to register components.
-  ///
-  /// \details Each time a plugin which uses a component is loaded, it tries to
-  /// register the component again, so we prevent that.
-  /// \param[in] _compType Component type name.
-  /// \param[in] _classname Class name for component.
-  #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
-  class GzSimComponents##_classname \
+namespace entt {
+template<typename Type>
+struct type_hash<Type, std::void_t<decltype(Type::typeIdStatic())>> {
+  static constexpr ENTT_ID_TYPE value() noexcept {
+      return Type::typeIdStatic();
+  }
+};
+}
+
+/// \brief Static component registration macro.
+///
+/// Use this macro to register components.
+///
+/// \details Each time a plugin which uses a component is loaded, it tries to
+/// register the component again, so we prevent that.
+/// \param[in] _compType Component type name.
+/// \param[in] _classname Class name for component.
+#define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
+template <> \
+struct ComponentTypeTraits<_classname> \
+{ \
+  static constexpr ::gz::sim::ComponentTypeId typeId = \
+      ::gz::common::hash64(_compType); \
+}; \
+class GzSimComponents##_classname \
+{ \
+  public: GzSimComponents##_classname() \
   { \
-    public: GzSimComponents##_classname() \
-    { \
-      using namespace gz;\
-      using Desc = sim::components::ComponentDescriptor<_classname>; \
-      sim::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc(), sim::components::RegistrationObjectId(this));\
-    } \
-    public: GzSimComponents##_classname( \
-                const GzSimComponents##_classname&) = delete; \
-    public: GzSimComponents##_classname( \
-                GzSimComponents##_classname&) = delete; \
-    public: ~GzSimComponents##_classname() \
-    { \
-      using namespace gz; \
-      sim::components::Factory::Instance()->Unregister<_classname>( \
-          sim::components::RegistrationObjectId(this)); \
-    } \
-  }; \
-  static GzSimComponents##_classname\
-    GzSimComponentsInitializer##_classname;
-}
-}
-}
-}
+    using Desc = ::gz::sim::components::ComponentDescriptor<_classname>; \
+    ::gz::sim::components::Factory::Instance()->Register<_classname>(\
+      _compType, new Desc(), ::gz::sim::components::RegistrationObjectId(this));\
+  } \
+  public: GzSimComponents##_classname( \
+              const GzSimComponents##_classname&) = delete; \
+  public: GzSimComponents##_classname( \
+              GzSimComponents##_classname&) = delete; \
+  public: ~GzSimComponents##_classname() \
+  { \
+    ::gz::sim::components::Factory::Instance()->Unregister<_classname>( \
+        ::gz::sim::components::RegistrationObjectId(this)); \
+  } \
+}; \
+static GzSimComponents##_classname\
+  GzSimComponentsInitializer##_classname;
 
 #endif

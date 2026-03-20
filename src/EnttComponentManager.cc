@@ -46,6 +46,10 @@
 #include "gz/sim/components/World.hh"
 
 using namespace gz;
+
+struct RemoveEntity { };
+struct PinEntity { };
+
 using namespace sim;
 
 class gz::sim::EnttComponentManagerPrivate
@@ -107,6 +111,7 @@ class gz::sim::EnttComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
+  */
   /// \brief Check whether a component is marked as a component that is
   /// currently removed or not.
   /// \param[in] _entity The entity
@@ -115,6 +120,7 @@ class gz::sim::EnttComponentManagerPrivate
   /// removed. False otherwise
   public: bool ComponentMarkedAsRemoved(const Entity _entity,
               const ComponentTypeId _typeId) const;
+          /*
 
   /// \brief Set a cloned joint's parent or child link name.
   /// \param[in] _joint The cloned joint.
@@ -169,14 +175,18 @@ class gz::sim::EnttComponentManagerPrivate
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
 
+          */
   /// \brief A mutex to protect entity remove.
   public: std::mutex entityRemoveMutex;
+          /*
 
   /// \brief A mutex to protect from concurrent writes to views
   public: mutable std::mutex viewsMutex;
 
+          */
   /// \brief A mutex to protect removed components
   public: mutable std::mutex removedComponentsMutex;
+          /*
 
   /// \brief The set of all views.
   /// The value is a pair of the view itself and a mutex that can be used for
@@ -198,6 +208,7 @@ class gz::sim::EnttComponentManagerPrivate
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 
+          */
   /// \brief Unordered map of removed components. The key is the entity to
   /// which belongs the component, and the value is a set of the component types
   /// being removed.
@@ -211,6 +222,7 @@ class gz::sim::EnttComponentManagerPrivate
   /// currently removed based on all simulation steps.
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     componentsMarkedAsRemoved;
+          /*
 
   /// \brief A map of an entity to its components
   public: std::unordered_map<Entity,
@@ -295,6 +307,8 @@ class gz::sim::EnttComponentManagerPrivate
 EnttComponentManager::EnttComponentManager()
   : dataPtr(new EnttComponentManagerPrivate)
 {
+  // Gazebo expects entities to start from 1
+  static_cast<void>(this->registry.create());
 }
 
 //////////////////////////////////////////////////
@@ -338,26 +352,21 @@ void EnttComponentManagerPrivate::CopyFrom(
   this->pinnedEntities = _from.pinnedEntities;
 }
 
+*/
 //////////////////////////////////////////////////
 size_t EnttComponentManager::EntityCount() const
 {
-  return this->dataPtr->entities.Vertices().size();
+  // There is one entity at 0
+  // TODO(luca) redefine kNullEntity and allow entity 0?
+  return this->registry.storage<Entity>()->free_list() - 1;
 }
 
 /////////////////////////////////////////////////
 Entity EnttComponentManager::CreateEntity()
 {
-  Entity entity = ++this->dataPtr->entityCount;
-
-  if (entity == std::numeric_limits<uint64_t>::max())
-  {
-    gzwarn << "Reached maximum number of entities [" << entity << "]"
-            << std::endl;
-    return entity;
-  }
-
-  return this->dataPtr->CreateEntityImplementation(entity);
+  return this->registry.create();
 }
+/*
 
 /////////////////////////////////////////////////
 Entity EnttComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
@@ -666,6 +675,7 @@ void EnttComponentManager::ClearNewlyCreatedEntities()
   }
 }
 
+*/
 /////////////////////////////////////////////////
 bool EnttComponentManager::HasRemovedComponents() const
 {
@@ -680,6 +690,7 @@ void EnttComponentManager::ClearRemovedComponents()
   this->dataPtr->removedComponents.clear();
 }
 
+/*
 /////////////////////////////////////////////////
 void EnttComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
     std::unordered_set<Entity> &_set)
@@ -769,9 +780,13 @@ void EnttComponentManager::RequestRemoveEntity(Entity _entity,
   }
 }
 
+*/
 /////////////////////////////////////////////////
 void EnttComponentManager::RequestRemoveEntities()
 {
+  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
+  // this->registry.
+  /*
   if (this->dataPtr->pinnedEntities.empty())
   {
     {
@@ -810,8 +825,10 @@ void EnttComponentManager::RequestRemoveEntities()
       }
     }
   }
+  */
 }
 
+/*
 /////////////////////////////////////////////////
 void EnttComponentManager::ProcessRemoveEntityRequests()
 {
@@ -866,15 +883,30 @@ void EnttComponentManager::ProcessRemoveEntityRequests()
   this->dataPtr->descendantCache.clear();
 }
 
+*/
 /////////////////////////////////////////////////
 bool EnttComponentManager::RemoveComponent(
     const Entity _entity, const ComponentTypeId &_typeId)
 {
   GZ_PROFILE("EnttComponentManager::RemoveComponent");
   // Make sure the entity exists and has the component.
-  if (!this->EntityHasComponentType(_entity, _typeId))
+  if (!this->HasEntity(_entity))
     return false;
 
+  auto* storage = this->registry.storage(_typeId);
+
+  if (storage && storage->contains(_entity)) {
+      storage->remove(_entity);
+      this->PostRemoveComponent(_entity, _typeId);
+      return true;
+  }
+  return false;
+}
+
+/////////////////////////////////////////////////
+void EnttComponentManager::PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId)
+{
+  /*
   auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_typeId);
   if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
   {
@@ -903,13 +935,13 @@ bool EnttComponentManager::RemoveComponent(
 
   this->dataPtr->AddModifiedComponent(_entity);
 
+  */
   // Add component to map of removed components
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
     this->dataPtr->removedComponents[_entity].insert(_typeId);
   }
 
-  return true;
 }
 
 /////////////////////////////////////////////////
@@ -918,12 +950,13 @@ bool EnttComponentManager::EntityHasComponentType(const Entity _entity,
 {
   if (!this->HasEntity(_entity))
     return false;
-
-  auto comp = this->ComponentImplementation(_entity, _typeId);
-
-  return comp != nullptr;
+  const auto* storage = this->registry.storage(_typeId);
+  if (storage == nullptr)
+    return false;
+  return storage->contains(_entity);
 }
 
+/*
 /////////////////////////////////////////////////
 bool EnttComponentManager::IsNewEntity(const Entity _entity) const
 {
@@ -944,23 +977,19 @@ bool EnttComponentManager::IsMarkedForRemoval(const Entity _entity) const
          this->dataPtr->toRemoveEntities.end();
 }
 
+*/
 /////////////////////////////////////////////////
 ComponentState EnttComponentManager::ComponentState(const Entity _entity,
     const ComponentTypeId _typeId) const
 {
   auto result = ComponentState::NoChange;
 
-  auto ctIter = this->dataPtr->componentTypeIndex.find(_entity);
-
-  if (ctIter == this->dataPtr->componentTypeIndex.end())
+  if (!this->HasEntity(_entity))
     return result;
 
-  auto typeIter = ctIter->second.find(_typeId);
-  if (typeIter == ctIter->second.end() ||
-      this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
+  if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
     return result;
-
-  auto typeId = typeIter->first;
+  /*
 
   auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(typeId);
   if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end() &&
@@ -976,10 +1005,12 @@ ComponentState EnttComponentManager::ComponentState(const Entity _entity,
         periodicIter->second.find(_entity) != periodicIter->second.end())
       result = ComponentState::PeriodicChange;
   }
+  */
 
   return result;
 }
 
+/*
 /////////////////////////////////////////////////
 bool EnttComponentManager::HasNewEntities() const
 {
@@ -1295,13 +1326,15 @@ components::BaseComponent *EnttComponentManager::ComponentImplementation(
       *this).ComponentImplementation(_entity, _type));
 }
 
+*/
 /////////////////////////////////////////////////
 bool EnttComponentManager::HasComponentType(
     const ComponentTypeId _typeId) const
 {
-  return this->dataPtr->createdCompTypes.find(_typeId) !=
-    this->dataPtr->createdCompTypes.end();
+  const auto* storage = this->registry.storage(_typeId);
+  return storage != nullptr;
 }
+/*
 
 //////////////////////////////////////////////////
 const EntityGraph &EnttComponentManager::Entities() const
@@ -2086,23 +2119,21 @@ void EnttComponentManager::SetChanged(
   this->dataPtr->AddModifiedComponent(_entity);
 }
 
+*/
 /////////////////////////////////////////////////
 std::unordered_set<ComponentTypeId> EnttComponentManager::ComponentTypes(
     const Entity _entity) const
 {
-  auto it = this->dataPtr->componentTypeIndex.find(_entity);
-  if (it == this->dataPtr->componentTypeIndex.end())
-    return {};
-
   std::unordered_set<ComponentTypeId> result;
-  for (const auto &type : it->second)
+  // TODO(luca) is it possible to avoid iterating all the storages and only look at the entity's instead?
+  for (const auto& [typeId, storage] : this->registry.storage())
   {
-    if (!this->dataPtr->ComponentMarkedAsRemoved(_entity, type.first))
-      result.insert(type.first);
+    if (storage.contains(_entity))
+      result.insert(typeId);
   }
-
   return result;
 }
+/*
 
 /////////////////////////////////////////////////
 void EnttComponentManager::SetEntityCreateOffset(uint64_t _offset)
@@ -2145,6 +2176,7 @@ void EnttComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
   this->modifiedComponents.insert(_entity);
 }
 
+*/
 /////////////////////////////////////////////////
 bool EnttComponentManagerPrivate::ComponentMarkedAsRemoved(
     const Entity _entity, const ComponentTypeId _typeId) const
@@ -2156,6 +2188,7 @@ bool EnttComponentManagerPrivate::ComponentMarkedAsRemoved(
   return false;
 }
 
+/*
 /////////////////////////////////////////////////
 template<typename ComponentTypeT>
 bool EnttComponentManagerPrivate::ClonedJointLinkName(Entity _joint,

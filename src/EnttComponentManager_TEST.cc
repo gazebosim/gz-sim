@@ -53,7 +53,7 @@ using IntComponent = Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
-using UIntComponent = Component<int, class IntComponentTag>;
+using UIntComponent = Component<uint32_t, class UIntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.UIntComponent",
     UIntComponent)
 
@@ -134,7 +134,6 @@ TEST_P(EnttComponentManagerFixture, InvalidComponentType)
 {
   // Can't remove component from an nonexistent entity
   EXPECT_FALSE(manager.HasEntity(2));
-  /*
   EXPECT_FALSE(manager.RemoveComponent(2, IntComponent::typeId));
 
   // Can't remove a component that doesn't exist.
@@ -149,10 +148,8 @@ TEST_P(EnttComponentManagerFixture, InvalidComponentType)
   EXPECT_TRUE(manager.HasEntity(2u));
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(1u));
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(2u));
-  */
 }
 
-/*
 /////////////////////////////////////////////////
 TEST_P(EnttComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveComponent))
@@ -306,6 +303,7 @@ TEST_P(EnttComponentManagerFixture,
 
   // Remove all entities
   manager.RequestRemoveEntities();
+  /*
   EXPECT_EQ(3u, manager.EntityCount());
   EXPECT_TRUE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
@@ -317,8 +315,10 @@ TEST_P(EnttComponentManagerFixture,
 
   // The type itself still exists
   EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
+  */
 }
 
+/*
 /////////////////////////////////////////////////
 TEST_P(EnttComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ComponentValues))

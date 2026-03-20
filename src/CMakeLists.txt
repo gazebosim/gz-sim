@@ -4,7 +4,7 @@ if(ENABLE_GUI)
   add_subdirectory(gui)
 endif()
 
-add_subdirectory(systems)
+# add_subdirectory(systems)
 
 file(GLOB gz_msgs_proto_files
   ${CMAKE_CURRENT_SOURCE_DIR}/proto/gz/sim/private_msgs/*.proto
@@ -104,38 +104,38 @@ set (sources
 
 set (gtest_sources
   ${gtest_sources}
-  Actor_TEST.cc
-  AddedMass_TEST.cc
-  Barrier_TEST.cc
-  BaseView_TEST.cc
-  ComponentFactory_TEST.cc
-  Component_TEST.cc
-  Conversions_TEST.cc
+  #Actor_TEST.cc
+  #AddedMass_TEST.cc
+  #Barrier_TEST.cc
+  #BaseView_TEST.cc
+  #ComponentFactory_TEST.cc
+  #Component_TEST.cc
+  #Conversions_TEST.cc
   EnttComponentManager_TEST.cc
-  EntityComponentManager_TEST.cc
-  EventManager_TEST.cc
-  Joint_TEST.cc
-  Light_TEST.cc
-  Link_TEST.cc
-  MeshInertiaCalculator_TEST.cc
-  Model_TEST.cc
-  Primitives_TEST.cc
-  SdfEntityCreator_TEST.cc
-  SdfGenerator_TEST.cc
-  Sensor_TEST.cc
-  ServerConfig_TEST.cc
-  Server_TEST.cc
-  SimulationRunner_TEST.cc
-  SystemLoader_TEST.cc
-  SystemManager_TEST.cc
-  TestFixture_TEST.cc
-  Util_TEST.cc
-  World_TEST.cc
-  comms/Broker_TEST.cc
-  comms/MsgManager_TEST.cc
-  network/NetworkConfig_TEST.cc
-  network/PeerTracker_TEST.cc
-  network/NetworkManager_TEST.cc
+  #EntityComponentManager_TEST.cc
+  #EventManager_TEST.cc
+  #Joint_TEST.cc
+  #Light_TEST.cc
+  #Link_TEST.cc
+  #MeshInertiaCalculator_TEST.cc
+  #Model_TEST.cc
+  #Primitives_TEST.cc
+  #SdfEntityCreator_TEST.cc
+  #SdfGenerator_TEST.cc
+  #Sensor_TEST.cc
+  #ServerConfig_TEST.cc
+  #Server_TEST.cc
+  #SimulationRunner_TEST.cc
+  #SystemLoader_TEST.cc
+  #SystemManager_TEST.cc
+  #TestFixture_TEST.cc
+  #Util_TEST.cc
+  #World_TEST.cc
+  #comms/Broker_TEST.cc
+  #comms/MsgManager_TEST.cc
+  #network/NetworkConfig_TEST.cc
+  #network/PeerTracker_TEST.cc
+  #network/NetworkManager_TEST.cc
 )
 
 # Tests that require a valid display

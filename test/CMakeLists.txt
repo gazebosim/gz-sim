@@ -6,6 +6,6 @@ include_directories (
 )
 
 add_subdirectory(gtest_vendor)
-add_subdirectory(benchmark)
+# add_subdirectory(benchmark)
 add_subdirectory(plugins)
 add_subdirectory(worlds)

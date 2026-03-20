@@ -82,9 +82,11 @@ namespace gz
       /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EnttComponentManager &_fromEcm);
 
+      */
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
+              /*
 
       /// \brief Clone an entity and its components. If the entity has any child
       /// entities, they will also be cloned.
@@ -121,9 +123,11 @@ namespace gz
       public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
+                  */
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
       public: size_t EntityCount() const;
+              /*
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -168,12 +172,12 @@ namespace gz
       /// \sa void PinEntity(const Entity, bool)
       public: void UnpinAllEntities();
 
+              */
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
       public: void RequestRemoveEntities();
 
-              */
       /// \brief Get whether an Entity exists.
       /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
@@ -200,6 +204,7 @@ namespace gz
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
+              */
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
@@ -212,6 +217,7 @@ namespace gz
       /// with the provided type.
       public: bool EntityHasComponentType(const Entity _entity,
                   const ComponentTypeId &_typeId) const;
+              /*
 
       /// \brief Get whether an entity has all the given component types.
       /// \param[in] _entity The entity to check.
@@ -220,6 +226,7 @@ namespace gz
       public: bool EntityMatches(Entity _entity,
         const std::set<ComponentTypeId> &_types) const;
 
+              */
       /// \brief Remove a component from an entity based on a type id.
       /// \param[in] _entity The entity.
       /// \param[in] _typeId Component's type Id.
@@ -227,6 +234,8 @@ namespace gz
       ///  removed.
       public: bool RemoveComponent(
                   const Entity _entity, const ComponentTypeId &_typeId);
+  
+      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
 
       /// \brief Remove a component from an entity based on a type.
       /// \param[in] _entity The entity.
@@ -235,11 +244,13 @@ namespace gz
       ///  removed.
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
+              /*
 
       /// \brief Rebuild all the views. This could be an expensive
       /// operation.
       public: void RebuildViews();
 
+                  */
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
       /// \param[in] _entity The entity that will be associated with
@@ -294,6 +305,7 @@ namespace gz
               std::optional<typename ComponentTypeT::Type> ComponentData(
               const Entity _entity) const;
 
+              /*
       /// \brief Set the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, the component will be
@@ -308,11 +320,13 @@ namespace gz
               bool SetComponentData(const Entity _entity,
               const typename ComponentTypeT::Type &_data);
 
+              */
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.
       public: std::unordered_set<ComponentTypeId> ComponentTypes(
           Entity _entity) const;
+              /*
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
@@ -655,12 +669,14 @@ namespace gz
           const Entity _entity, const ComponentTypeId _type,
           sim::ComponentState _c = ComponentState::OneTimeChange);
 
+              */
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
       /// \return Component's current state
       public: sim::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
+              /*
 
       /// \brief All future entities will have an id that starts at _offset.
       /// This can be used to avoid entity id collisions, such as during log
@@ -675,9 +691,11 @@ namespace gz
       /// was computed.
       public: void ResetTo(const EnttComponentManager &_other);
 
+              */
       /// \brief Return true if there are components marked for removal.
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
+              /*
 
       /// \brief Get an Entity based on a name component that is associated
       /// with the entity.
@@ -691,9 +709,11 @@ namespace gz
       /// EachAdded after this will have no entities to iterate.
       public: void ClearNewlyCreatedEntities();
 
+      */
       /// \brief Clear the list of removed components so that a call to
       /// RemoveComponent doesn't make the list grow indefinitely.
       public: void ClearRemovedComponents();
+              /*
 
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components.
