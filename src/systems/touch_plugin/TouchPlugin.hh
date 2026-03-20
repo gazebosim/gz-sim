@@ -59,6 +59,12 @@ namespace systems
   ///                 attached to. If no `<collision>` elements are specified,
   ///                 all contact sensor collisions are used.
   ///
+  /// - `<create_contact_sensor_for_collision>` Optional parameter. If true,
+  ///                 automatically create a contact sensor for the collision
+  ///                 if the sensor does not exist already. This allows the
+  ///                 TouchPlugin system to be used without explicitly defining
+  ///                 contact sensors inside links in SDF. Default to false.
+  ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<namespace>` Namespace for transport topics/services:
