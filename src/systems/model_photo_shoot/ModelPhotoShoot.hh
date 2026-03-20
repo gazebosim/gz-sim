@@ -41,9 +41,9 @@ namespace systems
   /// can be replicated in other systems.
   ///
   /// ## System Parameters
-  /// - <translation_data_file> - Location to save the camera and joint poses.
+  /// - `<translation_data_file>` - Location to save the camera and joint poses.
   ///   [Optional]
-  /// - <random_joints_pose> - Set to true to take pictures with the joints in
+  /// - `<random_joints_pose>` - Set to true to take pictures with the joints in
   ///   random poses instead of the default ones. This option only supports
   ///   single axis joints. [Optional]
   /// - A camera sensor must be set in the SDF file as it will be used by the

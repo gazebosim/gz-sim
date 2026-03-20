@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim VERSION 10.0.0)
-set (GZ_DISTRIBUTION "Jetty")
+project(gz-sim VERSION 11.0.0)
+set (GZ_DISTRIBUTION "Rotary")
 
 #============================================================================
 # Find gz-cmake
@@ -123,6 +123,7 @@ option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
   gz_find_package(gz-gui REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
