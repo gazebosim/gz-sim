@@ -133,7 +133,8 @@ namespace systems
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
-        public ISystemPostUpdate
+        public ISystemPostUpdate,
+        public ISystemReset
   {
     /// \brief Constructor
     public: DiffDrive();
@@ -156,6 +157,11 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void Reset(
+                const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<DiffDrivePrivate> dataPtr;

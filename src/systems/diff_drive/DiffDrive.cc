@@ -656,10 +656,23 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
   }
 }
 
+//////////////////////////////////////////////////
+void DiffDrive::Reset(const gz::sim::UpdateInfo &/*_info*/,
+    gz::sim::EntityComponentManager &/*_ecm*/)
+{
+  this->dataPtr->last0Cmd = {0, 0};
+  this->dataPtr->last1Cmd = {0, 0};
+  this->dataPtr->targetVel = msgs::Twist{};
+  this->dataPtr->odom = math::DiffDriveOdometry();
+  this->dataPtr->lastOdomPubTime =
+      std::chrono::steady_clock::duration::zero();
+}
+
 GZ_ADD_PLUGIN(DiffDrive,
                     System,
                     DiffDrive::ISystemConfigure,
                     DiffDrive::ISystemPreUpdate,
-                    DiffDrive::ISystemPostUpdate)
+                    DiffDrive::ISystemPostUpdate,
+                    DiffDrive::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(DiffDrive, "gz::sim::systems::DiffDrive")
