@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim VERSION 10.0.0)
-set (GZ_DISTRIBUTION "Jetty")
+project(gz-sim VERSION 11.0.0)
+set (GZ_DISTRIBUTION "Rotary")
 
 #============================================================================
 # Find gz-cmake
@@ -123,6 +123,7 @@ option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
   gz_find_package(gz-gui REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
@@ -195,7 +196,6 @@ else()
 endif()
 # Note that CLI files are installed regardless of whether the dependency is
 # available during build time
-set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
@@ -246,13 +246,13 @@ else()
 endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR
-  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}/plugins
 )
 set(GZ_SIM_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR}
 )
 set(GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR
-  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}/plugins/gui
 )
 set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR}
@@ -278,8 +278,8 @@ endif()
 #============================================================================
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim${PROJECT_VERSION_MAJOR}.desktop)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo${PROJECT_VERSION_MAJOR}.svg)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim.desktop)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo.svg)
 
 gz_create_docs(
   API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
