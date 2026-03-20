@@ -138,7 +138,7 @@ class gz::sim::systems::BuoyancyPrivate
   /// \brief List of points from where the forces act.
   /// This holds values refent to the current link being processed and must be
   /// cleared between links.
-  /// \TODO(chapulina) It's dangerous to keep link-specific values in a member
+  /// \todo(chapulina) It's dangerous to keep link-specific values in a member
   /// variable. We should consider reducing the scope of this variable and pass
   /// it across functions as needed.
   public: std::vector<BuoyancyActionPoint> buoyancyForces;

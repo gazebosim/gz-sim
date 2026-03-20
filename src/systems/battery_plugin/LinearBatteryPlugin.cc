@@ -135,11 +135,11 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Initial power load set through config
   public: double initialPowerLoad{0.0};
 
-  /// \TODO(caguero) Remove in Gazebo Dome.
+  /// \todo(caguero) Remove in Gazebo Dome.
   /// \brief Battery current for a historic time window
   public: std::deque<double> iList;
 
-  /// \TODO(caguero) Remove in Gazebo Dome.
+  /// \todo(caguero) Remove in Gazebo Dome.
   /// \brief Time interval for a historic time window
   public: std::deque<double> dtList;
 
@@ -178,7 +178,7 @@ class gz::sim::systems::LinearBatteryPluginPrivate
   /// \brief Flag to invert the current sign
   public: bool invertCurrentSign{false};
 
-  /// \TODO(caguero) Remove this flag in Gazebo Dome.
+  /// \todo(caguero) Remove this flag in Gazebo Dome.
   /// \brief Flag to enable some battery fixes.
   public: bool fixIssue225{false};
 };
@@ -559,7 +559,7 @@ void LinearBatteryPlugin::Update(const UpdateInfo &_info,
   if (!this->dataPtr->battery)
     return;
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
