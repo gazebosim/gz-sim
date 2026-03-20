@@ -67,7 +67,7 @@ Parameter         | Description
 `<mQabsQ>`          | Quadratic drag in pitch
 `<mQ>`              | Linear drag in pitch
 `<nRabsR>`          | Quadratic drag in yaw
-`<nR>`              | Linear drag in yaw
+`<nR>`            | Linear drag in yaw
 `<default_current>` | Default ocean current vector
 
 **Note about added mass**: SDFormat also supports added mass natively. Until we
