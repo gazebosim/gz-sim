@@ -242,7 +242,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 
     if (!scene->NodeByName("photo_shoot_pt_light"))
     {
-      gz::rendering::PointLightPtr light2 = 
+      gz::rendering::PointLightPtr light2 =
           scene->CreatePointLight("photo_shoot_pt_light");
       light2->SetDiffuseColor(0.5, 0.5, 0.5);
       light2->SetSpecularColor(0.5, 0.5, 0.5);
@@ -255,7 +255,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
     gz::math::Vector3d bboxCenter = bbox.Center();
     gz::math::Vector3d translation =
         bboxCenter + this->modelPose3D.Pos();
-        
+
     if (this->savingFile.is_open()) 
     {
       this->savingFile << "Translation: " << translation << std::endl;
