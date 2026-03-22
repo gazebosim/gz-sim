@@ -256,7 +256,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
     gz::math::Vector3d translation =
         bboxCenter + this->modelPose3D.Pos();
 
-    if (this->savingFile.is_open()) 
+    if (this->savingFile.is_open())
     {
       this->savingFile << "Translation: " << translation << std::endl;
       this->savingFile << "Scaling: " << scaling << std::endl;
