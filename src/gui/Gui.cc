@@ -25,6 +25,8 @@
 
 #include <QScreen>
 
+#include <memory>
+#include <mutex>
 #include <unordered_set>
 
 #include <gz/common/Console.hh>
@@ -249,42 +251,59 @@ std::unique_ptr<gz::gui::Application> createGui(
 
   transport::Node node;
 
-  std::unordered_set<std::string> injectedWorlds;
+  auto injectedWorlds = std::make_shared<std::unordered_set<std::string>>();
+  auto checkingWorlds = std::make_shared<std::unordered_set<std::string>>();
+  auto injectedWorldsMutex = std::make_shared<std::mutex>();
   auto ensureSceneBroadcaster = [&](const std::string &worldName)
   {
-    const unsigned int timeout = 5000;
-    bool sceneBroadcasterFound = false;
-    bool sceneResult = false;
-    msgs::Empty sceneReq;
-    msgs::Scene sceneRes;
-    auto sceneService = transport::TopicUtils::AsValidTopic(
-      "/world/" + worldName + "/scene/info");
-    for (int attempt = 0; attempt < 2 && !sceneBroadcasterFound; ++attempt)
     {
-        if (!sceneService.empty() &&
-          node.Request(sceneService, sceneReq, timeout, sceneRes,
-            sceneResult) &&
-          sceneResult)
-      {
-        sceneBroadcasterFound = true;
-        break;
-      }
+      std::lock_guard<std::mutex> lock(*injectedWorldsMutex);
+      if (injectedWorlds->count(worldName) > 0 ||
+          checkingWorlds->count(worldName) > 0)
+        return;
 
-      if (attempt == 0)
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      }
+      checkingWorlds->insert(worldName);
     }
 
-    if (!sceneBroadcasterFound)
+    std::thread([worldName, injectedWorlds, checkingWorlds,
+        injectedWorldsMutex]()
     {
-      if (injectedWorlds.count(worldName) > 0)
-        return;
+      transport::Node threadNode;
+      msgs::Empty sceneReq;
+      msgs::Scene sceneRes;
+      bool sceneResult = false;
+      auto sceneService = transport::TopicUtils::AsValidTopic(
+        "/world/" + worldName + "/scene/info");
+      for (int attempt = 0; attempt < 10; ++attempt)
+      {
+        bool sceneRequestOk = false;
+        if (!sceneService.empty())
+        {
+          sceneRequestOk = threadNode.Request(sceneService, sceneReq, 100u,
+              sceneRes, sceneResult);
+        }
+
+        if (sceneRequestOk && sceneResult)
+        {
+          std::lock_guard<std::mutex> lock(*injectedWorldsMutex);
+          checkingWorlds->erase(worldName);
+          return;
+        }
+
+        if (attempt < 9)
+        {
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+      }
 
       gzwarn << "SceneBroadcaster is missing. Attempting to load it so the "
              << "scene can be visualized." << std::endl;
 
-      injectedWorlds.insert(worldName);
+      {
+        std::lock_guard<std::mutex> lock(*injectedWorldsMutex);
+        checkingWorlds->erase(worldName);
+        injectedWorlds->insert(worldName);
+      }
 
       msgs::EntityPlugin_V addReq;
       addReq.mutable_entity()->set_id(0u);
@@ -300,7 +319,7 @@ std::unique_ptr<gz::gui::Application> createGui(
         "/world/" + worldName + "/entity/system/add");
       if (!addService.empty())
       {
-        addRequestOk = node.Request(addService, addReq, timeout,
+        addRequestOk = threadNode.Request(addService, addReq, 5000u,
             addRes, addResult);
       }
 
@@ -309,11 +328,7 @@ std::unique_ptr<gz::gui::Application> createGui(
         gzerr << "Failed to load SceneBroadcaster for world [" << worldName
                << "]" << std::endl;
       }
-      else
-      {
-        node.Request(sceneService, sceneReq, timeout, sceneRes, sceneResult);
-      }
-    }
+    }).detach();
   };
 
   // Quick start dialog if no specific SDF file was passed and it's not playback
