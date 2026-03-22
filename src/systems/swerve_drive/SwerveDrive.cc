@@ -180,7 +180,7 @@ class gz::sim::systems::SwerveDrivePrivate
 
   /// \brief Steering angle error (in radians) above which wheel speed
   /// scaling is applied.
-  public: double steeringErrThreshold{M_PI / 10.0};
+  public: double steeringErrThreshold{GZ_PI / 10.0};
 
   /// \brief Exponent applied to the cosine-based speed scaling factor.
   public: int speedLimitPower{2};
@@ -1086,9 +1086,9 @@ void SwerveDrivePrivate::OptimizeWheelCmd(
   count = count % 4;
   // If the steering angle is greater than 90 degrees,it's more efficient
   // to reverse the wheel direction and steer in the opposite direction.
-  if (std::abs(_steeringDeltaAngle) > M_PI / 2)
+  if (std::abs(_steeringDeltaAngle) > GZ_PI / 2)
   {
-    _steeringDeltaAngle += (_steeringDeltaAngle > 0 ? -M_PI : M_PI);
+    _steeringDeltaAngle += (_steeringDeltaAngle > 0 ? -GZ_PI : GZ_PI);
     _wheelSpeed = -_wheelSpeed;
   }
 
