@@ -108,7 +108,6 @@ class EntityCompMgrTest : public EnttComponentManager
     this->ClearRemovedComponents();
   }
 
-          /*
   public: EntityComponentManagerDiff RunComputeDiff(
               const EnttComponentManager &_other) const
   {
@@ -120,7 +119,6 @@ class EntityCompMgrTest : public EnttComponentManager
   {
     this->ApplyEntityDiff(_other, _diff);
   }
-  */
 };
 
 class EnttComponentManagerFixture
@@ -3183,7 +3181,6 @@ TEST_P(EnttComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 }
 
-/*
 //////////////////////////////////////////////////
 TEST_P(EnttComponentManagerFixture, CopyEcm)
 {
@@ -3359,6 +3356,7 @@ TEST_P(EnttComponentManagerFixture,
 
   // add a component
   auto comp = manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  const auto compId = comp->TypeId();
   ASSERT_NE(nullptr, comp);
   EXPECT_EQ(1, eachCount<IntComponent>(manager));
   EXPECT_EQ(123, comp->Data());
@@ -3380,7 +3378,8 @@ TEST_P(EnttComponentManagerFixture,
   ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
   msgs::SerializedEntityMap &e1Msg = iter->second;
 
-  auto compIter = e1Msg.mutable_components()->find(comp->TypeId());
+  // CHANGED! we were dereferencing a removed component!
+  auto compIter = e1Msg.mutable_components()->find(compId);
   ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
   msgs::SerializedComponent &e1c1Msg = compIter->second;
   e1c1Msg.set_component(std::to_string(321));
@@ -3453,7 +3452,6 @@ TEST_P(EnttComponentManagerFixture, EntityByName)
   CompareEntityComponents<components::Name>(manager, entity,
     *entityByName, true);
 }
-*/
 
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.

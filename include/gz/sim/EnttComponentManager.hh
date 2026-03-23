@@ -85,7 +85,6 @@ namespace gz
       /// \brief Destructor
       public: ~EnttComponentManager();
 
-              /*
       /// \brief Copies the contents of `_fromEcm` into this object.
       /// \note This is a member function instead of a copy constructor so that
       /// it can have additional parameters if the need arises in the future.
@@ -94,7 +93,6 @@ namespace gz
       /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EnttComponentManager &_fromEcm);
 
-      */
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
@@ -692,7 +690,6 @@ namespace gz
       /// playback.
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
-              /*
 
       /// \brief Given a diff, apply it to this ECM. Note that for removed
       /// entities, this would mark them for removal instead of actually
@@ -701,11 +698,9 @@ namespace gz
       /// was computed.
       public: void ResetTo(const EnttComponentManager &_other);
 
-              */
       /// \brief Return true if there are components marked for removal.
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
-              /*
 
       /// \brief Get an Entity based on a name component that is associated
       /// with the entity.
@@ -715,7 +710,6 @@ namespace gz
       public: std::optional<Entity> EntityByName(
                   const std::string &_name) const;
 
-      */
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate.
       public: void ClearNewlyCreatedEntities();
@@ -731,7 +725,6 @@ namespace gz
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
 
-              /*
       /// Compute the diff between this EnttComponentManager and _other at the
       /// entity level. This does not compute the diff between components of an
       /// entity.
@@ -751,6 +744,7 @@ namespace gz
       /// \param[in] _diff The diff to apply to this EnttComponentManager.
       protected: void ApplyEntityDiff(const EnttComponentManager &_other,
                                       const EntityComponentManagerDiff &_diff);
+              /*
 
       /// \brief Get whether an Entity exists and is new.
       ///

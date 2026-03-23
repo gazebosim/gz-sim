@@ -78,6 +78,7 @@ class gz::sim::EnttComponentManagerPrivate
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
 
+          */
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
   /// it can have additional parameters if the need arises in the future.
@@ -86,7 +87,6 @@ class gz::sim::EnttComponentManagerPrivate
   /// \param[in] _from Object to copy from
   public: void CopyFrom(const EnttComponentManagerPrivate &_from);
 
-          */
   /// \brief Create a message for the removed components
   /// \param[in] _entity Entity with the removed components
   /// \param[in, out] _msg Entity message
@@ -318,26 +318,17 @@ EnttComponentManager::EnttComponentManager()
 //////////////////////////////////////////////////
 EnttComponentManager::~EnttComponentManager() = default;
 
-/*
 //////////////////////////////////////////////////
 void EnttComponentManagerPrivate::CopyFrom(
     const EnttComponentManagerPrivate &_from)
 {
-  this->createdCompTypes = _from.createdCompTypes;
-  this->entities = _from.entities;
   this->periodicChangedComponents = _from.periodicChangedComponents;
   this->oneTimeChangedComponents = _from.oneTimeChangedComponents;
-  this->newlyCreatedEntities = _from.newlyCreatedEntities;
-  this->toRemoveEntities = _from.toRemoveEntities;
-  this->modifiedComponents = _from.modifiedComponents;
-  this->removeAllEntities = _from.removeAllEntities;
-  this->views.clear();
-  this->lockAddEntitiesToViews = _from.lockAddEntitiesToViews;
-  this->descendantCache.clear();
   this->entityCount = _from.entityCount;
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
+  /*
   for (const auto &[entity, comps] : _from.componentStorage)
   {
     this->componentStorage[entity].clear();
@@ -346,17 +337,12 @@ void EnttComponentManagerPrivate::CopyFrom(
       this->componentStorage[entity].emplace_back(comp->Clone());
     }
   }
-  this->componentTypeIndex = _from.componentTypeIndex;
-  this->componentTypeIndexIterators.clear();
-  this->componentTypeIndexDirty = true;
+  */
 
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
-
-  this->pinnedEntities = _from.pinnedEntities;
 }
 
-*/
 //////////////////////////////////////////////////
 size_t EnttComponentManager::EntityCount() const
 {
@@ -2127,11 +2113,53 @@ void EnttComponentManager::UnpinAllEntities()
   this->registry.clear<PinnedEntity>();
 }
 
-/*
 /////////////////////////////////////////////////
 void EnttComponentManager::CopyFrom(const EnttComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
+  this->registry.clear();
+  const auto& newStorage = _fromEcm.registry.storage<NewEntity>();
+  const auto& removeStorage = _fromEcm.registry.storage<RemoveEntity>();
+  const auto& pinnedStorage = _fromEcm.registry.storage<PinnedEntity>();
+  const auto& modifiedStorage = _fromEcm.registry.storage<ModifiedComponent>();
+  const auto& childrenStorage = _fromEcm.registry.storage<Children>();
+  // TODO(luca) clean this up by just copying entities through iterators
+  // instead of using high level APIs such as CreateEntityImplementation
+  _fromEcm.registry.view<const Entity>().each([&](const Entity& e) {
+    this->dataPtr->CreateEntityImplementation(this->registry, e);
+    // Created entities already have a NewEntity component
+    // Some storages might not be initialized
+    if (!newStorage->contains(e))
+      this->registry.remove<NewEntity>(e);
+    if (removeStorage && removeStorage->contains(e))
+      this->registry.emplace<RemoveEntity>(e);
+    if (pinnedStorage && pinnedStorage->contains(e))
+      this->registry.emplace<PinnedEntity>(e);
+    if (modifiedStorage && modifiedStorage->contains(e))
+      this->registry.emplace<ModifiedComponent>(e);
+    // Children is already present
+    if (childrenStorage->contains(e))
+      this->registry.replace<Children>(e, childrenStorage->get(e));
+    // Now copy the actual gazebo components
+    const auto componentTypes = _fromEcm.ComponentTypes(e);
+    for (const auto& typeId : componentTypes) {
+      const auto& storage = _fromEcm.registry.storage(typeId);
+      if (!storage) {
+        gzwarn << "Storage not found for component, this shouldn't happen" << std::endl;
+        continue;
+      }
+      const auto* baseCompPtr = static_cast<const components::BaseComponent*>(storage->value(e));
+      if (!baseCompPtr) {
+        gzwarn << "Couldn't cast component to its base class, this shouldn't happen" << std::endl;
+        continue;
+      }
+      if (!components::Factory::Instance()->SyncComponent(this->registry, e, typeId, baseCompPtr->Clone().get()))
+      {
+        std::cerr << "Failed syncing component!" << std::endl;
+      }
+    }
+  });
+  // this->registry.emplace(_fromEcm.registry.data(), _fromEcm.registry.data() + _fromEcm.registry.size(), _fromEcm.registry.destroyed());
 }
 
 /////////////////////////////////////////////////
@@ -2139,27 +2167,14 @@ EntityComponentManagerDiff EnttComponentManager::ComputeEntityDiff(
     const EnttComponentManager &_other) const
 {
   EntityComponentManagerDiff diff;
-  for (const auto &item : _other.dataPtr->entities.Vertices())
-  {
-    const auto &v = item.second.get();
-    if (!this->dataPtr->entities.VertexFromId(v.Id()).Valid())
-    {
-      // In `_other` but not in `this`, so insert the entity as an "added"
-      // entity.
-      diff.InsertAddedEntity(v.Data());
-    }
-  }
-
-  for (const auto &item : this->dataPtr->entities.Vertices())
-  {
-    const auto &v = item.second.get();
-    if (!_other.dataPtr->entities.VertexFromId(v.Id()).Valid())
-    {
-      // In `this` but not in `other`, so insert the entity as a "removed"
-      // entity.
-      diff.InsertRemovedEntity(v.Data());
-    }
-  }
+  _other.registry.view<Entity>().each([&](const Entity& e) {
+    if (!this->HasEntity(e))
+      diff.InsertAddedEntity(e);
+  });
+  this->registry.view<Entity>().each([&](const Entity& e) {
+    if (!_other.HasEntity(e))
+      diff.InsertRemovedEntity(e);
+  });
   return diff;
 }
 
@@ -2203,16 +2218,14 @@ void EnttComponentManager::ApplyEntityDiff(
       // We want to set this entity as "removed", but
       // CreateEntityImplementation sets it as "newlyCreated",
       // so remove it from that list.
-      {
-        std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-        this->dataPtr->newlyCreatedEntities.erase(entity);
-      }
+      this->registry.remove<NewEntity>(entity);
       // Copy components so that EachRemoved match correctly
       if (entity >= this->dataPtr->entityCount)
       {
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
+      // TODO(luca) Any other components to copy? I.e. pin, modified component
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 
@@ -2234,6 +2247,7 @@ void EnttComponentManager::ResetTo(const EnttComponentManager &_other)
 std::optional<Entity> EnttComponentManager::EntityByName(
     const std::string &_name) const
 {
+  // TODO(luca) Just do a hashmap check with builtin name support
   std::optional<Entity> entity;
    Entity entByName = EntityByComponents(components::Name(_name));
   if (entByName != kNullEntity)
@@ -2241,7 +2255,6 @@ std::optional<Entity> EnttComponentManager::EntityByName(
 
   return entity;
 }
-*/
 
 /////////////////////////////////////////////////
 void EnttComponentManager::MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed)
