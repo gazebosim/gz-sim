@@ -7,7 +7,7 @@ include_directories (
 
 add_subdirectory(gtest_vendor)
 add_subdirectory(benchmark)
-# add_subdirectory(integration)
+add_subdirectory(integration)
 add_subdirectory(performance)
 add_subdirectory(plugins)
 add_subdirectory(regression)
