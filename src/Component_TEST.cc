@@ -513,6 +513,13 @@ TEST_F(ComponentTest, IStream)
   }
 }
 
+// CHANGED we can't register components outside the gz::sim::components namespace?
+namespace gz::sim::components
+{
+  using ConstexprComp = Component<int, class ConstexprTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
+}
+
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, TypeId)
 {
@@ -538,9 +545,7 @@ TEST_F(ComponentTest, TypeId)
 
   // Constexpr TypeId
   {
-    using ConstexprComp = components::Component<int, class ConstexprTag>;
-    GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
-
+    using ConstexprComp = components::ConstexprComp;
     static_assert(ConstexprComp::typeIdStatic() ==
         common::hash64("gz_sim_components.ConstexprComp"));
 

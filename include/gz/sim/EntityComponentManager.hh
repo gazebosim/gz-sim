@@ -38,6 +38,10 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
+#ifdef ENTT_NO_ETO
+  #define ENTT_NO_ETO
+#endif
+#include "gz/sim/entt.hpp"
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/detail/View.hh"
 
@@ -56,6 +60,15 @@ namespace gz
     /// its children.
     /// All edges are positive booleans.
     using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
+
+    struct ModifiedComponent { };
+    struct NewEntity { };
+    struct RemoveEntity { };
+    struct Children {
+      Children(Entity e) : data({e}) {}
+      Children() = default;
+      std::set<Entity> data;
+    };
 
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
@@ -223,6 +236,8 @@ namespace gz
       ///  removed.
       public: bool RemoveComponent(
                   const Entity _entity, const ComponentTypeId &_typeId);
+  
+      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
 
       /// \brief Remove a component from an entity based on a type.
       /// \param[in] _entity The entity.
@@ -232,10 +247,14 @@ namespace gz
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
 
+      private: void MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed);
+              /*
+
       /// \brief Rebuild all the views. This could be an expensive
       /// operation.
       public: void RebuildViews();
 
+                  */
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
       /// \param[in] _entity The entity that will be associated with
@@ -508,7 +527,7 @@ namespace gz
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
       /// \return Entity graph.
-      public: const EntityGraph &Entities() const;
+      public: const std::vector<Entity> Entities() const;
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
@@ -717,6 +736,7 @@ namespace gz
       /// \param[in] _diff The diff to apply to this EntityComponentManager.
       protected: void ApplyEntityDiff(const EntityComponentManager &_other,
                                       const EntityComponentManagerDiff &_diff);
+              /*
 
       /// \brief Get whether an Entity exists and is new.
       ///
@@ -725,6 +745,7 @@ namespace gz
       /// \param[in] _entity Entity id to check.
       /// \return True if the Entity is new.
       private: bool IsNewEntity(const Entity _entity) const;
+                   */
 
       /// \brief Get whether an Entity has been marked to be removed.
       /// \param[in] _entity Entity id to check.
@@ -761,6 +782,7 @@ namespace gz
                    const Entity _entity,
                    const ComponentTypeId _type);
 
+               /*
       /// \brief Find a View that matches the set of ComponentTypeIds. If
       /// a match is not found, then a new view is created.
       /// \tparam ComponentTypeTs All the component types that define a view.
@@ -787,6 +809,7 @@ namespace gz
                    const detail::ComponentTypeKey &_types,
                    std::unique_ptr<detail::BaseView> _view) const;
 
+               */
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
       /// \param[in] _entity The entity to be added.
@@ -798,6 +821,8 @@ namespace gz
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
+
+      private: entt::basic_registry<Entity> registry;
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
@@ -812,6 +837,7 @@ namespace gz
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
+               /*
 
       /// \brief Set whether views should be locked when entities are being
       /// added to them. This can be used to prevent race conditions in
@@ -828,6 +854,7 @@ namespace gz
       /// \return True if views should be locked during entity addition, false
       /// otherwise.
       private: bool LockAddingEntitiesToViews() const;
+               */
 
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal

@@ -94,21 +94,12 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  auto updateData = this->CreateComponentImplementation(_entity,
-      ComponentTypeT::typeId, &_data);
-  auto comp = this->Component<ComponentTypeT>(_entity);
-  if (updateData)
-  {
-    if (!comp)
-    {
-      gzerr << "Internal error. Failure to create a component of type "
-        << ComponentTypeT::typeId << " for entity " << _entity
-        << ". This should never happen!\n";
-      return comp;
-    }
-    *comp = _data;
-  }
-  return comp;
+  if (!this->HasEntity(_entity))
+    return nullptr;
+  this->registry.emplace_or_replace<ComponentTypeT>(_entity, _data);
+  this->SetChanged(_entity, ComponentTypeT::typeId, ComponentState::OneTimeChange);
+  this->MarkComponentAsRemoved(_entity, ComponentTypeT::typeId, false);
+  return &this->registry.get<ComponentTypeT>(_entity);
 }
 
 //////////////////////////////////////////////////
@@ -116,22 +107,28 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::Component(
     const Entity _entity) const
 {
+  return this->registry.try_get<const ComponentTypeT>(_entity);
+  /*
   // Get a unique identifier to the component type
   const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<const ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
+      */
 }
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 {
+  return this->registry.try_get<ComponentTypeT>(_entity);
   // Get a unique identifier to the component type
+  /*`
   const ComponentTypeId typeId = ComponentTypeT::typeId;
 
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
+      */
 }
 
 //////////////////////////////////////////////////
@@ -139,6 +136,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
     const typename ComponentTypeT::Type &_default)
 {
+  // TODO(luca) a get or emplace?
   auto comp = this->Component<ComponentTypeT>(_entity);
   if (!comp)
   {
@@ -165,6 +163,7 @@ template<typename ComponentTypeT>
 bool EntityComponentManager::SetComponentData(const Entity _entity,
     const typename ComponentTypeT::Type &_data)
 {
+  // TODO(luca) registry operation for more efficiency?
   auto comp = this->Component<ComponentTypeT>(_entity);
 
   if (nullptr == comp)
@@ -181,37 +180,16 @@ template<typename ...ComponentTypeTs>
 Entity EntityComponentManager::EntityByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
-  // Get all entities which have components of the desired types
-  const auto &view = this->FindView<ComponentTypeTs...>();
-
-  // Iterate over entities
-  Entity result{kNullEntity};
-  for (const Entity entity : view->Entities())
+  for (auto entity : this->registry.template storage<Entity>()->each())
   {
-    bool different{false};
-
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
-    {
-      result = entity;
-      break;
-    }
+    const Entity e = std::get<0>(entity);
+    bool match = ((this->registry.template all_of<ComponentTypeTs>(e) &&
+                   *this->registry.template try_get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+    if (match)
+      return e;
   }
 
-  return result;
+  return kNullEntity;
 }
 
 //////////////////////////////////////////////////
@@ -219,33 +197,14 @@ template<typename ...ComponentTypeTs>
 std::vector<Entity> EntityComponentManager::EntitiesByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
-  // Get all entities which have components of the desired types
-  const auto &view = this->FindView<ComponentTypeTs...>();
-
-  // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view->Entities())
+  for (auto entity : this->registry.template storage<Entity>()->each())
   {
-    bool different{false};
-
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
-    {
-      result.push_back(entity);
-    }
+    const Entity e = std::get<0>(entity);
+    bool match = ((this->registry.template all_of<ComponentTypeTs>(e) &&
+                   *this->registry.template try_get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+    if (match)
+      result.push_back(e);
   }
 
   return result;
@@ -256,40 +215,17 @@ template<typename ...ComponentTypeTs>
 std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
      const ComponentTypeTs &..._desiredComponents) const
 {
-  // Get all entities which have components of the desired types
-  const auto &view = this->FindView<ComponentTypeTs...>();
-
-  // Get all entities which are immediate children of the given parent
-  auto children = this->Entities().AdjacentsFrom(_parent);
-
-  // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view->Entities())
+  const auto *children = this->registry.template try_get<Children>(_parent);
+  if (!children)
+    return result;
+
+  for (const Entity e : children->data)
   {
-    if (children.find(entity) == children.end())
-    {
-      continue;
-    }
-
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    bool different{false};
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
-    {
-      result.push_back(entity);
-    }
+    bool match = ((this->registry.template all_of<ComponentTypeTs>(e) &&
+                   *this->registry.template try_get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+    if (match)
+      result.push_back(e);
   }
 
   return result;
@@ -307,20 +243,7 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  for (const auto &vertex : this->Entities().Vertices())
-  {
-    Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
-
-    if (this->EntityMatches(entity, types))
-    {
-      if (!_f(entity,
-              this->Component<ComponentTypeTs>(entity)...))
-      {
-        break;
-      }
-    }
-  }
+  this->Each<ComponentTypeTs...>(_f);
 }
 
 //////////////////////////////////////////////////
@@ -328,20 +251,7 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  for (const auto &vertex : this->Entities().Vertices())
-  {
-    Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
-
-    if (this->EntityMatches(entity, types))
-    {
-      if (!_f(entity,
-              this->Component<ComponentTypeTs>(entity)...))
-      {
-        break;
-      }
-    }
-  }
+  this->Each<ComponentTypeTs...>(_f);
 }
 
 namespace detail
@@ -393,19 +303,19 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::Each(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  // Get the view. This will create a new view if one does not already
-  // exist.
-  auto view = this->FindView<ComponentTypeTs...>();
+  // TODO(luca) make all of these non owning groups for perf
+  auto view = this->registry.view<const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->Entities())
+  for (const auto pack : view.each())
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
-    {
-      break;
-    }
+    bool done = false;
+    std::apply([&](const Entity _entity, const auto &... _comps) {
+        if (!_f(_entity, &_comps...))
+            done = true;
+    }, pack);
+    if (done) break;
   }
 }
 
@@ -414,19 +324,18 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::Each(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  // Get the view. This will create a new view if one does not already
-  // exist.
-  auto view = this->FindView<ComponentTypeTs...>();
+  auto view = this->registry.view<ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->Entities())
+  for (auto pack : view.each())
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<ComponentTypeTs...>(_f, entity, data))
-    {
-      break;
-    }
+    bool done = false;
+    std::apply([&](const Entity _entity, auto &... _comps) {
+        if (!_f(_entity, &_comps...))
+            done = true;
+    }, pack);
+    if (done) break;
   }
 }
 
@@ -438,25 +347,25 @@ void EntityComponentManager::ForEach(Function _f,
   (_f(_components), ...);
 }
 
+// Note check on ENTT_DISABLE_ETO, might need to do
 //////////////////////////////////////////////////
 template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  // Get the view. This will create a new view if one does not already
-  // exist.
-  auto view = this->FindView<ComponentTypeTs...>();
+  // TODO(luca) make all of these non owning groups for perf
+  auto view = this->registry.view<NewEntity, ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
+  // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->NewEntities())
+  for (const auto pack : view.each())
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<ComponentTypeTs...>(_f, entity, data))
-    {
-      break;
-    }
+    bool done = false;
+    std::apply([&](const Entity _entity, NewEntity&, auto &... _comps) {
+        if (!_f(_entity, &_comps...))
+            done = true;
+    }, pack);
+    if (done) break;
   }
 }
 
@@ -465,20 +374,19 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  // Get the view. This will create a new view if one does not already
-  // exist.
-  auto view = this->FindView<ComponentTypeTs...>();
+  // TODO(luca) make all of these non owning groups for perf
+  auto view = this->registry.view<const NewEntity, const ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
+  // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->NewEntities())
+  for (const auto pack : view.each())
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
-    {
-      break;
-    }
+    bool done = false;
+    std::apply([&](const Entity _entity, const NewEntity&, const auto &... _comps) {
+        if (!_f(_entity, &_comps...))
+            done = true;
+    }, pack);
+    if (done) break;
   }
 }
 
@@ -487,23 +395,23 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  // Get the view. This will create a new view if one does not already
-  // exist.
-  auto view = this->FindView<ComponentTypeTs...>();
+  // TODO(luca) make all of these non owning groups for perf
+  auto view = this->registry.view<const RemoveEntity, const ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
+  // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const Entity entity : view->ToRemoveEntities())
+  for (const auto pack : view.each())
   {
-    const auto &data = view->EntityComponentData(entity);
-    if (!detail::applyFunction<const ComponentTypeTs...>(_f, entity, data))
-    {
-      break;
-    }
+    bool done = false;
+    std::apply([&](const Entity _entity, const RemoveEntity&, const auto &... _comps) {
+        if (!_f(_entity, &_comps...))
+            done = true;
+    }, pack);
+    if (done) break;
   }
 }
 
+/*
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 detail::View *EntityComponentManager::FindView() const
@@ -572,6 +480,7 @@ detail::View *EntityComponentManager::FindView() const
   return static_cast<detail::View *>(baseViewPtr);
 }
 
+*/
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
