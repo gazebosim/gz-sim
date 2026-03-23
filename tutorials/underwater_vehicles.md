@@ -38,15 +38,15 @@ mkdir -p ~/gazebo_maritime/models/my_lrauv/meshes
 Download all the files from here and copy them within that directory:
 
 ```bash
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/model.config -O ~/gazebo_maritime/models/my_lrauv/model.config
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/model.sdf -O ~/gazebo_maritime/models/my_lrauv/model.sdf
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Albedo.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Albedo.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Metalness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Metalness.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Normal.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Normal.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Roughness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Roughness.png
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/base.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/base.dae
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/propeller.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/propeller.dae
-wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/my_lrauv/meshes/tethys.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/tethys.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/model.config -O ~/gazebo_maritime/models/my_lrauv/model.config
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/model.sdf -O ~/gazebo_maritime/models/my_lrauv/model.sdf
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Albedo.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Albedo.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Metalness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Metalness.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Normal.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Normal.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/materials/textures/Tethys_Roughness.png -O ~/gazebo_maritime/models/my_lrauv/materials/textures/Tethys_Roughness.png
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/meshes/base.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/base.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/meshes/propeller.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/propeller.dae
+wget -r https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/my_lrauv/meshes/tethys.dae -O ~/gazebo_maritime/models/my_lrauv/meshes/tethys.dae
 ```
 
 Open with your favorite editor `~/gazebo_maritime/models/my_lrauv/model.sdf`.
@@ -87,11 +87,11 @@ There's a total of `148.3571` kg (`147.8671` + `0.2` + `0.2` + `0.09` kgs) when
 we add the mass of the chassis, fins and propeller. The buoyancy force is
 proportional the volume of air in the vehicle according to this equation:
 
-$$volume\\_neutral = \frac{mass}{waterDensity}$$
+\f[volume\_neutral = \frac{mass}{waterDensity}\f]
 
 In our case:
 
-$$volume\\_neutral = \frac{148.3571}{1000} = 0.1483571$$
+\f[volume\_neutral = \frac{148.3571}{1000} = 0.1483571\f]
 
 That's the total volume of air that our vehicle should contain to keep the robot
 neutral. If the volume is smaller, the vehicle will sink. If the vehicle's
@@ -101,7 +101,7 @@ volume is bigger, it will move up. The buoyancy plugin uses all the
 Let's verify the total amount of air volume in our vehicle adding up the volumes
 of all the collision elements:
 
-$$volume = (2 * 0.3 * 0.2464451666666667) + (0.1 * 0.1 * 0.02) + (0.1 * 0.1 * 0.02) + (0.03 * 0.1 * 0.03) = 0.14835710000000002$$
+\f[volume = (2 * 0.3 * 0.2464451666666667) + (0.1 * 0.1 * 0.02) + (0.1 * 0.1 * 0.02) + (0.03 * 0.1 * 0.03) = 0.14835710000000002\f]
 
 This is the volume that we were looking for to achieve neutral buoyancy. Let's
 test it! Uncomment the lines in `model.sdf:18--24` to restore the buoyancy and
@@ -111,7 +111,7 @@ Let's now download the following world that includes the buoyancy plugin:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/underwater_vehicles/buoyant_lrauv.sdf -O ~/gazebo_maritime/worlds/buoyant_lrauv.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/underwater_vehicles/buoyant_lrauv.sdf -O ~/gazebo_maritime/worlds/buoyant_lrauv.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 
@@ -179,7 +179,7 @@ gz topic -t /model/my_lrauv/joint/propeller_joint/cmd_thrust -m gz.msgs.Double -
 We should see the model move. The thrusters are governed by the equation on
 page 246 of Fossen's book. In particular it relates force to rpm as follows:
 
-$$thrust = fluid\\_density * RPM^2 * thrust\\_constant * propeller\\_blade\\_size^4$$
+\f[thrust = fluid\_density * RPM^2 * thrust\_constant * propeller\_blade\_size^4\f]
 
 The plugin takes in commands in newtons. So if you have a different thrust
 curve you can still use the plugin with some type of adapter script. The thrust
