@@ -203,6 +203,49 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
+    public:
+      using SyncFunc = std::function<void(entt::basic_registry<Entity>&, const Entity, const gz::sim::components::BaseComponent*)>;
+      using RegisterFunc = std::function<void(entt::basic_registry<Entity>&)>;
+
+      template <typename T>
+      void RegisterType() {
+        this->syncMap[T::typeId] = [this](entt::basic_registry<Entity>& _registry, const Entity _e, const gz::sim::components::BaseComponent* _comp) {
+          if constexpr (std::is_same_v<typename T::Type, gz::sim::components::NoData>) {
+            _registry.emplace_or_replace<T>(_e);
+          } else {
+            _registry.emplace_or_replace<T>(_e, static_cast<const T*>(_comp)->Data());
+          }
+        };
+        this->registerMap[T::typeId] = [this](entt::basic_registry<Entity>& _registry) {
+          this->SyncTypeIdMap<T>(_registry);
+        };
+      }
+
+      template <typename T>
+      void SyncTypeIdMap(entt::basic_registry<Entity>& _registry) {
+        _registry.storage<T>();
+      }
+
+      void RegisterAllToEntt(entt::basic_registry<Entity>& _registry) {
+        for (const auto& mapIt : this->registerMap) {
+          mapIt.second(_registry);
+        }
+      }
+
+      // Returns the entity of the synced components
+      bool SyncComponent(entt::basic_registry<Entity>& _registry, const Entity _e, const ComponentTypeId _id, const gz::sim::components::BaseComponent* _comp) {
+        const auto it = this->syncMap.find(_id);
+        if (it == this->syncMap.end()) {
+          return false;
+        }
+        it->second(_registry, _e, _comp);
+        return true;
+      }
+
+    private:
+      std::unordered_map<ComponentTypeId, SyncFunc> syncMap;
+      std::unordered_map<ComponentTypeId, RegisterFunc> registerMap;
+
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
 
@@ -220,6 +263,7 @@ namespace components
                   RegistrationObjectId  _regObjId)
     {
       auto typeHash = gz::common::hash64(_type);
+      this->RegisterType<ComponentTypeT>();
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we

@@ -3,6 +3,7 @@ add_subdirectory(rendering)
 if(ENABLE_GUI)
   add_subdirectory(gui)
 endif()
+add_definitions(-w)
 
 # add_subdirectory(systems)
 

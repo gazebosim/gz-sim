@@ -38,6 +38,9 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
+#ifdef ENTT_NO_ETO
+  #define ENTT_NO_ETO
+#endif
 #include "gz/sim/entt.hpp"
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/detail/View.hh"
@@ -57,6 +60,15 @@ namespace gz
     /// its children.
     /// All edges are positive booleans.
     using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
+
+    struct ModifiedComponent { };
+    struct NewEntity { };
+    struct RemoveEntity { };
+    struct Children {
+      Children(Entity e) : data({e}) {}
+      Children() = default;
+      std::set<Entity> data;
+    };
 
     /** \class EnttComponentManager EnttComponentManager.hh \
      * gz/sim/EnttComponentManager.hh
@@ -86,7 +98,6 @@ namespace gz
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
-              /*
 
       /// \brief Clone an entity and its components. If the entity has any child
       /// entities, they will also be cloned.
@@ -123,11 +134,9 @@ namespace gz
       public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
-                  */
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
       public: size_t EntityCount() const;
-              /*
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -143,6 +152,7 @@ namespace gz
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
+              /*
       /// \brief Prevent an entity and optionally its children from
       /// being removed.
       ///
@@ -182,7 +192,6 @@ namespace gz
       /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
-              /*
 
       /// \brief Get the first parent of the given entity.
       /// \details Entities are not expected to have multiple parents.
@@ -204,7 +213,6 @@ namespace gz
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
-              */
       /// \brief Get whether a component type has ever been created.
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
@@ -244,6 +252,8 @@ namespace gz
       ///  removed.
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
+
+      private: void MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed);
               /*
 
       /// \brief Rebuild all the views. This could be an expensive
@@ -305,7 +315,6 @@ namespace gz
               std::optional<typename ComponentTypeT::Type> ComponentData(
               const Entity _entity) const;
 
-              /*
       /// \brief Set the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, the component will be
@@ -320,13 +329,11 @@ namespace gz
               bool SetComponentData(const Entity _entity,
               const typename ComponentTypeT::Type &_data);
 
-              */
       /// \brief Get the type IDs of all components attached to an entity.
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.
       public: std::unordered_set<ComponentTypeId> ComponentTypes(
           Entity _entity) const;
-              /*
 
       /// \brief Get an entity which matches the value of all the given
       /// components. For example, the following will return the entity which
@@ -397,6 +404,7 @@ namespace gz
       private: Entity CloneImpl(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
+                                 /*
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
       /// Get all entities which contain given component types, as well
@@ -431,6 +439,7 @@ namespace gz
                   bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f);
 
+              */
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for removal (but not
       /// processed yet) will be included in the list of entities iterated by
@@ -465,6 +474,7 @@ namespace gz
                   bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f);
 
+              /*
       /// \brief Call a function for each parameter in a pack.
       /// \param[in] _f Function to be called.
       /// \param[in] _components Parameters which should be passed to the
@@ -472,6 +482,7 @@ namespace gz
       public: template <class Function, class... ComponentTypeTs>
       static void ForEach(Function _f, const ComponentTypeTs &... _components);
 
+      */
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
       /// of a simulation step.
@@ -523,11 +534,13 @@ namespace gz
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const;
 
+              /*
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
       /// \return Entity graph.
       public: const EntityGraph &Entities() const;
 
+      */
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
       /// \param[in] _entity Entity whose descendants we want.
@@ -595,6 +608,7 @@ namespace gz
       /// \sa EnttComponentManager::PeriodicStateFromCache
       public: void UpdatePeriodicChangeCache(std::unordered_map<ComponentTypeId,
         std::unordered_set<Entity>>&_changes) const;
+              /*
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -606,6 +620,7 @@ namespace gz
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
+      */
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \details The header of the message will not be populated, it is the
@@ -669,20 +684,19 @@ namespace gz
           const Entity _entity, const ComponentTypeId _type,
           sim::ComponentState _c = ComponentState::OneTimeChange);
 
-              */
       /// \brief Get a component's state.
       /// \param[in] _entity Entity that contains the component.
       /// \param[in] _typeId Component type ID.
       /// \return Component's current state
       public: sim::ComponentState ComponentState(const Entity _entity,
           const ComponentTypeId _typeId) const;
-              /*
 
       /// \brief All future entities will have an id that starts at _offset.
       /// This can be used to avoid entity id collisions, such as during log
       /// playback.
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
+              /*
 
       /// \brief Given a diff, apply it to this ECM. Note that for removed
       /// entities, this would mark them for removal instead of actually
@@ -705,15 +719,14 @@ namespace gz
       public: std::optional<Entity> EntityByName(
                   const std::string &_name) const;
 
+      */
       /// \brief Clear the list of newly added entities so that a call to
       /// EachAdded after this will have no entities to iterate.
       public: void ClearNewlyCreatedEntities();
 
-      */
       /// \brief Clear the list of removed components so that a call to
       /// RemoveComponent doesn't make the list grow indefinitely.
       public: void ClearRemovedComponents();
-              /*
 
       /// \brief Process all entity remove requests. This will remove
       /// entities and their components.
@@ -722,6 +735,7 @@ namespace gz
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
 
+              /*
       /// Compute the diff between this EnttComponentManager and _other at the
       /// entity level. This does not compute the diff between components of an
       /// entity.
@@ -755,6 +769,7 @@ namespace gz
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
+                   */
       /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
@@ -785,6 +800,7 @@ namespace gz
                    const Entity _entity,
                    const ComponentTypeId _type);
 
+               /*
       /// \brief Find a View that matches the set of ComponentTypeIds. If
       /// a match is not found, then a new view is created.
       /// \tparam ComponentTypeTs All the component types that define a view.
@@ -811,6 +827,7 @@ namespace gz
                    const detail::ComponentTypeKey &_types,
                    std::unique_ptr<detail::BaseView> _view) const;
 
+               */
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
       /// \param[in] _entity The entity to be added.
@@ -819,13 +836,11 @@ namespace gz
       private: void AddEntityToMessage(msgs::SerializedState &_msg,
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
-               */
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EnttComponentManagerPrivate> dataPtr;
 
       private: entt::basic_registry<Entity> registry;
-               /*
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
@@ -840,6 +855,7 @@ namespace gz
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
+               /*
 
       /// \brief Set whether views should be locked when entities are being
       /// added to them. This can be used to prevent race conditions in
