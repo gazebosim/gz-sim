@@ -3028,7 +3028,6 @@ TEST_P(EnttComponentManagerFixture,
   EXPECT_EQ(18u, manager.EntityCount());
 }
 
-/*
 //////////////////////////////////////////////////
 TEST_P(EnttComponentManagerFixture, PinnedEntity)
 {
@@ -3184,6 +3183,7 @@ TEST_P(EnttComponentManagerFixture,
   EXPECT_EQ(1, foundEntities);
 }
 
+/*
 //////////////////////////////////////////////////
 TEST_P(EnttComponentManagerFixture, CopyEcm)
 {

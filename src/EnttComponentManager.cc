@@ -49,7 +49,7 @@ using namespace gz;
 
 using namespace sim;
 
-struct PinEntity { };
+struct PinnedEntity { };
 
 class gz::sim::EnttComponentManagerPrivate
 {
@@ -729,7 +729,7 @@ void EnttComponentManager::RequestRemoveEntity(Entity _entity,
   // Remove entities from tmpToRemoveEntities that are marked as
   // unremovable.
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  const auto& storage = this->registry.storage<PinEntity>();
+  const auto& storage = this->registry.storage<PinnedEntity>();
   for (const auto& e : tmpToRemoveEntities)
   {
     if (!storage.contains(e))
@@ -744,7 +744,7 @@ void EnttComponentManager::RequestRemoveEntity(Entity _entity,
 void EnttComponentManager::RequestRemoveEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  this->registry.view<Entity>(entt::exclude<PinEntity>).each([&](const Entity _e) {
+  this->registry.view<Entity>(entt::exclude<PinnedEntity>).each([&](const Entity _e) {
     this->registry.emplace<RemoveEntity>(_e);
   });
 }
@@ -755,7 +755,7 @@ void EnttComponentManager::ProcessRemoveEntityRequests()
   GZ_PROFILE("EnttComponentManager::ProcessRemoveEntityRequests");
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   auto view = this->registry.view<RemoveEntity>();
-  const auto& pinnedStorage = this->registry.storage<PinEntity>();
+  const auto& pinnedStorage = this->registry.storage<PinnedEntity>();
   for (auto entity : view)
   {
     if (pinnedStorage.contains(entity))
@@ -1699,7 +1699,6 @@ void EnttComponentManager::PeriodicStateFromCache(
   }
 }
 
-/*
 //////////////////////////////////////////////////
 void EnttComponentManager::SetState(
     const msgs::SerializedState &_stateMsg)
@@ -1722,7 +1721,7 @@ void EnttComponentManager::SetState(
     // Create entity if it doesn't exist
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(entity);
+      this->dataPtr->CreateEntityImplementation(this->registry, entity);
     }
 
     // Create / remove / update components
@@ -1798,7 +1797,6 @@ void EnttComponentManager::SetState(
   }
 }
 
-*/
 //////////////////////////////////////////////////
 void EnttComponentManager::SetState(
     const msgs::SerializedStateMap &_stateMsg)
@@ -1973,7 +1971,7 @@ std::unordered_set<ComponentTypeId> EnttComponentManager::ComponentTypes(
     if (typeId == entt::type_hash<NewEntity>::value() ||
         typeId == entt::type_hash<RemoveEntity>::value() ||
         typeId == entt::type_hash<ModifiedComponent>::value() ||
-        typeId == entt::type_hash<PinEntity>::value() ||
+        typeId == entt::type_hash<PinnedEntity>::value() ||
         typeId == entt::type_hash<Children>::value())
     {
       continue;
@@ -2083,41 +2081,53 @@ bool EnttComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
   return true;
 }
 
-/*
 /////////////////////////////////////////////////
 void EnttComponentManager::PinEntity(const Entity _entity, bool _recursive)
 {
+  if (!this->HasEntity(_entity))
+    return;
   if (_recursive)
   {
+    std::unordered_set<Entity> toPin;
     this->dataPtr->InsertEntityRecursive(this->registry, _entity,
-        this->dataPtr->pinnedEntities);
+        toPin);
+    for (const auto& e : toPin) {
+      this->registry.emplace_or_replace<PinnedEntity>(e);
+    }
   }
   else
   {
-    this->dataPtr->pinnedEntities.insert(_entity);
+    this->registry.emplace_or_replace<PinnedEntity>(_entity);
   }
 }
 
 /////////////////////////////////////////////////
 void EnttComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
 {
+  if (!this->HasEntity(_entity))
+    return;
   if (_recursive)
   {
-    this->dataPtr->EraseEntityRecursive(_entity,
-        this->dataPtr->pinnedEntities);
+    std::unordered_set<Entity> toUnpin;
+    this->dataPtr->InsertEntityRecursive(this->registry, _entity,
+        toUnpin);
+    for (const auto& e : toUnpin) {
+      this->registry.remove<PinnedEntity>(e);
+    }
   }
   else
   {
-    this->dataPtr->pinnedEntities.erase(_entity);
+    this->registry.remove<PinnedEntity>(_entity);
   }
 }
 
 /////////////////////////////////////////////////
 void EnttComponentManager::UnpinAllEntities()
 {
-  this->dataPtr->pinnedEntities.clear();
+  this->registry.clear<PinnedEntity>();
 }
 
+/*
 /////////////////////////////////////////////////
 void EnttComponentManager::CopyFrom(const EnttComponentManager &_fromEcm)
 {

@@ -152,7 +152,6 @@ namespace gz
       public: void RequestRemoveEntity(const Entity _entity,
           bool _recursive = true);
 
-              /*
       /// \brief Prevent an entity and optionally its children from
       /// being removed.
       ///
@@ -182,7 +181,6 @@ namespace gz
       /// \sa void PinEntity(const Entity, bool)
       public: void UnpinAllEntities();
 
-              */
       /// \brief Request to remove all entities. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
       /// update step.
@@ -608,7 +606,6 @@ namespace gz
       /// \sa EnttComponentManager::PeriodicStateFromCache
       public: void UpdatePeriodicChangeCache(std::unordered_map<ComponentTypeId,
         std::unordered_set<Entity>>&_changes) const;
-              /*
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -620,7 +617,6 @@ namespace gz
       /// \param[in] _stateMsg Message containing state to be set.
       public: void SetState(const msgs::SerializedState &_stateMsg);
 
-      */
       /// \brief Get a message with the serialized state of the given entities
       /// and components.
       /// \details The header of the message will not be populated, it is the
