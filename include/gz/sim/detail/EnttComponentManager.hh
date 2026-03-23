@@ -237,27 +237,13 @@ struct EnttComponentManager::identity  // NOLINT
 {
   using type = T;
 };
-/*
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 void EnttComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  for (const auto &vertex : this->Entities().Vertices())
-  {
-    Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
-
-    if (this->EntityMatches(entity, types))
-    {
-      if (!_f(entity,
-              this->Component<ComponentTypeTs>(entity)...))
-      {
-        break;
-      }
-    }
-  }
+  this->Each<ComponentTypeTs...>(_f);
 }
 
 //////////////////////////////////////////////////
@@ -265,23 +251,9 @@ template<typename ...ComponentTypeTs>
 void EnttComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  for (const auto &vertex : this->Entities().Vertices())
-  {
-    Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
-
-    if (this->EntityMatches(entity, types))
-    {
-      if (!_f(entity,
-              this->Component<ComponentTypeTs>(entity)...))
-      {
-        break;
-      }
-    }
-  }
+  this->Each<ComponentTypeTs...>(_f);
 }
 
-*/
 namespace detail
 {
 /// \brief Helper template to call a callback function with each of the
@@ -367,7 +339,6 @@ void EnttComponentManager::Each(typename identity<std::function<
   }
 }
 
-/*
 //////////////////////////////////////////////////
 template <class Function, class... ComponentTypeTs>
 void EnttComponentManager::ForEach(Function _f,
@@ -375,8 +346,6 @@ void EnttComponentManager::ForEach(Function _f,
 {
   (_f(_components), ...);
 }
-
-*/
 
 // Note check on ENTT_DISABLE_ETO, might need to do
 //////////////////////////////////////////////////

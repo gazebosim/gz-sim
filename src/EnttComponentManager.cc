@@ -1129,18 +1129,17 @@ bool EnttComponentManager::CreateComponentImplementation(
   return updateData;
 }
 
-/*
 /////////////////////////////////////////////////
 bool EnttComponentManager::EntityMatches(Entity _entity,
     const std::set<ComponentTypeId> &_types) const
 {
-  auto iter = this->dataPtr->componentTypeIndex.find(_entity);
-  if (iter == this->dataPtr->componentTypeIndex.end())
+  if (!this->HasEntity(_entity))
     return false;
 
+  const auto entityTypes = this->ComponentTypes(_entity);
   // quick check: the entity cannot match _types if _types is larger than the
   // number of component types the entity has
-  if (_types.size() > iter->second.size())
+  if (_types.size() > entityTypes.size())
     return false;
 
   // \todo(nkoenig) The performance of this could be improved.
@@ -1149,8 +1148,8 @@ bool EnttComponentManager::EntityMatches(Entity _entity,
   // creation of entities and/or queries.
   for (const ComponentTypeId &type : _types)
   {
-    auto typeIter = iter->second.find(type);
-    if (typeIter == iter->second.end() ||
+    auto typeIter = entityTypes.find(type);
+    if (typeIter == entityTypes.end() ||
         this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
       return false;
   }
@@ -1158,7 +1157,6 @@ bool EnttComponentManager::EntityMatches(Entity _entity,
   return true;
 }
 
-*/
 /////////////////////////////////////////////////
 const components::BaseComponent
     *EnttComponentManager::ComponentImplementation(
@@ -1197,14 +1195,18 @@ bool EnttComponentManager::HasComponentType(
   const auto* storage = this->registry.storage(_typeId);
   return storage != nullptr;
 }
-/*
 
 //////////////////////////////////////////////////
-const EntityGraph &EnttComponentManager::Entities() const
+const std::vector<Entity> EnttComponentManager::Entities() const
 {
-  return this->dataPtr->entities;
+  std::vector<Entity> entities(this->EntityCount());
+  this->registry.view<Entity>().each([&](const Entity& e) {
+    entities.push_back(e);
+  });
+  return entities;
 }
 
+/*
 //////////////////////////////////////////////////
 std::pair<detail::BaseView *, std::mutex *> EnttComponentManager::FindView(
     const std::vector<ComponentTypeId> &_types) const

@@ -221,7 +221,6 @@ namespace gz
       /// with the provided type.
       public: bool EntityHasComponentType(const Entity _entity,
                   const ComponentTypeId &_typeId) const;
-              /*
 
       /// \brief Get whether an entity has all the given component types.
       /// \param[in] _entity The entity to check.
@@ -230,7 +229,6 @@ namespace gz
       public: bool EntityMatches(Entity _entity,
         const std::set<ComponentTypeId> &_types) const;
 
-              */
       /// \brief Remove a component from an entity based on a type id.
       /// \param[in] _entity The entity.
       /// \param[in] _typeId Component's type Id.
@@ -400,7 +398,6 @@ namespace gz
       private: Entity CloneImpl(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
-                                 /*
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
       /// Get all entities which contain given component types, as well
@@ -435,7 +432,6 @@ namespace gz
                   bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f);
 
-              */
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for removal (but not
       /// processed yet) will be included in the list of entities iterated by
@@ -470,7 +466,6 @@ namespace gz
                   bool(const Entity &_entity,
                        ComponentTypeTs *...)>>::type _f);
 
-              /*
       /// \brief Call a function for each parameter in a pack.
       /// \param[in] _f Function to be called.
       /// \param[in] _components Parameters which should be passed to the
@@ -478,7 +473,6 @@ namespace gz
       public: template <class Function, class... ComponentTypeTs>
       static void ForEach(Function _f, const ComponentTypeTs &... _components);
 
-      */
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
       /// of a simulation step.
@@ -530,13 +524,11 @@ namespace gz
                   bool(const Entity &_entity,
                        const ComponentTypeTs *...)>>::type _f) const;
 
-              /*
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
       /// \return Entity graph.
-      public: const EntityGraph &Entities() const;
+      public: const std::vector<Entity> Entities() const;
 
-      */
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
       /// \param[in] _entity Entity whose descendants we want.
