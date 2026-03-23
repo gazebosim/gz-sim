@@ -206,6 +206,7 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
     if (match)
       result.push_back(e);
   }
+  std::sort(result.begin(), result.end());
 
   return result;
 }
@@ -227,6 +228,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
     if (match)
       result.push_back(e);
   }
+  std::sort(result.begin(), result.end());
 
   return result;
 }
@@ -306,16 +308,19 @@ void EntityComponentManager::Each(typename identity<std::function<
   // TODO(luca) make all of these non owning groups for perf
   auto view = this->registry.view<const ComponentTypeTs...>();
 
+  std::vector<Entity> entities;
+  for (auto entity : view)
+  {
+    entities.push_back(entity);
+  }
+  std::sort(entities.begin(), entities.end());
+
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const auto pack : view.each())
+  for (const auto entity : entities)
   {
-    bool done = false;
-    std::apply([&](const Entity _entity, const auto &... _comps) {
-        if (!_f(_entity, &_comps...))
-            done = true;
-    }, pack);
-    if (done) break;
+    if (!_f(entity, this->registry.template try_get<const ComponentTypeTs>(entity)...))
+      break;
   }
 }
 
@@ -326,16 +331,19 @@ void EntityComponentManager::Each(typename identity<std::function<
 {
   auto view = this->registry.view<ComponentTypeTs...>();
 
+  std::vector<Entity> entities;
+  for (auto entity : view)
+  {
+    entities.push_back(entity);
+  }
+  std::sort(entities.begin(), entities.end());
+
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (auto pack : view.each())
+  for (const auto entity : entities)
   {
-    bool done = false;
-    std::apply([&](const Entity _entity, auto &... _comps) {
-        if (!_f(_entity, &_comps...))
-            done = true;
-    }, pack);
-    if (done) break;
+    if (!_f(entity, this->registry.template try_get<ComponentTypeTs>(entity)...))
+      break;
   }
 }
 
@@ -356,16 +364,19 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // TODO(luca) make all of these non owning groups for perf
   auto view = this->registry.view<NewEntity, ComponentTypeTs...>();
 
+  std::vector<Entity> entities;
+  for (auto entity : view)
+  {
+    entities.push_back(entity);
+  }
+  std::sort(entities.begin(), entities.end());
+
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const auto pack : view.each())
+  for (const auto entity : entities)
   {
-    bool done = false;
-    std::apply([&](const Entity _entity, NewEntity&, auto &... _comps) {
-        if (!_f(_entity, &_comps...))
-            done = true;
-    }, pack);
-    if (done) break;
+    if (!_f(entity, this->registry.template try_get<ComponentTypeTs>(entity)...))
+      break;
   }
 }
 
@@ -377,16 +388,19 @@ void EntityComponentManager::EachNew(typename identity<std::function<
   // TODO(luca) make all of these non owning groups for perf
   auto view = this->registry.view<const NewEntity, const ComponentTypeTs...>();
 
+  std::vector<Entity> entities;
+  for (auto entity : view)
+  {
+    entities.push_back(entity);
+  }
+  std::sort(entities.begin(), entities.end());
+
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const auto pack : view.each())
+  for (const auto entity : entities)
   {
-    bool done = false;
-    std::apply([&](const Entity _entity, const NewEntity&, const auto &... _comps) {
-        if (!_f(_entity, &_comps...))
-            done = true;
-    }, pack);
-    if (done) break;
+    if (!_f(entity, this->registry.template try_get<const ComponentTypeTs>(entity)...))
+      break;
   }
 }
 
@@ -398,16 +412,19 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
   // TODO(luca) make all of these non owning groups for perf
   auto view = this->registry.view<const RemoveEntity, const ComponentTypeTs...>();
 
+  std::vector<Entity> entities;
+  for (auto entity : view)
+  {
+    entities.push_back(entity);
+  }
+  std::sort(entities.begin(), entities.end());
+
   // Iterate over the entities in the view, and invoke the callback
   // function.
-  for (const auto pack : view.each())
+  for (const auto entity : entities)
   {
-    bool done = false;
-    std::apply([&](const Entity _entity, const RemoveEntity&, const auto &... _comps) {
-        if (!_f(_entity, &_comps...))
-            done = true;
-    }, pack);
-    if (done) break;
+    if (!_f(entity, this->registry.template try_get<const ComponentTypeTs>(entity)...))
+      break;
   }
 }
 

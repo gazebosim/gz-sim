@@ -346,8 +346,6 @@ void EntityComponentManagerPrivate::CopyFrom(
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  // There is one entity at 0
-  // TODO(luca) redefine kNullEntity and allow entity 0?
   return this->registry.storage<Entity>()->free_list();
 }
 
@@ -1114,14 +1112,11 @@ bool EntityComponentManager::CreateComponentImplementation(
 
   // If the component is a components::ParentEntity, then make sure to
   // update the entities graph.
-  // TODO(luca)
-  /*
   if (_componentTypeId == components::ParentEntity::typeId)
   {
     auto parentComp = this->Component<components::ParentEntity>(_entity);
     this->SetParentEntity(_entity, parentComp->Data());
   }
-  */
 
   return updateData;
 }
@@ -2116,7 +2111,6 @@ void EntityComponentManager::UnpinAllEntities()
 void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
-  this->registry.clear();
   const auto& newStorage = _fromEcm.registry.storage<NewEntity>();
   const auto& removeStorage = _fromEcm.registry.storage<RemoveEntity>();
   const auto& pinnedStorage = _fromEcm.registry.storage<PinnedEntity>();
@@ -2125,6 +2119,8 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
   // TODO(luca) clean this up by just copying entities through iterators
   // instead of using high level APIs such as CreateEntityImplementation
   _fromEcm.registry.view<const Entity>().each([&](const Entity& e) {
+    if (this->HasEntity(e))
+      this->registry.destroy(e);
     this->dataPtr->CreateEntityImplementation(this->registry, e);
     // Created entities already have a NewEntity component
     // Some storages might not be initialized
@@ -2207,6 +2203,12 @@ void EntityComponentManager::ApplyEntityDiff(
     }
   }
 
+  const auto& newStorage = _other.registry.storage<NewEntity>();
+  const auto& removeStorage = _other.registry.storage<RemoveEntity>();
+  const auto& pinnedStorage = _other.registry.storage<PinnedEntity>();
+  const auto& modifiedStorage = _other.registry.storage<ModifiedComponent>();
+  const auto& childrenStorage = _other.registry.storage<Children>();
+
   for (const auto &entity : _diff.RemovedEntities())
   {
     // if the entity is not in this ECM, add it before requesting for its
@@ -2224,6 +2226,17 @@ void EntityComponentManager::ApplyEntityDiff(
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
+      if (!newStorage->contains(entity))
+        this->registry.remove<NewEntity>(entity);
+      if (removeStorage && removeStorage->contains(entity))
+        this->registry.emplace<RemoveEntity>(entity);
+      if (pinnedStorage && pinnedStorage->contains(entity))
+        this->registry.emplace<PinnedEntity>(entity);
+      if (modifiedStorage && modifiedStorage->contains(entity))
+        this->registry.emplace<ModifiedComponent>(entity);
+      // Children is already present
+      if (childrenStorage->contains(entity))
+        this->registry.replace<Children>(entity, childrenStorage->get(entity));
       // TODO(luca) Any other components to copy? I.e. pin, modified component
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }

@@ -28,8 +28,6 @@
 #  define ENTT_ID_TYPE uint64_t
 #endif
 
-#include <gz/sim/entt.hpp>
-
 /// \brief This library is part of the [Gazebo](https://gazebosim.org) project.
 namespace gz
 {
@@ -67,7 +65,7 @@ namespace gz
     using Entity = uint64_t;
 
     /// \brief Indicates a non-existent or invalid Entity.
-    const Entity kNullEntity{entt::null};
+    const Entity kNullEntity{0};
     }
   }
 }
