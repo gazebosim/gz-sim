@@ -200,6 +200,11 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 {
   gz::rendering::ScenePtr scene =
       gz::rendering::sceneFromFirstRenderEngine();
+  if (!scene)
+  {
+    gzerr << "Scene not found, cannot take picture." << std::endl;
+    return;
+  }
   gz::rendering::VisualPtr modelVisual =
       scene->VisualByName(this->modelName);
 
@@ -271,30 +276,30 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
     SavePicture(photoCamera, pose, "1.png");
 
     // Top view
-    pose.Pos().Set(0 + translation.X(),
-                   0 + translation.Y(),
+    pose.Pos().Set(translation.X(),
+                   translation.Y(),
                    2.2 / scaling + translation.Z());
     pose.Rot().SetFromEuler(0, GZ_DTOR(90), 0);
     SavePicture(photoCamera, pose, "2.png");
 
     // Front view
     pose.Pos().Set(2.2 / scaling + translation.X(),
-                   0 + translation.Y(),
-                   0 + translation.Z());
+                   translation.Y(),
+                   translation.Z());
     pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-180));
     SavePicture(photoCamera, pose, "3.png");
 
     // Side view
-    pose.Pos().Set(0 + translation.X(),
+    pose.Pos().Set(translation.X(),
                    2.2 / scaling + translation.Y(),
-                   0 + translation.Z());
+                   translation.Z());
     pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-90));
     SavePicture(photoCamera, pose, "4.png");
 
     // Back view
     pose.Pos().Set(-2.2 / scaling + translation.X(),
-                   0 + translation.Y(),
-                   0 + translation.Z());
+                   translation.Y(),
+                   translation.Z());
     pose.Rot().SetFromEuler(0, 0, 0);
     SavePicture(photoCamera, pose, "5.png");
 
