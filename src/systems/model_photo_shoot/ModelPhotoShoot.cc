@@ -214,6 +214,7 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
   {
     // find the camera we created for photo shoot
     gz::rendering::CameraPtr photoCamera = nullptr;
+
     for (unsigned int i = 0; i < scene->NodeCount(); ++i)
     {
       auto camera = std::dynamic_pointer_cast<gz::rendering::Camera>(
