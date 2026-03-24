@@ -228,7 +228,7 @@
         <wheel_radius>0.3</wheel_radius>
         <max_acceleration>1</max_acceleration>
         <max_velocity>0.5</max_velocity>
-        <tf_topic>/tf_foo</tf_topic>
+        <tf_topic>tf_foo</tf_topic>
         <!-- no odom_publisher_frequency defaults to 50 Hz -->
       </plugin>
 
