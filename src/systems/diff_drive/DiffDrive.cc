@@ -368,7 +368,8 @@ void DiffDrive::Configure(const Entity &_entity,
     std::string odomTopicName = _sdf->Get<std::string>("odom_topic");
     if (!odomTopicName.empty() && odomTopicName.front() != '/')
     {
-      odomTopicName = "/" + this->dataPtr->model.Name(_ecm) + "/" + odomTopicName;
+      odomTopicName =
+        "/" + this->dataPtr->model.Name(_ecm) + "/" + odomTopicName;
     }
     odomTopics.push_back(odomTopicName);
   }

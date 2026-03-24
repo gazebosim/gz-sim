@@ -235,7 +235,8 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
 
     unsigned int odomPosesCount = 0;
     std::function<void(const msgs::Odometry &)> odomCb =
-      [&odomPosesCount, &_expectedFrameId, &_expectedChildFrameId](const msgs::Odometry &_msg)
+      [&odomPosesCount, &_expectedFrameId, &_expectedChildFrameId]
+      (const msgs::Odometry &_msg)
       {
         ASSERT_TRUE(_msg.has_header());
         ASSERT_TRUE(_msg.header().has_stamp());
@@ -300,7 +301,8 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
 
     unsigned int tfPosesCount = 0;
     std::function<void(const msgs::Pose_V &)> pose_VCb =
-      [&tfPosesCount, &_expectedFrameId, &_expectedChildFrameId](const msgs::Pose_V &_msg)
+      [&tfPosesCount, &_expectedFrameId, &_expectedChildFrameId]
+      (const msgs::Pose_V &_msg)
       {
         ASSERT_GT(_msg.pose_size(), 0);
         ASSERT_TRUE(_msg.pose(0).has_header());
@@ -650,7 +652,8 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 }
 
 /////////////////////////////////////////////////
-TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomRelativeTfTopic))
+TEST_P(DiffDriveTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomRelativeTfTopic))
 {
   TestTfTopic(
       std::string(PROJECT_SOURCE_PATH) +
