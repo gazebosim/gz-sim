@@ -1081,9 +1081,6 @@ void SwerveDrivePrivate::OptimizeWheelCmd(
   double &_steeringDeltaAngle,
   double &_wheelSpeed)
 {
-  static int count = 0;
-  count++;
-  count = count % 4;
   // If the steering angle is greater than 90 degrees,it's more efficient
   // to reverse the wheel direction and steer in the opposite direction.
   if (std::abs(_steeringDeltaAngle) > GZ_PI / 2)
