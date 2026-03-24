@@ -336,12 +336,12 @@ void DiffDrive::Configure(const Entity &_entity,
   std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
   {
-    std::string topic = _sdf->Get<std::string>("topic");
-    if (topic.front() != '/')
+    std::string topicName = _sdf->Get<std::string>("topic");
+    if (!topicName.empty() && topicName.front() != '/')
     {
-      topic = "/" + this->dataPtr->model.Name(_ecm) + "/" + topic;
+      topicName = "/" + this->dataPtr->model.Name(_ecm) + "/" + topicName;
     }
-    topics.push_back(topic);
+    topics.push_back(topicName);
   }
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
@@ -365,7 +365,12 @@ void DiffDrive::Configure(const Entity &_entity,
   std::vector<std::string> odomTopics;
   if (_sdf->HasElement("odom_topic"))
   {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    std::string odomTopicName = _sdf->Get<std::string>("odom_topic");
+    if (!odomTopicName.empty() && odomTopicName.front() != '/')
+    {
+      odomTopicName = "/" + this->dataPtr->model.Name(_ecm) + "/" + odomTopicName;
+    }
+    odomTopics.push_back(odomTopicName);
   }
   odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
       "/odometry");
@@ -377,7 +382,13 @@ void DiffDrive::Configure(const Entity &_entity,
   std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
     "/tf"};
   if (_sdf->HasElement("tf_topic"))
+  {
     tfTopic = _sdf->Get<std::string>("tf_topic");
+    if (!tfTopic.empty() && tfTopic.front() != '/')
+    {
+      tfTopic = "/" + this->dataPtr->model.Name(_ecm) + "/" + tfTopic;
+    }
+  }
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
       tfTopic);
 
