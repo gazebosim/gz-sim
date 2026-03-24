@@ -336,7 +336,12 @@ void DiffDrive::Configure(const Entity &_entity,
   std::vector<std::string> topics;
   if (_sdf->HasElement("topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    std::string topic = _sdf->Get<std::string>("topic");
+    if (topic.front() != '/')
+    {
+      topic = "/" + this->dataPtr->model.Name(_ecm) + "/" + topic;
+    }
+    topics.push_back(topic);
   }
   topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
   auto topic = validTopic(topics);
