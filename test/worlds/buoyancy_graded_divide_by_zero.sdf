@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<!--
+  Test world to prevent division by zero in graded buoyancy loop.
+  Two density_change layers with a box far below both.
+-->
+<sdf version="1.6">
+  <world name="buoyancy">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+        <!-- Second layer: a fully-submerged shape will have
+             vol == prevLayerVol here, triggering the bug -->
+        <density_change>
+          <above_depth>10</above_depth>
+          <density>0.1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <!-- Box at z=-100, far below both layer boundaries (z=0, z=10). -->
+    <model name='deep_box'>
+      <pose>0 0 -100 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>166.67</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>166.67</iyy>
+            <iyz>0</iyz>
+            <izz>166.67</izz>
+          </inertia>
+        </inertial>
+        <collision name='body_collision'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
