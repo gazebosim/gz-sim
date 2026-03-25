@@ -27,7 +27,7 @@ First, we will need access to an entity, the \ref gz::sim::Model entity in this
 case.
 `OdometryPublisher` happens to be a system meant to be specified under `<model>`
 in the SDF, so at the time `Configure()` is called, it has access to a model
-entity from which we can extract a \ref gz::sim::Model:
+entity from which we can extract a \ref gz::sim::Model "Model":
 
 \snippet src/systems/odometry_publisher/OdometryPublisher.cc modelDeclaration
 \snippet src/systems/odometry_publisher/OdometryPublisher.cc Configure
