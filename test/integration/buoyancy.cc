@@ -389,10 +389,7 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
                 neutralBoxPose->Data().Pos().Z());
     }
 
-    if (_info.iterations == iterations)
-    {
-      finished = true;
-    }
+    finished = _info.iterations == iterations;
   });
 
   server.AddSystem(testSystem.systemPtr);
@@ -528,4 +525,101 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
   std::size_t targetIterations{1000};
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
+}
+
+/////////////////////////////////////////////////
+// Test that SDF parsing works when <enable> appears before
+// <graded_buoyancy> in the plugin block.
+// GetFirstElement() would grab <enable> instead of <graded_buoyancy>,
+// silently skipping <default_density> and <density_change> parsing.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedSdfParsingOrder))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_sdf_order.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
+  {
+    Entity parseTestBox = _ecm.EntityByComponents(
+      components::Model(), components::Name("parse_test_box"));
+    ASSERT_NE(parseTestBox, kNullEntity);
+
+    auto parseTestBoxPose = _ecm.Component<components::Pose>(parseTestBox);
+    ASSERT_NE(parseTestBoxPose, nullptr);
+
+    // parse_test_box: mass=500, volume=1, default_density=500.
+    // With correct parsing it is neutrally buoyant and stays near z=-5.
+    // With broken parsing (default_density not read, stays at 1000),
+    // buoyancy > weight and the box floats up well past z=-4.
+    EXPECT_NEAR(0, parseTestBoxPose->Data().Pos().X(), 2e-1);
+    EXPECT_NEAR(0, parseTestBoxPose->Data().Pos().Y(), 2e-1);
+    EXPECT_NEAR(-5, parseTestBoxPose->Data().Pos().Z(), 5e-1);
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+// Test that a shape far below all layer boundaries doesn't produce NaN
+// forces from division by zero in the graded buoyancy loop.
+// Two density_change layers with a box below both: the second layer
+// hits vol == prevLayerVol, causing (cov * vol - prev * prevVol) / 0.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedDivideByZero))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_divide_by_zero.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
+  {
+    Entity deepBox = _ecm.EntityByComponents(
+      components::Model(), components::Name("deep_box"));
+    ASSERT_NE(deepBox, kNullEntity);
+
+    auto deepBoxPose = _ecm.Component<components::Pose>(deepBox);
+    ASSERT_NE(deepBoxPose, nullptr);
+
+    // deep_box at z=-100 is below both density_change layers (z=0, z=10).
+    // The second layer in the graded loop hits vol == prevLayerVol.
+    // Without the division-by-zero guard, NaN propagates into forces/pose.
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().X()));
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().Y()));
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().Z()));
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
 }
