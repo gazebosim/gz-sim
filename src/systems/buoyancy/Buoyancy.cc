@@ -78,8 +78,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 
   /// \brief Get the resultant buoyant force on a shape.
   /// \param[in] _pose World pose of the shape's origin.
-  /// \param[in] _shape The collision mesh of a shape. Currently must
-  /// be box or sphere.
+  /// \param[in] _shape The collision shape.
   /// \param[in] _gravity Gravity acceleration in the world frame.
   /// Updates this->buoyancyForces containing {force, center_of_volume} to be
   /// applied on the link.
@@ -419,6 +418,15 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
         case sdf::GeometryType::CYLINDER:
           volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
           break;
+        case sdf::GeometryType::CAPSULE:
+          volume = coll->Data().Geom()->CapsuleShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::ELLIPSOID:
+          volume = coll->Data().Geom()->EllipsoidShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::CONE:
+          volume = coll->Data().Geom()->ConeShape()->Shape().Volume();
+          break;
         case sdf::GeometryType::PLANE:
           // Ignore plane shapes. They have no volume and are not expected
           // to be buoyant.
@@ -540,13 +548,38 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
                 coll->Data().Geom()->SphereShape()->Shape(),
                 gravity->Data());
               break;
+            case sdf::GeometryType::CYLINDER:
+              this->dataPtr->GradedFluidDensity<math::Cylinderd>(
+                pose,
+                coll->Data().Geom()->CylinderShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::CAPSULE:
+              this->dataPtr->GradedFluidDensity<math::Capsuled>(
+                pose,
+                coll->Data().Geom()->CapsuleShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::ELLIPSOID:
+              this->dataPtr->GradedFluidDensity<math::Ellipsoidd>(
+                pose,
+                coll->Data().Geom()->EllipsoidShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::CONE:
+              this->dataPtr->GradedFluidDensity<math::Coned>(
+                pose,
+                coll->Data().Geom()->ConeShape()->Shape(),
+                gravity->Data());
+              break;
             default:
             {
               static bool warned{false};
               if (!warned)
               {
-                ignwarn << "Only <box> and <sphere> collisions are supported "
-                  << "by the graded buoyancy option." << std::endl;
+                ignwarn << "Unsupported collision geometry for graded buoyancy["
+                  << static_cast<int>(coll->Data().Geom()->Type())
+                  << "]" << std::endl;
                 warned = true;
               }
               break;
