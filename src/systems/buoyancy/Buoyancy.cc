@@ -175,6 +175,14 @@ void BuoyancyPrivate::GradedFluidDensity(
       continue;
     }
 
+    // Skip layer if no additional volume
+    if (std::abs(vol - prevLayerVol) < 1e-10)
+    {
+      prevLayerFluidDensity = currFluidDensity;
+      prevLayerVol = vol;
+      continue;
+    }
+
     // Archimedes principle for this layer
     auto forceMag =  - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
@@ -279,7 +287,7 @@ void Buoyancy::Configure(const Entity &_entity,
     this->dataPtr->buoyancyType =
       BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
 
-    auto gradedElement = _sdf->GetFirstElement();
+    auto gradedElement = _sdf->FindElement("graded_buoyancy");
     if (gradedElement == nullptr)
     {
       ignerr << "Unable to get element description" << std::endl;
@@ -314,6 +322,13 @@ void Buoyancy::Configure(const Entity &_entity,
           <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
+    }
+
+    if (this->dataPtr->layers.empty())
+    {
+      ignwarn << "No <density_change> elements in <graded_buoyancy>. "
+         << "Behaves as uniform buoyancy with density "
+         << this->dataPtr->fluidDensity << std::endl;
     }
   }
   else
