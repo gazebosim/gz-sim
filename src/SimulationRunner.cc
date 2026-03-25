@@ -665,6 +665,7 @@ void SimulationRunner::UpdateSystems()
       this->postUpdateStopBarrier->Wait();
     }
     // this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 

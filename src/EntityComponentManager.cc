@@ -65,20 +65,11 @@ class gz::sim::EntityComponentManagerPrivate
   /// \param[in, out] _set Set to be filled.
   public: void InsertEntityRecursive(const entt::basic_registry<Entity>& _registry, Entity _entity,
       std::unordered_set<Entity> &_set);
-          /*
-
-  /// \brief Recursively erase an entity and all its descendants from a given
-  /// set.
-  /// \param[in] _entity Entity to be erased.
-  /// \param[in, out] _set Set to erase from.
-  public: void EraseEntityRecursive(Entity _entity,
-      std::unordered_set<Entity> &_set);
 
   /// \brief Allots the work for multiple threads prior to running
   /// `AddEntityToMessage`.
-  public: void CalculateStateThreadLoad();
+  public: void CalculateStateThreadLoad(const entt::basic_registry<Entity>& _registry);
 
-          */
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
   /// it can have additional parameters if the need arises in the future.
@@ -140,10 +131,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
 
-  /// \brief A graph holding all entities, arranged according to their
-  /// parenting.
-  public: EntityGraph entities;
-
           */
   /// \brief Components that have been changed through a periodic change.
   /// The key is the type of component which has changed, and the value is the
@@ -156,57 +143,16 @@ class gz::sim::EntityComponentManagerPrivate
   /// entities that had this type of component changed.
   public: std::unordered_map<ComponentTypeId, std::unordered_set<Entity>>
             oneTimeChangedComponents;
-          /*
 
-  /// \brief Entities that have just been created
-  public: std::unordered_set<Entity> newlyCreatedEntities;
-
-  /// \brief Entities that need to be removed.
-  public: std::unordered_set<Entity> toRemoveEntities;
-
-  /// \brief Entities that have components newly modified
-  /// (created/modified/removed) but are not entities that have been
-  /// newly created or removed (ie. newlyCreatedEntities or toRemoveEntities).
-  /// This is used for the ChangedState functions
-  public: std::unordered_set<Entity> modifiedComponents;
-
-  /// \brief Flag that indicates if all entities should be removed.
-  public: bool removeAllEntities{false};
-
-          */
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
 
   /// \brief A mutex to protect entity remove.
   public: std::mutex entityRemoveMutex;
-          /*
 
-  /// \brief A mutex to protect from concurrent writes to views
-  public: mutable std::mutex viewsMutex;
-
-          */
   /// \brief A mutex to protect removed components
   public: mutable std::mutex removedComponentsMutex;
-          /*
 
-  /// \brief The set of all views.
-  /// The value is a pair of the view itself and a mutex that can be used for
-  /// locking the view to ensure thread safety when adding entities to the view.
-  public: mutable std::unordered_map<detail::ComponentTypeKey,
-          std::pair<std::unique_ptr<detail::BaseView>,
-            std::unique_ptr<std::mutex>>, detail::ComponentTypeHasher> views;
-
-  /// \brief A flag that indicates whether views should be locked while adding
-  /// new entities to them or not.
-  public: bool lockAddEntitiesToViews{false};
-
-  /// \brief Cache of previously queried descendants. The key is the parent
-  /// entity for which descendants were queried, and the value are all its
-  /// descendants.
-  public: mutable std::unordered_map<Entity, std::unordered_set<Entity>>
-          descendantCache;
-
-          */
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 
@@ -223,45 +169,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// currently removed based on all simulation steps.
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     componentsMarkedAsRemoved;
-          /*
-
-  /// \brief A map of an entity to its components
-  public: std::unordered_map<Entity,
-           std::vector<std::unique_ptr<components::BaseComponent>>>
-             componentStorage;
-
-  /// \brief A map that keeps track of where each type of component is
-  /// located in the componentStorage vector. Since the componentStorage vector
-  /// is of type BaseComponent, we need to keep track of which component type
-  /// corresponds to a given index in the vector so that we can cast the
-  /// BaseComponent to this type if needed.
-  ///
-  /// The key of this map is the Entity, and the value is a map of the
-  /// component type to the corresponding index in the
-  /// componentStorage vector (a component of a particular type is
-  /// only a key for the value map if a component of this type exists in
-  /// the componentStorage vector)
-  ///
-  /// NOTE: Any modification of this data structure must be followed
-  /// by setting `componentTypeIndexDirty` to true.
-  public: std::unordered_map<Entity,
-           std::unordered_map<ComponentTypeId, std::size_t>>
-                                componentTypeIndex;
-
-  /// \brief A vector of iterators to evenly distributed spots in the
-  /// `componentTypeIndex` map.  Threads in the `State` function use this
-  /// vector for easy access of their pre-allocated work.  This vector
-  /// is recalculated if `componentTypeIndex` is changed (when
-  /// `componentTypeIndexDirty` == true).
-  public: std::vector<std::unordered_map<Entity,
-          std::unordered_map<ComponentTypeId, std::size_t>>::iterator>
-            componentTypeIndexIterators;
-
-  /// \brief True if the componentTypeIndex map was changed.  Primarily used
-  /// by the multithreading functionality in `State()` to allocate work to
-  /// each thread.
-  public: bool componentTypeIndexDirty{true};
-  */
 
   /// \brief During cloning, we populate two maps:
   ///  - map of cloned model entities to the non-cloned model's canonical link
@@ -300,18 +207,44 @@ class gz::sim::EntityComponentManagerPrivate
   public: std::unordered_map<Entity, std::pair<Entity, Entity>>
           clonedToOriginalJointLinks;
 
-          /*
-  /// \brief Set of entities that are prevented from removal.
-  public: std::unordered_set<Entity> pinnedEntities;
-  */
+  /// \brief Groups that are pending to be created.
+  public: std::vector<std::unique_ptr<detail::GroupQueuer>> pendingGroups;
+
+  /// \brief Set of group component types that are already enqueued.
+  public: std::set<std::vector<ComponentTypeId>> enqueuedGroups;
+
+  /// \brief Mutex to protect enqueuedGroups and pendingGroups.
+  public: mutable std::mutex groupMutex;
 };
+
+//////////////////////////////////////////////////
+void EntityComponentManager::CreatePendingGroups()
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
+  for (auto &group : this->dataPtr->pendingGroups)
+  {
+    group->CreateGroup(this->registry);
+  }
+  this->dataPtr->pendingGroups.clear();
+  this->dataPtr->enqueuedGroups.clear();
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::EnqueueGroup(
+    const std::vector<ComponentTypeId> &_types,
+    std::unique_ptr<detail::GroupQueuer> _queuer) const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
+  if (this->dataPtr->enqueuedGroups.insert(_types).second)
+  {
+    this->dataPtr->pendingGroups.push_back(std::move(_queuer));
+  }
+}
 
 //////////////////////////////////////////////////
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
-  // Gazebo expects entities to start from 1
-  // static_cast<void>(this->registry.create());
   components::Factory::Instance()->RegisterAllToEntt(this->registry);
 }
 
@@ -327,17 +260,6 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->entityCount = _from.entityCount;
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
-
-  /*
-  for (const auto &[entity, comps] : _from.componentStorage)
-  {
-    this->componentStorage[entity].clear();
-    for (const auto &comp : comps)
-    {
-      this->componentStorage[entity].emplace_back(comp->Clone());
-    }
-  }
-  */
 
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
@@ -660,19 +582,6 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(const entt::basic_regi
   }
 }
 
-/*
-/////////////////////////////////////////////////
-void EntityComponentManagerPrivate::EraseEntityRecursive(Entity _entity,
-    std::unordered_set<Entity> &_set)
-{
-  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
-  {
-    this->EraseEntityRecursive(vertex.first, _set);
-  }
-  _set.erase(_entity);
-}
-
-*/
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     bool _recursive)
@@ -758,55 +667,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     this->registry.destroy(entity);
     this->dataPtr->componentsMarkedAsRemoved.erase(entity);
   }
-  /*
-  // Short-cut if erasing all entities
-  if (this->dataPtr->removeAllEntities)
-  {
-    GZ_PROFILE("RemoveAll");
-    this->dataPtr->removeAllEntities = false;
-    this->dataPtr->entities = EntityGraph();
-    this->dataPtr->toRemoveEntities.clear();
-    this->dataPtr->componentsMarkedAsRemoved.clear();
-
-    // reset the entity component storage
-    this->dataPtr->componentStorage.clear();
-    this->dataPtr->componentTypeIndex.clear();
-    this->dataPtr->componentTypeIndexDirty = true;
-
-    // All views are now invalid.
-    this->dataPtr->views.clear();
-  }
-  else
-  {
-    GZ_PROFILE("Remove");
-    // Otherwise iterate through the list of entities to remove.
-    for (const Entity entity : this->dataPtr->toRemoveEntities)
-    {
-      // Make sure the entity exists and is not removed.
-      if (!this->HasEntity(entity))
-        continue;
-
-      // Remove from graph
-      this->dataPtr->entities.RemoveVertex(entity);
-
-      this->dataPtr->componentsMarkedAsRemoved.erase(entity);
-      this->dataPtr->componentStorage.erase(entity);
-      this->dataPtr->componentTypeIndex.erase(entity);
-      this->dataPtr->componentTypeIndexDirty = true;
-
-      // Remove the entity from views.
-      for (auto &view : this->dataPtr->views)
-      {
-        view.second.first->RemoveEntity(entity);
-      }
-    }
-    // Clear the set of entities to remove.
-    this->dataPtr->toRemoveEntities.clear();
-  }
-
-  // Reset descendants cache
-  this->dataPtr->descendantCache.clear();
-  */
 }
 
 /////////////////////////////////////////////////
@@ -870,16 +730,6 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
   return storage->contains(_entity);
 }
 
-/*
-/////////////////////////////////////////////////
-bool EntityComponentManager::IsNewEntity(const Entity _entity) const
-{
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-  return this->dataPtr->newlyCreatedEntities.find(_entity) !=
-         this->dataPtr->newlyCreatedEntities.end();
-}
-
-*/
 /////////////////////////////////////////////////
 bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 {
@@ -1156,9 +1006,6 @@ const components::BaseComponent
 {
   GZ_PROFILE("EntityComponentManager::ComponentImplementation");
 
-  if (!this->HasEntity(_entity))
-    return nullptr;
-
   const auto* storage = this->registry.storage(_type);
   if (!storage)
     return nullptr;
@@ -1197,64 +1044,6 @@ const std::vector<Entity> EntityComponentManager::Entities() const
   });
   return entities;
 }
-
-/*
-//////////////////////////////////////////////////
-std::pair<detail::BaseView *, std::mutex *> EntityComponentManager::FindView(
-    const std::vector<ComponentTypeId> &_types) const
-{
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
-  std::pair<detail::BaseView *, std::mutex *> viewMutexPair(nullptr, nullptr);
-  auto iter = this->dataPtr->views.find(_types);
-  if (iter != this->dataPtr->views.end())
-  {
-    viewMutexPair.first = iter->second.first.get();
-    viewMutexPair.second = iter->second.second.get();
-  }
-  return viewMutexPair;
-}
-
-//////////////////////////////////////////////////
-detail::BaseView *EntityComponentManager::AddView(
-    const detail::ComponentTypeKey &_types,
-    std::unique_ptr<detail::BaseView> _view) const
-{
-  // If the view already exists, then the map will return the iterator to
-  // the location that prevented the insertion.
-  std::lock_guard<std::mutex> lockViews(this->dataPtr->viewsMutex);
-  auto iter = this->dataPtr->views.insert(std::make_pair(_types,
-        std::make_pair(std::move(_view),
-          std::make_unique<std::mutex>()))).first;
-  return iter->second.first.get();
-}
-
-//////////////////////////////////////////////////
-void EntityComponentManager::RebuildViews()
-{
-  GZ_PROFILE("EntityComponentManager::RebuildViews");
-  for (auto &viewPair : this->dataPtr->views)
-  {
-    auto &view = viewPair.second.first;
-    view->Reset();
-
-    // Add all the entities that match the component types to the
-    // view.
-    for (const auto &vertex : this->dataPtr->entities.Vertices())
-    {
-      Entity entity = vertex.first;
-      if (this->EntityMatches(entity, view->ComponentTypes()))
-      {
-        view->MarkEntityToAdd(entity, this->IsNewEntity(entity));
-
-        // If there is a request to delete this entity, update the view as
-        // well
-        if (this->IsMarkedForRemoval(entity))
-          view->MarkEntityToRemove(entity);
-      }
-    }
-  }
-}
-*/
 
 //////////////////////////////////////////////////
 void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
@@ -1334,9 +1123,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   auto entityMsg = _msg.add_entities();
   entityMsg->set_id(_entity);
   
-  if (!this->HasEntity(_entity))
-    return;
-
   if (this->registry.any_of<RemoveEntity>(_entity))
   {
     entityMsg->set_remove(true);
@@ -1516,32 +1302,11 @@ void EntityComponentManager::ChangedState(
   });
 }
 
-/*
 //////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CalculateStateThreadLoad()
+void EntityComponentManagerPrivate::CalculateStateThreadLoad(const entt::basic_registry<Entity>& _registry)
 {
-  // If the entity component vector is dirty, we need to recalculate the
-  // threads and each thread's work load
-  if (!this->componentTypeIndexDirty)
-    return;
 
-  this->componentTypeIndexDirty = false;
-  this->componentTypeIndexIterators.clear();
-  auto startIt = this->componentTypeIndex.begin();
-  int numEntities = this->componentTypeIndex.size();
-
-  // Set the number of threads to spawn to the min of the calculated thread
-  // count or max threads that the hardware supports
-  int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numEntities, maxThreads);
-
-  int entitiesPerThread = static_cast<int>(std::ceil(
-    static_cast<double>(numEntities) / numThreads));
-
-  gzdbg << "Updated state thread iterators: " << numThreads
-         << " threads processing around " << entitiesPerThread
-         << " entities each." << std::endl;
-
+  /*
   // Push back the starting iterator
   this->componentTypeIndexIterators.push_back(startIt);
   for (uint64_t i = 0; i < numThreads; ++i)
@@ -1561,9 +1326,9 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
     this->componentTypeIndexIterators.push_back(nextIt);
     startIt = nextIt;
   }
+  */
 }
 
-*/
 //////////////////////////////////////////////////
 msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
@@ -1592,19 +1357,31 @@ void EntityComponentManager::State(
       return;
     this->AddEntityToMessage(_state, e, _types, _full);
   });
-  // TODO(luca) multithread this over number of entities?
+  return;
+
+  // TODO(luca) Benchmark whether multithreaded state really helps
   /*
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
 
-  this->dataPtr->CalculateStateThreadLoad();
+  const auto entityView = this->registry.view<Entity>();
+  int numEntities = entityView.size();
+  const auto addN = entityView.begin() + 100;
+
+  // Set the number of threads to spawn to the min of the calculated thread
+  // count or max threads that the hardware supports
+  int maxThreads = std::thread::hardware_concurrency();
+  uint64_t numThreads = std::min(numEntities, maxThreads);
+
+  int entitiesPerThread = static_cast<int>(std::ceil(
+    static_cast<double>(numEntities) / numThreads));
 
   auto functor = [&](auto itStart, auto itEnd)
   {
     msgs::SerializedStateMap threadMap;
     while (itStart != itEnd)
     {
-      auto entity = (*itStart).first;
+      auto entity = *itStart;
       if (_entities.empty() || _entities.find(entity) != _entities.end())
       {
         this->AddEntityToMessage(threadMap, entity, _types, _full);
@@ -1620,13 +1397,20 @@ void EntityComponentManager::State(
     }
   };
 
-  // Spawn workers
-  uint64_t numThreads = this->dataPtr->componentTypeIndexIterators.size() - 1;
-  for (uint64_t i = 0; i < numThreads; i++)
+  auto itBegin = entityView.begin();
+  for (uint64_t i = 0; i < numThreads; ++i)
   {
+    // If we have added all of the entities to the iterator vector, we are
+    // done so push back the end iterator
+    numEntities -= entitiesPerThread;
+    auto itEnd = entityView.begin() + (i + 1) * entitiesPerThread;
+    if (numEntities <= 0)
+    {
+      itEnd = entityView.end();
+    }
     workers.push_back(std::thread(functor,
-        this->dataPtr->componentTypeIndexIterators[i],
-        this->dataPtr->componentTypeIndexIterators[i+1]));
+        itBegin, itEnd));
+    itBegin = itEnd;
   }
 
   // Wait for each thread to finish processing its components
@@ -1944,8 +1728,8 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
     const Entity _entity) const
 {
   std::unordered_set<ComponentTypeId> result;
-  // TODO(luca) is it possible to avoid iterating all the storages and only look at the entity's instead?
-  for (const auto& [typeId, storage] : this->registry.storage())
+  auto handle = entt::basic_handle<const decltype(this->registry)>(this->registry, _entity);
+  for (const auto [typeId, storage] : handle.storage())
   {
     // TODO(luca) remember to add component types here for internal components
     if (typeId == entt::type_hash<NewEntity>::value() ||
@@ -1956,8 +1740,7 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
     {
       continue;
     }
-    if (storage.contains(_entity))
-      result.insert(typeId);
+    result.insert(typeId);
   }
   return result;
 }
@@ -2150,11 +1933,10 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
       }
       if (!components::Factory::Instance()->SyncComponent(this->registry, e, typeId, baseCompPtr->Clone().get()))
       {
-        std::cerr << "Failed syncing component!" << std::endl;
+        gzerr << "Failed syncing component!" << std::endl;
       }
     }
   });
-  // this->registry.emplace(_fromEcm.registry.data(), _fromEcm.registry.data() + _fromEcm.registry.size(), _fromEcm.registry.destroyed());
 }
 
 /////////////////////////////////////////////////

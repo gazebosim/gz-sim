@@ -1493,8 +1493,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("123456")));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("int"),
       UIntComponent(456u)));
-  EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(456u),
-      UIntComponent(789u)));
+  // CHANGED query with duplicate components is a compile error now
+  EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(123u)));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(IntComponent(-123),
       UIntComponent(456u)));
 
