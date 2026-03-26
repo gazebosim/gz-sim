@@ -31,10 +31,17 @@
 #include <gz/common/Util.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
-#include <gz/sim/entt.hpp>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
+
+#ifndef ENTT_NO_ETO
+  #define ENTT_NO_ETO
+#endif
+#ifndef ENTT_ID_TYPE
+#  define ENTT_ID_TYPE uint64_t
+#endif
+#include <gz/sim/entt/entity/registry.hpp>
 
 namespace gz
 {

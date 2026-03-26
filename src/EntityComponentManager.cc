@@ -45,6 +45,8 @@
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/World.hh"
 
+#include "gz/sim/entt/entity/handle.hpp"
+
 using namespace gz;
 
 using namespace sim;

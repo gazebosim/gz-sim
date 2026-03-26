@@ -38,12 +38,14 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
-#ifdef ENTT_NO_ETO
+#ifndef ENTT_NO_ETO
   #define ENTT_NO_ETO
 #endif
-#include "gz/sim/entt.hpp"
+#ifndef ENTT_ID_TYPE
+#  define ENTT_ID_TYPE uint64_t
+#endif
+#include <gz/sim/entt/entity/registry.hpp>
 #include "gz/sim/components/Component.hh"
-#include "gz/sim/detail/View.hh"
 
 namespace gz
 {
