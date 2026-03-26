@@ -956,10 +956,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     // of the data is done externally in a templated ECM method call, because we
     // need the derived component class in order to update the derived component
     // data)
-    if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
-    {
-      this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_componentTypeId);
-    }
+    this->MarkComponentAsRemoved(_entity, _componentTypeId, false);
   }
 
   // If the component is a components::ParentEntity, then make sure to

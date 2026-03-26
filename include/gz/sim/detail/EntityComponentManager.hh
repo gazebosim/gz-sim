@@ -162,11 +162,49 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+namespace detail
+{
+  /// \brief Base class for enqueuing group creation.
+  class GroupQueuer
+  {
+    public: virtual ~GroupQueuer() = default;
+    public: virtual void CreateGroup(entt::basic_registry<Entity> &_registry) = 0;
+  };
+
+  /// \brief Implementation of GroupQueuer for a specific set of components.
+  template<typename ...ComponentTypeTs>
+  class GroupQueuerImpl : public GroupQueuer
+  {
+    public: void CreateGroup(entt::basic_registry<Entity> &_registry) override
+    {
+      _registry.template group<>(entt::get<ComponentTypeTs...>);
+    }
+  };
+}
+
+//////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 Entity EntityComponentManager::EntityByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
+  if (auto group = this->registry.template group_if_exists<>(
+      entt::get<const ComponentTypeTs...>); group)
+  {
+    for (const auto e : group)
+    {
+      bool match = ((group.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+      if (match)
+        return e;
+    }
+    return kNullEntity;
+  }
+
+  // Enqueue group creation for next iteration
+  this->EnqueueGroup({ComponentTypeTs::typeId...},
+      std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
+
   auto view = this->registry.template view<const ComponentTypeTs...>();
+
   for (auto e : view)
   {
     bool match = ((view.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
@@ -183,7 +221,24 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
   std::vector<Entity> result;
+  if (auto group = this->registry.template group_if_exists<>(
+      entt::get<const ComponentTypeTs...>); group)
+  {
+    for (const auto e : group)
+    {
+      bool match = ((group.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+      if (match)
+        result.push_back(e);
+    }
+    return result;
+  }
+
+  // Enqueue group creation for next iteration
+  this->EnqueueGroup({ComponentTypeTs::typeId...},
+      std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
+
   auto view = this->registry.template view<const ComponentTypeTs...>();
+
   for (auto e : view)
   {
     bool match = ((view.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
@@ -199,6 +254,11 @@ template<typename ...ComponentTypeTs>
 std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
      const ComponentTypeTs &..._desiredComponents) const
 {
+  // TODO(luca) The two implementations showed fairly similar results in benchmarking
+  // Iterating over children is slightly slower when there are a lot of children to one entity
+  // Iterating over the view is sligthly faster when an entity has a lot of children
+  // The performance difference might be small enough that we shouldn't need two APIs
+  // return this->EntitiesByComponents(components::ParentEntity(_parent), _desiredComponents ...);
   std::vector<Entity> result;
   const auto& children = this->registry.template get<Children>(_parent);
   auto view = this->registry.template view<const ComponentTypeTs...>();
@@ -237,27 +297,6 @@ template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNoCache(Func &&_f)
 {
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
-}
-
-//////////////////////////////////////////////////
-namespace detail
-{
-  /// \brief Base class for enqueuing group creation.
-  class GroupQueuer
-  {
-    public: virtual ~GroupQueuer() = default;
-    public: virtual void CreateGroup(entt::basic_registry<Entity> &_registry) = 0;
-  };
-
-  /// \brief Implementation of GroupQueuer for a specific set of components.
-  template<typename ...ComponentTypeTs>
-  class GroupQueuerImpl : public GroupQueuer
-  {
-    public: void CreateGroup(entt::basic_registry<Entity> &_registry) override
-    {
-      _registry.template group<>(entt::get<ComponentTypeTs...>);
-    }
-  };
 }
 
 //////////////////////////////////////////////////
