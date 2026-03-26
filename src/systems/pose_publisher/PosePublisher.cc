@@ -250,6 +250,7 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
+<<<<<<< HEAD
   std::string poseTopic = scopedName(_entity, _ecm) + "/pose";
   poseTopic = transport::TopicUtils::AsValidTopic(poseTopic);
   if (poseTopic.empty())
@@ -257,6 +258,30 @@ void PosePublisher::Configure(const Entity &_entity,
     poseTopic = "/pose";
     ignerr << "Empty pose topic generated for pose_publisher system. "
            << "Setting to " << poseTopic << std::endl;
+=======
+  std::string poseTopic;
+  if (_sdf->HasElement("topic"))
+  {
+    if (transport::TopicUtils::IsValidTopic(_sdf->Get<std::string>("topic")))
+    {
+      poseTopic = _sdf->Get<std::string>("topic");
+    }
+    else
+    {
+      gzerr << "Provided topic: " << _sdf->Get<std::string>("topic")
+            << " is not a valid topic." << std::endl;
+    }
+  }
+  if (poseTopic.empty())
+  {
+    poseTopic = topicFromScopedName(_entity, _ecm, true) + "/pose";
+  }
+  if (poseTopic.empty())
+  {
+    poseTopic = "/pose";
+    gzerr << "Empty pose topic generated for pose_publisher system. "
+             "Setting to " << poseTopic << std::endl;
+>>>>>>> c38c6663 (Support for user-defined topic in PosePublisher (#3331))
   }
   std::string staticPoseTopic = poseTopic + "_static";
 
