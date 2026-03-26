@@ -351,7 +351,7 @@ namespace gz
       const math::Pose3d & _pose);
 
     /// \brief Compute the axis-aligned bounding box of a mesh.
-    /// \param _sdfMesh Mesh SDF DOM.
+    /// \param[in] _sdfMesh Mesh SDF DOM.
     /// \return The AABB of the mesh in its local frame.
     GZ_SIM_VISIBLE std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
       const sdf::Mesh &_sdfMesh);
