@@ -169,7 +169,7 @@ Entity EntityComponentManager::EntityByComponents(
   auto view = this->registry.template view<const ComponentTypeTs...>();
   for (auto e : view)
   {
-    bool match = ((*this->registry.template try_get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+    bool match = ((view.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
     if (match)
       return e;
   }
@@ -201,14 +201,13 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 {
   std::vector<Entity> result;
   const auto& children = this->registry.template get<Children>(_parent);
+  auto view = this->registry.template view<const ComponentTypeTs...>();
 
   for (const Entity e : children.data)
   {
-    bool match = (this->registry.template all_of<ComponentTypeTs>(e) && ...);
-    if (match)
-    {
-      match = ((*this->registry.template try_get<ComponentTypeTs>(e) == _desiredComponents) && ...);
-    }
+    if (!view.contains(e))
+      continue;
+    bool match = ((view.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
 
     if (match)
       result.push_back(e);
