@@ -82,6 +82,8 @@ namespace gz
 
       /// \brief Creates a new Entity.
       /// \return An id for the Entity, or kNullEntity on failure.
+      /// \complexity O(1) amortized. Entity ID allocation uses an incrementing
+      /// counter with O(1) insertion into an unordered_map.
       public: Entity CreateEntity();
 
       /// \brief Clone an entity and its components. If the entity has any child
@@ -121,6 +123,7 @@ namespace gz
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
+      /// \complexity O(1). Returns the size of the internal entity map.
       public: size_t EntityCount() const;
 
       /// \brief Request an entity deletion. This will insert the request
@@ -174,6 +177,7 @@ namespace gz
       /// \brief Get whether an Entity exists.
       /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
+      /// \complexity O(1) average. Uses unordered_map lookup by entity ID.
       public: bool HasEntity(const Entity _entity) const;
 
       /// \brief Get the first parent of the given entity.
@@ -254,6 +258,8 @@ namespace gz
       /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
+      /// \complexity O(1) average. Uses unordered_map lookup by entity ID
+      /// and component type ID
       public: template<typename ComponentTypeT>
               const ComponentTypeT *Component(const Entity _entity) const;
 
@@ -262,6 +268,8 @@ namespace gz
       /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
+      /// \complexity O(1) average. Uses unordered_map lookup by entity ID
+      /// and component type ID.
       public: template<typename ComponentTypeT>
               ComponentTypeT *Component(const Entity _entity);
 
@@ -321,6 +329,8 @@ namespace gz
       ///
       /// \param[in] _desiredComponents All the components which must match.
       /// \return Entity or kNullEntity if no entity has the exact components.
+      /// \complexity O(n) where n is the total number of entities.
+      /// Iterates all entities to find the first match.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
                    const ComponentTypeTs &..._desiredComponents) const;
@@ -337,6 +347,8 @@ namespace gz
       /// \param[in] _desiredComponents All the components which must match.
       /// \return All matching entities, or an empty vector if no child entity
       /// has the exact components.
+      /// \complexity O(n) where n is the total number of entities.
+      /// Iterates all entities to find all matches.
       public: template<typename ...ComponentTypeTs>
               std::vector<Entity> EntitiesByComponents(
                    const ComponentTypeTs &..._desiredComponents) const;
@@ -389,6 +401,9 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \complexity O(n) where n is the total number of entities.
+      /// Unlike Each(), no cached view is used — performs a full scan
+      /// on every call.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
@@ -406,6 +421,9 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired mutable component types.
+      /// \complexity O(n) where n is the total number of entities.
+      /// Unlike Each(), no cached view is used — performs a full scan
+      /// on every call.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
@@ -423,6 +441,10 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \complexity O(k) where k is the number of matching entities.
+      /// A cached view is maintained per component-type signature, so
+      /// repeated calls with the same types avoid a full O(n) scan over
+      /// all entities.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
@@ -440,6 +462,10 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired mutable component types.
+      /// \complexity O(k) where k is the number of matching entities.
+      /// A cached view is maintained per component-type signature, so
+      /// repeated calls with the same types avoid a full O(n) scan over
+      /// all entities.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
       public: template<typename ...ComponentTypeTs>
@@ -463,6 +489,9 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \complexity O(k) where k is the number of newly created entities
+      /// matching the given component types since the last
+      /// ClearNewlyCreatedEntities call.
       /// \warning Since entity creation occurs during PreUpdate, this function
       /// should not be called in a System's PreUpdate callback (it's okay to
       /// call this function in the Update callback). If you need to call this
@@ -482,6 +511,9 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \complexity O(k) where k is the number of newly created entities
+      /// matching the given component types since the last
+      /// ClearNewlyCreatedEntities call.
       /// \warning Since entity creation occurs during PreUpdate, this function
       /// should not be called in a System's PreUpdate callback (it's okay to
       /// call this function in the Update or PostUpdate callback).
@@ -498,6 +530,8 @@ namespace gz
       /// return false to stop subsequent calls to the callback, otherwise
       /// a true value should be returned.
       /// \tparam ComponentTypeTs All the desired component types.
+      /// \complexity O(k) where k is the number of entities pending removal
+      /// that match the given component types.
       /// \warning This function should not be called outside of System's
       /// PostUpdate callback.
       public: template<typename ...ComponentTypeTs>
@@ -515,6 +549,8 @@ namespace gz
       /// \param[in] _entity Entity whose descendants we want.
       /// \return All child entities recursively, including _entity. It will be
       /// empty if the entity doesn't exist.
+      /// \complexity O(d) where d is the number of descendant entities,
+      /// using breadth-first traversal of the entity graph.
       public: std::unordered_set<Entity> Descendants(Entity _entity) const;
 
       /// \brief Get a message with the serialized state of the given entities
