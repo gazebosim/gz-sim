@@ -81,6 +81,7 @@ namespace gz
       public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
+      /// \note Complexity: O(1) amortized
       /// \return An id for the Entity, or kNullEntity on failure.
       public: Entity CreateEntity();
 
@@ -120,6 +121,7 @@ namespace gz
                   const std::string &_name, bool _allowRename);
 
       /// \brief Get the number of entities on the server.
+      /// \note Complexity: O(1)
       /// \return Entity count.
       public: size_t EntityCount() const;
 
@@ -172,11 +174,13 @@ namespace gz
       public: void RequestRemoveEntities();
 
       /// \brief Get whether an Entity exists.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity Entity to confirm.
       /// \return True if the Entity exists.
       public: bool HasEntity(const Entity _entity) const;
 
       /// \brief Get the first parent of the given entity.
+      /// \note Complexity: O(1) average
       /// \details Entities are not expected to have multiple parents.
       /// TODO(louise) Either prevent multiple parents or provide full support
       /// for multiple parents.
@@ -197,11 +201,13 @@ namespace gz
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
       /// \brief Get whether a component type has ever been created.
+      /// \note Complexity: O(1) average
       /// \param[in] _typeId ID of the component type to check.
       /// \return True if the provided _typeId has been created.
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component type.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity The entity to check.
       /// \param[in] _typeId Component type id to check.
       /// \return True if the entity exists and has at least one component
@@ -210,6 +216,7 @@ namespace gz
                   const ComponentTypeId &_typeId) const;
 
       /// \brief Get whether an entity has all the given component types.
+      /// \note Complexity: O(k) where k is the number of types in _types
       /// \param[in] _entity The entity to check.
       /// \param[in] _types Component types to check that the Entity has.
       /// \return True if the given entity has all the given types.
@@ -217,6 +224,7 @@ namespace gz
         const std::set<ComponentTypeId> &_types) const;
 
       /// \brief Remove a component from an entity based on a type id.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity The entity.
       /// \param[in] _typeId Component's type Id.
       /// \return True if the entity and component existed and the component was
@@ -225,6 +233,7 @@ namespace gz
                   const Entity _entity, const ComponentTypeId &_typeId);
 
       /// \brief Remove a component from an entity based on a type.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity The entity.
       /// \tparam Component type.
       /// \return True if the entity and component existed and the component was
@@ -238,6 +247,7 @@ namespace gz
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
+      /// \note Complexity: O(1) amortized average
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _data Data used to construct the component.
@@ -251,6 +261,7 @@ namespace gz
 
       /// \brief Get a component assigned to an entity based on a
       /// component type.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
@@ -259,6 +270,7 @@ namespace gz
 
       /// \brief Get a mutable component assigned to an entity based on a
       /// component type.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity The entity.
       /// \return The component of the specified type assigned to specified
       /// Entity, or nullptr if the component could not be found.
@@ -279,6 +291,7 @@ namespace gz
                   typename ComponentTypeT::Type());
 
       /// \brief Get the data from a component.
+      /// \note Complexity: O(1) average
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, it will return nullopt.
       /// * If the entity has the component, return its data.
@@ -291,6 +304,7 @@ namespace gz
               const Entity _entity) const;
 
       /// \brief Set the data from a component.
+      /// \note Complexity: O(1) average
       /// * If the component type doesn't hold any data, this won't compile.
       /// * If the entity doesn't have that component, the component will be
       ///   created.
@@ -305,15 +319,18 @@ namespace gz
               const typename ComponentTypeT::Type &_data);
 
       /// \brief Get the type IDs of all components attached to an entity.
+      /// \note Complexity: O(1) average
       /// \param[in] _entity Entity to check.
       /// \return All the component type IDs.
       public: std::unordered_set<ComponentTypeId> ComponentTypes(
           Entity _entity) const;
 
       /// \brief Get an entity which matches the value of all the given
-      /// components. For example, the following will return the entity which
+      /// components. 
+      /// \note Complexity: O(n) where n is the number of entities with
+      /// the given component types
+      /// For example, the following will return the entity which
       /// has a name component equal to "name" and has a model component:
-      ///
       ///  auto entity = EntityByComponents(components::Name("name"),
       ///    components::Model());
       ///
@@ -331,6 +348,8 @@ namespace gz
       ///
       ///  auto entities = EntitiesByComponents(components::Name("camera"),
       ///    components::Sensor());
+      /// \note Complexity: O(n) where n is the number of entities with
+      /// the given component types
       ///
       /// \details Component type must have inequality operator.
       ///
@@ -342,6 +361,7 @@ namespace gz
                    const ComponentTypeTs &..._desiredComponents) const;
 
       /// \brief Get all entities which match the value of all the given
+      /// \note Complexity: O(n) where n is the number of children of _parent
       /// components and are immediate children of a given parent entity.
       /// For example, the following will return a child of entity `parent`
       /// which has an int component equal to 123, and a string component
@@ -417,6 +437,7 @@ namespace gz
       /// as the components. Note that an entity marked for removal (but not
       /// processed yet) will be included in the list of entities iterated by
       /// this call.
+      /// \note Complexity: O(n) where n is the number of matching entities
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -434,6 +455,7 @@ namespace gz
       /// as the mutable components. Note that an entity marked for removal (but
       /// not processed yet) will be included in the list of entities iterated
       /// by this call.
+      /// \note Complexity: O(n) where n is the number of matching entities
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -457,6 +479,8 @@ namespace gz
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
       /// of a simulation step.
+      /// \note Complexity: O(n) where n is the number of newly created
+      /// matching entities
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -476,6 +500,8 @@ namespace gz
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
       /// of a simulation step. This is the const version.
+      /// \note Complexity: O(n) where n is the number of newly created
+      /// matching entities
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -492,6 +518,8 @@ namespace gz
 
       /// \brief Get all entities which contain given component types and are
       /// about to be removed, as well as the components.
+      /// \note Complexity: O(n) where n is the number of entities marked
+      /// for removal matching the given component types
       /// \param[in] _f Callback function to be called for each matching entity.
       /// The function parameter are all the desired component types, in the
       /// order they're listed on the template. The callback function can
@@ -512,6 +540,8 @@ namespace gz
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
+      /// \note Complexity: O(n) where n is the total number of descendant
+      /// entities
       /// \param[in] _entity Entity whose descendants we want.
       /// \return All child entities recursively, including _entity. It will be
       /// empty if the entity doesn't exist.
@@ -677,6 +707,7 @@ namespace gz
 
       /// \brief Get an Entity based on a name component that is associated
       /// with the entity.
+      /// \note Complexity: O(1) average
       /// \param[in] _name Name associated with the Entity
       /// \return The Entity, if an Entity with the given name exists,
       /// otherwise return std::nullopt.
