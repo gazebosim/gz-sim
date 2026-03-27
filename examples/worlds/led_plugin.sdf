@@ -316,7 +316,7 @@
           <light_name>another_vehicle_blue::chassis_base::point_light_down</light_name>
         </led>
 
-        <default_mode>led_power_breathe</default_mode>
+        <startup_mode>led_power_breathe</startup_mode>
 
         <mode name="led_power_breathe">
           <active_leds>
@@ -722,7 +722,7 @@
           <light_name>chassis_base::point_light_down</light_name>
         </led>
 
-        <default_mode>idle</default_mode>
+        <startup_mode>idle</startup_mode>
 
         <mode name="idle">
           <step always_on="false">
@@ -1008,7 +1008,7 @@
           </default_state>
         </led>
 
-        <default_mode>ready</default_mode>
+        <startup_mode>ready</startup_mode>
 
         <mode name="ready">
           <active_leds>

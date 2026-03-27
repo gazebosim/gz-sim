@@ -47,7 +47,7 @@ namespace systems
   ///   <!-- Name of the whole LED system / group -->
   ///   <led_group_name>group_name</led_group_name>
   ///
-  ///   <default_mode>mode_name</default_mode>
+  ///   <startup_mode>mode_name</startup_mode>
   ///
   ///   <!-- Define individual LEDs composed of either visual or lights -->
   ///   <led name="led1">
