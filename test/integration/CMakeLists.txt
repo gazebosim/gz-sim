@@ -218,7 +218,7 @@ endif()
 
 if (TARGET INTEGRATION_model_photo_shoot_reset)
   target_link_libraries(INTEGRATION_model_photo_shoot_reset
-    gz-rendering::gz-rendering
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
   )
 endif()
 
