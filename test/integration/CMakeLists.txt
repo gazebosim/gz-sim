@@ -46,6 +46,7 @@ set(tests
   model.cc
   model_photo_shoot_default_joints.cc
   model_photo_shoot_random_joints.cc
+  model_photo_shoot_reset.cc
   multicopter.cc
   multiple_servers.cc
   navsat_system.cc
@@ -160,12 +161,50 @@ target_link_libraries(INTEGRATION_tracked_vehicle_system
   ignition-plugin${IGN_PLUGIN_VER}::loader
 )
 
+<<<<<<< HEAD
 target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
   ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
 )
 target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
   ignition-rendering${IGN_RENDERING_VER}::ignition-rendering${IGN_RENDERING_VER}
 )
+=======
+if (TARGET INTEGRATION_model_photo_shoot_default_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_default_joints
+    gz-rendering::gz-rendering
+  )
+endif()
+
+if (TARGET INTEGRATION_model_photo_shoot_random_joints)
+  target_link_libraries(INTEGRATION_model_photo_shoot_random_joints
+    gz-rendering::gz-rendering
+  )
+endif()
+
+if (TARGET INTEGRATION_model_photo_shoot_reset)
+  target_link_libraries(INTEGRATION_model_photo_shoot_reset
+    gz-rendering::gz-rendering
+  )
+endif()
+
+if (TARGET INTEGRATION_log_system)
+  target_link_libraries(INTEGRATION_log_system
+    gz-transport::log
+  )
+endif()
+
+if (TARGET INTEGRATION_collada_world_exporter)
+  target_link_libraries(INTEGRATION_collada_world_exporter
+    gz-common::graphics
+  )
+endif()
+
+if(TARGET INTEGRATION_reset_sensors)
+  target_link_libraries(INTEGRATION_reset_sensors
+    gz-common::graphics
+  )
+endif()
+>>>>>>> fe174226 (Fix crash when calling reset in model_photo_shoot (#3416))
 
 # The default timeout (240s) doesn't seem to be enough for this test.
 set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
