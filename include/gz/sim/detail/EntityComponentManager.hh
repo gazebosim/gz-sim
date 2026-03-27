@@ -176,6 +176,27 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
   return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
 }
 
+
+namespace detail
+{
+template <typename ComponentTypeT>
+bool checkEquality(const ComponentTypeT &_desired,
+                   const components::BaseComponent *_baseComp)
+{
+  const ComponentTypeT *entityComponent =
+      static_cast<const ComponentTypeT *>(_baseComp);
+  return *entityComponent == _desired;
+}
+
+template <typename... ComponentTypeTs, std::size_t... Is>
+bool checkAllEquality(
+    const std::vector<const components::BaseComponent *> &_data,
+    std::index_sequence<Is...>, const ComponentTypeTs &..._desiredComponents)
+{
+  return (... && checkEquality(_desiredComponents, _data[Is]));
+}
+}  // namespace detail
+//
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 Entity EntityComponentManager::EntityByComponents(
@@ -185,33 +206,21 @@ Entity EntityComponentManager::EntityByComponents(
   const auto &view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over entities
-  Entity result{kNullEntity};
   for (const Entity entity : view->Entities())
   {
-    bool different{false};
+    const auto &componentVector = view->EntityComponentConstData(entity);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+        componentVector,
+        std::index_sequence_for<ComponentTypeTs...>{},
+        _desiredComponents...);
 
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
+    if (allEqual)
     {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
-    {
-      result = entity;
-      break;
+      return entity;
     }
   }
 
-  return result;
+  return kNullEntity;
 }
 
 //////////////////////////////////////////////////
@@ -226,23 +235,13 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
   std::vector<Entity> result;
   for (const Entity entity : view->Entities())
   {
-    bool different{false};
+    const auto &componentVector = view->EntityComponentConstData(entity);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+        componentVector,
+        std::index_sequence_for<ComponentTypeTs...>{},
+        _desiredComponents...);
 
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
+    if (allEqual)
     {
       result.push_back(entity);
     }
@@ -273,20 +272,13 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
     // Iterate over desired components, comparing each of them to the
     // equivalent component in the entity.
-    bool different{false};
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
+    const auto &componentVector = view->EntityComponentConstData(entity);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+      componentVector,
+      std::index_sequence_for<ComponentTypeTs...>{},
+      _desiredComponents...);
 
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
+    if (allEqual)
     {
       result.push_back(entity);
     }
