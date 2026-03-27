@@ -450,7 +450,9 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static ComponentTypeId typeId = typeIdStatic();
+    public:
+    // [[deprecated("Use TypeId() or TypeIdStatic() for constexpr context. Editing this variable at runtime is not supported.")]]
+    inline static ComponentTypeId typeId = typeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.

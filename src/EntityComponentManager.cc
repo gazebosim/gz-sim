@@ -45,10 +45,12 @@
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/World.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
 #include "gz/sim/entt/entity/handle.hpp"
+#pragma GCC diagnostic pop
 
 using namespace gz;
-
 using namespace sim;
 
 struct PinnedEntity { };

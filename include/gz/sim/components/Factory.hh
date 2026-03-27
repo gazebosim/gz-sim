@@ -41,7 +41,11 @@
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
 #endif
+// Entt generates a lot of switch with no default statement warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
 #include <gz/sim/entt/entity/registry.hpp>
+#pragma GCC diagnostic pop
 
 namespace gz
 {
@@ -269,13 +273,12 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      auto typeHash = gz::common::hash64(_type);
+      const auto typeHash = ComponentTypeT::typeIdStatic();
       this->RegisterType<ComponentTypeT>();
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
       // only add them to the maps below once.
-      ComponentTypeT::typeId = typeHash;
       ComponentTypeT::typeName = _type;
 
       // Check if component has already been registered by another library
@@ -309,9 +312,9 @@ namespace components
       }
 
       // Keep track of all types
-      this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
-      namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
-      runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
+      this->compsById[typeHash].Add(_regObjId, _compDesc);
+      namesById[typeHash] = ComponentTypeT::typeName;
+      runtimeNamesById[typeHash] = runtimeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -323,7 +326,7 @@ namespace components
     public: template<typename ComponentTypeT>
     void Unregister(RegistrationObjectId  _regObjId)
     {
-      this->Unregister(ComponentTypeT::typeId, _regObjId);
+      this->Unregister(ComponentTypeT::typeIdStatic(), _regObjId);
     }
 
     /// \brief Unregister a component so that the factory can't create instances

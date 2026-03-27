@@ -44,7 +44,12 @@
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
 #endif
+// Entt generates a lot of switch with no default statement warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
 #include <gz/sim/entt/entity/registry.hpp>
+#pragma GCC diagnostic pop
+
 #include "gz/sim/components/Component.hh"
 
 namespace gz
