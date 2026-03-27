@@ -247,8 +247,6 @@ namespace gz
       public: bool RemoveComponent(
                   const Entity _entity, const ComponentTypeId &_typeId);
   
-      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
-
       /// \brief Remove a component from an entity based on a type.
       /// \param[in] _entity The entity.
       /// \tparam Component type.
@@ -256,6 +254,12 @@ namespace gz
       ///  removed.
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
+
+      /// \brief Internal function to mark components correctly after they are
+      /// removed.
+      /// \param[in] _entity The entity that the component was removed for.
+      /// \param[in] _typeId The type Id of the removed component.
+      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
 
       private: void MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed);
 

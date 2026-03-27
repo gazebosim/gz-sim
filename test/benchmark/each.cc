@@ -515,6 +515,50 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentGet9More)
   }
 }
 
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentRemove9)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    int entitiesMatched = 0;
+
+    mgr->Each<components::Name>(
+        [&](const Entity& e,
+            const components::Name *)->bool
+        {
+          if (mgr->RemoveComponent<AngularVelocity>(e) &&
+              mgr->RemoveComponent<WorldAngularVelocity>(e) &&
+              mgr->RemoveComponent<Inertial>(e) &&
+              mgr->RemoveComponent<LinearAcceleration>(e) &&
+              mgr->RemoveComponent<WorldLinearAcceleration>(e) &&
+              mgr->RemoveComponent<LinearVelocity>(e) &&
+              mgr->RemoveComponent<WorldLinearVelocity>(e) &&
+              mgr->RemoveComponent<Pose>(e) &&
+              mgr->RemoveComponent<WorldPose>(e))
+          {
+            entitiesMatched++;
+            mgr->CreateComponent(e, AngularVelocity());
+            mgr->CreateComponent(e, WorldAngularVelocity());
+            mgr->CreateComponent(e, Inertial());
+            mgr->CreateComponent(e, LinearAcceleration());
+            mgr->CreateComponent(e, WorldLinearAcceleration());
+            mgr->CreateComponent(e, LinearVelocity());
+            mgr->CreateComponent(e, WorldLinearVelocity());
+            mgr->CreateComponent(e, Pose());
+            mgr->CreateComponent(e, WorldPose());
+          }
+          return true;
+        });
+
+    if (entitiesMatched != entityCount)
+    {
+      _st.SkipWithError("Failed to match correct number of entities");
+    }
+  }
+}
+
 /// Method to generate test argument combinations.  google/benchmark does
 /// powers of 2 by default, which looks kind of ugly.
 static void EachTestArgs(Benchmark *_b)
@@ -556,6 +600,7 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentCache)
   ->Unit(benchmark::kMillisecond);
 
   */
+/*
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentConst)
   ->Arg(10)
   ->Arg(100)
@@ -581,6 +626,13 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
   ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentGet9More)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+  */
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentRemove9)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)

@@ -96,10 +96,10 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
 {
   if (!this->HasEntity(_entity))
     return nullptr;
-  this->registry.emplace_or_replace<ComponentTypeT>(_entity, _data);
+  auto* comp = &this->registry.emplace_or_replace<ComponentTypeT>(_entity, _data);
   this->SetChanged(_entity, ComponentTypeT::typeId, ComponentState::OneTimeChange);
   this->MarkComponentAsRemoved(_entity, ComponentTypeT::typeId, false);
-  return &this->registry.get<ComponentTypeT>(_entity);
+  return comp;
 }
 
 //////////////////////////////////////////////////
@@ -122,14 +122,11 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::ComponentDefault(Entity _entity,
     const typename ComponentTypeT::Type &_default)
 {
-  // TODO(luca) a get or emplace?
-  auto comp = this->Component<ComponentTypeT>(_entity);
-  if (!comp)
+  if (auto comp = this->Component<ComponentTypeT>(_entity))
   {
-    this->CreateComponent(_entity, ComponentTypeT(_default));
-    comp = this->Component<ComponentTypeT>(_entity);
+    return comp;
   }
-  return comp;
+  return this->CreateComponent(_entity, ComponentTypeT(_default));
 }
 
 //////////////////////////////////////////////////
@@ -149,7 +146,6 @@ template<typename ComponentTypeT>
 bool EntityComponentManager::SetComponentData(const Entity _entity,
     const typename ComponentTypeT::Type &_data)
 {
-  // TODO(luca) registry operation for more efficiency?
   auto comp = this->Component<ComponentTypeT>(_entity);
 
   if (nullptr == comp)
@@ -175,12 +171,23 @@ namespace detail
   template<typename ...ComponentTypeTs>
   class GroupQueuerImpl : public GroupQueuer
   {
+    /// \brief Creates a non owning group that can speed up iteration while
+    /// not owning specific components for the requested component set.
     public: void CreateGroup(entt::basic_registry<Entity> &_registry) override
     {
       _registry.template group<>(entt::get<ComponentTypeTs...>);
     }
   };
 }
+
+// All the functions that directly iterate over a view (so all queries except
+// ChildrenByComponents which iterates over children) try to iterate over a
+// non owning group to improve performance.
+// Non owning group creation changes the registry so it can only be done
+// in non const contexts. For const contexts we check if a group exists. If
+// it doesn't we enqueue its creation and just iterate over the view.
+// Users are required to call EntityComponentManager::CreatePendingGroups()
+// to make sure that enqueued groups are created to have maximum performance.
 
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
@@ -256,7 +263,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 {
   // TODO(luca) The two implementations showed fairly similar results in benchmarking
   // Iterating over children is slightly slower when there are a lot of children to one entity
-  // Iterating over the view is sligthly faster when an entity has a lot of children
+  // Iterating over the view is slightly faster when an entity has a lot of children
   // The performance difference might be small enough that we shouldn't need two APIs
   // return this->EntitiesByComponents(components::ParentEntity(_parent), _desiredComponents ...);
   std::vector<Entity> result;
@@ -277,13 +284,6 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 }
 
 //////////////////////////////////////////////////
-template <typename T>
-struct EntityComponentManager::identity  // NOLINT
-{
-  using type = T;
-};
-
-//////////////////////////////////////////////////
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNoCache(Func &&_f) const
 {
@@ -296,6 +296,8 @@ void EntityComponentManager::EachNoCache(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNoCache(Func &&_f)
 {
+  // Caching doesn't exist anymore so this is functionally equivalent
+  // TODO(luca) deprecate
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
 }
 
@@ -349,6 +351,8 @@ template <class Function, class... ComponentTypeTs>
 void EntityComponentManager::ForEach(Function _f,
     const ComponentTypeTs &... _components)
 {
+  // This function is not used anymore.
+  // TODO(luca) consider deprecating
   (_f(_components), ...);
 }
 
@@ -356,7 +360,6 @@ void EntityComponentManager::ForEach(Function _f,
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f)
 {
-  // TODO(luca) make all of these non owning groups for perf
   auto view = this->registry.template group<>(entt::get<NewEntity, ComponentTypeTs...>);
 
   // Iterate over the entities in the view, and invoke the callback
@@ -372,7 +375,10 @@ void EntityComponentManager::EachNew(Func &&_f)
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f) const
 {
-  // TODO(luca) make all of these non owning groups for perf
+  // TODO(luca) Consider making this use non owning groups
+  // For now they are not because entities are only marked as new for
+  // one iteration, so this query is not expected to run repeateadly
+  // over large sets of entities.
   auto view = this->registry.template view<const NewEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
@@ -388,7 +394,10 @@ void EntityComponentManager::EachNew(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachRemoved(Func &&_f) const
 {
-  // TODO(luca) make all of these non owning groups for perf
+  // TODO(luca) Consider making this use non owning groups
+  // For now they are not because entities are only marked as removed for
+  // one iteration, so this query is not expected to run repeateadly
+  // over large sets of entities.
   auto view = this->registry.template view<const RemoveEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
@@ -404,8 +413,11 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
-  const auto typeId = ComponentTypeT::typeId;
-  return this->RemoveComponent(_entity, typeId);
+  if (!this->HasEntity(_entity))
+    return false;
+  bool removed = this->registry.remove<ComponentTypeT>(_entity);
+  this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
+  return removed;
 }
 }
 }
