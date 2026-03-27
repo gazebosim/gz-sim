@@ -121,7 +121,10 @@ namespace gz
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
-      public: size_t EntityCount() const;
+      pub
+/// \note \b Computational \b Complexity: O(1) - Constant time operation.
+///       Returns cached entity count without iteration.
+lic: size_t EntityCount() const;
 
       /// \brief Request an entity deletion. This will insert the request
       /// into a queue. The queue is processed toward the end of a simulation
@@ -323,7 +326,18 @@ namespace gz
       /// \return Entity or kNullEntity if no entity has the exact components.
       public: template<typename ...ComponentTypeTs>
               Entity EntityByComponents(
-                   const ComponentTypeTs &..._desiredComponents) const;
+        /// \note \b Computational \b Complexity: O(n) where n is the number of entities.
+///       This method iterates through entities until a match is found.
+///       Performance may degrade with large entity counts.
+///       Consider using views or caching for frequently accessed entities.
+///
+         /// \note \b Computational \b Complexity: O(n \times m) where n is the number of entities
+///       and m is the number of component types to match.
+///       Returns all matching entities, so performance scales with both entity count
+///       and number of component constraints.
+///       Use more specific component filters to reduce matching overhead.
+///
+  const ComponentTypeTs &..._desiredComponents) const;
 
       /// \brief Get all entities which match the value of all the given
       /// components. For example, the following will return the entities which
