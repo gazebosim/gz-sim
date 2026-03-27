@@ -2,8 +2,24 @@
 <!--
   Gazebo led plugin demo
 
-  Change the led modes by calling the service led_group_name/change_led_mode
-  with the required mode name as a string
+  Change the led modes by publishing a gz::msgs::StringMsg on the topic
+  /<led_group_name>/change_led_mode with the desired mode name as data.
+  Publishing "reset" or "off" (case-insensitive) turns all LEDs off.
+
+  Example usage with gz topic:
+    gz topic -t /vehicle_blue_led/change_led_mode -m gz.msgs.StringMsg -p 'data: "emergency"'
+    gz topic -t /tower_lamp/change_led_mode -m gz.msgs.StringMsg -p 'data: "off"'
+
+  Topics were used to keep bridgable with ROS 2
+
+  Notes for URDF users:
+  1. Preserve fixed joints: URDF->SDF conversion merges links connected by
+     fixed joints into a single link. Add a <gazebo> block for that
+     joint with <preserveFixedJoint>true</preserveFixedJoint> to keep the link
+     (and its visuals/lights) separate after conversion.
+  2. Visual/collision name suffix: The URDF->SDF conversion appends "_visual"
+     and "_collision" suffixes to visual and collision names. Account for this when specifying <visual_name>
+     in the plugin config.
 -->
 
 <sdf version="1.11">
