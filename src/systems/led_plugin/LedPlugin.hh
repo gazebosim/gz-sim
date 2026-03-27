@@ -38,7 +38,12 @@ namespace systems
   **/
   /// \brief Plugin that makes a visual blink
   /// between two colors. This can be used to simulate
-  /// LEDs .See the example usage below:
+  /// LEDs. Mode changes are done by publishing a
+  /// gz::msgs::StringMsg on the topic
+  /// `/<led_group_name>/change_led_mode` with the
+  /// desired mode name. Publishing "reset" or "off"
+  /// (case-insensitive) turns all LEDs off.
+  /// See the example usage below:
   ///
   /// ## System Parameters:
   ///
