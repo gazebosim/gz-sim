@@ -112,6 +112,7 @@ add_subdirectory(contact)
 add_subdirectory(camera_video_recorder)
 add_subdirectory(detachable_joint)
 add_subdirectory(diff_drive)
+add_subdirectory(drive_to_pose_controller)
 add_subdirectory(dvl)
 # elevator system causes compile erros on windows
 if (NOT WIN32)
