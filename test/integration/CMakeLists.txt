@@ -94,6 +94,7 @@ set(tests
   log_system.cc
   wheel_slip.cc
   wind_effects.cc
+  wmm_magnetometer_system.cc
   world.cc
   world_control_state.cc
 )
@@ -178,6 +179,16 @@ gz_build_tests(TYPE INTEGRATION
     GZ_IP=127.0.0.1
 )
 
+
+if (TARGET INTEGRATION_wmm_magnetometer_system)
+  target_sources(INTEGRATION_wmm_magnetometer_system PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/systems/magnetometer/WorldMagneticModel.cc
+  )
+  target_include_directories(INTEGRATION_wmm_magnetometer_system PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/systems/magnetometer
+  )
+  set_tests_properties(INTEGRATION_wmm_magnetometer_system PROPERTIES TIMEOUT 300)
+endif()
 
 # For INTEGRATION_physics_system, we need to check what version of DART is
 # available so that we can disable tests that are unsupported by the particular
