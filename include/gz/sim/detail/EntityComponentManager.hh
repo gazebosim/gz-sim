@@ -264,9 +264,9 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view->Entities())
+  for (const auto [entity, _] : children)
   {
-    if (children.find(entity) == children.end())
+    if (view->Entities().find(entity) == view->Entities().end())
     {
       continue;
     }
