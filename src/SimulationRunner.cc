@@ -98,8 +98,31 @@ struct MaybeGilScopedRelease
     MaybeGilScopedRelease(){}
   };
 #endif
-}
 
+// Constants for identifying the SceneBroadcaster system
+constexpr const char *kSceneBroadcasterSystemFilename =
+  "gz-sim-scene-broadcaster-system";
+constexpr const char *kSceneBroadcasterSystemName =
+  "gz::sim::systems::SceneBroadcaster";
+
+//////////////////////////////////////////////////
+/// \brief Checks if the SceneBroadcaster system is loaded in the
+/// given list of systems.
+/// \param _systems Vector of SystemInternal objects to search.
+/// \return True if a SceneBroadcaster system is found, false otherwise.
+bool HasSceneBroadcaster(const std::vector<SystemInternal> &_systems)
+{
+  return std::any_of(_systems.begin(), _systems.end(),
+      [](const SystemInternal &_system)
+      {
+        return _system.fname == kSceneBroadcasterSystemFilename ||
+               _system.fname.find("scene-broadcaster-system") !=
+                   std::string::npos ||
+               _system.name == kSceneBroadcasterSystemName ||
+               _system.name.find("SceneBroadcaster") != std::string::npos;
+      });
+}
+}
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
@@ -1637,6 +1660,19 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
+
+  auto worldSystems = this->systemMgr->TotalByEntity(worldEntity);
+  if (!HasSceneBroadcaster(worldSystems))
+  {
+    gzwarn << "World [" << this->worldName
+           << "] has no SceneBroadcaster system loaded. "
+           << "Auto-loading [" << kSceneBroadcasterSystemName
+           << "] to publish scene updates to the GUI." << std::endl;
+    sdf::Plugin sceneBroadcasterPlugin(kSceneBroadcasterSystemFilename,
+        kSceneBroadcasterSystemName, "");
+    this->LoadPlugin(worldEntity, sceneBroadcasterPlugin);
+  }
+
   // Load logging plugins after all server plugins so that necessary
   // plugins such as SceneBroadcaster are loaded first. This might be
   // a bug or an assumption made in the logging plugins.
