@@ -351,7 +351,7 @@ namespace gz
       const math::Pose3d & _pose);
 
     /// \brief Compute the axis-aligned bounding box of a mesh.
-    /// \param _sdfMesh Mesh SDF DOM.
+    /// \param[in] _sdfMesh Mesh SDF DOM.
     /// \return The AABB of the mesh in its local frame.
     GZ_SIM_VISIBLE std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
       const sdf::Mesh &_sdfMesh);
@@ -361,7 +361,7 @@ namespace gz
     GZ_SIM_VISIBLE const std::string &staticPluginPrefixStr();
 
     /// \brief Check if input filename of a library is a static plugin or not.
-    /// \param _filename Library filename to check
+    /// \param[in] _filename Library filename to check
     /// \return True if input filename has a static plugin string format.
     GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
 
