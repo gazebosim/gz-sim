@@ -361,7 +361,7 @@ namespace gz
     GZ_SIM_VISIBLE const std::string &staticPluginPrefixStr();
 
     /// \brief Check if input filename of a library is a static plugin or not.
-    /// \param _filename Library filename to check
+    /// \param[in] _filename Library filename to check
     /// \return True if input filename has a static plugin string format.
     GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
 
