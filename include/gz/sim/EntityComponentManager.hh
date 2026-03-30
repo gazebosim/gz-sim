@@ -77,8 +77,6 @@ namespace gz
     struct NewEntity { };
     struct RemoveEntity { };
     struct Children {
-      Children(Entity e) : data({e}) {}
-      Children() = default;
       std::set<Entity> data;
     };
 
@@ -246,7 +244,7 @@ namespace gz
       ///  removed.
       public: bool RemoveComponent(
                   const Entity _entity, const ComponentTypeId &_typeId);
-  
+
       /// \brief Remove a component from an entity based on a type.
       /// \param[in] _entity The entity.
       /// \tparam Component type.

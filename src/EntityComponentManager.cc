@@ -890,15 +890,8 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 
   // Update parent entity and parent's children
   this->registry.emplace_or_replace<components::ParentEntity>(_child, _parent);
-  auto* newChildren = this->registry.try_get<Children>(_parent);
-  if (newChildren)
-  {
-    newChildren->data.insert(_child); 
-  }
-  else
-  {
-    this->registry.emplace<Children>(_parent, _child);
-  }
+  auto& newChildren = this->registry.get<Children>(_parent);
+  newChildren.data.insert(_child);
   return true;
 }
 
@@ -943,9 +936,10 @@ bool EntityComponentManager::CreateComponentImplementation(
   {
     if (!components::Factory::Instance()->SyncComponent(this->registry, _entity, _componentTypeId, newComp.get()))
     {
-      std::cerr << "Failed syncing component!" << std::endl;
+      gzwarn << "Failed syncing component. This should not happen." << std::endl;
+    } else {
+      updateData = false;
     }
-    updateData = false;
   }
   else
   {

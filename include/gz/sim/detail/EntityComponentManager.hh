@@ -301,6 +301,8 @@ void EntityComponentManager::EachNoCache(Func &&_f)
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
 }
 
+// TODO(luca) There was logic to avoid iterating on Each for entities marked
+// to be removed, check if we need to add it (entt::exclude<RemoveEntity>).
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f) const

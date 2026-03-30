@@ -1521,13 +1521,13 @@ TEST_P(EntityComponentManagerFixture,
 {
   EXPECT_EQ(0u, manager.EntityCount());
 
-  //
-  //        1
-  //      /   \
-  //     2     3
-  //  / / \ \
-  // 4 5   6 7
-   //
+  /*
+   *        1
+   *      /   \
+   *     2     3
+   *  / / \ \
+   * 4 5   6 7
+   */
 
   // Create a few entities
   auto e1 = manager.CreateEntity();
@@ -1567,12 +1567,12 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.SetParentEntity(e5, e3));
   EXPECT_EQ(e3, manager.ParentEntity(e5));
 
-  //        1       7
-  //      /   \
-  //     2     3
-  //    / \     \
-  //   4   6     5
-   //
+  /*        1       7
+   *      /   \
+   *     2     3
+   *    / \     \
+   *   4   6     5
+   */
 
   // Add components
   auto comp1 = manager.CreateComponent<Even>(e2, {});
