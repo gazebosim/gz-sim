@@ -414,8 +414,8 @@ void LedPlugin::Configure(
   }
 
   modeChangeTopicName =
-    "/" + this->dataPtr->ledGroupName
-    + "/change_led_mode";
+    topicFromScopedName(_entity, _ecm, true) + "/"
+    + this->dataPtr->ledGroupName + "/change_led_mode";
 
   // Read and create different LEDs as part of the group
   if (_sdf->HasElement("led"))

@@ -3,12 +3,12 @@
   Gazebo led plugin demo
 
   Change the led modes by publishing a gz::msgs::StringMsg on the topic
-  /<led_group_name>/change_led_mode with the desired mode name as data.
-  Publishing "reset" or "off" (case-insensitive) turns all LEDs off.
+  /model/$MODEL/$LED_GROUP_NAME/change_led_mode with the desired mode name
+  as data. Publishing "reset" or "off" (case-insensitive) turns all LEDs off.
 
   Example usage with gz topic:
-    gz topic -t /vehicle_blue_led/change_led_mode -m gz.msgs.StringMsg -p 'data: "emergency"'
-    gz topic -t /tower_lamp/change_led_mode -m gz.msgs.StringMsg -p 'data: "off"'
+    gz topic -t /model/vehicle_blue/status_lights/change_led_mode -m gz.msgs.StringMsg -p 'data: "emergency"'
+    gz topic -t /model/tower_lamp/signal_lights/change_led_mode -m gz.msgs.StringMsg -p 'data: "off"'
 
   Topics were used to keep bridgable with ROS 2
 
@@ -326,7 +326,7 @@
         name="gz::sim::systems::LedPlugin">
 
         <!-- LED group name -->
-        <led_group_name>another_vehicle_blue_led</led_group_name>
+        <led_group_name>underglow_light</led_group_name>
 
         <!-- Using only light here for the LED as it is below the robot,
         so changing the visual would not be visible and can be omitted
@@ -728,7 +728,7 @@
         name="gz::sim::systems::LedPlugin">
 
         <!-- LED group name -->
-        <led_group_name>vehicle_blue_led</led_group_name>
+        <led_group_name>status_lights</led_group_name>
 
         <!-- All the LEDs belonging to this group/model -->
         <!-- Using only visual here because changing visual colors
@@ -1007,7 +1007,7 @@
         filename="gz-sim-led-plugin-system"
         name="gz::sim::systems::LedPlugin">
 
-        <led_group_name>tower_lamp</led_group_name>
+        <led_group_name>signal_lights</led_group_name>
 
         <led name="emergency_led">
           <visual_name>lamp_red::lamp_red_visual</visual_name>
