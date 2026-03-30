@@ -108,7 +108,7 @@ struct Led
     }
 
     led.ledName = _sdf->Get<std::string>("name");
-    gzmsg << "[LED PLUGIN][LED] Creating led: " << led.ledName << std::endl;
+    gzdbg << "[LED PLUGIN][LED] Creating led: " << led.ledName << std::endl;
 
     // Use the visual name to find the Visual entity provided for LED
     if (_sdf->HasElement("visual_name"))
@@ -116,7 +116,7 @@ struct Led
       led.scopedVisualName = _sdf->Get<std::string>("visual_name");
       std::unordered_set<Entity> visualEntities =
         gz::sim::entitiesFromScopedName(led.scopedVisualName, _ecm);
-      gzmsg << "Found " << visualEntities.size()
+      gzdbg << "Found " << visualEntities.size()
             << " entities for the visual named: "
             << led.scopedVisualName << std::endl;
 
@@ -150,7 +150,7 @@ struct Led
       std::unordered_set<Entity> lightEntities =
         gz::sim::entitiesFromScopedName(led.scopedLightName, _ecm);
 
-      gzmsg << "Found " << lightEntities.size()
+      gzdbg << "Found " << lightEntities.size()
             << " entities for the light named: "
             << led.scopedLightName << std::endl;
 
@@ -228,7 +228,7 @@ struct LedMode
     }
 
     ledMode.name = _sdf->Get<std::string>("name");
-    gzmsg << "Adding LED Mode: " << ledMode.name << std::endl;
+    gzdbg << "Adding LED Mode: " << ledMode.name << std::endl;
 
     // Read the active LEDs for this mode if any
     if (_sdf->HasElement("active_leds"))
@@ -244,7 +244,7 @@ struct LedMode
           std::string ledName = ledElem->Get<std::string>();
           ledMode.activeLedNames.push_back(ledName);
 
-          gzmsg << "[LED PLUGIN][LED MODE] Mode [" << ledMode.name
+          gzdbg << "[LED PLUGIN][LED MODE] Mode [" << ledMode.name
                 << "] uses LED: " << ledName << std::endl;
 
           ledElem = ledElem->GetNextElement("led");
@@ -539,7 +539,7 @@ void LedPlugin::Configure(
   this->dataPtr->node.Subscribe(validModeChangeTopicName,
     &LedPluginPrivate::OnLedModeChange, this->dataPtr.get());
 
-  gzmsg << "[LED PLUGIN] Initialized LedPlugin Plugin" << std::endl;
+  gzdbg << "[LED PLUGIN] Initialized LedPlugin Plugin" << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -852,7 +852,7 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
   std::lock_guard<std::mutex> lock(this->mutex);
 
   std::string requestedModeName = _msg.data();
-  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] received request"
+  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] received request"
         << " to change mode to: "
         << requestedModeName << std::endl;
 
@@ -868,7 +868,7 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
   if (requestedModeNameLower == "reset" ||
       requestedModeNameLower == "off")
   {
-    gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Turning off"
+    gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Turning off"
           << " LEDs (reset/off requested)" << std::endl;
     this->ledsOff = true;
     this->ledsReady = false;
@@ -897,7 +897,7 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
     return;
   }
 
-  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Changing"
+  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Changing"
         << " led mode from: "
         << this->currentLedMode.name
         << " to: " << ledModeIter->name
@@ -907,7 +907,7 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
   this->currentModeStepIdx = 0;
   this->cycleStartTime = std::chrono::duration<double>::zero();
   this->ledsOff = false;
-  gzmsg << "[LED PLUGIN] [ON MODE CHANGE] Current"
+  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Current"
         << " led mode set to: "
         << this->currentLedMode.name << std::endl;
 
