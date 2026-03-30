@@ -54,4 +54,4 @@ real_time_factor: 0.998022916602211
 
 We included a button in the `World Control` plugin allowing to start and stop the simulation from the GUI.
 
-@image html files/pause_run_simulation/gui_pause_run.png
+@image html files/pause_run_simlation/gui_pause_run.png
