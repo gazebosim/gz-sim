@@ -328,6 +328,9 @@
         <!-- LED group name -->
         <led_group_name>another_vehicle_blue_led</led_group_name>
 
+        <!-- Using only light here for the LED as it is below the robot,
+        so changing the visual would not be visible and can be omitted
+        to reduce unnecessary load -->
         <led name="bottom_led">
           <light_name>another_vehicle_blue::chassis_base::point_light_down</light_name>
         </led>
@@ -728,12 +731,19 @@
         <led_group_name>vehicle_blue_led</led_group_name>
 
         <!-- All the LEDs belonging to this group/model -->
+        <!-- Using only visual here because changing visual colors
+        with high emissive are enough to simulate LEDs. A light can
+        be used if realistic illumination effects are required
+        (check the tower lamp LEDs description below) -->
         <led name="back_led">
           <visual_name>back_led::back_led_visual</visual_name>
         </led>
         <led name="front_led">
           <visual_name>front_led::front_led_visual</visual_name>
         </led>
+        <!-- Using only light here for the LED as it is below the robot,
+        so changing the visual would not be visible and can be omitted
+        to reduce unnecessary load -->
         <led name="bottom_led">
           <light_name>chassis_base::point_light_down</light_name>
         </led>
