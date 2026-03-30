@@ -513,7 +513,7 @@ TEST_F(ComponentTest, IStream)
   }
 }
 
-// CHANGED we can't register components outside the gz::sim::components namespace?
+// CHANGED we can't register components outside the gz::sim::components namespace
 namespace gz::sim::components
 {
   using ConstexprComp = Component<int, class ConstexprTag>;
@@ -523,26 +523,7 @@ namespace gz::sim::components
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, TypeId)
 {
-  // Component with data
-  {
-    using Custom = components::Component<int, class CustomTag>;
-    Custom::typeId = 123456;
-
-    Custom comp;
-
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
-  }
-
-  // Component without data
-  {
-    using Custom = components::Component<components::NoData, class CustomTag>;
-    Custom::typeId = 123456;
-
-    Custom comp;
-
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
-  }
-
+  // CHANGED it is not allowed to change the typeId at runtime anymore.
   // Constexpr TypeId
   {
     using ConstexprComp = components::ConstexprComp;

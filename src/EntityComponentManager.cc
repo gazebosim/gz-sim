@@ -577,10 +577,8 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(const entt::basic_regi
     std::unordered_set<Entity> &_set)
 {
   _set.insert(_entity);
-  const auto* children = _registry.try_get<Children>(_entity);
-  if (!children)
-    return;
-  for (const auto& child : children->data)
+  const auto& children = _registry.get<Children>(_entity);
+  for (const auto& child : children.data)
   {
     this->InsertEntityRecursive(_registry, child, _set);
   }
@@ -1910,7 +1908,6 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
       this->registry.emplace<PinnedEntity>(e);
     if (modifiedStorage && modifiedStorage->contains(e))
       this->registry.emplace<ModifiedComponent>(e);
-    // Children is already present
     if (childrenStorage->contains(e))
       this->registry.replace<Children>(e, childrenStorage->get(e));
     // Now copy the actual gazebo components
@@ -2014,7 +2011,6 @@ void EntityComponentManager::ApplyEntityDiff(
       // Children is already present
       if (childrenStorage->contains(entity))
         this->registry.replace<Children>(entity, childrenStorage->get(entity));
-      // TODO(luca) Any other components to copy? I.e. pin, modified component
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 

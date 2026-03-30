@@ -508,6 +508,11 @@ TEST_F(ElementUpdateFixture, ConfigOverride)
         elem, this->ecm, worldEntity, this->includeUriMap, this->sdfGenConfig);
     ASSERT_TRUE(elem->HasElement("include"));
     auto inclElem = elem->GetElement("include");
+    // TODO(luca) This unit test fails extensively because entities are not in a sorted order
+    // anymore, which could be an issue for SdfGenerator that might output a world where the order
+    // of SDFs is different than the input world, causing it to:
+    //   * Increase size of diffs making them larger to inspect
+    //   * Potentially break behavior if users relied on ordering of their models (i.e. for spawning order, or plugin running order)
     EXPECT_EQ("backpack1", inclElem->Get<std::string>("name"));
     inclElem = inclElem->GetNextElement("include");
     EXPECT_EQ("backpack2", inclElem->Get<std::string>("name"));
@@ -574,6 +579,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 
   ASSERT_TRUE(elem->HasElement("model"));
   auto modelElem = elem->GetElement("model");
+  // TODO(luca) This seems to be an endless loop?
   return;
   for (; modelElem; modelElem->GetNextElement("model"))
   {

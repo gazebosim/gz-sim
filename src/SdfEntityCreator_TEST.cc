@@ -1166,6 +1166,8 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
   ASSERT_EQ(3u, models.size());
   EXPECT_EQ(world, this->ecm.ParentEntity(models.front()));
 
+  // TODO(luca) This test fails because it expects entities to be sorted but this
+  // is not guaranteed anymore
   // There are 2 links, but one is parentless
   unsigned int linkCount{0};
   this->ecm.Each<components::Link>(
