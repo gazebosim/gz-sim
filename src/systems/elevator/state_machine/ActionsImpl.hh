@@ -41,8 +41,6 @@ struct EnqueueNewTarget
   /// \brief Function call operator
   /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
-  /// \param[in] _source Source state
-  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
    void operator()(const Event &_event, Fsm &_fsm, Source & /*_source*/,
@@ -59,10 +57,7 @@ struct EnqueueNewTarget
 struct NewTarget
 {
   /// \brief Function call operator
-  /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
-  /// \param[in] _source Source state
-  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
   void operator()(const Event & /*_event*/, Fsm &_fsm, Source & /*_source*/,
@@ -79,10 +74,7 @@ struct NewTarget
 struct CabinAtTarget
 {
   /// \brief Function call operator
-  /// \param[in] _event Event that triggered the action
   /// \param[in] _fsm State machine with which the action is associated
-  /// \param[in] _source Source state
-  /// \param[in] _target Target state
   public: template <typename Event, typename Fsm, typename Source,
                     typename Target>
   void operator()(const Event & /*_event*/, Fsm &_fsm, Source & /*_source*/,

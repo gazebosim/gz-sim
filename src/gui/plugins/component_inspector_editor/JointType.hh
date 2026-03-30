@@ -35,7 +35,6 @@ namespace sim
     public: explicit JointType(ComponentInspectorEditor *_inspector);
 
     /// \brief Callback in Qt thread when joint type changes.
-    /// \param[in] _surface Surface model
     /// \param[in] _jointType The joint type.
     public: Q_INVOKABLE void OnJointType(QString _jointType);
 
