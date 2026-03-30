@@ -268,7 +268,7 @@ if (NOT APPLE)
       "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}")
   endif()
 
-  gz_create_docs(
+  ign_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
