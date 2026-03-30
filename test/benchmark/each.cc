@@ -392,15 +392,6 @@ class EntityByComponentsFixture: public benchmark::Fixture
     // We add them first so EntityByComponents won't return immediately
     std::vector<Entity> nonMatchingEntities;
     nonMatchingEntities.reserve(_nonmatchingEntityCount);
-    for (int i = 0; i < matchingEntityCount; ++i)
-    {
-      Entity e = mgr->CreateEntity();
-      if (parentEntity == kNullEntity)
-      {
-        parentEntity = e;
-      }
-      mgr->CreateComponent(e, components::Name("target"));
-    }
 
     for (int i = 0; i < _nonmatchingEntityCount; ++i)
     {
@@ -410,6 +401,15 @@ class EntityByComponentsFixture: public benchmark::Fixture
       nonMatchingEntities.push_back(worldEntity);
     }
 
+    for (int i = 0; i < matchingEntityCount; ++i)
+    {
+      Entity e = mgr->CreateEntity();
+      if (parentEntity == kNullEntity)
+      {
+        parentEntity = e;
+      }
+      mgr->CreateComponent(e, components::Name("target"));
+    }
     
     // Now make one of the matching entities parent of all the non matching to have
     // a parametrizably large parent entity

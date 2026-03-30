@@ -387,10 +387,6 @@ namespace gz
               std::vector<Entity> ChildrenByComponents(Entity _parent,
                    const ComponentTypeTs &..._desiredComponents) const;
 
-      /// why is this required?
-      private: template <typename T>
-               struct identity;  // NOLINT
-
       /// \brief Helper function for cloning an entity and its children (this
       /// includes cloning components attached to these entities). This method
       /// should never be called directly - it is called internally from the
