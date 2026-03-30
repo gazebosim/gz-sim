@@ -35,11 +35,7 @@ namespace gazebo
     public: explicit JointType(ComponentInspectorEditor *_inspector);
 
     /// \brief Callback in Qt thread when joint type changes.
-<<<<<<< HEAD
-    /// \param[in] _surface Surface model
-=======
     /// \param[in] _jointType The joint type.
->>>>>>> 8bb61f81 (docs: fix selected Doxygen warnings in docs build (#3445))
     public: Q_INVOKABLE void OnJointType(QString _jointType);
 
     /// \brief Pointer to the component inspector. This is used to add

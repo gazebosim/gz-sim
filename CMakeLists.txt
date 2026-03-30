@@ -249,51 +249,34 @@ configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.desktop.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.desktop)
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/ignition-gazebo.svg.in ${CMAKE_BINARY_DIR}/ignition-gazebo${PROJECT_VERSION_MAJOR}.svg)
 
-<<<<<<< HEAD
 # disable doxygen on macOS due to issues with doxygen 1.9.0
 # there is an unreleased fix; revert this when 1.9.1 is released
 # https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
-  ign_create_docs(
+  set(gz_sim_doxygen_tagfiles
+    "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+    "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+    "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+    "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+    "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+    "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+    "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+  )
+
+  if(EXISTS "${GZ-GUI_DOXYGEN_TAGFILE}")
+    list(APPEND gz_sim_doxygen_tagfiles
+      "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}")
+  endif()
+
+  gz_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
     IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
-     "${IGNITION-MATH_DOXYGEN_TAGFILE} = ${IGNITION-MATH_API_URL}"
-     "${IGNITION-MSGS_DOXYGEN_TAGFILE} = ${IGNITION-MSGS_API_URL}"
-     "${IGNITION-PHYSICS_DOXYGEN_TAGFILE} = ${IGNITION-PHYSICS_API_URL}"
-     "${IGNITION-PLUGIN_DOXYGEN_TAGFILE} = ${IGNITION-PLUGIN_API_URL}"
-     "${IGNITION-TRANSPORT_DOXYGEN_TAGFILE} = ${IGNITION-TRANSPORT_API_URL}"
-     "${IGNITION-SENSORS_DOXYGEN_TAGFILE} = ${IGNITION-SENSORS_API_URL}"
-     "${IGNITION-COMMON_DOXYGEN_TAGFILE} = ${IGNITION-COMMON_API_URL}"
+    ${gz_sim_doxygen_tagfiles}
   )
 endif()
-=======
-set(gz_sim_doxygen_tagfiles
-  "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-  "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-  "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-  "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-  "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-  "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-  "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-)
-
-if(EXISTS "${GZ-GUI_DOXYGEN_TAGFILE}")
-  list(APPEND gz_sim_doxygen_tagfiles
-    "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}")
-endif()
-
-gz_create_docs(
-  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
-  ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
-  IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
-  TAGFILES
-   ${gz_sim_doxygen_tagfiles}
-)
->>>>>>> 8bb61f81 (docs: fix selected Doxygen warnings in docs build (#3445))
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
