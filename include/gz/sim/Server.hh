@@ -246,7 +246,7 @@ namespace gz
       /// \param[in] _system system to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -286,7 +286,7 @@ namespace gz
       /// \param[in] _system System to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added
       /// \param[in] _worldIndex Index of the world to add to.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -355,7 +355,7 @@ namespace gz
       /// \brief Reset all runners in this simulation
       public: void ResetAll();
       /// \brief Reset a specific runner in this server
-      /// \param[in] runnerId - The runner which you want to reset
+      /// \param[in] _runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
 

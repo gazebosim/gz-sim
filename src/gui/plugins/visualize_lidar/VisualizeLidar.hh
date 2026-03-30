@@ -80,7 +80,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
                         EntityComponentManager &_ecm) override;
 
     /// \brief Callback function to get data from the message
-    /// \param[in]_msg LidarSensor message
+    /// \param[in] _msg LidarSensor message
     public: void OnScan(const msgs::LaserScan &_msg);
 
     /// \brief Load the scene and attach LidarVisual to the scene

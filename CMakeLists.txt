@@ -130,6 +130,7 @@ option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
   gz_find_package(gz-gui VERSION 10 REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
