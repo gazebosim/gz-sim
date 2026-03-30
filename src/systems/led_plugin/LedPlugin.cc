@@ -548,7 +548,6 @@ void LedPlugin::PreUpdate(
   gz::sim::EntityComponentManager &_ecm)
 {
   // Set the current sim time in the PreUpdate function
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
   this->dataPtr->currentSimTime =
     std::chrono::duration_cast<
       std::chrono::duration<double,
@@ -565,6 +564,8 @@ void LedPlugin::PreUpdate(
   {
     return;
   }
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
   // Reset the LEDs if they are not ready at the moment
   if (!this->dataPtr->ledsReady)
