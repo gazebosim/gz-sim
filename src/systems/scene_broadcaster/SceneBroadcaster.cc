@@ -1169,7 +1169,7 @@ SceneBroadcasterPrivate::BuildParticleEmitterMsg(
 
 //////////////////////////////////////////////////
 std::shared_ptr<msgs::Projector> SceneBroadcasterPrivate::BuildProjectorMsg(
-    const Entity _entity,
+    const Entity,
     const components::Projector *_projectorComp,
     const components::Pose *_poseComp)
 {
