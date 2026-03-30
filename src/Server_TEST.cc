@@ -89,6 +89,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DefaultServerConfig))
   EXPECT_EQ(std::nullopt, server.Running(1));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_EQ(0s, *server.SimTime());
 
   EXPECT_EQ(3u, *server.EntityCount());
   EXPECT_TRUE(server.HasEntity("default"));
@@ -528,6 +529,7 @@ TEST_P(ServerFixture, RunBlocking)
   EXPECT_FALSE(*server.Running(0));
   EXPECT_TRUE(*server.Paused());
   EXPECT_EQ(0u, server.IterationCount());
+  EXPECT_EQ(0s, *server.SimTime());
 
   // Make the server run fast.
   server.SetUpdatePeriod(1ns);
@@ -543,6 +545,7 @@ TEST_P(ServerFixture, RunBlocking)
 
     expectedIters += i;
     EXPECT_EQ(expectedIters, *server.IterationCount());
+    EXPECT_EQ(std::chrono::milliseconds(expectedIters), *server.SimTime());
   }
 }
 
@@ -1313,6 +1316,56 @@ TEST_P(ServerFixture, GetStatusLifecycle)
   server.Stop();
 
   EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PeekEcm)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+  serverConfig.SetWaitForAssets(true);
+  sim::Server server(serverConfig);
+
+  // Initial state is stopped.
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+
+  bool called = false;
+  server.PeekEcm([&called](const EntityComponentManager &_ecm)
+  {
+    called = true;
+    EXPECT_GT(_ecm.EntityCount(), 0u);
+    // There should be models in shapes.sdf
+    bool hasModel = false;
+    _ecm.Each<components::Model>([&](const Entity &, const components::Model *)
+    {
+      hasModel = true;
+      return false;
+    });
+    EXPECT_TRUE(hasModel);
+  });
+  EXPECT_TRUE(called);
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PokeEcm)
+{
+  ServerConfig serverConfig;
+  sim::Server server(serverConfig);
+
+  bool called = false;
+  server.PokeEcm([&called](EntityComponentManager &_ecm)
+  {
+    called = true;
+    _ecm.CreateEntity();
+  });
+  EXPECT_TRUE(called);
+
+  server.PeekEcm([](const EntityComponentManager &_ecm)
+  {
+    // 3 default entities + 1 new entity
+    EXPECT_EQ(4u, _ecm.EntityCount());
+  });
 }
 
 TEST_P(ServerFixture, SdfErrorExit)

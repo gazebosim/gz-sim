@@ -1506,6 +1506,12 @@ const EntityComponentManager &SimulationRunner::EntityCompMgr() const
 }
 
 /////////////////////////////////////////////////
+EntityComponentManager &SimulationRunner::EntityCompMgr()
+{
+  return this->entityCompMgr;
+}
+
+/////////////////////////////////////////////////
 EventManager &SimulationRunner::EventMgr()
 {
   return this->eventMgr;
