@@ -104,7 +104,8 @@ namespace systems
   class LedPlugin:
     public System,
     public ISystemConfigure,
-    public ISystemPreUpdate
+    public ISystemPreUpdate,
+    public ISystemReset
   {
     /// \brief Constructor.
     public: LedPlugin();
@@ -121,6 +122,10 @@ namespace systems
     // Documentation inherited
     public: void PreUpdate(const gz::sim::UpdateInfo &_info,
                            gz::sim::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void Reset(const gz::sim::UpdateInfo &_info,
+                       gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<LedPluginPrivate> dataPtr;

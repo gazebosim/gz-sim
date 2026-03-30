@@ -919,10 +919,25 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
   this->ledsReady = false;
 }
 
+/////////////////////////////////////////////////
+void LedPlugin::Reset(
+  const gz::sim::UpdateInfo &,
+  gz::sim::EntityComponentManager &_ecm)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  this->dataPtr->currentLedMode = this->dataPtr->startupLedMode;
+  this->dataPtr->currentModeStepIdx = 0;
+  this->dataPtr->cycleStartTime = std::chrono::duration<double>::zero();
+  this->dataPtr->ledsOff = false;
+  this->dataPtr->ledsReady = false;
+  this->dataPtr->ResetLEDs(_ecm);
+}
+
 GZ_ADD_PLUGIN(LedPlugin,
               System,
               LedPlugin::ISystemConfigure,
-              LedPlugin::ISystemPreUpdate)
+              LedPlugin::ISystemPreUpdate,
+              LedPlugin::ISystemReset)
 
 // Add plugin alias so that we can refer to the plugin without the version
 // namespace
