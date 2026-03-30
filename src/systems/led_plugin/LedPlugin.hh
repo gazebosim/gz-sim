@@ -47,7 +47,9 @@ namespace systems
   ///
   /// ## System Parameters:
   ///
-  /// <plugin name="led" filename="libLedPlugin.so">
+  // <plugin
+  //   filename="gz-sim-led-plugin-system"
+  //   name="gz::sim::systems::LedPlugin">
   ///
   ///   <!-- Name of the whole LED system / group -->
   ///   <led_group_name>group_name</led_group_name>
