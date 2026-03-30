@@ -55,6 +55,7 @@ namespace comms
   /// Units are in seconds.
   ///
   /// Here's an example:
+  /// \code{.xml}
   /// <physics name="1ms" type="ignored">
   ///   <max_step_size>2</max_step_size>
   ///   <real_time_factor>1.0</real_time_factor>
@@ -64,6 +65,7 @@ namespace comms
   ///   name="gz::sim::systems::PerfectComms">
   ///   <step_size>1</step_size>
   /// </plugin>
+  /// \endcode
   class GZ_SIM_VISIBLE ICommsModel:
 #ifdef _MSC_VER
   #pragma warning(push)
