@@ -45,7 +45,7 @@ To interact with the server-side scene, you'll need to write an
 See [Create System Plugins](createsystemplugins.html).
 
 To interact with the client-side scene, you'll need to write an
-\ref gz::gui::Plugin, or a more specialized `gz::sim::GuiSystem`
+`gz::gui::Plugin`, or a more specialized `gz::sim::GuiSystem`
 if you need to access entities and components.
 See the [GUI system plugin example](https://github.com/gazebosim/gz-sim/tree/main/examples/plugin/gui_system_plugin).
 
@@ -70,7 +70,7 @@ different for each plugin type.
 
 ### Render events on the GUI
 
-The GUI plugin will need to listen to \ref gz::gui::events::Render
+The GUI plugin will need to listen to `gz::gui::events::Render`
 events. Here's how to do it:
 
 1. Include the GUI events header:
