@@ -61,18 +61,18 @@ class gz::sim::EntityComponentManagerPrivate
   /// entity as input.
   /// \param[in] _entity Entity to be created.
   /// \return Created entity, which should match the input.
-  public: Entity CreateEntityImplementation(entt::basic_registry<Entity>& _registry, Entity _entity);
+  public: Entity CreateEntityImplementation(Entity _entity);
 
   /// \brief Recursively insert an entity and all its descendants into a given
   /// set.
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
-  public: void InsertEntityRecursive(const entt::basic_registry<Entity>& _registry, Entity _entity,
+  public: void InsertEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
   /// \brief Allots the work for multiple threads prior to running
   /// `AddEntityToMessage`.
-  public: void CalculateStateThreadLoad(const entt::basic_registry<Entity>& _registry);
+  public: void CalculateStateThreadLoad();
 
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
@@ -104,7 +104,7 @@ class gz::sim::EntityComponentManagerPrivate
   /// modifiedComponents list. The entity is added to the list when it is not
   /// a newly created entity or is not an entity to be removed
   /// \param[in] _entity Entity that has component newly modified
-  public: void AddModifiedComponent(entt::basic_registry<Entity>& _registry, const Entity &_entity);
+  public: void AddModifiedComponent(const Entity &_entity);
 
   /// \brief Check whether a component is marked as a component that is
   /// currently removed or not.
@@ -219,7 +219,22 @@ class gz::sim::EntityComponentManagerPrivate
 
   /// \brief Mutex to protect enqueuedGroups and pendingGroups.
   public: mutable std::mutex groupMutex;
+
+  /// \brief Registry.
+  public: entt::basic_registry<Entity> registry;
 };
+
+//////////////////////////////////////////////////
+entt::basic_registry<Entity> &EntityComponentManager::Registry()
+{
+  return this->dataPtr->registry;
+}
+
+//////////////////////////////////////////////////
+const entt::basic_registry<Entity> &EntityComponentManager::Registry() const
+{
+  return this->dataPtr->registry;
+}
 
 //////////////////////////////////////////////////
 void EntityComponentManager::CreatePendingGroups()
@@ -227,7 +242,7 @@ void EntityComponentManager::CreatePendingGroups()
   std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
   for (auto &group : this->dataPtr->pendingGroups)
   {
-    group->CreateGroup(this->registry);
+    group->CreateGroup(this->Registry());
   }
   this->dataPtr->pendingGroups.clear();
   this->dataPtr->enqueuedGroups.clear();
@@ -249,7 +264,7 @@ void EntityComponentManager::EnqueueGroup(
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
-  components::Factory::Instance()->RegisterAllToEntt(this->registry);
+  components::Factory::Instance()->RegisterAllToEntt(this->Registry());
 }
 
 //////////////////////////////////////////////////
@@ -272,23 +287,23 @@ void EntityComponentManagerPrivate::CopyFrom(
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->registry.storage<Entity>()->free_list();
+  return this->Registry().storage<Entity>()->free_list();
 }
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CreateEntity()
 {
   this->dataPtr->entityCount++;
-  return this->dataPtr->CreateEntityImplementation(this->registry, this->dataPtr->entityCount);
+  return this->dataPtr->CreateEntityImplementation(this->dataPtr->entityCount);
 }
 
 /////////////////////////////////////////////////
-Entity EntityComponentManagerPrivate::CreateEntityImplementation(entt::basic_registry<Entity>& _registry, Entity _entity)
+Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 {
   GZ_PROFILE("EntityComponentManager::CreateEntityImplementation");
-  const auto e = _registry.create(_entity);
-  _registry.emplace<NewEntity>(e);
-  _registry.emplace<Children>(e);
+  const auto e = this->registry.create(_entity);
+  this->registry.emplace<NewEntity>(e);
+  this->registry.emplace<Children>(e);
   return e;
 }
 
@@ -555,7 +570,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 void EntityComponentManager::ClearNewlyCreatedEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-  this->registry.clear<NewEntity>();
+  this->Registry().clear<NewEntity>();
 }
 
 /////////////////////////////////////////////////
@@ -573,14 +588,14 @@ void EntityComponentManager::ClearRemovedComponents()
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManagerPrivate::InsertEntityRecursive(const entt::basic_registry<Entity>& _registry, Entity _entity,
+void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
     std::unordered_set<Entity> &_set)
 {
   _set.insert(_entity);
-  const auto& children = _registry.get<Children>(_entity);
+  const auto& children = this->registry.get<Children>(_entity);
   for (const auto& child : children.data)
   {
-    this->InsertEntityRecursive(_registry, child, _set);
+    this->InsertEntityRecursive(child, _set);
   }
 }
 
@@ -599,7 +614,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   }
   else
   {
-    this->dataPtr->InsertEntityRecursive(this->registry, _entity, tmpToRemoveEntities);
+    this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
 
     // remove detachable joint entities that are connected to
     // any of the entities to be removed
@@ -624,13 +639,13 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   // Remove entities from tmpToRemoveEntities that are marked as
   // unremovable.
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  const auto& storage = this->registry.storage<PinnedEntity>();
+  const auto& storage = this->Registry().storage<PinnedEntity>();
   for (const auto& e : tmpToRemoveEntities)
   {
     if (!storage.contains(e))
     {
       // Not pinned, erase
-      this->registry.emplace<RemoveEntity>(e);
+      this->Registry().emplace<RemoveEntity>(e);
     }
   }
 }
@@ -639,8 +654,8 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 void EntityComponentManager::RequestRemoveEntities()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  this->registry.view<Entity>(entt::exclude<PinnedEntity>).each([&](const Entity _e) {
-    this->registry.emplace<RemoveEntity>(_e);
+  this->Registry().view<Entity>(entt::exclude<PinnedEntity>).each([&](const Entity _e) {
+    this->Registry().emplace<RemoveEntity>(_e);
   });
 }
 
@@ -649,24 +664,24 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
 {
   GZ_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  auto view = this->registry.view<RemoveEntity>();
-  const auto& pinnedStorage = this->registry.storage<PinnedEntity>();
+  auto view = this->Registry().view<RemoveEntity>();
+  const auto& pinnedStorage = this->Registry().storage<PinnedEntity>();
   for (auto entity : view)
   {
     if (pinnedStorage.contains(entity))
     {
       continue;
     }
-    const auto* parent = this->registry.try_get<components::ParentEntity>(entity);
+    const auto* parent = this->Registry().try_get<components::ParentEntity>(entity);
     if (parent)
     {
-      auto* parentChildren = this->registry.try_get<Children>(parent->Data());
+      auto* parentChildren = this->Registry().try_get<Children>(parent->Data());
       if (parentChildren)
       {
         parentChildren->data.erase(entity);
       }
     }
-    this->registry.destroy(entity);
+    this->Registry().destroy(entity);
     this->dataPtr->componentsMarkedAsRemoved.erase(entity);
   }
 }
@@ -680,7 +695,7 @@ bool EntityComponentManager::RemoveComponent(
   if (!this->HasEntity(_entity))
     return false;
 
-  auto* storage = this->registry.storage(_typeId);
+  auto* storage = this->Registry().storage(_typeId);
 
   if (storage && storage->contains(_entity)) {
       storage->remove(_entity);
@@ -709,7 +724,7 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity, const Com
       this->dataPtr->periodicChangedComponents.erase(periodicIter);
   }
 
-  this->dataPtr->AddModifiedComponent(this->registry, _entity);
+  this->dataPtr->AddModifiedComponent(_entity);
 
   // Add component to map of removed components
   {
@@ -726,7 +741,7 @@ bool EntityComponentManager::EntityHasComponentType(const Entity _entity,
 {
   if (!this->HasEntity(_entity))
     return false;
-  const auto* storage = this->registry.storage(_typeId);
+  const auto* storage = this->Registry().storage(_typeId);
   if (storage == nullptr)
     return false;
   return storage->contains(_entity);
@@ -738,7 +753,7 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
   if (!this->HasEntity(_entity))
     return false;
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  return this->registry.any_of<RemoveEntity>(_entity);
+  return this->Registry().any_of<RemoveEntity>(_entity);
 }
 
 /////////////////////////////////////////////////
@@ -775,14 +790,14 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
 bool EntityComponentManager::HasNewEntities() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
-  return this->registry.view<NewEntity>().size() > 0;
+  return this->Registry().view<NewEntity>().size() > 0;
 }
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
-  return this->registry.view<RemoveEntity>().size() > 0;
+  return this->Registry().view<RemoveEntity>().size() > 0;
 }
 
 /////////////////////////////////////////////////
@@ -833,7 +848,7 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
   }
 
   // Get all removed entities
-  this->registry.view<const RemoveEntity>().each([this, &_changes](const Entity e, const RemoveEntity&) {
+  this->Registry().view<const RemoveEntity>().each([this, &_changes](const Entity e, const RemoveEntity&) {
     for (
       auto components = _changes.begin();
       components != _changes.end(); components++) {
@@ -848,13 +863,13 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
-  return this->registry.valid(_entity);
+  return this->Registry().valid(_entity);
 }
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::ParentEntity(const Entity _entity) const
 {
-  const auto* parent = this->registry.try_get<components::ParentEntity>(_entity);
+  const auto* parent = this->Registry().try_get<components::ParentEntity>(_entity);
   if (!parent)
     return kNullEntity;
   return parent->Data();
@@ -868,11 +883,11 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
     return false;
   if (_parent != kNullEntity && !this->HasEntity(_parent))
     return false;
-  auto* currentParent = this->registry.try_get<components::ParentEntity>(_child);
+  auto* currentParent = this->Registry().try_get<components::ParentEntity>(_child);
   // Remove current parent(s)
   if (currentParent)
   {
-    auto* children = this->registry.try_get<Children>(currentParent->Data());
+    auto* children = this->Registry().try_get<Children>(currentParent->Data());
     if (children)
     {
       children->data.erase(_child);
@@ -882,13 +897,13 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
   // Leave parent-less
   if (_parent == kNullEntity)
   {
-    this->registry.remove<components::ParentEntity>(_child);
+    this->Registry().remove<components::ParentEntity>(_child);
     return true;
   }
 
   // Update parent entity and parent's children
-  this->registry.emplace_or_replace<components::ParentEntity>(_child, _parent);
-  auto& newChildren = this->registry.get<Children>(_parent);
+  this->Registry().emplace_or_replace<components::ParentEntity>(_child, _parent);
+  auto& newChildren = this->Registry().get<Children>(_parent);
   newChildren.data.insert(_child);
   return true;
 }
@@ -922,17 +937,17 @@ bool EntityComponentManager::CreateComponentImplementation(
   // component is a brand new creation/addition
   bool updateData = true;
 
-  this->dataPtr->AddModifiedComponent(this->registry, _entity);
+  this->dataPtr->AddModifiedComponent(_entity);
   this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
 
-  auto* storage = this->registry.storage(_componentTypeId);
+  auto* storage = this->Registry().storage(_componentTypeId);
   // If entity has never had a component of this type
   if (!storage || !storage->contains(_entity))
   {
-    if (!components::Factory::Instance()->SyncComponent(this->registry, _entity, _componentTypeId, newComp.get()))
+    if (!components::Factory::Instance()->SyncComponent(this->Registry(), _entity, _componentTypeId, newComp.get()))
     {
       gzwarn << "Failed syncing component. This should not happen." << std::endl;
     } else {
@@ -999,7 +1014,7 @@ const components::BaseComponent
 {
   GZ_PROFILE("EntityComponentManager::ComponentImplementation");
 
-  const auto* storage = this->registry.storage(_type);
+  const auto* storage = this->Registry().storage(_type);
   if (!storage)
     return nullptr;
 
@@ -1024,7 +1039,7 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
 bool EntityComponentManager::HasComponentType(
     const ComponentTypeId _typeId) const
 {
-  const auto* storage = this->registry.storage(_typeId);
+  const auto* storage = this->Registry().storage(_typeId);
   return storage != nullptr;
 }
 
@@ -1032,7 +1047,7 @@ bool EntityComponentManager::HasComponentType(
 const std::vector<Entity> EntityComponentManager::Entities() const
 {
   std::vector<Entity> entities(this->EntityCount());
-  this->registry.view<Entity>().each([&](const Entity& e) {
+  this->Registry().view<Entity>().each([&](const Entity& e) {
     entities.push_back(e);
   });
   return entities;
@@ -1116,7 +1131,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   auto entityMsg = _msg.add_entities();
   entityMsg->set_id(_entity);
   
-  if (this->registry.any_of<RemoveEntity>(_entity))
+  if (this->Registry().any_of<RemoveEntity>(_entity))
   {
     entityMsg->set_remove(true);
   }
@@ -1162,7 +1177,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   auto entIter = _msg.mutable_entities()->end();
   // Add an entity to the message and set it to be removed if the entity
   // exists in the toRemoveEntities list.
-  if (this->registry.any_of<RemoveEntity>(_entity))
+  if (this->Registry().any_of<RemoveEntity>(_entity))
   {
     // Find the entity in the message, and add if not present.
     entIter = _msg.mutable_entities()->find(_entity);
@@ -1271,7 +1286,7 @@ msgs::SerializedState EntityComponentManager::ChangedState() const
     this->AddEntityToMessage(stateMsg, e);
     return true;
   });
-  this->registry.view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &stateMsg](const Entity& e, const ModifiedComponent&) {
+  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &stateMsg](const Entity& e, const ModifiedComponent&) {
       this->AddEntityToMessage(stateMsg, e);
   });
   return stateMsg;
@@ -1290,13 +1305,13 @@ void EntityComponentManager::ChangedState(
     this->AddEntityToMessage(_state, e);
     return true;
   });
-  this->registry.view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &_state](const Entity& e, const ModifiedComponent&) {
+  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &_state](const Entity& e, const ModifiedComponent&) {
       this->AddEntityToMessage(_state, e);
   });
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CalculateStateThreadLoad(const entt::basic_registry<Entity>& _registry)
+void EntityComponentManagerPrivate::CalculateStateThreadLoad()
 {
 
   /*
@@ -1328,7 +1343,7 @@ msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types) const
 {
   msgs::SerializedState stateMsg;
-  this->registry.view<const Entity>().each([this, &_entities, &stateMsg, &_types](const Entity& e) {
+  this->Registry().view<const Entity>().each([this, &_entities, &stateMsg, &_types](const Entity& e) {
     if (_entities.empty() || _entities.find(e) != _entities.end())
     {
       this->AddEntityToMessage(stateMsg, e, _types);
@@ -1345,7 +1360,7 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  this->registry.view<Entity>().each([&](const Entity& e) {
+  this->Registry().view<Entity>().each([&](const Entity& e) {
     if (!_entities.empty() && _entities.find(e) == _entities.end())
       return;
     this->AddEntityToMessage(_state, e, _types, _full);
@@ -1357,7 +1372,7 @@ void EntityComponentManager::State(
   std::mutex stateMapMutex;
   std::vector<std::thread> workers;
 
-  const auto entityView = this->registry.view<Entity>();
+  const auto entityView = this->Registry().view<Entity>();
   int numEntities = entityView.size();
   const auto addN = entityView.begin() + 100;
 
@@ -1478,7 +1493,7 @@ void EntityComponentManager::SetState(
     // Create entity if it doesn't exist
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(this->registry, entity);
+      this->dataPtr->CreateEntityImplementation(entity);
     }
 
     // Create / remove / update components
@@ -1548,7 +1563,7 @@ void EntityComponentManager::SetState(
       {
         std::istringstream istr(compMsg.component());
         comp->Deserialize(istr);
-        this->dataPtr->AddModifiedComponent(this->registry, entity);
+        this->dataPtr->AddModifiedComponent(entity);
       }
     }
   }
@@ -1576,7 +1591,7 @@ void EntityComponentManager::SetState(
     // Create entity if it doesn't exist
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(this->registry, entity);
+      this->dataPtr->CreateEntityImplementation(entity);
     }
 
     // Create / remove / update components
@@ -1660,7 +1675,7 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
   if (!this->HasEntity(_entity))
     return descendants;
 
-  this->dataPtr->InsertEntityRecursive(this->registry, _entity, descendants);
+  this->dataPtr->InsertEntityRecursive(_entity, descendants);
   return descendants;
 }
 
@@ -1669,7 +1684,7 @@ void EntityComponentManager::SetAllComponentsUnchanged()
 {
   this->dataPtr->periodicChangedComponents.clear();
   this->dataPtr->oneTimeChangedComponents.clear();
-  this->registry.clear<ModifiedComponent>();
+  this->Registry().clear<ModifiedComponent>();
 }
 
 /////////////////////////////////////////////////
@@ -1713,7 +1728,7 @@ void EntityComponentManager::SetChanged(
     return;
   }
 
-  this->dataPtr->AddModifiedComponent(this->registry, _entity);
+  this->dataPtr->AddModifiedComponent(_entity);
 }
 
 /////////////////////////////////////////////////
@@ -1721,7 +1736,8 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
     const Entity _entity) const
 {
   std::unordered_set<ComponentTypeId> result;
-  auto handle = entt::basic_handle<const decltype(this->registry)>(this->registry, _entity);
+  auto handle = entt::basic_handle<const entt::basic_registry<Entity>>(
+      this->Registry(), _entity);
   for (const auto [typeId, storage] : handle.storage())
   {
     // TODO(luca) remember to add component types here for internal components
@@ -1766,16 +1782,16 @@ bool EntityComponentManager::LockAddingEntitiesToViews() const
 
 */
 /////////////////////////////////////////////////
-void EntityComponentManagerPrivate::AddModifiedComponent(entt::basic_registry<Entity>& _registry, const Entity &_entity)
+void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 {
-  if (_registry.any_of<NewEntity, RemoveEntity, ModifiedComponent>(_entity))
+  if (this->registry.any_of<NewEntity, RemoveEntity, ModifiedComponent>(_entity))
   {
     // modified component is already in newlyCreatedEntities,
     // toRemoveEntities list, or already marked as modified.
     return;
   }
 
-  _registry.emplace<ModifiedComponent>(_entity);
+  this->registry.emplace<ModifiedComponent>(_entity);
 }
 
 /////////////////////////////////////////////////
@@ -1845,15 +1861,15 @@ void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
   if (_recursive)
   {
     std::unordered_set<Entity> toPin;
-    this->dataPtr->InsertEntityRecursive(this->registry, _entity,
+    this->dataPtr->InsertEntityRecursive(_entity,
         toPin);
     for (const auto& e : toPin) {
-      this->registry.emplace_or_replace<PinnedEntity>(e);
+      this->Registry().emplace_or_replace<PinnedEntity>(e);
     }
   }
   else
   {
-    this->registry.emplace_or_replace<PinnedEntity>(_entity);
+    this->Registry().emplace_or_replace<PinnedEntity>(_entity);
   }
 }
 
@@ -1865,55 +1881,55 @@ void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
   if (_recursive)
   {
     std::unordered_set<Entity> toUnpin;
-    this->dataPtr->InsertEntityRecursive(this->registry, _entity,
+    this->dataPtr->InsertEntityRecursive(_entity,
         toUnpin);
     for (const auto& e : toUnpin) {
-      this->registry.remove<PinnedEntity>(e);
+      this->Registry().remove<PinnedEntity>(e);
     }
   }
   else
   {
-    this->registry.remove<PinnedEntity>(_entity);
+    this->Registry().remove<PinnedEntity>(_entity);
   }
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::UnpinAllEntities()
 {
-  this->registry.clear<PinnedEntity>();
+  this->Registry().clear<PinnedEntity>();
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
-  const auto& newStorage = _fromEcm.registry.storage<NewEntity>();
-  const auto& removeStorage = _fromEcm.registry.storage<RemoveEntity>();
-  const auto& pinnedStorage = _fromEcm.registry.storage<PinnedEntity>();
-  const auto& modifiedStorage = _fromEcm.registry.storage<ModifiedComponent>();
-  const auto& childrenStorage = _fromEcm.registry.storage<Children>();
+  const auto& newStorage = _fromEcm.Registry().storage<NewEntity>();
+  const auto& removeStorage = _fromEcm.Registry().storage<RemoveEntity>();
+  const auto& pinnedStorage = _fromEcm.Registry().storage<PinnedEntity>();
+  const auto& modifiedStorage = _fromEcm.Registry().storage<ModifiedComponent>();
+  const auto& childrenStorage = _fromEcm.Registry().storage<Children>();
   // TODO(luca) clean this up by just copying entities through iterators
   // instead of using high level APIs such as CreateEntityImplementation
-  _fromEcm.registry.view<const Entity>().each([&](const Entity& e) {
+  _fromEcm.Registry().view<const Entity>().each([&](const Entity& e) {
     if (this->HasEntity(e))
-      this->registry.destroy(e);
-    this->dataPtr->CreateEntityImplementation(this->registry, e);
+      this->Registry().destroy(e);
+    this->dataPtr->CreateEntityImplementation(e);
     // Created entities already have a NewEntity component
     // Some storages might not be initialized
     if (!newStorage->contains(e))
-      this->registry.remove<NewEntity>(e);
+      this->Registry().remove<NewEntity>(e);
     if (removeStorage && removeStorage->contains(e))
-      this->registry.emplace<RemoveEntity>(e);
+      this->Registry().emplace<RemoveEntity>(e);
     if (pinnedStorage && pinnedStorage->contains(e))
-      this->registry.emplace<PinnedEntity>(e);
+      this->Registry().emplace<PinnedEntity>(e);
     if (modifiedStorage && modifiedStorage->contains(e))
-      this->registry.emplace<ModifiedComponent>(e);
+      this->Registry().emplace<ModifiedComponent>(e);
     if (childrenStorage->contains(e))
-      this->registry.replace<Children>(e, childrenStorage->get(e));
+      this->Registry().replace<Children>(e, childrenStorage->get(e));
     // Now copy the actual gazebo components
     const auto componentTypes = _fromEcm.ComponentTypes(e);
     for (const auto& typeId : componentTypes) {
-      const auto& storage = _fromEcm.registry.storage(typeId);
+      const auto& storage = _fromEcm.Registry().storage(typeId);
       if (!storage) {
         gzwarn << "Storage not found for component, this shouldn't happen" << std::endl;
         continue;
@@ -1923,7 +1939,7 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
         gzwarn << "Couldn't cast component to its base class, this shouldn't happen" << std::endl;
         continue;
       }
-      if (!components::Factory::Instance()->SyncComponent(this->registry, e, typeId, baseCompPtr->Clone().get()))
+      if (!components::Factory::Instance()->SyncComponent(this->Registry(), e, typeId, baseCompPtr->Clone().get()))
       {
         gzerr << "Failed syncing component!" << std::endl;
       }
@@ -1936,11 +1952,11 @@ EntityComponentManagerDiff EntityComponentManager::ComputeEntityDiff(
     const EntityComponentManager &_other) const
 {
   EntityComponentManagerDiff diff;
-  _other.registry.view<Entity>().each([&](const Entity& e) {
+  _other.Registry().view<Entity>().each([&](const Entity& e) {
     if (!this->HasEntity(e))
       diff.InsertAddedEntity(e);
   });
-  this->registry.view<Entity>().each([&](const Entity& e) {
+  this->Registry().view<Entity>().each([&](const Entity& e) {
     if (!_other.HasEntity(e))
       diff.InsertRemovedEntity(e);
   });
@@ -1967,7 +1983,7 @@ void EntityComponentManager::ApplyEntityDiff(
   {
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(this->registry, entity);
+      this->dataPtr->CreateEntityImplementation(entity);
       if (entity >= this->dataPtr->entityCount)
       {
         this->dataPtr->entityCount = entity;
@@ -1977,11 +1993,11 @@ void EntityComponentManager::ApplyEntityDiff(
     }
   }
 
-  const auto& newStorage = _other.registry.storage<NewEntity>();
-  const auto& removeStorage = _other.registry.storage<RemoveEntity>();
-  const auto& pinnedStorage = _other.registry.storage<PinnedEntity>();
-  const auto& modifiedStorage = _other.registry.storage<ModifiedComponent>();
-  const auto& childrenStorage = _other.registry.storage<Children>();
+  const auto& newStorage = _other.Registry().storage<NewEntity>();
+  const auto& removeStorage = _other.Registry().storage<RemoveEntity>();
+  const auto& pinnedStorage = _other.Registry().storage<PinnedEntity>();
+  const auto& modifiedStorage = _other.Registry().storage<ModifiedComponent>();
+  const auto& childrenStorage = _other.Registry().storage<Children>();
 
   for (const auto &entity : _diff.RemovedEntities())
   {
@@ -1989,11 +2005,11 @@ void EntityComponentManager::ApplyEntityDiff(
     // removal.
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(this->registry, entity);
+      this->dataPtr->CreateEntityImplementation(entity);
       // We want to set this entity as "removed", but
       // CreateEntityImplementation sets it as "newlyCreated",
       // so remove it from that list.
-      this->registry.remove<NewEntity>(entity);
+      this->Registry().remove<NewEntity>(entity);
       // Copy components so that EachRemoved match correctly
       if (entity >= this->dataPtr->entityCount)
       {
@@ -2001,16 +2017,16 @@ void EntityComponentManager::ApplyEntityDiff(
       }
       copyComponents(entity);
       if (!newStorage->contains(entity))
-        this->registry.remove<NewEntity>(entity);
+        this->Registry().remove<NewEntity>(entity);
       if (removeStorage && removeStorage->contains(entity))
-        this->registry.emplace<RemoveEntity>(entity);
+        this->Registry().emplace<RemoveEntity>(entity);
       if (pinnedStorage && pinnedStorage->contains(entity))
-        this->registry.emplace<PinnedEntity>(entity);
+        this->Registry().emplace<PinnedEntity>(entity);
       if (modifiedStorage && modifiedStorage->contains(entity))
-        this->registry.emplace<ModifiedComponent>(entity);
+        this->Registry().emplace<ModifiedComponent>(entity);
       // Children is already present
       if (childrenStorage->contains(entity))
-        this->registry.replace<Children>(entity, childrenStorage->get(entity));
+        this->Registry().replace<Children>(entity, childrenStorage->get(entity));
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 

@@ -96,7 +96,7 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
 {
   if (!this->HasEntity(_entity))
     return nullptr;
-  auto* comp = &this->registry.emplace_or_replace<ComponentTypeT>(_entity, _data);
+  auto* comp = &this->Registry().emplace_or_replace<ComponentTypeT>(_entity, _data);
   this->SetChanged(_entity, ComponentTypeT::typeId, ComponentState::OneTimeChange);
   this->MarkComponentAsRemoved(_entity, ComponentTypeT::typeId, false);
   return comp;
@@ -107,14 +107,14 @@ template<typename ComponentTypeT>
 const ComponentTypeT *EntityComponentManager::Component(
     const Entity _entity) const
 {
-  return this->registry.try_get<const ComponentTypeT>(_entity);
+  return this->Registry().try_get<const ComponentTypeT>(_entity);
 }
 
 //////////////////////////////////////////////////
 template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 {
-  return this->registry.try_get<ComponentTypeT>(_entity);
+  return this->Registry().try_get<ComponentTypeT>(_entity);
 }
 
 //////////////////////////////////////////////////
@@ -194,7 +194,7 @@ template<typename ...ComponentTypeTs>
 Entity EntityComponentManager::EntityByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
-  if (auto group = this->registry.template group_if_exists<>(
+  if (auto group = this->Registry().template group_if_exists<>(
       entt::get<const ComponentTypeTs...>); group)
   {
     for (const auto e : group)
@@ -210,7 +210,7 @@ Entity EntityComponentManager::EntityByComponents(
   this->EnqueueGroup({ComponentTypeTs::typeId...},
       std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-  auto view = this->registry.template view<const ComponentTypeTs...>();
+  auto view = this->Registry().template view<const ComponentTypeTs...>();
 
   for (auto e : view)
   {
@@ -228,7 +228,7 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
     const ComponentTypeTs &..._desiredComponents) const
 {
   std::vector<Entity> result;
-  if (auto group = this->registry.template group_if_exists<>(
+  if (auto group = this->Registry().template group_if_exists<>(
       entt::get<const ComponentTypeTs...>); group)
   {
     for (const auto e : group)
@@ -244,7 +244,7 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
   this->EnqueueGroup({ComponentTypeTs::typeId...},
       std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-  auto view = this->registry.template view<const ComponentTypeTs...>();
+  auto view = this->Registry().template view<const ComponentTypeTs...>();
 
   for (auto e : view)
   {
@@ -267,8 +267,8 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
   // The performance difference might be small enough that we shouldn't need two APIs
   // return this->EntitiesByComponents(components::ParentEntity(_parent), _desiredComponents ...);
   std::vector<Entity> result;
-  const auto& children = this->registry.template get<Children>(_parent);
-  auto view = this->registry.template view<const ComponentTypeTs...>();
+  const auto& children = this->Registry().template get<Children>(_parent);
+  auto view = this->Registry().template view<const ComponentTypeTs...>();
 
   for (const Entity e : children.data)
   {
@@ -307,7 +307,7 @@ void EntityComponentManager::EachNoCache(Func &&_f)
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f) const
 {
-  if (auto group = this->registry.template group_if_exists<>(
+  if (auto group = this->Registry().template group_if_exists<>(
       entt::get<const ComponentTypeTs...>); group)
   {
     for (const auto entity : group)
@@ -322,7 +322,7 @@ void EntityComponentManager::Each(Func &&_f) const
   this->EnqueueGroup({ComponentTypeTs::typeId...},
       std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-  auto view = this->registry.template view<const ComponentTypeTs...>();
+  auto view = this->Registry().template view<const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
@@ -337,7 +337,7 @@ void EntityComponentManager::Each(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f)
 {
-  auto view = this->registry.template group<>(entt::get<ComponentTypeTs...>);
+  auto view = this->Registry().template group<>(entt::get<ComponentTypeTs...>);
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
@@ -362,7 +362,7 @@ void EntityComponentManager::ForEach(Function _f,
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f)
 {
-  auto view = this->registry.template group<>(entt::get<NewEntity, ComponentTypeTs...>);
+  auto view = this->Registry().template group<>(entt::get<NewEntity, ComponentTypeTs...>);
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
@@ -381,7 +381,7 @@ void EntityComponentManager::EachNew(Func &&_f) const
   // For now they are not because entities are only marked as new for
   // one iteration, so this query is not expected to run repeateadly
   // over large sets of entities.
-  auto view = this->registry.template view<const NewEntity, const ComponentTypeTs...>();
+  auto view = this->Registry().template view<const NewEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
@@ -400,7 +400,7 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
   // For now they are not because entities are only marked as removed for
   // one iteration, so this query is not expected to run repeateadly
   // over large sets of entities.
-  auto view = this->registry.template view<const RemoveEntity, const ComponentTypeTs...>();
+  auto view = this->Registry().template view<const RemoveEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
@@ -417,7 +417,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
   if (!this->HasEntity(_entity))
     return false;
-  bool removed = this->registry.remove<ComponentTypeT>(_entity);
+  bool removed = this->Registry().remove<ComponentTypeT>(_entity);
   this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
   return removed;
 }

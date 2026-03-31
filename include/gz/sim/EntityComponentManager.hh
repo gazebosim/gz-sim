@@ -778,10 +778,16 @@ namespace gz
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
 
+      /// \brief Get the registry.
+      /// \return Reference to the registry.
+      private: entt::basic_registry<Entity> &Registry();
+
+      /// \brief Get the registry.
+      /// \return Constant reference to the registry.
+      private: const entt::basic_registry<Entity> &Registry() const;
+
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
-
-      private: entt::basic_registry<Entity> registry;
 
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
