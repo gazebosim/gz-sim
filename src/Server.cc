@@ -465,8 +465,12 @@ Server::Status gz::sim::Server::GetStatus() const
 void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
   const std::size_t _runnerId) const
 {
+  if (_runnerId >= this->dataPtr->simRunners.size())
+  {
+    gzerr << "RunnerId is out of bounds"<< std::endl;
+    return;  
+  }
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
-
   _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
 
@@ -474,7 +478,12 @@ void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
 void Server::PokeEcm(std::function<void(EntityComponentManager&)> _func,
   const std::size_t _runnerId)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
 
+  if (_runnerId >= this->dataPtr->simRunners.size())
+  {
+    gzerr << "RunnerId is out of bounds"<< std::endl;
+    return;
+  }
+  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }

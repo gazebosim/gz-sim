@@ -82,6 +82,8 @@ TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
     EXPECT_EQ(1u, staticObjects.size());
   };
 
+  server.Run(true, 1, false);
+
   server.PeekEcm(
       [&](const sim::EntityComponentManager &_ecm)
       {
