@@ -128,12 +128,16 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("Altimeter::PostUpdate");
 
-  // \TODO(anyone) Support rewind
+  // Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
-    gzwarn << "Detected jump back in time ["
-           << std::chrono::duration<double>(_info.dt).count()
-           << "s]. System may not work properly." << std::endl;
+    for (auto &it : this->dataPtr->entitySensorMap)
+    {
+      double z = worldPose(it.first, _ecm).Pos().Z();
+      it.second->SetVerticalReference(z);
+      it.second->SetPosition(z);
+    }
+    return;
   }
 
   this->dataPtr->CreateSensors(_ecm);
