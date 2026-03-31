@@ -26,17 +26,22 @@
 #include <gz/sim/System.hh>
 #include <gz/sim/config.hh>
 
+// Note that all components must be in the gz::sim::components namespace
+// for registration to work.
+namespace gz::sim::components
+{
+  // The most convenient way to create a component is to create a template alias
+  // of `components::Component` where the first argument is the type being wrapped
+  // (i.e. int) and the second is a unique name tag.
+  using CustomComponent = Component<int, class CustomComponentTag>;
+  // Use this macro to register a component. Give it a unique name across the
+  // entire simulation.
+  GZ_SIM_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
+}
+
 namespace examples
 {
-// The most convenient way to create a component is to create a template alias
-// of `components::Component` where the first argument is the type being wrapped
-// (i.e. int) and the second is a unique name tag.
-using CustomComponent =
-    gz::sim::components::Component<int, class CustomComponentTag>;
-
-// Use this macro to register a component. Give it a unique name across the
-// entire simulation.
-GZ_SIM_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
+using CustomComponent = gz::sim::components::CustomComponent;
 
 class CustomComponentPlugin :
   public gz::sim::System,

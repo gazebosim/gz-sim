@@ -200,6 +200,14 @@ namespace serializers
 
 namespace components
 {
+  /// \brief A template trait for component types.
+  template <typename T>
+  struct ComponentTypeTraits
+  {
+    /// \brief The component type ID.
+    static constexpr ComponentTypeId typeId = 0;
+  };
+
   /// \brief Convenient type to be used by components that don't wrap any data.
   /// I.e. they act as tags and their presence is enough to infer something
   /// about the entity.
@@ -349,6 +357,12 @@ namespace components
     // Documentation inherited
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
+    /// \brief Returns the unique ID for the component's type.
+    public: static constexpr ComponentTypeId typeIdStatic()
+    {
+      return ComponentTypeTraits<Component>::typeId;
+    }
+
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
 
@@ -383,7 +397,7 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static ComponentTypeId typeId{0};
+    public: inline static ComponentTypeId typeId = typeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -401,6 +415,7 @@ namespace components
   template <typename Identifier, typename Serializer>
   class Component<NoData, Identifier, Serializer> : public BaseComponent
   {
+    public: using Type = NoData;
     /// \brief Components with no data are always equal to another instance of
     /// the same type.
     /// \param[in] _component Component to compare to
@@ -418,6 +433,12 @@ namespace components
     // Documentation inherited
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
+    /// \brief Returns the unique ID for the component's type.
+    public: static constexpr ComponentTypeId typeIdStatic()
+    {
+      return ComponentTypeTraits<Component>::typeId;
+    }
+
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
 
@@ -429,7 +450,9 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static ComponentTypeId typeId{0};
+    public:
+    // [[deprecated("Use TypeId() or TypeIdStatic() for constexpr context. Editing this variable at runtime is not supported.")]]
+    inline static ComponentTypeId typeId = typeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -514,7 +537,7 @@ namespace components
   template <typename DataType, typename Identifier, typename Serializer>
   ComponentTypeId Component<DataType, Identifier, Serializer>::TypeId() const
   {
-    return typeId;
+    return typeIdStatic();
   }
 
   //////////////////////////////////////////////////
@@ -545,7 +568,7 @@ namespace components
   template <typename Identifier, typename Serializer>
   ComponentTypeId Component<NoData, Identifier, Serializer>::TypeId() const
   {
-    return typeId;
+    return typeIdStatic();
   }
 
   //////////////////////////////////////////////////

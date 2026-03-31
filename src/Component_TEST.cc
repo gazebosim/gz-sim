@@ -513,27 +513,36 @@ TEST_F(ComponentTest, IStream)
   }
 }
 
+// CHANGED we can't register components outside the gz::sim::components namespace
+namespace gz::sim::components
+{
+  using ConstexprComp = Component<int, class ConstexprTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
+}
+
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, TypeId)
 {
-  // Component with data
+  // CHANGED it is not allowed to change the typeId at runtime anymore.
+  // Constexpr TypeId
   {
-    using Custom = components::Component<int, class CustomTag>;
-    Custom::typeId = 123456;
+    using ConstexprComp = components::ConstexprComp;
+    static_assert(ConstexprComp::typeIdStatic() ==
+        common::hash64("gz_sim_components.ConstexprComp"));
 
-    Custom comp;
+    EXPECT_EQ(ConstexprComp::typeIdStatic(), ConstexprComp::typeId);
 
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
+    // EnTT integration
+    EXPECT_EQ(ConstexprComp::typeIdStatic(), entt::type_hash<ConstexprComp>::value());
   }
 
-  // Component without data
+  // Pre-registered component
   {
-    using Custom = components::Component<components::NoData, class CustomTag>;
-    Custom::typeId = 123456;
-
-    Custom comp;
-
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
+    EXPECT_EQ(components::Name::typeIdStatic(),
+              common::hash64("gz_sim_components.Name"));
+    EXPECT_EQ(components::Name::typeIdStatic(), components::Name::typeId);
+    EXPECT_EQ(components::Name::typeIdStatic(),
+              entt::type_hash<components::Name>::value());
   }
 }
 
