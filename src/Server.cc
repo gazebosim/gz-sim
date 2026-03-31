@@ -468,7 +468,7 @@ void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
   if (_runnerId >= this->dataPtr->simRunners.size())
   {
     gzerr << "RunnerId is out of bounds"<< std::endl;
-    return;  
+    return;
   }
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
