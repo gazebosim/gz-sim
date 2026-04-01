@@ -170,9 +170,7 @@ Entity Joint::SensorByName(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 std::vector<Entity> Joint::Sensors(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
-      components::Sensor());
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Sensor());
 }
 
 //////////////////////////////////////////////////
