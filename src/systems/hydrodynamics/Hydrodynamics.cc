@@ -641,11 +641,21 @@ void Hydrodynamics::PostUpdate(
   }
 }
 
+/////////////////////////////////////////////////
+void Hydrodynamics::Reset(
+      const gz::sim::UpdateInfo &,
+      gz::sim::EntityComponentManager &)
+{
+  this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
+  this->dataPtr->firstIteration = true;
+}
+
 GZ_ADD_PLUGIN(
   Hydrodynamics, System,
   Hydrodynamics::ISystemConfigure,
   Hydrodynamics::ISystemPreUpdate,
-  Hydrodynamics::ISystemPostUpdate
+  Hydrodynamics::ISystemPostUpdate,
+  Hydrodynamics::ISystemReset
 )
 
 GZ_ADD_PLUGIN_ALIAS(
