@@ -56,6 +56,7 @@
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/Wind.hh"
 #include "gz/sim/components/World.hh"
@@ -1303,7 +1304,35 @@ TEST_P(SimulationRunnerTest,
   SimulationRunner runner(*rootWithout.WorldByIndex(0), systemLoader,
       serverConfig);
 
-  ASSERT_EQ(2u, runner.SystemCount());
+  ASSERT_EQ(3u, runner.SystemCount());
+
+  bool foundWorld{false};
+  bool hasSceneBroadcaster{false};
+  runner.EntityCompMgr().Each<World, components::SystemPluginInfo>(
+      [&](const Entity &,
+          const World *,
+          const components::SystemPluginInfo *_pluginInfo) -> bool
+      {
+        foundWorld = true;
+        EXPECT_NE(nullptr, _pluginInfo);
+        if (!_pluginInfo)
+          return true;
+
+        for (int i = 0; i < _pluginInfo->Data().plugins_size(); ++i)
+        {
+          const auto &plugin = _pluginInfo->Data().plugins(i);
+          if (plugin.filename() == "gz-sim-scene-broadcaster-system" ||
+              plugin.name() == "gz::sim::systems::SceneBroadcaster")
+          {
+            hasSceneBroadcaster = true;
+            break;
+          }
+        }
+        return true;
+      });
+
+  EXPECT_TRUE(foundWorld);
+  EXPECT_TRUE(hasSceneBroadcaster);
 }
 
 /////////////////////////////////////////////////
@@ -1531,15 +1560,15 @@ TEST_P(SimulationRunnerTest,
       serverConfig);
 
   // 1 model plugin from SDF and 1 world plugin from config
-  // and 1 model plugin from theconfig
-  EXPECT_EQ(3u, runner.SystemCount());
+  // and 1 model plugin from the config, plus auto-injected SceneBroadcaster.
+  EXPECT_EQ(4u, runner.SystemCount());
   runner.SetPaused(false);
   runner.Run(1);
 
-  // Remove the model. Only 1 world plugin should remain.
+  // Remove the model. The configured world plugin and SceneBroadcaster remain.
   EXPECT_TRUE(runner.RequestRemoveEntity("box"));
   runner.Run(2);
-  EXPECT_EQ(1u, runner.SystemCount());
+  EXPECT_EQ(2u, runner.SystemCount());
 }
 
 /////////////////////////////////////////////////
