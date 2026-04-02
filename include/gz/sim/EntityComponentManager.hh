@@ -38,9 +38,6 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
-#ifndef ENTT_NO_ETO
-  #define ENTT_NO_ETO
-#endif
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
 #endif

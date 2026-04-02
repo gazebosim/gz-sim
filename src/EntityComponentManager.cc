@@ -852,7 +852,7 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
   }
 
   // Get all removed entities
-  this->Registry().view<const RemoveEntity>().each([this, &_changes](const Entity e, const RemoveEntity&) {
+  this->Registry().view<const RemoveEntity>().each([this, &_changes](const Entity e) {
     for (
       auto components = _changes.begin();
       components != _changes.end(); components++) {
@@ -1290,7 +1290,7 @@ msgs::SerializedState EntityComponentManager::ChangedState() const
     this->AddEntityToMessage(stateMsg, e);
     return true;
   });
-  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &stateMsg](const Entity& e, const ModifiedComponent&) {
+  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &stateMsg](const Entity& e) {
       this->AddEntityToMessage(stateMsg, e);
   });
   return stateMsg;
@@ -1309,7 +1309,7 @@ void EntityComponentManager::ChangedState(
     this->AddEntityToMessage(_state, e);
     return true;
   });
-  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &_state](const Entity& e, const ModifiedComponent&) {
+  this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &_state](const Entity& e) {
       this->AddEntityToMessage(_state, e);
   });
 }
