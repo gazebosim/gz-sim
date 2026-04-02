@@ -48,22 +48,27 @@ namespace systems
   ///
   /// ## Added Mass and Coriolis
   ///
-  /// Added mass should be specified using the SDF `<fluid_added_mass>`
-  /// tag on the link's `<inertial>` element. The physics engine
-  /// integrates added mass implicitly (unconditionally stable) and
-  /// automatically computes the full non-diagonal Coriolis matrix.
-  /// See:
+  /// When using the **DART** physics engine, added mass should be
+  /// specified using the SDF `<fluid_added_mass>` tag on the link's
+  /// `<inertial>` element. DART integrates added mass implicitly
+  /// (unconditionally stable) and automatically computes the full
+  /// non-diagonal Coriolis matrix. See:
   /// http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
+  ///
+  /// Other physics engines (Bullet, MuJoCo) do not support native
+  /// added mass. Use the legacy plugin parameters (`<xDotU>`, etc.)
+  /// instead.
+  ///
+  /// **Do not set added mass in both places simultaneously.** If both
+  /// `<fluid_added_mass>` and plugin parameters are active, forces
+  /// are double-counted. The plugin emits an error if this is
+  /// detected.
   ///
   /// When both `<fluid_added_mass>` and an ocean current are present,
   /// this plugin automatically applies a Coriolis correction so that
   /// the Coriolis force uses the relative velocity v_r rather than
   /// the absolute velocity v. This correction is zero when there is
   /// no current.
-  ///
-  /// Legacy added mass parameters (`<xDotU>`, `<yDotV>`, etc.) are
-  /// still supported but deprecated due to conditional stability.
-  /// They will be removed in a future release.
   ///
   /// ## SNAME Naming Convention
   ///

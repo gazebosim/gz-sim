@@ -17,16 +17,24 @@ release will remove the deprecated code.
 * **Deprecations**
   * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
     `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
-    cross terms `<*Dot*>`) is deprecated and will be removed in a future
-    release. The explicit integration used by this path is conditionally
-    stable.
+    cross terms `<*Dot*>`) is deprecated **when using the DART physics
+    engine** and will be removed in a future release. The explicit
+    integration used by this path is conditionally stable.
 
-    Use the SDF `<fluid_added_mass>` tag on the link's `<inertial>`
-    element instead. The physics engine integrates added mass implicitly
-    (unconditionally stable) and computes the full non-diagonal Coriolis
-    matrix automatically.
+    When using the DART physics engine, use the SDF `<fluid_added_mass>`
+    tag on the link's `<inertial>` element instead. The physics engine
+    integrates added mass implicitly (unconditionally stable) and
+    computes the full non-diagonal Coriolis matrix automatically.
 
-    **Migration example** — replace:
+    Other physics engines (Bullet, MuJoCo) do not support native added
+    mass, so plugin-based parameters remain the only option for those
+    backends.
+
+    **Warning**: Do not set added mass in both `<fluid_added_mass>` and
+    the plugin simultaneously. If both are active, forces are
+    double-counted. The plugin now emits an error if this is detected.
+
+    **Migration example (DART)** — replace:
     ```xml
     <plugin filename="gz-sim-hydrodynamics-system"
             name="gz::sim::systems::Hydrodynamics">

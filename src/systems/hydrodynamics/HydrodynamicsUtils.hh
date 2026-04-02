@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,9 +84,9 @@ namespace hydrodynamics
   /// \param[in] _state 6x1 body-frame velocity [u,v,w,p,q,r]
   /// \return 6x6 damping matrix D
   inline Eigen::Matrix<double, 6, 6> buildDampingMatrix(
-    const double *_linearTerms,
-    const double *_quadAbsDerivs,
-    const double *_quadDerivs,
+    const double (&_linearTerms)[36],
+    const double (&_quadAbsDerivs)[216],
+    const double (&_quadDerivs)[216],
     const Eigen::Matrix<double, 6, 1> &_state)
   {
     Eigen::Matrix<double, 6, 6> Dmat =
