@@ -347,8 +347,8 @@ void Hydrodynamics::Configure(
 
 
   // Added mass according to Fossen's equations (p 37)
-  // Note: Adding added mass here is deprecated and will be removed in
-  // Gazebo J as this formulation has instabilities.
+  // Note: Adding added mass here is deprecated for DART users (prefer
+  // <fluid_added_mass>), but remains required for other physics engines.
   bool addedMassSpecified = false;
   this->dataPtr->Ma = Eigen::Matrix<double, 6, 6>::Zero();
   for(auto i = 0; i < 6; i++)

@@ -18,8 +18,9 @@ release will remove the deprecated code.
   * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
     `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
     cross terms `<*Dot*>`) is deprecated **when using the DART physics
-    engine** and will be removed in a future release. The explicit
-    integration used by this path is conditionally stable.
+    engine**. The explicit integration used by this path is conditionally
+    stable. These parameters remain required for other physics engines
+    (Bullet, MuJoCo) that do not support native added mass.
 
     When using the DART physics engine, use the SDF `<fluid_added_mass>`
     tag on the link's `<inertial>` element instead. The physics engine
