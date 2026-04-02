@@ -367,17 +367,6 @@ void Hydrodynamics::Configure(
   _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
   _sdf->Get<bool>("disable_added_mass",
     this->dataPtr->disableAddedMass, false);
-  if (!this->dataPtr->disableAddedMass && addedMassSpecified)
-  {
-    gzwarn << "The use of added mass through this plugin is deprecated and "
-      << "will be removed in Gazebo J* as this formulation has instabilities. "
-      << "We recommend using the SDF `<fluid_added_mass>` tag based method "
-      << "[http://sdformat.org/spec?ver=1.11&elem=link"
-      << "#inertial_fluid_added_mass]"
-      << "To get rid of this warning we recommend setting "
-      << "`<disable_added_mass>` to true and updating your model"
-      << std::endl;
-  }
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
 
@@ -421,6 +410,34 @@ void Hydrodynamics::Configure(
       for (int i = 0; i < 6; ++i)
         for (int j = 0; j < 6; ++j)
           this->dataPtr->fluidAddedMass(i, j) = m(i, j);
+    }
+
+    // Guard against double-counting added mass.
+    // If both native <fluid_added_mass> and plugin added mass parameters are
+    // active, forces are applied twice — once implicitly by the physics engine
+    // and once explicitly by the plugin.
+    if (fluidMa.has_value() && addedMassSpecified &&
+        !this->dataPtr->disableAddedMass)
+    {
+      gzerr << "Link [" << linkName << "] has <fluid_added_mass> in SDF and "
+        << "added mass parameters in the Hydrodynamics plugin. This will "
+        << "double-count added mass forces. Either remove the plugin's added "
+        << "mass parameters (<xDotU>, etc.) or set "
+        << "<disable_added_mass>true</disable_added_mass> in the plugin."
+        << std::endl;
+    }
+    // Context-dependent deprecation warning.
+    // At this point, fluidMa is not set (otherwise the guard above would fire).
+    else if (!this->dataPtr->disableAddedMass && addedMassSpecified)
+    {
+      // Plugin-only added mass — give nuanced advice covering all backends.
+      gzwarn << "Plugin-based added mass has known numerical instabilities. "
+        << "If using the DART physics engine, consider migrating to SDF "
+        << "<fluid_added_mass> for unconditionally stable added mass "
+        << "[http://sdformat.org/spec?ver=1.11&elem=link"
+        << "#inertial_fluid_added_mass]. "
+        << "Other physics engines (Bullet, MuJoCo) only support "
+        << "plugin-based added mass." << std::endl;
     }
   }
 

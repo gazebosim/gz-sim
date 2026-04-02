@@ -167,6 +167,18 @@ tag in your link's `<inertial>` element. For example, for diagonal added mass:
 Note that `<fluid_added_mass>` uses positive values, unlike the deprecated
 plugin parameters which used the negative Fossen sign convention.
 
+### Recommended added mass configuration by physics engine
+
+| Physics Engine | Recommended Method | Notes |
+|----------------|--------------------|-------|
+| **DART** | Native `<fluid_added_mass>` in SDF `<inertial>` + `<disable_added_mass>true` in plugin | Unconditionally stable, full 6x6 matrix, implicit Coriolis |
+| **Bullet-Featherstone** | Plugin parameters (`<xDotU>`, etc.) | Native added mass not supported; plugin is the only option |
+| **Bullet (classic)** | Plugin parameters (`<xDotU>`, etc.) | Native added mass not supported; plugin is the only option |
+| **MuJoCo** | Plugin parameters (`<xDotU>`, etc.) | Native added mass not supported; plugin is the only option |
+
+**Warning**: Do not set added mass in both places simultaneously. If both
+`<fluid_added_mass>` and plugin parameters are active, forces are double-counted.
+
 ## Linear and quadratic damping
 
 Computing the linear and quadratic damping coefficients is generally not

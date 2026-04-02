@@ -115,11 +115,17 @@ namespace systems
   ///
   /// All damping coefficients default to 0.
   ///
-  /// ### Added Mass (Deprecated)
+  /// ### Added Mass (Deprecated with DART)
   ///
-  /// Added mass via this plugin is deprecated because the explicit
-  /// integration is conditionally stable. Use the SDF
-  /// `<fluid_added_mass>` tag instead (see above).
+  /// Plugin-based added mass uses explicit integration, which is only
+  /// conditionally stable. When using the DART physics engine,
+  /// migrate to the SDF `<fluid_added_mass>` tag instead (see above).
+  /// Other physics engines (Bullet, MuJoCo) do not support native
+  /// added mass, so plugin-based parameters are the only option.
+  ///
+  /// **Do not set added mass in both places simultaneously.** If both
+  /// `<fluid_added_mass>` and plugin parameters are active, forces
+  /// are double-counted.
   ///
   /// To suppress the deprecation warning, set `<disable_added_mass>`
   /// to true.
