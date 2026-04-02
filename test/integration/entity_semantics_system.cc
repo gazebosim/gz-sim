@@ -24,7 +24,8 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "../helpers/EnvTestFixture.hh"
-#include "gz/sim/TestFixture.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/Util.hh"
 #include "gz/sim/components/SemanticCategory.hh"
 #include "gz/sim/components/SemanticDescription.hh"
 #include "gz/sim/components/SemanticTags.hh"
@@ -33,7 +34,8 @@
 namespace common = gz::common;
 namespace sim = gz::sim;
 namespace components = gz::sim::components;
-using gz::sim::TestFixture;
+using gz::sim::Server;
+using gz::sim::ServerConfig;
 
 /// \brief Test EntitySemantics system
 class EntitySemanticsTest : public InternalFixture<::testing::Test>
@@ -43,9 +45,13 @@ class EntitySemanticsTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
 {
-  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                        "test", "worlds",
-                                        "entity_semantics.sdf"));
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+                                            "test", "worlds",
+                                            "entity_semantics.sdf"));
+  serverConfig.SetWaitForAssets(true);
+
+  Server server(serverConfig);
 
   bool testsExecuted = false;
 
@@ -76,15 +82,14 @@ TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
     EXPECT_EQ(1u, staticObjects.size());
   };
 
-  fixture.OnPostUpdate(
-      [&](const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
+  server.Run(true, 1, false);
+
+  server.PeekEcm(
+      [&](const sim::EntityComponentManager &_ecm)
       {
         runChecks(_ecm);
         testsExecuted = true;
-        return true;
       });
 
-  fixture.Finalize();
-  fixture.Server()->Run(true, 1, false);
   EXPECT_TRUE(testsExecuted);
 }
