@@ -708,6 +708,11 @@ namespace gz
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
 
+
+      /// \brief Sorts component storages to allow iteration in order of entities.
+      /// Note this is very expensive and should be done only if necessary.
+      public: void SortComponentStorages();
+
       /// \brief Enqueue a group to be created.
       /// \param[in] _types Component type IDs.
       /// \param[in] _queuer Queuer that will create the group.

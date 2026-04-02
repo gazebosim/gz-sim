@@ -1166,8 +1166,9 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
   ASSERT_EQ(3u, models.size());
   EXPECT_EQ(world, this->ecm.ParentEntity(models.front()));
 
-  // TODO(luca) This test fails because it expects entities to be sorted but this
-  // is not guaranteed anymore
+  // TODO(luca) This test seems wrong? It claims only 1 model is left but the
+  // assertion (that passes) expects three models. Also the comment claims
+  // there are two links but if there should really be 4 links at this time.
   // There are 2 links, but one is parentless
   unsigned int linkCount{0};
   this->ecm.Each<components::Link>(

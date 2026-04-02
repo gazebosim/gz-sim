@@ -214,10 +214,13 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief Groups that are pending to be created.
   public: std::vector<std::unique_ptr<detail::GroupQueuer>> pendingGroups;
 
+  /// \brief All groups that have been created.
+  public: std::vector<std::unique_ptr<detail::GroupQueuer>> allGroups;
+
   /// \brief Set of group component types that are already enqueued.
   public: std::set<std::vector<ComponentTypeId>> enqueuedGroups;
 
-  /// \brief Mutex to protect enqueuedGroups and pendingGroups.
+  /// \brief Mutex to protect enqueuedGroups, pendingGroups and allGroups.
   public: mutable std::mutex groupMutex;
 
   /// \brief Registry.
@@ -243,6 +246,7 @@ void EntityComponentManager::CreatePendingGroups()
   for (auto &group : this->dataPtr->pendingGroups)
   {
     group->CreateGroup(this->Registry());
+    this->dataPtr->allGroups.push_back(std::move(group));
   }
   this->dataPtr->pendingGroups.clear();
   this->dataPtr->enqueuedGroups.clear();
@@ -2064,4 +2068,27 @@ void EntityComponentManager::MarkComponentAsRemoved(const Entity& _entity, const
     this->dataPtr->componentsMarkedAsRemoved[_entity].insert(_id);
   else
     this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_id);
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::SortComponentStorages()
+{
+  this->dataPtr->registry.storage<Entity>().sort([](const Entity _lhs, const Entity _rhs)
+  {
+    return _lhs < _rhs;
+  });
+
+  for (auto [id, storage] : this->dataPtr->registry.storage())
+  {
+    storage.sort([](const Entity _lhs, const Entity _rhs)
+    {
+      return _lhs < _rhs;
+    });
+  }
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
+  for (auto &group : this->dataPtr->allGroups)
+  {
+    group->SortGroup(this->Registry());
+  }
 }

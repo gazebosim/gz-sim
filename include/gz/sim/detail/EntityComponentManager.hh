@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <memory>
@@ -165,6 +166,7 @@ namespace detail
   {
     public: virtual ~GroupQueuer() = default;
     public: virtual void CreateGroup(entt::basic_registry<Entity> &_registry) = 0;
+    public: virtual void SortGroup(entt::basic_registry<Entity> &_registry) = 0;
   };
 
   /// \brief Implementation of GroupQueuer for a specific set of components.
@@ -176,6 +178,18 @@ namespace detail
     public: void CreateGroup(entt::basic_registry<Entity> &_registry) override
     {
       _registry.template group<>(entt::get<ComponentTypeTs...>);
+    }
+
+    public: void SortGroup(entt::basic_registry<Entity> &_registry) override
+    {
+      if (auto group = _registry.template group_if_exists<>(
+          entt::get<const ComponentTypeTs...>); group)
+      {
+        group.sort([](const Entity _lhs, const Entity _rhs)
+        {
+          return _lhs < _rhs;
+        });
+      }
     }
   };
 }
