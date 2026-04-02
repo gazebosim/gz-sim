@@ -209,6 +209,10 @@ void DetachableJoint::Configure(const Entity &_entity,
       _sdf->Get<bool>("suppress_child_warning", this->suppressChildWarning)
           .first;
 
+  // Control whether the joint starts attached (default true)
+  const bool initialAttach = _sdf->Get<bool>("initial_attach", true).first;
+  this->attachRequested = initialAttach;
+
   this->validConfig = true;
 
   this->GetChildModelAndLinkEntities(_ecm);
