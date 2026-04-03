@@ -71,6 +71,7 @@ set (sources
   Barrier.cc
   Conversions.cc
   ComponentFactory.cc
+  ComponentPybindRegistry.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
   InstallationDirectories.cc

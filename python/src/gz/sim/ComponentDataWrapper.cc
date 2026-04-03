@@ -36,7 +36,7 @@ ComponentDataWrapper::ComponentDataWrapper(
 /////////////////////////////////////////////////
 pybind11::object ComponentDataWrapper::Data() const
 {
-  std::cout << "Calling Data on entity " << entity << " comp: " << typeId << std::endl;
+  gztrace << "Calling Data on entity " << entity << " comp: " << typeId << std::endl;
   auto getter = ComponentPybindRegistry::Instance()->Getter(this->typeId);
   if (getter)
   {

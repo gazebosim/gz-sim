@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <iostream>
 
+#include <gz/common/Console.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
@@ -60,11 +61,7 @@ class ComponentPybindRegistry
 {
   /// \brief Get the singleton instance of the registry.
   /// \return Pointer to the singleton instance.
-  public: static ComponentPybindRegistry *Instance()
-  {
-    static gz::utils::NeverDestroyed<ComponentPybindRegistry> instance;
-    return &instance.Access();
-  }
+  public: static ComponentPybindRegistry *Instance();
 
   public: using GetterFn = std::function<pybind11::object(
       const gz::sim::EntityComponentManager &_ecm,
@@ -87,53 +84,22 @@ class ComponentPybindRegistry
   /// \param[in] _getter The python getter function.
   /// \param[in] _setter The python setter function.
   public: void Register(ComponentTypeId _typeId, uintptr_t _id,
-                        GetterFn _getter, SetterFn _setter)
-  {
-    this->gettersAndSetters[_typeId].push_front({_id, _getter, _setter});
-  }
+                        GetterFn _getter, SetterFn _setter);
 
   /// \brief Unregister a python getter/setter pair for a component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader to remove.
-  public: void Unregister(ComponentTypeId _typeId, uintptr_t _id)
-  {
-    auto it = this->gettersAndSetters.find(_typeId);
-    if (it != this->gettersAndSetters.end())
-    {
-      auto &queue = it->second;
-      queue.erase(
-          std::remove_if(queue.begin(), queue.end(),
-                         [_id](const auto &_desc) { return _desc.id == _id; }),
-          queue.end());
-
-      if (queue.empty())
-      {
-        this->gettersAndSetters.erase(it);
-      }
-    }
-  }
+  public: void Unregister(ComponentTypeId _typeId, uintptr_t _id);
 
   /// \brief Get the active python getter for a component type.
   /// \param[in] _typeId The component type ID.
   /// \return The getter function, or nullptr if not found.
-  public: GetterFn Getter(ComponentTypeId _typeId) const
-  {
-    auto it = this->gettersAndSetters.find(_typeId);
-    if (it == this->gettersAndSetters.end() || it->second.empty())
-      return nullptr;
-    return it->second.front().getter;
-  }
+  public: GetterFn Getter(ComponentTypeId _typeId) const;
 
   /// \brief Get the active python setter for a component type.
   /// \param[in] _typeId The component type ID.
   /// \return The setter function, or nullptr if not found.
-  public: SetterFn Setter(ComponentTypeId _typeId) const
-  {
-    auto it = this->gettersAndSetters.find(_typeId);
-    if (it == this->gettersAndSetters.end() || it->second.empty())
-      return nullptr;
-    return it->second.front().setter;
-  }
+  public: SetterFn Setter(ComponentTypeId _typeId) const;
 
   private: std::unordered_map<ComponentTypeId, std::deque<PybindDescriptor>>
       gettersAndSetters;

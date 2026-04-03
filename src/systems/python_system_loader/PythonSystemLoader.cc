@@ -32,6 +32,10 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
+// Include all components known at compile time so that they get registered in
+// the ComponentPybindRegistry
+#include "gz/sim/components/components.hh"
+
 namespace py = pybind11;
 
 
