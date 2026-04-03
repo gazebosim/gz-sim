@@ -853,6 +853,7 @@ gz_sim_system_libraries(
             "src/systems/hydrodynamics/**/*.cc",
             "src/systems/hydrodynamics/**/*.hh",
         ],
+        exclude = ["src/systems/hydrodynamics/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-hydrodynamics-system.so",
     static_lib_name = "gz-sim-hydrodynamics-system-static",
