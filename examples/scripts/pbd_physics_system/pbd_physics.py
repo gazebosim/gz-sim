@@ -8,7 +8,7 @@ from pbd_broadphase import SpatialHashGrid
 
 # PBD Constants
 GRAVITY = Vector3d(0, 0, -9.81)
-PBD_ITERATIONS = 10
+PBD_ITERATIONS = 5 # Reduced from 10
 
 class ShapeType(Enum):
     SPHERE = 1
@@ -34,9 +34,17 @@ class PBDPhysics:
             if link.valid(_ecm):
                 parent_comp = _ecm.component(link_entity, components.ParentEntity)
                 is_static = False
+                parent_model = None
+                model_pos = Vector3d(0, 0, 0)
+                
                 if parent_comp:
                      parent_model = parent_comp.data()
                      is_static = Model(parent_model).static(_ecm)
+                     
+                     # Cache model position!
+                     model_pose_comp = _ecm.component(parent_model, components.Pose)
+                     if model_pose_comp:
+                         model_pos = model_pose_comp.data().pos()
                 
                 inv_mass = 0.0 if is_static else 1.0
 
@@ -72,7 +80,9 @@ class PBDPhysics:
                         "shape_type": shape_type,
                         "dimensions": dimensions,
                         "inv_mass": inv_mass,
-                        "initial_pose": initial_pose
+                        "initial_pose": initial_pose,
+                        "model_entity": int(parent_model) if parent_model else None,
+                        "model_pos": model_pos # Cached!
                     }
                     _ecm.create_component(link_entity, pbd_comp_type, pbd_data)
                     name_comp = _ecm.component(link_entity, components.Name)
@@ -111,7 +121,6 @@ class PBDPhysics:
                     p_pose = Link(parent_entity).world_pose(_ecm)
                     c_pose = Link(child_entity).world_pose(_ecm)
                     if p_pose and c_pose:
-                        # Determine constraint type
                         is_fixed = False
                         try:
                             j_type = joint.type(_ecm)
@@ -120,7 +129,6 @@ class PBDPhysics:
                         except:
                             pass
                             
-                        # Fallback to name check
                         if not is_fixed:
                             j_name = joint.name(_ecm)
                             if j_name and "fixed" in j_name.lower():
@@ -177,6 +185,31 @@ class PBDPhysics:
             data['velocity'] += GRAVITY * dt
             data['predicted_position'] = data['position'] + data['velocity'] * dt
 
+        # --- OPTIMIZATION: Broad-phase ONCE per step ---
+        self.broadphase.clear()
+        pbd_entities = {}
+        for item in _ecm.each([pbd_comp_type]):
+            data = item.components[0]
+            pbd_entities[int(item.entity)] = data
+            
+            pos = data['predicted_position']
+            if data['shape_type'] == ShapeType.SPHERE.value:
+                r = data['dimensions']['radius']
+                aabb_min = Vector3d(pos.x() - r, pos.y() - r, pos.z() - r)
+                aabb_max = Vector3d(pos.x() + r, pos.y() + r, pos.z() + r)
+            elif data['shape_type'] == ShapeType.BOX.value:
+                s = data['dimensions']['size']
+                aabb_min = Vector3d(pos.x() - s.x()/2, pos.y() - s.y()/2, pos.z() - s.z()/2)
+                aabb_max = Vector3d(pos.x() + s.x()/2, pos.y() + s.y()/2, pos.z() + s.z()/2)
+            else:
+                aabb_min = pos
+                aabb_max = pos
+                
+            self.broadphase.add(item.entity, aabb_min, aabb_max)
+
+        candidate_pairs = self.broadphase.get_candidate_pairs()
+        # -----------------------------------------------
+
         # Phase 2: Constraint Resolution
         for _ in range(PBD_ITERATIONS):
             # Ground Collision
@@ -187,30 +220,8 @@ class PBDPhysics:
                     if data['predicted_position'][2] < radius:
                         data['predicted_position'][2] = radius
 
-            # Object-Object Collision using Broad-phase
-            self.broadphase.clear()
-            pbd_entities = {}
-            for item in _ecm.each([pbd_comp_type]):
-                data = item.components[0]
-                pbd_entities[int(item.entity)] = data
-                
-                pos = data['predicted_position']
-                if data['shape_type'] == ShapeType.SPHERE.value:
-                    r = data['dimensions']['radius']
-                    aabb_min = Vector3d(pos.x() - r, pos.y() - r, pos.z() - r)
-                    aabb_max = Vector3d(pos.x() + r, pos.y() + r, pos.z() + r)
-                elif data['shape_type'] == ShapeType.BOX.value:
-                    s = data['dimensions']['size']
-                    aabb_min = Vector3d(pos.x() - s.x()/2, pos.y() - s.y()/2, pos.z() - s.z()/2)
-                    aabb_max = Vector3d(pos.x() + s.x()/2, pos.y() + s.y()/2, pos.z() + s.z()/2)
-                else:
-                    aabb_min = pos
-                    aabb_max = pos
-                    
-                self.broadphase.add(item.entity, aabb_min, aabb_max)
-
-            pairs = self.broadphase.get_candidate_pairs()
-            for e1, e2 in pairs:
+            # Object-Object Collision using cached candidates
+            for e1, e2 in candidate_pairs:
                 obj1 = pbd_entities[e1]
                 obj2 = pbd_entities[e2]
                 
@@ -264,15 +275,20 @@ class PBDPhysics:
             data['position'] = data['predicted_position']
 
         # Phase 4: Apply to gz-sim
-        for item in _ecm.each([pbd_comp_type]):
+        for item in _ecm.each([pbd_comp_type, components.Pose]):
             data = item.components[0]
+            world_pose = item.components[1]
             if data['inv_mass'] == 0:
                 continue
-            new_pose = Pose3d(data['position'], data['initial_pose'].rot())
-            world_pose_comp = _ecm.component(item.entity, components.Pose)
-            if world_pose_comp:
-                world_pose_comp.set_data(new_pose)
-                _ecm.set_changed(item.entity, world_pose_comp.typeId, ComponentState.PeriodicChange)
+            
+            # Use cached model_pos!
+            relative_pos = data['position'] - data.get('model_pos', Vector3d(0,0,0))
+                    
+            if world_pose:
+                world_pose.pos().set(relative_pos.x(), relative_pos.y(), relative_pos.z())
+                _ecm.set_changed(item.entity, components.Pose.type_id, ComponentState.PeriodicChange)
+                
+
 
 def get_system():
     return PBDPhysics()

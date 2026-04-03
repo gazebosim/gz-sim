@@ -118,7 +118,7 @@ struct AddPybindGetterSetter
     auto comp = _ecm.Component<T>(_entity);
     if (comp)
     {
-      return pybind11::cast(comp->Data());
+      return pybind11::cast(comp->Data(), pybind11::return_value_policy::reference);
     }
     return pybind11::none();
   }
