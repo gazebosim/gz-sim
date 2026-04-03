@@ -42,6 +42,7 @@
 using namespace gz;
 using namespace sim;
 using namespace systems;
+namespace hydro = gz::sim::systems::hydrodynamics;
 
 /// \brief Private Hydrodynamics data class.
 class gz::sim::systems::HydrodynamicsPrivateData
@@ -573,13 +574,13 @@ void Hydrodynamics::PreUpdate(
   // load the stability derivatives from $M_a$.
   if (!this->dataPtr->disableCoriolis)
   {
-    Cmat = hydrodynamics::buildCoriolisMatrix(this->dataPtr->Ma, state);
+    Cmat = hydro::buildCoriolisMatrix(this->dataPtr->Ma, state);
     const Eigen::Matrix<double, 6, 1> kCmatVec = - Cmat * state;
     kTotalWrench += kCmatVec;
   }
 
   // Damping forces
-  Dmat = hydrodynamics::buildDampingMatrix(
+  Dmat = hydro::buildDampingMatrix(
     this->dataPtr->stabilityLinearTerms,
     this->dataPtr->stabilityQuadraticAbsDerivative,
     this->dataPtr->stabilityQuadraticDerivative,
@@ -611,9 +612,9 @@ void Hydrodynamics::PreUpdate(
     absState(4) = localRotationalVelocity.Y();
     absState(5) = localRotationalVelocity.Z();
 
-    auto Ca_abs = hydrodynamics::buildFullCoriolisMatrix(
+    auto Ca_abs = hydro::buildFullCoriolisMatrix(
       this->dataPtr->fluidAddedMass, absState);
-    auto Ca_rel = hydrodynamics::buildFullCoriolisMatrix(
+    auto Ca_rel = hydro::buildFullCoriolisMatrix(
       this->dataPtr->fluidAddedMass, state);
 
     kTotalWrench += Ca_rel * state - Ca_abs * absState;
