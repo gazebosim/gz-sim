@@ -297,24 +297,33 @@ Hit play and the lander will slowly sink and hit the seafloor.
 ### Hydrodynamics
 
 As an underwater vehicle, the lander should be influenced by the water as it
-moves. We can do that by attaching the `hydrodynamics` plugin to our lander.
-Add the next SDF block to your `model.sdf`. Note that we have empirically
-adjusted its values. Follow the
-[hydrodynamics tutorial](https://gazebosim.org/api/sim/8/theory_hydrodynamics.html)
-for recommendations about how to tune its values.
+moves. We model this in two parts: added mass (the inertia of the surrounding
+fluid) is specified on the link, and hydrodynamic damping (drag) is handled
+by the Hydrodynamics plugin. Follow the
+\ref theory_hydrodynamics "hydrodynamics tutorial"
+for recommendations about how to tune these values.
+
+First, add `<fluid_added_mass>` inside the `base_link`'s `<inertial>` element
+in your `model.sdf`:
 
 ```xml
-<!-- Hydrodynamics -->
+<fluid_added_mass>
+  <xx>4.876161</xx>
+  <yy>126.324739</yy>
+  <zz>126.324739</zz>
+  <qq>33.46</qq>
+  <rr>33.46</rr>
+</fluid_added_mass>
+```
+
+Then add the Hydrodynamics plugin for damping:
+
+```xml
+<!-- Hydrodynamics (damping only) -->
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-4.876161</xDotU>
-  <yDotV>-126.324739</yDotV>
-  <zDotW>-126.324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-33.46</mDotQ>
-  <nDotR>-33.46</nDotR>
   <xUabsU>-6.2282</xUabsU>
   <xU>0</xU>
   <yVabsV>-601.27</yVabsV>
