@@ -64,29 +64,18 @@
       </link>
     </model>
 
-    <model name="sphere">
+    <!-- Colliding Spheres -->
+    <model name="sphere1">
       <pose>0 0 2 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>0.1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.1</iyy>
-            <iyz>0</iyz>
-            <izz>0.1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
+      <link name="sphere1_link">
+        <collision name="sphere1_collision">
           <geometry>
             <sphere>
               <radius>0.5</radius>
             </sphere>
           </geometry>
         </collision>
-
-        <visual name="sphere_visual">
+        <visual name="sphere1_visual">
           <geometry>
             <sphere>
               <radius>0.5</radius>
@@ -100,29 +89,18 @@
         </visual>
       </link>
     </model>
+
     <model name="sphere2">
       <pose>0.2 0 3 0 0 0</pose>
-      <link name="sphere_link">
-        <inertial>
-          <inertia>
-            <ixx>0.1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>0.1</iyy>
-            <iyz>0</iyz>
-            <izz>0.1</izz>
-          </inertia>
-          <mass>1.0</mass>
-        </inertial>
-        <collision name="sphere_collision">
+      <link name="sphere2_link">
+        <collision name="sphere2_collision">
           <geometry>
             <sphere>
               <radius>0.5</radius>
             </sphere>
           </geometry>
         </collision>
-
-        <visual name="sphere_visual">
+        <visual name="sphere2_visual">
           <geometry>
             <sphere>
               <radius>0.5</radius>
@@ -135,6 +113,97 @@
           </material>
         </visual>
       </link>
+    </model>
+
+    <!-- Pendulum with Fixed Extension -->
+    <model name="pendulum">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="base_link">
+        <pose>2 0 4 0 0 0</pose>
+        <collision name="base_collision">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="base_visual">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+            <specular>0 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <link name="bob_link">
+        <pose>2.5 0 3.5 0 0 0</pose>
+        <collision name="bob_collision">
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="bob_visual">
+          <geometry>
+            <sphere>
+              <radius>0.3</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>1 1 0 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <link name="bob2_link">
+        <pose>3.0 0 3.0 0 0 0</pose> <!-- Further offset -->
+        <collision name="bob2_collision">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <visual name="bob2_visual">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+          <material>
+            <ambient>0 1 1 1</ambient>
+            <diffuse>0 1 1 1</diffuse>
+            <specular>0 1 1 1</specular>
+          </material>
+        </visual>
+      </link>
+
+      <joint name="anchor" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+
+      <joint name="pendulum_joint" type="revolute">
+        <parent>base_link</parent>
+        <child>bob_link</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+        </axis>
+      </joint>
+
+      <joint name="fixed_joint" type="fixed">
+        <parent>bob_link</parent>
+        <child>bob2_link</child>
+      </joint>
     </model>
 
   </world>

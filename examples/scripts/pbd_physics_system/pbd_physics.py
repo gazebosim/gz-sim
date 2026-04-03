@@ -1,105 +1,168 @@
-
 from gz.sim import Model, World, world_entity, Link
 from gz.sim import components, ComponentState
 from gz.math import Vector3d, Pose3d
 from enum import Enum
 import sdformat as sdf
+import gz.sim
+from pbd_broadphase import SpatialHashGrid
 
 # PBD Constants
 GRAVITY = Vector3d(0, 0, -9.81)
-PBD_ITERATIONS = 100
+PBD_ITERATIONS = 10
 
 class ShapeType(Enum):
     SPHERE = 1
     BOX = 2
     CYLINDER = 3
 
-class PBDObject:
-    def __init__(self, entity, initial_pose, shape_type, dimensions, inv_mass):
-        self.entity = entity  # gz.sim.Model object
-        self.initial_pose = initial_pose
-        self.position = initial_pose.pos()
-        self.predicted_position = initial_pose.pos()
-        self.velocity = Vector3d(0, 0, 0)
-        self.shape_type = shape_type
-        self.dimensions = dimensions
-        self.inv_mass = inv_mass
+# Register custom components
+pbd_comp_type = gz.sim.components.register_custom_component("PBDComponent")
+constraint_comp_type = gz.sim.components.register_custom_component("PBDDistanceConstraint")
 
 class PBDPhysics:
     def __init__(self):
-        self.pbd_objects = []
+        self.broadphase = SpatialHashGrid(cell_size=2.0)
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("PBDPhysics configure method called")
         
-        world_e = world_entity(_ecm)
-        w = World(world_e)
-        for model_entity in w.models(_ecm):
-            model = Model(model_entity)
-            if model.valid(_ecm):
-                is_static = model.static(_ecm)
-                inv_mass = 0.0 if is_static else 1.0 # Assuming mass of 1.0 for now
+        # 1. Create PBD components for LINKS with geometry
+        for item in _ecm.each([components.Link]):
+            link_entity = item.entity
+            link = Link(link_entity)
+            
+            if link.valid(_ecm):
+                parent_comp = _ecm.component(link_entity, components.ParentEntity)
+                is_static = False
+                if parent_comp:
+                     parent_model = parent_comp.data()
+                     is_static = Model(parent_model).static(_ecm)
+                
+                inv_mass = 0.0 if is_static else 1.0
 
                 shape_type = None
                 dimensions = {}
 
-                # Find the geometry of the first collision of the canonical link
-                canonical_link = Link(model.canonical_link(_ecm))
-                collisions = canonical_link.collisions(_ecm)
+                collisions = link.collisions(_ecm)
                 if collisions:
                     collision_entity = collisions[0]
                     base_comp = _ecm.component(collision_entity, components.Geometry)
-                    print(collision_entity, base_comp, base_comp.data())
                     if base_comp and base_comp.data():
                         geom_data = base_comp.data()
                         if geom_data.type() == sdf.GeometryType.SPHERE:
-                            shape_type = ShapeType.SPHERE
+                            shape_type = ShapeType.SPHERE.value
                             dimensions['radius'] = geom_data.sphere_shape().radius()
                         elif geom_data.type() == sdf.GeometryType.BOX:
-                            shape_type = ShapeType.BOX
+                            shape_type = ShapeType.BOX.value
                             dimensions['size'] = geom_data.box_shape().size()
                         elif geom_data.type() == sdf.GeometryType.CYLINDER:
-                            shape_type = ShapeType.CYLINDER
+                            shape_type = ShapeType.CYLINDER.value
                             dimensions['radius'] = geom_data.cylinder_shape().radius()
                             dimensions['length'] = geom_data.cylinder_shape().length()
 
                 if not shape_type:
-                    print(f"Model {model.name(_ecm)} has no supported collision geometry, skipping.")
                     continue
 
-                initial_pose = canonical_link.world_pose(_ecm)
+                initial_pose = link.world_pose(_ecm)
                 if initial_pose:
-                    pbd_obj = PBDObject(model, initial_pose, shape_type, dimensions, inv_mass)
-                    self.pbd_objects.append(pbd_obj)
-                    print(f"Found model: {model.name(_ecm)} with shape {shape_type.name}, static: {is_static}")
-                else:
-                    print(f"Model {model.name(_ecm)} has no world pose component, skipping.")
+                    pbd_data = {
+                        "position": initial_pose.pos(),
+                        "predicted_position": initial_pose.pos(),
+                        "velocity": Vector3d(0, 0, 0),
+                        "shape_type": shape_type,
+                        "dimensions": dimensions,
+                        "inv_mass": inv_mass,
+                        "initial_pose": initial_pose
+                    }
+                    _ecm.create_component(link_entity, pbd_comp_type, pbd_data)
+                    name_comp = _ecm.component(link_entity, components.Name)
+                    name = name_comp.data() if name_comp else str(link_entity)
+                    print(f"Created PBD component for link: {name}")
+
+        # 2. Create Distance and Fixed Constraints from Joints
+        for item in _ecm.each([components.Joint]):
+            joint_entity = item.entity
+            joint = gz.sim.Joint(joint_entity)
+            
+            parent_name = joint.parent_link_name(_ecm)
+            child_name = joint.child_link_name(_ecm)
+            
+            if parent_name and child_name:
+                if parent_name == "world":
+                    for link_item in _ecm.each([components.Name]):
+                        if link_item.components[0] == child_name:
+                            comp = _ecm.component(link_item.entity, pbd_comp_type)
+                            if comp:
+                                comp.data()['inv_mass'] = 0.0
+                                print(f"Made link {child_name} static because it is attached to world.")
+                    continue
+                    
+                parent_entity = None
+                child_entity = None
+                
+                for link_item in _ecm.each([components.Name]):
+                    name = link_item.components[0]
+                    if name == parent_name:
+                        parent_entity = link_item.entity
+                    elif name == child_name:
+                        child_entity = link_item.entity
+                        
+                if parent_entity and child_entity:
+                    p_pose = Link(parent_entity).world_pose(_ecm)
+                    c_pose = Link(child_entity).world_pose(_ecm)
+                    if p_pose and c_pose:
+                        # Determine constraint type
+                        is_fixed = False
+                        try:
+                            j_type = joint.type(_ecm)
+                            if j_type and "FIXED" in str(j_type).upper():
+                                is_fixed = True
+                        except:
+                            pass
+                            
+                        # Fallback to name check
+                        if not is_fixed:
+                            j_name = joint.name(_ecm)
+                            if j_name and "fixed" in j_name.lower():
+                                is_fixed = True
+                                
+                        if is_fixed:
+                            offset = c_pose.pos() - p_pose.pos()
+                            constraint_entity = _ecm.create_entity()
+                            _ecm.create_component(constraint_entity, constraint_comp_type, {
+                                "type": "fixed",
+                                "entity1": int(parent_entity),
+                                "entity2": int(child_entity),
+                                "offset": offset
+                            })
+                            print(f"Created FIXED constraint between link {parent_name} and {child_name}")
+                        else:
+                            dist = (p_pose.pos() - c_pose.pos()).length()
+                            constraint_entity = _ecm.create_entity()
+                            _ecm.create_component(constraint_entity, constraint_comp_type, {
+                                "type": "distance",
+                                "entity1": int(parent_entity),
+                                "entity2": int(child_entity),
+                                "distance": dist
+                            })
+                            print(f"Created DISTANCE constraint between link {parent_name} and {child_name}")
 
     def resolve_sphere_sphere(self, obj1, obj2):
-        delta_pos = obj1.predicted_position - obj2.predicted_position
+        delta_pos = obj1['predicted_position'] - obj2['predicted_position']
         dist = delta_pos.length()
-        min_dist = obj1.dimensions['radius'] + obj2.dimensions['radius']
+        min_dist = obj1['dimensions']['radius'] + obj2['dimensions']['radius']
 
         if dist < min_dist and dist > 1e-6:
             penetration = min_dist - dist
             normal = delta_pos / dist
             
-            # mass-based correction
-            total_inv_mass = obj1.inv_mass + obj2.inv_mass
+            total_inv_mass = obj1['inv_mass'] + obj2['inv_mass']
             if total_inv_mass == 0:
                 return
 
             correction_vector = normal * penetration / total_inv_mass
-            obj1.predicted_position += correction_vector * obj1.inv_mass
-            obj2.predicted_position -= correction_vector * obj2.inv_mass
-
-    def resolve_sphere_box(self, obj_sphere, obj_box):
-        # TODO: Implement sphere-box collision
-        pass
-
-    def resolve_box_box(self, obj1, obj2):
-        # TODO: Implement box-box collision
-        pass
+            obj1['predicted_position'] += correction_vector * obj1['inv_mass']
+            obj2['predicted_position'] -= correction_vector * obj2['inv_mass']
 
     def update(self, _info, _ecm):
         dt = _info.dt.total_seconds()
@@ -107,57 +170,109 @@ class PBDPhysics:
             return
 
         # Phase 1: External Forces (Gravity)
-        for pbd_obj in self.pbd_objects:
-            if pbd_obj.inv_mass == 0:
+        for item in _ecm.each([pbd_comp_type]):
+            data = item.components[0]
+            if data['inv_mass'] == 0:
                 continue
-            pbd_obj.velocity += GRAVITY * dt
-            pbd_obj.predicted_position = pbd_obj.position + pbd_obj.velocity * dt
+            data['velocity'] += GRAVITY * dt
+            data['predicted_position'] = data['position'] + data['velocity'] * dt
 
         # Phase 2: Constraint Resolution
         for _ in range(PBD_ITERATIONS):
             # Ground Collision
-            for pbd_obj in self.pbd_objects:
-                if pbd_obj.shape_type == ShapeType.SPHERE:
-                    radius = pbd_obj.dimensions['radius']
-                    if pbd_obj.predicted_position[2] < radius:
-                        pbd_obj.predicted_position[2] = radius
-                # TODO: Add ground collision for other shapes
+            for item in _ecm.each([pbd_comp_type]):
+                data = item.components[0]
+                if data['shape_type'] == ShapeType.SPHERE.value:
+                    radius = data['dimensions']['radius']
+                    if data['predicted_position'][2] < radius:
+                        data['predicted_position'][2] = radius
 
-            # Object-Object Collision
-            for i in range(len(self.pbd_objects)):
-                for j in range(i + 1, len(self.pbd_objects)):
-                    obj1 = self.pbd_objects[i]
-                    obj2 = self.pbd_objects[j]
-
-                    if obj1.inv_mass == 0 and obj2.inv_mass == 0:
-                        continue
+            # Object-Object Collision using Broad-phase
+            self.broadphase.clear()
+            pbd_entities = {}
+            for item in _ecm.each([pbd_comp_type]):
+                data = item.components[0]
+                pbd_entities[int(item.entity)] = data
+                
+                pos = data['predicted_position']
+                if data['shape_type'] == ShapeType.SPHERE.value:
+                    r = data['dimensions']['radius']
+                    aabb_min = Vector3d(pos.x() - r, pos.y() - r, pos.z() - r)
+                    aabb_max = Vector3d(pos.x() + r, pos.y() + r, pos.z() + r)
+                elif data['shape_type'] == ShapeType.BOX.value:
+                    s = data['dimensions']['size']
+                    aabb_min = Vector3d(pos.x() - s.x()/2, pos.y() - s.y()/2, pos.z() - s.z()/2)
+                    aabb_max = Vector3d(pos.x() + s.x()/2, pos.y() + s.y()/2, pos.z() + s.z()/2)
+                else:
+                    aabb_min = pos
+                    aabb_max = pos
                     
-                    if obj1.shape_type == ShapeType.SPHERE and obj2.shape_type == ShapeType.SPHERE:
-                        self.resolve_sphere_sphere(obj1, obj2)
-                    elif obj1.shape_type == ShapeType.SPHERE and obj2.shape_type == ShapeType.BOX:
-                        self.resolve_sphere_box(obj1, obj2)
-                    elif obj1.shape_type == ShapeType.BOX and obj2.shape_type == ShapeType.SPHERE:
-                        self.resolve_sphere_box(obj2, obj1)
-                    elif obj1.shape_type == ShapeType.BOX and obj2.shape_type == ShapeType.BOX:
-                        self.resolve_box_box(obj1, obj2)
+                self.broadphase.add(item.entity, aabb_min, aabb_max)
 
+            pairs = self.broadphase.get_candidate_pairs()
+            for e1, e2 in pairs:
+                obj1 = pbd_entities[e1]
+                obj2 = pbd_entities[e2]
+                
+                if obj1['inv_mass'] == 0 and obj2['inv_mass'] == 0:
+                    continue
+                    
+                if obj1['shape_type'] == ShapeType.SPHERE.value and obj2['shape_type'] == ShapeType.SPHERE.value:
+                    self.resolve_sphere_sphere(obj1, obj2)
+
+            # Distance and Fixed Constraints
+            for item in _ecm.each([constraint_comp_type]):
+                c_data = item.components[0]
+                e1 = c_data['entity1']
+                e2 = c_data['entity2']
+                
+                if e1 in pbd_entities and e2 in pbd_entities:
+                    obj1 = pbd_entities[e1]
+                    obj2 = pbd_entities[e2]
+                    
+                    total_inv_mass = obj1['inv_mass'] + obj2['inv_mass']
+                    if total_inv_mass == 0:
+                        continue
+                        
+                    if c_data.get('type', 'distance') == 'distance':
+                        desired_dist = c_data['distance']
+                        delta_pos = obj1['predicted_position'] - obj2['predicted_position']
+                        dist = delta_pos.length()
+                        
+                        if dist > 1e-6:
+                            penetration = dist - desired_dist
+                            normal = delta_pos / dist
+                            
+                            correction_vector = normal * penetration / total_inv_mass
+                            obj1['predicted_position'] -= correction_vector * obj1['inv_mass']
+                            obj2['predicted_position'] += correction_vector * obj2['inv_mass']
+                    elif c_data['type'] == 'fixed':
+                        offset = c_data['offset']
+                        current_offset = obj2['predicted_position'] - obj1['predicted_position']
+                        error = current_offset - offset
+                        
+                        correction = error / total_inv_mass
+                        obj1['predicted_position'] += correction * obj1['inv_mass']
+                        obj2['predicted_position'] -= correction * obj2['inv_mass']
 
         # Phase 3: Update Positions and Velocities
-        for pbd_obj in self.pbd_objects:
-            if pbd_obj.inv_mass == 0:
+        for item in _ecm.each([pbd_comp_type]):
+            data = item.components[0]
+            if data['inv_mass'] == 0:
                 continue
-            pbd_obj.velocity = (pbd_obj.predicted_position - pbd_obj.position) / dt
-            pbd_obj.position = pbd_obj.predicted_position
+            data['velocity'] = (data['predicted_position'] - data['position']) / dt
+            data['position'] = data['predicted_position']
 
         # Phase 4: Apply to gz-sim
-        for pbd_obj in self.pbd_objects:
-            if pbd_obj.inv_mass == 0:
+        for item in _ecm.each([pbd_comp_type]):
+            data = item.components[0]
+            if data['inv_mass'] == 0:
                 continue
-            new_pose = Pose3d(pbd_obj.position, pbd_obj.initial_pose.rot()) # Keep original rotation
-            world_pose_comp = _ecm.component(pbd_obj.entity.entity(), components.Pose)
-            print("new pose: ", new_pose)
-            world_pose_comp.set_data(new_pose)
-            _ecm.set_changed(pbd_obj.entity.entity(), world_pose_comp.typeId, ComponentState.PeriodicChange)
+            new_pose = Pose3d(data['position'], data['initial_pose'].rot())
+            world_pose_comp = _ecm.component(item.entity, components.Pose)
+            if world_pose_comp:
+                world_pose_comp.set_data(new_pose)
+                _ecm.set_changed(item.entity, world_pose_comp.typeId, ComponentState.PeriodicChange)
 
 def get_system():
     return PBDPhysics()
