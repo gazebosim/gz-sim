@@ -45,6 +45,7 @@ void defineSimEntityComponentManager(pybind11::object module)
       "components "
       "in the simulation.")
       .def(py::init<>())
+      .def("create_entity", &gz::sim::EntityComponentManager::CreateEntity)
       .def(
           "component",
           [](gz::sim::EntityComponentManager &self,

@@ -21,6 +21,8 @@
 
 #include <gz/sim/Types.hh>
 #include <gz/sim/components/Factory.hh>
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/detail/ComponentPybindRegistry.hh>
 
 namespace py = pybind11;
 namespace gz
@@ -37,6 +39,136 @@ struct ComponentType
   gz::sim::ComponentTypeId typeId;
 };
 
+class PyCustomComponent : public gz::sim::components::BaseComponent
+{
+  public: PyCustomComponent(gz::sim::ComponentTypeId _typeId, py::object _obj)
+      : typeId(_typeId), obj(std::move(_obj))
+  {
+  }
+
+  public: ~PyCustomComponent() override = default;
+
+  public: gz::sim::ComponentTypeId TypeId() const override
+  {
+    return this->typeId;
+  }
+
+  public: std::unique_ptr<gz::sim::components::BaseComponent> Clone() const override
+  {
+    py::module_ copy_module = py::module_::import("copy");
+    py::object deepcopy = copy_module.attr("deepcopy");
+    py::object cloned_obj = deepcopy(this->obj);
+    
+    return std::make_unique<PyCustomComponent>(this->typeId, cloned_obj);
+  }
+
+  public: py::object Object() const
+  {
+    return this->obj;
+  }
+
+  public: void SetObject(py::object _obj)
+  {
+    this->obj = std::move(_obj);
+  }
+
+  private: gz::sim::ComponentTypeId typeId;
+  private: py::object obj;
+};
+
+class PyCustomDescriptor : public gz::sim::components::ComponentDescriptorBase
+{
+  public: PyCustomDescriptor(gz::sim::ComponentTypeId _typeId)
+      : typeId(_typeId)
+  {
+  }
+
+  public: std::unique_ptr<gz::sim::components::BaseComponent> Create() const override
+  {
+    return std::make_unique<PyCustomComponent>(this->typeId, py::none());
+  }
+
+  public: std::unique_ptr<gz::sim::components::BaseComponent> Create(
+              const gz::sim::components::BaseComponent *_data) const override
+  {
+    const auto *pyComp = static_cast<const PyCustomComponent *>(_data);
+    return pyComp->Clone();
+  }
+
+  private: gz::sim::ComponentTypeId typeId;
+};
+
+class ECMPythonAccessor
+{
+  public: static const gz::sim::components::BaseComponent *Component(
+      const gz::sim::EntityComponentManager &_ecm,
+      const gz::sim::Entity &_entity,
+      gz::sim::ComponentTypeId _typeId)
+  {
+    return _ecm.Component(_entity, _typeId);
+  }
+
+  public: static gz::sim::components::BaseComponent *Component(
+      gz::sim::EntityComponentManager &_ecm,
+      const gz::sim::Entity &_entity,
+      gz::sim::ComponentTypeId _typeId)
+  {
+    return _ecm.Component(_entity, _typeId);
+  }
+
+  public: static gz::sim::components::BaseComponent *CreateComponent(
+      gz::sim::EntityComponentManager &_ecm,
+      const gz::sim::Entity &_entity,
+      gz::sim::ComponentTypeId _typeId,
+      const gz::sim::components::BaseComponent *_data)
+  {
+    return _ecm.CreateComponent(_entity, _typeId, _data);
+  }
+};
+
+ComponentType registerCustomComponent(const std::string &_name)
+{
+  auto factory = gz::sim::components::Factory::Instance();
+  auto typeHash = gz::common::hash64(_name.c_str());
+  auto desc = new PyCustomDescriptor(typeHash);
+  factory->RegisterCustom(_name.c_str(), desc, gz::sim::components::RegistrationObjectId(desc));
+
+  // Register getter and setter in ComponentPybindRegistry
+  auto getter = [typeHash](const gz::sim::EntityComponentManager &_ecm,
+                           const gz::sim::Entity &_entity) -> py::object
+  {
+    auto compBase = ECMPythonAccessor::Component(_ecm, _entity, typeHash);
+    if (compBase)
+    {
+      const auto *pyComp = static_cast<const PyCustomComponent *>(compBase);
+      return pyComp->Object();
+    }
+    return py::none();
+  };
+
+  auto setter = [typeHash](gz::sim::EntityComponentManager &_ecm,
+                           const gz::sim::Entity &_entity,
+                           const py::object &_obj)
+  {
+    auto compBase = ECMPythonAccessor::Component(_ecm, _entity, typeHash);
+    if (!compBase)
+    {
+      PyCustomComponent stackComp(typeHash, _obj);
+      ECMPythonAccessor::CreateComponent(_ecm, _entity, typeHash, &stackComp);
+    }
+    else
+    {
+      auto *pyComp = static_cast<PyCustomComponent *>(compBase);
+      pyComp->SetObject(_obj);
+    }
+  };
+
+  gz::sim::python::ComponentPybindRegistry::Instance()->Register(
+      typeHash, reinterpret_cast<uintptr_t>(desc), getter, setter);
+
+  return ComponentType{_name, typeHash};
+}
+
 /////////////////////////////////////////////////
 void populateComponentsModule(pybind11::module &m)
 {
@@ -49,6 +181,8 @@ void populateComponentsModule(pybind11::module &m)
                              { return self.typeId; })
       .def("__repr__", [](const ComponentType &self)
            { return "<gz.sim.components." + self.name + ">"; });
+
+  m.def("register_custom_component", &registerCustomComponent, "Register a custom component type");
 
   // Get the factory instance
   auto factory = gz::sim::components::Factory::Instance();

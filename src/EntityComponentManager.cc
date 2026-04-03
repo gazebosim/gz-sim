@@ -882,6 +882,15 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 }
 
 /////////////////////////////////////////////////
+components::BaseComponent *EntityComponentManager::CreateComponent(
+    const Entity _entity, const ComponentTypeId _typeId,
+    const components::BaseComponent *_data)
+{
+  this->CreateComponentImplementation(_entity, _typeId, _data);
+  return this->ComponentImplementation(_entity, _typeId);
+}
+
+/////////////////////////////////////////////////
 bool EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
@@ -1008,6 +1017,20 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
   return const_cast<components::BaseComponent *>(
       static_cast<const EntityComponentManager &>(
       *this).ComponentImplementation(_entity, _type));
+}
+
+/////////////////////////////////////////////////
+const components::BaseComponent *EntityComponentManager::Component(
+    const Entity _entity, const ComponentTypeId _type) const
+{
+  return this->ComponentImplementation(_entity, _type);
+}
+
+/////////////////////////////////////////////////
+components::BaseComponent *EntityComponentManager::Component(
+    const Entity _entity, const ComponentTypeId _type)
+{
+  return this->ComponentImplementation(_entity, _type);
 }
 
 /////////////////////////////////////////////////
