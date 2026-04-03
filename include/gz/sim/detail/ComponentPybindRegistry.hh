@@ -27,7 +27,7 @@
 #endif
 
 #include <functional>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 
 #include <gz/sim/EntityComponentManager.hh>
@@ -101,9 +101,9 @@ class ComponentPybindRegistry
     return it->second;
   }
 
-  private: std::map<ComponentTypeId, GetterFn> getters;
+  private: std::unordered_map<ComponentTypeId, GetterFn> getters;
 
-  private: std::map<ComponentTypeId, SetterFn> setters;
+  private: std::unordered_map<ComponentTypeId, SetterFn> setters;
 };
 
 template <typename T>
@@ -130,17 +130,25 @@ struct AddPybindGetterSetter
     {
       return;
     }
-    auto data = pybind11::cast<typename T::Type>(_obj);
-    T *comp = _ecm.Component<T>(_entity);
-
-    if (nullptr == comp)
+    try
     {
-      _ecm.CreateComponent(_entity, T(data));
-      return;
+      auto data = pybind11::cast<typename T::Type>(_obj);
+      T *comp = _ecm.Component<T>(_entity);
+
+      if (nullptr == comp)
+      {
+        _ecm.CreateComponent(_entity, T(data));
+        return;
+      }
+      // std::cout << "Setting " << T::typeName << " id: " << T::typeId
+      //           << " on entity " << _entity << std::endl;
+      comp->Data() = data;
     }
-    // std::cout << "Setting " << T::typeName << " id: " << T::typeId
-    //           << " on entity " << _entity << std::endl;
-    comp->Data() = data;
+    catch (const pybind11::cast_error &e)
+    {
+      std::cerr << "Failed to cast python object to component data type: "
+                << e.what() << std::endl;
+    }
   }
   AddPybindGetterSetter()
   {
