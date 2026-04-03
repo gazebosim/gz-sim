@@ -807,6 +807,7 @@ TEST_F(PosePublisherTest,
 
 /////////////////////////////////////////////////
 TEST_F(PosePublisherTest,
+<<<<<<< HEAD
        GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawedModelPose))
 {
   // Verify that pose publisher system works for a model spawned into
@@ -894,6 +895,22 @@ TEST_F(PosePublisherTest,
     auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }
+=======
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(UserDefinedTopic))
+{
+  const auto worldFile = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "pose_publisher.sdf");
+
+  ::TestFixture fixture(worldFile);
+
+  transport::Node node;
+  Subscription<msgs::Pose> poseSubscription;
+  poseSubscription.Subscribe(node, "/my/little/topic", 1);
+
+  fixture.Step(50ms);
+
+  ASSERT_TRUE(poseSubscription.WaitForMessages(1, 100ms));
+>>>>>>> c38c6663 (Support for user-defined topic in PosePublisher (#3331))
 }
 
 /////////////////////////////////////////////////
