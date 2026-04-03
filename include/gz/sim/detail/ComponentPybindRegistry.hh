@@ -16,15 +16,7 @@
 #ifndef GZ_SIM_DETAIL_COMPONENTPYBINDREGISTRY_HH_
 #define GZ_SIM_DETAIL_COMPONENTPYBINDREGISTRY_HH_
 
-// Handle Qt's "slots" macro
-#ifdef slots
-#pragma push_macro("slots")
-#undef slots
 #include <pybind11/pybind11.h>
-#pragma pop_macro("slots")
-#else
-#include <pybind11/pybind11.h>
-#endif
 
 #include <algorithm>
 #include <deque>
