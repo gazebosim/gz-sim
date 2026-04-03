@@ -23,6 +23,7 @@
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/detail/ComponentPybindRegistry.hh>
+#include "EntityIteration.hh"
 
 namespace py = pybind11;
 namespace gz
@@ -39,42 +40,8 @@ struct ComponentType
   gz::sim::ComponentTypeId typeId;
 };
 
-class PyCustomComponent : public gz::sim::components::BaseComponent
-{
-  public: PyCustomComponent(gz::sim::ComponentTypeId _typeId, py::object _obj)
-      : typeId(_typeId), obj(std::move(_obj))
-  {
-  }
 
-  public: ~PyCustomComponent() override = default;
 
-  public: gz::sim::ComponentTypeId TypeId() const override
-  {
-    return this->typeId;
-  }
-
-  public: std::unique_ptr<gz::sim::components::BaseComponent> Clone() const override
-  {
-    py::module_ copy_module = py::module_::import("copy");
-    py::object deepcopy = copy_module.attr("deepcopy");
-    py::object cloned_obj = deepcopy(this->obj);
-    
-    return std::make_unique<PyCustomComponent>(this->typeId, cloned_obj);
-  }
-
-  public: py::object Object() const
-  {
-    return this->obj;
-  }
-
-  public: void SetObject(py::object _obj)
-  {
-    this->obj = std::move(_obj);
-  }
-
-  private: gz::sim::ComponentTypeId typeId;
-  private: py::object obj;
-};
 
 class PyCustomDescriptor : public gz::sim::components::ComponentDescriptorBase
 {
@@ -98,33 +65,8 @@ class PyCustomDescriptor : public gz::sim::components::ComponentDescriptorBase
   private: gz::sim::ComponentTypeId typeId;
 };
 
-class ECMPythonAccessor
-{
-  public: static const gz::sim::components::BaseComponent *Component(
-      const gz::sim::EntityComponentManager &_ecm,
-      const gz::sim::Entity &_entity,
-      gz::sim::ComponentTypeId _typeId)
-  {
-    return _ecm.Component(_entity, _typeId);
-  }
 
-  public: static gz::sim::components::BaseComponent *Component(
-      gz::sim::EntityComponentManager &_ecm,
-      const gz::sim::Entity &_entity,
-      gz::sim::ComponentTypeId _typeId)
-  {
-    return _ecm.Component(_entity, _typeId);
-  }
 
-  public: static gz::sim::components::BaseComponent *CreateComponent(
-      gz::sim::EntityComponentManager &_ecm,
-      const gz::sim::Entity &_entity,
-      gz::sim::ComponentTypeId _typeId,
-      const gz::sim::components::BaseComponent *_data)
-  {
-    return _ecm.CreateComponent(_entity, _typeId, _data);
-  }
-};
 
 ComponentType registerCustomComponent(const std::string &_name)
 {

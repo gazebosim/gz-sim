@@ -18,6 +18,7 @@
 
 #include "EntityComponentManager.hh"
 #include "ComponentDataWrapper.hh"
+#include "EntityIteration.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Types.hh"
 
@@ -38,6 +39,16 @@ void defineSimEntityComponentManager(pybind11::object module)
     .value("PeriodicChange", sim::ComponentState::PeriodicChange)
     .value("OneTimeChange", sim::ComponentState::OneTimeChange);
 
+  // Bind ComponentCursor
+  py::class_<ComponentCursor>(module, "ComponentCursor")
+      .def_readonly("entity", &ComponentCursor::entity)
+      .def_readonly("components", &ComponentCursor::components);
+
+  // Bind ComponentIterator
+  py::class_<ComponentIterator>(module, "ComponentIterator")
+      .def("__iter__", [](ComponentIterator &it) -> ComponentIterator& { return it; })
+      .def("__next__", &ComponentIterator::Next, py::return_value_policy::reference_internal);
+
   py::class_<gz::sim::EntityComponentManager,
              std::shared_ptr<gz::sim::EntityComponentManager>>(
       module, "EntityComponentManager",
@@ -46,6 +57,19 @@ void defineSimEntityComponentManager(pybind11::object module)
       "in the simulation.")
       .def(py::init<>())
       .def("create_entity", &gz::sim::EntityComponentManager::CreateEntity)
+      .def("each", [](gz::sim::EntityComponentManager &self, const py::list &comp_types)
+           {
+             std::vector<gz::sim::ComponentTypeId> types;
+             for (auto item : comp_types)
+             {
+               if (py::hasattr(item, "type_id"))
+               {
+                 types.push_back(py::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
+               }
+             }
+             return ECMPythonAccessor::Each(self, types);
+           },
+           "Iterate over entities with specific components, avoiding cache misses.")
       .def(
           "component",
           [](gz::sim::EntityComponentManager &self,
@@ -58,10 +82,35 @@ void defineSimEntityComponentManager(pybind11::object module)
             }
             auto type_id = py::cast<gz::sim::ComponentTypeId>(
                 _comp_type_proxy.attr("type_id"));
+            
+            auto compBase = ECMPythonAccessor::Component(self, _entity, type_id);
+            if (!compBase)
+            {
+              return nullptr;
+            }
             return new ComponentDataWrapper(&self, _entity, type_id);
           },
           py::return_value_policy::take_ownership,
-          "Get a component data wrapper for an entity and component type.")
+          "Get a component data wrapper for an entity and component type if it exists.")
+      .def("create_component", [](gz::sim::EntityComponentManager &self,
+                                  const gz::sim::Entity &_entity,
+                                  const py::object &_comp_type_proxy,
+                                  const py::object &_data)
+           {
+             if (!py::hasattr(_comp_type_proxy, "type_id"))
+             {
+               return;
+             }
+             auto type_id = py::cast<gz::sim::ComponentTypeId>(
+                 _comp_type_proxy.attr("type_id"));
+             
+             auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id);
+             if (setter)
+             {
+               setter(self, _entity, _data);
+             }
+           },
+           "Create a component for an entity with initial data.")
       .def("set_changed", &gz::sim::EntityComponentManager::SetChanged);
 
   py::class_<ComponentDataWrapper>(module, "ComponentDataWrapper")
