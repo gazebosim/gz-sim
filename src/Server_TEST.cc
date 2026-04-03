@@ -338,9 +338,13 @@ TEST_P(ServerFixture,
   ASSERT_TRUE(test::waitForService(node, service));
   gzdbg << "Requesting " << service << std::endl;
   executed = node.Request(service, 1000, rep, result);
+  gzdbg << "Response: {executed: " << executed << ", result: " << result << '}'
+        << std::endl;
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_EQ("TestSensorSystem", rep.data());
+  server.Stop();
+  gzdbg << "Stopping server and shutting down" << std::endl;
 }
 
 /////////////////////////////////////////////////
