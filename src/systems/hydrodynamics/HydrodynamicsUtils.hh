@@ -21,10 +21,13 @@
 
 #include <Eigen/Eigen>
 
+#include "gz/sim/config.hh"
+
 namespace gz
 {
 namespace sim
 {
+inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
 namespace hydrodynamics
@@ -170,6 +173,7 @@ namespace hydrodynamics
 
 }  // namespace hydrodynamics
 }  // namespace systems
+}  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
 }  // namespace gz
 
