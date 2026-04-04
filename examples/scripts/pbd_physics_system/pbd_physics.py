@@ -27,8 +27,7 @@ class PBDPhysics:
         print("PBDPhysics configure method called")
         
         # 1. Create PBD components for LINKS with geometry
-        for item in _ecm.each([components.Link]):
-            link_entity = item.entity
+        for link_entity, _ in _ecm.each([components.Link]):
             link = Link(link_entity)
             
             if link.valid(_ecm):
@@ -90,8 +89,7 @@ class PBDPhysics:
                     print(f"Created PBD component for link: {name}")
 
         # 2. Create Distance and Fixed Constraints from Joints
-        for item in _ecm.each([components.Joint]):
-            joint_entity = item.entity
+        for joint_entity, _ in _ecm.each([components.Joint]):
             joint = gz.sim.Joint(joint_entity)
             
             parent_name = joint.parent_link_name(_ecm)
@@ -99,9 +97,9 @@ class PBDPhysics:
             
             if parent_name and child_name:
                 if parent_name == "world":
-                    for link_item in _ecm.each([components.Name]):
-                        if link_item.components[0] == child_name:
-                            comp = _ecm.component(link_item.entity, pbd_comp_type)
+                    for link_entity, (name_comp,) in _ecm.each([components.Name]):
+                        if name_comp == child_name:
+                            comp = _ecm.component(link_entity, pbd_comp_type)
                             if comp:
                                 comp.data()['inv_mass'] = 0.0
                                 print(f"Made link {child_name} static because it is attached to world.")
@@ -110,12 +108,11 @@ class PBDPhysics:
                 parent_entity = None
                 child_entity = None
                 
-                for link_item in _ecm.each([components.Name]):
-                    name = link_item.components[0]
+                for link_entity, (name,) in _ecm.each([components.Name]):
                     if name == parent_name:
-                        parent_entity = link_item.entity
+                        parent_entity = link_entity
                     elif name == child_name:
-                        child_entity = link_item.entity
+                        child_entity = link_entity
                         
                 if parent_entity and child_entity:
                     p_pose = Link(parent_entity).world_pose(_ecm)
@@ -178,19 +175,17 @@ class PBDPhysics:
             return
 
         # Phase 1: External Forces (Gravity)
-        for item in _ecm.each([pbd_comp_type]):
-            data = item.components[0]
+        for entity, (data,) in _ecm.each([pbd_comp_type]):            
             if data['inv_mass'] == 0:
                 continue
             data['velocity'] += GRAVITY * dt
             data['predicted_position'] = data['position'] + data['velocity'] * dt
-
+        
         # --- OPTIMIZATION: Broad-phase ONCE per step ---
         self.broadphase.clear()
         pbd_entities = {}
-        for item in _ecm.each([pbd_comp_type]):
-            data = item.components[0]
-            pbd_entities[int(item.entity)] = data
+        for entity, (data,) in _ecm.each([pbd_comp_type]):
+            pbd_entities[int(entity)] = data
             
             pos = data['predicted_position']
             if data['shape_type'] == ShapeType.SPHERE.value:
@@ -205,7 +200,7 @@ class PBDPhysics:
                 aabb_min = pos
                 aabb_max = pos
                 
-            self.broadphase.add(item.entity, aabb_min, aabb_max)
+            self.broadphase.add(entity, aabb_min, aabb_max)
 
         candidate_pairs = self.broadphase.get_candidate_pairs()
         # -----------------------------------------------
@@ -213,8 +208,7 @@ class PBDPhysics:
         # Phase 2: Constraint Resolution
         for _ in range(PBD_ITERATIONS):
             # Ground Collision
-            for item in _ecm.each([pbd_comp_type]):
-                data = item.components[0]
+            for entity, (data,) in _ecm.each([pbd_comp_type]):
                 if data['shape_type'] == ShapeType.SPHERE.value:
                     radius = data['dimensions']['radius']
                     if data['predicted_position'][2] < radius:
@@ -232,8 +226,7 @@ class PBDPhysics:
                     self.resolve_sphere_sphere(obj1, obj2)
 
             # Distance and Fixed Constraints
-            for item in _ecm.each([constraint_comp_type]):
-                c_data = item.components[0]
+            for entity, (c_data,) in _ecm.each([constraint_comp_type]):
                 e1 = c_data['entity1']
                 e2 = c_data['entity2']
                 
@@ -267,17 +260,14 @@ class PBDPhysics:
                         obj2['predicted_position'] -= correction * obj2['inv_mass']
 
         # Phase 3: Update Positions and Velocities
-        for item in _ecm.each([pbd_comp_type]):
-            data = item.components[0]
+        for entity, (data,) in _ecm.each([pbd_comp_type]):
             if data['inv_mass'] == 0:
                 continue
             data['velocity'] = (data['predicted_position'] - data['position']) / dt
             data['position'] = data['predicted_position']
 
         # Phase 4: Apply to gz-sim
-        for item in _ecm.each([pbd_comp_type, components.Pose]):
-            data = item.components[0]
-            world_pose = item.components[1]
+        for entity, (data, world_pose) in _ecm.each([pbd_comp_type, components.Pose]):
             if data['inv_mass'] == 0:
                 continue
             
@@ -286,7 +276,7 @@ class PBDPhysics:
                     
             if world_pose:
                 world_pose.pos().set(relative_pos.x(), relative_pos.y(), relative_pos.z())
-                _ecm.set_changed(item.entity, components.Pose.type_id, ComponentState.PeriodicChange)
+                _ecm.set_changed(entity, components.Pose.type_id, ComponentState.PeriodicChange)
                 
 
 

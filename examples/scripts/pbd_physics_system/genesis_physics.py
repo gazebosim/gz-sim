@@ -53,11 +53,8 @@ class GenesisPhysics:
         
         # 3. Parse scene geometry from ECM by iterating on Collision entities
         seen_links = set()
-        for item in _ecm.each([components.Collision, components.Pose, components.ParentEntity, components.Geometry]):
-            collision_entity = item.entity
-            collision_local_pose = item.components[1]
-            parent_link_entity = item.components[2]
-            geom_data = item.components[3]
+        for entity, (_, collision_local_pose, parent_link_entity, geom_data) in _ecm.each([components.Collision, components.Pose, components.ParentEntity, components.Geometry]):
+            collision_entity = entity
             
             if not geom_data:
                 continue
@@ -151,14 +148,11 @@ class GenesisPhysics:
         
         # 1. Build map of model_entity -> Pose_component
         model_pose_map = {}
-        for item in _ecm.each([components.Model, components.Pose]):
-            model_pose_map[item.entity] = item.components[1]
+        for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):
+            model_pose_map[entity] = model_pose_comp
             
         # 2. Iterate over links with GenesisLinkCache
-        for item in _ecm.each([genesis_comp_type, components.Pose]):
-            link_entity = item.entity
-            cache = item.components[0]
-            link_pose_comp = item.components[1]
+        for link_entity, (cache, link_pose_comp) in _ecm.each([genesis_comp_type, components.Pose]):
             
             ref_link_entity = cache['ref_link_entity']
             model_entity = cache['model_entity']

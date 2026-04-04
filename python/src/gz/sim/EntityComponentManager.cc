@@ -39,16 +39,6 @@ void defineSimEntityComponentManager(pybind11::object module)
     .value("PeriodicChange", sim::ComponentState::PeriodicChange)
     .value("OneTimeChange", sim::ComponentState::OneTimeChange);
 
-  // Bind ComponentCursor
-  py::class_<ComponentCursor>(module, "ComponentCursor")
-      .def_readonly("entity", &ComponentCursor::entity)
-      .def_readonly("components", &ComponentCursor::components);
-
-  // Bind ComponentIterator
-  py::class_<ComponentIterator>(module, "ComponentIterator")
-      .def("__iter__", [](ComponentIterator &it) -> ComponentIterator& { return it; })
-      .def("__next__", &ComponentIterator::Next, py::return_value_policy::reference_internal);
-
   py::class_<gz::sim::EntityComponentManager,
              std::shared_ptr<gz::sim::EntityComponentManager>>(
       module, "EntityComponentManager",
@@ -67,9 +57,9 @@ void defineSimEntityComponentManager(pybind11::object module)
                  types.push_back(py::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
                }
              }
-             return ECMPythonAccessor::Each(self, types);
+             return ECMPythonAccessor::EachList(self, types);
            },
-           "Iterate over entities with specific components, avoiding cache misses.")
+           "Get all entities and components matching the query as a list at once.")
       .def(
           "component",
           [](gz::sim::EntityComponentManager &self,

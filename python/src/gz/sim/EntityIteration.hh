@@ -218,6 +218,93 @@ class ECMPythonAccessor
 
     return ComponentIterator(view, _ecm, _types);
   }
+
+  public: static pybind11::list EachList(
+      gz::sim::EntityComponentManager &_ecm,
+      const std::vector<gz::sim::ComponentTypeId> &_types)
+  {
+    auto baseViewMutexPair = _ecm.FindView(_types);
+    auto baseViewPtr = baseViewMutexPair.first;
+    gz::sim::detail::View* view = nullptr;
+
+    if (nullptr != baseViewPtr)
+    {
+      view = static_cast<gz::sim::detail::View*>(baseViewPtr);
+    }
+    else
+    {
+      std::set<gz::sim::ComponentTypeId> compIds(_types.begin(), _types.end());
+      auto newView = std::make_unique<gz::sim::detail::View>(compIds);
+      
+      for (const auto &vertex : _ecm.Entities().Vertices())
+      {
+        gz::sim::Entity entity = vertex.first;
+        if (!_ecm.EntityMatches(entity, newView->ComponentTypes()))
+          continue;
+
+        std::vector<gz::sim::components::BaseComponent *> compPtrs;
+        for (auto typeId : compIds)
+        {
+          compPtrs.push_back(const_cast<gz::sim::EntityComponentManager&>(_ecm).Component(entity, typeId));
+        }
+        
+        newView->validData[entity] = compPtrs;
+        newView->entities.insert(entity);
+      }
+      
+      view = static_cast<gz::sim::detail::View*>(_ecm.AddView(_types, std::move(newView)));
+    }
+
+    pybind11::list result;
+    if (view)
+    {
+      auto registry = gz::sim::python::ComponentPybindRegistry::Instance();
+      for (const auto &entity : view->Entities())
+      {
+        const auto &compData = view->EntityComponentData(entity);
+        
+        pybind11::list py_components;
+        for (size_t i = 0; i < _types.size(); ++i)
+        {
+          gz::sim::components::BaseComponent* compBase = nullptr;
+          if (i < compData.size())
+          {
+              compBase = compData[i];
+          }
+          
+          if (compBase)
+          {
+            auto customComp = dynamic_cast<const PyCustomComponent*>(compBase);
+            if (customComp)
+            {
+                py_components.append(customComp->Object());
+            }
+            else
+            {
+                auto typeId = _types[i];
+                auto getter = registry->Getter(typeId);
+                if (getter)
+                {
+                    py_components.append(getter(_ecm, entity));
+                }
+                else
+                {
+                    py_components.append(pybind11::none());
+                }
+            }
+          }
+          else
+          {
+            py_components.append(pybind11::none());
+          }
+        }
+        
+        result.append(pybind11::make_tuple(pybind11::cast(entity), py_components));
+      }
+    }
+
+    return result;
+  }
 };
 
 }  // namespace python
