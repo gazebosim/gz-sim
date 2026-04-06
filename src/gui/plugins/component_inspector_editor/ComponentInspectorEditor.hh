@@ -257,7 +257,7 @@ namespace sim
       double _attRange,     ///< Range attenuation.
       double _attLinear,    ///< Linear attenuation.
       double _attConstant,  ///< Constant attenuation.
-      double _attQuadratic, ///< Quadratic attenuation.
+      double _attQuadratic,  ///< Quadratic attenuation.
       bool _castShadows,    ///< Whether the light casts shadows.
       double _directionX,   ///< X direction of the light.
       double _directionY,   ///< Y direction of the light.
@@ -374,7 +374,7 @@ namespace sim
 
     /// \brief Callback in Qt thread when an entity is to be added.
     public: Q_INVOKABLE void OnAddEntity(
-          const QString &_entity, ///< Entity to add.
+          const QString &_entity,  ///< Entity to add.
           const QString &_type    ///< Entity type.
     );
 
