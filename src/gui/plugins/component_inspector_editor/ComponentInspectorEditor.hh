@@ -244,7 +244,7 @@ namespace sim
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when specular changes.
+    /// \brief Callback in Qt thread when light properties change.
     public: Q_INVOKABLE void OnLight(
       double _rSpecular,    ///< Specular red.
       double _gSpecular,    ///< Specular green.
