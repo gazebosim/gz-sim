@@ -490,5 +490,10 @@ void Server::PokeEcm(std::function<void(EntityComponentManager&)> _func,
     return;
   }
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+  if (this->dataPtr->running)
+  {
+    gzerr << "Cannot modify ECM while the server is running" << std::endl;
+    return;
+  }
   _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
