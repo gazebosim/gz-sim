@@ -828,6 +828,7 @@ gz_sim_system_libraries(
             "src/systems/hydrodynamics/**/*.cc",
             "src/systems/hydrodynamics/**/*.hh",
         ],
+        exclude = ["src/systems/hydrodynamics/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-hydrodynamics-system.so",
     static_lib_name = "gz-sim-hydrodynamics-system-static",
@@ -841,6 +842,22 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+hydrodynamics_test_sources = glob([
+    "src/systems/hydrodynamics/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim-hydrodynamics-system-static",
+        "@eigen",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+) for src in hydrodynamics_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
