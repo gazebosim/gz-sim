@@ -7,6 +7,81 @@ release will remove the deprecated code.
 
 ## Gazebo Sim 9.x to 10.0
 
+* **Removals**
+  * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
+    It was loaded but never used in any computation because the stability
+    derivatives (e.g. `<xUabsU>`, `<yVabsV>`) already incorporate fluid
+    density. Existing SDF files that specify `<water_density>` will continue
+    to load without error; the parameter is simply ignored.
+
+* **Deprecations**
+  * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
+    `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
+    cross terms `<*Dot*>`) is deprecated **when using the DART physics
+    engine**. The explicit integration used by this path is conditionally
+    stable. These parameters remain required for other physics engines
+    (Bullet, MuJoCo) that do not support native added mass.
+
+    When using the DART physics engine, use the SDF `<fluid_added_mass>`
+    tag on the link's `<inertial>` element instead. The physics engine
+    integrates added mass implicitly (unconditionally stable) and
+    computes the full non-diagonal Coriolis matrix automatically.
+
+    Other physics engines (Bullet, MuJoCo) do not support native added
+    mass, so plugin-based parameters remain the only option for those
+    backends.
+
+    **Warning**: Do not set added mass in both `<fluid_added_mass>` and
+    the plugin simultaneously. If both are active, forces are
+    double-counted. The plugin now emits an error if this is detected.
+
+    **Migration example (DART)** — replace:
+    ```xml
+    <plugin filename="gz-sim-hydrodynamics-system"
+            name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <xDotU>-4.876161</xDotU>
+      <yDotV>-126.324739</yDotV>
+      <zDotW>-126.324739</zDotW>
+      <mDotQ>-33.46</mDotQ>
+      <nDotR>-33.46</nDotR>
+      <xUabsU>-6.2282</xUabsU>
+      ...
+    </plugin>
+    ```
+
+    with:
+    ```xml
+    <link name="base_link">
+      <inertial>
+        <fluid_added_mass>
+          <xx>4.876161</xx>
+          <yy>126.324739</yy>
+          <zz>126.324739</zz>
+          <qq>33.46</qq>
+          <rr>33.46</rr>
+        </fluid_added_mass>
+      </inertial>
+    </link>
+
+    <plugin filename="gz-sim-hydrodynamics-system"
+            name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <disable_added_mass>true</disable_added_mass>
+      <xUabsU>-6.2282</xUabsU>
+      ...
+    </plugin>
+    ```
+
+    Note that `<fluid_added_mass>` uses positive values (physical
+    convention), while the legacy `<xDotU>` parameters use negative
+    values (Fossen sign convention). See
+    http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
+
+    When both `<fluid_added_mass>` and an ocean current are active, the
+    plugin automatically corrects the Coriolis force to use the velocity
+    relative to the fluid rather than the absolute velocity.
+
 * Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
 have been migrated. This upgrade affects all users' custom Gazebo GUI plugins.
 Please see the
