@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include <cmath>
 #include <string>
 
 #include <Eigen/Eigen>
@@ -34,10 +35,12 @@
 #include "gz/transport/Node.hh"
 
 #include "Hydrodynamics.hh"
+#include "HydrodynamicsUtils.hh"
 
 using namespace ignition;
 using namespace gazebo;
 using namespace systems;
+namespace hydro = ignition::gazebo::systems::hydrodynamics;
 
 /// \brief Private Hydrodynamics data class.
 class ignition::gazebo::systems::HydrodynamicsPrivateData
@@ -52,9 +55,6 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
 
   /// \brief Contains the linear stability derivatives like $X_u, Y_v,$ etc.
   public: double stabilityLinearTerms[36] = {0};
-
-  /// \brief Water density [kg/m^3].
-  public: double waterDensity;
 
   /// \brief The ignition transport node
   public: transport::Node node;
@@ -72,12 +72,13 @@ class ignition::gazebo::systems::HydrodynamicsPrivateData
 
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
-  public: Eigen::MatrixXd Ma;
+  public: Eigen::Matrix<double, 6, 6> Ma;
 
   /// \brief Previous state.
-  public: Eigen::VectorXd prevState;
+  public: Eigen::Matrix<double, 6, 1> prevState;
 
-  public: Eigen::VectorXd prevStateDot;
+  /// \brief Whether this is the first simulation iteration.
+  public: bool firstIteration {true};
 
   /// Link entity
   public: Entity linkEntity;
@@ -169,16 +170,6 @@ void Hydrodynamics::Configure(
   ignition::gazebo::EventManager &/*_eventMgr*/
 )
 {
-  if (_sdf->HasElement("waterDensity"))
-  {
-    ignwarn <<
-      "<waterDensity> parameter is deprecated and will be removed Ignition G.\n"
-      << "\tPlease update your SDF to use <water_density> instead.";
-  }
-
-  this->dataPtr->waterDensity = SdfParamDouble(_sdf, "waterDensity",
-                                  SdfParamDouble(_sdf, "water_density", 998)
-                                );
   // Load stability derivatives
   // Use SNAME 1950 convention to load the coeffecients.
   const auto snameConventionVel = "UVWPQR";
@@ -226,7 +217,7 @@ void Hydrodynamics::Configure(
   }
 
   // Added mass according to Fossen's equations (p 37)
-  this->dataPtr->Ma = Eigen::MatrixXd::Zero(6, 6);
+  this->dataPtr->Ma = Eigen::Matrix<double, 6, 6>::Zero();
   for(auto i = 0; i < 6; i++)
   {
     for(auto j = 0; j < 6; j++)
@@ -239,8 +230,8 @@ void Hydrodynamics::Configure(
   }
 
   _sdf->Get<bool>("disable_coriolis", this->dataPtr->disableCoriolis, false);
-  _sdf->Get<bool>("disable_added_mass", this->dataPtr->disableAddedMass, false);
-
+  _sdf->Get<bool>("disable_added_mass",
+    this->dataPtr->disableAddedMass, false);
   // Create model object, to access convenient functions
   auto model = ignition::gazebo::Model(_entity);
 
@@ -277,7 +268,7 @@ void Hydrodynamics::Configure(
     this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
   }
 
-  this->dataPtr->prevState = Eigen::VectorXd::Zero(6);
+  this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
 
   AddWorldPose(this->dataPtr->linkEntity, _ecm);
   AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
@@ -299,10 +290,10 @@ void Hydrodynamics::PreUpdate(
   // `Cmat` corresponds to the Centripetal matrix
   // `Dmat` is the drag matrix
   // `Ma` is the added mass.
-  Eigen::VectorXd stateDot = Eigen::VectorXd(6);
-  Eigen::VectorXd state    = Eigen::VectorXd(6);
-  Eigen::MatrixXd Cmat     = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Dmat     = Eigen::MatrixXd::Zero(6, 6);
+  Eigen::Matrix<double, 6, 1> stateDot;
+  Eigen::Matrix<double, 6, 1> state;
+  Eigen::Matrix<double, 6, 6> Cmat = Eigen::Matrix<double, 6, 6>::Zero();
+  Eigen::Matrix<double, 6, 6> Dmat = Eigen::Matrix<double, 6, 6>::Zero();
 
   // Get vehicle state
   ignition::gazebo::Link baseLink(this->dataPtr->linkEntity);
@@ -338,14 +329,30 @@ void Hydrodynamics::PreUpdate(
   state(4) = localRotationalVelocity.Y();
   state(5) = localRotationalVelocity.Z();
 
+  // On the first iteration, initialize prevState from the actual velocity
+  // to avoid a transient spike in the acceleration estimate.
+  if (this->dataPtr->firstIteration)
+  {
+    this->dataPtr->prevState = state;
+    this->dataPtr->firstIteration = false;
+  }
+
   auto dt = static_cast<double>(_info.dt.count())/1e9;
   stateDot = (state - this->dataPtr->prevState)/dt;
 
   this->dataPtr->prevState = state;
 
+  Eigen::Matrix<double, 6, 1> kTotalWrench =
+    Eigen::Matrix<double, 6, 1>::Zero();
+
   // The added mass
-  // Negative sign signifies the behaviour change
-  const Eigen::VectorXd kAmassVec = - this->dataPtr->Ma * stateDot;
+  if (!this->dataPtr->disableAddedMass)
+  {
+    // Negative sign signifies the behaviour change
+    const Eigen::Matrix<double, 6, 1> kAmassVec =
+      - this->dataPtr->Ma * stateDot;
+    kTotalWrench += kAmassVec;
+  }
 
   // Coriolis and Centripetal forces for under water vehicles (Fossen P. 37)
   // Note: this is significantly different from VRX because we need to account
@@ -353,59 +360,23 @@ void Hydrodynamics::PreUpdate(
   // diagonal terms here. Have yet to add the cross terms here. Also note, since
   // $M_a(0,0) = \dot X_u $ , $M_a(1,1) = \dot Y_v $ and so forth, we simply
   // load the stability derivatives from $M_a$.
-  Cmat(0, 4) = - this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(0, 5) = - this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(1, 3) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(1, 5) = - this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(2, 3) = - this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(2, 4) =   this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(3, 1) = - this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(3, 2) =   this->dataPtr->Ma(1, 1) * state(1);
-  Cmat(3, 4) = - this->dataPtr->Ma(5, 5) * state(5);
-  Cmat(3, 5) =   this->dataPtr->Ma(4, 4) * state(4);
-  Cmat(4, 0) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(4, 2) = - this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(4, 3) =   this->dataPtr->Ma(5, 5) * state(5);
-  Cmat(4, 5) = - this->dataPtr->Ma(3, 3) * state(3);
-  Cmat(5, 0) =   this->dataPtr->Ma(2, 2) * state(2);
-  Cmat(5, 1) =   this->dataPtr->Ma(0, 0) * state(0);
-  Cmat(5, 3) = - this->dataPtr->Ma(4, 4) * state(4);
-  Cmat(5, 4) =   this->dataPtr->Ma(3, 3) * state(3);
-  const Eigen::VectorXd kCmatVec = - Cmat * state;
-
-  // Damping forces
-  for(int i = 0; i < 6; i++)
-  {
-    for(int j = 0; j < 6; j++)
-    {
-      auto coeff = - this->dataPtr->stabilityLinearTerms[i * 6 + j];
-      for(int k = 0; k < 6; k++)
-      {
-        auto index = i * 36 + j * 6 + k;
-        auto absCoeff =
-          this->dataPtr->stabilityQuadraticAbsDerivative[index] * abs(state(k));
-        coeff -= absCoeff;
-        auto velCoeff =
-          this->dataPtr->stabilityQuadraticDerivative[index] * state(k);
-        coeff -= velCoeff;
-      }
-
-      Dmat(i, j) = coeff;
-    }
-  }
-
-  const Eigen::VectorXd kDvec = Dmat * state;
-
-  Eigen::VectorXd kTotalWrench = kDvec;
-
-  if (!this->dataPtr->disableAddedMass)
-  {
-    kTotalWrench += kAmassVec;
-  }
   if (!this->dataPtr->disableCoriolis)
   {
+    Cmat = hydro::buildCoriolisMatrix(this->dataPtr->Ma, state);
+    const Eigen::Matrix<double, 6, 1> kCmatVec = - Cmat * state;
     kTotalWrench += kCmatVec;
   }
+
+  // Damping forces
+  Dmat = hydro::buildDampingMatrix(
+    this->dataPtr->stabilityLinearTerms,
+    this->dataPtr->stabilityQuadraticAbsDerivative,
+    this->dataPtr->stabilityQuadraticDerivative,
+    state);
+
+  const Eigen::Matrix<double, 6, 1> kDvec = Dmat * state;
+
+  kTotalWrench += kDvec;
 
   math::Vector3d totalForce(
     -kTotalWrench(0),  -kTotalWrench(1), -kTotalWrench(2));

@@ -67,29 +67,32 @@ Fossen's equations which describe the motion of a craft through the water for
 this. For better understanding of the parameters here, I would refer you to
 his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
+
+Uncomment the following block from `buoyant_lrauv.sdf` to enable hydrodynamics.
+
 ```xml
 <plugin
 filename="ignition-gazebo-hydrodynamics-system"
 name="ignition::gazebo::systems::Hydrodynamics">
-    <link_name>base_link</link_name>
-    <xDotU>-4.876161</xDotU>
-    <yDotV>-126.324739</yDotV>
-    <zDotW>-126.324739</zDotW>
-    <kDotP>0</kDotP>
-    <mDotQ>-33.46</mDotQ>
-    <nDotR>-33.46</nDotR>
-    <xUabsU>-6.2282</xUabsU>
-    <xU>0</xU>
-    <yVabsV>-601.27</yVabsV>
-    <yV>0</yV>
-    <zWabsW>-601.27</zWabsW>
-    <zW>0</zW>
-    <kPabsP>-0.1916</kPabsP>
-    <kP>0</kP>
-    <mQabsQ>-632.698957</mQabsQ>
-    <mQ>0</mQ>
-    <nRabsR>-632.698957</nRabsR>
-    <nR>0</nR>
+  <link_name>base_link</link_name>
+  <xDotU>-4.876161</xDotU>
+  <yDotV>-126.324739</yDotV>
+  <zDotW>-126.324739</zDotW>
+  <kDotP>0</kDotP>
+  <mDotQ>-33.46</mDotQ>
+  <nDotR>-33.46</nDotR>
+  <xUabsU>-6.2282</xUabsU>
+  <xU>0</xU>
+  <yVabsV>-601.27</yVabsV>
+  <yV>0</yV>
+  <zWabsW>-601.27</zWabsW>
+  <zW>0</zW>
+  <kPabsP>-0.1916</kPabsP>
+  <kP>0</kP>
+  <mQabsQ>-632.698957</mQabsQ>
+  <mQ>0</mQ>
+  <nRabsR>-632.698957</nRabsR>
+  <nR>0</nR>
 </plugin>
 ```
 
