@@ -475,25 +475,40 @@ void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
   {
     gzerr << "Unable to peek ECM while server is running" << std::endl;
     return;
+  const EntityComponentManager *ecm = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (_runnerId >= this->dataPtr->simRunners.size())
+    {
+      gzerr << "RunnerId is out of bounds"<< std::endl;
+      return;
+    }
+    ecm = &this->dataPtr->simRunners[_runnerId]->EntityCompMgr();
   }
-  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
+
+  if (ecm)
+  {
+    _func(*ecm);
+  }
 }
 
 //////////////////////////////////////////////////
 void Server::PokeEcm(std::function<void(EntityComponentManager&)> _func,
   const std::size_t _runnerId)
 {
+  EntityComponentManager *ecm = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (_runnerId >= this->dataPtr->simRunners.size())
+    {
+      gzerr << "RunnerId is out of bounds"<< std::endl;
+      return;
+    }
+    ecm = &this->dataPtr->simRunners[_runnerId]->EntityCompMgr();
+  }
 
-  if (_runnerId >= this->dataPtr->simRunners.size())
+  if (ecm)
   {
-    gzerr << "RunnerId is out of bounds"<< std::endl;
-    return;
+    _func(*ecm);
   }
-  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
-  if (this->dataPtr->running)
-  {
-    gzerr << "Cannot modify ECM while the server is running" << std::endl;
-    return;
-  }
-  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
