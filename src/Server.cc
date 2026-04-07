@@ -471,6 +471,11 @@ void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
     return;
   }
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+  if (this->dataPtr->running)
+  {
+    gzerr << "Unable to peek ECM while server is running" << std::endl;
+    return;
+  }
   _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
 
