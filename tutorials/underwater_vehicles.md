@@ -196,19 +196,34 @@ this. For better understanding of the parameters here, I would refer you to
 his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 
-Uncomment the following block from `buoyant_lrauv.sdf` to enable hydrodynamics.
+Hydrodynamics in Gazebo is split into two parts:
+
+1. **Added mass and Coriolis**: specified using the SDF `<fluid_added_mass>` tag
+   on the link's `<inertial>` element. The physics engine handles these
+   implicitly.
+2. **Damping (drag)**: specified using the Hydrodynamics plugin parameters.
+
+First, add the `<fluid_added_mass>` to the `base_link`'s `<inertial>` element
+in `model.sdf`:
+
+```xml
+<fluid_added_mass>
+  <xx>4.876161</xx>
+  <yy>126.324739</yy>
+  <zz>126.324739</zz>
+  <qq>33.46</qq>
+  <rr>33.46</rr>
+</fluid_added_mass>
+```
+
+Then, uncomment the following block from `buoyant_lrauv.sdf` to enable
+hydrodynamic damping:
 
 ```xml
 <plugin
 filename="gz-sim-hydrodynamics-system"
 name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-4.876161</xDotU>
-  <yDotV>-126.324739</yDotV>
-  <zDotW>-126.324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-33.46</mDotQ>
-  <nDotR>-33.46</nDotR>
   <xUabsU>-6.2282</xUabsU>
   <xU>0</xU>
   <yVabsV>-601.27</yVabsV>
