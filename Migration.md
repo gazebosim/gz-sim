@@ -7,6 +7,16 @@ release will remove the deprecated code.
 
 ## Gazebo Sim 8.x to 9.0
 
+* **Removals**
+  * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
+
+* **Deprecations**
+  * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
+    `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
+    cross terms `<*Dot*>`) is deprecated **when using the DART physics
+    engine**. Use the SDF `<fluid_added_mass>` tag instead. See
+    http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
+
  * **Modified**:
    + In the Physics system, all `*VelocityCmd` components are now deleted after
      each time step, whereas previously the component values were set to `0`
