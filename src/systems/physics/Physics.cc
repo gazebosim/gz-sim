@@ -160,7 +160,50 @@ using namespace gz::sim;
 using namespace gz::sim::systems;
 using namespace gz::sim::systems::physics_system;
 namespace components = gz::sim::components;
+namespace
+{
+/// \brief Validate spatial inertia matrix to prevent physics engine crashes.
+/// DART asserts on NaN if the spatial inertia matrix is not positive definite.
+/// Incorrect or inconsistent fluid_added_mass coefficients can make the
+/// combined 6x6 spatial inertia have negative eigenvalues, so we detect that
+/// here and fall back to a safe inertia to keep the engine stable.
+gz::math::Inertiald ResolveValidInertial(
+    const gz::math::Inertiald &_originalInertial,
+    const std::string &_linkName,
+    const std::string &_modelName = "")
+{
+  Eigen::Matrix<double, 6, 6> spatialM =
+      gz::math::eigen3::convert(_originalInertial.SpatialMatrix());
 
+  if (spatialM.llt().info() == Eigen::Success)
+  {
+    return _originalInertial;
+  }
+
+  double origMass = _originalInertial.MassMatrix().Mass();
+  gz::math::Pose3d origPose = _originalInertial.Pose();
+
+  // Keep original mass if valid (>0), otherwise default to 1.0
+  double safeMass = (origMass > 1e-6) ? origMass : 1.0;
+
+  gzerr << "Invalid inertial properties detected for Link [" << _linkName
+        << "]" << (_modelName.empty() ? "" : " in Model [" + _modelName + "]")
+        << ". Spatial inertia is not positive definite. "
+        << "Resetting inertia tensor to a simple mass-proportional default "
+        << "while preserving mass (" << safeMass << ") and CoM pose.\n";
+
+  // Create safe matrix: preserved mass, inertia based on a
+  // simple reference geometry (solid sphere with radius 0.5 m).
+  // I_sphere = (2/5) * m * r^2; with r = 0.5 -> I = 0.1 * m
+  const double inertiaDiag = 0.1 * safeMass;
+  gz::math::MassMatrix3d safeMatrix(
+      safeMass,
+      gz::math::Vector3d(inertiaDiag, inertiaDiag, inertiaDiag),
+      gz::math::Vector3d::Zero);
+
+  return gz::math::Inertiald(safeMatrix, origPose);
+}
+}
 
 // Private data class.
 class gz::sim::systems::PhysicsPrivate
@@ -1238,6 +1281,16 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         model.SetRawPose(_pose->Data());
         model.SetPoseRelativeTo("");
 
+        for (uint64_t i = 0; i < model.LinkCount(); ++i)
+        {
+          sdf::Link *mutableLink = model.LinkByIndex(i);
+          if (!mutableLink) continue;
+
+          auto safeInertial = ResolveValidInertial(
+              mutableLink->Inertial(), mutableLink->Name(), model.Name());
+          mutableLink->SetInertial(safeInertial);
+        }
+
         sdf::Root root;
         root.SetModel(model);
         root.UpdateGraphs();
@@ -1439,9 +1492,12 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
 
         // get link inertial
         auto inertial = _ecm.Component<components::Inertial>(_entity);
+        // Check inertial validity
         if (inertial)
         {
-          link.SetInertial(inertial->Data());
+          auto safeInertial = ResolveValidInertial(
+              inertial->Data(), _name->Data());
+          link.SetInertial(safeInertial);
         }
 
         // get link gravity
