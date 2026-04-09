@@ -25,6 +25,7 @@
 
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
+#include <gz/sim/components/Serialization.hh>
 
 namespace gz
 {
@@ -39,7 +40,8 @@ namespace components
   /// compliance parameters in friction direction 1 (fdir1) and friction
   /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
-    Component<std::vector<double>, class SlipComplianceCmdTag>;
+    Component<std::vector<double>, class SlipComplianceCmdTag,
+              serializers::VectorDoubleSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
       SlipComplianceCmd)
 }
