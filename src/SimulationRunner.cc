@@ -323,6 +323,9 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 SimulationRunner::~SimulationRunner()
 {
   this->StopWorkerThreads();
+  // Explicitly destroy systems before eventMgr and entityCompMgr,
+  // since systems hold references to both managers.
+  this->systemMgr.reset();
 }
 
 /////////////////////////////////////////////////

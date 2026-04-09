@@ -425,15 +425,12 @@ namespace gz
       private: std::atomic<bool> running{false};
 
       /// \brief Manager of all systems.
-      /// Note: must be before EntityComponentManager
-      /// Note: must be before EventMgr
-      /// Because systems have access to the ECM and Events, they need to be
-      /// cleanly stopped and destructed before destroying the event manager
-      /// and entity component manager.
+      /// The destructor explicitly resets systemMgr before eventMgr and
+      /// entityCompMgr are destroyed, since systems hold references to
+      /// both managers.
       private: std::unique_ptr<SystemManager> systemMgr;
 
       /// \brief Manager of all events.
-      /// Note: must be before EntityComponentManager
       private: EventManager eventMgr;
 
       /// \brief Manager all parameters
