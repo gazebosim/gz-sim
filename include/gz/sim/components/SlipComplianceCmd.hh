@@ -25,6 +25,7 @@
 
 #include <gz/sim/components/Factory.hh>
 #include "gz/sim/components/Component.hh"
+#include <gz/sim/components/Serialization.hh>
 
 namespace ignition
 {
@@ -39,8 +40,14 @@ namespace components
   /// compliance parameters in friction direction 1 (fdir1) and friction
   /// direction 2 (fdir2) respectively.
   using SlipComplianceCmd =
+<<<<<<< HEAD
     Component<std::vector<double>, class SlipComplianceCmdTag>;
   IGN_GAZEBO_REGISTER_COMPONENT("ign_gazebo_components.SlipComplianceCmd ",
+=======
+    Component<std::vector<double>, class SlipComplianceCmdTag,
+              serializers::VectorDoubleSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SlipComplianceCmd ",
+>>>>>>> 05f18788 (Add missing VectorDoubleSerializer to JointForceCmd and SlipComplianceCmd (#3462))
       SlipComplianceCmd)
 }
 }
