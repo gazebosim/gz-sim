@@ -52,6 +52,7 @@
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Conversions.hh"
@@ -1614,6 +1615,10 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   this->entityCompMgr.CreateComponent(worldEntity,
       components::RenderEngineGuiPlugin(
       this->serverConfig.RenderEngineGui()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerApiBackend(
+      this->serverConfig.RenderEngineServerApiBackend()));
 
   // Load the world entities from SDF
   creator->CreateEntities(&this->sdfWorld, worldEntity);
