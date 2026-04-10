@@ -435,3 +435,81 @@ TEST_F(DetachableJointTest,
    // should be close.
    EXPECT_TRUE(abs(distTraveledB1 - distTraveledVehicle) < 0.01);
  }
+
+/////////////////////////////////////////////////
+// Test that initial_attach parameter works correctly when set to false
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialAttachFalse))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
+
+  // A lambda that takes a model name and a mutable reference to a vector of
+  // poses and returns another lambda that can be passed to
+  // `Relay::OnPostUpdate`.
+  auto poseRecorder =
+      [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
+  {
+    return [&, _modelName](const UpdateInfo &,
+                           const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+          [&](const Entity &_entity, const components::Model *,
+              const components::Name *_name,
+              const components::Pose *_pose) -> bool
+          {
+            if (_name->Data() == _modelName)
+            {
+              EXPECT_NE(kNullEntity, _entity);
+              _poses.push_back(_pose->Data());
+            }
+            return true;
+          });
+    };
+  };
+
+  std::vector<math::Pose3d> m6Poses, m7Poses;
+  test::Relay testSystem1;
+  testSystem1.OnPostUpdate(poseRecorder("M6", m6Poses));
+  test::Relay testSystem2;
+  testSystem2.OnPostUpdate(poseRecorder("M7", m7Poses));
+
+  this->server->AddSystem(testSystem1.systemPtr);
+  this->server->AddSystem(testSystem2.systemPtr);
+
+  const std::size_t nIters{100};
+  this->server->Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, m6Poses.size());
+  ASSERT_EQ(nIters, m7Poses.size());
+
+  // Model6 is on the ground. It shouldn't move
+  EXPECT_EQ(m6Poses.front(), m6Poses.back());
+
+  // Model7 should be falling since initial_attach=false
+  const double expDist =
+      0.5 * 9.8 * pow(static_cast<double>(nIters - 1) / 1000, 2);
+  EXPECT_GT(m7Poses.front().Pos().Z() - m7Poses.back().Pos().Z(), expDist);
+
+  m6Poses.clear();
+  m7Poses.clear();
+
+  transport::Node node;
+  auto attachPub = node.Advertise<msgs::Empty>(
+      "/model/M6/detachable_joint/attach");
+  attachPub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  const std::size_t nItersAfterAttach{100};
+  this->server->Run(true, nItersAfterAttach, false);
+
+  ASSERT_EQ(nItersAfterAttach, m6Poses.size());
+  ASSERT_EQ(nItersAfterAttach, m7Poses.size());
+
+  // Model6 is still on the ground. It shouldn't move
+  EXPECT_EQ(m6Poses.front(), m6Poses.back());
+
+  // Model7 should now be attached and not falling anymore
+  EXPECT_NEAR(m7Poses.front().Pos().Z(), m7Poses.back().Pos().Z(), 0.1);
+}
