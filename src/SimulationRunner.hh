@@ -589,6 +589,9 @@ namespace gz
       /// initialization and should exit immediately. See
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
+#ifdef _WIN32
+      private: HANDLE winPrecisionTimer;
+#endif
 
       friend class LevelManager;
     };

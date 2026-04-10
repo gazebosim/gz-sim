@@ -183,6 +183,15 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   );
   this->currentInfo.simTime = this->simTimeEpoch;
 
+#ifdef _WIN32
+  winPrecisionTimer = CreateWaitableTimerExA(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  if (winPrecisionTimer == NULL)
+  {
+    gzerr << "Could not initialize Windows precision timer" << std::endl;
+    return;
+  }
+#endif
+
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -324,6 +333,13 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 SimulationRunner::~SimulationRunner()
 {
   this->StopWorkerThreads();
+#ifdef _WIN32
+  if (winPrecisionTimer != NULL)
+  {
+    CloseHandle(winPrecisionTimer);
+    winPrecisionTimer = NULL;
+  }
+#endif
 }
 
 /////////////////////////////////////////////////
@@ -914,14 +930,31 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       // larger than the typical OS + CPU C-state latency.
       constexpr auto kSpinThreshold = 200us;
 
+      auto now = std::chrono::steady_clock::now();
+
       // If the scheduled update time is in the future...
-      if (nextUpdateTime > std::chrono::steady_clock::now())
+      if (nextUpdateTime > now)
       {
         // ...sleep until we are close to the target time.
         auto sleepTarget = nextUpdateTime - kSpinThreshold;
-        if (sleepTarget > std::chrono::steady_clock::now())
+        if (sleepTarget > now)
         {
+#ifndef _WIN32
           std::this_thread::sleep_until(sleepTarget);
+#else
+          auto sleepTargetDuration = std::chrono::duration_cast<std::chrono::microseconds>(sleepTarget - now);
+          LARGE_INTEGER due_time;
+          memset(&due_time, 0, sizeof(due_time));
+          due_time.QuadPart = -sleepTargetDuration.count() * 10;
+          if (SetWaitableTimer(winPrecisionTimer, &due_time, 0, NULL, NULL, FALSE) != TRUE)
+          {
+            gzerr << "Could not SetWaitableTimer" << std::endl;
+          }
+          else
+          {
+            WaitForSingleObject(winPrecisionTimer, INFINITE);
+          }
+#endif
         }
 
         // ...then busy-wait for the final moments for precision.
@@ -932,7 +965,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       }
 
       // Schedule the next update time.
-      auto now = std::chrono::steady_clock::now();
+      now = std::chrono::steady_clock::now();
       nextUpdateTime += this->updatePeriod;
       if (nextUpdateTime < now)
       {
