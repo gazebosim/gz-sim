@@ -364,6 +364,182 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
   }
 }
 
+class EntityByComponentsFixture: public benchmark::Fixture
+{
+  protected: void SetUp(const ::benchmark::State &_state) override
+  {
+    mgr = std::make_unique<EntityComponentManager>();
+    auto nonmatchingEntityCount = _state.range(0);
+    this->Populate(nonmatchingEntityCount);
+  }
+
+  protected: void Populate(int _nonmatchingEntityCount)
+  {
+    // We add them first so EntityByComponents won't return immediately
+    std::vector<Entity> nonMatchingEntities;
+    nonMatchingEntities.reserve(_nonmatchingEntityCount);
+
+    for (int i = 0; i < _nonmatchingEntityCount; ++i)
+    {
+      Entity worldEntity = mgr->CreateEntity();
+      mgr->CreateComponent(worldEntity, World());
+      mgr->CreateComponent(worldEntity, components::Name("child"));
+      nonMatchingEntities.push_back(worldEntity);
+    }
+
+    for (int i = 0; i < matchingEntityCount; ++i)
+    {
+      Entity e = mgr->CreateEntity();
+      if (parentEntity == kNullEntity)
+      {
+        parentEntity = e;
+      }
+      mgr->CreateComponent(e, components::Name("target"));
+    }
+
+    // Now make one of the matching entities parent of all the non matching to have
+    // a parametrizably large parent entity
+    for (const auto& e : nonMatchingEntities)
+    {
+      mgr->SetParentEntity(e, parentEntity);
+    }
+  }
+
+  static constexpr int matchingEntityCount = 1;
+  Entity parentEntity = kNullEntity;
+  std::unique_ptr<EntityComponentManager> mgr;
+};
+
+BENCHMARK_DEFINE_F(EntityByComponentsFixture, EntityByComponents)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      const auto e = mgr->EntityByComponents(components::Name("target"));
+      if (e == kNullEntity)
+      {
+        _st.SkipWithError("Entity not found");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(EntityByComponentsFixture, EntitiesByComponents)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      const auto e = mgr->EntitiesByComponents(components::Name("target"));
+      if (e.size() != EntityByComponentsFixture::matchingEntityCount)
+      {
+        _st.SkipWithError("Wrong name of entities found");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(EntityByComponentsFixture, ChildrenByComponents)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      const auto e = mgr->ChildrenByComponents(parentEntity, components::Name("child"));
+      if (static_cast<int64_t>(e.size()) != _st.range(0))
+      {
+        _st.SkipWithError("Wrong name of children found");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentGet9More)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
+    {
+      int entitiesMatched = 0;
+
+      mgr->Each<components::Name>(
+          [&](const Entity& e,
+              const components::Name *)->bool
+          {
+            if (mgr->Component<AngularVelocity>(e) != nullptr &&
+                mgr->Component<WorldAngularVelocity>(e) != nullptr &&
+                mgr->Component<Inertial>(e) != nullptr &&
+                mgr->Component<LinearAcceleration>(e) != nullptr &&
+                mgr->Component<WorldLinearAcceleration>(e) != nullptr &&
+                mgr->Component<LinearVelocity>(e) != nullptr &&
+                mgr->Component<WorldLinearVelocity>(e) != nullptr &&
+                mgr->Component<Pose>(e) != nullptr &&
+                mgr->Component<WorldPose>(e) != nullptr)
+            {
+              entitiesMatched++;
+            }
+            return true;
+          });
+
+      if (entitiesMatched != entityCount)
+      {
+        _st.SkipWithError("Failed to match correct number of entities");
+      }
+    }
+  }
+}
+
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentRemove9)
+(benchmark::State &_st)
+{
+  for (auto _ : _st)
+  {
+    auto entityCount = _st.range(0);
+
+    int entitiesMatched = 0;
+
+    mgr->Each<components::Name>(
+        [&](const Entity& e,
+            const components::Name *)->bool
+        {
+          if (mgr->RemoveComponent<AngularVelocity>(e) &&
+              mgr->RemoveComponent<WorldAngularVelocity>(e) &&
+              mgr->RemoveComponent<Inertial>(e) &&
+              mgr->RemoveComponent<LinearAcceleration>(e) &&
+              mgr->RemoveComponent<WorldLinearAcceleration>(e) &&
+              mgr->RemoveComponent<LinearVelocity>(e) &&
+              mgr->RemoveComponent<WorldLinearVelocity>(e) &&
+              mgr->RemoveComponent<Pose>(e) &&
+              mgr->RemoveComponent<WorldPose>(e))
+          {
+            entitiesMatched++;
+            mgr->CreateComponent(e, AngularVelocity());
+            mgr->CreateComponent(e, WorldAngularVelocity());
+            mgr->CreateComponent(e, Inertial());
+            mgr->CreateComponent(e, LinearAcceleration());
+            mgr->CreateComponent(e, WorldLinearAcceleration());
+            mgr->CreateComponent(e, LinearVelocity());
+            mgr->CreateComponent(e, WorldLinearVelocity());
+            mgr->CreateComponent(e, Pose());
+            mgr->CreateComponent(e, WorldPose());
+          }
+          return true;
+        });
+
+    if (entitiesMatched != entityCount)
+    {
+      _st.SkipWithError("Failed to match correct number of entities");
+    }
+  }
+}
+
 /// Method to generate test argument combinations.  google/benchmark does
 /// powers of 2 by default, which looks kind of ugly.
 static void EachTestArgs(Benchmark *_b)
@@ -422,6 +598,38 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentNoCache)
   ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentCache)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentGet9More)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentRemove9)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(EntityByComponentsFixture, EntityByComponents)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Arg(10000)
+  ->Arg(100000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(EntityByComponentsFixture, EntitiesByComponents)
+  ->Arg(10)
+  ->Arg(100)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_REGISTER_F(EntityByComponentsFixture, ChildrenByComponents)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)
