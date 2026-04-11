@@ -69,6 +69,9 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+#ifdef _WIN32
+    class SimulationRunnerWinHandleStorage;
+#endif
 
     class GZ_SIM_VISIBLE SimulationRunner
     {
@@ -590,7 +593,7 @@ namespace gz
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
 #ifdef _WIN32
-      private: HANDLE winPrecisionTimer{NULL};
+      private: std::unique_ptr<SimulationRunnerWinHandleStorage> winPrecisionTimer;
 #endif
 
       friend class LevelManager;
