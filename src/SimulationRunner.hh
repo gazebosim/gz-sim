@@ -590,7 +590,7 @@ namespace gz
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
 #ifdef _WIN32
-      private: HANDLE winPrecisionTimer;
+      private: HANDLE winPrecisionTimer{NULL};
 #endif
 
       friend class LevelManager;

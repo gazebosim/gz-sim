@@ -185,11 +185,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
 #ifdef _WIN32
   winPrecisionTimer = CreateWaitableTimerExA(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
-  if (winPrecisionTimer == NULL)
-  {
-    gzerr << "Could not initialize Windows precision timer" << std::endl;
-    return;
-  }
 #endif
 
   // World control
@@ -942,17 +937,24 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 #ifndef _WIN32
           std::this_thread::sleep_until(sleepTarget);
 #else
-          auto sleepTargetDuration = std::chrono::duration_cast<std::chrono::microseconds>(sleepTarget - now);
-          LARGE_INTEGER due_time;
-          memset(&due_time, 0, sizeof(due_time));
-          due_time.QuadPart = -sleepTargetDuration.count() * 10;
-          if (SetWaitableTimer(winPrecisionTimer, &due_time, 0, NULL, NULL, FALSE) != TRUE)
+          if (winPrecisionTimer != NULL)
           {
-            gzerr << "Could not SetWaitableTimer" << std::endl;
+            auto sleepTargetDuration = std::chrono::duration_cast<std::chrono::microseconds>(sleepTarget - now);
+            LARGE_INTEGER due_time;
+            memset(&due_time, 0, sizeof(due_time));
+            due_time.QuadPart = -sleepTargetDuration.count() * 10;
+            if (SetWaitableTimer(winPrecisionTimer, &due_time, 0, NULL, NULL, FALSE) != TRUE)
+            {
+              gzerr << "Could not SetWaitableTimer" << std::endl;
+            }
+            else
+            {
+              WaitForSingleObject(winPrecisionTimer, INFINITE);
+            }
           }
           else
           {
-            WaitForSingleObject(winPrecisionTimer, INFINITE);
+            std::this_thread::sleep_until(sleepTarget);
           }
 #endif
         }
