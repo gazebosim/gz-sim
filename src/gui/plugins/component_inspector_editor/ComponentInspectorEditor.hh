@@ -244,71 +244,58 @@ namespace sim
     // Documentation inherited
     public: void Update(const UpdateInfo &, EntityComponentManager &) override;
 
-    /// \brief Callback in Qt thread when specular changes.
-    /// \param[in] _rSpecular specular red
-    /// \param[in] _gSpecular specular green
-    /// \param[in] _bSpecular specular blue
-    /// \param[in] _aSpecular specular alpha
-    /// \param[in] _rDiffuse Diffuse red
-    /// \param[in] _gDiffuse Diffuse green
-    /// \param[in] _bDiffuse Diffuse blue
-    /// \param[in] _aDiffuse Diffuse alpha
-    /// \param[in] _attRange Range attenuation
-    /// \param[in] _attLinear Linear attenuation
-    /// \param[in] _attConstant Constant attenuation
-    /// \param[in] _attQuadratic Quadratic attenuation
-    /// \param[in] _castShadows Specify if this light should cast shadows
-    /// \param[in] _directionX X direction of the light
-    /// \param[in] _directionY Y direction of the light
-    /// \param[in] _directionZ Z direction of the light
-    /// \param[in] _innerAngle Inner angle of the spotlight
-    /// \param[in] _outerAngle Outer angle of the spotlight
-    /// \param[in] _falloff Falloff of the spotlight
-    /// \param[in] _intensity Intensity of the light
-    /// \param[in] _type light type
+    /// \brief Callback in Qt thread when light properties change.
     public: Q_INVOKABLE void OnLight(
-      double _rSpecular, double _gSpecular, double _bSpecular,
-      double _aSpecular, double _rDiffuse, double _gDiffuse,
-      double _bDiffuse, double _aDiffuse, double _attRange,
-      double _attLinear, double _attConstant, double _attQuadratic,
-      bool _castShadows, double _directionX, double _directionY,
-      double _directionZ, double _innerAngle, double _outerAngle,
-      double _falloff, double _intensity, int _type);
+      double _rSpecular,    ///< Specular red.
+      double _gSpecular,    ///< Specular green.
+      double _bSpecular,    ///< Specular blue.
+      double _aSpecular,    ///< Specular alpha.
+      double _rDiffuse,     ///< Diffuse red.
+      double _gDiffuse,     ///< Diffuse green.
+      double _bDiffuse,     ///< Diffuse blue.
+      double _aDiffuse,     ///< Diffuse alpha.
+      double _attRange,     ///< Range attenuation.
+      double _attLinear,    ///< Linear attenuation.
+      double _attConstant,  ///< Constant attenuation.
+      double _attQuadratic,  ///< Quadratic attenuation.
+      bool _castShadows,    ///< Whether the light casts shadows.
+      double _directionX,   ///< X direction of the light.
+      double _directionY,   ///< Y direction of the light.
+      double _directionZ,   ///< Z direction of the light.
+      double _innerAngle,   ///< Inner spotlight angle.
+      double _outerAngle,   ///< Outer spotlight angle.
+      double _falloff,      ///< Spotlight falloff.
+      double _intensity,    ///< Light intensity.
+      int _type             ///< Light type.
+    );
 
-    /// \brief Callback in Qt thread when physics' properties change.
-    /// \param[in] _stepSize step size
-    /// \param[in] _realTimeFactor real time factor
-    public: Q_INVOKABLE void OnPhysics(double _stepSize,
-        double _realTimeFactor);
+    /// \brief Callback in Qt thread when physics properties change.
+    public: Q_INVOKABLE void OnPhysics(
+        double _stepSize,       ///< Step size.
+        double _realTimeFactor  ///< Real time factor.
+    );
 
-    /// \brief Callback in Qt thread when material color changes for a visual
-    /// \param[in] _rAmbient ambient red
-    /// \param[in] _gAmbient ambient green
-    /// \param[in] _bAmbient ambient blue
-    /// \param[in] _aAmbient ambient alpha
-    /// \param[in] _rDiffuse diffuse red
-    /// \param[in] _gDiffuse diffuse green
-    /// \param[in] _bDiffuse diffuse blue
-    /// \param[in] _aDiffuse diffuse alpha
-    /// \param[in] _rSpecular specular red
-    /// \param[in] _gSpecular specular green
-    /// \param[in] _bSpecular specular blue
-    /// \param[in] _aSpecular specular alpha
-    /// \param[in] _rEmissive emissive red
-    /// \param[in] _gEmissive emissive green
-    /// \param[in] _bEmissive emissive blue
-    /// \param[in] _aEmissive emissive alpha
-    /// \param[in] _type if type is not empty, opens QColorDialog.
-    /// The possible types are ambient, diffuse, specular, or emissive.
-    /// \param[in] _currColor used for QColorDialog to show the current color
-    /// in the open dialog.
+    /// \brief Callback in Qt thread when material color changes for a visual.
     public: Q_INVOKABLE void OnMaterialColor(
-      double _rAmbient, double _gAmbient, double _bAmbient,
-      double _aAmbient, double _rDiffuse, double _gDiffuse,
-      double _bDiffuse, double _aDiffuse, double _rSpecular,
-      double _gSpecular, double _bSpecular, double _aSpecular,
-      double _rEmissive, double _gEmissive, double _bEmissive,
-      double _aEmissive, QString _type, QColor _currColor);
+      double _rAmbient,   ///< Ambient red.
+      double _gAmbient,   ///< Ambient green.
+      double _bAmbient,   ///< Ambient blue.
+      double _aAmbient,   ///< Ambient alpha.
+      double _rDiffuse,   ///< Diffuse red.
+      double _gDiffuse,   ///< Diffuse green.
+      double _bDiffuse,   ///< Diffuse blue.
+      double _aDiffuse,   ///< Diffuse alpha.
+      double _rSpecular,  ///< Specular red.
+      double _gSpecular,  ///< Specular green.
+      double _bSpecular,  ///< Specular blue.
+      double _aSpecular,  ///< Specular alpha.
+      double _rEmissive,  ///< Emissive red.
+      double _gEmissive,  ///< Emissive green.
+      double _bEmissive,  ///< Emissive blue.
+      double _aEmissive,  ///< Emissive alpha.
+      QString _type,      ///< Edited channel, if any.
+      QColor _currColor   ///< Current color shown in the dialog.
+    );
 
     /// \brief Callback in Qt thread when spherical coordinates change.
     /// \param[in] _surface Surface model
@@ -385,11 +372,11 @@ namespace sim
     /// \brief Notify that paused has changed.
     signals: void PausedChanged();
 
-    /// \brief Callback in Qt thread when an entity is to be added
-    /// \param[in] _entity Entity to add, e.g. box, sphere, cylinder, etc
-    /// \param[in] _type Entity type, e.g. link, visual, collision, etc
-    public: Q_INVOKABLE void OnAddEntity(const QString &_entity,
-                const QString &_type);
+    /// \brief Callback in Qt thread when an entity is to be added.
+    public: Q_INVOKABLE void OnAddEntity(
+          const QString &_entity,  ///< Entity to add.
+          const QString &_type    ///< Entity type.
+    );
 
     /// \brief Callback in Qt thread when a joint is to be added
     /// \param[in] _jointType Type of joint to add (revolute, fixed, etc)
