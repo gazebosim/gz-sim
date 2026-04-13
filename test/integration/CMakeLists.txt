@@ -85,6 +85,7 @@ set(tests
   sdf_include.cc
   sensor.cc
   spherical_coordinates.cc
+  swerve_drive_system.cc
   thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
