@@ -393,8 +393,8 @@ bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
     // Find canonical link within nested model
     auto findCanonicalLink = [&_ecm](Entity _parent, auto &&_findCanonicalLink)
     {
-      auto nestedEntities = _ecm.EntitiesByComponents(
-          components::Model(), components::ParentEntity(_parent));
+      auto nestedEntities = _ecm.ChildrenByComponents(_parent,
+          components::Model());
       for (const auto ent : nestedEntities)
       {
         auto comp = _ecm.Component<components::ModelCanonicalLink>(ent);
