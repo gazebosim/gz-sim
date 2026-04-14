@@ -339,7 +339,7 @@ void Light::SetDiffuseColor(EntityComponentManager &_ecm,
   }
   else
   {
-    lightCmd->Data() = lightMsg;
+    lightCmd->Data().mutable_diffuse()->CopyFrom(lightMsg.diffuse());
   }
 }
 
@@ -360,7 +360,7 @@ void Light::SetSpecularColor(EntityComponentManager &_ecm,
   }
   else
   {
-    lightCmd->Data() = lightMsg;
+    lightCmd->Data().mutable_specular()->CopyFrom(lightMsg.specular());
   }
 }
 
