@@ -503,10 +503,15 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
   GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
   google::protobuf::Arena arena;
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+  auto *poseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&arena);
+  auto *dyPoseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&arena);
+#else
   auto *poseMsg =
     google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
   auto *dyPoseMsg =
     google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
+#endif
   bool dyPoseConnections = this->dyPosePub.HasConnections();
   bool poseConnections = this->posePub.HasConnections();
 
