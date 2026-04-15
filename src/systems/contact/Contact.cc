@@ -78,7 +78,12 @@ class ContactSensor
   /// \brief Message to publish (arena-owned). Reallocated on the arena
   /// after every Reset().
   public: msgs::Contacts *contactsMsg{
-    google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)};
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    google::protobuf::Arena::Create<msgs::Contacts>(&arena)
+#else
+    google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)
+#endif
+  };
 
   /// \brief Gazebo transport node
   public: transport::Node node;
@@ -161,8 +166,13 @@ void ContactSensor::Publish()
     // Reset (not Clear): Clear() walks the field tree, while arena.Reset()
     // is O(1) and lets the next add_contact() bump-allocate fresh entries.
     this->arena.Reset();
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    this->contactsMsg =
+      google::protobuf::Arena::Create<msgs::Contacts>(&this->arena);
+#else
     this->contactsMsg =
       google::protobuf::Arena::CreateMessage<msgs::Contacts>(&this->arena);
+#endif
   }
 }
 

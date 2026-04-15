@@ -551,8 +551,13 @@ void PosePublisherPrivate::PublishPoses(
   // publish poses
   google::protobuf::Arena arena;
   msgs::Pose *msg = nullptr;
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+  auto *arenaPoseVMsg = this->usePoseV ?
+    google::protobuf::Arena::Create<msgs::Pose_V>(&arena) : nullptr;
+#else
   auto *arenaPoseVMsg = this->usePoseV ?
     google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena) : nullptr;
+#endif
 
   for (const auto &[entity, pose] : _poses)
   {
