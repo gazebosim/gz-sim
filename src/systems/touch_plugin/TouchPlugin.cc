@@ -264,13 +264,13 @@ void TouchPluginPrivate::Enable(const bool _value)
     this->touchStart = DurationType::zero();
     this->enabled = true;
 
-    gzdbg << "Started touch plugin [" << this->ns << "]" << std::endl;
+    // gzdbg << "Started touch plugin [" << this->ns << "]" << std::endl;
   }
   else
   {
     this->enabled = false;
 
-    gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
+    // gzdbg << "Stopped touch plugin [" << this->ns << "]" << std::endl;
   }
 }
 

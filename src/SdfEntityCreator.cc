@@ -544,15 +544,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
 
     if (link->AutoInertia())
     {
-      gzdbg << "Link has auto-inertial enabled: "
-            << scopedName(linkEntity, *this->dataPtr->ecm, "::", false) << "\n";
-      gzdbg << "  pose: " << link->Inertial().Pose() << "\n";
-      gzdbg << "  mass: " << link->Inertial().MassMatrix().Mass() << "\n";
-      gzdbg << "  ixx iyy izz: "
-            << link->Inertial().MassMatrix().DiagonalMoments() << "\n";
-      gzdbg << "  ixy ixz iyz: "
-            << link->Inertial().MassMatrix().OffDiagonalMoments()
-            << std::endl;
+      // gzdbg << "Link has auto-inertial enabled: "
+      //       << scopedName(linkEntity, *this->dataPtr->ecm, "::", false) << "\n";
+      // gzdbg << "  pose: " << link->Inertial().Pose() << "\n";
+      // gzdbg << "  mass: " << link->Inertial().MassMatrix().Mass() << "\n";
+      // gzdbg << "  ixx iyy izz: "
+      //       << link->Inertial().MassMatrix().DiagonalMoments() << "\n";
+      // gzdbg << "  ixy ixz iyz: "
+      //       << link->Inertial().MassMatrix().OffDiagonalMoments()
+      //       << std::endl;
     }
 
     if (canonicalLink == link)
