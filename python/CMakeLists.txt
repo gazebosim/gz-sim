@@ -106,6 +106,7 @@ if (BUILD_TESTING)
     endif()
 
     set_tests_properties(${test} PROPERTIES
-      ENVIRONMENT_MODIFICATION "PYTHONPATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib;LD_LIBRARY_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib")
+      ENVIRONMENT_MODIFICATION
+        "PYTHONPATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/;PYTHONPATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib;LD_LIBRARY_PATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};LD_LIBRARY_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib")
   endforeach()
 endif()
