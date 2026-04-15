@@ -17,6 +17,8 @@
 
 #include "PosePublisher.hh"
 
+#include <google/protobuf/arena.h>
+
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/time.pb.h>
@@ -547,9 +549,10 @@ void PosePublisherPrivate::PublishPoses(
     return;
 
   // publish poses
+  google::protobuf::Arena arena;
   msgs::Pose *msg = nullptr;
-  if (this->usePoseV)
-    this->poseVMsg.Clear();
+  auto *arenaPoseVMsg = this->usePoseV ?
+    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena) : nullptr;
 
   for (const auto &[entity, pose] : _poses)
   {
@@ -559,7 +562,7 @@ void PosePublisherPrivate::PublishPoses(
 
     if (this->usePoseV)
     {
-      msg = this->poseVMsg.add_pose();
+      msg = arenaPoseVMsg->add_pose();
     }
     else
     {
@@ -596,7 +599,7 @@ void PosePublisherPrivate::PublishPoses(
 
   // publish pose vector msg
   if (this->usePoseV)
-    _publisher.Publish(this->poseVMsg);
+    _publisher.Publish(*arenaPoseVMsg);
 }
 
 GZ_ADD_PLUGIN(PosePublisher,

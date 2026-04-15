@@ -37,6 +37,8 @@
 #include <gz/msgs/uint32_v.pb.h>
 #include <gz/msgs/visual.pb.h>
 
+#include <google/protobuf/arena.h>
+
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
@@ -500,7 +502,11 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
-  msgs::Pose_V poseMsg, dyPoseMsg;
+  google::protobuf::Arena arena;
+  auto *poseMsg =
+    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
+  auto *dyPoseMsg =
+    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
   bool dyPoseConnections = this->dyPosePub.HasConnections();
   bool poseConnections = this->posePub.HasConnections();
 
@@ -515,7 +521,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         if (poseConnections)
         {
           // Add to pose msg
-          auto pose = poseMsg.add_pose();
+          auto pose = poseMsg->add_pose();
           msgs::Set(pose, _poseComp->Data());
           pose->set_name(_nameComp->Data());
           pose->set_id(_entity);
@@ -524,7 +530,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         if (dyPoseConnections && !_staticComp->Data())
         {
           // Add to dynamic pose msg
-          auto dyPose = dyPoseMsg.add_pose();
+          auto dyPose = dyPoseMsg->add_pose();
           msgs::Set(dyPose, _poseComp->Data());
           dyPose->set_name(_nameComp->Data());
           dyPose->set_id(_entity);
@@ -543,7 +549,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         // Add to pose msg
         if (poseConnections)
         {
-          auto pose = poseMsg.add_pose();
+          auto pose = poseMsg->add_pose();
           msgs::Set(pose, _poseComp->Data());
           pose->set_name(_nameComp->Data());
           pose->set_id(_entity);
@@ -555,7 +561,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
         if (dyPoseConnections && !staticComp->Data())
         {
           // Add to dynamic pose msg
-          auto dyPose = dyPoseMsg.add_pose();
+          auto dyPose = dyPoseMsg->add_pose();
           msgs::Set(dyPose, _poseComp->Data());
           dyPose->set_name(_nameComp->Data());
           dyPose->set_id(_entity);
@@ -567,16 +573,16 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
   if (dyPoseConnections)
   {
     // Set the time stamp in the header
-    dyPoseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+    dyPoseMsg->mutable_header()->mutable_stamp()->CopyFrom(
         convert<msgs::Time>(_info.simTime));
 
-    this->dyPosePub.Publish(dyPoseMsg);
+    this->dyPosePub.Publish(*dyPoseMsg);
   }
 
   // Visuals
   if (poseConnections)
   {
-    poseMsg.mutable_header()->mutable_stamp()->CopyFrom(
+    poseMsg->mutable_header()->mutable_stamp()->CopyFrom(
         convert<msgs::Time>(_info.simTime));
 
     _manager.Each<components::Visual, components::Name, components::Pose>(
@@ -585,7 +591,7 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
           const components::Pose *_poseComp) -> bool
       {
         // Add to pose msg
-        auto pose = poseMsg.add_pose();
+        auto pose = poseMsg->add_pose();
         msgs::Set(pose, _poseComp->Data());
         pose->set_name(_nameComp->Data());
         pose->set_id(_entity);
@@ -599,14 +605,14 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
             const components::Pose *_poseComp) -> bool
         {
           // Add to pose msg
-          auto pose = poseMsg.add_pose();
+          auto pose = poseMsg->add_pose();
           msgs::Set(pose, _poseComp->Data());
           pose->set_name(_nameComp->Data());
           pose->set_id(_entity);
           return true;
         });
 
-    this->posePub.Publish(poseMsg);
+    this->posePub.Publish(*poseMsg);
   }
 }
 
