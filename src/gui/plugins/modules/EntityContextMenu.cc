@@ -26,10 +26,16 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <vector>
+
+#include <QTimer>
 
 #include <gz/common/Console.hh>
 #include <gz/sim/Conversions.hh>
+#include <gz/sim/gui/GuiEvents.hh>
 #include <gz/gui/Application.hh>
+#include <gz/gui/MainWindow.hh>
+#include <gz/gui/Plugin.hh>
 #include <gz/transport/Node.hh>
 
 namespace gz::sim
@@ -196,7 +202,7 @@ void EntityContextMenu::OnRemove(
 {
   if (this->dataPtr->worldName.empty())
   {
-    auto runners = gui::App()->findChildren<GuiRunner *>();
+    auto runners = gz::gui::App()->findChildren<GuiRunner *>();
     if (runners.empty() || runners[0] == nullptr)
     {
       gzerr << "Internal error: no GuiRunner found." << std::endl;
@@ -343,5 +349,79 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
   else
   {
     gzwarn << "Unknown request [" << request << "]" << std::endl;
+  }
+}
+
+/////////////////////////////////////////////////
+void EntityContextMenu::OnInspect(const QString &_entityId)
+{
+  bool ok{false};
+  auto id = _entityId.toULongLong(&ok);
+  if (!ok || id == kNullEntity)
+  {
+    gzwarn << "Invalid entity id for inspect: [" << _entityId.toStdString()
+           << "]" << std::endl;
+    return;
+  }
+
+  auto mainWindow = gz::gui::App()->findChild<gz::gui::MainWindow *>();
+  if (mainWindow == nullptr)
+  {
+    gzerr << "Internal error: no MainWindow found." << std::endl;
+    return;
+  }
+
+  bool inspectorOpen{false};
+  bool inspectorJustLoaded{false};
+  auto plugins = mainWindow->findChildren<gz::gui::Plugin *>();
+  for (const auto plugin : plugins)
+  {
+    if (plugin == nullptr)
+      continue;
+
+    const char *classNameC = plugin->metaObject()->className();
+    if (classNameC == nullptr)
+      continue;
+
+    const std::string className(classNameC);
+    const std::string suffix("::ComponentInspector");
+    const bool matchesExact = (className == "ComponentInspector");
+    const bool matchesSuffix = (className.size() >= suffix.size() &&
+      className.compare(className.size() - suffix.size(),
+        suffix.size(), suffix) == 0);
+    if (matchesExact || matchesSuffix)
+    {
+      inspectorOpen = true;
+      break;
+    }
+  }
+
+  if (!inspectorOpen)
+  {
+    if (!gz::gui::App()->LoadPlugin("ComponentInspector"))
+    {
+      gzerr << "Failed to load ComponentInspector plugin." << std::endl;
+      return;
+    }
+    else
+    {
+      inspectorJustLoaded = true;
+    }
+  }
+
+  std::vector<Entity> entitySet{static_cast<Entity>(id)};
+  auto sendSelection = [mainWindow, entitySet]()
+  {
+    gui::events::EntitiesSelected event(entitySet, true);
+    gz::gui::App()->sendEvent(mainWindow, &event);
+  };
+
+  if (inspectorJustLoaded)
+  {
+    QTimer::singleShot(0, mainWindow, sendSelection);
+  }
+  else
+  {
+    sendSelection();
   }
 }
