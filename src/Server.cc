@@ -465,50 +465,50 @@ Server::Status gz::sim::Server::GetStatus() const
 void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
   const std::size_t _runnerId) const
 {
-  if (_runnerId >= this->dataPtr->simRunners.size())
-  {
-    gzerr << "RunnerId is out of bounds"<< std::endl;
-    return;
-  }
-  std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
-  if (this->dataPtr->running)
-  {
-    gzerr << "Unable to peek ECM while server is running" << std::endl;
-    return;
-  const EntityComponentManager *ecm = nullptr;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->running)
+    {
+      gzerr << "Unable to peek ECM while server is running" << std::endl;
+      return;
+    }
+
     if (_runnerId >= this->dataPtr->simRunners.size())
     {
       gzerr << "RunnerId is out of bounds"<< std::endl;
       return;
     }
-    ecm = &this->dataPtr->simRunners[_runnerId]->EntityCompMgr();
   }
 
-  if (ecm)
-  {
-    _func(*ecm);
-  }
+  // Acquire shared access to ECM.
+  std::shared_lock<std::shared_mutex> lock(this->dataPtr->ecmMutex);
+
+  // Simulation cannot start now because it needs a unique_lock on ecmMutex.
+  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
 
 //////////////////////////////////////////////////
 void Server::PokeEcm(std::function<void(EntityComponentManager&)> _func,
   const std::size_t _runnerId)
 {
-  EntityComponentManager *ecm = nullptr;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->running)
+    {
+      gzerr << "Unable to poke ECM while server is running" << std::endl;
+      return;
+    }
+
     if (_runnerId >= this->dataPtr->simRunners.size())
     {
       gzerr << "RunnerId is out of bounds"<< std::endl;
       return;
     }
-    ecm = &this->dataPtr->simRunners[_runnerId]->EntityCompMgr();
   }
 
-  if (ecm)
-  {
-    _func(*ecm);
-  }
+  // Acquire exclusive access to ECM.
+  std::unique_lock<std::shared_mutex> lock(this->dataPtr->ecmMutex);
+
+  // Simulation cannot start now because it needs a unique_lock on ecmMutex.
+  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }
