@@ -222,10 +222,12 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->currentInfo.simTime = this->simTimeEpoch;
 
 #ifdef _WIN32
-  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
   if (winPrecisionTimerHandle != NULL)
   {
-    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(winPrecisionTimerHandle);
+    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(
+      winPrecisionTimerHandle);
   }
 #endif
 
@@ -974,13 +976,18 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 #else
           if (winPrecisionTimer)
           {
-            auto sleepTargetDuration = std::chrono::duration_cast<std::chrono::microseconds>(sleepTarget - now);
+            auto sleepTargetDuration =
+              std::chrono::duration_cast<std::chrono::microseconds>(
+              sleepTarget - now);
             LARGE_INTEGER due_time;
             memset(&due_time, 0, sizeof(due_time));
-            // Positive durations are absolute, while negative durations are relative in 10 us intervals
-            // The absolute time uses the non-precision system clock so we need to use relative time
+            // Positive durations are absolute, while negative durations
+            // are relative in 10 us intervals.
+            // The absolute time uses the non-precision system clock so we
+            // need to use relative time.
             due_time.QuadPart = -sleepTargetDuration.count() * 10;
-            if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0, NULL, NULL, FALSE) != TRUE)
+            if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0,
+              NULL, NULL, FALSE) != TRUE)
             {
               gzerr << "Could not SetWaitableTimer" << std::endl;
             }
