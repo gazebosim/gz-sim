@@ -593,7 +593,8 @@ namespace gz
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
 #ifdef _WIN32
-      private: std::unique_ptr<SimulationRunnerWinHandleStorage> winPrecisionTimer;
+      private: std::unique_ptr<SimulationRunnerWinHandleStorage>
+        winPrecisionTimer;
 #endif
 
       friend class LevelManager;
