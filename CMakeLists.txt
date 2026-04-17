@@ -121,6 +121,48 @@ gz_find_package(gz-fuel_tools REQUIRED)
 # Option to build gz-sim with GUI support
 option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
+# Precompiled headers: cache the heavy entt registry header and common STL
+# headers so they are parsed once per target instead of once per TU. Applied
+# to the library, system plugins, and tests when ON.
+option(GZ_SIM_ENABLE_PCH "Use precompiled headers to speed up builds" ON)
+
+# Helper: generate the shared PCH on a target. Only the library target
+# should call this; other targets reuse the PCH via gz_sim_reuse_pch.
+function(gz_sim_apply_pch target)
+  if(GZ_SIM_ENABLE_PCH)
+    target_compile_definitions(${target} PRIVATE ENTT_ID_TYPE=uint64_t)
+    target_precompile_headers(${target} PRIVATE
+      <vector>
+      <map>
+      <unordered_map>
+      <unordered_set>
+      <string>
+      <memory>
+      <mutex>
+      <optional>
+      <set>
+      <tuple>
+      <type_traits>
+      <utility>
+      <gz/sim/entt/entity/registry.hpp>
+    )
+  endif()
+endfunction()
+
+# Helper: reuse the library's PCH on a dependent target. Skips generating a
+# per-target PCH (which is a net loss for small targets like system plugins).
+# Requires matching compile flags, so only use on targets that link against
+# and inherit PUBLIC flags from the library.
+function(gz_sim_reuse_pch target)
+  if(GZ_SIM_ENABLE_PCH AND TARGET ${PROJECT_LIBRARY_TARGET_NAME})
+    target_compile_definitions(${target} PRIVATE ENTT_ID_TYPE=uint64_t)
+    target_precompile_headers(${target} REUSE_FROM
+      ${PROJECT_LIBRARY_TARGET_NAME})
+    # REUSE_FROM requires matching POSITION_INDEPENDENT_CODE.
+    set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  endif()
+endfunction()
+
 if(ENABLE_GUI)
   gz_find_package(gz-gui REQUIRED)
   gz_find_package(TINYXML2 REQUIRED)

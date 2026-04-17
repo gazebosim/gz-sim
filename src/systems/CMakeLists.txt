@@ -71,6 +71,8 @@ function(gz_add_system system_name)
     )
   endif()
 
+  gz_sim_reuse_pch(${system_target})
+
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
   install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
 endfunction()

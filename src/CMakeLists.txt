@@ -220,6 +220,8 @@ target_include_directories(${PROJECT_LIBRARY_TARGET_NAME}
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/gz_msgs_gen>
 )
 
+gz_sim_apply_pch(${PROJECT_LIBRARY_TARGET_NAME})
+
 include_directories(${PROJECT_SOURCE_DIR}/test)
 
 # Build the unit tests
@@ -240,5 +242,14 @@ if (TARGET UNIT_Server_Rendering_TEST)
     gz-rendering::gz-rendering
   )
 endif()
+
+# Reuse the library's PCH on each unit test target produced by
+# gz_build_tests. Avoids the per-target PCH generation cost.
+foreach(src ${gtest_sources})
+  get_filename_component(test_name ${src} NAME_WE)
+  if(TARGET UNIT_${test_name})
+    gz_sim_reuse_pch(UNIT_${test_name})
+  endif()
+endforeach()
 
 add_subdirectory(cmd)
