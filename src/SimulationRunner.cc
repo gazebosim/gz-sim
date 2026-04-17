@@ -120,18 +120,21 @@ namespace gz
 namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE {
+// Utility class to store the windows HANDLE variable and close
+// the handle using RAII. This class also hides the HANDLE
+// type from the global header files.
 class SimulationRunnerWinHandleStorage
 {
-  private: HANDLE handle_storage{NULL};
+  private: HANDLE handleStorage{NULL};
 
-  public: HANDLE handle() { return handle_storage; }
+  public: HANDLE handle() { return handleStorage; }
 
-  public: SimulationRunnerWinHandleStorage(HANDLE h) : handle_storage(h) {}
+  public: SimulationRunnerWinHandleStorage(HANDLE h) : handleStorage(h) {}
 
   public: ~SimulationRunnerWinHandleStorage() {
-    if (handle_storage != NULL)
+    if (handleStorage != NULL)
     {
-      CloseHandle(handle_storage);
+      CloseHandle(handleStorage);
     }
   }
 };
@@ -219,10 +222,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   this->currentInfo.simTime = this->simTimeEpoch;
 
 #ifdef _WIN32
-  HANDLE winPrecisionTimer_handle = CreateWaitableTimerExA(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
-  if (winPrecisionTimer_handle != NULL)
+  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  if (winPrecisionTimerHandle != NULL)
   {
-    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(winPrecisionTimer_handle);
+    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(winPrecisionTimerHandle);
   }
 #endif
 
@@ -974,6 +977,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
             auto sleepTargetDuration = std::chrono::duration_cast<std::chrono::microseconds>(sleepTarget - now);
             LARGE_INTEGER due_time;
             memset(&due_time, 0, sizeof(due_time));
+            // Positive durations are absolute, while negative durations are relative in 10 us intervals
+            // The absolute time uses the non-precision system clock so we need to use relative time
             due_time.QuadPart = -sleepTargetDuration.count() * 10;
             if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0, NULL, NULL, FALSE) != TRUE)
             {
