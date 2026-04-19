@@ -3113,6 +3113,9 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
           _ecm.Component<components::RaycastData>(testEntity1)->Data().results;
         ASSERT_EQ(rays1.size(), results1.size());
 
+        auto groundCollision = _ecm.EntityByComponents(
+            components::Collision());
+        ASSERT_NE(groundCollision, kNullEntity);
         for (size_t i = 0; i < results1.size(); ++i) {
           ASSERT_EQ(results1[i].point, math::Vector3d(0, 0, -10));
           ASSERT_EQ(results1[i].normal, math::Vector3d(0, 0, 1));
@@ -3120,6 +3123,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
             (rays1[i].start - results1[i].point).Length() /
               (rays1[i].start - rays1[i].end).Length();
           ASSERT_NEAR(results1[i].fraction, expFraction, 1e-6);
+          EXPECT_EQ(results1[i].entity, groundCollision);
         }
 
         // check the raycasting results for testEntity2
@@ -3136,6 +3140,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
             math::eigen3::convert(results2[i].normal).array().isNaN().all());
           ASSERT_TRUE(
             std::isnan(results2[i].fraction));
+          EXPECT_EQ(results2[i].entity, kNullEntity);
         }
       });
 
