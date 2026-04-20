@@ -219,6 +219,13 @@ namespace gz
       public: std::optional<uint64_t> IterationCount(
                   const unsigned int _worldIndex = 0) const;
 
+      /// \brief Get the current simulation time.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return The current simulation time,
+      /// or std::nullopt if _worldIndex is invalid.
+      public: std::optional<std::chrono::steady_clock::duration> SimTime(
+                  const unsigned int _worldIndex = 0) const;
+
       /// \brief Get the number of entities on the server.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Entity count, or std::nullopt if _worldIndex is invalid.
@@ -358,6 +365,23 @@ namespace gz
       /// \param[in] _runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
+
+
+      /// This function allows one to introspect the state of the ecm when the
+      /// server is not running. This may be useful for unit tests.
+      /// \param[in] _func The function to call with the ECM.
+      /// \param[in] _runnerID The ID of the runner to peek.
+      public: void PeekEcm(
+            std::function<void(const EntityComponentManager&)> _func,
+            const std::size_t _runnerID = 0) const;
+
+      /// This function allows one to modify the state of the ecm when the
+      /// server is not running. This may be useful for unit tests.
+      /// \param[in] _func The function to call with the ECM.
+      /// \param[in] _runnerID The ID of the runner to poke.
+      public: void PokeEcm(
+            std::function<void(EntityComponentManager&)> _func,
+            const std::size_t _runnerID = 0);
 
       /// \brief Get the current lifecycle status of the server.
       /// \return The current status (EXITED, STOPPED, or RUNNING).
