@@ -75,6 +75,7 @@ if(BUILD_TESTING)
     ${PROJECT_SOURCE_DIR}/test/ecs/ChangeTracking_TEST.cc
     ${PROJECT_SOURCE_DIR}/test/ecs/Fuzz_TEST.cc
     ${PROJECT_SOURCE_DIR}/test/ecs/ArchetypeBackedECM_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/SystemPortParity_TEST.cc
   )
 
   find_package(GTest QUIET)
