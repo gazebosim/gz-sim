@@ -623,3 +623,114 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedDivideByZero))
   server.Run(true, iterations, false);
   EXPECT_TRUE(finished);
 }
+
+/////////////////////////////////////////////////
+// Test that cylinder, capsule, and ellipsoid shapes work with graded
+// buoyancy. All shapes are neutrally buoyant and fully submerged, so they
+// should stay at their initial positions. Uses graded buoyancy which
+// exercises both CheckForNewEntities (volume) and GradedFluidDensity.
+TEST_F(BuoyancyTest,
+    IGN_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancyCylinderCapsuleEllipsoid))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_shapes.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
+  {
+    Entity cylinder = _ecm.EntityByComponents(
+        components::Model(), components::Name("cylinder_neutral"));
+    Entity capsule = _ecm.EntityByComponents(
+        components::Model(), components::Name("capsule_neutral"));
+    Entity ellipsoid = _ecm.EntityByComponents(
+        components::Model(), components::Name("ellipsoid_neutral"));
+
+    ASSERT_NE(cylinder, kNullEntity);
+    ASSERT_NE(capsule, kNullEntity);
+    ASSERT_NE(ellipsoid, kNullEntity);
+
+    // Check Volume components have correct values
+    auto cylinderLink = _ecm.EntityByComponents(
+      components::ParentEntity(cylinder),
+      components::Name("body"),
+      components::Link());
+    auto capsuleLink = _ecm.EntityByComponents(
+      components::ParentEntity(capsule),
+      components::Name("body"),
+      components::Link());
+    auto ellipsoidLink = _ecm.EntityByComponents(
+      components::ParentEntity(ellipsoid),
+      components::Name("body"),
+      components::Link());
+
+    if (cylinderLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(cylinderLink);
+      if (vol)
+      {
+        // Cylinder: pi*r^2*l with r=0.2, l=2.0
+        EXPECT_NEAR(0.2513, vol->Data(), 1e-2);
+      }
+    }
+
+    if (capsuleLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(capsuleLink);
+      if (vol)
+      {
+        // Capsule: pi*r^2*l + (4/3)*pi*r^3 with r=0.5, l=1.0
+        EXPECT_NEAR(1.309, vol->Data(), 1e-2);
+      }
+    }
+
+    if (ellipsoidLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(ellipsoidLink);
+      if (vol)
+      {
+        // Ellipsoid: (4/3)*pi*0.5*0.4*0.3
+        EXPECT_NEAR(0.2513, vol->Data(), 1e-2);
+      }
+    }
+
+    // All neutrally buoyant and fully submerged — should stay in place.
+    auto cylinderPose = _ecm.Component<components::Pose>(cylinder);
+    auto capsulePose = _ecm.Component<components::Pose>(capsule);
+    auto ellipsoidPose = _ecm.Component<components::Pose>(ellipsoid);
+
+    ASSERT_NE(cylinderPose, nullptr);
+    ASSERT_NE(capsulePose, nullptr);
+    ASSERT_NE(ellipsoidPose, nullptr);
+
+    EXPECT_NEAR(0, cylinderPose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, cylinderPose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, cylinderPose->Data().Pos().Z(), 1e-1);
+
+    EXPECT_NEAR(3, capsulePose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, capsulePose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, capsulePose->Data().Pos().Z(), 1e-1);
+
+    EXPECT_NEAR(-3, ellipsoidPose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, ellipsoidPose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, ellipsoidPose->Data().Pos().Z(), 1e-1);
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
