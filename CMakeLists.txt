@@ -26,6 +26,15 @@ gz_configure_project(VERSION_SUFFIX pre1)
 
 option(ENABLE_PROFILER "Enable Gazebo Profiler" FALSE)
 
+# Phase 0b: select the EntityComponentManager backend at build time.
+# OFF = legacy unordered_map storage. ON = archetype ECS (gz-sim-ecs).
+# Default flips to ON in Phase 0e.
+option(GZ_SIM_ARCHETYPE_ECM
+  "Use the archetype ECS backend behind the ECM facade (Phase 0b)." OFF)
+if(GZ_SIM_ARCHETYPE_ECM)
+  add_definitions("-DGZ_SIM_USE_ARCHETYPE_ECM=1")
+endif()
+
 if(ENABLE_PROFILER)
   add_definitions("-DGZ_PROFILER_ENABLE=1")
 else()

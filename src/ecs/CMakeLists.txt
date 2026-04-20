@@ -21,6 +21,7 @@ set(ECS_SOURCES
   Query.cc
   CommandBuffer.cc
   World.cc
+  ArchetypeBackedECM.cc
 )
 
 add_library(gz-sim-ecs STATIC ${ECS_SOURCES})
@@ -61,6 +62,7 @@ if(BUILD_TESTING)
     ${PROJECT_SOURCE_DIR}/test/ecs/EachParallel_TEST.cc
     ${PROJECT_SOURCE_DIR}/test/ecs/ChangeTracking_TEST.cc
     ${PROJECT_SOURCE_DIR}/test/ecs/Fuzz_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/ArchetypeBackedECM_TEST.cc
   )
 
   find_package(GTest QUIET)
