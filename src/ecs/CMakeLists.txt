@@ -1,0 +1,118 @@
+# Phase 0a: standalone archetype ECS core (gz-sim-ecs).
+#
+# This library is intentionally decoupled from the main gz-sim library — per
+# the Phase 0a design, 0a ships the data structures only. Phase 0b wires the
+# ECS core into SimulationRunner.
+
+set(ECS_PUBLIC_HEADERS
+  ${PROJECT_SOURCE_DIR}/include/gz/sim/ecs/Entity.hh
+  ${PROJECT_SOURCE_DIR}/include/gz/sim/ecs/ComponentTypeRegistry.hh
+  ${PROJECT_SOURCE_DIR}/include/gz/sim/ecs/World.hh
+  ${PROJECT_SOURCE_DIR}/include/gz/sim/ecs/Query.hh
+  ${PROJECT_SOURCE_DIR}/include/gz/sim/ecs/CommandBuffer.hh
+)
+
+set(ECS_SOURCES
+  ComponentTypeRegistry.cc
+  EntityIndex.cc
+  Chunk.cc
+  Archetype.cc
+  ArchetypeGraph.cc
+  Query.cc
+  CommandBuffer.cc
+  World.cc
+)
+
+add_library(gz-sim-ecs STATIC ${ECS_SOURCES})
+
+target_include_directories(gz-sim-ecs
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>  # for generated gz/sim/config.hh
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_compile_features(gz-sim-ecs PUBLIC cxx_std_20)
+
+# Position-independent so this static lib can eventually be folded into a
+# shared gz-sim in Phase 0b.
+set_target_properties(gz-sim-ecs PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# gz-common provides hash64() + WorkerPool. Types.hh comes in via the
+# gz-sim include tree (header-only dependency in 0a).
+target_link_libraries(gz-sim-ecs PUBLIC
+  gz-common::gz-common
+)
+
+if(UNIX)
+  target_link_libraries(gz-sim-ecs PUBLIC pthread)
+endif()
+
+if(BUILD_TESTING)
+  set(ECS_TEST_SOURCES
+    ${PROJECT_SOURCE_DIR}/test/ecs/Entity_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/EntityIndex_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/ComponentTypeRegistry_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/Chunk_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/Archetype_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/World_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/CommandBuffer_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/EachParallel_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/ChangeTracking_TEST.cc
+    ${PROJECT_SOURCE_DIR}/test/ecs/Fuzz_TEST.cc
+  )
+
+  find_package(GTest QUIET)
+  if(GTest_FOUND OR TARGET GTest::gtest_main)
+    foreach(test_src ${ECS_TEST_SOURCES})
+      get_filename_component(test_name ${test_src} NAME_WE)
+      set(test_target UNIT_ECS_${test_name})
+      if(EXISTS ${test_src})
+        add_executable(${test_target} ${test_src})
+        target_link_libraries(${test_target}
+          PRIVATE gz-sim-ecs GTest::gtest GTest::gtest_main pthread)
+        target_include_directories(${test_target} PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR})
+        add_test(NAME ${test_target} COMMAND ${test_target})
+      endif()
+    endforeach()
+  endif()
+endif()
+
+# Benchmarks, built on demand with -DGZ_SIM_ECS_BENCH=ON.
+if(GZ_SIM_ECS_BENCH)
+  set(ECS_BENCH_SOURCES
+    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_iteration.cc
+    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_transitions.cc
+    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_parallel.cc
+  )
+  foreach(bench_src ${ECS_BENCH_SOURCES})
+    get_filename_component(bench_name ${bench_src} NAME_WE)
+    if(EXISTS ${bench_src})
+      add_executable(${bench_name} ${bench_src})
+      target_link_libraries(${bench_name} PRIVATE gz-sim-ecs pthread)
+      target_include_directories(${bench_name} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/benchmark/ecs)
+      target_compile_options(${bench_name} PRIVATE -O3 -DNDEBUG)
+    endif()
+  endforeach()
+
+  # Head-to-head bench vs the classic EntityComponentManager. Declared here,
+  # linked against the main gz-sim library. The main library target is
+  # created later in src/CMakeLists.txt; CMake resolves the link at
+  # generation time, so the forward reference is fine.
+  set(vs_ecm_src ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_vs_ecm.cc)
+  if(EXISTS ${vs_ecm_src})
+    add_executable(bench_vs_ecm ${vs_ecm_src})
+    target_link_libraries(bench_vs_ecm PRIVATE
+      gz-sim-ecs
+      gz-sim
+      pthread)
+    target_include_directories(bench_vs_ecm PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      ${PROJECT_SOURCE_DIR}/benchmark/ecs)
+    target_compile_options(bench_vs_ecm PRIVATE -O3 -DNDEBUG)
+  endif()
+endif()

@@ -6,6 +6,10 @@ endif()
 
 add_subdirectory(systems)
 
+# Phase 0a: standalone archetype ECS core library (gz-sim-ecs).
+# Built but not linked into libgz-sim yet — 0b flips that.
+add_subdirectory(ecs)
+
 file(GLOB gz_msgs_proto_files
   ${CMAKE_CURRENT_SOURCE_DIR}/proto/gz/sim/private_msgs/*.proto
 )
