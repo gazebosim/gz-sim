@@ -576,8 +576,6 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 
   ASSERT_TRUE(elem->HasElement("model"));
   auto modelElem = elem->GetElement("model");
-  // TODO(luca) This seems to be an endless loop?
-  return;
   for (; modelElem; modelElem->GetNextElement("model"))
   {
     if (modelName == modelElem->Get<std::string>("name"))
