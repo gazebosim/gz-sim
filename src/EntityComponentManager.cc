@@ -951,7 +951,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   // If entity has never had a component of this type
   if (!storage || !storage->contains(_entity))
   {
-    if (!components::Factory::Instance()->SyncComponent(this->Registry(), _entity, _componentTypeId, newComp.get()))
+    if (storage->push(_entity, newComp.get()) == storage->end())
     {
       gzwarn << "Failed syncing component. This should not happen." << std::endl;
     } else {
@@ -1933,20 +1933,25 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
     // Now copy the actual gazebo components
     const auto componentTypes = _fromEcm.ComponentTypes(e);
     for (const auto& typeId : componentTypes) {
-      const auto& storage = _fromEcm.Registry().storage(typeId);
-      if (!storage) {
+      const auto& fromStorage = _fromEcm.Registry().storage(typeId);
+      auto* toStorage = this->Registry().storage(typeId);
+      if (!fromStorage || !toStorage) {
         gzwarn << "Storage not found for component, this shouldn't happen" << std::endl;
         continue;
       }
-      const auto* baseCompPtr = static_cast<const components::BaseComponent*>(storage->value(e));
+      const auto* baseCompPtr = static_cast<const components::BaseComponent*>(fromStorage->value(e));
       if (!baseCompPtr) {
         gzwarn << "Couldn't cast component to its base class, this shouldn't happen" << std::endl;
         continue;
       }
-      if (!components::Factory::Instance()->SyncComponent(this->Registry(), e, typeId, baseCompPtr->Clone().get()))
-      {
-        gzerr << "Failed syncing component!" << std::endl;
-      }
+
+      // TODO(luca) Previously we were calling Clone() on the component that seems to
+      // only copy its data. This seems equivalent to the copy constructor which
+      // will do the same. Entt calls the copy constructor behind the scenes so we shouldn't need
+      // to call Clone anymore?
+      if (toStorage->contains(e))
+        toStorage->remove(e);
+      toStorage->push(e, baseCompPtr);
     }
   });
 }
