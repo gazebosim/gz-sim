@@ -60,7 +60,7 @@ class TestTestFixture(unittest.TestCase):
         self.assertEqual(0, server.iteration_count())
         self.assertEqual(timedelta(seconds=0), server.sim_time())
         # world, model, link
-        self.assertEqual(3, server.entity_count())
+        self.assertEqual(5, server.entity_count())
         # physics, python loader, helper
         self.assertEqual(3, server.system_count())
 
