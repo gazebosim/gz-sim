@@ -62,7 +62,7 @@ class TestTestFixture(unittest.TestCase):
         # world, model, link
         self.assertEqual(5, server.entity_count())
         # physics, python loader, helper
-        self.assertEqual(3, server.system_count())
+        self.assertEqual(5, server.system_count())
 
         server.run(True, 1000, False)
 
