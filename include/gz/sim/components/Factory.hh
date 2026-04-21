@@ -459,13 +459,22 @@ struct type_hash<Type, std::void_t<decltype(Type::typeIdStatic())>> {
 /// register the component again, so we prevent that.
 /// \param[in] _compType Component type name.
 /// \param[in] _classname Class name for component.
+///
+/// This macro defines a non-member function `componentTypeId` in the current
+/// namespace. This function is used by the `Component` class template to
+/// discover the component's unique ID via Argument Dependent Lookup (ADL).
+/// This removes the constraint that all components must be defined inside the
+/// `gz::sim::components` namespace, enabling custom components to be defined
+/// in any namespace.
+///
+/// We take a pointer to `_classname` as the argument to avoid name collisions
+/// and support distinguishing components that share the same tag type but have
+/// different data types.
 #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
-template <> \
-struct ComponentTypeTraits<_classname> \
+inline constexpr ::gz::sim::ComponentTypeId componentTypeId(_classname*) \
 { \
-  static constexpr ::gz::sim::ComponentTypeId typeId = \
-      ::gz::common::hash64(_compType); \
-}; \
+  return ::gz::common::hash64(_compType); \
+} \
 class GzSimComponents##_classname \
 { \
   public: GzSimComponents##_classname() \

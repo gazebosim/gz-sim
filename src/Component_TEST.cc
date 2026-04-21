@@ -513,10 +513,9 @@ TEST_F(ComponentTest, IStream)
   }
 }
 
-// CHANGED we can't register components outside the gz::sim::components namespace
-namespace gz::sim::components
+namespace test_components
 {
-  using ConstexprComp = Component<int, class ConstexprTag>;
+  using ConstexprComp = gz::sim::components::Component<int, class ConstexprTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
 }
 
@@ -526,7 +525,7 @@ TEST_F(ComponentTest, TypeId)
   // CHANGED it is not allowed to change the typeId at runtime anymore.
   // Constexpr TypeId
   {
-    using ConstexprComp = components::ConstexprComp;
+    using ConstexprComp = test_components::ConstexprComp;
     static_assert(ConstexprComp::typeIdStatic() ==
         common::hash64("gz_sim_components.ConstexprComp"));
 
