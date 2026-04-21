@@ -72,6 +72,12 @@ namespace gz
     struct PeriodicChangedComponents {
       std::unordered_set<ComponentTypeId> data;
     };
+    struct ComponentsMarkedAsRemoved {
+      std::unordered_set<ComponentTypeId> data;
+    };
+    struct RemovedComponents {
+      std::unordered_set<ComponentTypeId> data;
+    };
     struct RemoveEntity { };
     struct Children {
       std::set<Entity> data;

@@ -126,12 +126,6 @@ class gz::sim::EntityComponentManagerPrivate
   public: template<typename ComponentTypeT>
           bool ClonedJointLinkName(Entity _joint, Entity _originalLink,
               EntityComponentManager *_ecm);
-          /*
-
-  /// \brief All component types that have ever been created.
-  public: std::unordered_set<ComponentTypeId> createdCompTypes;
-
-          */
 
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
@@ -144,20 +138,6 @@ class gz::sim::EntityComponentManagerPrivate
 
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
-
-  /// \brief Unordered map of removed components. The key is the entity to
-  /// which belongs the component, and the value is a set of the component types
-  /// being removed.
-  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
-    removedComponents;
-
-  /// \brief All components that have been removed. The difference between
-  /// removedComponents and componentsMarkedAsRemoved is that removedComponents
-  /// keeps track of components that were removed in the current simulation
-  /// step, while componentsMarkedAsRemoved keeps track of components that are
-  /// currently removed based on all simulation steps.
-  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
-    componentsMarkedAsRemoved;
 
   /// \brief During cloning, we populate two maps:
   ///  - map of cloned model entities to the non-cloned model's canonical link
@@ -260,6 +240,8 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<Children>();
   this->Registry().storage<OneTimeChangedComponents>();
   this->Registry().storage<PeriodicChangedComponents>();
+  this->Registry().storage<ComponentsMarkedAsRemoved>();
+  this->Registry().storage<RemovedComponents>();
 
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
 }
@@ -272,8 +254,6 @@ void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
   this->entityCount = _from.entityCount;
-  this->removedComponents = _from.removedComponents;
-  this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
@@ -572,14 +552,14 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 bool EntityComponentManager::HasRemovedComponents() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-  return !this->dataPtr->removedComponents.empty();
+  return this->Registry().view<RemovedComponents>().size() > 0;
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::ClearRemovedComponents()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-  this->dataPtr->removedComponents.clear();
+  this->Registry().clear<RemovedComponents>();
 }
 
 /////////////////////////////////////////////////
@@ -677,7 +657,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       }
     }
     this->Registry().destroy(entity);
-    this->dataPtr->componentsMarkedAsRemoved.erase(entity);
   }
 }
 
@@ -728,7 +707,8 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity, const Com
   // Add component to map of removed components
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-    this->dataPtr->removedComponents[_entity].insert(_typeId);
+    auto& removedComp = this->Registry().get_or_emplace<RemovedComponents>(_entity);
+    removedComp.data.insert(_typeId);
   }
 
   this->MarkComponentAsRemoved(_entity, _typeId, true);
@@ -833,15 +813,12 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
     }
   });
 
-  // Get all removed components
-  for (const auto &[entity, components] :
-    this->dataPtr->componentsMarkedAsRemoved)
-  {
-    for (const auto &comp : components)
+  this->Registry().view<ComponentsMarkedAsRemoved>().each([&_changes](const Entity& e, const ComponentsMarkedAsRemoved& removed) {
+    for (const auto& typeId : removed.data)
     {
-      _changes[comp].erase(entity);
+      _changes[typeId].erase(e);
     }
-  }
+  });
 
   // Get all removed entities
   this->Registry().view<const RemoveEntity>().each([this, &_changes](const Entity e) {
@@ -1057,10 +1034,10 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
-  auto entRemovedCompsIter = this->removedComponents.find(_entity);
-  if (entRemovedCompsIter == this->removedComponents.end())
+  const auto* removedComps = this->registry.try_get<RemovedComponents>(_entity);
+  if (!removedComps)
     return;
-  for (const auto &compType : entRemovedCompsIter->second)
+  for (const auto &compType : removedComps->data)
   {
     if (!_types.empty() && _types.find(compType) == _types.end())
     {
@@ -1082,11 +1059,8 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     const std::unordered_set<ComponentTypeId> &_types)
 {
   std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
-  auto entRemovedCompsIter = this->removedComponents.find(_entity);
-  if (entRemovedCompsIter == this->removedComponents.end())
-    return;
-  uint64_t nEntityKeys = entRemovedCompsIter->second.size();
-  if (nEntityKeys == 0)
+  const auto* removedComps = this->registry.try_get<RemovedComponents>(_entity);
+  if (!removedComps || removedComps->data.empty())
     return;
 
   // The message need not necessarily contain the entity initially. For
@@ -1103,7 +1077,7 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
       .first;
   }
 
-  for (const auto &compType : entRemovedCompsIter->second)
+  for (const auto &compType : removedComps->data)
   {
     if (!_types.empty() && _types.find(compType) == _types.end())
     {
@@ -1790,10 +1764,11 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
     const Entity _entity, const ComponentTypeId _typeId) const
 {
-  auto iter = this->componentsMarkedAsRemoved.find(_entity);
-  if (iter != this->componentsMarkedAsRemoved.end())
-    return iter->second.find(_typeId) != iter->second.end();
-
+  const auto* markedAsRemovedComp = this->registry.try_get<ComponentsMarkedAsRemoved>(_entity);
+  if (markedAsRemovedComp && markedAsRemovedComp->data.find(_typeId) != markedAsRemovedComp->data.end())
+  {
+    return true;
+  }
   return false;
 }
 
@@ -2009,9 +1984,18 @@ std::optional<Entity> EntityComponentManager::EntityByName(
 void EntityComponentManager::MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed)
 {
   if (_removed)
-    this->dataPtr->componentsMarkedAsRemoved[_entity].insert(_id);
+  {
+    auto& markedAsRemovedComp = this->Registry().get_or_emplace<ComponentsMarkedAsRemoved>(_entity);
+    markedAsRemovedComp.data.insert(_id);
+  }
   else
-    this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_id);
+  {
+    auto* markedAsRemovedComp = this->Registry().try_get<ComponentsMarkedAsRemoved>(_entity);
+    if (markedAsRemovedComp)
+    {
+      markedAsRemovedComp->data.erase(_id);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
