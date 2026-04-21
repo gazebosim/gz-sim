@@ -70,10 +70,6 @@ class gz::sim::EntityComponentManagerPrivate
   public: void InsertEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
-  /// \brief Allots the work for multiple threads prior to running
-  /// `AddEntityToMessage`.
-  public: void CalculateStateThreadLoad();
-
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
   /// it can have additional parameters if the need arises in the future.
@@ -141,12 +137,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// entities that had this type of component changed.
   public: std::unordered_map<ComponentTypeId, std::unordered_set<Entity>>
             periodicChangedComponents;
-
-  /// \brief Components that have been changed through a one-time change.
-  /// The key is the type of component which has changed, and the value is the
-  /// entities that had this type of component changed.
-  public: std::unordered_map<ComponentTypeId, std::unordered_set<Entity>>
-            oneTimeChangedComponents;
 
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
@@ -279,7 +269,6 @@ void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
   this->periodicChangedComponents = _from.periodicChangedComponents;
-  this->oneTimeChangedComponents = _from.oneTimeChangedComponents;
   this->entityCount = _from.entityCount;
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
@@ -712,12 +701,14 @@ bool EntityComponentManager::RemoveComponent(
 /////////////////////////////////////////////////
 void EntityComponentManager::PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId)
 {
-  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_typeId);
-  if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
+  auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
+  if (oneTimeChangeComp)
   {
-    oneTimeIter->second.erase(_entity);
-    if (oneTimeIter->second.empty())
-      this->dataPtr->oneTimeChangedComponents.erase(oneTimeIter);
+    oneTimeChangeComp->data.erase(_typeId);
+    if (oneTimeChangeComp->data.empty())
+    {
+      this->Registry().erase<OneTimeChangedComponents>(_entity);
+    }
   }
 
   auto periodicIter = this->dataPtr->periodicChangedComponents.find(_typeId);
@@ -772,9 +763,8 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
     return result;
 
-  auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_typeId);
-  if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end() &&
-      oneTimeIter->second.find(_entity) != oneTimeIter->second.end())
+  const auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
+  if (oneTimeChangeComp && oneTimeChangeComp->data.find(_typeId) != oneTimeChangeComp->data.end())
   {
     result = ComponentState::OneTimeChange;
   }
@@ -807,7 +797,7 @@ bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasOneTimeComponentChanges() const
 {
-  return !this->dataPtr->oneTimeChangedComponents.empty();
+  return this->Registry().view<OneTimeChangedComponents>().size() > 0;
 }
 
 /////////////////////////////////////////////////
@@ -942,7 +932,9 @@ bool EntityComponentManager::CreateComponentImplementation(
   bool updateData = true;
 
   this->dataPtr->AddModifiedComponent(_entity);
-  this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(_entity);
+
+  auto& oneTimeChangedComp = this->Registry().get_or_emplace<OneTimeChangedComponents>(_entity);
+  oneTimeChangedComp.data.insert(_componentTypeId);
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
@@ -1219,10 +1211,11 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
       // see if the entity has a component of this particular type marked as a
       // one time change
-      auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(type);
-      if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end() &&
-          oneTimeIter->second.find(_entity) != oneTimeIter->second.end())
+      const auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
+      if (oneTimeChangeComp && oneTimeChangeComp->data.find(type) != oneTimeChangeComp->data.end())
+      {
         noChange = false;
+      }
 
       if (noChange)
       {
@@ -1312,33 +1305,6 @@ void EntityComponentManager::ChangedState(
   this->Registry().view<const ModifiedComponent>(entt::exclude<NewEntity, RemoveEntity>).each([this, &_state](const Entity& e) {
       this->AddEntityToMessage(_state, e);
   });
-}
-
-//////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CalculateStateThreadLoad()
-{
-
-  /*
-  // Push back the starting iterator
-  this->componentTypeIndexIterators.push_back(startIt);
-  for (uint64_t i = 0; i < numThreads; ++i)
-  {
-    // If we have added all of the entities to the iterator vector, we are
-    // done so push back the end iterator
-    numEntities -= entitiesPerThread;
-    if (numEntities <= 0)
-    {
-      this->componentTypeIndexIterators.push_back(
-          this->componentTypeIndex.end());
-      break;
-    }
-
-    // Get the iterator to the next starting group of entities
-    auto nextIt = std::next(startIt, entitiesPerThread);
-    this->componentTypeIndexIterators.push_back(nextIt);
-    startIt = nextIt;
-  }
-  */
 }
 
 //////////////////////////////////////////////////
@@ -1687,7 +1653,7 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 void EntityComponentManager::SetAllComponentsUnchanged()
 {
   this->dataPtr->periodicChangedComponents.clear();
-  this->dataPtr->oneTimeChangedComponents.clear();
+  this->Registry().clear<OneTimeChangedComponents>();
   this->Registry().clear<ModifiedComponent>();
 }
 
@@ -1707,25 +1673,30 @@ void EntityComponentManager::SetChanged(
   if (_c == ComponentState::PeriodicChange)
   {
     this->dataPtr->periodicChangedComponents[_type].insert(_entity);
-    auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
-    if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
-      oneTimeIter->second.erase(_entity);
+    auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
+    if (oneTimeChangeComp)
+    {
+      oneTimeChangeComp->data.erase(_type);
+    }
   }
   else if (_c == ComponentState::OneTimeChange)
   {
     auto periodicIter = this->dataPtr->periodicChangedComponents.find(_type);
     if (periodicIter != this->dataPtr->periodicChangedComponents.end())
       periodicIter->second.erase(_entity);
-    this->dataPtr->oneTimeChangedComponents[_type].insert(_entity);
+    auto& oneTimeChangedComp = this->Registry().get_or_emplace<OneTimeChangedComponents>(_entity);
+    oneTimeChangedComp.data.insert(_type);
   }
   else
   {
     auto periodicIter = this->dataPtr->periodicChangedComponents.find(_type);
     if (periodicIter != this->dataPtr->periodicChangedComponents.end())
       periodicIter->second.erase(_entity);
-    auto oneTimeIter = this->dataPtr->oneTimeChangedComponents.find(_type);
-    if (oneTimeIter != this->dataPtr->oneTimeChangedComponents.end())
-      oneTimeIter->second.erase(_entity);
+    auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
+    if (oneTimeChangeComp)
+    {
+      oneTimeChangeComp->data.erase(_type);
+    }
 
     // the component state is flagged as no change, so don't mark the
     // corresponding entity as one with a modified component
@@ -1744,12 +1715,7 @@ std::unordered_set<ComponentTypeId> EntityComponentManager::ComponentTypes(
       this->Registry(), _entity);
   for (const auto [typeId, storage] : handle.storage())
   {
-    // TODO(luca) remember to add component types here for internal components
-    if (typeId == entt::type_hash<NewEntity>::value() ||
-        typeId == entt::type_hash<RemoveEntity>::value() ||
-        typeId == entt::type_hash<ModifiedComponent>::value() ||
-        typeId == entt::type_hash<PinnedEntity>::value() ||
-        typeId == entt::type_hash<Children>::value())
+    if (!components::Factory::Instance()->HasType(typeId))
     {
       continue;
     }
@@ -1911,6 +1877,7 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
   const auto& removeStorage = _fromEcm.Registry().storage<RemoveEntity>();
   const auto& pinnedStorage = _fromEcm.Registry().storage<PinnedEntity>();
   const auto& modifiedStorage = _fromEcm.Registry().storage<ModifiedComponent>();
+  const auto& oneTimeStorage = _fromEcm.Registry().storage<OneTimeChangedComponents>();
   const auto& childrenStorage = _fromEcm.Registry().storage<Children>();
   // TODO(luca) clean this up by just copying entities through iterators
   // instead of using high level APIs such as CreateEntityImplementation
@@ -1928,6 +1895,8 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
       this->Registry().emplace<PinnedEntity>(e);
     if (modifiedStorage && modifiedStorage->contains(e))
       this->Registry().emplace<ModifiedComponent>(e);
+    if (oneTimeStorage && oneTimeStorage->contains(e))
+      this->Registry().emplace_or_replace<OneTimeChangedComponents>(e, oneTimeStorage->get(e));
     if (childrenStorage->contains(e))
       this->Registry().replace<Children>(e, childrenStorage->get(e));
     // Now copy the actual gazebo components
@@ -2057,7 +2026,6 @@ void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 std::optional<Entity> EntityComponentManager::EntityByName(
     const std::string &_name) const
 {
-  // TODO(luca) Just do a hashmap check with builtin name support
   std::optional<Entity> entity;
    Entity entByName = EntityByComponents(components::Name(_name));
   if (entByName != kNullEntity)

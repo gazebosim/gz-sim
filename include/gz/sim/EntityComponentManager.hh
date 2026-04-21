@@ -64,14 +64,14 @@ namespace gz
       class GroupQueuer;
     }
 
-    /// \brief Type alias for the graph that holds entities.
-    /// Each vertex is an entity, and the direction points from the parent to
-    /// its children.
-    /// All edges are positive booleans.
-    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
-
     struct ModifiedComponent { };
     struct NewEntity { };
+    struct OneTimeChangedComponents {
+      std::unordered_set<ComponentTypeId> data;
+    };
+    struct PeriodicChangedComponents {
+      std::unordered_set<ComponentTypeId> data;
+    };
     struct RemoveEntity { };
     struct Children {
       std::set<Entity> data;
