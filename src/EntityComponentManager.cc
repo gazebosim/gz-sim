@@ -258,6 +258,13 @@ void EntityComponentManager::EnqueueGroup(
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
+  this->Registry().storage<NewEntity>();
+  this->Registry().storage<RemoveEntity>();
+  this->Registry().storage<ModifiedComponent>();
+  this->Registry().storage<PinnedEntity>();
+  this->Registry().storage<Children>();
+  this->Registry().storage<OneTimeChangedComponents>();
+
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
 }
 
@@ -1696,6 +1703,10 @@ void EntityComponentManager::SetChanged(
     if (oneTimeChangeComp)
     {
       oneTimeChangeComp->data.erase(_type);
+      if (oneTimeChangeComp->data.empty())
+      {
+        this->Registry().erase<OneTimeChangedComponents>(_entity);
+      }
     }
 
     // the component state is flagged as no change, so don't mark the
@@ -1873,54 +1884,20 @@ void EntityComponentManager::UnpinAllEntities()
 void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
-  const auto& newStorage = _fromEcm.Registry().storage<NewEntity>();
-  const auto& removeStorage = _fromEcm.Registry().storage<RemoveEntity>();
-  const auto& pinnedStorage = _fromEcm.Registry().storage<PinnedEntity>();
-  const auto& modifiedStorage = _fromEcm.Registry().storage<ModifiedComponent>();
-  const auto& oneTimeStorage = _fromEcm.Registry().storage<OneTimeChangedComponents>();
-  const auto& childrenStorage = _fromEcm.Registry().storage<Children>();
-  // TODO(luca) clean this up by just copying entities through iterators
-  // instead of using high level APIs such as CreateEntityImplementation
+
   _fromEcm.Registry().view<const Entity>().each([&](const Entity& e) {
     if (this->HasEntity(e))
       this->Registry().destroy(e);
-    this->dataPtr->CreateEntityImplementation(e);
-    // Created entities already have a NewEntity component
-    // Some storages might not be initialized
-    if (!newStorage->contains(e))
-      this->Registry().remove<NewEntity>(e);
-    if (removeStorage && removeStorage->contains(e))
-      this->Registry().emplace<RemoveEntity>(e);
-    if (pinnedStorage && pinnedStorage->contains(e))
-      this->Registry().emplace<PinnedEntity>(e);
-    if (modifiedStorage && modifiedStorage->contains(e))
-      this->Registry().emplace<ModifiedComponent>(e);
-    if (oneTimeStorage && oneTimeStorage->contains(e))
-      this->Registry().emplace_or_replace<OneTimeChangedComponents>(e, oneTimeStorage->get(e));
-    if (childrenStorage->contains(e))
-      this->Registry().replace<Children>(e, childrenStorage->get(e));
-    // Now copy the actual gazebo components
-    const auto componentTypes = _fromEcm.ComponentTypes(e);
-    for (const auto& typeId : componentTypes) {
-      const auto& fromStorage = _fromEcm.Registry().storage(typeId);
-      auto* toStorage = this->Registry().storage(typeId);
-      if (!fromStorage || !toStorage) {
-        gzwarn << "Storage not found for component, this shouldn't happen" << std::endl;
-        continue;
-      }
-      const auto* baseCompPtr = static_cast<const components::BaseComponent*>(fromStorage->value(e));
-      if (!baseCompPtr) {
-        gzwarn << "Couldn't cast component to its base class, this shouldn't happen" << std::endl;
-        continue;
-      }
+    this->Registry().create(e);
 
-      // TODO(luca) Previously we were calling Clone() on the component that seems to
-      // only copy its data. This seems equivalent to the copy constructor which
-      // will do the same. Entt calls the copy constructor behind the scenes so we shouldn't need
-      // to call Clone anymore?
-      if (toStorage->contains(e))
-        toStorage->remove(e);
-      toStorage->push(e, baseCompPtr);
+    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
+        _fromEcm.Registry(), e);
+    for (const auto [typeId, fromStorage] : fromHandle.storage())
+    {
+      auto* toStorage = this->Registry().storage(typeId);
+      if (toStorage) {
+        toStorage->push(e, fromStorage.value(e));
+      }
     }
   });
 }
@@ -1948,12 +1925,16 @@ void EntityComponentManager::ApplyEntityDiff(
 {
   auto copyComponents = [&](Entity _entity)
   {
-    for (const auto compTypeId : _other.ComponentTypes(_entity))
+    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
+        _other.Registry(), _entity);
+    for (const auto [typeId, fromStorage] : fromHandle.storage())
     {
-      const components::BaseComponent *data =
-          _other.ComponentImplementation(_entity, compTypeId);
-      this->CreateComponentImplementation(_entity, compTypeId,
-                                          data->Clone().get());
+      auto* toStorage = this->Registry().storage(typeId);
+      if (toStorage) {
+        if (toStorage->contains(_entity))
+          toStorage->remove(_entity);
+        toStorage->push(_entity, fromStorage.value(_entity));
+      }
     }
   };
 
@@ -1961,7 +1942,7 @@ void EntityComponentManager::ApplyEntityDiff(
   {
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(entity);
+      this->Registry().create(entity);
       if (entity >= this->dataPtr->entityCount)
       {
         this->dataPtr->entityCount = entity;
@@ -1971,40 +1952,19 @@ void EntityComponentManager::ApplyEntityDiff(
     }
   }
 
-  const auto& newStorage = _other.Registry().storage<NewEntity>();
-  const auto& removeStorage = _other.Registry().storage<RemoveEntity>();
-  const auto& pinnedStorage = _other.Registry().storage<PinnedEntity>();
-  const auto& modifiedStorage = _other.Registry().storage<ModifiedComponent>();
-  const auto& childrenStorage = _other.Registry().storage<Children>();
-
   for (const auto &entity : _diff.RemovedEntities())
   {
     // if the entity is not in this ECM, add it before requesting for its
     // removal.
     if (!this->HasEntity(entity))
     {
-      this->dataPtr->CreateEntityImplementation(entity);
-      // We want to set this entity as "removed", but
-      // CreateEntityImplementation sets it as "newlyCreated",
-      // so remove it from that list.
-      this->Registry().remove<NewEntity>(entity);
+      this->Registry().create(entity);
       // Copy components so that EachRemoved match correctly
       if (entity >= this->dataPtr->entityCount)
       {
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
-      if (!newStorage->contains(entity))
-        this->Registry().remove<NewEntity>(entity);
-      if (removeStorage && removeStorage->contains(entity))
-        this->Registry().emplace<RemoveEntity>(entity);
-      if (pinnedStorage && pinnedStorage->contains(entity))
-        this->Registry().emplace<PinnedEntity>(entity);
-      if (modifiedStorage && modifiedStorage->contains(entity))
-        this->Registry().emplace<ModifiedComponent>(entity);
-      // Children is already present
-      if (childrenStorage->contains(entity))
-        this->Registry().replace<Children>(entity, childrenStorage->get(entity));
       this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 
