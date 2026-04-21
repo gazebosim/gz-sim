@@ -132,11 +132,6 @@ class gz::sim::EntityComponentManagerPrivate
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
 
           */
-  /// \brief Components that have been changed through a periodic change.
-  /// The key is the type of component which has changed, and the value is the
-  /// entities that had this type of component changed.
-  public: std::unordered_map<ComponentTypeId, std::unordered_set<Entity>>
-            periodicChangedComponents;
 
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
@@ -264,6 +259,7 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<PinnedEntity>();
   this->Registry().storage<Children>();
   this->Registry().storage<OneTimeChangedComponents>();
+  this->Registry().storage<PeriodicChangedComponents>();
 
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
 }
@@ -275,7 +271,6 @@ EntityComponentManager::~EntityComponentManager() = default;
 void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
-  this->periodicChangedComponents = _from.periodicChangedComponents;
   this->entityCount = _from.entityCount;
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
@@ -718,12 +713,14 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity, const Com
     }
   }
 
-  auto periodicIter = this->dataPtr->periodicChangedComponents.find(_typeId);
-  if (periodicIter != this->dataPtr->periodicChangedComponents.end())
+  auto* periodicChangeComp = this->Registry().try_get<PeriodicChangedComponents>(_entity);
+  if (periodicChangeComp)
   {
-    periodicIter->second.erase(_entity);
-    if (periodicIter->second.empty())
-      this->dataPtr->periodicChangedComponents.erase(periodicIter);
+    periodicChangeComp->data.erase(_typeId);
+    if (periodicChangeComp->data.empty())
+    {
+      this->Registry().erase<PeriodicChangedComponents>(_entity);
+    }
   }
 
   this->dataPtr->AddModifiedComponent(_entity);
@@ -762,29 +759,24 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 ComponentState EntityComponentManager::ComponentState(const Entity _entity,
     const ComponentTypeId _typeId) const
 {
-  auto result = ComponentState::NoChange;
-
   if (!this->HasEntity(_entity))
-    return result;
+    return ComponentState::NoChange;
 
   if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
-    return result;
+    return ComponentState::NoChange;
 
   const auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
   if (oneTimeChangeComp && oneTimeChangeComp->data.find(_typeId) != oneTimeChangeComp->data.end())
   {
-    result = ComponentState::OneTimeChange;
+    return ComponentState::OneTimeChange;
   }
-  else
+  const auto* periodicChangeComp = this->Registry().try_get<PeriodicChangedComponents>(_entity);
+  if (periodicChangeComp && periodicChangeComp->data.find(_typeId) != periodicChangeComp->data.end())
   {
-    auto periodicIter =
-      this->dataPtr->periodicChangedComponents.find(_typeId);
-    if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
-        periodicIter->second.find(_entity) != periodicIter->second.end())
-      result = ComponentState::PeriodicChange;
+    return ComponentState::PeriodicChange;
   }
 
-  return result;
+  return ComponentState::NoChange;
 }
 
 /////////////////////////////////////////////////
@@ -810,18 +802,21 @@ bool EntityComponentManager::HasOneTimeComponentChanges() const
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasPeriodicComponentChanges() const
 {
-  return !this->dataPtr->periodicChangedComponents.empty();
+  return this->Registry().view<PeriodicChangedComponents>().size() > 0;
 }
 
 /////////////////////////////////////////////////
 std::unordered_set<ComponentTypeId>
     EntityComponentManager::ComponentTypesWithPeriodicChanges() const
 {
+  // TODO(luca) Remove this API since it seems unused and became more expensive
   std::unordered_set<ComponentTypeId> periodicComponents;
-  for (const auto& typeToEntityPtrs : this->dataPtr->periodicChangedComponents)
-  {
-    periodicComponents.insert(typeToEntityPtrs.first);
-  }
+  this->Registry().view<PeriodicChangedComponents>().each([&periodicComponents](const PeriodicChangedComponents& changes) {
+    for (const auto& typeId : changes.data)
+    {
+      periodicComponents.insert(typeId);
+    }
+  });
   return periodicComponents;
 }
 
@@ -831,12 +826,12 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
   std::unordered_set<Entity>> &_changes) const
 {
   // Get all changes
-  for (const auto &[componentType, entities] :
-    this->dataPtr->periodicChangedComponents)
-  {
-    _changes[componentType].insert(
-      entities.begin(), entities.end());
-  }
+  this->Registry().view<PeriodicChangedComponents>().each([&_changes](const Entity& e, const PeriodicChangedComponents& changes) {
+    for (const auto& typeId : changes.data)
+    {
+      _changes[typeId].insert(e);
+    }
+  });
 
   // Get all removed components
   for (const auto &[entity, components] :
@@ -1226,12 +1221,11 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
 
       if (noChange)
       {
-        // see if the entity has a component of this particular type marked as a
-        // periodic change
-        auto periodicIter = this->dataPtr->periodicChangedComponents.find(type);
-        if (periodicIter != this->dataPtr->periodicChangedComponents.end() &&
-            periodicIter->second.find(_entity) != periodicIter->second.end())
+        const auto* periodicChangeComp = this->Registry().try_get<PeriodicChangedComponents>(_entity);
+        if (periodicChangeComp && periodicChangeComp->data.find(type) != periodicChangeComp->data.end())
+        {
           noChange = false;
+        }
       }
 
       if (noChange)
@@ -1659,7 +1653,7 @@ std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
 //////////////////////////////////////////////////
 void EntityComponentManager::SetAllComponentsUnchanged()
 {
-  this->dataPtr->periodicChangedComponents.clear();
+  this->Registry().clear<PeriodicChangedComponents>();
   this->Registry().clear<OneTimeChangedComponents>();
   this->Registry().clear<ModifiedComponent>();
 }
@@ -1679,26 +1673,43 @@ void EntityComponentManager::SetChanged(
 
   if (_c == ComponentState::PeriodicChange)
   {
-    this->dataPtr->periodicChangedComponents[_type].insert(_entity);
+    auto& periodicChangedComp = this->Registry().get_or_emplace<PeriodicChangedComponents>(_entity);
+    periodicChangedComp.data.insert(_type);
     auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
     if (oneTimeChangeComp)
     {
       oneTimeChangeComp->data.erase(_type);
+      if (oneTimeChangeComp->data.empty())
+      {
+        this->Registry().erase<OneTimeChangedComponents>(_entity);
+      }
     }
   }
   else if (_c == ComponentState::OneTimeChange)
   {
-    auto periodicIter = this->dataPtr->periodicChangedComponents.find(_type);
-    if (periodicIter != this->dataPtr->periodicChangedComponents.end())
-      periodicIter->second.erase(_entity);
+    auto* periodicChangeComp = this->Registry().try_get<PeriodicChangedComponents>(_entity);
+    if (periodicChangeComp)
+    {
+      periodicChangeComp->data.erase(_type);
+      if (periodicChangeComp->data.empty())
+      {
+        this->Registry().erase<PeriodicChangedComponents>(_entity);
+      }
+    }
     auto& oneTimeChangedComp = this->Registry().get_or_emplace<OneTimeChangedComponents>(_entity);
     oneTimeChangedComp.data.insert(_type);
   }
   else
   {
-    auto periodicIter = this->dataPtr->periodicChangedComponents.find(_type);
-    if (periodicIter != this->dataPtr->periodicChangedComponents.end())
-      periodicIter->second.erase(_entity);
+    auto* periodicChangeComp = this->Registry().try_get<PeriodicChangedComponents>(_entity);
+    if (periodicChangeComp)
+    {
+      periodicChangeComp->data.erase(_type);
+      if (periodicChangeComp->data.empty())
+      {
+        this->Registry().erase<PeriodicChangedComponents>(_entity);
+      }
+    }
     auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
     if (oneTimeChangeComp)
     {
