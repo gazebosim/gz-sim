@@ -36,12 +36,9 @@
 using namespace gz;
 using namespace std::chrono_literals;
 
-namespace gz::sim::components {
-  using IntComponent = Component<int, class IntComponentTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
-      IntComponent)
-}
-using gz::sim::components::IntComponent;
+using IntComponent = sim::components::Component<int, class IntComponentTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
+    IntComponent)
 
 class EachNewRemovedFixture : public InternalFixture<::testing::Test>
 {

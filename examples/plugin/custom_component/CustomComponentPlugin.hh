@@ -28,27 +28,16 @@
 
 namespace examples
 {
-  // The most convenient way to create a component is to create a template alias
-  // of `components::Component` where the first argument is the type being wrapped
-  // (i.e. int) and the second is a unique name tag.
-  using CustomComponent = gz::sim::components::Component<int, class CustomComponentTag>;
-}
+// The most convenient way to create a component is to create a template alias
+// of `components::Component` where the first argument is the type being wrapped
+// (i.e. int) and the second is a unique name tag.
+using CustomComponent =
+    gz::sim::components::Component<int, class CustomComponentTag>;
 
-// All components must be registered in the gz::sim::components namespace
-// for the registration macro to work.
-namespace gz::sim::components
-{
-  // We use a local alias here because the GZ_SIM_REGISTER_COMPONENT macro
-  // uses token pasting (##), which doesn't work with qualified names (containing ::).
-  using CustomComponent = ::examples::CustomComponent;
+// Use this macro to register a component. Give it a unique name across the
+// entire simulation.
+GZ_SIM_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
 
-  // Use this macro to register a component. Give it a unique name across the
-  // entire simulation.
-  GZ_SIM_REGISTER_COMPONENT("examples::CustomComponent", CustomComponent)
-}
-
-namespace examples
-{
 class CustomComponentPlugin :
   public gz::sim::System,
   public gz::sim::ISystemConfigure
