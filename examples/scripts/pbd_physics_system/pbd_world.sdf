@@ -9,6 +9,10 @@
     <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader">
       <module_name>pbd_physics</module_name>
     </plugin>
+    <!-- <plugin -->
+    <!--   filename="gz-sim-physics-system" -->
+    <!--   name="gz::sim::systems::Physics"> -->
+    <!-- </plugin> -->
     <plugin
       filename="gz-sim-user-commands-system"
       name="gz::sim::systems::UserCommands">

@@ -92,12 +92,27 @@ struct MaybeGilScopedRelease
   }
   std::optional<pybind11::gil_scoped_release> release;
 };
+
+struct MaybeGilScopedAcquire
+{
+  MaybeGilScopedAcquire()
+  {
+    if (Py_IsInitialized() != 0 && PyGILState_Check() == 0)
+    {
+      this->acquire.emplace();
+    }
+  }
+  std::optional<pybind11::gil_scoped_acquire> acquire;
+};
 #else
   struct MaybeGilScopedRelease
   {
-    // The empty constructor is needed to avoid an "unused variable" warning
-    // when an instance of this class is used.
     MaybeGilScopedRelease(){}
+  };
+
+  struct MaybeGilScopedAcquire
+  {
+    MaybeGilScopedAcquire(){}
   };
 #endif
 
@@ -629,23 +644,26 @@ void SimulationRunner::UpdateSystems()
   }
 
   {
-    GZ_PROFILE("PreUpdate");
-    for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
+    MaybeGilScopedAcquire acquire;
     {
-      for (auto& system : systems)
+      GZ_PROFILE("PreUpdate");
+      for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
       {
-        system->PreUpdate(this->currentInfo, this->entityCompMgr);
+        for (auto& system : systems)
+        {
+          system->PreUpdate(this->currentInfo, this->entityCompMgr);
+        }
       }
     }
-  }
 
-  {
-    GZ_PROFILE("Update");
-    for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
     {
-      for (auto& system : systems)
+      GZ_PROFILE("Update");
+      for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
       {
-        system->Update(this->currentInfo, this->entityCompMgr);
+        for (auto& system : systems)
+        {
+          system->Update(this->currentInfo, this->entityCompMgr);
+        }
       }
     }
   }
