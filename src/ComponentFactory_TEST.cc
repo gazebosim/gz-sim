@@ -39,26 +39,22 @@ class ComponentFactoryTest : public InternalFixture<::testing::Test>
   }
 };
 
+// Registration behavior changed significantly in the following ways:
+// * Factory registration methods _don't_ set type IDs anymore since they are constexpr.
+//   We should consider making the APIs public and only expose the macro.
+// * Multiple registration of a component is a _compile_ error.
+// * Unfortunately for now, only the tag type is checked, duplicate string values are allowed, while duplicate component tags will be a compile error.
+//   We could consider removing deprecating the name altogether and only using the class itself.
+//   Entt has some C++ reflection that gets the class type tag as a string, we could do something similar.
+
+// Create a custom component.
+using MyCustom = components::Component<components::NoData, class MyCustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MyCustom", MyCustom);
+
 /////////////////////////////////////////////////
 TEST_F(ComponentFactoryTest, Register)
 {
   auto factory = components::Factory::Instance();
-
-  // Create a custom component.
-  using MyCustom = components::Component<components::NoData, class MyCustomTag>;
-
-  // Check it has no type id yet
-  EXPECT_EQ(0u, MyCustom::typeId);
-  EXPECT_EQ(nullptr, MyCustom::typeName);
-  EXPECT_EQ("", factory->Name(MyCustom::typeId));
-
-  // Store number of registered component types
-  auto registeredCount = factory->TypeIds().size();
-
-  factory->Register<MyCustom>("gz_sim_components.MyCustom",
-                              new components::ComponentDescriptor<MyCustom>(),
-                              components::RegistrationObjectId(this));
-
   // Check now it has type id
   EXPECT_NE(0u, MyCustom::typeId);
   EXPECT_EQ("gz_sim_components.MyCustom", MyCustom::typeName);
@@ -67,31 +63,7 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check factory knows id
   auto ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
-
-  // Registering the component twice doesn't change the number of type ids.
-  factory->Register<MyCustom>("gz_sim_components.MyCustom",
-                              new components::ComponentDescriptor<MyCustom>(),
-                              components::RegistrationObjectId(this));
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Fail to register 2 components with same name
-  using Duplicate = components::Component<components::NoData,
-      class DuplicateTag>;
-
-  factory->Register<Duplicate>("gz_sim_components.MyCustom",
-                               new components::ComponentDescriptor<Duplicate>(),
-                               components::RegistrationObjectId(this));
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Unregister
-  factory->Unregister<MyCustom>(components::RegistrationObjectId(this));
-
-  ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
 }
 
 /////////////////////////////////////////////////
