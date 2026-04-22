@@ -227,8 +227,16 @@ endif()
 # selected. Under the legacy backend, gz-sim-ecs is still built (by
 # src/ecs/CMakeLists.txt) for its own tests + benchmarks, but isn't
 # linked into libgz-sim.
+#
+# PRIVATE linkage: gz-sim-ecs is a static library — its object code
+# gets absorbed into libgz-sim.so at link time, and its symbols become
+# part of libgz-sim's exported surface via normal shared-library
+# visibility. Downstream consumers reach ecs::World calls through
+# libgz-sim.so without needing a separate exported gz-sim-ecs target.
+# This keeps gz-sim-ecs out of gz-sim's install(EXPORT) set, which
+# gz-cmake would otherwise complain about.
 if(GZ_SIM_ARCHETYPE_ECM)
-  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC gz-sim-ecs)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE gz-sim-ecs)
 endif()
 
 if (pybind11_FOUND)
