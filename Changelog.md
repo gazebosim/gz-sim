@@ -2,17 +2,17 @@
 
 ### Gazebo Sim 10.2.0 (2026-04-22)
 
-1. Use high resolution timer on Windows
-    * [Pull request #3478](https://github.com/gazebosim/gz-sim/pull/3478)
+1. Use high resolution timer on Windows (#3478)
+    * [Pull request #3484](https://github.com/gazebosim/gz-sim/pull/3484)
 
-1. Hydrodynamic updates
-    * [Pull request #3456](https://github.com/gazebosim/gz-sim/pull/3456)
+1. Hydrodynamic updates (#3456)
+    * [Pull request #3463](https://github.com/gazebosim/gz-sim/pull/3463)
 
 1. [Performance] - Remove / Optimize EntitiesByComponents calls
     * [Pull request #3362](https://github.com/gazebosim/gz-sim/pull/3362)
 
-1. Add cylinder, capsule, ellipsoid and cone support to graded buoyancy
-    * [Pull request #3423](https://github.com/gazebosim/gz-sim/pull/3423)
+1. Add cylinder, capsule, ellipsoid and cone support to graded buoyancy (#3423)
+    * [Pull request #3429](https://github.com/gazebosim/gz-sim/pull/3429)
 
 1. docs: fix selected Doxygen warnings in docs build (#3445)
     * [Pull request #3448](https://github.com/gazebosim/gz-sim/pull/3448)
@@ -23,17 +23,17 @@
 1. Fix crash when calling reset in model_photo_shoot (#3416)
     * [Pull request #3436](https://github.com/gazebosim/gz-sim/pull/3436)
 
-1. Fix graded buoyancy SDF parsing and division by zero
-    * [Pull request #3422](https://github.com/gazebosim/gz-sim/pull/3422)
+1. Fix graded buoyancy SDF parsing and division by zero (#3422)
+    * [Pull request #3425](https://github.com/gazebosim/gz-sim/pull/3425)
 
-1. Fix running server and GUI together on macOS
-    * [Pull request #3405](https://github.com/gazebosim/gz-sim/pull/3405)
+1. Fix running server and GUI together on macOS (#3405)
+    * [Pull request #3424](https://github.com/gazebosim/gz-sim/pull/3424)
 
 1. Fix some tutorial doxygen warnings
     * [Pull request #3410](https://github.com/gazebosim/gz-sim/pull/3410)
 
-1. Extend TouchPlugin to support auto creation of contact sensors
-    * [Pull request #3403](https://github.com/gazebosim/gz-sim/pull/3403)
+1. Extend TouchPlugin to support auto creation of contact sensors (#3403)
+    * [Pull request #3406](https://github.com/gazebosim/gz-sim/pull/3406)
 
 1. docs: fix XML tag parsing in markdown tutorials
     * [Pull request #3411](https://github.com/gazebosim/gz-sim/pull/3411)
