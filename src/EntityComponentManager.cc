@@ -30,7 +30,6 @@
 #include <vector>
 
 #include <gz/common/Profiler.hh>
-#include <gz/math/graph/GraphAlgorithms.hh>
 
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -54,6 +53,19 @@ using namespace gz;
 using namespace sim;
 
 struct PinnedEntity { };
+struct ModifiedComponent { };
+struct OneTimeChangedComponents {
+  std::unordered_set<ComponentTypeId> data;
+};
+struct PeriodicChangedComponents {
+  std::unordered_set<ComponentTypeId> data;
+};
+struct ComponentsMarkedAsRemoved {
+  std::unordered_set<ComponentTypeId> data;
+};
+struct RemovedComponents {
+  std::unordered_set<ComponentTypeId> data;
+};
 
 class gz::sim::EntityComponentManagerPrivate
 {

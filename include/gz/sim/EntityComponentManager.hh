@@ -32,6 +32,8 @@
 #include <utility>
 #include <vector>
 
+#include <boost/container/flat_set.hpp>
+
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
 #include "gz/sim/Entity.hh"
@@ -64,25 +66,11 @@ namespace gz
       class GroupQueuer;
     }
 
-    struct ModifiedComponent { };
     struct NewEntity { };
-    struct OneTimeChangedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct PeriodicChangedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct ComponentsMarkedAsRemoved {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct RemovedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
     struct RemoveEntity { };
     struct Children {
-      std::set<Entity> data;
+      boost::container::flat_set<Entity> data;
     };
-
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
     **/
