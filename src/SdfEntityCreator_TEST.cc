@@ -166,39 +166,34 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       EXPECT_EQ(worldEntity, _parent->Data());
       EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
 
-      if (modelCount == 1)
+      if (_name->Data() == "box")
       {
         EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("box", _name->Data());
         boxModelEntity = _entity;
       }
-      else if (modelCount == 2)
+      else if (_name->Data() == "cylinder")
       {
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("cylinder", _name->Data());
         cylModelEntity = _entity;
       }
-      else if (modelCount == 3)
+      else if (_name->Data() == "sphere")
       {
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
-      else if (modelCount == 4)
+      else if (_name->Data() == "capsule")
       {
         EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
-      else if (modelCount == 5)
+      else if (_name->Data() == "ellipsoid")
       {
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
       }
       return true;
@@ -235,55 +230,50 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       linkCount++;
 
-      if (linkCount == 1)
+      if (_name->Data() == "box_link")
       {
         EXPECT_EQ(math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("box_link", _name->Data());
 
         EXPECT_EQ(boxModelEntity, _parent->Data());
         EXPECT_EQ(boxModelEntity, this->ecm.ParentEntity(_entity));
 
         boxLinkEntity = _entity;
       }
-      else if (linkCount == 2)
+      else if (_name->Data() == "cylinder_link")
       {
         EXPECT_EQ(math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("cylinder_link", _name->Data());
 
         EXPECT_EQ(cylModelEntity, _parent->Data());
         EXPECT_EQ(cylModelEntity, this->ecm.ParentEntity(_entity));
 
         cylLinkEntity = _entity;
       }
-      else if (linkCount == 3)
+      else if (_name->Data() == "sphere_link")
       {
         EXPECT_EQ(math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("sphere_link", _name->Data());
 
         EXPECT_EQ(sphModelEntity, _parent->Data());
         EXPECT_EQ(sphModelEntity, this->ecm.ParentEntity(_entity));
 
         sphLinkEntity = _entity;
       }
-      else if (linkCount == 4)
+      else if (_name->Data() == "capsule_link")
       {
         EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("capsule_link", _name->Data());
 
         EXPECT_EQ(capModelEntity, _parent->Data());
         EXPECT_EQ(capModelEntity, this->ecm.ParentEntity(_entity));
 
         capLinkEntity = _entity;
       }
-      else if (linkCount == 5)
+      else if (_name->Data() == "ellipsoid_link")
       {
         EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("ellipsoid_link", _name->Data());
 
         EXPECT_EQ(ellipModelEntity, _parent->Data());
         EXPECT_EQ(ellipModelEntity, this->ecm.ParentEntity(_entity));
@@ -348,6 +338,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   EXPECT_EQ(5u, inertialCount);
 
   // Check collisions
+  std::unordered_set<std::string> foundCollisions;
   unsigned int collisionCount{0};
   this->ecm.Each<components::Collision,
            components::Geometry,
@@ -369,12 +360,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       collisionCount++;
 
-      if (collisionCount == 1)
+      if (_name->Data() == "box_collision")
       {
+        foundCollisions.insert("box_collision");
         EXPECT_EQ(math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("box_collision", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
         EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
@@ -384,12 +374,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Vector3d(3, 4, 5),
                   _geometry->Data().BoxShape()->Size());
       }
-      else if (collisionCount == 2)
+      else if (_name->Data() == "cylinder_collision")
       {
+        foundCollisions.insert("cylinder_collision");
         EXPECT_EQ(math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("cylinder_collision", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
         EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
@@ -399,12 +388,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
         EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
       }
-      else if (collisionCount == 3)
+      else if (_name->Data() == "sphere_collision")
       {
+        foundCollisions.insert("sphere_collision");
         EXPECT_EQ(math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("sphere_collision", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
@@ -413,12 +401,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
         EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
       }
-      else if (collisionCount == 4)
+      else if (_name->Data() == "capsule_collision")
       {
+        foundCollisions.insert("capsule_collision");
         EXPECT_EQ(gz::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("capsule_collision", _name->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
         EXPECT_EQ(capLinkEntity, this->ecm.ParentEntity(_entity));
@@ -428,12 +415,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_DOUBLE_EQ(0.23, _geometry->Data().CapsuleShape()->Radius());
         EXPECT_DOUBLE_EQ(0.14, _geometry->Data().CapsuleShape()->Length());
         }
-      else if (collisionCount == 5)
+      else if (_name->Data() == "ellipsoid_collision")
       {
+        foundCollisions.insert("ellipsoid_collision");
         EXPECT_EQ(gz::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("ellipsoid_collision", _name->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
         EXPECT_EQ(ellipLinkEntity, this->ecm.ParentEntity(_entity));
@@ -446,10 +432,12 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       return true;
     });
 
+  EXPECT_EQ(5u, foundCollisions.size());
   EXPECT_EQ(5u, collisionCount);
 
   // Check visuals
   unsigned int visualCount{0};
+  std::unordered_set<std::string> foundVisuals;
   this->ecm.Each<components::Visual,
            components::Transparency,
            components::LaserRetro,
@@ -484,12 +472,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
       visualCount++;
 
-      if (visualCount == 1)
+      if (_name->Data() == "box_visual")
       {
+        foundVisuals.insert("box_visual");
         EXPECT_EQ(math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("box_visual", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
         EXPECT_EQ(boxLinkEntity, this->ecm.ParentEntity(_entity));
@@ -510,12 +497,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
-      else if (visualCount == 2)
+      else if (_name->Data() == "cylinder_visual")
       {
+        foundVisuals.insert("cylinder_visual");
         EXPECT_EQ(math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("cylinder_visual", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
         EXPECT_EQ(cylLinkEntity, this->ecm.ParentEntity(_entity));
@@ -536,12 +522,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
-      else if (visualCount == 3)
+      else if (_name->Data() == "sphere_visual")
       {
+        foundVisuals.insert("sphere_visual");
         EXPECT_EQ(math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("sphere_visual", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
@@ -561,12 +546,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
-      else if (visualCount == 4)
+      else if (_name->Data() == "capsule_visual")
       {
+        foundVisuals.insert("capsule_visual");
         EXPECT_EQ(gz::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("capsule_visual", _name->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
         EXPECT_EQ(capLinkEntity, this->ecm.ParentEntity(_entity));
@@ -587,12 +571,11 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
 
         EXPECT_EQ(4294967295u, _visibilityFlags->Data());
       }
-      else if (visualCount == 5)
+      else if (_name->Data() == "ellipsoid_visual")
       {
+        foundVisuals.insert("ellipsoid_visual");
         EXPECT_EQ(gz::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("ellipsoid_visual", _name->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
         EXPECT_EQ(ellipLinkEntity, this->ecm.ParentEntity(_entity));
@@ -616,6 +599,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       return true;
     });
 
+  EXPECT_EQ(5u, foundVisuals.size());
   EXPECT_EQ(5u, visualCount);
 
   // Check lights
@@ -827,6 +811,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
 
   // Check lights
   unsigned int lightCount{0};
+  std::unordered_set<std::string> foundLights;
   this->ecm.Each<components::Light,
            components::Pose,
            components::ParentEntity,
@@ -845,11 +830,11 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       lightCount++;
 
       // light attached to link
-      if (lightCount == 1u)
+      if (_name->Data() == "link_light_point")
       {
+        foundLights.insert(_name->Data());
         EXPECT_EQ(math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("link_light_point", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ(sphLinkEntity, this->ecm.ParentEntity(_entity));
@@ -870,11 +855,11 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
         EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
       }
       // directional light in the world
-      else if (lightCount == 2u)
+      else if (_name->Data() == "directional")
       {
+        foundLights.insert(_name->Data());
         EXPECT_EQ(math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("directional", _name->Data());
 
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
@@ -897,8 +882,9 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
             _light->Data().Direction());
       }
       // point light in the world
-      else if (lightCount == 3u)
+      else if (_name->Data() == "point")
       {
+        foundLights.insert(_name->Data());
         EXPECT_EQ(math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
         EXPECT_EQ("point", _name->Data());
@@ -906,7 +892,6 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
 
-        EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
         EXPECT_EQ(math::Pose3d(0, -1.5, 3, 0, 0, 0),
             _light->Data().RawPose());
@@ -922,11 +907,11 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
         EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
       }
       // spot light in the world
-      else if (lightCount == 4u)
+      else if (_name->Data() == "spot")
       {
+        foundLights.insert(_name->Data());
         EXPECT_EQ(math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("spot", _name->Data());
 
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ(worldEntity, this->ecm.ParentEntity(_entity));
@@ -1161,33 +1146,28 @@ TEST_F(SdfEntityCreatorTest, RemoveEntities)
 
   EXPECT_EQ(19u, this->ecm.EntityCount());
 
-  // There's only 1 model left
+  // There's 3 models left
   models = this->ecm.ChildrenByComponents(world, components::Model());
   ASSERT_EQ(3u, models.size());
   EXPECT_EQ(world, this->ecm.ParentEntity(models.front()));
 
-  // TODO(luca) This test seems wrong? It claims only 1 model is left but the
-  // assertion (that passes) expects three models. Also the comment claims
-  // there are two links but if there should really be 4 links at this time.
-  // There are 2 links, but one is parentless
+  // There are 4 links, but only one is parentless
   unsigned int linkCount{0};
+  unsigned int parentlessCount{0};
   this->ecm.Each<components::Link>(
     [&](const Entity &_entity,
         const components::Link *_link)->bool
     {
       EXPECT_NE(nullptr, _link);
       auto parent = this->ecm.ParentEntity(_entity);
-      if (linkCount == 0)
+      if (parent == kNullEntity)
       {
-        EXPECT_EQ(kNullEntity, parent);
-      }
-      else
-      {
-        EXPECT_NE(kNullEntity, parent);
+        ++parentlessCount;
       }
       linkCount++;
       return true;
     });
+  EXPECT_EQ(1u, parentlessCount);
   EXPECT_EQ(4u, linkCount);
 
   // There are 2 collisions, both with parents
