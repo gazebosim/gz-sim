@@ -13,33 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 #ifndef GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_SIM_ENTITYCOMPONENTMANAGER_HH_
 
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
 #include <string>
-#include <typeinfo>
 #include <type_traits>
-#include <unordered_set>
+#include <typeinfo>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
+
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
 #ifndef ENTT_ID_TYPE
-#  define ENTT_ID_TYPE uint64_t
+  #define ENTT_ID_TYPE uint64_t
 #endif
 // Entt generates a lot of switch with no default statement warnings
 #pragma GCC diagnostic push
@@ -831,6 +833,18 @@ namespace gz
       /// \return Constant reference to the registry.
       private: const entt::basic_registry<Entity> &Registry() const;
 
+      /// \brief Get all entities and their components matching the given types.
+      /// \param[in] _types Component type IDs.
+      /// \param[in] _callback Callback function to be called for each matching
+      /// entity. It receives the entity and a vector of pointers to its
+      /// components in the order of _types.
+      /// \note This is a private method intended for use by Python bindings
+      /// to avoid allocations and C++ to Python overhead.
+      private: void EntitiesByComponentIds(
+          const std::vector<ComponentTypeId> &_types,
+          std::function<void(
+              Entity, const std::vector<const components::BaseComponent *> &)>
+              _callback) const;
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 

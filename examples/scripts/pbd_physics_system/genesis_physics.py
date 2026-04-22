@@ -9,13 +9,11 @@ import sys
 import os
 import shutil
 
-# Register custom component for caching
-genesis_comp_type = gz.sim.components.register_custom_component("GenesisLinkCache")
-
 class GenesisPhysics:
     def __init__(self):
         self.scene = None
         self.entity_map = {} # Map Gazebo link entity to Genesis entity
+        self.genesis_caches = {}
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("GenesisPhysics configure method called")
@@ -102,7 +100,7 @@ class GenesisPhysics:
             
         self.scene.build()
         
-        # 4. Cache relationships in custom component
+        # 4. Cache relationships internally
         # Group simulated links by model
         model_simulated_links = {}
         for parent_link_entity in self.entity_map.keys():
@@ -127,18 +125,17 @@ class GenesisPhysics:
                 
             model_ref_links[model_entity] = ref_link
             
-        # Attach GenesisLinkCache to each simulated link
+        # Cache GenesisLinkCache internally to simulated links
         for link_entity in self.entity_map.keys():
             parent_comp = _ecm.component(link_entity, components.ParentEntity)
             model_entity = parent_comp.data() if parent_comp else None
             ref_link_entity = model_ref_links.get(model_entity)
             
-            cache_data = {
+            self.genesis_caches[link_entity] = {
                 'ref_link_entity': ref_link_entity,
                 'model_entity': model_entity
             }
-            _ecm.create_component(link_entity, genesis_comp_type, cache_data)
-            print(f"Attached GenesisLinkCache to link {link_entity}: ref_link={ref_link_entity}, model={model_entity}")
+            print(f"Attached GenesisLinkCache internally to link {link_entity}: ref_link={ref_link_entity}, model={model_entity}")
 
     def update(self, _info, _ecm):
         if _info.paused:
@@ -151,8 +148,11 @@ class GenesisPhysics:
         for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):
             model_pose_map[entity] = model_pose_comp
             
-        # 2. Iterate over links with GenesisLinkCache
-        for link_entity, (cache, link_pose_comp) in _ecm.each([genesis_comp_type, components.Pose]):
+        # 2. Iterate over links with GenesisLinkCache internally
+        for link_entity, (link_pose_comp,) in _ecm.each([components.Pose]):
+            cache = self.genesis_caches.get(link_entity)
+            if not cache:
+                continue
             
             ref_link_entity = cache['ref_link_entity']
             model_entity = cache['model_entity']

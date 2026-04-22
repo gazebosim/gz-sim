@@ -312,42 +312,7 @@ namespace components
       runtimeNamesById[typeHash] = runtimeName;
     }
 
-    /// \brief Register a custom component without template types.
-    /// \param[in] _typeName Type of component to register.
-    /// \param[in] _compDesc Object to manage the creation of components.
-    /// \param[in] _regObjId An ID that identifies the registration object.
-    public: void RegisterCustom(const char *_typeName, ComponentDescriptorBase *_compDesc,
-                  RegistrationObjectId  _regObjId)
-    {
-      auto typeHash = gz::common::hash64(_typeName);
 
-      auto runtimeNameIt = this->runtimeNamesById.find(typeHash);
-      if (runtimeNameIt != this->runtimeNamesById.end())
-      {
-        if (runtimeNameIt->second != "PythonObject")
-        {
-          std::cerr
-            << "Registered components of different types with same name: type ["
-            << runtimeNameIt->second << "] and type [PythonObject] with name [" << _typeName << "]. Second type will not work."
-            << std::endl;
-          return;
-        }
-      }
-
-      std::string debugEnv;
-      gz::common::env("GZ_DEBUG_COMPONENT_FACTORY", debugEnv);
-
-      if (debugEnv == "true")
-      {
-        std::cout << "Registering custom Python component [" << _typeName << "]"
-                  << std::endl;
-      }
-
-      // Keep track of all types
-      this->compsById[typeHash].Add(_regObjId, _compDesc);
-      namesById[typeHash] = _typeName;
-      runtimeNamesById[typeHash] = "PythonObject";
-    }
 
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.

@@ -47,6 +47,8 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-default"
+#include <gz/sim/entt/entity/runtime_view.hpp>
+
 #include "gz/sim/entt/entity/handle.hpp"
 #pragma GCC diagnostic pop
 
@@ -1031,6 +1033,47 @@ components::BaseComponent *EntityComponentManager::Component(
     const Entity _entity, const ComponentTypeId _type)
 {
   return this->ComponentImplementation(_entity, _type);
+}
+
+/////////////////////////////////////////////////
+void EntityComponentManager::EntitiesByComponentIds(
+    const std::vector<ComponentTypeId> &_types,
+    std::function<void(Entity,
+                       const std::vector<const components::BaseComponent *> &)>
+        _callback) const
+{
+  using SparseSetType =
+      std::remove_pointer_t<decltype(this->Registry().storage(0))>;
+  entt::basic_runtime_view<SparseSetType, std::allocator<SparseSetType *>> view;
+
+  std::vector<SparseSetType *> storages;
+  storages.reserve(_types.size());
+
+  for (auto typeId : _types)
+  {
+    auto *storage = this->Registry().storage(typeId);
+    if (!storage)
+      return;
+    view.iterate(*storage);
+    storages.push_back(storage);
+  }
+
+  std::vector<const components::BaseComponent *> compPtrs;
+  compPtrs.reserve(_types.size());
+
+  for (auto entity : view)
+  {
+    if (this->IsMarkedForRemoval(entity))
+      continue;
+
+    compPtrs.clear();
+    for (auto *storage : storages)
+    {
+      compPtrs.push_back(static_cast<const components::BaseComponent *>(
+          storage->value(entity)));
+    }
+    _callback(entity, compPtrs);
+  }
 }
 
 /////////////////////////////////////////////////
