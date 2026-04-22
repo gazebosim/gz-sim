@@ -2278,7 +2278,7 @@ void VisualizationCapabilitiesPrivate::FindJointModels(
   {
     std::vector<Entity> models;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}))
     {
       std::stack<Entity> modelStack;
       modelStack.push(entity);
@@ -2322,9 +2322,9 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -2346,9 +2346,9 @@ void VisualizationCapabilitiesPrivate::FindInertialLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -2378,9 +2378,9 @@ void VisualizationCapabilitiesPrivate::FindCollisionLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -2408,9 +2408,9 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -2433,9 +2433,9 @@ void VisualizationCapabilitiesPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -2461,7 +2461,7 @@ std::vector<Entity> VisualizationCapabilitiesPrivate::FindChildLinksFromECM(
 {
   std::vector<Entity> links;
   if (_ecm.EntityMatches(_entity,
-        std::set<ComponentTypeId>{components::Model::typeId}))
+        std::set<ComponentTypeId>{components::Model::TypeIdStatic()}))
   {
     std::stack<Entity> modelStack;
     modelStack.push(_entity);
@@ -2488,7 +2488,7 @@ std::vector<Entity> VisualizationCapabilitiesPrivate::FindChildLinksFromECM(
     }
   }
   else if (_ecm.EntityMatches(_entity,
-              std::set<ComponentTypeId>{components::Link::typeId}))
+              std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
   {
     links.push_back(_entity);
   }

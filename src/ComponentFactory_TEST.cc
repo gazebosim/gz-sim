@@ -56,14 +56,14 @@ TEST_F(ComponentFactoryTest, Register)
 {
   auto factory = components::Factory::Instance();
   // Check now it has type id
-  EXPECT_NE(0u, MyCustom::typeId);
+  EXPECT_NE(0u, MyCustom::TypeIdStatic());
   EXPECT_EQ("gz_sim_components.MyCustom", MyCustom::typeName);
   EXPECT_EQ("gz_sim_components.MyCustom",
-      factory->Name(MyCustom::typeId));
+      factory->Name(MyCustom::TypeIdStatic()));
 
   // Check factory knows id
   auto ids = factory->TypeIds();
-  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
+  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::TypeIdStatic()));
 }
 
 /////////////////////////////////////////////////
@@ -80,12 +80,12 @@ TEST_F(ComponentFactoryTest, New)
     auto comp = factory->New<components::Pose>();
     ASSERT_NE(nullptr, comp);
 
-    EXPECT_NE(0u, comp->typeId);
-    EXPECT_EQ(comp->typeId, components::Pose::typeId);
+    EXPECT_NE(0u, comp->TypeId());
+    EXPECT_EQ(comp->TypeId(), components::Pose::TypeIdStatic());
   }
 
   {
-    auto comp = factory->New(components::Pose::typeId);
+    auto comp = factory->New(components::Pose::TypeIdStatic());
     ASSERT_NE(nullptr, comp);
 
     EXPECT_NE(0u, comp->TypeId());
@@ -99,7 +99,7 @@ TEST_F(ComponentFactoryTest, New)
     // Test a valid pre-defined component
     gz::math::Pose3d pose(1, 2, 3, 4, 5, 6);
     components::Pose poseComp(pose);
-    auto comp = factory->New(components::Pose::typeId, &poseComp);
+    auto comp = factory->New(components::Pose::TypeIdStatic(), &poseComp);
     ASSERT_NE(nullptr, comp);
     EXPECT_NE(0u, comp->TypeId());
     auto derivedComp = static_cast<components::Pose *>(comp.get());
@@ -107,11 +107,11 @@ TEST_F(ComponentFactoryTest, New)
     EXPECT_EQ(pose, derivedComp->Data());
 
     // Test an invalid pre-defined component
-    comp = factory->New(components::Pose::typeId, nullptr);
+    comp = factory->New(components::Pose::TypeIdStatic(), nullptr);
     ASSERT_EQ(nullptr, comp);
 
     // Test mismatching component types
-    comp = factory->New(components::Name::typeId, &poseComp);
+    comp = factory->New(components::Name::TypeIdStatic(), &poseComp);
     ASSERT_EQ(nullptr, comp);
   }
 }

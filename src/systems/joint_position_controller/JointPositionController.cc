@@ -459,7 +459,7 @@ void JointPositionController::ConfigureParameters(
         joint = *entities.begin();
 
         // Validate
-        if (!_ecm.EntityHasComponentType(joint, components::Joint::typeId))
+        if (!_ecm.EntityHasComponentType(joint, components::Joint::TypeIdStatic()))
         {
           gzerr << "Entity with name[" << name
                 << "] is not a joint\n";

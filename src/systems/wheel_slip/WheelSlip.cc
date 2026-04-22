@@ -463,7 +463,7 @@ void WheelSlipPrivate::Update(EntityComponentManager &_ecm)
     if (currSlipCmdComp)
     {
       *currSlipCmdComp = newSlipCmdComp;
-      _ecm.SetChanged(params.collision, components::SlipComplianceCmd::typeId,
+      _ecm.SetChanged(params.collision, components::SlipComplianceCmd::TypeIdStatic(),
                       ComponentState::PeriodicChange);
     }
     else

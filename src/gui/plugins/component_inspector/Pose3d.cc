@@ -38,13 +38,13 @@ Pose3d::Pose3d(ComponentInspector *_inspector)
   _inspector->Context()->setContextProperty("_Pose3dImpl", this);
   this->inspector = _inspector;
 
-  this->inspector->AddUpdateViewCb(components::Pose::typeId,
+  this->inspector->AddUpdateViewCb(components::Pose::TypeIdStatic(),
       std::bind(&Pose3d::UpdateView<components::Pose>, this,
       std::placeholders::_1, std::placeholders::_2));
-  this->inspector->AddUpdateViewCb(components::WorldPose::typeId,
+  this->inspector->AddUpdateViewCb(components::WorldPose::TypeIdStatic(),
       std::bind(&Pose3d::UpdateView<components::WorldPose>, this,
       std::placeholders::_1, std::placeholders::_2));
-  this->inspector->AddUpdateViewCb(components::WorldPoseCmd::typeId,
+  this->inspector->AddUpdateViewCb(components::WorldPoseCmd::TypeIdStatic(),
       std::bind(&Pose3d::UpdateView<components::WorldPoseCmd>, this,
       std::placeholders::_1, std::placeholders::_2));
 }

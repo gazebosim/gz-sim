@@ -474,8 +474,8 @@ void SimulationRunner::UpdatePhysicsParams()
         physicsParams.gravity().z()
     };
     gravityComp->Data() = newGravity;
-    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
-          ComponentState::OneTimeChange);
+    this->entityCompMgr.SetChanged(worldEntity,
+        components::Gravity::TypeIdStatic(), ComponentState::OneTimeChange);
   }
 
   auto physicsComp =
@@ -510,8 +510,8 @@ void SimulationRunner::UpdatePhysicsParams()
     if (updated)
     {
       // Set as OneTimeChange to make sure the update is not missed
-      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
-          ComponentState::OneTimeChange);
+      this->entityCompMgr.SetChanged(worldEntity,
+          components::Physics::TypeIdStatic(), ComponentState::OneTimeChange);
     }
   }
   this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);

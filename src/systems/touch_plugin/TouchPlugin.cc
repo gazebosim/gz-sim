@@ -178,7 +178,7 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
         // If the collision has ContactSensorData component, i.e.
         // it already has a contact sensor, add the collision
         if (_ecm.EntityHasComponentType(_colEntity,
-            components::ContactSensorData::typeId))
+            components::ContactSensorData::TypeIdStatic()))
         {
           this->collisionEntities.push_back(_colEntity);
           return true;

@@ -360,7 +360,7 @@ namespace components
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
     /// \brief Returns the unique ID for the component's type.
-    public: static constexpr ComponentTypeId typeIdStatic()
+    public: static constexpr ComponentTypeId TypeIdStatic()
     {
       // This call triggers Argument Dependent Lookup (ADL) to find the
       // `componentTypeId` function defined by the GZ_SIM_REGISTER_COMPONENT
@@ -412,7 +412,9 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static ComponentTypeId typeId = typeIdStatic();
+    public:
+    [[deprecated("Use TypeId() or TypeIdStatic(). Editing this variable at runtime is not supported.")]]
+       inline static ComponentTypeId typeId = TypeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -449,7 +451,7 @@ namespace components
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
     /// \brief Returns the unique ID for the component's type.
-    public: static constexpr ComponentTypeId typeIdStatic()
+    public: static constexpr ComponentTypeId TypeIdStatic()
     {
       // This call triggers Argument Dependent Lookup (ADL) to find the
       // `componentTypeId` function defined by the GZ_SIM_REGISTER_COMPONENT
@@ -479,8 +481,8 @@ namespace components
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     public:
-    // [[deprecated("Use TypeId() or TypeIdStatic() for constexpr context. Editing this variable at runtime is not supported.")]]
-    inline static ComponentTypeId typeId = typeIdStatic();
+    [[deprecated("Use TypeId() or TypeIdStatic(). Editing this variable at runtime is not supported.")]]
+    inline static ComponentTypeId typeId = TypeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -565,7 +567,7 @@ namespace components
   template <typename DataType, typename Identifier, typename Serializer>
   ComponentTypeId Component<DataType, Identifier, Serializer>::TypeId() const
   {
-    return typeIdStatic();
+    return TypeIdStatic();
   }
 
   //////////////////////////////////////////////////
@@ -596,7 +598,7 @@ namespace components
   template <typename Identifier, typename Serializer>
   ComponentTypeId Component<NoData, Identifier, Serializer>::TypeId() const
   {
-    return typeIdStatic();
+    return TypeIdStatic();
   }
 
   //////////////////////////////////////////////////

@@ -215,7 +215,7 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
     poseCmdComp->SetData(_pose,
         [](const math::Pose3d &, const math::Pose3d &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
-        components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
+        components::WorldPoseCmd::TypeIdStatic(), ComponentState::OneTimeChange);
   }
 }
 

@@ -282,7 +282,7 @@ void SystemManager::AddSystemImpl(
     this->entityCompMgr->SetComponentData<components::SystemPluginInfo>(
         _system.parentEntity, systemInfoMsg);
     this->entityCompMgr->SetChanged(_system.parentEntity,
-        components::SystemPluginInfo::typeId);
+        components::SystemPluginInfo::TypeIdStatic());
   }
 
   // Configure the system, if necessary

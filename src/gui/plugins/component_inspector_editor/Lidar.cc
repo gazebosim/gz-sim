@@ -69,7 +69,7 @@ Lidar::Lidar(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::GpuLidar::typeId, creator);
+      components::GpuLidar::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

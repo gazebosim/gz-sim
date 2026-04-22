@@ -210,7 +210,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     this->linkEntity = *entities.begin();
     if (!_ecm.EntityHasComponentType(this->linkEntity,
-                                     components::Link::typeId))
+                                     components::Link::TypeIdStatic()))
     {
       this->linkEntity = kNullEntity;
       gzerr << "Entity with name[" << linkName << "] is not a link\n";
@@ -246,7 +246,7 @@ void LiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     this->controlJointEntity = *entities.begin();
     if (!_ecm.EntityHasComponentType(this->controlJointEntity,
-                                     components::Joint::typeId))
+                                     components::Joint::TypeIdStatic()))
     {
       this->controlJointEntity = kNullEntity;
       gzerr << "Entity with name[" << controlJointName << "] is not a joint\n";

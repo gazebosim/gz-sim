@@ -218,7 +218,7 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      const auto typeHash = ComponentTypeT::typeIdStatic();
+      const auto typeHash = ComponentTypeT::TypeIdStatic();
 
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
@@ -270,7 +270,7 @@ namespace components
     public: template<typename ComponentTypeT>
     void Unregister(RegistrationObjectId  _regObjId)
     {
-      this->Unregister(ComponentTypeT::typeIdStatic(), _regObjId);
+      this->Unregister(ComponentTypeT::TypeIdStatic(), _regObjId);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -305,7 +305,7 @@ namespace components
     std::unique_ptr<ComponentTypeT> New()
     {
       return std::unique_ptr<ComponentTypeT>(static_cast<ComponentTypeT *>(
-            this->New(ComponentTypeT::typeId).release()));
+            this->New(ComponentTypeT::TypeIdStatic()).release()));
     }
 
     /// \brief Create a new instance of a component.

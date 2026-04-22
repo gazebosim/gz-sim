@@ -95,14 +95,14 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
   auto updateData = this->CreateComponentImplementation(_entity,
-      ComponentTypeT::typeId, &_data);
+      ComponentTypeT::TypeIdStatic(), &_data);
   auto comp = this->Component<ComponentTypeT>(_entity);
   if (updateData)
   {
     if (!comp)
     {
       gzerr << "Internal error. Failure to create a component of type "
-        << ComponentTypeT::typeId << " for entity " << _entity
+        << ComponentTypeT::TypeIdStatic() << " for entity " << _entity
         << ". This should never happen!\n";
       return comp;
     }
@@ -117,7 +117,7 @@ const ComponentTypeT *EntityComponentManager::Component(
     const Entity _entity) const
 {
   // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentTypeT::typeId;
+  const ComponentTypeId typeId = ComponentTypeT::TypeIdStatic();
 
   return static_cast<const ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
@@ -128,7 +128,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::Component(const Entity _entity)
 {
   // Get a unique identifier to the component type
-  const ComponentTypeId typeId = ComponentTypeT::typeId;
+  const ComponentTypeId typeId = ComponentTypeT::TypeIdStatic();
 
   return static_cast<ComponentTypeT *>(
       this->ComponentImplementation(_entity, typeId));
@@ -310,7 +310,7 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
   for (const auto &vertex : this->Entities().Vertices())
   {
     Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
+    auto types = std::set<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...};
 
     if (this->EntityMatches(entity, types))
     {
@@ -331,7 +331,7 @@ void EntityComponentManager::EachNoCache(typename identity<std::function<
   for (const auto &vertex : this->Entities().Vertices())
   {
     Entity entity = vertex.first;
-    auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
+    auto types = std::set<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...};
 
     if (this->EntityMatches(entity, types))
     {
@@ -508,7 +508,7 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 template<typename ...ComponentTypeTs>
 detail::View *EntityComponentManager::FindView() const
 {
-  auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::typeId...};
+  auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...};
 
   auto baseViewMutexPair = this->FindView(viewKey);
   auto baseViewPtr = baseViewMutexPair.first;
@@ -548,7 +548,7 @@ detail::View *EntityComponentManager::FindView() const
   }
 
   // create a new view if one wasn't found
-  detail::View view(std::set<ComponentTypeId>{ComponentTypeTs::typeId...});
+  detail::View view(std::set<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...});
 
   for (const auto &vertex : this->Entities().Vertices())
   {
@@ -576,7 +576,7 @@ detail::View *EntityComponentManager::FindView() const
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
-  const auto typeId = ComponentTypeT::typeId;
+  const auto typeId = ComponentTypeT::TypeIdStatic();
   return this->RemoveComponent(_entity, typeId);
 }
 }

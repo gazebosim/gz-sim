@@ -71,7 +71,7 @@ JointType::JointType(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::JointType::typeId, creator);
+      components::JointType::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

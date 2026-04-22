@@ -284,47 +284,47 @@ ComponentTypeId entityTypeId(const Entity &_entity,
 
   if (_ecm.Component<components::World>(_entity))
   {
-    type = components::World::typeId;
+    type = components::World::TypeIdStatic();
   }
   else if (_ecm.Component<components::Model>(_entity))
   {
-    type = components::Model::typeId;
+    type = components::Model::TypeIdStatic();
   }
   else if (_ecm.Component<components::Light>(_entity))
   {
-    type = components::Light::typeId;
+    type = components::Light::TypeIdStatic();
   }
   else if (_ecm.Component<components::Link>(_entity))
   {
-    type = components::Link::typeId;
+    type = components::Link::TypeIdStatic();
   }
   else if (_ecm.Component<components::Collision>(_entity))
   {
-    type = components::Collision::typeId;
+    type = components::Collision::TypeIdStatic();
   }
   else if (_ecm.Component<components::Visual>(_entity))
   {
-    type = components::Visual::typeId;
+    type = components::Visual::TypeIdStatic();
   }
   else if (_ecm.Component<components::Joint>(_entity))
   {
-    type = components::Joint::typeId;
+    type = components::Joint::TypeIdStatic();
   }
   else if (_ecm.Component<components::Sensor>(_entity))
   {
-    type = components::Sensor::typeId;
+    type = components::Sensor::TypeIdStatic();
   }
   else if (_ecm.Component<components::Actor>(_entity))
   {
-    type = components::Actor::typeId;
+    type = components::Actor::TypeIdStatic();
   }
   else if (_ecm.Component<components::ParticleEmitter>(_entity))
   {
-    type = components::ParticleEmitter::typeId;
+    type = components::ParticleEmitter::TypeIdStatic();
   }
   else if (_ecm.Component<components::Projector>(_entity))
   {
-    type = components::Projector::typeId;
+    type = components::Projector::TypeIdStatic();
   }
 
   return type;

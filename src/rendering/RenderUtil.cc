@@ -697,7 +697,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
               this->dataPtr->lightEql) ?
               ComponentState::OneTimeChange :
               ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::Light::typeId, state);
+          _ecm.SetChanged(_entity, components::Light::TypeIdStatic(), state);
         }
         return true;
       });
@@ -772,7 +772,7 @@ void RenderUtil::UpdateECM(const UpdateInfo &/*_info*/,
           auto state =
               materialComp->SetData(sdfMaterial, this->dataPtr->materialEql) ?
               ComponentState::OneTimeChange : ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::Material::typeId, state);
+          _ecm.SetChanged(_entity, components::Material::TypeIdStatic(), state);
         }
         return true;
       });
@@ -849,7 +849,7 @@ std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
 {
   std::vector<Entity> links;
   if (_ecm.EntityMatches(_entity,
-        std::set<ComponentTypeId>{components::Model::typeId}))
+        std::set<ComponentTypeId>{components::Model::TypeIdStatic()}))
   {
     std::stack<Entity> modelStack;
     modelStack.push(_entity);
@@ -876,7 +876,7 @@ std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
     }
   }
   else if (_ecm.EntityMatches(_entity,
-              std::set<ComponentTypeId>{components::Link::typeId}))
+              std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
   {
     links.push_back(_entity);
   }
@@ -890,9 +890,9 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -914,9 +914,9 @@ void RenderUtilPrivate::FindInertialLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -947,7 +947,7 @@ void RenderUtilPrivate::FindJointModels(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> models;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}))
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}))
     {
       std::stack<Entity> modelStack;
       modelStack.push(entity);
@@ -992,9 +992,9 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -1017,9 +1017,9 @@ void RenderUtilPrivate::PopulateViewModeVisualLinks(
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }
@@ -1049,9 +1049,9 @@ void RenderUtilPrivate::FindCollisionLinks(const EntityComponentManager &_ecm)
   {
     std::vector<Entity> links;
     if (_ecm.EntityMatches(entity,
-          std::set<ComponentTypeId>{components::Model::typeId}) ||
+          std::set<ComponentTypeId>{components::Model::TypeIdStatic()}) ||
         _ecm.EntityMatches(entity,
-                std::set<ComponentTypeId>{components::Link::typeId}))
+                std::set<ComponentTypeId>{components::Link::TypeIdStatic()}))
     {
       links = this->FindChildLinksFromECM(_ecm, entity);
     }

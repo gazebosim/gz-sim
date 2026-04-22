@@ -32,7 +32,7 @@ SystemPluginInfo::SystemPluginInfo(ComponentInspector *_inspector)
 {
   this->inspector = _inspector;
 
-  this->inspector->AddUpdateViewCb(components::SystemPluginInfo::typeId,
+  this->inspector->AddUpdateViewCb(components::SystemPluginInfo::TypeIdStatic(),
       std::bind(&SystemPluginInfo::UpdateView, this, std::placeholders::_1,
       std::placeholders::_2));
 }

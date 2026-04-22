@@ -806,7 +806,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
           for (const auto &compIter : entityIter.second.components())
           {
             msgs::SerializedComponent compMsg = compIter.second;
-            ASSERT_EQ(components::Pose::typeId, compMsg.type());
+            ASSERT_EQ(components::Pose::TypeIdStatic(), compMsg.type());
 
             components::Pose pose;
             std::istringstream istr(compMsg.component());
