@@ -73,7 +73,7 @@ class TestTestFixture(unittest.TestCase):
         self.assertEqual(1000, server.iteration_count())
         self.assertEqual(timedelta(seconds=1), server.sim_time())
         self.assertEqual(5, server.entity_count())
-        self.assertEqual(3, server.system_count())
+        self.assertEqual(5, server.system_count())
 
 if __name__ == '__main__':
     unittest.main()
