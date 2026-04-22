@@ -92,27 +92,12 @@ struct MaybeGilScopedRelease
   }
   std::optional<pybind11::gil_scoped_release> release;
 };
-
-struct MaybeGilScopedAcquire
-{
-  MaybeGilScopedAcquire()
-  {
-    if (Py_IsInitialized() != 0 && PyGILState_Check() == 0)
-    {
-      this->acquire.emplace();
-    }
-  }
-  std::optional<pybind11::gil_scoped_acquire> acquire;
-};
 #else
   struct MaybeGilScopedRelease
   {
+    // The empty constructor is needed to avoid an "unused variable" warning
+    // when an instance of this class is used.
     MaybeGilScopedRelease(){}
-  };
-
-  struct MaybeGilScopedAcquire
-  {
-    MaybeGilScopedAcquire(){}
   };
 #endif
 
@@ -589,40 +574,59 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  unsigned int threadCount =
-    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
+  unsigned int coreCount = std::thread::hardware_concurrency();
+  unsigned int numSystems = this->systemMgr->SystemsPostUpdate().size();
+  unsigned int threadCount = std::min(numSystems, coreCount);
+
+  unsigned int barrierThreadCount = (threadCount > 0) ? threadCount + 1 : 0;
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
 
-  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
-  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(barrierThreadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(barrierThreadCount);
 
   this->postUpdateThreadsRunning = true;
-  int id = 0;
 
-  for (auto &system : this->systemMgr->SystemsPostUpdate())
+  if (threadCount > 0)
   {
-    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+    const auto& systems = this->systemMgr->SystemsPostUpdate();
+    unsigned int systemsPerThread = numSystems / threadCount;
+    unsigned int systemsRemaining = numSystems % threadCount;
 
-    this->postUpdateThreads.push_back(std::thread([&, id]()
+    auto systemsIt = systems.begin();
+    for (unsigned int id = 0; id < threadCount; ++id)
     {
-      std::stringstream ss;
-      ss << "PostUpdateThread: " << id;
-      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
-      while (this->postUpdateThreadsRunning)
+      unsigned int chunkSize = systemsPerThread + ((id < systemsRemaining) ? 1 : 0);
+      std::vector<ISystemPostUpdate*> assignedSystems;
+      assignedSystems.reserve(chunkSize);
+
+      for (unsigned int i = 0; i < chunkSize; ++i)
       {
-        this->postUpdateStartBarrier->Wait();
-        if (this->postUpdateThreadsRunning)
-        {
-          system->PostUpdate(this->currentInfo, this->entityCompMgr);
-        }
-        this->postUpdateStopBarrier->Wait();
+        assignedSystems.push_back(*systemsIt++);
       }
-      gzdbg << "Exiting postupdate worker thread ("
-        << id << ")" << std::endl;
-    }));
-    id++;
+
+      this->postUpdateThreads.push_back(std::thread([&, id, assignedSystems]()
+      {
+        std::stringstream ss;
+        ss << "PostUpdateThread: " << id;
+        GZ_PROFILE_THREAD_NAME(ss.str().c_str());
+        while (this->postUpdateThreadsRunning)
+        {
+          this->postUpdateStartBarrier->Wait();
+          if (this->postUpdateThreadsRunning)
+          {
+            for (auto* system : assignedSystems)
+            {
+              system->PostUpdate(this->currentInfo, this->entityCompMgr);
+            }
+          }
+          this->postUpdateStopBarrier->Wait();
+        }
+        gzdbg << "Exiting postupdate worker thread ("
+          << id << ")" << std::endl;
+      }));
+    }
   }
 }
 
@@ -644,26 +648,23 @@ void SimulationRunner::UpdateSystems()
   }
 
   {
-    MaybeGilScopedAcquire acquire;
+    GZ_PROFILE("PreUpdate");
+    for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
     {
-      GZ_PROFILE("PreUpdate");
-      for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
+      for (auto& system : systems)
       {
-        for (auto& system : systems)
-        {
-          system->PreUpdate(this->currentInfo, this->entityCompMgr);
-        }
+        system->PreUpdate(this->currentInfo, this->entityCompMgr);
       }
     }
+  }
 
+  {
+    GZ_PROFILE("Update");
+    for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
     {
-      GZ_PROFILE("Update");
-      for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
+      for (auto& system : systems)
       {
-        for (auto& system : systems)
-        {
-          system->Update(this->currentInfo, this->entityCompMgr);
-        }
+        system->Update(this->currentInfo, this->entityCompMgr);
       }
     }
   }

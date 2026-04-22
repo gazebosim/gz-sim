@@ -32,10 +32,10 @@ class gz::sim::BarrierPrivate
   public: unsigned int threadCount;
 
   /// \brief Current remaining thread count (decrements from threadCount)
-  public: unsigned int count;
+  public: std::atomic<unsigned int> count;
 
   /// \brief Barrier generation, incremented when all threads report
-  public: unsigned int generation{0};
+  public: std::atomic<unsigned int> generation{0};
 };
 
 using namespace gz::sim;
@@ -59,33 +59,49 @@ Barrier::ExitStatus Barrier::Wait()
     return Barrier::ExitStatus::CANCELLED;
   }
 
-  std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
-  unsigned int gen = this->dataPtr->generation;
+  unsigned int currentGeneration = this->dataPtr->generation.load(std::memory_order_acquire);
 
-  if (--this->dataPtr->count == 0)
+  if (this->dataPtr->count.fetch_sub(1, std::memory_order_acq_rel) == 1)
   {
-    // All threads have reached the wait, so reset the barrier.
-    this->dataPtr->generation++;
-    this->dataPtr->count = this->dataPtr->threadCount;
+    this->dataPtr->generation.fetch_add(1, std::memory_order_release);
+    this->dataPtr->count.store(this->dataPtr->threadCount, std::memory_order_release);
     this->dataPtr->cv.notify_all();
     return Barrier::ExitStatus::DONE_LAST;
   }
 
-  while (gen == this->dataPtr->generation && !this->dataPtr->cancelled)
+  unsigned int spinCount = 1000;
+  while (this->dataPtr->generation.load(std::memory_order_acquire) == currentGeneration)
   {
-    // All threads haven't reached, so wait until generation is reached
-    // or a cancel occurs
-    this->dataPtr->cv.wait(lock);
+    if (this->dataPtr->cancelled)
+    {
+      return Barrier::ExitStatus::CANCELLED;
+    }
+
+    if (--spinCount == 0)
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
+      if (this->dataPtr->generation.load(std::memory_order_acquire) != currentGeneration)
+        break;
+
+      this->dataPtr->cv.wait(lock);
+      break;
+    }
+
+#if defined(__x86_64__)
+    __builtin_ia32_pause();
+#elif defined(__aarch64__)
+    asm volatile("yield");
+#else
+    std::this_thread::yield();
+#endif
   }
 
   if (this->dataPtr->cancelled)
   {
     return Barrier::ExitStatus::CANCELLED;
   }
-  else
-  {
-    return Barrier::ExitStatus::DONE;
-  }
+  
+  return Barrier::ExitStatus::DONE;
 }
 
 //////////////////////////////////////////////////
