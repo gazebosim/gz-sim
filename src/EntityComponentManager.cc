@@ -1033,7 +1033,8 @@ bool EntityComponentManager::HasComponentType(
 //////////////////////////////////////////////////
 const std::vector<Entity> EntityComponentManager::Entities() const
 {
-  std::vector<Entity> entities(this->EntityCount());
+  std::vector<Entity> entities;
+  entities.reserve(this->EntityCount());
   this->Registry().view<Entity>().each([&](const Entity& e) {
     entities.push_back(e);
   });
@@ -1886,7 +1887,7 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
   _fromEcm.Registry().view<const Entity>().each([&](const Entity& e) {
     if (this->HasEntity(e))
       this->Registry().destroy(e);
-    this->Registry().create(e);
+    std::ignore = this->Registry().create(e);
 
     auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
         _fromEcm.Registry(), e);
@@ -1940,7 +1941,7 @@ void EntityComponentManager::ApplyEntityDiff(
   {
     if (!this->HasEntity(entity))
     {
-      this->Registry().create(entity);
+      std::ignore = this->Registry().create(entity);
       if (entity >= this->dataPtr->entityCount)
       {
         this->dataPtr->entityCount = entity;
@@ -1956,7 +1957,7 @@ void EntityComponentManager::ApplyEntityDiff(
     // removal.
     if (!this->HasEntity(entity))
     {
-      this->Registry().create(entity);
+      std::ignore = this->Registry().create(entity);
       // Copy components so that EachRemoved match correctly
       if (entity >= this->dataPtr->entityCount)
       {
