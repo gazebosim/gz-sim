@@ -76,7 +76,6 @@ set (sources
   BaseView.cc
   Conversions.cc
   ComponentFactory.cc
-  EntityComponentManager.cc
   EntityComponentManagerDiff.cc
   InstallationDirectories.cc
   Joint.cc
@@ -104,6 +103,19 @@ set (sources
   ${msgs_sources}
   ${material_sources}
 )
+
+# Phase 0b: pick the EntityComponentManager backend. Exactly one .cc is
+# compiled per build — legacy or archetype — per design doc §3.1. The
+# legacy .cc is left byte-identical; archetype backend uses a parallel
+# implementation file plus a tiny stubs file for the accessor symbols.
+if(GZ_SIM_ARCHETYPE_ECM)
+  list(APPEND sources EntityComponentManagerArchetype.cc)
+else()
+  list(APPEND sources
+    EntityComponentManager.cc
+    EntityComponentManagerStubs.cc
+  )
+endif()
 
 set (gtest_sources
   ${gtest_sources}
@@ -209,6 +221,14 @@ if(ENABLE_GUI)
     PUBLIC
     gz-gui::gz-gui
   )
+endif()
+
+# Phase 0b: link the archetype ECS core when the archetype backend is
+# selected. Under the legacy backend, gz-sim-ecs is still built (by
+# src/ecs/CMakeLists.txt) for its own tests + benchmarks, but isn't
+# linked into libgz-sim.
+if(GZ_SIM_ARCHETYPE_ECM)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC gz-sim-ecs)
 endif()
 
 if (pybind11_FOUND)

@@ -35,6 +35,7 @@
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
 #include "gz/sim/Entity.hh"
+#include "gz/sim/ecs/Entity.hh"  // gz::sim::ecs::Entity (small; no STL)
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
@@ -50,6 +51,23 @@ namespace gz
     // Forward declarations.
     class GZ_SIM_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
+    class EntityComponentManager;
+    }
+    // Forward-declare the archetype core world so the accessor below
+    // doesn't force callers to include all the ecs headers. Defined
+    // in gz/sim/ecs/World.hh. (ecs::Entity is already visible via the
+    // small include above.)
+    namespace ecs { class World; }
+    inline namespace GZ_SIM_VERSION_NAMESPACE {
+    namespace detail_archetype
+    {
+      // Forward-declared here so EntityComponentManager can name it as
+      // a friend. Defined in the archetype detail header +
+      // src/EntityComponentManagerArchetype.cc.
+      GZ_SIM_VISIBLE ::gz::sim::Entity FromCore(
+          const EntityComponentManager *_ecm,
+          ::gz::sim::ecs::Entity _core);
+    }
 
     /// \brief Type alias for the graph that holds entities.
     /// Each vertex is an entity, and the direction points from the parent to
@@ -799,6 +817,23 @@ namespace gz
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
+      /// \brief Internal accessor to the archetype-backed core, if the
+      /// backend built is the archetype one. Returns `nullptr` under
+      /// the legacy backend. Defined in
+      /// `src/EntityComponentManagerArchetype.cc` (or the legacy stubs
+      /// file) — see docs/design/phase-0b-ecm-integration.md §3.1.
+      /// Not public API; used only by the archetype-detail templates.
+      private: ecs::World *ArchetypeWorld();
+      private: const ecs::World *ArchetypeWorld() const;
+
+      // The archetype detail header calls detail_archetype::FromCore to
+      // translate the wider ecs::Entity handle to the legacy uint64
+      // Entity. That helper lives in src/EntityComponentManagerArchetype.cc
+      // and needs friend access to reach the archetype PIMPL.
+      friend gz::sim::Entity gz::sim::detail_archetype::FromCore(
+          const EntityComponentManager *_ecm,
+          gz::sim::ecs::Entity _core);
+
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
       /// \param[in] _entity The entity to be added.
@@ -847,6 +882,13 @@ namespace gz
   }
 }
 
+// Phase 0b (V2): pick the detail template header matching the backend
+// compiled into libgz-sim. This is the single `#if` in the ECM code
+// path — see docs/design/phase-0b-ecm-integration.md §3.1.
+#if defined(GZ_SIM_USE_ARCHETYPE_ECM)
+#include "gz/sim/detail/EntityComponentManagerArchetype.hh"
+#else
 #include "gz/sim/detail/EntityComponentManager.hh"
+#endif
 
 #endif

@@ -70,6 +70,44 @@ Audit checklist lives in `gz-sim/docs/design/0c-audit-checklist.md`
 Based on spot-reading of the systems, these patterns are likely candidates
 for adjustment:
 
+### 4.0 **Deferred-mutation migration (new, 2026-04-20)**
+
+Per the Phase 0b revised §6.1, the archetype-backed ECM initially ships
+with **immediate-mutation semantics** — `CreateComponent`, `RemoveComponent`,
+`SetComponentData` apply synchronously rather than deferring to the next
+`Commit()`. This was a pragmatic choice to avoid silently breaking in-tree
+systems that rely on mid-phase visibility of newly-created components.
+
+**Phase 0c's new first task** is the migration from immediate-when-possible
+to strictly-deferred semantics across the full in-tree system suite. Work
+order:
+
+1. **Find every `NOTE(0b-immediate-mode)` marker** in the archetype facade
+   and its detail header. Each marker identifies a call path that must
+   switch from immediate to deferred once the in-tree systems are safe.
+   `grep -rn "NOTE(0b-immediate-mode)"` in `src/` + `include/` gives the
+   full list.
+2. **Audit + fix in-tree systems for mid-phase mutation visibility.** Any
+   `CreateComponent(e, T{}); auto *p = Component<T>(e); p->Data() = …`
+   pattern must migrate to `CreateComponent(e, T{value})` (combine) or
+   `SetComponentData<T>(e, value)` + "don't read back this phase" (defer).
+   See §4.2 below for the exact rewrite.
+3. **Flip the archetype facade default to strict deferred.** Remove the
+   `NOTE(0b-immediate-mode)` branches; the `CreateComponent` path
+   unconditionally goes through the archetype core's deferred command
+   buffer. `EntityComponentManager::CommitPhase()` becomes the
+   always-active drain.
+4. **Add CI gate that blocks merges** when the archetype build reports an
+   "immediate-mode" fallback on any in-tree system call. Mechanism: the
+   facade emits a counter via `gz::transport`, test watches for non-zero
+   counts during the full test matrix.
+
+Until 0c step 3 lands, the archetype backend is **not semantically
+equivalent to the design contract** — it's a compatibility stepping stone
+that makes immediate-visible ports work unchanged. Downstream out-of-tree
+plugin authors should consult `Migration.md` for the full-strict
+semantics they'll face on 0e.
+
 ### 4.1 Cached component pointers in members
 **Before**:
 ```cpp

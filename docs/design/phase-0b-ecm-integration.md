@@ -57,15 +57,70 @@ Non-goals:
                    │                     │
                    ▼                     ▼
         ┌──────────────────┐   ┌──────────────────────┐
-        │  LegacyImpl      │   │  ArchetypeImpl       │
-        │  (current code)  │   │  → ecs::World (0a)   │
+        │  EntityComponent │   │  EntityComponent     │
+        │  Manager.cc      │   │  ManagerArchetype.cc │
+        │  (current code,  │   │  (new, wraps         │
+        │   untouched)     │   │   ecs::World)        │
         └──────────────────┘   └──────────────────────┘
 ```
 
-Selection is a compile-time `using Impl = ...` typedef inside the ECM's
-PIMPL. No virtual dispatch, no runtime cost. The legacy `dataPtr` struct
-moves into `LegacyImpl`; a new `ArchetypeImpl` struct wraps `ecs::World` + a
-few translation caches.
+**Selection is a compile-time CMake source-file swap.** Exactly one
+`.cc` is compiled per build. Neither file uses `#ifdef` branching
+internally — each is a complete, linear implementation.
+
+### 3.1 Revised architecture (2026-04-20 — "V2" per design discussion)
+
+The Phase 0b design's original wording ("`using Impl = ...` typedef inside
+the ECM's PIMPL") would have required touching the current
+`EntityComponentManager.cc` to split its body. Per owner direction
+(2026-04-20) we leave that file completely alone and add a parallel
+implementation file instead. Concretely:
+
+1. **Legacy .cc stays byte-identical.** `src/EntityComponentManager.cc`
+   is not renamed, not `#ifdef`-ed, not edited.
+2. **New archetype .cc** — `src/EntityComponentManagerArchetype.cc` —
+   fully defines its own `EntityComponentManagerPrivate` struct
+   (wrapping `gz::sim::ecs::World` + a legacy↔core `Entity`
+   translation table) and provides definitions for every public
+   `EntityComponentManager::` method.
+3. **Small legacy-only stubs file** — `src/EntityComponentManagerStubs.cc`
+   — compiled with the legacy backend to provide definitions for any
+   new private accessor methods that the legacy path doesn't use
+   (currently: `ArchetypeWorld()` returning `nullptr`). This lets us
+   add header-level hooks the archetype backend needs without editing
+   the legacy .cc.
+4. **Detail template header split.** The legacy template bodies live
+   in `include/gz/sim/detail/EntityComponentManager.hh` (untouched). A
+   parallel header `include/gz/sim/detail/EntityComponentManagerArchetype.hh`
+   defines the archetype template bodies (`Each`, `EachNew`,
+   `EachRemoved`, `EntityByComponents`, etc.) directly against
+   `ecs::World::Each` — no legacy `detail::View` machinery. The public
+   `gz/sim/EntityComponentManager.hh` ends with a single
+   `#if defined(GZ_SIM_USE_ARCHETYPE_ECM)` selector that picks which
+   detail header to include. This is the only `#if` in the code path
+   and it's at one include site, not scattered through implementations.
+5. **CMake source-file selection.** `src/CMakeLists.txt` adds
+   `EntityComponentManager.cc` + `EntityComponentManagerStubs.cc` to
+   the `sources` list when the flag is OFF, and
+   `EntityComponentManagerArchetype.cc` when it's ON. The `gz-sim-ecs`
+   library is linked only under ON.
+
+This keeps the facade honest (no `#ifdef`s leaking into method
+bodies), keeps the public header minimal (one forward-decl +
+one private accessor decl added), and preserves the single-source-of-
+truth property per backend: to read the legacy implementation, read
+`EntityComponentManager.cc`; to read the archetype one, read
+`EntityComponentManagerArchetype.cc`. No interleaving.
+
+### 3.2 Why not `typedef Impl = ...` inside the PIMPL
+
+The original design envisioned one `.cc` with a `using Impl = ...`
+selector. Problem: `EntityComponentManagerPrivate` (the PIMPL struct)
+has to carry different data under each backend (legacy storage maps
+vs. `ecs::World`). A typedef on its internals doesn't cover that; the
+whole private struct needs different type-id, which means two definitions.
+The V2 "two parallel .cc files" achieves exactly the same semantics
+with a cleaner diff and zero edits to the existing legacy file.
 
 We pick compile-time over runtime-switch because:
 - No ABI penalty.
@@ -178,6 +233,46 @@ In practice this means:
 
 0c includes a grep + manual audit of in-tree systems for cross-phase
 pointer holding. External plugin migration notes will be in `Migration.md`.
+
+### 6.1 Mutation-visibility semantics (2026-04-20 — "1b" per design discussion)
+
+Per owner direction, the initial archetype-backend landing uses
+**immediate-mutation semantics** — not the strict deferred contract the
+original design called for. Rationale: every in-tree system today
+expects mid-phase-visible `CreateComponent`. Landing strict deferred
+semantics in one step would silently break ~10% of those systems
+(the `CreateComponent(e); Component<T>(e);` pattern). Instead:
+
+- `CreateComponent<T>`, `RemoveComponent`, `SetComponentData<T>` apply
+  **immediately** when called on the main thread outside an
+  `EachParallel` sweep. The call goes through `World::Add`, `::Remove`
+  when `World` is not in-phase, which applies synchronously.
+- When the code path is inside an `EachParallel` body (worker thread),
+  the archetype core's thread-local command buffer catches the
+  mutation and defers it to the next `Commit`. This is the only
+  deferral the facade exposes in the initial landing, and it matches
+  the semantics the archetype core was designed for.
+- `Each`, `EachNew`, `EachRemoved`, `EachChanged` always see the
+  state-as-of-call — no caller-visible surprise.
+
+**This is a stepping stone, not the final semantics.** The Phase 0b
+design (above) calls for strict deferred semantics throughout the
+phase with a `Commit()` at phase boundaries; that contract is what
+unlocks lock-free parallel execution in Phase 5. The migration from
+"immediate-when-possible" to "strictly deferred" is scoped to
+Phase 0c — see that phase's doc for the in-tree-system migration
+plan. The current facade honors a single `CommitPhase()` call between
+phases (becomes a no-op in immediate mode, a real drain when Phase 0c
+flips the switch).
+
+**Markers in the code** — anywhere the archetype facade takes an
+immediate-mutation path that strict semantics would defer, the source
+carries:
+```
+// NOTE(0b-immediate-mode): immediate semantics per design §6.1.
+// Phase 0c will migrate this call path to deferred — grep for this
+// comment when doing the port.
+```
 
 ## 7. Change tracking — preserving `EachNew` / `EachRemoved` / `EachChanged`
 

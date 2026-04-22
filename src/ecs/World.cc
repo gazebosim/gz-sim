@@ -276,6 +276,12 @@ namespace gz::sim::ecs
     this->entity_index_->Set(_e, {dst_aid, dci, drow});
   }
 
+  void World::RemoveRaw(Entity _e, ComponentTypeId _id)
+  {
+    if (this->in_phase_) this->DeferredRemove(_e, _id);
+    else                 this->ImmediateRemove(_e, _id);
+  }
+
   void World::ImmediateRemove(Entity _e, ComponentTypeId _id)
   {
     if (!this->IsAlive(_e)) return;

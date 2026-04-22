@@ -185,8 +185,18 @@ namespace gz::sim::ecs
 
     // -------- Internal (used by templates) --------
 
-    private: const void *ComponentRaw(Entity _e, ComponentTypeId _id) const;
-    private: void       *ComponentRawMut(Entity _e, ComponentTypeId _id);
+    // Phase 0b: made public so the archetype-backed facade in
+    // src/EntityComponentManagerArchetype.cc can reach component data
+    // by runtime typeId without going through a template. Previously
+    // private; the template Component<T>(e) still routes through these.
+    public: const void *ComponentRaw(Entity _e, ComponentTypeId _id) const;
+    public: void       *ComponentRawMut(Entity _e, ComponentTypeId _id);
+
+    /// \brief Remove a component by runtime typeId. Complements the
+    /// template `Remove<T>()`. Phase 0b facade uses this for the
+    /// `EntityComponentManager::RemoveComponent(entity, typeId)`
+    /// public method.
+    public: void RemoveRaw(Entity _e, ComponentTypeId _id);
     private: void       *ComponentRawMutAndDirty(Entity _e, ComponentTypeId _id);
 
     private: Entity ImmediateCreateFromBlob(

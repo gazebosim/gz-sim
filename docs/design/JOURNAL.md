@@ -122,3 +122,148 @@ generation bits directly (ABI break for any downstream that reads the
 entity integer), or leave the translation in place and drop it in 0e?
 
 ---
+
+## Phase 0b — Real facade scaffolding (2026-04-20 update)
+
+**Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)
+**Scope:** V2 architecture from design §3.1, 1b mutation semantics
+from §6.1, option (a) for not-yet-ported methods.
+
+### What changed in the code
+- **`include/gz/sim/EntityComponentManager.hh`** — minimal additions:
+  forward-decl of `ecs::World` and `detail_archetype::FromCore`;
+  include of the tiny `gz/sim/ecs/Entity.hh`; two new private
+  accessor declarations `ArchetypeWorld()` (const + non-const); a
+  friend declaration; and the single `#if defined(GZ_SIM_USE_ARCHETYPE_ECM)`
+  at the end of the file that switches between the legacy detail
+  template header and the new archetype one. No changes to any
+  template method body or public signature.
+- **`include/gz/sim/detail/EntityComponentManagerArchetype.hh`** —
+  new, parallel to the existing
+  `include/gz/sim/detail/EntityComponentManager.hh` (which stays
+  untouched). Contains archetype-backend template bodies for
+  `CreateComponent<T>`, `Component<T>` (const/mutable),
+  `ComponentDefault<T>`, `ComponentData<T>`, `SetComponentData<T>`,
+  `RemoveComponent<T>`, `Each<T...>` (both overloads),
+  `EachNew<T...>` (both), `EachRemoved<T...>`, `EachNoCache<T...>`
+  (both), `EntityByComponents<T...>`, `EntitiesByComponents<T...>`,
+  `ChildrenByComponents<T...>`, `ForEach<Fn, Ts...>`. These call
+  `ecs::World::Each<T...>` directly — no `detail::View` machinery.
+- **`src/EntityComponentManagerArchetype.cc`** — new, parallel to the
+  existing `src/EntityComponentManager.cc` (which stays untouched per
+  explicit direction). Defines `EntityComponentManagerPrivate`
+  (wrapping `ecs::World` + the legacy↔core entity translation table +
+  the existing `EntityGraph` for parent/child), provides real
+  implementations for ~20 methods (ctor, CreateEntity, HasEntity,
+  ComponentImplementation, CreateComponentImplementation [STUB],
+  RemoveComponent(typeId), Entities, ParentEntity, SetParentEntity,
+  Descendants, change-tracking clears, Request/Process remove,
+  Pin/Unpin, the archetype accessors), and stubs (gzerr-once +
+  sensible default) for the remaining ~25 — each tagged
+  `// STUB(0b):` and findable via `grep -rn "STUB(0b)"`.
+- **`src/EntityComponentManagerStubs.cc`** — new, legacy-build-only.
+  Provides the `ArchetypeWorld()` + `detail_archetype::FromCore`
+  symbols so the legacy `libgz-sim.so` links without touching the
+  existing legacy `.cc`. Returns nullptr / kNullEntity; the paths
+  are never hit under the legacy backend.
+- **`include/gz/sim/ecs/World.hh`** — promoted `ComponentRaw` /
+  `ComponentRawMut` from private to public and added `RemoveRaw` so
+  the non-template ECM facade can reach component data and remove
+  by typeId.
+- **`src/ecs/World.cc`** — new `RemoveRaw(e, typeId)` that routes
+  through `Immediate/DeferredRemove` based on phase state.
+- **`src/CMakeLists.txt`** — source-file split: flag OFF →
+  `EntityComponentManager.cc` + `EntityComponentManagerStubs.cc`
+  (preserves legacy byte-for-byte); flag ON →
+  `EntityComponentManagerArchetype.cc`. Separately, links the
+  `gz-sim-ecs` static library into `libgz-sim` only when the flag
+  is ON.
+
+### What's explicitly honored
+- **Legacy `.cc` untouched.** `git diff HEAD~1 src/EntityComponentManager.cc`
+  returns empty on the legacy path.
+- **V2 approach.** Exactly one `#if` in the code path, at the single
+  detail-header include site. Both `.cc` files read as linear,
+  non-preprocessor-branching implementations.
+- **Option 1 for templates.** Simple templates forward through
+  type-erased `*Implementation()` helpers; view-driven templates call
+  `ecs::World::Each<T...>` directly. No `detail::View` duplication.
+- **1b semantics.** `CreateComponent` / `RemoveComponent` apply
+  immediately on the main thread; mutations inside `EachParallel`
+  bodies defer to the thread-local command buffer (archetype core
+  does this already). Every immediate-path call carries
+  `// NOTE(0b-immediate-mode):` — Phase 0c migrates to
+  strictly-deferred and documented that in
+  [phase-0c-system-port.md](phase-0c-system-port.md) §4.0.
+- **Option (a) for unimplemented.** Every stub logs once via
+  `gzwarn` with a pointer to the design doc, then returns the
+  sensible default.
+
+### Build + test verification
+Both modes build clean:
+```
+cmake -DGZ_SIM_ARCHETYPE_ECM=OFF ..  &&  cmake --build . --target gz-sim  # legacy
+cmake -DGZ_SIM_ARCHETYPE_ECM=ON  ..  &&  cmake --build . --target gz-sim  # archetype
+```
+
+Legacy build test surface — **no regressions**:
+```
+UNIT_EntityComponentManager_TEST    414/414 green
+UNIT_ECS_* (12 binaries)            55/55 green
+```
+
+Archetype build test surface — **library links and loads**, but the
+full `UNIT_EntityComponentManager_TEST` hits the `STUB(0b)` paths
+(State / SetState / Clone / …) so most of its 400+ cases fail at the
+archetype build. That's expected and documented — Phase 0b completion
+is the port that fills in those stubs.
+
+### Known gaps / Phase 0b completion work
+Grep-able list for the eventual port session:
+```
+grep -rn "STUB(0b)" src/ include/
+grep -rn "NOTE(0b-immediate-mode)" src/ include/
+```
+- `CreateComponentImplementation` (non-template path) currently logs
+  and no-ops. Template `CreateComponent<T>(e, T{data})` **works** —
+  it goes through `World::Add<T>`. Non-template callers (which are
+  rare but exist in serialization) hit the stub. Fix: add a
+  type-erased `World::AddRaw(entity, typeId, const void*)` that uses
+  the ComponentTypeRegistry's copy-construct thunk.
+- Serialization methods (`State`, `SetState`, `ChangedState`,
+  `PeriodicStateFromCache`, `AddEntityToMessage`) all stub. The
+  archetype core's change-bits + removed-records have the needed
+  info; the port is mostly transcription.
+- `Clone` / `CopyFrom` / `ResetTo`. Needs the archetype-world
+  column-wise copy loop described in design §4.4.
+- `EntityByName` needs a name-index which the archetype PIMPL
+  doesn't currently maintain — add an unordered_map keyed on the
+  `components::Name` component value.
+- `HasNewEntities`, `HasOneTimeComponentChanges`,
+  `HasPeriodicComponentChanges` need aggregate flags on `ecs::World`.
+- `IsNewEntity` needs a "row was added this step" lookup. The
+  archetype core's per-archetype `newly_added` vector has the info;
+  needs a typed accessor.
+
+### Verification that `gz sim` is unchanged
+The installed `libgz-sim.so` is the legacy build (flag OFF). `gz sim
+shapes.sdf` uses identical code paths to before this change — only
+delta is that two new symbols are exported (the stub `ArchetypeWorld`
+accessors). Measured `nm -D` confirms. `gz sim` behavior: unchanged.
+
+### Open questions for Nathan (carried forward — new ones)
+**Q20.** The archetype facade doesn't yet maintain its own name-index,
+so `EntityByName` stubs to `nullopt`. Do you want that landed in this
+0b-completion pass, or can `SdfEntityCreator` opt into providing it
+explicitly (it already keeps a name map internally)?
+
+**Q21.** Several callers of ECM in-tree serialization use
+`AddEntityToMessage` directly (private-but-friend from
+`SceneBroadcaster` or similar). Those paths will break under the
+archetype backend until the serialization stubs are filled in. Do we
+(a) make `SceneBroadcaster` opt-out under archetype (scene mirror only
+emits the state delta it computes itself), (b) get the serialization
+stubs green before flipping any test matrix, or (c) ignore until a
+real user hits it?
+
+---
