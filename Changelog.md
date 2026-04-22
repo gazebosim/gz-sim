@@ -1,5 +1,94 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.2.0 (2026-04-22)
+
+1. Use high resolution timer on Windows
+    * [Pull request #3478](https://github.com/gazebosim/gz-sim/pull/3478)
+
+1. Hydrodynamic updates
+    * [Pull request #3456](https://github.com/gazebosim/gz-sim/pull/3456)
+
+1. [Performance] - Remove / Optimize EntitiesByComponents calls
+    * [Pull request #3362](https://github.com/gazebosim/gz-sim/pull/3362)
+
+1. Add cylinder, capsule, ellipsoid and cone support to graded buoyancy
+    * [Pull request #3423](https://github.com/gazebosim/gz-sim/pull/3423)
+
+1. docs: fix selected Doxygen warnings in docs build (#3445)
+    * [Pull request #3448](https://github.com/gazebosim/gz-sim/pull/3448)
+
+1. docs: fix @param mismatches for unused parameters
+    * [Pull request #3435](https://github.com/gazebosim/gz-sim/pull/3435)
+
+1. Fix crash when calling reset in model_photo_shoot (#3416)
+    * [Pull request #3436](https://github.com/gazebosim/gz-sim/pull/3436)
+
+1. Fix graded buoyancy SDF parsing and division by zero
+    * [Pull request #3422](https://github.com/gazebosim/gz-sim/pull/3422)
+
+1. Fix running server and GUI together on macOS
+    * [Pull request #3405](https://github.com/gazebosim/gz-sim/pull/3405)
+
+1. Fix some tutorial doxygen warnings
+    * [Pull request #3410](https://github.com/gazebosim/gz-sim/pull/3410)
+
+1. Extend TouchPlugin to support auto creation of contact sensors
+    * [Pull request #3403](https://github.com/gazebosim/gz-sim/pull/3403)
+
+1. docs: fix XML tag parsing in markdown tutorials
+    * [Pull request #3411](https://github.com/gazebosim/gz-sim/pull/3411)
+
+1. Add global odometry frame offset support to OdometryPublisher
+    * [Pull request #3370](https://github.com/gazebosim/gz-sim/pull/3370)
+
+1. docs: fix doxygen parameter inconsistencies in core headers
+    * [Pull request #3399](https://github.com/gazebosim/gz-sim/pull/3399)
+
+1. Extend visualize frustum plugin to support rgb camera (#3374)
+    * [Pull request #3391](https://github.com/gazebosim/gz-sim/pull/3391)
+
+1. docs: fix doxygen warnings for sdf tag parameters in system header
+    * [Pull request #3397](https://github.com/gazebosim/gz-sim/pull/3397)
+
+1. Fixed Doxygen warnings related to include/gz/sim/comms files
+    * [Pull request #3396](https://github.com/gazebosim/gz-sim/pull/3396)
+
+1. docs: fix doxygen parameter mismatches in core headers
+    * [Pull request #3372](https://github.com/gazebosim/gz-sim/pull/3372)
+
+1. Fix unused-result warnings
+    * [Pull request #3382](https://github.com/gazebosim/gz-sim/pull/3382)
+
+1. Added explicit find package for TINYXML to CMakelist at root
+    * [Pull request #3360](https://github.com/gazebosim/gz-sim/pull/3360)
+
+1. Add missing include in lrauv_control example
+    * [Pull request #3354](https://github.com/gazebosim/gz-sim/pull/3354)
+
+1. Re-enable doxygen on macOS, fix some warnings (#3346)
+    * [Pull request #3348](https://github.com/gazebosim/gz-sim/pull/3348)
+
+1. Fix C4530 warning in backward-cpp by enabling /EHsc on MSVC
+    * [Pull request #3341](https://github.com/gazebosim/gz-sim/pull/3341)
+
+1. Support for user-defined topic in PosePublisher
+    * [Pull request #3331](https://github.com/gazebosim/gz-sim/pull/3331)
+
+1. Add <collision> parameter to TouchPlugin
+    * [Pull request #3320](https://github.com/gazebosim/gz-sim/pull/3320)
+
+1. Remove AUTOMOC from non-GUI targets
+    * [Pull request #3325](https://github.com/gazebosim/gz-sim/pull/3325)
+
+1. Prevent duplicate loading of default systems with legacy ignition plugins (#3301)
+    * [Pull request #3322](https://github.com/gazebosim/gz-sim/pull/3322)
+
+1. Fix SDF generation (world saving) when schemed URIs are used for resource URIs
+    * [Pull request #3286](https://github.com/gazebosim/gz-sim/pull/3286)
+
+1. [bazel/ infra] Fix publish.yaml indent error
+    * [Pull request #3308](https://github.com/gazebosim/gz-sim/pull/3308)
+
 ### Gazebo Sim 10.1.1 (2026-02-03)
 
 1. [bazel/infra] Create BCR PRs as ready for review and automatically when a tag is pushed
