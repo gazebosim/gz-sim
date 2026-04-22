@@ -1454,8 +1454,16 @@ TEST_P(SimulationRunnerTest,
   std::string componentName{"ModelPluginComponent"};
   auto componentId = common::hash64(componentName);
 
-  // Check there's no double component
-  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId));
+  // Check that the entities don't have the component yet
+  // Note that the component itself might exist in the ECM because we register
+  // components in the singleton factory at instantiation, and the factory
+  // might have registered that component in a previous test.
+  EXPECT_FALSE(runner.EntityCompMgr().EntityHasComponentType(boxEntity,
+      componentId));
+  EXPECT_FALSE(runner.EntityCompMgr().EntityHasComponentType(sphereEntity,
+      componentId));
+  EXPECT_FALSE(runner.EntityCompMgr().EntityHasComponentType(cylinderEntity,
+      componentId));
 
   // Load SDF file with plugins
   sdf::Root rootWith;
