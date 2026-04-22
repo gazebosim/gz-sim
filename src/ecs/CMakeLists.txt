@@ -40,6 +40,18 @@ target_compile_features(gz-sim-ecs PUBLIC cxx_std_20)
 # shared gz-sim in Phase 0b.
 set_target_properties(gz-sim-ecs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+# Phase 0b: when absorbed into libgz-sim via --whole-archive, symbols
+# carry forward their visibility. gz-sim compiles with -fvisibility=hidden
+# and relies on GZ_SIM_VISIBLE annotations; gz-sim-ecs symbols don't carry
+# that annotation and would become hidden in the resulting shared
+# library, breaking template instantiations in downstream test/plugin
+# TUs. Compile gz-sim-ecs with default visibility so every symbol
+# stays exported.
+if(NOT WIN32)
+  target_compile_options(gz-sim-ecs PRIVATE
+    -fvisibility=default -fvisibility-inlines-hidden)
+endif()
+
 # gz-common provides hash64() + WorkerPool. Types.hh comes in via the
 # gz-sim include tree (header-only dependency in 0a).
 target_link_libraries(gz-sim-ecs PUBLIC

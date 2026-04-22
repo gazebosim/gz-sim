@@ -19,6 +19,12 @@
 #ifndef GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGERARCHETYPE_HH_
 #define GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGERARCHETYPE_HH_
 
+// Phase 0b: mirror-image of the guard in
+// detail/EntityComponentManager.hh — the auto-globbed gz/sim.hh
+// umbrella includes both headers unconditionally; each is only
+// active under its matching backend flag. See design §3.1.
+#if defined(GZ_SIM_USE_ARCHETYPE_ECM)
+
 #include <cstring>
 #include <map>
 #include <memory>
@@ -418,5 +424,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 }
 }
 }
+
+#endif  // GZ_SIM_USE_ARCHETYPE_ECM (Phase 0b backend guard)
 
 #endif

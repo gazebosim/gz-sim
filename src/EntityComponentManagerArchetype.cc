@@ -28,6 +28,9 @@
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/ecs/World.hh"
+#include "gz/sim/ecs/detail/Archetype.hh"
+#include "gz/sim/ecs/detail/ArchetypeGraph.hh"
+#include "gz/sim/ecs/detail/Chunk.hh"
 #include "gz/sim/detail/BaseView.hh"
 
 // EntityComponentManagerDiff is defined in src/EntityComponentManagerDiff.hh
@@ -294,6 +297,38 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       if (!this->EntityHasComponentType(_entity, t)) return false;
     }
     return true;
+  }
+
+  std::unordered_set<ComponentTypeId>
+  EntityComponentManager::ComponentTypes(Entity _entity) const
+  {
+    std::unordered_set<ComponentTypeId> out;
+    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
+    if (core == gz::sim::ecs::kNullEntity) return out;
+    // Pull the archetype and iterate its types.
+    const auto &graph = this->dataPtr->world.Graph();
+    graph.ForEach([&](const gz::sim::ecs::Archetype &_a)
+    {
+      // We don't have a direct Entity -> Archetype accessor on the
+      // World public API, so we identify the owning archetype by
+      // asking which archetype contains this entity. A lightweight
+      // way: iterate all archetypes and ask each if it contains
+      // the entity.
+      for (size_t ci = 0; ci < _a.NumChunks(); ++ci)
+      {
+        const auto &chunk = _a.ChunkAt(ci);
+        const auto *entities = chunk.Entities();
+        for (uint32_t r = 0; r < chunk.Count(); ++r)
+        {
+          if (entities[r] == core)
+          {
+            for (auto t : _a.Types()) out.insert(t);
+            return;
+          }
+        }
+      }
+    });
+    return out;
   }
 
   //----------------------------------------------------------

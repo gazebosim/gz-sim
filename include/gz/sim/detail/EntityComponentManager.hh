@@ -17,6 +17,13 @@
 #ifndef GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
+// Phase 0b: the generated gz/sim.hh umbrella includes both this header
+// and detail/EntityComponentManagerArchetype.hh unconditionally. To
+// prevent redefinition errors under the archetype build, each detail
+// header's contents are guarded by its own backend flag. See
+// docs/design/phase-0b-ecm-integration.md §3.1.
+#if !defined(GZ_SIM_USE_ARCHETYPE_ECM)
+
 #include <cstring>
 #include <map>
 #include <memory>
@@ -582,5 +589,7 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
 }
 }
 }
+
+#endif  // !GZ_SIM_USE_ARCHETYPE_ECM (Phase 0b backend guard)
 
 #endif

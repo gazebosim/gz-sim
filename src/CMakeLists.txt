@@ -228,15 +228,30 @@ endif()
 # src/ecs/CMakeLists.txt) for its own tests + benchmarks, but isn't
 # linked into libgz-sim.
 #
-# PRIVATE linkage: gz-sim-ecs is a static library — its object code
-# gets absorbed into libgz-sim.so at link time, and its symbols become
-# part of libgz-sim's exported surface via normal shared-library
-# visibility. Downstream consumers reach ecs::World calls through
-# libgz-sim.so without needing a separate exported gz-sim-ecs target.
-# This keeps gz-sim-ecs out of gz-sim's install(EXPORT) set, which
-# gz-cmake would otherwise complain about.
+# Linkage subtleties:
+#  * PRIVATE keeps gz-sim-ecs out of gz-sim's install(EXPORT) set
+#    (downstream gets archetype symbols through libgz-sim.so rather
+#    than needing a separate exported target).
+#  * --whole-archive forces every object from the static gz-sim-ecs
+#    to be absorbed into libgz-sim.so. Without this, the linker only
+#    pulls objects whose symbols libgz-sim itself references —
+#    template instantiations in *consumer* TUs (unit tests, plugins)
+#    then emit undefined references to archetype internals
+#    (Query::Query, ArchetypeGraph::Get, ComponentTypeRegistry::Instance,
+#    etc.) because those objects never made it into libgz-sim.so.
+#  * macOS uses -force_load instead of --whole-archive; not handled
+#    here since this fork targets Linux. If / when macOS support
+#    returns, switch to CMake 3.24's `$<LINK_LIBRARY:WHOLE_ARCHIVE,…>`
+#    generator expression, which handles both linker families.
 if(GZ_SIM_ARCHETYPE_ECM)
-  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE gz-sim-ecs)
+  if(APPLE)
+    message(FATAL_ERROR
+      "GZ_SIM_ARCHETYPE_ECM on macOS needs --force_load; not yet wired.")
+  endif()
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE
+    -Wl,--whole-archive
+    gz-sim-ecs
+    -Wl,--no-whole-archive)
 endif()
 
 if (pybind11_FOUND)
