@@ -7,9 +7,9 @@ class SpatialHashGrid:
 
     def _hash(self, point):
         return (
-            math.floor(point.x() / self.cell_size),
-            math.floor(point.y() / self.cell_size),
-            math.floor(point.z() / self.cell_size)
+            math.floor(point[0] / self.cell_size),
+            math.floor(point[1] / self.cell_size),
+            math.floor(point[2] / self.cell_size)
         )
 
     def add(self, entity, aabb_min, aabb_max):

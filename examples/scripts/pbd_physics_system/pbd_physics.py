@@ -1,6 +1,6 @@
 from gz.sim import Model, World, world_entity, Link
 from gz.sim import components, ComponentState
-from gz.math import Vector3d, Pose3d
+import numpy as np
 from enum import Enum
 import sdformat as sdf
 import gz.sim
@@ -8,7 +8,7 @@ import time
 from pbd_broadphase import SpatialHashGrid
 
 # PBD Constants
-GRAVITY = Vector3d(0, 0, -9.81)
+GRAVITY = np.array([0.0, 0.0, -9.81])
 PBD_ITERATIONS = 5 # Reduced from 10
 
 class ShapeType(Enum):
@@ -34,16 +34,17 @@ class PBDPhysics:
                 parent_comp = _ecm.component(link_entity, components.ParentEntity)
                 is_static = False
                 parent_model = None
-                model_pos = Vector3d(0, 0, 0)
+                model_pos = np.array([0.0, 0.0, 0.0])
                 
                 if parent_comp:
-                     parent_model = parent_comp.data()
-                     is_static = Model(parent_model).static(_ecm)
+                    parent_model = parent_comp.data()
+                    is_static = Model(parent_model).static(_ecm)
                      
-                     # Cache model position!
-                     model_pose_comp = _ecm.component(parent_model, components.Pose)
-                     if model_pose_comp:
-                         model_pos = model_pose_comp.data().pos()
+                    # Cache model position!
+                    model_pose_comp = _ecm.component(parent_model, components.Pose)
+                    if model_pose_comp:
+                        p = model_pose_comp.data().pos()
+                        model_pos = np.array([p.x(), p.y(), p.z()])
                 
                 inv_mass = 0.0 if is_static else 1.0
 
@@ -61,7 +62,8 @@ class PBDPhysics:
                             dimensions['radius'] = geom_data.sphere_shape().radius()
                         elif geom_data.type() == sdf.GeometryType.BOX:
                             shape_type = ShapeType.BOX.value
-                            dimensions['size'] = geom_data.box_shape().size()
+                            s = geom_data.box_shape().size()
+                            dimensions['size'] = np.array([s.x(), s.y(), s.z()])
                         elif geom_data.type() == sdf.GeometryType.CYLINDER:
                             shape_type = ShapeType.CYLINDER.value
                             dimensions['radius'] = geom_data.cylinder_shape().radius()
@@ -72,10 +74,12 @@ class PBDPhysics:
 
                 initial_pose = link.world_pose(_ecm)
                 if initial_pose:
+                    pos = initial_pose.pos()
+                    pos_np = np.array([pos.x(), pos.y(), pos.z()])
                     pbd_data = {
-                        "position": initial_pose.pos(),
-                        "predicted_position": initial_pose.pos(),
-                        "velocity": Vector3d(0, 0, 0),
+                        "position": pos_np,
+                        "predicted_position": pos_np.copy(),
+                        "velocity": np.array([0.0, 0.0, 0.0]),
                         "shape_type": shape_type,
                         "dimensions": dimensions,
                         "inv_mass": inv_mass,
@@ -118,6 +122,11 @@ class PBDPhysics:
                     p_pose = Link(parent_entity).world_pose(_ecm)
                     c_pose = Link(child_entity).world_pose(_ecm)
                     if p_pose and c_pose:
+                        p_pos = p_pose.pos()
+                        c_pos = c_pose.pos()
+                        p_pos_np = np.array([p_pos.x(), p_pos.y(), p_pos.z()])
+                        c_pos_np = np.array([c_pos.x(), c_pos.y(), c_pos.z()])
+                        
                         is_fixed = False
                         try:
                             j_type = joint.type(_ecm)
@@ -132,7 +141,7 @@ class PBDPhysics:
                                 is_fixed = True
                                 
                         if is_fixed:
-                            offset = c_pose.pos() - p_pose.pos()
+                            offset = c_pos_np - p_pos_np
                             constraint_entity = _ecm.create_entity()
                             self.constraints[constraint_entity] = {
                                 "type": "fixed",
@@ -142,7 +151,7 @@ class PBDPhysics:
                             }
                             print(f"Created FIXED constraint between link {parent_name} and {child_name}")
                         else:
-                            dist = (p_pose.pos() - c_pose.pos()).length()
+                            dist = np.linalg.norm(p_pos_np - c_pos_np)
                             constraint_entity = _ecm.create_entity()
                             self.constraints[constraint_entity] = {
                                 "type": "distance",
@@ -154,7 +163,7 @@ class PBDPhysics:
 
     def resolve_sphere_sphere(self, obj1, obj2):
         delta_pos = obj1['predicted_position'] - obj2['predicted_position']
-        dist = delta_pos.length()
+        dist = np.linalg.norm(delta_pos)
         min_dist = obj1['dimensions']['radius'] + obj2['dimensions']['radius']
 
         if dist < min_dist and dist > 1e-6:
@@ -190,12 +199,12 @@ class PBDPhysics:
             pos = data['predicted_position']
             if data['shape_type'] == ShapeType.SPHERE.value:
                 r = data['dimensions']['radius']
-                aabb_min = Vector3d(pos.x() - r, pos.y() - r, pos.z() - r)
-                aabb_max = Vector3d(pos.x() + r, pos.y() + r, pos.z() + r)
+                aabb_min = pos - r
+                aabb_max = pos + r
             elif data['shape_type'] == ShapeType.BOX.value:
                 s = data['dimensions']['size']
-                aabb_min = Vector3d(pos.x() - s.x()/2, pos.y() - s.y()/2, pos.z() - s.z()/2)
-                aabb_max = Vector3d(pos.x() + s.x()/2, pos.y() + s.y()/2, pos.z() + s.z()/2)
+                aabb_min = pos - s / 2
+                aabb_max = pos + s / 2
             else:
                 aabb_min = pos
                 aabb_max = pos
@@ -241,7 +250,7 @@ class PBDPhysics:
                     if c_data.get('type', 'distance') == 'distance':
                         desired_dist = c_data['distance']
                         delta_pos = obj1['predicted_position'] - obj2['predicted_position']
-                        dist = delta_pos.length()
+                        dist = np.linalg.norm(delta_pos)
                         
                         if dist > 1e-6:
                             penetration = dist - desired_dist
@@ -276,9 +285,9 @@ class PBDPhysics:
                     continue
                 
                 # Use cached model_pos!
-                relative_pos = data['position'] - data.get('model_pos', Vector3d(0,0,0))
+                relative_pos = data['position'] - data.get('model_pos', np.array([0.0, 0.0, 0.0]))
                         
-                world_pose.pos().set(relative_pos.x(), relative_pos.y(), relative_pos.z())
+                world_pose.pos().set(relative_pos[0], relative_pos[1], relative_pos[2])
                 _ecm.set_changed(entity, components.Pose.type_id, ComponentState.PeriodicChange)
 def get_system():
     return PBDPhysics()
