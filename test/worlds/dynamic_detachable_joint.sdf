@@ -1,0 +1,164 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+
+<!--
+  Author: Adarsh Karan K P, Neobotix GmbH
+
+  Minimal scene for DynamicDetachableJoint:
+    - A single horizontal rod ("arm") aligned with +X
+    - Three 10 cm cubes spaced 10 cm apart along +X at y = 0
+    - Rod link ignores gravity and starts slightly above the cubes
+    - DynamicDetachableJoint service to attach/detach cubes by name
+
+  Services & topics:
+    - Attach/Detach service: /payload/attach_detach   (command = "attach" or "detach")
+    - Pose service:          /world/dynamic_detachable_joint_test/set_pose
+    - State topic:           /payload/child_state
+-->
+
+  <world name="dynamic_detachable_joint_test">
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics"/>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands"/>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <!-- Rod z position is slightly above cubes and it's gravity is disabled -->
+    <model name="rod">
+      <pose>0.30 0 0.14 0 0 0</pose>
+      <link name="arm">
+        <gravity>false</gravity>
+        <inertial>
+          <mass>1.0</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.6 0.05 0.05</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.6 0.05 0.05</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <plugin filename="gz-sim-dynamic-detachable-joint-system"
+              name="gz::sim::systems::DynamicDetachableJoint">
+        <parent_link>arm</parent_link>
+        <service_name>/payload/attach_detach</service_name>
+        <output_topic>/payload/child_state</output_topic>
+        <attach_distance>0.1</attach_distance> <!-- 10 cm -->
+      </plugin>
+    </model>
+
+    <!-- 3 cubes red, green, blue spaced evenly apart -->
+    <model name="green_cube">
+      <pose>0.10 0 0.05 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <diffuse>0 1 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="red_cube">
+      <pose>0.30 0 0.05 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="blue_cube">
+      <pose>0.50 0 0.05 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.2</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0 0 1 1</ambient>
+            <diffuse>0 0 1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>
