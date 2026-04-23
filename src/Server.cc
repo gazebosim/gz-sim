@@ -15,6 +15,7 @@
  *
 */
 
+#include <mutex>
 #include <numeric>
 
 #ifdef HAVE_PYBIND11
@@ -275,6 +276,15 @@ std::optional<uint64_t> Server::IterationCount(
 }
 
 //////////////////////////////////////////////////
+std::optional<std::chrono::steady_clock::duration> Server::SimTime(
+    const unsigned int _worldIndex) const
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+    return this->dataPtr->simRunners[_worldIndex]->CurrentInfo().simTime;
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
 std::optional<size_t> Server::EntityCount(const unsigned int _worldIndex) const
 {
   if (_worldIndex < this->dataPtr->simRunners.size())
@@ -449,4 +459,56 @@ Server::Status gz::sim::Server::GetStatus() const
     return Server::Status::RUNNING;
 
   return Server::Status::STOPPED;
+}
+
+//////////////////////////////////////////////////
+void Server::PeekEcm(std::function<void(const EntityComponentManager&)> _func,
+  const std::size_t _runnerId) const
+{
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->running)
+    {
+      gzerr << "Unable to peek ECM while server is running" << std::endl;
+      return;
+    }
+
+    if (_runnerId >= this->dataPtr->simRunners.size())
+    {
+      gzerr << "RunnerId is out of bounds"<< std::endl;
+      return;
+    }
+  }
+
+  // Acquire shared access to ECM.
+  std::shared_lock<std::shared_mutex> lock(this->dataPtr->ecmMutex);
+
+  // Simulation cannot start now because it needs a unique_lock on ecmMutex.
+  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
+}
+
+//////////////////////////////////////////////////
+void Server::PokeEcm(std::function<void(EntityComponentManager&)> _func,
+  const std::size_t _runnerId)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
+    if (this->dataPtr->running)
+    {
+      gzerr << "Unable to poke ECM while server is running" << std::endl;
+      return;
+    }
+
+    if (_runnerId >= this->dataPtr->simRunners.size())
+    {
+      gzerr << "RunnerId is out of bounds"<< std::endl;
+      return;
+    }
+  }
+
+  // Acquire exclusive access to ECM.
+  std::unique_lock<std::shared_mutex> lock(this->dataPtr->ecmMutex);
+
+  // Simulation cannot start now because it needs a unique_lock on ecmMutex.
+  _func(this->dataPtr->simRunners[_runnerId]->EntityCompMgr());
 }

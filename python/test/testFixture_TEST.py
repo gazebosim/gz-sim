@@ -15,6 +15,7 @@
 
 import os
 import unittest
+from datetime import timedelta
 
 from gz.common import set_verbosity
 from gz.sim import TestFixture, World, world_entity
@@ -55,11 +56,24 @@ class TestTestFixture(unittest.TestCase):
         fixture.finalize()
 
         server = fixture.server()
+
+        self.assertEqual(0, server.iteration_count())
+        self.assertEqual(timedelta(seconds=0), server.sim_time())
+        # world, model, link
+        self.assertEqual(5, server.entity_count())
+        # physics, python loader, helper
+        self.assertEqual(5, server.system_count())
+
         server.run(True, 1000, False)
 
         self.assertEqual(1000, pre_iterations)
         self.assertEqual(1000, iterations)
         self.assertEqual(1000, post_iterations)
+
+        self.assertEqual(1000, server.iteration_count())
+        self.assertEqual(timedelta(seconds=1), server.sim_time())
+        self.assertEqual(5, server.entity_count())
+        self.assertEqual(5, server.system_count())
 
 if __name__ == '__main__':
     unittest.main()
