@@ -4,6 +4,7 @@ from gz.sim import Model, World, Link, components, ComponentState
 from gz.math import Vector3d, Pose3d
 import sdformat as sdf
 from genesis.options.solvers import SimOptions
+import time
 import logging
 import sys
 import os
@@ -14,6 +15,8 @@ class GenesisPhysics:
         self.scene = None
         self.entity_map = {} # Map Gazebo link entity to Genesis entity
         self.genesis_caches = {}
+        self.ecm_update_rate = 0.0
+        self.last_component_update_time = 0.0
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("GenesisPhysics configure method called")
@@ -34,6 +37,9 @@ class GenesisPhysics:
             
         print(f"Genesis using backend requested: {backend_str}")
         
+        self.ecm_update_rate = _sdf.get_double('ecm_update_rate', 0.0)[0]
+        print(f"Genesis ECM update rate: {self.ecm_update_rate} Hz")
+        
         backend = gs.gpu if backend_str == "gpu" else gs.cpu
         detected_python = shutil.which('python3') or 'python3'
             
@@ -42,12 +48,12 @@ class GenesisPhysics:
         orig_exe = sys.executable
         sys.executable = detected_python
         try:
-            gs.init(backend=backend, logging_level=logging.INFO)
+            gs.init(backend=backend, logging_level=logging.INFO, performance_mode=False)
         finally:
             sys.executable = orig_exe
         
         sim_options = SimOptions(dt=dt)
-        self.scene = gs.Scene(sim_options=sim_options, show_viewer=False)
+        self.scene = gs.Scene(sim_options=sim_options, show_viewer=True)
         
         # 3. Parse scene geometry from ECM by iterating on Collision entities
         seen_links = set()
@@ -143,6 +149,18 @@ class GenesisPhysics:
             
         self.scene.step()
         
+        # Rate limiting
+        should_update_ecm = True
+        if self.ecm_update_rate > 0.0:
+            current_time = time.monotonic()
+            if current_time - self.last_component_update_time < 1.0 / self.ecm_update_rate:
+                should_update_ecm = False
+            else:
+                self.last_component_update_time = current_time
+                
+        if not should_update_ecm:
+            return
+            
         # 1. Build map of model_entity -> Pose_component
         model_pose_map = {}
         for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):

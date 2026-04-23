@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <sdf version="1.11">
-  <world name="genesis_world">
+  <world name="python_physics">
 
-    <!-- <physics name="1ms" type="ignored"> -->
-    <!--     <max_step_size>0.010</max_step_size> -->
-    <!--     <real_time_factor>0.0</real_time_factor> -->
-    <!-- </physics> -->
+    <physics name="1ms" type="ignored">
+        <max_step_size>0.010</max_step_size>
+        <real_time_factor>1.0</real_time_factor>
+    </physics>
     <gz:policies>
       <include_server_config_plugins>false</include_server_config_plugins>
     </gz:policies>
@@ -20,6 +20,8 @@
     <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader">
       <module_name>newton_physics</module_name>
       <ecm_update_rate>60</ecm_update_rate>
+      <show_viewer>false</show_viewer>
+      <substeps>10</substeps>
     </plugin>
     
     <plugin
@@ -154,96 +156,7 @@
       </link>
     </model>
 
-    <!-- Pendulum with Fixed Extension -->
-    <model name="pendulum">
-      <pose>0 0 0 0 0 0</pose>
-      <link name="base_link">
-        <pose>2 0 4 0 0 0</pose>
-        <collision name="base_collision">
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-        </collision>
-        <visual name="base_visual">
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <specular>0 1 0 1</specular>
-          </material>
-        </visual>
-      </link>
-
-      <link name="bob_link">
-        <pose>2.5 0 3.5 0 0 0</pose>
-        <collision name="bob_collision">
-          <geometry>
-            <sphere>
-              <radius>0.3</radius>
-            </sphere>
-          </geometry>
-        </collision>
-        <visual name="bob_visual">
-          <geometry>
-            <sphere>
-              <radius>0.3</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>1 1 0 1</ambient>
-            <diffuse>1 1 0 1</diffuse>
-            <specular>1 1 0 1</specular>
-          </material>
-        </visual>
-      </link>
-
-      <link name="bob2_link">
-        <pose>3.0 0 3.0 0 0 0</pose> <!-- Further offset -->
-        <collision name="bob2_collision">
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-        </collision>
-        <visual name="bob2_visual">
-          <geometry>
-            <sphere>
-              <radius>0.2</radius>
-            </sphere>
-          </geometry>
-          <material>
-            <ambient>0 1 1 1</ambient>
-            <diffuse>0 1 1 1</diffuse>
-            <specular>0 1 1 1</specular>
-          </material>
-        </visual>
-      </link>
-
-      <joint name="anchor" type="fixed">
-        <parent>world</parent>
-        <child>base_link</child>
-      </joint>
-
-      <joint name="pendulum_joint" type="revolute">
-        <parent>base_link</parent>
-        <child>bob_link</child>
-        <axis>
-          <xyz>0 1 0</xyz>
-        </axis>
-      </joint>
-
-      <joint name="fixed_joint" type="fixed">
-        <parent>bob_link</parent>
-        <child>bob2_link</child>
-      </joint>
-    </model>
+ 
 
   </world>
 </sdf>

@@ -29,6 +29,16 @@ class NewtonPhysics:
         self.last_component_update_time = 0.0
         self.sim_dt = 0.001
         self.sim_time = 0.0
+        self.sim_substeps = 1
+        
+        # Profiling data
+        self.profile_data = {
+            'solver': 0.0,
+            'ecm': 0.0,
+            'viewer': 0.0,
+            'count': 0,
+            'ecm_count': 0
+        }
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("NewtonPhysics configure method called")
@@ -56,6 +66,11 @@ class NewtonPhysics:
                 print("Newton GL Viewer initialized.")
             except Exception as e:
                 print(f"Failed to initialize Newton viewer: {e}")
+                
+        # Check for substeps in SDF
+        if _sdf.has_element('substeps'):
+            self.sim_substeps = int(_sdf.get_double('substeps', 1.0)[0])
+            print(f"Newton substeps from SDF: {self.sim_substeps}")
         
         builder = newton.ModelBuilder()
         
@@ -305,11 +320,13 @@ class NewtonPhysics:
 
     def update(self, _info, _ecm):
         # Update viewer if enabled (even when paused)
+        t_v0 = time.perf_counter()
         if self.viewer:
             self.viewer.begin_frame(self.sim_time)
             self.viewer.log_state(self.state_0)
             self.viewer.log_contacts(self.contacts, self.state_0)
             self.viewer.end_frame()
+        self.profile_data['viewer'] += time.perf_counter() - t_v0
             
         if _info.paused:
             return
@@ -318,19 +335,24 @@ class NewtonPhysics:
         if dt == 0:
             dt = self.sim_dt
             
-        self.sim_time += dt
-            
-        # Step simulation
-        self.state_0.clear_forces()
+        substep_dt = dt / self.sim_substeps
         
-        if self.viewer:
-            self.viewer.apply_forces(self.state_0)
+        # Step simulation multiple times for substeps
+        t_s0 = time.perf_counter()
+        for _ in range(self.sim_substeps):
+            self.state_0.clear_forces()
             
-        self.model.collide(self.state_0, self.contacts)
-        self.solver.step(self.state_0, self.state_1, self.control, self.contacts, dt)
-        
-        # Swap states
-        self.state_0, self.state_1 = self.state_1, self.state_0
+            if self.viewer:
+                self.viewer.apply_forces(self.state_0)
+                
+            self.model.collide(self.state_0, self.contacts)
+            self.solver.step(self.state_0, self.state_1, self.control, self.contacts, substep_dt)
+            
+            # Swap states
+            self.state_0, self.state_1 = self.state_1, self.state_0
+            
+            self.sim_time += substep_dt
+        self.profile_data['solver'] += time.perf_counter() - t_s0
         
         # Rate limiting for ECM update
         should_update_ecm = True
@@ -342,13 +364,18 @@ class NewtonPhysics:
                 self.last_component_update_time = current_time
                 
         if not should_update_ecm:
+            self.profile_data['count'] += 1
+            self._check_profile()
             return
             
         # Update Gazebo poses
+        t_e0 = time.perf_counter()
         try:
             body_q = self.state_0.body_q.numpy()
         except Exception as e:
             print(f"Failed to get body_q as numpy array: {e}")
+            self.profile_data['count'] += 1
+            self._check_profile()
             return
             
         model_pose_map = {}
@@ -405,6 +432,30 @@ class NewtonPhysics:
                 link_pose_comp.rot().set(1.0, 0.0, 0.0, 0.0)
                 
             _ecm.set_changed(link_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+            
+        self.profile_data['ecm'] += time.perf_counter() - t_e0
+        self.profile_data['ecm_count'] += 1
+        self.profile_data['count'] += 1
+        
+        self._check_profile()
+
+    def _check_profile(self):
+        if self.profile_data['count'] >= 100:
+            count = self.profile_data['count']
+            ecm_count = self.profile_data['ecm_count']
+            print(f"--- Profile (avg over {count} steps) ---")
+            print(f"  Solver: {self.profile_data['solver']/count*1000:.3f} ms/step")
+            if ecm_count > 0:
+                print(f"  ECM:    {self.profile_data['ecm']/ecm_count*1000:.3f} ms/update (called {ecm_count} times)")
+            else:
+                print(f"  ECM:    N/A (not called)")
+            print(f"  Viewer: {self.profile_data['viewer']/count*1000:.3f} ms/step")
+            # Reset
+            self.profile_data['solver'] = 0.0
+            self.profile_data['ecm'] = 0.0
+            self.profile_data['viewer'] = 0.0
+            self.profile_data['count'] = 0
+            self.profile_data['ecm_count'] = 0
 
 def get_system():
     return NewtonPhysics()
