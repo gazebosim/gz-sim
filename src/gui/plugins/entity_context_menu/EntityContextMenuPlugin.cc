@@ -17,8 +17,10 @@
 
 #include "EntityContextMenuPlugin.hh"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
+#include <variant>
 
 #include <QtQml>
 
@@ -159,9 +161,10 @@ void EntityContextMenuItem::SetEntityContextMenuHandler(
 }
 
 ///////////////////////////////////////////////////
-void EntityContextMenuItem::OnContextMenuRequested(QString _entity)
+void EntityContextMenuItem::OnContextMenuRequested(
+  QString _entity, uint64_t _eid)
 {
-  emit openContextMenu(std::move(_entity));
+  emit openContextMenu(std::move(_entity), _eid);
 }
 
 /////////////////////////////////////////////////
@@ -197,7 +200,13 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
       visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
     }
 
-    emit ContextMenuRequested(visual->Name().c_str());
+    uint64_t entityId = kNullEntity;
+    if (std::holds_alternative<uint64_t>(visual->UserData("gazebo-entity")))
+    {
+      entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
+    }
+
+    emit ContextMenuRequested(visual->Name().c_str(), entityId);
   }
 }
 
