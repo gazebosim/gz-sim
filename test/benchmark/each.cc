@@ -578,7 +578,6 @@ static void EachTestArgs(Benchmark *_b)
   }
 }
 
-/*
 BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachNoCache)
   ->Unit(benchmark::kMillisecond)
   ->Apply(EachTestArgs);
@@ -599,8 +598,6 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentCache)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-  */
-/*
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentConst)
   ->Arg(10)
   ->Arg(100)
@@ -631,7 +628,6 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentGet9More)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-  */
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentRemove9)
   ->Arg(10)
   ->Arg(100)
