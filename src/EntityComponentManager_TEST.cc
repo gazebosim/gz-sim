@@ -173,17 +173,22 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, cDoubleEIntDouble);
 
   // Check entities have the components
-  EXPECT_TRUE(manager.EntityHasComponentType(eInt, IntComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(eInt,
+        IntComponent::TypeIdStatic()));
   EXPECT_EQ(1u, manager.ComponentTypes(eInt).size());
-  EXPECT_EQ(IntComponent::TypeIdStatic(), *manager.ComponentTypes(eInt).begin());
+  EXPECT_EQ(IntComponent::TypeIdStatic(),
+      *manager.ComponentTypes(eInt).begin());
   EXPECT_EQ(cIntEInt, manager.Component<IntComponent>(eInt));
 
-  EXPECT_TRUE(manager.EntityHasComponentType(eDouble, DoubleComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(eDouble,
+        DoubleComponent::TypeIdStatic()));
   EXPECT_EQ(1u, manager.ComponentTypes(eDouble).size());
-  EXPECT_EQ(DoubleComponent::TypeIdStatic(), *manager.ComponentTypes(eDouble).begin());
+  EXPECT_EQ(DoubleComponent::TypeIdStatic(),
+      *manager.ComponentTypes(eDouble).begin());
   EXPECT_EQ(cDoubleEDouble, manager.Component<DoubleComponent>(eDouble));
 
-  EXPECT_TRUE(manager.EntityHasComponentType(eIntDouble, IntComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(eIntDouble,
+        IntComponent::TypeIdStatic()));
   EXPECT_TRUE(manager.EntityHasComponentType(eIntDouble,
         DoubleComponent::TypeIdStatic()));
   EXPECT_EQ(2u, manager.ComponentTypes(eIntDouble).size());
@@ -195,12 +200,14 @@ TEST_P(EntityComponentManagerFixture,
 
   // Remove component by type id
   EXPECT_TRUE(manager.RemoveComponent(eInt, IntComponent::TypeIdStatic()));
-  EXPECT_FALSE(manager.EntityHasComponentType(eInt, IntComponent::TypeIdStatic()));
+  EXPECT_FALSE(manager.EntityHasComponentType(eInt,
+        IntComponent::TypeIdStatic()));
   EXPECT_TRUE(manager.ComponentTypes(eInt).empty());
   EXPECT_EQ(nullptr, manager.Component<IntComponent>(eInt));
   EXPECT_TRUE(manager.HasRemovedComponents());
 
-  EXPECT_TRUE(manager.RemoveComponent(eDouble, DoubleComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.RemoveComponent(eDouble,
+        DoubleComponent::TypeIdStatic()));
   EXPECT_FALSE(manager.EntityHasComponentType(eDouble,
       DoubleComponent::TypeIdStatic()));
   EXPECT_TRUE(manager.ComponentTypes(eDouble).empty());
@@ -244,10 +251,13 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, compPtr);
 
   EXPECT_TRUE(manager.HasComponentType(IntComponent::TypeIdStatic()));
-  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity,
+        IntComponent::TypeIdStatic()));
   EXPECT_EQ(compPtr, manager.Component<IntComponent>(entity));
-  EXPECT_FALSE(manager.EntityHasComponentType(entity, DoubleComponent::TypeIdStatic()));
-  EXPECT_FALSE(manager.EntityHasComponentType(entity2, IntComponent::TypeIdStatic()));
+  EXPECT_FALSE(manager.EntityHasComponentType(entity,
+        DoubleComponent::TypeIdStatic()));
+  EXPECT_FALSE(manager.EntityHasComponentType(entity2,
+        IntComponent::TypeIdStatic()));
 
   // Try to add a component to an entity that does not exist
   EXPECT_FALSE(manager.HasEntity(kNullEntity));
@@ -263,7 +273,8 @@ TEST_P(EntityComponentManagerFixture,
   BoolComponent *boolComp = manager.ComponentDefault<BoolComponent>(entity);
   ASSERT_NE(nullptr, boolComp);
   EXPECT_TRUE(manager.HasComponentType(BoolComponent::TypeIdStatic()));
-  EXPECT_TRUE(manager.EntityHasComponentType(entity, BoolComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity,
+        BoolComponent::TypeIdStatic()));
   EXPECT_EQ(false, boolComp->Data());
 
   // Query non-existing component, the default value is used
@@ -271,8 +282,10 @@ TEST_P(EntityComponentManagerFixture,
     manager.ComponentDefault<DoubleComponent>(entity, 1.0);
   ASSERT_NE(nullptr, doubleComp);
   EXPECT_TRUE(manager.HasComponentType(DoubleComponent::TypeIdStatic()));
-  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::TypeIdStatic()));
-  EXPECT_TRUE(manager.EntityHasComponentType(entity, DoubleComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity,
+        IntComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity,
+        DoubleComponent::TypeIdStatic()));
   EXPECT_FALSE(
     manager.EntityHasComponentType(entity2, DoubleComponent::TypeIdStatic()));
   EXPECT_FLOAT_EQ(1.0, doubleComp->Data());
@@ -281,7 +294,8 @@ TEST_P(EntityComponentManagerFixture,
   IntComponent *intComp = manager.ComponentDefault<IntComponent>(entity, 124);
   ASSERT_NE(nullptr, intComp);
   EXPECT_TRUE(manager.HasComponentType(IntComponent::TypeIdStatic()));
-  EXPECT_TRUE(manager.EntityHasComponentType(entity, IntComponent::TypeIdStatic()));
+  EXPECT_TRUE(manager.EntityHasComponentType(entity,
+        IntComponent::TypeIdStatic()));
   EXPECT_EQ(123, intComp->Data());
 
   // Try to create/query a component from an entity that does not exist. nullptr
@@ -308,7 +322,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(0u, manager.EntityCount());
   EXPECT_FALSE(manager.HasEntity(entity));
   EXPECT_FALSE(manager.HasEntity(entity2));
-  EXPECT_FALSE(manager.EntityHasComponentType(entity, IntComponent::TypeIdStatic()));
+  EXPECT_FALSE(manager.EntityHasComponentType(entity,
+        IntComponent::TypeIdStatic()));
 
   // The type itself still exists
   EXPECT_TRUE(manager.HasComponentType(IntComponent::TypeIdStatic()));
@@ -3180,8 +3195,8 @@ TEST_P(EntityComponentManagerFixture, CopyEcm)
   managerCopy.CopyFrom(manager);
   EXPECT_EQ(manager.EntityCount(), managerCopy.EntityCount());
   EXPECT_TRUE(managerCopy.HasEntity(entity));
-  EXPECT_TRUE(
-      managerCopy.EntityHasComponentType(entity, components::Pose::TypeIdStatic()));
+  EXPECT_TRUE( managerCopy.EntityHasComponentType(entity,
+        components::Pose::TypeIdStatic()));
   managerCopy.EachNew<components::Pose>(
       [&](const Entity &_entity, const components::Pose *_pose)
       {

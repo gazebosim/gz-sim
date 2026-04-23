@@ -946,7 +946,8 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::GpuLidar::TypeIdStatic()) ||
          _ecm.HasComponentType(components::RgbdCamera::TypeIdStatic()) ||
          _ecm.HasComponentType(components::ThermalCamera::TypeIdStatic()) ||
-         _ecm.HasComponentType(components::SegmentationCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(
+           components::SegmentationCamera::TypeIdStatic()) ||
          _ecm.HasComponentType(components::WideAngleCamera::TypeIdStatic())))
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);

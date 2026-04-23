@@ -272,7 +272,8 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   *trajPoseComp = components::TrajectoryPose(actorPose);
   // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(this->dataPtr->actorEntity,
-      components::TrajectoryPose::TypeIdStatic(), ComponentState::OneTimeChange);
+      components::TrajectoryPose::TypeIdStatic(),
+      ComponentState::OneTimeChange);
 
   // Update actor bone trajectories based on animation time
   auto animTimeComp = _ecm.Component<components::AnimationTime>(

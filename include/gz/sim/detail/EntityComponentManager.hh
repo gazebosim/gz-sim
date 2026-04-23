@@ -508,7 +508,8 @@ void EntityComponentManager::EachRemoved(typename identity<std::function<
 template<typename ...ComponentTypeTs>
 detail::View *EntityComponentManager::FindView() const
 {
-  auto viewKey = std::vector<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...};
+  auto viewKey = std::vector<ComponentTypeId>{
+    ComponentTypeTs::TypeIdStatic()...};
 
   auto baseViewMutexPair = this->FindView(viewKey);
   auto baseViewPtr = baseViewMutexPair.first;
@@ -548,7 +549,8 @@ detail::View *EntityComponentManager::FindView() const
   }
 
   // create a new view if one wasn't found
-  detail::View view(std::set<ComponentTypeId>{ComponentTypeTs::TypeIdStatic()...});
+  detail::View view(std::set<ComponentTypeId>{
+      ComponentTypeTs::TypeIdStatic()...});
 
   for (const auto &vertex : this->Entities().Vertices())
   {

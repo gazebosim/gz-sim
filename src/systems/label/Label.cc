@@ -65,12 +65,14 @@ void Label::Configure(const Entity &_entity,
 
   // Attach a semantic label component to the visual.
   // If the plugin is inside the <model> tag, get its visual child.
-  if (_ecm.EntityHasComponentType(_entity, components::Visual::TypeIdStatic()) ||
+  if (_ecm.EntityHasComponentType(_entity,
+        components::Visual::TypeIdStatic()) ||
       _ecm.EntityHasComponentType(_entity, components::Actor::TypeIdStatic()))
   {
     _ecm.CreateComponent(_entity, components::SemanticLabel(label));
   }
-  else if (_ecm.EntityHasComponentType(_entity, components::Model::TypeIdStatic()))
+  else if (_ecm.EntityHasComponentType(_entity,
+        components::Model::TypeIdStatic()))
   {
     // TODO(anyone) add support for nested models. We will need to check for
     // child models and their respective links/visuals

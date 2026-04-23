@@ -551,8 +551,8 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
   for (auto const &sensor : allLinkSensors)
   {
     // Check if it is a contact sensor
-    auto isContactSensor =
-      ecm->EntityHasComponentType(sensor, components::ContactSensor::TypeIdStatic());
+    auto isContactSensor = ecm->EntityHasComponentType(sensor,
+          components::ContactSensor::TypeIdStatic());
     if (!isContactSensor)
       continue;
 
@@ -1237,8 +1237,8 @@ bool LightCommand::Execute()
         auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
             ComponentState::OneTimeChange :
             ComponentState::NoChange;
-        this->iface->ecm->SetChanged(lightEntity, components::LightCmd::TypeIdStatic(),
-          state);
+        this->iface->ecm->SetChanged(lightEntity,
+            components::LightCmd::TypeIdStatic(), state);
       }
     }
   }
@@ -1307,8 +1307,8 @@ bool LightCommand::Execute()
       auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
           ComponentState::OneTimeChange :
           ComponentState::NoChange;
-      this->iface->ecm->SetChanged(lightEntity, components::LightCmd::TypeIdStatic(),
-        state);
+      this->iface->ecm->SetChanged(lightEntity,
+          components::LightCmd::TypeIdStatic(), state);
     }
   }
   return true;
@@ -1519,8 +1519,8 @@ bool SphericalCoordinatesCommand::Execute()
     auto state = poseCmdComp->SetData(pose, pose3Eql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::TypeIdStatic(),
-        state);
+    this->iface->ecm->SetChanged(entity,
+        components::WorldPoseCmd::TypeIdStatic(), state);
   }
 
   return true;
@@ -1620,8 +1620,8 @@ bool DisableCollisionCommand::Execute()
     return false;
   }
 
-  this->iface->ecm->
-    RemoveComponent(entityMsg->id(), components::ContactSensorData::TypeIdStatic());
+  this->iface->ecm->RemoveComponent(entityMsg->id(),
+      components::ContactSensorData::TypeIdStatic());
 
   gzdbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 

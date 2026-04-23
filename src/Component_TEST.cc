@@ -535,7 +535,8 @@ TEST_F(ComponentTest, TypeId)
   {
     EXPECT_EQ(components::Name::TypeIdStatic(),
               common::hash64("gz_sim_components.Name"));
-    EXPECT_EQ(components::Name::TypeIdStatic(), components::Name::TypeIdStatic());
+    EXPECT_EQ(components::Name::TypeIdStatic(),
+        components::Name::TypeIdStatic());
   }
 }
 

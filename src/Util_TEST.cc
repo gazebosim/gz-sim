@@ -366,7 +366,8 @@ TEST_F(UtilTest, EntityTypeId)
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
-  EXPECT_EQ(components::ParticleEmitter::TypeIdStatic(), entityTypeId(entity, ecm));
+  EXPECT_EQ(components::ParticleEmitter::TypeIdStatic(),
+      entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Projector());

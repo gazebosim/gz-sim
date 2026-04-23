@@ -39,14 +39,6 @@ class ComponentFactoryTest : public InternalFixture<::testing::Test>
   }
 };
 
-// Registration behavior changed significantly in the following ways:
-// * Factory registration methods _don't_ set type IDs anymore since they are constexpr.
-//   We should consider making the APIs public and only expose the macro.
-// * Multiple registration of a component is a _compile_ error.
-// * Unfortunately for now, only the tag type is checked, duplicate string values are allowed, while duplicate component tags will be a compile error.
-//   We could consider removing deprecating the name altogether and only using the class itself.
-//   Entt has some C++ reflection that gets the class type tag as a string, we could do something similar.
-
 // Create a custom component.
 using MyCustom = components::Component<components::NoData, class MyCustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MyCustom", MyCustom);
@@ -63,7 +55,8 @@ TEST_F(ComponentFactoryTest, Register)
 
   // Check factory knows id
   auto ids = factory->TypeIds();
-  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::TypeIdStatic()));
+  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(),
+        MyCustom::TypeIdStatic()));
 }
 
 /////////////////////////////////////////////////

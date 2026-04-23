@@ -205,7 +205,7 @@ namespace components
   /// It is a template so it has lower priority than the non-template
   /// overloads defined by the GZ_SIM_REGISTER_COMPONENT macro.
   template <typename T>
-  constexpr ComponentTypeId componentTypeId(T*)
+  constexpr ComponentTypeId componentTypeId(T*)  // NOLINT(readability/casting)
   {
     return 0;
   }
@@ -375,7 +375,7 @@ namespace components
       // Passing `Component*` also ensures that components sharing the same
       // tag type but having different data types generate unique function
       // overloads, preventing ODR collisions.
-      return componentTypeId((Component*)nullptr);
+      return componentTypeId(static_cast<Component*>(nullptr));
     }
 
     // Documentation inherited
@@ -413,7 +413,8 @@ namespace components
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     public:
-    [[deprecated("Use TypeId() or TypeIdStatic(). Editing this variable at runtime is not supported.")]]
+    [[deprecated("Use TypeId() or TypeIdStatic()."\
+        "Editing this variable at runtime is not supported.")]]
        inline static ComponentTypeId typeId = TypeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the
@@ -466,7 +467,7 @@ namespace components
       // Passing `Component*` also ensures that components sharing the same
       // tag type but having different data types generate unique function
       // overloads, preventing ODR collisions.
-      return componentTypeId((Component*)nullptr);
+      return componentTypeId(static_cast<Component*>(nullptr));
     }
 
     // Documentation inherited
@@ -481,7 +482,8 @@ namespace components
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     public:
-    [[deprecated("Use TypeId() or TypeIdStatic(). Editing this variable at runtime is not supported.")]]
+    [[deprecated("Use TypeId() or TypeIdStatic()."\
+        "Editing this variable at runtime is not supported.")]]
     inline static ComponentTypeId typeId = TypeIdStatic();
 
     /// \brief Unique name for this component type. This is set through the

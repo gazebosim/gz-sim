@@ -1208,7 +1208,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        if (_ecm.EntityHasComponentType(_entity, components::Recreate::TypeIdStatic()))
+        if (_ecm.EntityHasComponentType(_entity,
+              components::Recreate::TypeIdStatic()))
           return true;
 
         // Check if model already exists
@@ -3207,7 +3208,8 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
       [&](const Entity &_entity, components::Link *) -> bool
       {
         if (this->staticEntities.find(_entity) != this->staticEntities.end() ||
-            _ecm.EntityHasComponentType(_entity, components::Recreate::TypeIdStatic()))
+            _ecm.EntityHasComponentType(_entity,
+              components::Recreate::TypeIdStatic()))
         {
           return true;
         }
@@ -3600,7 +3602,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->vec3Eql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::LinearVelocity::TypeIdStatic(), state);
+      _ecm.SetChanged(entity,
+          components::LinearVelocity::TypeIdStatic(), state);
     }
 
     // Angular velocity in body-fixed frame coordinates
@@ -4085,8 +4088,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               _wrench->SetData(wrenchData, this->wrenchEql)
                   ? ComponentState::PeriodicChange
                   : ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::JointTransmittedWrench::TypeIdStatic(),
-                          state);
+          _ecm.SetChanged(_entity,
+              components::JointTransmittedWrench::TypeIdStatic(), state);
         }
         else
         {
@@ -4530,7 +4533,8 @@ void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
       auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(_entity, components::AxisAlignedBox::TypeIdStatic(), state);
+      _ecm.SetChanged(_entity,
+          components::AxisAlignedBox::TypeIdStatic(), state);
 
       return true;
     });
@@ -4576,7 +4580,8 @@ void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
       auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(_entity, components::AxisAlignedBox::TypeIdStatic(), state);
+      _ecm.SetChanged(_entity,
+          components::AxisAlignedBox::TypeIdStatic(), state);
 
       return true;
     });

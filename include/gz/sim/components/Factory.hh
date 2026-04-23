@@ -428,8 +428,9 @@ namespace components
 /// and support distinguishing components that share the same tag type but have
 /// different data types.
 #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
-inline constexpr ::gz::sim::ComponentTypeId componentTypeId(_classname*) \
+inline constexpr ::gz::sim::ComponentTypeId componentTypeId(_classname* ptr) \
 { \
+  (void)ptr; \
   return ::gz::common::hash64(_compType); \
 } \
 class GzSimComponents##_classname \
@@ -438,7 +439,8 @@ class GzSimComponents##_classname \
   { \
     using Desc = ::gz::sim::components::ComponentDescriptor<_classname>; \
     ::gz::sim::components::Factory::Instance()->Register<_classname>(\
-      _compType, new Desc(), ::gz::sim::components::RegistrationObjectId(this));\
+      _compType, new Desc(), \
+      ::gz::sim::components::RegistrationObjectId(this));\
   } \
   public: GzSimComponents##_classname( \
               const GzSimComponents##_classname&) = delete; \

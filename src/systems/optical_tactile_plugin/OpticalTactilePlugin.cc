@@ -536,7 +536,8 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
   std::string depthCameraTopic;
   for (const Entity &sensor : sensorsInsideLink)
   {
-    if (_ecm.EntityHasComponentType(sensor, components::DepthCamera::TypeIdStatic()))
+    if (_ecm.EntityHasComponentType(sensor,
+          components::DepthCamera::TypeIdStatic()))
     {
       depthCameraCounter += 1;
       depthCameraSdf =
@@ -548,7 +549,8 @@ void OpticalTactilePluginPrivate::Load(const EntityComponentManager &_ecm)
         depthCameraTopic = depthCameraTopicComp->Data();
     }
 
-    if (_ecm.EntityHasComponentType(sensor, components::ContactSensor::TypeIdStatic()))
+    if (_ecm.EntityHasComponentType(sensor,
+          components::ContactSensor::TypeIdStatic()))
     {
       contactSensorCounter += 1;
     }

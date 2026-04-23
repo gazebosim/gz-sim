@@ -94,17 +94,21 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(components::World::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Model::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::CanonicalLink::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Link::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Collision::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::Collision::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Visual::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Light::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Name::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentEntity::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Material::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Inertial::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::LaserRetro::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::LaserRetro::TypeIdStatic()));
 
   // Check entities
   // 1 x world + 1 wind + 5 x model + 5 x link + 5 x collision + 5 x visual +
@@ -976,14 +980,20 @@ TEST_F(SdfEntityCreatorTest, CreateJointEntities)
 
   // Check component types
   EXPECT_TRUE(this->ecm.HasComponentType(components::World::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::CanonicalLink::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Link::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Joint::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::JointAxis::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::JointType::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ChildLinkName::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentLinkName::TypeIdStatic()));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::JointAxis::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::JointType::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ChildLinkName::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentLinkName::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentEntity::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Pose::TypeIdStatic()));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Name::TypeIdStatic()));
 

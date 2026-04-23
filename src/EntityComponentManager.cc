@@ -2157,8 +2157,9 @@ template<typename ComponentTypeT>
 bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     Entity _originalLink, EntityComponentManager *_ecm)
 {
-  if (ComponentTypeT::TypeIdStatic() != components::ParentLinkName::TypeIdStatic() &&
-      ComponentTypeT::TypeIdStatic() != components::ChildLinkName::TypeIdStatic())
+  const auto typeId = ComponentTypeT::TypeIdStatic();
+  if (typeId != components::ParentLinkName::TypeIdStatic() &&
+      typeId != components::ChildLinkName::TypeIdStatic())
   {
     gzerr << "Template type is invalid. Must be either "
            << "components::ParentLinkName or components::ChildLinkName\n";

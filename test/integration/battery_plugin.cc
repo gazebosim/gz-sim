@@ -96,7 +96,8 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -186,7 +187,8 @@ TEST_F(BatteryPluginTest,
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -269,7 +271,8 @@ TEST_F(BatteryPluginTest,
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entities
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -353,7 +356,8 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(

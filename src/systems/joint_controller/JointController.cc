@@ -305,7 +305,8 @@ void JointController::PreUpdate(const UpdateInfo &_info,
         joint = *entities.begin();
 
         // Validate
-        if (!_ecm.EntityHasComponentType(joint, components::Joint::TypeIdStatic()))
+        if (!_ecm.EntityHasComponentType(joint,
+              components::Joint::TypeIdStatic()))
         {
           gzerr << "Entity with name[" << name
                 << "] is not a joint" << std::endl;
