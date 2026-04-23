@@ -4,6 +4,7 @@ from gz.math import Vector3d, Pose3d
 from enum import Enum
 import sdformat as sdf
 import gz.sim
+import time
 from pbd_broadphase import SpatialHashGrid
 
 # PBD Constants
@@ -20,6 +21,7 @@ class PBDPhysics:
         self.broadphase = SpatialHashGrid(cell_size=2.0)
         self.pbd_entities = {}
         self.constraints = {}
+        self.last_component_update_time = 0.0
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("PBDPhysics configure method called")
@@ -265,15 +267,18 @@ class PBDPhysics:
             data['position'] = data['predicted_position']
 
         # Phase 4: Apply to gz-sim
-        for entity, (world_pose,) in _ecm.each([components.Pose]):
-            data = self.pbd_entities.get(entity)
-            if not data or data['inv_mass'] == 0:
-                continue
-            
-            # Use cached model_pos!
-            relative_pos = data['position'] - data.get('model_pos', Vector3d(0,0,0))
-                    
-            world_pose.pos().set(relative_pos.x(), relative_pos.y(), relative_pos.z())
-            _ecm.set_changed(entity, components.Pose.type_id, ComponentState.PeriodicChange)
+        current_time = time.monotonic()
+        if current_time - self.last_component_update_time >= 1.0 / 60.0:
+            self.last_component_update_time = current_time
+            for entity, (world_pose,) in _ecm.each([components.Pose]):
+                data = self.pbd_entities.get(entity)
+                if not data or data['inv_mass'] == 0:
+                    continue
+                
+                # Use cached model_pos!
+                relative_pos = data['position'] - data.get('model_pos', Vector3d(0,0,0))
+                        
+                world_pose.pos().set(relative_pos.x(), relative_pos.y(), relative_pos.z())
+                _ecm.set_changed(entity, components.Pose.type_id, ComponentState.PeriodicChange)
 def get_system():
     return PBDPhysics()
