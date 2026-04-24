@@ -73,13 +73,56 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // Pinned entities are never actually removed.
     public: std::unordered_set<gz::sim::Entity> pinned;
 
+    // Shadow component storage.
+    //
+    // The archetype core's `World::Add<T>` / `World::ComponentRaw<T>`
+    // paths require the ComponentTypeRegistry to have an entry for T.
+    // The entry is populated lazily on first call of `Register<T>()`,
+    // which only fires when the template is instantiated with a
+    // concrete T. That works fine for the template ECM paths
+    // (`Component<T>(e)`, `CreateComponent<T>(e, T{...})`), but
+    // SdfEntityCreator and the legacy ComponentFactory pipeline call
+    // the *type-erased* `CreateComponentImplementation(e, typeId,
+    // BaseComponent*)` path, where only the dynamic typeId and a
+    // polymorphic BaseComponent pointer are known — we can't bridge
+    // those into the archetype registry without a Factory-side bridge
+    // that knows T statically for every registered component.
+    //
+    // For Phase 0b we sidestep this with a shadow map:
+    // `shadowComponents[entity][typeId]` owns a `unique_ptr<BaseComponent>`
+    // cloned from the caller's pointer. The non-template
+    // ComponentImplementation() path checks here first; template
+    // callers continue to go through the archetype World at full
+    // performance.
+    //
+    // Performance note: components stored in the shadow map do NOT
+    // appear in `World::Each<T>` iterations. Systems that rely on
+    // `Each<T>` over components created by SdfEntityCreator (e.g.,
+    // the first pass of Physics system enumeration) will miss those
+    // entities. The fix — a Factory ↔ ComponentTypeRegistry bridge
+    // that registers every GZ_SIM_REGISTER_COMPONENT type into the
+    // archetype registry at load time — is the Phase 0b completion
+    // item. Marker: NOTE(0b-shadow-store).
+    public: std::unordered_map<gz::sim::Entity,
+        std::unordered_map<ComponentTypeId,
+            std::unique_ptr<components::BaseComponent>>> shadowComponents;
+
     // Helpers.
-    public: gz::sim::ecs::Entity CoreFor(gz::sim::Entity _e) const
+    //
+    // NOTE: the archetype core's first-created entity has raw value 0
+    // (index=0, gen=0), which happens to equal kNullEntity's raw bit
+    // pattern. Using kNullEntity as a "not in map" sentinel from
+    // CoreFor would misclassify the world entity (typically the first
+    // one created). Instead, CoreFor returns a bool + out-param so
+    // callers distinguish "not in map" from "in map, and the core
+    // handle happens to be 0".
+    public: bool CoreFor(gz::sim::Entity _e,
+                         gz::sim::ecs::Entity &_out) const
     {
       auto it = this->legacyToCore.find(static_cast<uint64_t>(_e));
-      return it == this->legacyToCore.end()
-          ? gz::sim::ecs::kNullEntity
-          : it->second;
+      if (it == this->legacyToCore.end()) return false;
+      _out = it->second;
+      return true;
     }
 
     public: gz::sim::Entity LegacyFor(gz::sim::ecs::Entity _core) const
@@ -88,6 +131,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       return it == this->coreToLegacy.end()
           ? kNullEntity
           : it->second;
+    }
+
+    /// \brief True if the entity has this component in the shadow map.
+    public: bool ShadowHas(gz::sim::Entity _e, ComponentTypeId _t) const
+    {
+      auto eit = this->shadowComponents.find(_e);
+      if (eit == this->shadowComponents.end()) return false;
+      return eit->second.find(_t) != eit->second.end();
+    }
+
+    /// \brief Fetch from shadow map. Nullptr if absent.
+    public: components::BaseComponent *ShadowGet(
+        gz::sim::Entity _e, ComponentTypeId _t) const
+    {
+      auto eit = this->shadowComponents.find(_e);
+      if (eit == this->shadowComponents.end()) return nullptr;
+      auto cit = eit->second.find(_t);
+      return cit == eit->second.end() ? nullptr : cit->second.get();
     }
   };
 
@@ -150,9 +211,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   bool EntityComponentManager::HasEntity(const Entity _entity) const
   {
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    return core != gz::sim::ecs::kNullEntity &&
-           this->dataPtr->world.IsAlive(core);
+    gz::sim::ecs::Entity core;
+    if (!this->dataPtr->CoreFor(_entity, core)) return false;
+    return this->dataPtr->world.IsAlive(core);
   }
 
   void EntityComponentManager::RequestRemoveEntity(
@@ -169,11 +230,13 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     for (auto e : this->dataPtr->pendingRemovals)
     {
       if (!this->HasEntity(e)) continue;
-      gz::sim::ecs::Entity core = this->dataPtr->CoreFor(e);
+      gz::sim::ecs::Entity core;
+      if (!this->dataPtr->CoreFor(e, core)) continue;
       this->dataPtr->world.Destroy(core);
       this->dataPtr->coreToLegacy.erase(core.Raw());
       this->dataPtr->legacyToCore.erase(static_cast<uint64_t>(e));
       this->dataPtr->entityGraph.RemoveVertex(e);
+      this->dataPtr->shadowComponents.erase(e);
     }
     this->dataPtr->pendingRemovals.clear();
   }
@@ -216,40 +279,56 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // NOTE(0b-immediate-mode): immediate semantics per design §6.1.
     // Phase 0c will queue this through the deferred command buffer.
     //
-    // Implementation: the archetype World has no knowledge of the
-    // legacy BaseComponent hierarchy, so we register the type with
-    // the archetype registry using the component factory's metadata
-    // and delegate to World::AddComponentRaw(entity, typeId, bytes).
-    //
-    // STUB(0b): the archetype World doesn't currently expose a
-    // "AddComponentRaw(typeId, const void*)" path — Phase 0a's
-    // World::Add is a template that takes T by value. To keep the
-    // scope of this initial landing contained, CreateComponent on
-    // the archetype backend is a no-op + error log for non-template
-    // callers. Real callers go through the Component<T>(e) template
-    // path which constructs T directly and goes through
-    // World::Add<T>. Track in the journal as a known gap.
-    gzwarn << "Archetype ECM: CreateComponentImplementation(typeId="
-           << _componentTypeId << ") on entity " << _entity
-           << " is stubbed — requires a type-erased World::Add. "
-           << "Callers using the Component<T>(e) template path work "
-           << "correctly because it goes through the typed "
-           << "World::Add<T>." << std::endl;
-    (void)_data;
-    return false;
+    // NOTE(0b-shadow-store): type-erased callers (SdfEntityCreator,
+    // ComponentFactory) land here without T available. We can't feed
+    // them into the archetype World without a Factory↔ecs registry
+    // bridge (Phase 0b completion). For now, clone the BaseComponent
+    // and keep it in the per-ECM shadow map; the read path
+    // (ComponentImplementation / EntityHasComponentType /
+    // ComponentTypes) checks the shadow map first, so callers see
+    // consistent state. Template callers (Component<T>(e)) still
+    // transit the archetype World at full performance.
+    if (!this->HasEntity(_entity)) return false;
+    if (!_data) return false;
+
+    // If the type IS registered with the archetype registry (e.g.
+    // because someone already called Component<T>(e) or Add<T> for
+    // this T), prefer the archetype-native path so the data lands in
+    // the World where Each<T> will find it.
+    if (auto *info = ecs::ComponentTypeRegistry::Instance().Get(
+            _componentTypeId))
+    {
+      gz::sim::ecs::Entity core;
+      if (this->dataPtr->CoreFor(_entity, core))
+      {
+        this->dataPtr->world.AddRaw(core, _componentTypeId,
+            reinterpret_cast<const void *>(_data));
+        // Drop any shadow copy — archetype is authoritative now.
+        auto eit = this->dataPtr->shadowComponents.find(_entity);
+        if (eit != this->dataPtr->shadowComponents.end())
+          eit->second.erase(_componentTypeId);
+        (void)info;
+        return false;  // data was stored; no further update needed.
+      }
+    }
+
+    // Fallback: clone into the shadow map.
+    auto clone = _data->Clone();
+    if (!clone) return false;
+    this->dataPtr->shadowComponents[_entity][_componentTypeId]
+        = std::move(clone);
+    return false;  // data was stored via clone; caller need not update.
   }
 
   const components::BaseComponent *
   EntityComponentManager::ComponentImplementation(
       const Entity _entity, const ComponentTypeId _type) const
   {
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    if (core == gz::sim::ecs::kNullEntity) return nullptr;
-    // The World's ComponentRaw path returns a void* to the stored
-    // component value. The caller template static_casts the returned
-    // pointer back to ComponentTypeT* so the in-memory layout between
-    // "BaseComponent*" and "ComponentTypeT*" must be the same — which
-    // it is under single inheritance from BaseComponent.
+    // Shadow map first (see NOTE(0b-shadow-store) on the PIMPL).
+    if (auto *p = this->dataPtr->ShadowGet(_entity, _type))
+      return p;
+    gz::sim::ecs::Entity core;
+    if (!this->dataPtr->CoreFor(_entity, core)) return nullptr;
     const void *raw = const_cast<gz::sim::ecs::World&>(this->dataPtr->world)
         .ComponentRaw(core, _type);
     return reinterpret_cast<const components::BaseComponent *>(raw);
@@ -258,8 +337,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   components::BaseComponent *EntityComponentManager::ComponentImplementation(
       const Entity _entity, const ComponentTypeId _type)
   {
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    if (core == gz::sim::ecs::kNullEntity) return nullptr;
+    if (auto *p = this->dataPtr->ShadowGet(_entity, _type))
+      return p;
+
+    gz::sim::ecs::Entity core;
+    if (!this->dataPtr->CoreFor(_entity, core)) return nullptr;
     void *raw = this->dataPtr->world.ComponentRawMut(core, _type);
     return reinterpret_cast<components::BaseComponent *>(raw);
   }
@@ -268,11 +350,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       const Entity _entity, const ComponentTypeId &_typeId)
   {
     // NOTE(0b-immediate-mode): immediate semantics per design §6.1.
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    if (core == gz::sim::ecs::kNullEntity) return false;
-    if (!this->dataPtr->world.Has(core, _typeId)) return false;
-    this->dataPtr->world.RemoveRaw(core, _typeId);
-    return true;
+    bool removed = false;
+
+    // Shadow store (non-template path).
+    auto eit = this->dataPtr->shadowComponents.find(_entity);
+    if (eit != this->dataPtr->shadowComponents.end())
+    {
+      if (eit->second.erase(_typeId)) removed = true;
+    }
+
+    // Archetype world (template path).
+    gz::sim::ecs::Entity core;
+    if (this->dataPtr->CoreFor(_entity, core) &&
+        this->dataPtr->world.Has(core, _typeId))
+    {
+      this->dataPtr->world.RemoveRaw(core, _typeId);
+      removed = true;
+    }
+    return removed;
   }
 
   bool EntityComponentManager::HasComponentType(
@@ -284,8 +379,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   bool EntityComponentManager::EntityHasComponentType(
       const Entity _entity, const ComponentTypeId &_typeId) const
   {
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    if (core == gz::sim::ecs::kNullEntity) return false;
+    // Shadow store first (non-template created components).
+    if (this->dataPtr->ShadowHas(_entity, _typeId)) return true;
+    gz::sim::ecs::Entity core;
+    if (!this->dataPtr->CoreFor(_entity, core)) return false;
     return this->dataPtr->world.Has(core, _typeId);
   }
 
@@ -303,8 +400,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   EntityComponentManager::ComponentTypes(Entity _entity) const
   {
     std::unordered_set<ComponentTypeId> out;
-    gz::sim::ecs::Entity core = this->dataPtr->CoreFor(_entity);
-    if (core == gz::sim::ecs::kNullEntity) return out;
+    // Shadow map contributions first.
+    auto eit = this->dataPtr->shadowComponents.find(_entity);
+    if (eit != this->dataPtr->shadowComponents.end())
+    {
+      for (const auto &[tid, _] : eit->second) out.insert(tid);
+    }
+
+    gz::sim::ecs::Entity core;
+    if (!this->dataPtr->CoreFor(_entity, core)) return out;
     // Pull the archetype and iterate its types.
     const auto &graph = this->dataPtr->world.Graph();
     graph.ForEach([&](const gz::sim::ecs::Archetype &_a)

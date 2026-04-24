@@ -197,6 +197,18 @@ namespace gz::sim::ecs
     /// `EntityComponentManager::RemoveComponent(entity, typeId)`
     /// public method.
     public: void RemoveRaw(Entity _e, ComponentTypeId _id);
+
+    /// \brief Add a component by runtime typeId with raw source
+    /// bytes. Complements the template `Add<T>()`. Requires that the
+    /// type has already been registered with the
+    /// ComponentTypeRegistry — caller is responsible for that.
+    ///
+    /// Phase 0b facade uses this for `CreateComponentImplementation`
+    /// when the typeId is registered. When it isn't (the common
+    /// initial-ship case), the facade falls back to a shadow BaseComponent
+    /// map; see src/EntityComponentManagerArchetype.cc for the
+    /// NOTE(0b-shadow-store) commentary.
+    public: void AddRaw(Entity _e, ComponentTypeId _id, const void *_src);
     private: void       *ComponentRawMutAndDirty(Entity _e, ComponentTypeId _id);
 
     private: Entity ImmediateCreateFromBlob(

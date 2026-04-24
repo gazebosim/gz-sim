@@ -282,6 +282,17 @@ namespace gz::sim::ecs
     else                 this->ImmediateRemove(_e, _id);
   }
 
+  void World::AddRaw(Entity _e, ComponentTypeId _id, const void *_src)
+  {
+    auto *info = ComponentTypeRegistry::Instance().Get(_id);
+    if (!info) return;  // type not registered — caller must handle.
+    // ImmediateAdd takes non-const void* in its signature; the body
+    // forwards to info->copy() which takes (void*, const void*). Safe
+    // to const_cast away the const here since the call chain won't
+    // mutate the source.
+    this->ImmediateAdd(_e, info, const_cast<void *>(_src), false);
+  }
+
   void World::ImmediateRemove(Entity _e, ComponentTypeId _id)
   {
     if (!this->IsAlive(_e)) return;

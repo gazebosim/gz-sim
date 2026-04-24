@@ -123,6 +123,107 @@ entity integer), or leave the translation in place and drop it in 0e?
 
 ---
 
+## Phase 0b — Archetype facade boots `gz sim` (2026-04-24 update)
+
+**Branch:** `main` (follow-on to the 2026-04-20 V2 scaffolding).
+**Result:** `gz sim -s -v4 empty.sdf` completes startup cleanly under
+`GZ_SIM_ARCHETYPE_ECM=ON`. No crashes. Server reaches steady state,
+PostUpdate workers run, SIGTERM shutdown is clean. Two harmless
+`STUB(0b)` warnings remain (`SetChanged` one-shot, `CopyFrom`
+one-shot).
+
+### What landed
+
+1. **Shadow `BaseComponent` store** in the archetype PIMPL
+   (`std::unordered_map<Entity, unordered_map<typeId,
+   unique_ptr<BaseComponent>>>`). Rationale: SdfEntityCreator and the
+   Factory pipeline use the type-erased `CreateComponentImplementation
+   (e, typeId, BaseComponent*)` path, where we have no T available
+   and therefore can't route through the archetype core. Clone the
+   caller's BaseComponent polymorphically and keep the clone.
+   `ComponentImplementation` / `EntityHasComponentType` /
+   `ComponentTypes` / `RemoveComponent` check the shadow map first.
+   Template callers continue to go through the archetype World at
+   full performance. Marker: `NOTE(0b-shadow-store)` in the source.
+
+2. **New `ecs::World::AddRaw(entity, typeId, const void*)`**
+   public method. Dispatches to the existing `ImmediateAdd` /
+   `DeferredAdd` path by looking the type up in
+   `ComponentTypeRegistry`. Used by
+   `CreateComponentImplementation` when the typeId IS registered
+   (today: only happens if someone called the template path for
+   that T previously — rare at boot). Tomorrow, once there's a
+   Factory ↔ ComponentTypeRegistry bridge, most non-template creates
+   will go through `AddRaw` at full archetype performance and the
+   shadow store falls back to a narrow edge case.
+
+3. **`CoreFor` sentinel bug fix** — the original impl returned
+   `kNullEntity` to signal "not in map", but the archetype core's
+   first-created entity also has raw value 0 (Entity(0, 0)). The
+   world entity's legitimate handle collided with the not-found
+   sentinel, making `HasEntity(worldEntity)` return false right after
+   `CreateEntity` returned 1. This was the actual crash cause —
+   `SdfEntityCreator::CreateComponent` bailed silently because
+   `HasEntity` said the world didn't exist, so no components got
+   attached, so `UserCommands::Configure` got a null `Name` and
+   dereferenced it. Fixed by changing `CoreFor` to a bool + out-param
+   signature. Every callsite updated.
+
+4. **`World::AddRaw` + `RemoveRaw` + `ComponentRaw` /
+   `ComponentRawMut` all public** on `ecs::World`. Non-template
+   facade callers need these.
+
+5. **`ComponentTypes(entity)` implemented**. The legacy test suite
+   calls it; stubbed it would return empty. Now iterates the
+   archetype AND shadow store.
+
+### Verification
+- `gz sim -s -v4 empty.sdf` — runs to the SIGTERM timeout without
+  crashing. Only two stub warnings fire (`SetChanged`, `CopyFrom`),
+  both one-shot and harmless.
+- `UNIT_EntityComponentManager_TEST` under legacy build — **414/414
+  green**. Legacy path unchanged.
+- `UNIT_ECS_*` (12 binaries) still green.
+
+### What's still stubbed and will bite real scenarios
+- **State / SetState / ChangedState / ChangedState(SerializedStateMap)**
+  — scene broadcasting, state serialization for network secondaries,
+  and the initial-state snapshot the GUI subscribes to all go through
+  these. `gz sim` with the GUI connected will show an empty world
+  because state serialization returns `{}`. Fill-in is mechanical:
+  walk archetype chunks column-by-column and emit `SerializedComponent`
+  messages; the format is documented in §9 of the Phase 0b design.
+- **Clone / CopyFrom / ResetTo** — needed for save/load, log playback,
+  and network primary/secondary state sync.
+- **SetChanged / ComponentState** — change-tracking granularity
+  (OneTimeChange / PeriodicChange). Currently always reports
+  NoChange, which means downstream systems using the change-tracked
+  topic filter (e.g., scene_broadcaster's periodic vs. one-time
+  delta) get everything.
+- **EntityByName** — needs a shadow name index on the facade.
+
+### Remaining grep recipes
+```
+grep -rn "STUB(0b)"                src/ include/   # 15+ methods
+grep -rn "NOTE(0b-immediate-mode)" src/ include/   # Phase 0c migration markers
+grep -rn "NOTE(0b-shadow-store)"   src/ include/   # shadow-store bridge work
+```
+
+### Open questions
+**Q22.** The shadow store route doesn't get components into
+`World::Each<T>` iteration. Systems that do `Each<Pose>` at the first
+PostUpdate to build their internal caches will see no entities under
+`gz sim empty.sdf` today, because all components went through the
+shadow store. For empty.sdf this doesn't crash because no physics /
+sensor system needs to iterate — but a scenario with any actual
+entity-component iteration will behave wrong. The proper fix is the
+Factory ↔ ComponentTypeRegistry bridge (hand every
+GZ_SIM_REGISTER_COMPONENT type into the archetype registry at
+load-time). Confirm we do that as the next session, and it's OK for
+the Each<T> miss to be a known limitation until then?
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)
