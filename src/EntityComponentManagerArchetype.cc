@@ -74,6 +74,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // Pinned entities are never actually removed.
     public: std::unordered_set<gz::sim::Entity> pinned;
 
+    // Newly-created entities — populated in CreateEntity /
+    // SetState's create path, drained by ClearNewlyCreatedEntities
+    // (invoked at end-of-step by SimulationRunner). EachNew<T>
+    // filters against this set so systems only see each entity once.
+    public: std::unordered_set<gz::sim::Entity> newlyCreatedEntities;
+
     // Shadow component storage.
     //
     // The archetype core's `World::Add<T>` / `World::ComponentRaw<T>`
@@ -216,6 +222,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     this->dataPtr->legacyToCore.emplace(static_cast<uint64_t>(legacy), core);
     this->dataPtr->coreToLegacy.emplace(core.Raw(), legacy);
     this->dataPtr->entityGraph.AddVertex(std::to_string(legacy), legacy, legacy);
+    this->dataPtr->newlyCreatedEntities.insert(legacy);
     return legacy;
   }
 
@@ -252,6 +259,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       this->dataPtr->legacyToCore.erase(static_cast<uint64_t>(e));
       this->dataPtr->entityGraph.RemoveVertex(e);
       this->dataPtr->shadowComponents.erase(e);
+      this->dataPtr->newlyCreatedEntities.erase(e);
     }
     this->dataPtr->pendingRemovals.clear();
   }
@@ -506,6 +514,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   void EntityComponentManager::ClearNewlyCreatedEntities()
   {
+    this->dataPtr->newlyCreatedEntities.clear();
     this->dataPtr->world.ClearChangeBits();
   }
 
@@ -521,10 +530,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   bool EntityComponentManager::HasNewEntities() const
   {
-    // Approximation: treat "has new" as "any archetype reports new
-    // rows". STUB(0b): the World exposes newly-added rows per
-    // archetype but not an aggregate has-any flag — add one.
-    return false;
+    return !this->dataPtr->newlyCreatedEntities.empty();
   }
 
   bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
@@ -679,6 +685,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         this->dataPtr->coreToLegacy.emplace(core.Raw(), entity);
         this->dataPtr->entityGraph.AddVertex(
             std::to_string(entity), entity, entity);
+        this->dataPtr->newlyCreatedEntities.insert(entity);
         // Track future IDs so auto-allocation doesn't collide with
         // peer-assigned ones.
         if (entity >= this->dataPtr->nextLegacyId)
@@ -831,9 +838,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     GZ_SIM_ARCH_STUB_ONCE("ApplyEntityDiff");
   }
 
-  bool EntityComponentManager::IsNewEntity(const Entity) const
+  bool EntityComponentManager::IsNewEntity(const Entity _entity) const
   {
-    return false;
+    return this->dataPtr->newlyCreatedEntities.count(_entity) > 0;
   }
 
   bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const

@@ -285,20 +285,29 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   //----------------------------------------------------------
-  // EachNew — for the facade-level port, treat it as Each filtered
-  // to entities flagged as newly-created. The facade doesn't yet
-  // track "newly created" on the shadow-store path (STUB(0b-new)),
-  // so this behaves like Each — every call sees all entities. Scene
-  // broadcaster / scene visualizer relies on EachNew to pick up
-  // spawned entities; under this compatibility shim they'll get
-  // everything on the first pass, nothing is missed. Change-tracking
-  // wire-up removes the over-emission.
+  // EachNew — walks entities in the facade's newlyCreated set,
+  // drained by ClearNewlyCreatedEntities at end-of-step. Without
+  // this filter Physics sees the same entities every tick and its
+  // registration map trips "already on map" warnings.
 
   template <typename... ComponentTypeTs>
   void EntityComponentManager::EachNew(typename identity<std::function<
       bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
   {
-    this->Each<ComponentTypeTs...>(_f);
+    for (Entity e : this->AllEntitiesArchetypeFacade())
+    {
+      if (!this->IsNewEntity(e)) continue;
+      auto comps = std::make_tuple(
+          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
+      bool hasAll = true;
+      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
+                 comps);
+      if (!hasAll) continue;
+      bool keep = std::apply([&](auto*... ps) {
+        return _f(e, ps...);
+      }, comps);
+      if (!keep) break;
+    }
   }
 
   template <typename... ComponentTypeTs>
@@ -306,7 +315,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       bool(const Entity &_entity,
            const ComponentTypeTs *...)>>::type _f) const
   {
-    this->Each<ComponentTypeTs...>(_f);
+    for (Entity e : this->AllEntitiesArchetypeFacade())
+    {
+      if (!this->IsNewEntity(e)) continue;
+      auto comps = std::make_tuple(
+          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
+      bool hasAll = true;
+      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
+                 comps);
+      if (!hasAll) continue;
+      bool keep = std::apply([&](auto*... ps) {
+        return _f(e, ps...);
+      }, comps);
+      if (!keep) break;
+    }
   }
 
   //----------------------------------------------------------

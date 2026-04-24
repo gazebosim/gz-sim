@@ -343,6 +343,58 @@ scenes correctly.
 
 ---
 
+## Phase 0b — Newly-created entity tracking (2026-04-24 update)
+
+**Context:** After the Each<T...> unification, `gz sim -v4
+empty.sdf` produced a continuous stream of Physics warnings like
+`Model entity [4] marked as new, but it's already on the map`.
+Physics's `EachNew<Model, ...>` path was seeing every entity every
+tick because the archetype-facade `EachNew<T>` aliased `Each<T>`
+(STUB(0b-new)). Physics would try to register the entity in its
+local map, notice it was already there, and warn.
+
+### Fix
+- Added `std::unordered_set<Entity> newlyCreatedEntities` to the
+  archetype PIMPL.
+- `CreateEntity` + `SetState`'s entity-create path insert into the
+  set.
+- `ClearNewlyCreatedEntities` drains it (called end-of-step by
+  `SimulationRunner`).
+- `ProcessRemoveEntityRequests` removes entries for destroyed
+  entities.
+- `IsNewEntity(e)` returns membership; `HasNewEntities()` returns
+  `!empty()`.
+- `EachNew<T>` detail-header template now filters
+  `AllEntitiesArchetypeFacade()` by `IsNewEntity` before applying
+  the component-has-all check.
+
+### Critical gotcha — plugin .so files need a full rebuild
+
+The detail-header template bodies are instantiated in the **consumer**
+translation units, including every gz-sim system plugin `.so`
+(Physics, SceneBroadcaster, etc.). Rebuilding `libgz-sim.so` alone
+doesn't refresh those template instantiations. The plugin `.so`s
+have to rebuild too.
+
+Verified during debugging: with `libgz-sim.so` updated but
+`libgz-sim-physics-system.so` still stale, Physics saw 3460
+"already on the map" warnings in a 3 s run. After full rebuild
+(`cmake --build . -j8`, not just `--target gz-sim`), zero warnings.
+
+**Operational recommendation:** do `cmake --build . -j8` (no
+target) after any change to
+`include/gz/sim/detail/EntityComponentManagerArchetype.hh` to catch
+every plugin rebuild.
+
+### Verification
+- `timeout 3 gz sim -s -v4 -r empty.sdf` — zero `marked as new`
+  warnings (previously 3460+ per 3 s run).
+- `UNIT_EntityComponentManager_TEST` under legacy: 414/414 green.
+- Only remaining stub warnings: `SetChanged` + `CopyFrom` one-shots
+  during init.
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)
