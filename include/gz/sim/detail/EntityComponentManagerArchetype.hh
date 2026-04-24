@@ -209,39 +209,60 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   //----------------------------------------------------------
   // Each<T...>
+  //
+  // The archetype backend's Each walks every entity the facade knows
+  // about (via AllEntitiesArchetypeFacade) and tests each for the
+  // requested component tuple via the non-template
+  // ComponentImplementation. That helper already unifies the shadow
+  // store + archetype World, so both storage paths are covered in
+  // one pass.
+  //
+  // Performance trade-off: the Phase 0a archetype core's Each<T>
+  // gets chunk-contiguous iteration (~3 ns/entity). This per-entity
+  // loop is closer to the legacy ECM's per-entity-map-lookup cost
+  // (~30-50 ns/entity). For Phase 0b that's acceptable — we're
+  // trading raw speed for correctness across both storage paths.
+  // Phase 0b completion (Factory ↔ ComponentTypeRegistry bridge)
+  // eliminates the shadow store and lets Each<T> go back to the
+  // archetype-native fast path.
 
   template<typename ...ComponentTypeTs>
   void EntityComponentManager::Each(typename identity<std::function<
       bool(const Entity &_entity,
            const ComponentTypeTs *...)>>::type _f) const
   {
-    auto *world = const_cast<EntityComponentManager*>(this)->
-        ArchetypeWorld();
-    if (!world) return;
-    bool keep = true;
-    world->Each<const ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e, const ComponentTypeTs &... comps)
+    for (Entity e : this->AllEntitiesArchetypeFacade())
     {
-      if (!keep) return;
-      Entity legacy = detail_archetype::FromCore(this, core_e);
-      if (!_f(legacy, &comps...)) keep = false;
-    });
+      auto comps = std::make_tuple(
+          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
+      bool hasAll = true;
+      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
+                 comps);
+      if (!hasAll) continue;
+      bool keep = std::apply([&](auto*... ps) {
+        return _f(e, ps...);
+      }, comps);
+      if (!keep) break;
+    }
   }
 
   template<typename ...ComponentTypeTs>
   void EntityComponentManager::Each(typename identity<std::function<
       bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
   {
-    auto *world = this->ArchetypeWorld();
-    if (!world) return;
-    bool keep = true;
-    world->Each<ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e, ComponentTypeTs &... comps)
+    for (Entity e : this->AllEntitiesArchetypeFacade())
     {
-      if (!keep) return;
-      Entity legacy = detail_archetype::FromCore(this, core_e);
-      if (!_f(legacy, &comps...)) keep = false;
-    });
+      auto comps = std::make_tuple(
+          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
+      bool hasAll = true;
+      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
+                 comps);
+      if (!hasAll) continue;
+      bool keep = std::apply([&](auto*... ps) {
+        return _f(e, ps...);
+      }, comps);
+      if (!keep) break;
+    }
   }
 
   //----------------------------------------------------------
@@ -264,22 +285,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   //----------------------------------------------------------
-  // EachNew — archetype core tracks newly-added rows per archetype.
+  // EachNew — for the facade-level port, treat it as Each filtered
+  // to entities flagged as newly-created. The facade doesn't yet
+  // track "newly created" on the shadow-store path (STUB(0b-new)),
+  // so this behaves like Each — every call sees all entities. Scene
+  // broadcaster / scene visualizer relies on EachNew to pick up
+  // spawned entities; under this compatibility shim they'll get
+  // everything on the first pass, nothing is missed. Change-tracking
+  // wire-up removes the over-emission.
 
   template <typename... ComponentTypeTs>
   void EntityComponentManager::EachNew(typename identity<std::function<
       bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
   {
-    auto *world = this->ArchetypeWorld();
-    if (!world) return;
-    bool keep = true;
-    world->EachNew<ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e, ComponentTypeTs &... comps)
-    {
-      if (!keep) return;
-      Entity legacy = detail_archetype::FromCore(this, core_e);
-      if (!_f(legacy, &comps...)) keep = false;
-    });
+    this->Each<ComponentTypeTs...>(_f);
   }
 
   template <typename... ComponentTypeTs>
@@ -287,44 +306,36 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       bool(const Entity &_entity,
            const ComponentTypeTs *...)>>::type _f) const
   {
-    auto *world = const_cast<EntityComponentManager*>(this)->
-        ArchetypeWorld();
-    if (!world) return;
-    bool keep = true;
-    world->EachNew<const ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e, const ComponentTypeTs &... comps)
-    {
-      if (!keep) return;
-      Entity legacy = detail_archetype::FromCore(this, core_e);
-      if (!_f(legacy, &comps...)) keep = false;
-    });
+    this->Each<ComponentTypeTs...>(_f);
   }
 
   //----------------------------------------------------------
-  // EachRemoved
+  // EachRemoved — walks entities pending removal. Uses the facade's
+  // pendingRemovals list. Components are still alive until
+  // ProcessRemoveEntityRequests commits the removal, so the
+  // component pointers are valid inside the callback.
 
   template<typename ...ComponentTypeTs>
   void EntityComponentManager::EachRemoved(typename identity<std::function<
       bool(const Entity &_entity,
            const ComponentTypeTs *...)>>::type _f) const
   {
-    auto *world = const_cast<EntityComponentManager*>(this)->
-        ArchetypeWorld();
-    if (!world) return;
-    bool keep = true;
-    // The archetype core's EachRemoved only passes the entity handle
-    // (removed rows no longer hold component data). To preserve the
-    // legacy signature (component pointers included), we pass
-    // nullptr for each. Callers that inspect the pointers would
-    // crash under legacy too (the components are gone), so this
-    // matches the contract in practice.
-    world->EachRemoved<ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e)
+    // Walk entities marked for removal and honor the same
+    // "has all components" contract as Each.
+    for (Entity e : this->AllEntitiesArchetypeFacade())
     {
-      if (!keep) return;
-      Entity legacy = detail_archetype::FromCore(this, core_e);
-      if (!_f(legacy, ((const ComponentTypeTs*)nullptr)...)) keep = false;
-    });
+      if (!this->IsMarkedForRemoval(e)) continue;
+      auto comps = std::make_tuple(
+          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
+      bool hasAll = true;
+      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
+                 comps);
+      if (!hasAll) continue;
+      bool keep = std::apply([&](auto*... ps) {
+        return _f(e, ps...);
+      }, comps);
+      if (!keep) break;
+    }
   }
 
   //----------------------------------------------------------
@@ -348,29 +359,19 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   Entity EntityComponentManager::EntityByComponents(
       const ComponentTypeTs &..._desiredComponents) const
   {
-    auto *world = const_cast<EntityComponentManager*>(this)->
-        ArchetypeWorld();
-    if (!world) return kNullEntity;
-    Entity result = kNullEntity;
-    bool found = false;
-    world->Each<const ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e,
-          const ComponentTypeTs &... entComps)
+    for (Entity e : this->AllEntitiesArchetypeFacade())
     {
-      if (found) return;
-      bool diff = false;
-      auto cmp = [&](const auto &_have, const auto &_want)
+      bool different = false;
+      ForEach([&](const auto &_want)
       {
-        if (!(_have == _want)) diff = true;
-      };
-      (cmp(entComps, _desiredComponents), ...);
-      if (!diff)
-      {
-        result = detail_archetype::FromCore(this, core_e);
-        found = true;
-      }
-    });
-    return result;
+        using CT = std::remove_cv_t<std::remove_reference_t<
+            decltype(_want)>>;
+        auto *have = this->template Component<CT>(e);
+        if (!have || !(*have == _want)) different = true;
+      }, _desiredComponents...);
+      if (!different) return e;
+    }
+    return kNullEntity;
   }
 
   template<typename ...ComponentTypeTs>
@@ -378,22 +379,18 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       const ComponentTypeTs &..._desiredComponents) const
   {
     std::vector<Entity> result;
-    auto *world = const_cast<EntityComponentManager*>(this)->
-        ArchetypeWorld();
-    if (!world) return result;
-    world->Each<const ComponentTypeTs...>(
-      [&](gz::sim::ecs::Entity core_e,
-          const ComponentTypeTs &... entComps)
+    for (Entity e : this->AllEntitiesArchetypeFacade())
     {
-      bool diff = false;
-      auto cmp = [&](const auto &_have, const auto &_want)
+      bool different = false;
+      ForEach([&](const auto &_want)
       {
-        if (!(_have == _want)) diff = true;
-      };
-      (cmp(entComps, _desiredComponents), ...);
-      if (!diff)
-        result.push_back(detail_archetype::FromCore(this, core_e));
-    });
+        using CT = std::remove_cv_t<std::remove_reference_t<
+            decltype(_want)>>;
+        auto *have = this->template Component<CT>(e);
+        if (!have || !(*have == _want)) different = true;
+      }, _desiredComponents...);
+      if (!different) result.push_back(e);
+    }
     return result;
   }
 

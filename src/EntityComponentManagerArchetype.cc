@@ -27,6 +27,7 @@
 
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/ecs/World.hh"
 #include "gz/sim/ecs/detail/Archetype.hh"
 #include "gz/sim/ecs/detail/ArchetypeGraph.hh"
@@ -185,6 +186,20 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     {
       return _ecm->dataPtr->LegacyFor(_core);
     }
+  }
+
+  std::vector<Entity>
+  EntityComponentManager::AllEntitiesArchetypeFacade() const
+  {
+    // Iterate legacyToCore. The archetype World's entity set is a
+    // subset of this map (every core entity has a legacy id mirror);
+    // the shadow store's keys are also a subset. One pass covers
+    // both storage paths.
+    std::vector<Entity> out;
+    out.reserve(this->dataPtr->legacyToCore.size());
+    for (const auto &[k, _] : this->dataPtr->legacyToCore)
+      out.push_back(static_cast<Entity>(k));
+    return out;
   }
 
   //----------------------------------------------------------
@@ -785,9 +800,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   std::optional<Entity> EntityComponentManager::EntityByName(
-      const std::string&) const
+      const std::string &_name) const
   {
-    GZ_SIM_ARCH_STUB_ONCE("EntityByName");
+    // Linear scan — every entity that has a Name component gets
+    // compared. For large worlds this is O(N); a per-ECM name index
+    // would be O(1) but requires maintaining the index on every
+    // Name creation/removal. Given in-tree callers are setup-only
+    // (e.g., SdfEntityCreator disambiguating model ownership), the
+    // linear scan is acceptable for Phase 0b.
+    for (Entity e : this->dataPtr->legacyToCore.empty()
+        ? std::vector<Entity>{}
+        : this->AllEntitiesArchetypeFacade())
+    {
+      auto *n = this->Component<components::Name>(e);
+      if (n && n->Data() == _name) return e;
+    }
     return std::nullopt;
   }
 

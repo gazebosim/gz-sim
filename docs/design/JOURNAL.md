@@ -278,6 +278,71 @@ follow-up.
 
 ---
 
+## Phase 0b — Each<T...> unified entity walk (2026-04-24 update)
+
+**Context:** Q22 in the earlier journal: shadow-stored components
+weren't visible to `Each<T...>` iteration. Systems that walked the
+ECM with `Each<Pose>` at PostUpdate were seeing nothing because
+SdfEntityCreator's components all landed in the shadow store, not
+the archetype World.
+
+### Changes
+- **Private helper
+  `EntityComponentManager::AllEntitiesArchetypeFacade() const`**
+  added to the public header. Under the archetype build it returns
+  the full legacy-entity-id set (union of shadow store + archetype
+  World, which are subsets of `legacyToCore`). Under the legacy
+  build it returns an empty vector — the legacy detail header never
+  calls it.
+- **Archetype detail-header `Each<T...>` rewritten** (both
+  const/mutable overloads). New body: walk every entity via
+  `AllEntitiesArchetypeFacade()`, read each requested component via
+  `Component<T>(e)` (which unifies shadow + World reads), skip
+  entities that don't have all the types, invoke the callback
+  otherwise. Same pattern applied to `EachNoCache`, `EachRemoved`
+  (with `IsMarkedForRemoval` filter), `EntityByComponents`,
+  `EntitiesByComponents`. `EachNew` currently aliases to `Each`
+  (marker `STUB(0b-new)` — pending change-tracking wire-up).
+- **`EntityByName`** implemented against the unified iterator —
+  linear scan of entities with a `Name` component, compare data.
+- **Performance trade-off** documented in the code: per-entity loop
+  costs closer to the legacy ECM's ~30–50 ns/entity rather than the
+  archetype core's ~3 ns/entity. The fast-path returns once the
+  Factory ↔ ComponentTypeRegistry bridge eliminates the shadow
+  store.
+
+### Verification
+- `timeout 4 gz sim -s -v4 -r empty.sdf` — runs + ticks + shuts
+  down cleanly. Only two harmless stub warnings remain: `SetChanged`
+  (change-tracking not wired) and `CopyFrom` (init-time one-shot).
+  `EntityByName` stub gone.
+- `UNIT_EntityComponentManager_TEST` under legacy — 414/414 green.
+  Legacy path unchanged.
+
+### Still-stubbed (updated list)
+```
+grep -rn "STUB(0b)"  src/ include/   # remaining methods
+grep -rn "STUB(0b-delta)"            # change-tracking dependent paths
+grep -rn "STUB(0b-new)"              # newly-created-entity tracking
+grep -rn "NOTE(0b-immediate-mode)"   # Phase 0c migration markers
+grep -rn "NOTE(0b-shadow-store)"     # Factory↔registry bridge pending
+```
+
+Impact remaining:
+- `SetChanged` / `HasOneTimeComponentChanges` /
+  `HasPeriodicComponentChanges` — change-tracking state. Drives
+  delta emission in `State(_full=false)`. Harmless today; wasteful.
+- `CopyFrom` / `Clone` / `ResetTo` — save/load, log playback.
+  Won't bite normal `gz sim` boot.
+- `ComponentState` getter — always returns `NoChange`.
+- `HasNewEntities` — aggregate flag. Returns false (used by
+  SceneBroadcaster's quick-short-circuit; over-emitting is OK).
+
+All of these are follow-up. The backend now serves basic `gz sim`
+scenes correctly.
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)

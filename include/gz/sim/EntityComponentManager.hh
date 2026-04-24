@@ -826,6 +826,15 @@ namespace gz
       private: ecs::World *ArchetypeWorld();
       private: const ecs::World *ArchetypeWorld() const;
 
+      /// \brief Internal helper for archetype-detail templates. Returns
+      /// all legacy entity ids that this ECM is tracking (union of
+      /// shadow store + archetype World entries). Used by the
+      /// archetype Each<T...> templates to walk entities uniformly
+      /// regardless of which storage path created each component.
+      /// Under the legacy backend this returns an empty vector — the
+      /// legacy detail header's Each<T...> doesn't consult it.
+      private: std::vector<Entity> AllEntitiesArchetypeFacade() const;
+
       // The archetype detail header calls detail_archetype::FromCore to
       // translate the wider ecs::Entity handle to the legacy uint64
       // Entity. That helper lives in src/EntityComponentManagerArchetype.cc

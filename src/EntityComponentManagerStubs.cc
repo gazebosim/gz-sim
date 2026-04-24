@@ -49,6 +49,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       return kNullEntity;
     }
   }
+
+  std::vector<Entity>
+  EntityComponentManager::AllEntitiesArchetypeFacade() const
+  {
+    // Legacy backend — the archetype detail header isn't compiled
+    // under this build, so this helper is never called. Return empty.
+    return {};
+  }
 }
 }
 }
