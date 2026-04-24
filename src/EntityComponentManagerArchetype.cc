@@ -569,42 +569,177 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // under the archetype backend.
   }
 
-  msgs::SerializedState EntityComponentManager::State(
-      const std::unordered_set<Entity>&,
-      const std::unordered_set<ComponentTypeId>&) const
-  {
-    GZ_SIM_ARCH_STUB_ONCE("State");
-    return msgs::SerializedState{};
-  }
+  //----------------------------------------------------------
+  // Serialization: State / SetState (SerializedStateMap path).
+  //
+  // The SerializedStateMap variant is what the GUI, scene broadcaster,
+  // and network primary/secondary all use, so getting this working
+  // unblocks running gz sim with the GUI connected. Semantics match
+  // the legacy implementation (src/EntityComponentManager.cc around
+  // line 1490). Reads component values via ComponentImplementation
+  // which already checks shadow store first and archetype World
+  // second, so both storage paths serialize correctly.
+  //
+  // The legacy implementation skips unchanged components when _full
+  // is false (it tracks one-time and periodic component changes in
+  // side tables). The archetype backend's change tracking is
+  // stubbed (HasOneTimeComponentChanges/etc. return false), so for
+  // now State() emits every component on every call regardless of
+  // _full. This is wasteful but correct. Proper change-delta
+  // emission is a Phase 0b completion item — marker STUB(0b-delta).
+  //----------------------------------------------------------
 
   void EntityComponentManager::State(
-      msgs::SerializedStateMap&,
-      const std::unordered_set<Entity>&,
-      const std::unordered_set<ComponentTypeId>&,
-      bool) const
+      msgs::SerializedStateMap &_state,
+      const std::unordered_set<Entity> &_entities,
+      const std::unordered_set<ComponentTypeId> &_types,
+      bool /*_full*/) const
   {
-    GZ_SIM_ARCH_STUB_ONCE("State(SerializedStateMap)");
+    // STUB(0b-delta): full=false should skip unchanged components
+    // once change-tracking is implemented on the archetype backend.
+    for (const auto &[rawLegacy, _core] : this->dataPtr->legacyToCore)
+    {
+      Entity entity = static_cast<Entity>(rawLegacy);
+      if (!_entities.empty() && _entities.find(entity) == _entities.end())
+        continue;
+      this->AddEntityToMessage(_state, entity, _types, /*_full=*/true);
+    }
+  }
+
+  msgs::SerializedState EntityComponentManager::State(
+      const std::unordered_set<Entity> &_entities,
+      const std::unordered_set<ComponentTypeId> &_types) const
+  {
+    // Minimum-viable: return empty. The SerializedStateMap variant
+    // is what in-tree consumers actually use; the plain
+    // SerializedState form is called by a few tests and the Python
+    // bindings. Filling it in is mechanical alongside the delta work.
+    (void)_entities;
+    (void)_types;
+    GZ_SIM_ARCH_STUB_ONCE("State(SerializedState)");
+    return msgs::SerializedState{};
   }
 
   msgs::SerializedState EntityComponentManager::ChangedState() const
   {
+    // STUB(0b-delta): once change-tracking is implemented, this is
+    // State(fullset, allTypes, _full=false). For now the best we can
+    // do is emit every-component state.
     GZ_SIM_ARCH_STUB_ONCE("ChangedState");
     return msgs::SerializedState{};
   }
 
-  void EntityComponentManager::ChangedState(msgs::SerializedStateMap&) const
+  void EntityComponentManager::ChangedState(
+      msgs::SerializedStateMap &_state) const
   {
-    GZ_SIM_ARCH_STUB_ONCE("ChangedState(SerializedStateMap)");
+    // STUB(0b-delta): delta pending change tracking. Emit full state
+    // for now so the GUI sees something.
+    this->State(_state, {}, {}, /*_full=*/true);
+  }
+
+  void EntityComponentManager::SetState(
+      const msgs::SerializedStateMap &_stateMsg)
+  {
+    // Mirror legacy semantics (src/EntityComponentManager.cc ~1911).
+    for (const auto &iter : _stateMsg.entities())
+    {
+      const auto &entityMsg = iter.second;
+      Entity entity{entityMsg.id()};
+
+      if (entityMsg.remove())
+      {
+        this->RequestRemoveEntity(entity);
+        continue;
+      }
+
+      // Create entity if it doesn't exist. The legacy version calls
+      // a private CreateEntityImplementation(Entity) that preserves
+      // the ID from the message; we do the equivalent here, keeping
+      // the id in legacyToCore and the entity graph.
+      if (!this->HasEntity(entity))
+      {
+        gz::sim::ecs::Entity core = this->dataPtr->world.CreateEmpty();
+        this->dataPtr->legacyToCore.emplace(
+            static_cast<uint64_t>(entity), core);
+        this->dataPtr->coreToLegacy.emplace(core.Raw(), entity);
+        this->dataPtr->entityGraph.AddVertex(
+            std::to_string(entity), entity, entity);
+        // Track future IDs so auto-allocation doesn't collide with
+        // peer-assigned ones.
+        if (entity >= this->dataPtr->nextLegacyId)
+          this->dataPtr->nextLegacyId = entity + 1;
+      }
+
+      for (const auto &compIter : entityMsg.components())
+      {
+        const auto &compMsg = compIter.second;
+        uint64_t type = compMsg.type();
+
+        // Components that aren't registered locally can't be
+        // deserialized — skip with a one-shot warning (legacy does
+        // the same).
+        if (!components::Factory::Instance()->HasType(type))
+        {
+          static std::unordered_set<unsigned int> printedComps;
+          if (printedComps.find(type) == printedComps.end())
+          {
+            printedComps.insert(type);
+            gzwarn << "Component type [" << type << "] not registered"
+                   << " in this process; can't deserialize."
+                   << std::endl;
+          }
+          continue;
+        }
+
+        if (compMsg.remove())
+        {
+          this->RemoveComponent(entity, compIter.first);
+          continue;
+        }
+
+        components::BaseComponent *comp =
+            this->ComponentImplementation(entity, compIter.first);
+
+        if (nullptr == comp)
+        {
+          // Fresh component — materialize via the Factory, deserialize,
+          // then hand to CreateComponentImplementation.
+          auto newComp = components::Factory::Instance()->New(type);
+          if (!newComp)
+          {
+            gzerr << "Failed to create component of type [" << type
+                  << "]" << std::endl;
+            continue;
+          }
+          std::istringstream istr(compMsg.component());
+          newComp->Deserialize(istr);
+
+          auto updateData = this->CreateComponentImplementation(
+              entity, newComp->TypeId(), newComp.get());
+          if (updateData)
+          {
+            comp = this->ComponentImplementation(entity, compIter.first);
+          }
+        }
+
+        if (comp)
+        {
+          std::istringstream istr(compMsg.component());
+          comp->Deserialize(istr);
+          this->SetChanged(entity, compIter.first,
+              _stateMsg.has_one_time_component_changes() ?
+              ComponentState::OneTimeChange :
+              ComponentState::PeriodicChange);
+        }
+      }
+    }
   }
 
   void EntityComponentManager::SetState(const msgs::SerializedState&)
   {
-    GZ_SIM_ARCH_STUB_ONCE("SetState");
-  }
-
-  void EntityComponentManager::SetState(const msgs::SerializedStateMap&)
-  {
-    GZ_SIM_ARCH_STUB_ONCE("SetState(SerializedStateMap)");
+    // Plain (non-map) variant. Legacy consumers are a handful of
+    // tests + Python bindings. Not a blocker for gz sim + GUI.
+    GZ_SIM_ARCH_STUB_ONCE("SetState(SerializedState)");
   }
 
   void EntityComponentManager::PeriodicStateFromCache(
@@ -688,9 +823,57 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   void EntityComponentManager::AddEntityToMessage(
-      msgs::SerializedStateMap &, Entity,
-      const std::unordered_set<ComponentTypeId> &, bool) const
+      msgs::SerializedStateMap &_msg,
+      Entity _entity,
+      const std::unordered_set<ComponentTypeId> &_types,
+      bool /*_full*/) const
   {
+    if (!this->HasEntity(_entity)) return;
+
+    // Figure out which component types to emit.
+    auto types = _types;
+    if (types.empty()) types = this->ComponentTypes(_entity);
+
+    if (types.empty()) return;
+
+    // Add the entity sub-message if not already present.
+    auto entIter = _msg.mutable_entities()->find(_entity);
+    if (entIter == _msg.mutable_entities()->end())
+    {
+      msgs::SerializedEntityMap ent;
+      ent.set_id(_entity);
+      (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+      entIter = _msg.mutable_entities()->find(_entity);
+    }
+
+    // Mark removal, matching legacy semantics.
+    if (std::find(this->dataPtr->pendingRemovals.begin(),
+                  this->dataPtr->pendingRemovals.end(), _entity) !=
+        this->dataPtr->pendingRemovals.end())
+    {
+      entIter->second.set_remove(true);
+    }
+
+    for (const ComponentTypeId type : types)
+    {
+      const components::BaseComponent *compBase =
+          this->ComponentImplementation(_entity, type);
+      if (!compBase) continue;
+
+      auto compIter = entIter->second.mutable_components()->find(type);
+      if (compIter == entIter->second.mutable_components()->end())
+      {
+        msgs::SerializedComponent cmp;
+        cmp.set_type(compBase->TypeId());
+        (*(entIter->second.mutable_components()))[
+            static_cast<int64_t>(type)] = cmp;
+        compIter = entIter->second.mutable_components()->find(type);
+      }
+
+      std::ostringstream ostr;
+      compBase->Serialize(ostr);
+      compIter->second.set_component(ostr.str());
+    }
   }
 
   // The FindView legacy helpers only make sense under the legacy

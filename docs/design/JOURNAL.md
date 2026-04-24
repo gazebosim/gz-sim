@@ -224,6 +224,60 @@ the Each<T> miss to be a known limitation until then?
 
 ---
 
+## Phase 0b — State / SetState serialization (2026-04-24 update)
+
+**Context:** `gz sim empty.sdf` + play button triggered
+`STUB(0b)` warnings for `State` and `SetState`. Those methods drive
+GUI scene sync, scene broadcaster emission, and network primary/
+secondary state transfer. Implemented.
+
+### Changes
+- **`EntityComponentManager::State(SerializedStateMap&, ...)`**
+  walks every entity in `legacyToCore`, filters by the optional
+  `_entities` set, and delegates to `AddEntityToMessage` for the
+  protobuf serialization. Matches the legacy implementation at
+  [src/EntityComponentManager.cc:1722](../../src/EntityComponentManager.cc#L1722).
+- **`AddEntityToMessage(SerializedStateMap&, entity, types, full)`**
+  fills in the protobuf entity sub-message. Reads component values
+  via `ComponentImplementation(e, typeId)` — automatically pulls
+  from the shadow store OR the archetype world as appropriate.
+  Serializes via `BaseComponent::Serialize(std::ostream&)`.
+- **`ChangedState(SerializedStateMap&)`** currently calls `State`
+  with `_full=true`. Real delta emission pends change-tracking work
+  — marker `STUB(0b-delta)`.
+- **`SetState(SerializedStateMap)`** mirrors legacy logic at
+  [src/EntityComponentManager.cc:1911](../../src/EntityComponentManager.cc#L1911):
+  creates missing entities (preserving the incoming id), creates
+  missing components via `components::Factory::Instance()->New(type)`
+  + `Deserialize`, updates existing components in place, handles
+  component removal, and calls `SetChanged` to mirror the legacy
+  change-tracking hooks (no-op today). Advances `nextLegacyId` past
+  any peer-assigned id so auto-allocation doesn't collide.
+- **Plain `SerializedState` (non-map) State/SetState** remain stubs
+  — in-tree gz sim uses the map variant exclusively; plain-state
+  callers are a handful of tests + Python bindings and not a
+  blocker for the play-button path.
+
+### Verification
+- `timeout 6 gz sim -s -v4 empty.sdf` — server starts, waits, exits
+  cleanly on SIGTERM. No State/SetState stub warnings.
+- `timeout 4 gz sim -s -v4 -r empty.sdf` (run on start) — physics
+  runner ticks, scene broadcaster runs its State() path each step,
+  no stub warnings from that code path.
+- Remaining stubs: `SetChanged`, `CopyFrom` (both one-shots during
+  init, harmless) — unchanged from previous iteration.
+
+### Known limitation
+`_full=false` in `State()` is treated as `_full=true` — every
+component emitted every call. The legacy backend uses
+one-time/periodic change tracking to skip unchanged components; the
+archetype backend hasn't wired that yet. Impact: wire load on the
+scene-broadcast topic is higher than it needs to be, but behavior
+is correct. `STUB(0b-delta)` marker placed in the code for the
+follow-up.
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)
