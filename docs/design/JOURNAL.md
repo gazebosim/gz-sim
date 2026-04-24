@@ -457,6 +457,85 @@ pendingEntities this way.
 
 ---
 
+## Phase 0b — Remaining State stubs + change tracking (2026-04-24 update)
+
+Implemented the three remaining Phase 0b stubs plus the full
+change-tracking surface that `State(_full=false)` and scene
+broadcaster's periodic emission depend on.
+
+### Changes
+- **`State(SerializedState)`** — plain (non-map) variant. Iterates
+  `AllEntitiesArchetypeFacade()` (parent-first sorted order),
+  filters by `_entities` if non-empty, delegates to
+  `AddEntityToMessage(SerializedState&, entity, types)`.
+- **`SetState(SerializedState)`** — mirror of the
+  `SerializedStateMap` variant, using the repeated-field
+  `entities(int)` / `components(int)` accessors. Creates missing
+  entities preserving the incoming id, populates
+  `newlyCreatedEntities`, advances `nextLegacyId`, skips messages
+  with unregistered types (one-shot warning), handles component
+  `remove()`, creates new components via Factory + Deserialize,
+  updates existing in place.
+- **`PeriodicStateFromCache`** — walks `_cache` (typeId →
+  entity-set), serializes each (entity, typeId) pair into the
+  `SerializedStateMap`, skipping slots already populated by a
+  prior `State()` call. Mirrors legacy behavior at
+  `src/EntityComponentManager.cc:1771`.
+- **`AddEntityToMessage(SerializedState&, ...)`** — new helper for
+  the plain-state path. Serializes each component via
+  `BaseComponent::Serialize(std::ostream&)`.
+- **`SetChanged(entity, typeId, state)`** — fully wired. Populates
+  new per-typeId `periodicChangedComponents` and
+  `oneTimeChangedComponents` side tables in the PIMPL. Mirrors
+  legacy at `src/EntityComponentManager.cc:2040` — transitions
+  between states drop from the old table and insert into the new,
+  `NoChange` drops from both.
+- **`ComponentState(entity, typeId)`** — queries the side tables
+  and returns `OneTimeChange` / `PeriodicChange` / `NoChange`.
+- **`SetAllComponentsUnchanged`** — now clears both side tables
+  (in addition to the archetype change bits).
+- **`HasOneTimeComponentChanges` / `HasPeriodicComponentChanges`** —
+  real implementations backed by the side tables.
+- **`ComponentTypesWithPeriodicChanges`** — returns the set of
+  typeIds with non-empty periodic-change buckets.
+- **`UpdatePeriodicChangeCache`** — merges current periodic
+  changes into the caller's cache; drops entries for entities that
+  no longer exist.
+- **`AddEntityToMessage(SerializedStateMap&, ...)`** now honors the
+  `_full` flag — when false, skips components not present in
+  either change table. That in turn makes `ChangedState()` a real
+  delta instead of a full snapshot.
+- **`ChangedState(SerializedStateMap&)`** now calls `State(…,
+  _full=false)` which emits the delta.
+- **`ChangedState()` (plain)** now walks the union of newly-created
+  entities + pending removals + entities with any change and
+  emits only those.
+
+### Verification
+- `GZ_PARTITION=ecstest4 timeout 5 gz sim -s -v4 -r shapes.sdf` —
+  **zero** Archetype-ECM stub warnings. Previously 3 distinct stubs
+  (`State(SerializedState)`, `SetState(SerializedState)`,
+  `PeriodicStateFromCache`) plus `SetChanged`.
+- `GZ_PARTITION=ecstest5 timeout 6 gz sim -v4 shapes.sdf` (GUI) —
+  exit 124, no segfault, zero stub warnings.
+- `UNIT_EntityComponentManager_TEST` under legacy — 414/414 green.
+
+### Phase 0b status after this update
+All Phase 0b stubs that the in-tree `gz sim` paths touch are now
+real. What remains as `STUB(0b)` in the source are methods whose
+callers are all out-of-tree or legacy-only:
+- `Clone` / `ResetTo` / `ComputeEntityDiff` / `ApplyEntityDiff`
+  (log playback, network-peer diff sync).
+- `AddEntityToMessage(SerializedState)` is implemented; the
+  `SerializedStateMap` one is implemented; `AddEntityToMessage`
+  backed by a removed-components list isn't (minor — used by one
+  legacy code path).
+
+The critical-path "run gz sim with GUI on shapes.sdf" scenario
+runs stub-free.
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)

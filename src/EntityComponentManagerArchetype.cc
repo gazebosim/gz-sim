@@ -80,6 +80,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // filters against this set so systems only see each entity once.
     public: std::unordered_set<gz::sim::Entity> newlyCreatedEntities;
 
+    // Per-typeId sets of entities whose component changed this step.
+    // Mirrors legacy ECM's periodicChangedComponents /
+    // oneTimeChangedComponents side tables. Populated by SetChanged,
+    // drained by SetAllComponentsUnchanged.
+    public: std::unordered_map<ComponentTypeId,
+        std::unordered_set<gz::sim::Entity>> periodicChangedComponents;
+    public: std::unordered_map<ComponentTypeId,
+        std::unordered_set<gz::sim::Entity>> oneTimeChangedComponents;
+
     // Shadow component storage.
     //
     // The archetype core's `World::Add<T>` / `World::ComponentRaw<T>`
@@ -536,6 +545,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   void EntityComponentManager::SetAllComponentsUnchanged()
   {
+    this->dataPtr->periodicChangedComponents.clear();
+    this->dataPtr->oneTimeChangedComponents.clear();
     this->dataPtr->world.ClearChangeBits();
   }
 
@@ -556,13 +567,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   bool EntityComponentManager::HasOneTimeComponentChanges() const
   {
-    // STUB(0b): archetype core doesn't distinguish one-time vs periodic
-    // change categorization. For now: true if any dirty bit is set.
+    for (const auto &[_, ents] : this->dataPtr->oneTimeChangedComponents)
+      if (!ents.empty()) return true;
     return false;
   }
 
   bool EntityComponentManager::HasPeriodicComponentChanges() const
   {
+    for (const auto &[_, ents] : this->dataPtr->periodicChangedComponents)
+      if (!ents.empty()) return true;
     return false;
   }
 
@@ -692,22 +705,19 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       msgs::SerializedStateMap &_state,
       const std::unordered_set<Entity> &_entities,
       const std::unordered_set<ComponentTypeId> &_types,
-      bool /*_full*/) const
+      bool _full) const
   {
-    // STUB(0b-delta): full=false should skip unchanged components
-    // once change-tracking is implemented on the archetype backend.
-    //
-    // Iterate in sorted order: parent entities before children. The
-    // GUI's EntityTree plugin relies on parent-first arrival to
-    // avoid a recursive pending-entities dance that can invalidate
-    // iterators under arbitrary orderings (observed crash on
-    // shapes.sdf under archetype backend before this ordering was
-    // enforced).
+    // Iterate in sorted (parent-first) order — see
+    // AllEntitiesArchetypeFacade for the rationale. _full toggles
+    // between full state emission and change-delta: the helper
+    // AddEntityToMessage skips unchanged components when
+    // _full=false, relying on the periodic/one-time change tables
+    // maintained by SetChanged.
     for (Entity entity : this->AllEntitiesArchetypeFacade())
     {
       if (!_entities.empty() && _entities.find(entity) == _entities.end())
         continue;
-      this->AddEntityToMessage(_state, entity, _types, /*_full=*/true);
+      this->AddEntityToMessage(_state, entity, _types, _full);
     }
   }
 
@@ -715,31 +725,49 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       const std::unordered_set<Entity> &_entities,
       const std::unordered_set<ComponentTypeId> &_types) const
   {
-    // Minimum-viable: return empty. The SerializedStateMap variant
-    // is what in-tree consumers actually use; the plain
-    // SerializedState form is called by a few tests and the Python
-    // bindings. Filling it in is mechanical alongside the delta work.
-    (void)_entities;
-    (void)_types;
-    GZ_SIM_ARCH_STUB_ONCE("State(SerializedState)");
-    return msgs::SerializedState{};
+    // Mirror of the SerializedStateMap variant: iterate in
+    // parent-first sorted order (see AllEntitiesArchetypeFacade for
+    // the rationale), filter by _entities if non-empty, serialize
+    // via AddEntityToMessage.
+    msgs::SerializedState stateMsg;
+    for (Entity entity : this->AllEntitiesArchetypeFacade())
+    {
+      if (!_entities.empty() &&
+          _entities.find(entity) == _entities.end())
+        continue;
+      this->AddEntityToMessage(stateMsg, entity, _types);
+    }
+    return stateMsg;
   }
 
   msgs::SerializedState EntityComponentManager::ChangedState() const
   {
-    // STUB(0b-delta): once change-tracking is implemented, this is
-    // State(fullset, allTypes, _full=false). For now the best we can
-    // do is emit every-component state.
-    GZ_SIM_ARCH_STUB_ONCE("ChangedState");
-    return msgs::SerializedState{};
+    // Delta via SetChanged-populated side tables. Build the set of
+    // entities touched this step (either new, pending-removal, or
+    // with any changed component), emit just those.
+    std::unordered_set<Entity> touched = this->dataPtr->newlyCreatedEntities;
+    for (auto e : this->dataPtr->pendingRemovals) touched.insert(e);
+    for (const auto &[_, ents] : this->dataPtr->periodicChangedComponents)
+      touched.insert(ents.begin(), ents.end());
+    for (const auto &[_, ents] : this->dataPtr->oneTimeChangedComponents)
+      touched.insert(ents.begin(), ents.end());
+
+    msgs::SerializedState stateMsg;
+    if (touched.empty()) return stateMsg;
+    for (Entity entity : this->AllEntitiesArchetypeFacade())
+    {
+      if (touched.find(entity) == touched.end()) continue;
+      this->AddEntityToMessage(stateMsg, entity, /*_types=*/{});
+    }
+    return stateMsg;
   }
 
   void EntityComponentManager::ChangedState(
       msgs::SerializedStateMap &_state) const
   {
-    // STUB(0b-delta): delta pending change tracking. Emit full state
-    // for now so the GUI sees something.
-    this->State(_state, {}, {}, /*_full=*/true);
+    // Delta variant. Emit per-entity delta via the _full=false
+    // path of AddEntityToMessage.
+    this->State(_state, {}, {}, /*_full=*/false);
   }
 
   void EntityComponentManager::SetState(
@@ -841,42 +869,223 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     }
   }
 
-  void EntityComponentManager::SetState(const msgs::SerializedState&)
+  void EntityComponentManager::SetState(
+      const msgs::SerializedState &_stateMsg)
   {
-    // Plain (non-map) variant. Legacy consumers are a handful of
-    // tests + Python bindings. Not a blocker for gz sim + GUI.
-    GZ_SIM_ARCH_STUB_ONCE("SetState(SerializedState)");
+    // Plain (non-map) variant. Same semantics as the SerializedStateMap
+    // version, just iterating the repeated-field API.
+    for (int e = 0; e < _stateMsg.entities_size(); ++e)
+    {
+      const auto &entityMsg = _stateMsg.entities(e);
+      Entity entity{entityMsg.id()};
+
+      if (entityMsg.remove())
+      {
+        this->RequestRemoveEntity(entity);
+        continue;
+      }
+
+      if (!this->HasEntity(entity))
+      {
+        gz::sim::ecs::Entity core = this->dataPtr->world.CreateEmpty();
+        this->dataPtr->legacyToCore.emplace(
+            static_cast<uint64_t>(entity), core);
+        this->dataPtr->coreToLegacy.emplace(core.Raw(), entity);
+        this->dataPtr->entityGraph.AddVertex(
+            std::to_string(entity), entity, entity);
+        this->dataPtr->newlyCreatedEntities.insert(entity);
+        if (entity >= this->dataPtr->nextLegacyId)
+          this->dataPtr->nextLegacyId = entity + 1;
+      }
+
+      for (int c = 0; c < entityMsg.components_size(); ++c)
+      {
+        const auto &compMsg = entityMsg.components(c);
+
+        // Skip if component not set (matches legacy behavior).
+        if (compMsg.component().empty()) continue;
+
+        auto type = compMsg.type();
+
+        if (!components::Factory::Instance()->HasType(type))
+        {
+          static std::unordered_set<unsigned int> printedComps;
+          if (printedComps.find(type) == printedComps.end())
+          {
+            printedComps.insert(type);
+            gzwarn << "Component type [" << type << "] not registered"
+                   << " in this process; can't deserialize."
+                   << std::endl;
+          }
+          continue;
+        }
+
+        if (compMsg.remove())
+        {
+          this->RemoveComponent(entity, type);
+          continue;
+        }
+
+        components::BaseComponent *comp =
+            this->ComponentImplementation(entity, type);
+
+        if (nullptr == comp)
+        {
+          auto newComp = components::Factory::Instance()->New(type);
+          if (!newComp)
+          {
+            gzerr << "Failed to create component type [" << type
+                  << "]" << std::endl;
+            continue;
+          }
+          std::istringstream istr(compMsg.component());
+          newComp->Deserialize(istr);
+
+          auto updateData = this->CreateComponentImplementation(
+              entity, newComp->TypeId(), newComp.get());
+          if (updateData)
+            comp = this->ComponentImplementation(entity, type);
+        }
+
+        if (comp)
+        {
+          std::istringstream istr(compMsg.component());
+          comp->Deserialize(istr);
+        }
+      }
+    }
   }
 
   void EntityComponentManager::PeriodicStateFromCache(
-      msgs::SerializedStateMap&,
+      msgs::SerializedStateMap &_state,
       const std::unordered_map<ComponentTypeId,
-                               std::unordered_set<Entity>>&) const
+                               std::unordered_set<Entity>> &_cache) const
   {
-    GZ_SIM_ARCH_STUB_ONCE("PeriodicStateFromCache");
+    // Scene broadcaster's per-step periodic emission: the cache
+    // identifies which (entity, typeId) pairs are currently tracked
+    // as periodic-change candidates. Serialize those components into
+    // the state message. The legacy implementation at
+    // src/EntityComponentManager.cc ~1771 is the reference.
+    for (const auto &[typeId, entities] : _cache)
+    {
+      for (const auto &entity : entities)
+      {
+        auto entIter = _state.mutable_entities()->find(entity);
+        if (entIter == _state.mutable_entities()->end())
+        {
+          msgs::SerializedEntityMap ent;
+          ent.set_id(entity);
+          (*_state.mutable_entities())[static_cast<uint64_t>(entity)] = ent;
+          entIter = _state.mutable_entities()->find(entity);
+        }
+
+        // If the component is already in the message, skip — State()
+        // likely put it there already and periodic re-emission would
+        // duplicate. Matches legacy (src/EntityComponentManager.cc ~1791).
+        auto compIter = entIter->second.mutable_components()->find(typeId);
+        if (compIter != entIter->second.mutable_components()->end())
+          continue;
+
+        const components::BaseComponent *compBase =
+            this->ComponentImplementation(entity, typeId);
+        if (!compBase) continue;
+
+        msgs::SerializedComponent cmp;
+        cmp.set_type(compBase->TypeId());
+        std::ostringstream ostr;
+        compBase->Serialize(ostr);
+        cmp.set_component(ostr.str());
+        (*(entIter->second.mutable_components()))[
+            static_cast<int64_t>(typeId)] = cmp;
+      }
+    }
   }
 
   std::unordered_set<ComponentTypeId>
   EntityComponentManager::ComponentTypesWithPeriodicChanges() const
   {
-    return {};
+    std::unordered_set<ComponentTypeId> out;
+    for (const auto &[type, ents] : this->dataPtr->periodicChangedComponents)
+      if (!ents.empty()) out.insert(type);
+    return out;
   }
 
   void EntityComponentManager::UpdatePeriodicChangeCache(
       std::unordered_map<ComponentTypeId,
-                         std::unordered_set<Entity>>&) const
+                         std::unordered_set<Entity>> &_changes) const
   {
+    // Mirror legacy: merge current periodic changes into the cache.
+    // The legacy version also removes entities that are no longer
+    // live — cheap to do here too.
+    for (const auto &[type, ents] : this->dataPtr->periodicChangedComponents)
+      for (auto e : ents)
+        _changes[type].insert(e);
+
+    // Drop entries for entities that no longer exist.
+    for (auto it = _changes.begin(); it != _changes.end(); )
+    {
+      for (auto eit = it->second.begin(); eit != it->second.end(); )
+      {
+        if (!this->HasEntity(*eit))
+          eit = it->second.erase(eit);
+        else
+          ++eit;
+      }
+      if (it->second.empty())
+        it = _changes.erase(it);
+      else
+        ++it;
+    }
   }
 
   void EntityComponentManager::SetChanged(
-      const Entity, const ComponentTypeId, sim::ComponentState)
+      const Entity _entity, const ComponentTypeId _type,
+      sim::ComponentState _c)
   {
-    GZ_SIM_ARCH_STUB_ONCE("SetChanged");
+    // Mirror legacy SetChanged at src/EntityComponentManager.cc ~2040:
+    // maintain two side tables (periodic vs one-time) that ChangedState
+    // / PeriodicStateFromCache / State(full=false) can query. NoChange
+    // drops from both tables.
+    if (!this->HasEntity(_entity)) return;
+    if (!this->EntityHasComponentType(_entity, _type)) return;
+
+    if (_c == sim::ComponentState::PeriodicChange)
+    {
+      this->dataPtr->periodicChangedComponents[_type].insert(_entity);
+      auto it = this->dataPtr->oneTimeChangedComponents.find(_type);
+      if (it != this->dataPtr->oneTimeChangedComponents.end())
+        it->second.erase(_entity);
+    }
+    else if (_c == sim::ComponentState::OneTimeChange)
+    {
+      auto it = this->dataPtr->periodicChangedComponents.find(_type);
+      if (it != this->dataPtr->periodicChangedComponents.end())
+        it->second.erase(_entity);
+      this->dataPtr->oneTimeChangedComponents[_type].insert(_entity);
+    }
+    else
+    {
+      // NoChange.
+      auto pit = this->dataPtr->periodicChangedComponents.find(_type);
+      if (pit != this->dataPtr->periodicChangedComponents.end())
+        pit->second.erase(_entity);
+      auto oit = this->dataPtr->oneTimeChangedComponents.find(_type);
+      if (oit != this->dataPtr->oneTimeChangedComponents.end())
+        oit->second.erase(_entity);
+    }
   }
 
   sim::ComponentState EntityComponentManager::ComponentState(
-      const Entity, const ComponentTypeId) const
+      const Entity _entity, const ComponentTypeId _typeId) const
   {
+    auto pit = this->dataPtr->periodicChangedComponents.find(_typeId);
+    if (pit != this->dataPtr->periodicChangedComponents.end() &&
+        pit->second.count(_entity))
+      return sim::ComponentState::PeriodicChange;
+    auto oit = this->dataPtr->oneTimeChangedComponents.find(_typeId);
+    if (oit != this->dataPtr->oneTimeChangedComponents.end() &&
+        oit->second.count(_entity))
+      return sim::ComponentState::OneTimeChange;
     return sim::ComponentState::NoChange;
   }
 
@@ -935,42 +1144,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   void EntityComponentManager::AddEntityToMessage(
-      msgs::SerializedState &, Entity,
-      const std::unordered_set<ComponentTypeId> &) const
-  {
-  }
-
-  void EntityComponentManager::AddEntityToMessage(
-      msgs::SerializedStateMap &_msg,
+      msgs::SerializedState &_msg,
       Entity _entity,
-      const std::unordered_set<ComponentTypeId> &_types,
-      bool /*_full*/) const
+      const std::unordered_set<ComponentTypeId> &_types) const
   {
+    auto entityMsg = _msg.add_entities();
+    entityMsg->set_id(_entity);
     if (!this->HasEntity(_entity)) return;
 
-    // Figure out which component types to emit.
-    auto types = _types;
-    if (types.empty()) types = this->ComponentTypes(_entity);
-
-    if (types.empty()) return;
-
-    // Add the entity sub-message if not already present.
-    auto entIter = _msg.mutable_entities()->find(_entity);
-    if (entIter == _msg.mutable_entities()->end())
-    {
-      msgs::SerializedEntityMap ent;
-      ent.set_id(_entity);
-      (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
-      entIter = _msg.mutable_entities()->find(_entity);
-    }
-
-    // Mark removal, matching legacy semantics.
+    // Mark for removal if pending.
     if (std::find(this->dataPtr->pendingRemovals.begin(),
                   this->dataPtr->pendingRemovals.end(), _entity) !=
         this->dataPtr->pendingRemovals.end())
     {
-      entIter->second.set_remove(true);
+      entityMsg->set_remove(true);
     }
+
+    auto types = _types;
+    if (types.empty()) types = this->ComponentTypes(_entity);
 
     for (const ComponentTypeId type : types)
     {
@@ -978,6 +1169,76 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
           this->ComponentImplementation(_entity, type);
       if (!compBase) continue;
 
+      auto compMsg = entityMsg->add_components();
+      compMsg->set_type(compBase->TypeId());
+
+      std::ostringstream ostr;
+      compBase->Serialize(ostr);
+      compMsg->set_component(ostr.str());
+    }
+  }
+
+  void EntityComponentManager::AddEntityToMessage(
+      msgs::SerializedStateMap &_msg,
+      Entity _entity,
+      const std::unordered_set<ComponentTypeId> &_types,
+      bool _full) const
+  {
+    if (!this->HasEntity(_entity)) return;
+
+    auto types = _types;
+    if (types.empty()) types = this->ComponentTypes(_entity);
+    if (types.empty()) return;
+
+    // Add the entity sub-message if not already present.
+    auto entIter = _msg.mutable_entities()->find(_entity);
+    auto ensureEntity = [&]() {
+      if (entIter == _msg.mutable_entities()->end())
+      {
+        msgs::SerializedEntityMap ent;
+        ent.set_id(_entity);
+        (*_msg.mutable_entities())[static_cast<uint64_t>(_entity)] = ent;
+        entIter = _msg.mutable_entities()->find(_entity);
+      }
+    };
+
+    // Mark removal, matching legacy semantics. Always emitted (even
+    // when _full=false) because removals are one-time events.
+    bool pending = std::find(this->dataPtr->pendingRemovals.begin(),
+                             this->dataPtr->pendingRemovals.end(),
+                             _entity) !=
+                   this->dataPtr->pendingRemovals.end();
+    if (pending)
+    {
+      ensureEntity();
+      entIter->second.set_remove(true);
+    }
+
+    for (const ComponentTypeId type : types)
+    {
+      // Delta mode: skip components that aren't marked as changed.
+      if (!_full)
+      {
+        bool changed = false;
+        auto oit = this->dataPtr->oneTimeChangedComponents.find(type);
+        if (oit != this->dataPtr->oneTimeChangedComponents.end() &&
+            oit->second.count(_entity))
+          changed = true;
+        if (!changed)
+        {
+          auto pit = this->dataPtr->periodicChangedComponents.find(type);
+          if (pit != this->dataPtr->periodicChangedComponents.end() &&
+              pit->second.count(_entity))
+            changed = true;
+        }
+        if (!changed) continue;
+      }
+
+      const components::BaseComponent *compBase =
+          this->ComponentImplementation(_entity, type);
+      if (!compBase) continue;
+
+      ensureEntity();
       auto compIter = entIter->second.mutable_components()->find(type);
       if (compIter == entIter->second.mutable_components()->end())
       {
