@@ -697,11 +697,11 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
             sim::components::Name("box"), sim::components::Model());
         ASSERT_NE(sim::kNullEntity, boxEntity);
         EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
+              gz::sim::components::Pose::TypeIdStatic()));
         _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
             gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
         EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
+              gz::sim::components::Pose::TypeIdStatic()));
       }
       // remove an entity
       else if (_info.iterations == 4)
@@ -733,7 +733,7 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
         ASSERT_NE(sim::kNullEntity, entity);
         EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
             "newEntity1"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
+        _ecm.SetChanged(entity, sim::components::Name::TypeIdStatic(),
             sim::ComponentState::OneTimeChange);
       }
       // modify an existing component via PeriodicChange
@@ -745,7 +745,7 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
         ASSERT_NE(sim::kNullEntity, entity);
         EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
             "newEntity2"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
+        _ecm.SetChanged(entity, sim::components::Name::TypeIdStatic(),
             sim::ComponentState::PeriodicChange);
         periodicChangeMade = true;
       }
@@ -786,13 +786,13 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
               {
                 // The pose component should exist
                 EXPECT_TRUE(localEcm.EntityHasComponentType(
-                      _entity, gz::sim::components::Pose::typeId));
+                      _entity, gz::sim::components::Pose::TypeIdStatic()));
               }
               else
               {
                 // The pose component should be gone
                 EXPECT_FALSE(localEcm.EntityHasComponentType(
-                      _entity, gz::sim::components::Pose::typeId));
+                      _entity, gz::sim::components::Pose::TypeIdStatic()));
               }
             }
 

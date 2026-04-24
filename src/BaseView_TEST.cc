@@ -40,24 +40,31 @@ class BaseViewTest : public InternalFixture<::testing::Test>
 TEST_F(BaseViewTest, ComponentTypes)
 {
   auto modelNameView =
-      detail::View({components::Model::typeId, components::Name::typeId});
+      detail::View({components::Model::TypeIdStatic(),
+          components::Name::TypeIdStatic()});
 
   // make sure that a view's required component types are initialized properly
   EXPECT_EQ(2u, modelNameView.ComponentTypes().size());
-  EXPECT_NE(modelNameView.ComponentTypes().find(components::Model::typeId),
+  EXPECT_NE(
+      modelNameView.ComponentTypes().find(components::Model::TypeIdStatic()),
       modelNameView.ComponentTypes().end());
-  EXPECT_NE(modelNameView.ComponentTypes().find(components::Name::typeId),
+  EXPECT_NE(
+      modelNameView.ComponentTypes().find(components::Name::TypeIdStatic()),
       modelNameView.ComponentTypes().end());
-  EXPECT_TRUE(modelNameView.RequiresComponent(components::Model::typeId));
-  EXPECT_TRUE(modelNameView.RequiresComponent(components::Name::typeId));
-  EXPECT_FALSE(modelNameView.RequiresComponent(components::Visual::typeId));
+  EXPECT_TRUE(
+      modelNameView.RequiresComponent(components::Model::TypeIdStatic()));
+  EXPECT_TRUE(
+      modelNameView.RequiresComponent(components::Name::TypeIdStatic()));
+  EXPECT_FALSE(
+      modelNameView.RequiresComponent(components::Visual::TypeIdStatic()));
 }
 
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, ToAddEntities)
 {
   auto modelNameView =
-      detail::View({components::Model::typeId, components::Name::typeId});
+      detail::View({components::Model::TypeIdStatic(),
+          components::Name::TypeIdStatic()});
   const Entity e1 = 1;
   auto e1IsNew = true;
 
@@ -117,7 +124,8 @@ TEST_F(BaseViewTest, ToAddEntities)
 TEST_F(BaseViewTest, AddEntities)
 {
   auto modelNameView =
-      detail::View({components::Model::typeId, components::Name::typeId});
+      detail::View({components::Model::TypeIdStatic(),
+          components::Name::TypeIdStatic()});
 
   // Initially, the view should have no entities
   EXPECT_EQ(0u, modelNameView.Entities().size());
@@ -178,7 +186,7 @@ TEST_F(BaseViewTest, AddEntities)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, RemoveEntities)
 {
-  auto view = detail::View({components::Model::typeId});
+  auto view = detail::View({components::Model::TypeIdStatic()});
 
   const Entity e1 = 1;
   auto e1ModelComp = components::Model();
@@ -228,7 +236,7 @@ TEST_F(BaseViewTest, RemoveEntities)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, Reset)
 {
-  auto view = detail::View({components::Model::typeId});
+  auto view = detail::View({components::Model::TypeIdStatic()});
 
   // initially, the view should be completely empty, except for its component
   // types (the view's component types are defined at object instantiation time
@@ -239,7 +247,7 @@ TEST_F(BaseViewTest, Reset)
   EXPECT_EQ(0u, view.ToRemoveEntities().size());
   EXPECT_EQ(1u, view.ComponentTypes().size());
   EXPECT_NE(view.ComponentTypes().end(),
-      view.ComponentTypes().find(components::Model::typeId));
+      view.ComponentTypes().find(components::Model::TypeIdStatic()));
 
   // populate the view with entity/component information
   const auto isNewEntity = true;
@@ -271,7 +279,7 @@ TEST_F(BaseViewTest, Reset)
   EXPECT_EQ(0u, view.ToRemoveEntities().size());
   EXPECT_EQ(1u, view.ComponentTypes().size());
   EXPECT_NE(view.ComponentTypes().end(),
-      view.ComponentTypes().find(components::Model::typeId));
+      view.ComponentTypes().find(components::Model::TypeIdStatic()));
 
   // add newly created entities to the view
   view.AddEntityWithComps(e1, isNewEntity, &e1ModelComp);
@@ -307,7 +315,7 @@ TEST_F(BaseViewTest, Reset)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, CachedComponentData)
 {
-  auto view = detail::View({components::Model::typeId});
+  auto view = detail::View({components::Model::TypeIdStatic()});
 
   const Entity e1 = 1;
   const auto e1IsNew = true;
@@ -336,8 +344,8 @@ TEST_F(BaseViewTest, CachedComponentData)
 /////////////////////////////////////////////////
 TEST_F(BaseViewTest, ComponentChangeNotification)
 {
-  auto view = detail::View({components::Model::typeId,
-      components::Visual::typeId});
+  auto view = detail::View({components::Model::TypeIdStatic(),
+      components::Visual::TypeIdStatic()});
 
   const Entity e1 = 1;
   const auto e1IsNew = true;
@@ -356,7 +364,8 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
 
   // mimic a removal of e1's model component by notifying the view that this
   // component was removed
-  EXPECT_TRUE(view.NotifyComponentRemoval(e1, components::Model::typeId));
+  EXPECT_TRUE(view.NotifyComponentRemoval(e1,
+        components::Model::TypeIdStatic()));
   EXPECT_FALSE(view.HasEntity(e1));
   EXPECT_EQ(0u, view.Entities().size());
   EXPECT_EQ(0u, view.NewEntities().size());
@@ -364,7 +373,8 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
 
   // mimic a removal of e1's visual component by notifying the view that this
   // component was removed
-  EXPECT_TRUE(view.NotifyComponentRemoval(e1, components::Visual::typeId));
+  EXPECT_TRUE(view.NotifyComponentRemoval(e1,
+        components::Visual::TypeIdStatic()));
   EXPECT_FALSE(view.HasEntity(e1));
   EXPECT_EQ(0u, view.Entities().size());
   EXPECT_EQ(0u, view.NewEntities().size());
@@ -374,7 +384,7 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   // component was added. At this point, the visual component is still missing,
   // so e1 shouldn't be a part of the view yet
   EXPECT_TRUE(view.NotifyComponentAddition(e1, e1IsNew,
-        components::Model::typeId));
+        components::Model::TypeIdStatic()));
   EXPECT_TRUE(view.HasCachedComponentData(e1));
   EXPECT_FALSE(view.HasEntity(e1));
   EXPECT_EQ(0u, view.Entities().size());
@@ -384,7 +394,7 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   // component was added. Now that both the model and visual components have
   // been re-added to e1, e1 should be a part of the view
   EXPECT_TRUE(view.NotifyComponentAddition(e1, e1IsNew,
-        components::Visual::typeId));
+        components::Visual::TypeIdStatic()));
   EXPECT_TRUE(view.HasCachedComponentData(e1));
   EXPECT_TRUE(view.HasEntity(e1));
   EXPECT_EQ(1u, view.Entities().size());
@@ -396,10 +406,11 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   // belong to the view
   EXPECT_TRUE(view.HasEntity(e1));
   EXPECT_TRUE(view.HasCachedComponentData(e1));
-  EXPECT_FALSE(view.RequiresComponent(components::Name::typeId));
-  EXPECT_FALSE(view.NotifyComponentRemoval(e1, components::Name::typeId));
+  EXPECT_FALSE(view.RequiresComponent(components::Name::TypeIdStatic()));
+  EXPECT_FALSE(view.NotifyComponentRemoval(e1,
+        components::Name::TypeIdStatic()));
   EXPECT_FALSE(view.NotifyComponentAddition(e1, e1IsNew,
-        components::Name::typeId));
+        components::Name::TypeIdStatic()));
   EXPECT_TRUE(view.HasEntity(e1));
   EXPECT_TRUE(view.HasCachedComponentData(e1));
 
@@ -409,10 +420,11 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   const auto e2IsNew = false;
   EXPECT_FALSE(view.HasEntity(e2));
   EXPECT_FALSE(view.HasCachedComponentData(e2));
-  EXPECT_TRUE(view.RequiresComponent(components::Model::typeId));
-  EXPECT_FALSE(view.NotifyComponentRemoval(e2, components::Model::typeId));
+  EXPECT_TRUE(view.RequiresComponent(components::Model::TypeIdStatic()));
+  EXPECT_FALSE(view.NotifyComponentRemoval(e2,
+        components::Model::TypeIdStatic()));
   EXPECT_FALSE(view.NotifyComponentAddition(e2, e2IsNew,
-        components::Model::typeId));
+        components::Model::TypeIdStatic()));
 
   // add another entity to the view that isn't a newly created entity to make
   // sure that calling NotifyComponent* methods on this entity doesn't modify
@@ -432,7 +444,8 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   EXPECT_EQ(view.NewEntities().end(), view.NewEntities().find(e2));
 
   // call NotifyComponentRemoval on the entity that was just added to the view
-  EXPECT_TRUE(view.NotifyComponentRemoval(e2, components::Model::typeId));
+  EXPECT_TRUE(view.NotifyComponentRemoval(e2,
+        components::Model::TypeIdStatic()));
   EXPECT_FALSE(view.HasEntity(e2));
   EXPECT_EQ(1u, view.Entities().size());
   EXPECT_EQ(view.Entities().end(), view.Entities().find(e2));
@@ -442,7 +455,8 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   // call NotifyComponentRemoval on a component that was already notified of
   // removal. While the notification should still take place, it will have no
   // effect since this component was already removed
-  EXPECT_TRUE(view.NotifyComponentRemoval(e2, components::Model::typeId));
+  EXPECT_TRUE(view.NotifyComponentRemoval(e2,
+        components::Model::TypeIdStatic()));
   EXPECT_FALSE(view.HasEntity(e2));
   EXPECT_EQ(1u, view.Entities().size());
   EXPECT_EQ(view.Entities().end(), view.Entities().find(e2));
@@ -451,7 +465,7 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
 
   // call NotifyComponentAddition on the entity that was just added to the view
   EXPECT_TRUE(view.NotifyComponentAddition(e2, e2IsNew,
-        components::Model::typeId));
+        components::Model::TypeIdStatic()));
   EXPECT_TRUE(view.HasCachedComponentData(e2));
   EXPECT_TRUE(view.HasEntity(e2));
   EXPECT_EQ(2u, view.Entities().size());
@@ -464,7 +478,7 @@ TEST_F(BaseViewTest, ComponentChangeNotification)
   // addition. While the notification should still take place, it will have no
   // effect since this component was already added
   EXPECT_TRUE(view.NotifyComponentAddition(e2, e2IsNew,
-        components::Model::typeId));
+        components::Model::TypeIdStatic()));
   EXPECT_TRUE(view.HasCachedComponentData(e2));
   EXPECT_TRUE(view.HasEntity(e2));
   EXPECT_EQ(2u, view.Entities().size());
@@ -484,28 +498,28 @@ TEST_F(BaseViewTest, ComponentTypeHasher)
 
   // Create vectors with the same types, but different order
   ComponentVec vec1 = {
-    components::Model::typeId,
-    components::Name::typeId,
-    components::Visual::typeId
+    components::Model::TypeIdStatic(),
+    components::Name::TypeIdStatic(),
+    components::Visual::TypeIdStatic()
   };
   ComponentVec vec2 = {
-    components::Name::typeId,
-    components::Model::typeId,
-    components::Visual::typeId
+    components::Name::TypeIdStatic(),
+    components::Model::TypeIdStatic(),
+    components::Visual::TypeIdStatic()
   };
   ComponentVec vec3 = {
-    components::Model::typeId,
-    components::Visual::typeId,
-    components::Name::typeId
+    components::Model::TypeIdStatic(),
+    components::Visual::TypeIdStatic(),
+    components::Name::TypeIdStatic()
   };
 
   // Create vectors with different types
-  ComponentVec vec4 = {components::Model::typeId};
-  ComponentVec vec5 = {components::Name::typeId};
-  ComponentVec vec6 = {components::Visual::typeId};
+  ComponentVec vec4 = {components::Model::TypeIdStatic()};
+  ComponentVec vec5 = {components::Name::TypeIdStatic()};
+  ComponentVec vec6 = {components::Visual::TypeIdStatic()};
   ComponentVec vec7 = {
-    components::Model::typeId,
-    components::Name::typeId
+    components::Model::TypeIdStatic(),
+    components::Name::TypeIdStatic()
   };
 
   // Test the hash function. Each vector defined above should be unique, which

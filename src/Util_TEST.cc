@@ -330,47 +330,48 @@ TEST_F(UtilTest, EntityTypeId)
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::World());
-  EXPECT_EQ(components::World::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::World::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Model());
-  EXPECT_EQ(components::Model::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Model::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Light());
-  EXPECT_EQ(components::Light::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Light::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Link());
-  EXPECT_EQ(components::Link::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Link::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Visual());
-  EXPECT_EQ(components::Visual::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Visual::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Collision());
-  EXPECT_EQ(components::Collision::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Collision::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Joint());
-  EXPECT_EQ(components::Joint::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Joint::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Sensor());
-  EXPECT_EQ(components::Sensor::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Sensor::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
-  EXPECT_EQ(components::Actor::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Actor::TypeIdStatic(), entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
-  EXPECT_EQ(components::ParticleEmitter::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::ParticleEmitter::TypeIdStatic(),
+      entityTypeId(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Projector());
-  EXPECT_EQ(components::Projector::typeId, entityTypeId(entity, ecm));
+  EXPECT_EQ(components::Projector::TypeIdStatic(), entityTypeId(entity, ecm));
 }
 
 /////////////////////////////////////////////////

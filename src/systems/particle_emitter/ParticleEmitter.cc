@@ -240,7 +240,7 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
       // todo(anyone) find a better way to process this cmd component in
       // RenderUtil.cc
       _ecm.SetChanged(cmd.first,
-          components::ParticleEmitterCmd::typeId,
+          components::ParticleEmitterCmd::TypeIdStatic(),
           ComponentState::OneTimeChange);
     }
   }

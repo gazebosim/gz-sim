@@ -63,7 +63,8 @@ Pose3d::Pose3d(ComponentInspectorEditor *_inspector)
     }
   };
 
-  this->inspector->RegisterComponentCreator(components::Pose::typeId, creator);
+  this->inspector->RegisterComponentCreator(
+      components::Pose::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

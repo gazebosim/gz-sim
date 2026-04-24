@@ -263,7 +263,7 @@ void VisualizeContactsPrivate::CreateCollisionData(
       // Check if ContactSensorData has already been created
       bool collisionHasContactSensor =
         _ecm.EntityHasComponentType(_entity,
-          components::ContactSensorData::typeId);
+          components::ContactSensorData::TypeIdStatic());
 
       if (collisionHasContactSensor)
       {

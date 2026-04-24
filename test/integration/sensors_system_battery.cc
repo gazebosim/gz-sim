@@ -109,7 +109,7 @@ TEST_F(SensorsFixture, SensorsBatteryState)
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
   // Find the battery entity
   Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -118,7 +118,7 @@ TEST_F(SensorsFixture, SensorsBatteryState)
 
   // Find the battery component
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge should be 1, since the battery has not drained

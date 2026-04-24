@@ -606,7 +606,7 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     {
       this->dataPtr->prevParticleEmitterCmds[_entity]
           = _emitter->Data().emitting().data();
-      _ecm.SetChanged(_entity, components::ParticleEmitterCmd::typeId,
+      _ecm.SetChanged(_entity, components::ParticleEmitterCmd::TypeIdStatic(),
           ComponentState::OneTimeChange);
     }
 

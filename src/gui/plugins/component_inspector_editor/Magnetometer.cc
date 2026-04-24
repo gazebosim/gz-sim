@@ -68,7 +68,7 @@ Magnetometer::Magnetometer(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::Magnetometer::typeId, creator);
+      components::Magnetometer::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

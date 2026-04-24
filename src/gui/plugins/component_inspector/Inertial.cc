@@ -29,7 +29,7 @@ Inertial::Inertial(ComponentInspector *_inspector)
 {
   this->inspector = _inspector;
 
-  this->inspector->AddUpdateViewCb(components::Inertial::typeId,
+  this->inspector->AddUpdateViewCb(components::Inertial::TypeIdStatic(),
       std::bind(&Inertial::UpdateView, this,
       std::placeholders::_1, std::placeholders::_2));
 }

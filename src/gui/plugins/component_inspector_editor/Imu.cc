@@ -90,7 +90,7 @@ Imu::Imu(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::Imu::typeId, creator);
+      components::Imu::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

@@ -513,27 +513,30 @@ TEST_F(ComponentTest, IStream)
   }
 }
 
+namespace test_components
+{
+  using ConstexprComp = gz::sim::components::Component<int, class ConstexprTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ConstexprComp", ConstexprComp)
+}
+
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, TypeId)
 {
-  // Component with data
+  // Constexpr TypeId
   {
-    using Custom = components::Component<int, class CustomTag>;
-    Custom::typeId = 123456;
+    using ConstexprComp = test_components::ConstexprComp;
+    static_assert(ConstexprComp::TypeIdStatic() ==
+        common::hash64("gz_sim_components.ConstexprComp"));
 
-    Custom comp;
-
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
+    EXPECT_EQ(ConstexprComp::TypeIdStatic(), ConstexprComp::TypeIdStatic());
   }
 
-  // Component without data
+  // Pre-registered component
   {
-    using Custom = components::Component<components::NoData, class CustomTag>;
-    Custom::typeId = 123456;
-
-    Custom comp;
-
-    EXPECT_EQ(ComponentTypeId(123456), comp.TypeId());
+    EXPECT_EQ(components::Name::TypeIdStatic(),
+              common::hash64("gz_sim_components.Name"));
+    EXPECT_EQ(components::Name::TypeIdStatic(),
+        components::Name::TypeIdStatic());
   }
 }
 

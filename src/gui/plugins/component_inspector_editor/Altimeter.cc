@@ -60,7 +60,7 @@ Altimeter::Altimeter(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::Altimeter::typeId, creator);
+      components::Altimeter::TypeIdStatic(), creator);
 }
 /////////////////////////////////////////////////
 Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(

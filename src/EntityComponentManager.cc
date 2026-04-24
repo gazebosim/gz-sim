@@ -534,8 +534,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   {
     // skip the Name and ParentEntity components since those were already
     // handled above
-    if ((type == components::Name::typeId) ||
-        (type == components::ParentEntity::typeId))
+    if ((type == components::Name::TypeIdStatic()) ||
+        (type == components::ParentEntity::TypeIdStatic()))
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
@@ -1200,7 +1200,7 @@ bool EntityComponentManager::CreateComponentImplementation(
 
   // If the component is a components::ParentEntity, then make sure to
   // update the entities graph.
-  if (_componentTypeId == components::ParentEntity::typeId)
+  if (_componentTypeId == components::ParentEntity::TypeIdStatic())
   {
     auto parentComp = this->Component<components::ParentEntity>(_entity);
     this->SetParentEntity(_entity, parentComp->Data());
@@ -2157,8 +2157,9 @@ template<typename ComponentTypeT>
 bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     Entity _originalLink, EntityComponentManager *_ecm)
 {
-  if (ComponentTypeT::typeId != components::ParentLinkName::typeId &&
-      ComponentTypeT::typeId != components::ChildLinkName::typeId)
+  const auto typeId = ComponentTypeT::TypeIdStatic();
+  if (typeId != components::ParentLinkName::TypeIdStatic() &&
+      typeId != components::ChildLinkName::TypeIdStatic())
   {
     gzerr << "Template type is invalid. Must be either "
            << "components::ParentLinkName or components::ChildLinkName\n";

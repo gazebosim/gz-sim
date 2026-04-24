@@ -55,7 +55,7 @@ AirPressure::AirPressure(ComponentInspectorEditor *_inspector)
   };
 
   this->inspector->RegisterComponentCreator(
-      components::AirPressureSensor::typeId, creator);
+      components::AirPressureSensor::TypeIdStatic(), creator);
 }
 
 /////////////////////////////////////////////////

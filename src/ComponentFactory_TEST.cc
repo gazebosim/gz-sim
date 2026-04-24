@@ -39,59 +39,24 @@ class ComponentFactoryTest : public InternalFixture<::testing::Test>
   }
 };
 
+// Create a custom component.
+using MyCustom = components::Component<components::NoData, class MyCustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MyCustom", MyCustom);
+
 /////////////////////////////////////////////////
 TEST_F(ComponentFactoryTest, Register)
 {
   auto factory = components::Factory::Instance();
-
-  // Create a custom component.
-  using MyCustom = components::Component<components::NoData, class MyCustomTag>;
-
-  // Check it has no type id yet
-  EXPECT_EQ(0u, MyCustom::typeId);
-  EXPECT_EQ(nullptr, MyCustom::typeName);
-  EXPECT_EQ("", factory->Name(MyCustom::typeId));
-
-  // Store number of registered component types
-  auto registeredCount = factory->TypeIds().size();
-
-  factory->Register<MyCustom>("gz_sim_components.MyCustom",
-                              new components::ComponentDescriptor<MyCustom>(),
-                              components::RegistrationObjectId(this));
-
   // Check now it has type id
-  EXPECT_NE(0u, MyCustom::typeId);
+  EXPECT_NE(0u, MyCustom::TypeIdStatic());
   EXPECT_EQ("gz_sim_components.MyCustom", MyCustom::typeName);
   EXPECT_EQ("gz_sim_components.MyCustom",
-      factory->Name(MyCustom::typeId));
+      factory->Name(MyCustom::TypeIdStatic()));
 
   // Check factory knows id
   auto ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
-  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
-
-  // Registering the component twice doesn't change the number of type ids.
-  factory->Register<MyCustom>("gz_sim_components.MyCustom",
-                              new components::ComponentDescriptor<MyCustom>(),
-                              components::RegistrationObjectId(this));
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Fail to register 2 components with same name
-  using Duplicate = components::Component<components::NoData,
-      class DuplicateTag>;
-
-  factory->Register<Duplicate>("gz_sim_components.MyCustom",
-                               new components::ComponentDescriptor<Duplicate>(),
-                               components::RegistrationObjectId(this));
-
-  EXPECT_EQ(registeredCount + 1, factory->TypeIds().size());
-
-  // Unregister
-  factory->Unregister<MyCustom>(components::RegistrationObjectId(this));
-
-  ids = factory->TypeIds();
-  EXPECT_EQ(registeredCount + 1, ids.size());
+  EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(),
+        MyCustom::TypeIdStatic()));
 }
 
 /////////////////////////////////////////////////
@@ -108,12 +73,12 @@ TEST_F(ComponentFactoryTest, New)
     auto comp = factory->New<components::Pose>();
     ASSERT_NE(nullptr, comp);
 
-    EXPECT_NE(0u, comp->typeId);
-    EXPECT_EQ(comp->typeId, components::Pose::typeId);
+    EXPECT_NE(0u, comp->TypeId());
+    EXPECT_EQ(comp->TypeId(), components::Pose::TypeIdStatic());
   }
 
   {
-    auto comp = factory->New(components::Pose::typeId);
+    auto comp = factory->New(components::Pose::TypeIdStatic());
     ASSERT_NE(nullptr, comp);
 
     EXPECT_NE(0u, comp->TypeId());
@@ -127,7 +92,7 @@ TEST_F(ComponentFactoryTest, New)
     // Test a valid pre-defined component
     gz::math::Pose3d pose(1, 2, 3, 4, 5, 6);
     components::Pose poseComp(pose);
-    auto comp = factory->New(components::Pose::typeId, &poseComp);
+    auto comp = factory->New(components::Pose::TypeIdStatic(), &poseComp);
     ASSERT_NE(nullptr, comp);
     EXPECT_NE(0u, comp->TypeId());
     auto derivedComp = static_cast<components::Pose *>(comp.get());
@@ -135,11 +100,11 @@ TEST_F(ComponentFactoryTest, New)
     EXPECT_EQ(pose, derivedComp->Data());
 
     // Test an invalid pre-defined component
-    comp = factory->New(components::Pose::typeId, nullptr);
+    comp = factory->New(components::Pose::TypeIdStatic(), nullptr);
     ASSERT_EQ(nullptr, comp);
 
     // Test mismatching component types
-    comp = factory->New(components::Name::typeId, &poseComp);
+    comp = factory->New(components::Name::TypeIdStatic(), &poseComp);
     ASSERT_EQ(nullptr, comp);
   }
 }

@@ -126,31 +126,31 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      World::typeId));
+      World::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Model::typeId));
+      Model::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      CanonicalLink::typeId));
+      CanonicalLink::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Link::typeId));
+      Link::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Collision::typeId));
+      Collision::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Visual::typeId));
+      Visual::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Light::typeId));
+      Light::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Name::typeId));
+      Name::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      ParentEntity::typeId));
+      ParentEntity::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Geometry::typeId));
+      Geometry::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      components::Material::typeId));
+      components::Material::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Inertial::typeId));
+      Inertial::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Wind::typeId));
+      Wind::TypeIdStatic()));
 
   // Check entities
   // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
@@ -930,27 +930,27 @@ TEST_P(SimulationRunnerTest, CreateJointEntities)
 
   // Check component types
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      World::typeId));
+      World::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      CanonicalLink::typeId));
+      CanonicalLink::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Link::typeId));
+      Link::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Joint::typeId));
+      Joint::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      JointAxis::typeId));
+      JointAxis::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      JointType::typeId));
+      JointType::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      ChildLinkName::typeId));
+      ChildLinkName::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      ParentLinkName::typeId));
+      ParentLinkName::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      ParentEntity::typeId));
+      ParentEntity::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Pose::typeId));
+      Pose::TypeIdStatic()));
   EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(
-      Name::typeId));
+      Name::TypeIdStatic()));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 

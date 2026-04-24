@@ -528,14 +528,14 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
   for (const auto &typeId : componentTypes)
   {
     // Type components
-    if (typeId == components::World::typeId)
+    if (typeId == components::World::TypeIdStatic())
     {
       this->dataPtr->worldEntity = this->dataPtr->entity;
       this->SetType("world");
       continue;
     }
 
-    if (typeId == components::Model::typeId)
+    if (typeId == components::Model::TypeIdStatic())
     {
       this->SetType("model");
 
@@ -570,49 +570,49 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
       continue;
     }
 
-    if (typeId == components::Link::typeId)
+    if (typeId == components::Link::TypeIdStatic())
     {
       this->SetType("link");
       continue;
     }
 
-    if (typeId == components::Collision::typeId)
+    if (typeId == components::Collision::TypeIdStatic())
     {
       this->SetType("collision");
       continue;
     }
 
-    if (typeId == components::Visual::typeId)
+    if (typeId == components::Visual::TypeIdStatic())
     {
       this->SetType("visual");
       continue;
     }
 
-    if (typeId == components::Sensor::typeId)
+    if (typeId == components::Sensor::TypeIdStatic())
     {
       this->SetType("sensor");
       continue;
     }
 
-    if (typeId == components::Joint::typeId)
+    if (typeId == components::Joint::TypeIdStatic())
     {
       this->SetType("joint");
       continue;
     }
 
-    if (typeId == components::Performer::typeId)
+    if (typeId == components::Performer::TypeIdStatic())
     {
       this->SetType("performer");
       continue;
     }
 
-    if (typeId == components::Level::typeId)
+    if (typeId == components::Level::TypeIdStatic())
     {
       this->SetType("level");
       continue;
     }
 
-    if (typeId == components::Actor::typeId)
+    if (typeId == components::Actor::TypeIdStatic())
     {
       this->SetType("actor");
       continue;
@@ -642,7 +642,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
     }
 
     // Populate component-specific data
-    if (typeId == components::AngularAcceleration::typeId)
+    if (typeId == components::AngularAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::AngularAcceleration>(
           this->dataPtr->entity);
@@ -652,7 +652,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "rad/s\u00B2");
       }
     }
-    else if (typeId == components::AngularVelocity::typeId)
+    else if (typeId == components::AngularVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::AngularVelocity>(
           this->dataPtr->entity);
@@ -662,28 +662,28 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "rad/s");
       }
     }
-    else if (typeId == components::AnimationName::typeId)
+    else if (typeId == components::AnimationName::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::AnimationName>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::BatterySoC::typeId)
+    else if (typeId == components::BatterySoC::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::BatterySoC>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::CastShadows::typeId)
+    else if (typeId == components::CastShadows::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::CastShadows>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::CenterOfVolume::typeId)
+    else if (typeId == components::CenterOfVolume::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::CenterOfVolume>(
           this->dataPtr->entity);
@@ -693,14 +693,14 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m");
       }
     }
-    else if (typeId == components::ChildLinkName::typeId)
+    else if (typeId == components::ChildLinkName::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::ChildLinkName>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Gravity::typeId)
+    else if (typeId == components::Gravity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
       if (comp)
@@ -709,13 +709,13 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m/s\u00B2");
       }
     }
-    else if (typeId == components::LaserRetro::typeId)
+    else if (typeId == components::LaserRetro::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LaserRetro>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::LinearAcceleration::typeId)
+    else if (typeId == components::LinearAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LinearAcceleration>(
           this->dataPtr->entity);
@@ -725,7 +725,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m/s\u00B2");
       }
     }
-    else if (typeId == components::LinearVelocity::typeId)
+    else if (typeId == components::LinearVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LinearVelocity>(
           this->dataPtr->entity);
@@ -735,7 +735,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m/s");
       }
     }
-    else if (typeId == components::MagneticField::typeId)
+    else if (typeId == components::MagneticField::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::MagneticField>(
           this->dataPtr->entity);
@@ -745,7 +745,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "T");
       }
     }
-    else if (typeId == components::Name::typeId)
+    else if (typeId == components::Name::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Name>(this->dataPtr->entity);
       if (comp)
@@ -755,34 +755,34 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         this->dataPtr->worldName = comp->Data();
       this->dataPtr->entityName = comp->Data();
     }
-    else if (typeId == components::LightType::typeId)
+    else if (typeId == components::LightType::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LightType>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::ParentEntity::typeId)
+    else if (typeId == components::ParentEntity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::ParentEntity>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::ParentLinkName::typeId)
+    else if (typeId == components::ParentLinkName::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::ParentLinkName>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::PerformerAffinity::typeId)
+    else if (typeId == components::PerformerAffinity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::PerformerAffinity>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Light::typeId)
+    else if (typeId == components::Light::TypeIdStatic())
     {
       this->SetType("light");
       auto comp = _ecm.Component<components::Light>(this->dataPtr->entity);
@@ -792,82 +792,82 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setData(item, lightMsgs);
       }
     }
-    else if (typeId == components::Physics::typeId)
+    else if (typeId == components::Physics::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Physics>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::PhysicsCollisionDetector::typeId)
+    else if (typeId == components::PhysicsCollisionDetector::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::PhysicsSolver::typeId)
+    else if (typeId == components::PhysicsSolver::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::PhysicsSolver>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::RenderEngineGuiPlugin::typeId)
+    else if (typeId == components::RenderEngineGuiPlugin::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::RenderEngineGuiPlugin>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::RenderEngineServerPlugin::typeId)
+    else if (typeId == components::RenderEngineServerPlugin::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::RenderEngineServerPlugin>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::RenderEngineServerApiBackend::typeId)
+    else if (typeId == components::RenderEngineServerApiBackend::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::RenderEngineServerApiBackend>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Static::typeId)
+    else if (typeId == components::Static::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Static>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::SelfCollide::typeId)
+    else if (typeId == components::SelfCollide::TypeIdStatic())
     {
       auto comp =
           _ecm.Component<components::SelfCollide>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::SensorTopic::typeId)
+    else if (typeId == components::SensorTopic::TypeIdStatic())
     {
       auto comp =
           _ecm.Component<components::SensorTopic>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::SourceFilePath::typeId)
+    else if (typeId == components::SourceFilePath::TypeIdStatic())
     {
       auto comp =
           _ecm.Component<components::SourceFilePath>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::SphericalCoordinates::typeId)
+    else if (typeId == components::SphericalCoordinates::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::SphericalCoordinates>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::ThreadPitch::typeId)
+    else if (typeId == components::ThreadPitch::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::ThreadPitch>(
           this->dataPtr->entity);
@@ -877,14 +877,14 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m");
       }
     }
-    else if (typeId == components::Transparency::typeId)
+    else if (typeId == components::Transparency::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Transparency>(
           this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Volume::typeId)
+    else if (typeId == components::Volume::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Volume>(
           this->dataPtr->entity);
@@ -894,13 +894,13 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m\u00B3");
       }
     }
-    else if (typeId == components::WindMode::typeId)
+    else if (typeId == components::WindMode::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WindMode>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::WorldAngularAcceleration::typeId)
+    else if (typeId == components::WorldAngularAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldAngularAcceleration>(
           this->dataPtr->entity);
@@ -910,7 +910,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "rad/s\u00B2");
       }
     }
-    else if (typeId == components::WorldAngularVelocity::typeId)
+    else if (typeId == components::WorldAngularVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldAngularVelocity>(
           this->dataPtr->entity);
@@ -920,7 +920,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "rad/s");
       }
     }
-    else if (typeId == components::WorldLinearVelocity::typeId)
+    else if (typeId == components::WorldLinearVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldLinearVelocity>(
           this->dataPtr->entity);
@@ -930,7 +930,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m/s");
       }
     }
-    else if (typeId == components::WorldLinearVelocitySeed::typeId)
+    else if (typeId == components::WorldLinearVelocitySeed::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldLinearVelocitySeed>(
           this->dataPtr->entity);
@@ -940,13 +940,13 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
         setUnit(item, "m/s");
       }
     }
-    else if (typeId == components::WorldPose::typeId)
+    else if (typeId == components::WorldPose::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldPose>(this->dataPtr->entity);
       if (comp)
         setData(item, comp->Data());
     }
-    else if (typeId == components::Material::typeId)
+    else if (typeId == components::Material::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Material>(this->dataPtr->entity);
       if (comp)

@@ -255,7 +255,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   GZ_PROFILE("SdfEntityCreator::CreateEntities(sdf::World)");
 
   if (!this->dataPtr->ecm->EntityHasComponentType(
-        _worldEntity, components::World::typeId))
+        _worldEntity, components::World::TypeIdStatic()))
   {
     this->dataPtr->ecm->CreateComponent(_worldEntity, components::World());
   }

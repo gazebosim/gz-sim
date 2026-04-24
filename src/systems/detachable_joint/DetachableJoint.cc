@@ -240,7 +240,7 @@ void DetachableJoint::GetChildModelAndLinkEntities(
                 std::back_inserter(candidateEntities),
                 [&_ecm](Entity e) {
                   return _ecm.EntityHasComponentType(e,
-                            components::Model::typeId);
+                            components::Model::TypeIdStatic());
                 });
 
     if (candidateEntities.size() == 1)

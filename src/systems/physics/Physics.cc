@@ -1208,7 +1208,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+        if (_ecm.EntityHasComponentType(_entity,
+              components::Recreate::TypeIdStatic()))
           return true;
 
         // Check if model already exists
@@ -1372,7 +1373,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         // try to create a new link. This situation can occur when a link
         // is added to a model from the GUI model editor.
         if (_ecm.EntityHasComponentType(_parent->Data(),
-              components::Recreate::typeId))
+              components::Recreate::TypeIdStatic()))
         {
           // Add this entity to the set of newly added links to existing
           // models.
@@ -1776,7 +1777,7 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
         // try to create a new joint. This situation can occur when a joint
         // is added to a model from the GUI model editor.
         if (_ecm.EntityHasComponentType(_parentModel->Data(),
-              components::Recreate::typeId))
+              components::Recreate::TypeIdStatic()))
         {
           // Add this entity to the set of newly added joints to existing
           // models.
@@ -2609,7 +2610,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
                 this->pose3Eql) ?
                 ComponentState::OneTimeChange :
                 ComponentState::NoChange;
-            _ecm.SetChanged(_entity, components::Pose::typeId, state);
+            _ecm.SetChanged(_entity, components::Pose::TypeIdStatic(), state);
           }
         }
 
@@ -3207,7 +3208,8 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
       [&](const Entity &_entity, components::Link *) -> bool
       {
         if (this->staticEntities.find(_entity) != this->staticEntities.end() ||
-            _ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+            _ecm.EntityHasComponentType(_entity,
+              components::Recreate::TypeIdStatic()))
         {
           return true;
         }
@@ -3338,7 +3340,7 @@ void PhysicsPrivate::UpdateModelPose(const Entity _model,
     *modelPose = components::Pose(modelWorldPose);
   }
 
-  _ecm.SetChanged(_model, components::Pose::typeId,
+  _ecm.SetChanged(_model, components::Pose::TypeIdStatic(),
                   ComponentState::PeriodicChange);
 
   // once the model pose has been updated, all descendant link poses of this
@@ -3511,7 +3513,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       auto pose = _ecm.Component<components::Pose>(entity);
       *pose = components::Pose(parentWorldPose.Inverse() *
                                 math::eigen3::convert(worldPose));
-      _ecm.SetChanged(entity, components::Pose::typeId,
+      _ecm.SetChanged(entity, components::Pose::TypeIdStatic(),
           ComponentState::PeriodicChange);
     }
     GZ_PROFILE_END();
@@ -3527,7 +3529,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->pose3Eql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::WorldPose::typeId, state);
+      _ecm.SetChanged(entity, components::WorldPose::TypeIdStatic(), state);
     }
 
     // Velocity in world coordinates
@@ -3541,7 +3543,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
       _ecm.SetChanged(entity,
-          components::WorldLinearVelocity::typeId, state);
+          components::WorldLinearVelocity::TypeIdStatic(), state);
     }
 
     // Angular velocity in world frame coordinates
@@ -3555,7 +3557,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
       _ecm.SetChanged(entity,
-          components::WorldAngularVelocity::typeId, state);
+          components::WorldAngularVelocity::TypeIdStatic(), state);
     }
 
     // Acceleration in world frame coordinates
@@ -3569,7 +3571,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
       _ecm.SetChanged(entity,
-          components::WorldLinearAcceleration::typeId, state);
+          components::WorldLinearAcceleration::TypeIdStatic(), state);
     }
 
     // Angular acceleration in world frame coordinates
@@ -3584,7 +3586,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
       _ecm.SetChanged(entity,
-          components::WorldAngularAcceleration::typeId, state);
+          components::WorldAngularAcceleration::TypeIdStatic(), state);
     }
 
     const Eigen::Matrix3d R_bs = worldPose.linear().transpose(); // NOLINT
@@ -3600,7 +3602,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->vec3Eql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::LinearVelocity::typeId, state);
+      _ecm.SetChanged(entity,
+          components::LinearVelocity::TypeIdStatic(), state);
     }
 
     // Angular velocity in body-fixed frame coordinates
@@ -3614,7 +3617,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->vec3Eql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::AngularVelocity::typeId,
+      _ecm.SetChanged(entity, components::AngularVelocity::TypeIdStatic(),
           state);
     }
 
@@ -3629,7 +3632,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->vec3Eql)?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::LinearAcceleration::typeId,
+      _ecm.SetChanged(entity, components::LinearAcceleration::TypeIdStatic(),
           state);
     }
 
@@ -3644,7 +3647,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           this->vec3Eql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(entity, components::AngularAcceleration::typeId,
+      _ecm.SetChanged(entity, components::AngularAcceleration::TypeIdStatic(),
           state);
     }
   }
@@ -4040,7 +4043,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
-          _ecm.SetChanged(_entity, components::JointPosition::typeId,
+          _ecm.SetChanged(_entity, components::JointPosition::TypeIdStatic(),
               ComponentState::PeriodicChange);
         }
         return true;
@@ -4085,8 +4088,8 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
               _wrench->SetData(wrenchData, this->wrenchEql)
                   ? ComponentState::PeriodicChange
                   : ComponentState::NoChange;
-          _ecm.SetChanged(_entity, components::JointTransmittedWrench::typeId,
-                          state);
+          _ecm.SetChanged(_entity,
+              components::JointTransmittedWrench::TypeIdStatic(), state);
         }
         else
         {
@@ -4117,7 +4120,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   GZ_PROFILE("PhysicsPrivate::UpdateCollisions");
   // Quit early if the ContactData component hasn't been created. This means
   // there are no systems that need contact information
-  if (!_ecm.HasComponentType(components::ContactSensorData::typeId))
+  if (!_ecm.HasComponentType(components::ContactSensorData::TypeIdStatic()))
     return;
 
   // Also check if any entity currently has a ContactSensorData component.
@@ -4224,7 +4227,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
-            _collEntity1, components::ContactSensorData::typeId, state);
+            _collEntity1, components::ContactSensorData::TypeIdStatic(), state);
           return true;
         }
 
@@ -4283,7 +4286,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
         _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
+          _collEntity1, components::ContactSensorData::TypeIdStatic(), state);
 
         return true;
       });
@@ -4295,7 +4298,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
   GZ_PROFILE("PhysicsPrivate::UpdateRayIntersections");
   // Quit early if the RaycastData component hasn't been created.
   // This means there are no systems that need raycasting information
-  if (!_ecm.HasComponentType(components::RaycastData::typeId))
+  if (!_ecm.HasComponentType(components::RaycastData::TypeIdStatic()))
     return;
 
   // Assume that there is only one world entity
@@ -4530,7 +4533,8 @@ void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
       auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+      _ecm.SetChanged(_entity,
+          components::AxisAlignedBox::TypeIdStatic(), state);
 
       return true;
     });
@@ -4576,7 +4580,8 @@ void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
       auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
-      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+      _ecm.SetChanged(_entity,
+          components::AxisAlignedBox::TypeIdStatic(), state);
 
       return true;
     });

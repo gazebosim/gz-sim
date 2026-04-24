@@ -118,7 +118,8 @@ void World::SetSphericalCoordinates(EntityComponentManager &_ecm,
       [](const math::SphericalCoordinates &,
          const math::SphericalCoordinates &){return false;});
   _ecm.SetChanged(this->dataPtr->id,
-      components::SphericalCoordinates::typeId, ComponentState::OneTimeChange);
+      components::SphericalCoordinates::TypeIdStatic(),
+      ComponentState::OneTimeChange);
 }
 
 //////////////////////////////////////////////////

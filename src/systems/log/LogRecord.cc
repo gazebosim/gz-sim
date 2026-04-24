@@ -415,7 +415,7 @@ void LogRecordPrivate::LogModelResources(const EntityComponentManager &_ecm)
         if (modelEntity != kNullEntity)
         {
           if (_ecm.EntityHasComponentType(modelEntity,
-            components::SourceFilePath::typeId))
+            components::SourceFilePath::TypeIdStatic()))
           {
             const auto *pathComp =
               _ecm.Component<components::SourceFilePath>(modelEntity);

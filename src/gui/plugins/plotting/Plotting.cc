@@ -408,124 +408,124 @@ void Plotting::Update(const gz::sim::UpdateInfo &_info,
     auto entity = component.second->Entity();
     auto typeId = component.second->TypeId();
 
-    if (typeId == components::AngularAcceleration::typeId)
+    if (typeId == components::AngularAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::AngularAcceleration>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::AngularVelocity::typeId)
+    else if (typeId == components::AngularVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::AngularVelocity>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::CastShadows::typeId)
+    else if (typeId == components::CastShadows::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::CastShadows>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::Gravity::typeId)
+    else if (typeId == components::Gravity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Gravity>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::LinearAcceleration::typeId)
+    else if (typeId == components::LinearAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LinearAcceleration>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::LinearVelocity::typeId)
+    else if (typeId == components::LinearVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::LinearVelocity>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::MagneticField::typeId)
+    else if (typeId == components::MagneticField::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::MagneticField>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::ParentEntity::typeId)
+    else if (typeId == components::ParentEntity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::ParentEntity>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::Physics::typeId)
+    else if (typeId == components::Physics::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Physics>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::Pose::typeId)
+    else if (typeId == components::Pose::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Pose>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::Static::typeId)
+    else if (typeId == components::Static::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Static>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::SphericalCoordinates::typeId)
+    else if (typeId == components::SphericalCoordinates::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::SphericalCoordinates>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::TrajectoryPose::typeId)
+    else if (typeId == components::TrajectoryPose::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::TrajectoryPose>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WindMode::typeId)
+    else if (typeId == components::WindMode::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WindMode>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WorldAngularAcceleration::typeId)
+    else if (typeId == components::WorldAngularAcceleration::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldAngularAcceleration>(
                   entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WorldLinearVelocity::typeId)
+    else if (typeId == components::WorldLinearVelocity::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldLinearVelocity>(
                   entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WorldLinearVelocitySeed::typeId)
+    else if (typeId == components::WorldLinearVelocitySeed::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldLinearVelocitySeed>(
                   entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WorldPose::typeId)
+    else if (typeId == components::WorldPose::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldPose>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::WorldPoseCmd::typeId)
+    else if (typeId == components::WorldPoseCmd::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::WorldPoseCmd>(entity);
       if (comp)
         this->SetData(component.first, comp->Data());
     }
-    else if (typeId == components::Light::typeId)
+    else if (typeId == components::Light::TypeIdStatic())
     {
       auto comp = _ecm.Component<components::Light>(entity);
       if (comp)

@@ -454,7 +454,8 @@ void MulticopterVelocityControl::PublishRotorVelocities(
     auto state = actuatorMsgComp->SetData(this->rotorVelocitiesMsg, compFunc)
                      ? ComponentState::PeriodicChange
                      : ComponentState::NoChange;
-    _ecm.SetChanged(this->model.Entity(), components::Actuators::typeId, state);
+    _ecm.SetChanged(this->model.Entity(),
+        components::Actuators::TypeIdStatic(), state);
   }
   else
   {

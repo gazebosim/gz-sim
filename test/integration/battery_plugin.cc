@@ -96,7 +96,8 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -105,7 +106,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 
       // Find the battery component
       EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-        components::BatterySoC::typeId));
+        components::BatterySoC::TypeIdStatic()));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
       // Check state of charge is never zero.
@@ -124,7 +125,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
   // Find the battery entity
   Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -133,7 +134,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SingleBattery))
 
   // Find the battery component
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge after consumption is lower than 1 (full charge).
@@ -186,7 +187,8 @@ TEST_F(BatteryPluginTest,
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -195,7 +197,7 @@ TEST_F(BatteryPluginTest,
 
       // Find the battery component
       EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-        components::BatterySoC::typeId));
+        components::BatterySoC::TypeIdStatic()));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
       // Check state of charge is never zero.
@@ -214,7 +216,7 @@ TEST_F(BatteryPluginTest,
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
   // Find the battery entity
   Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -223,7 +225,7 @@ TEST_F(BatteryPluginTest,
 
   // Find the battery component.
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge after consumption is lower than initial one
@@ -269,7 +271,8 @@ TEST_F(BatteryPluginTest,
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entities
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -281,10 +284,10 @@ TEST_F(BatteryPluginTest,
 
       // Find the battery components
       EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-        components::BatterySoC::typeId));
+        components::BatterySoC::TypeIdStatic()));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
       EXPECT_TRUE(ecm->EntityHasComponentType(batEntity2,
-        components::BatterySoC::typeId));
+        components::BatterySoC::TypeIdStatic()));
       auto batComp2 = ecm->Component<components::BatterySoC>(batEntity2);
 
       // Check state of charge is never zero.
@@ -304,7 +307,7 @@ TEST_F(BatteryPluginTest,
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
   // Find the battery entities
   Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -316,10 +319,10 @@ TEST_F(BatteryPluginTest,
 
   // Find the batteries components.
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity2,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp2 = ecm->Component<components::BatterySoC>(batEntity2);
 
   // Check state of charge after consumption is lower than initial one
@@ -353,7 +356,8 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
       ecm = &_ecm;
 
       // Check a battery exists
-      EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+      EXPECT_TRUE(
+          ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
       // Find the battery entity
       Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -362,7 +366,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
       // Find the battery component
       EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-        components::BatterySoC::typeId));
+        components::BatterySoC::TypeIdStatic()));
       auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
       // Check state of charge is never zero.
@@ -381,7 +385,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   EXPECT_NE(nullptr, ecm);
 
   // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::TypeIdStatic()));
 
   // Find the battery entity
   Entity batEntity = ecm->EntityByComponents(components::Name(
@@ -390,7 +394,7 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
   // Find the battery component
   EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
+    components::BatterySoC::TypeIdStatic()));
   auto batComp = ecm->Component<components::BatterySoC>(batEntity);
 
   // Check state of charge should be 1, since the battery has not drained

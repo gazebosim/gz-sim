@@ -151,7 +151,7 @@ void FollowActor::Configure(const Entity &_entity,
   }
   // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(_entity,
-      components::AnimationName::typeId, ComponentState::OneTimeChange);
+      components::AnimationName::TypeIdStatic(), ComponentState::OneTimeChange);
 
   // Set custom animation time from this plugin
   auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
@@ -272,7 +272,8 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   *trajPoseComp = components::TrajectoryPose(actorPose);
   // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(this->dataPtr->actorEntity,
-      components::TrajectoryPose::typeId, ComponentState::OneTimeChange);
+      components::TrajectoryPose::TypeIdStatic(),
+      ComponentState::OneTimeChange);
 
   // Update actor bone trajectories based on animation time
   auto animTimeComp = _ecm.Component<components::AnimationTime>(
@@ -285,7 +286,7 @@ void FollowActor::PreUpdate(const UpdateInfo &_info,
   *animTimeComp = components::AnimationTime(animTime);
   // Mark as a one-time-change so that the change is propagated to the GUI
   _ecm.SetChanged(this->dataPtr->actorEntity,
-      components::AnimationTime::typeId, ComponentState::OneTimeChange);
+      components::AnimationTime::TypeIdStatic(), ComponentState::OneTimeChange);
 }
 
 GZ_ADD_PLUGIN(FollowActor, System,

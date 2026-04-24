@@ -92,19 +92,23 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(this->ecm.HasComponentType(components::World::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Model::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Collision::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Visual::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Light::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Material::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Inertial::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::LaserRetro::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::World::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Model::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::CanonicalLink::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::Collision::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Visual::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Light::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentEntity::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Material::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Inertial::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::LaserRetro::TypeIdStatic()));
 
   // Check entities
   // 1 x world + 1 wind + 5 x model + 5 x link + 5 x collision + 5 x visual +
@@ -975,17 +979,23 @@ TEST_F(SdfEntityCreatorTest, CreateJointEntities)
   creator.CreateEntities(root.WorldByIndex(0));
 
   // Check component types
-  EXPECT_TRUE(this->ecm.HasComponentType(components::World::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::CanonicalLink::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Joint::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::JointAxis::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::JointType::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ChildLinkName::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentLinkName::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Pose::typeId));
-  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::World::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::CanonicalLink::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Link::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Joint::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::JointAxis::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::JointType::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ChildLinkName::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentLinkName::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(
+        components::ParentEntity::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Pose::TypeIdStatic()));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Name::TypeIdStatic()));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 

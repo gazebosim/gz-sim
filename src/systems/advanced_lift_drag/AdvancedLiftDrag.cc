@@ -365,7 +365,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     controlJointEntity = *entities.begin();
     if (!_ecm.EntityHasComponentType(this->controlJointEntity,
-                                     components::Joint::typeId))
+                                     components::Joint::TypeIdStatic()))
     {
       this->controlJointEntity = kNullEntity;
       gzerr << "Entity with name[" << ctrl_surface_name
@@ -451,7 +451,7 @@ void AdvancedLiftDragPrivate::Load(const EntityComponentManager &_ecm,
 
     this->linkEntity = *entities.begin();
     if (!_ecm.EntityHasComponentType(this->linkEntity,
-                                     components::Link::typeId))
+                                     components::Link::TypeIdStatic()))
     {
       this->linkEntity = kNullEntity;
       gzerr << "Entity with name[" << linkName << "] is not a link.\n";

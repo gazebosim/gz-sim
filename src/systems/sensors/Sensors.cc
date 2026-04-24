@@ -910,14 +910,14 @@ void Sensors::Update(const UpdateInfo &_info,
 #ifdef __APPLE__
   // On macOS the render engine must be initialised on the main thread.
   if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
-       _ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
-       _ecm.HasComponentType(components::WideAngleCamera::typeId)))
+      (_ecm.HasComponentType(components::BoundingBoxCamera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::Camera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::DepthCamera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::GpuLidar::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::RgbdCamera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::ThermalCamera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::SegmentationCamera::TypeIdStatic()) ||
+       _ecm.HasComponentType(components::WideAngleCamera::TypeIdStatic())))
   {
     std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
     gzdbg << "Initialization needed" << std::endl;
@@ -940,14 +940,15 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     if (!this->dataPtr->initialized &&
         (this->dataPtr->forceUpdate ||
-         _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
-         _ecm.HasComponentType(components::Camera::typeId) ||
-         _ecm.HasComponentType(components::DepthCamera::typeId) ||
-         _ecm.HasComponentType(components::GpuLidar::typeId) ||
-         _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-         _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-         _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
-         _ecm.HasComponentType(components::WideAngleCamera::typeId)))
+         _ecm.HasComponentType(components::BoundingBoxCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::Camera::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::DepthCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::GpuLidar::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::RgbdCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::ThermalCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(
+           components::SegmentationCamera::TypeIdStatic()) ||
+         _ecm.HasComponentType(components::WideAngleCamera::TypeIdStatic())))
     {
       std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
       gzdbg << "Initialization needed" << std::endl;

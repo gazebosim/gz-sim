@@ -551,8 +551,8 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
   for (auto const &sensor : allLinkSensors)
   {
     // Check if it is a contact sensor
-    auto isContactSensor =
-      ecm->EntityHasComponentType(sensor, components::ContactSensor::typeId);
+    auto isContactSensor = ecm->EntityHasComponentType(sensor,
+          components::ContactSensor::TypeIdStatic());
     if (!isContactSensor)
       continue;
 
@@ -1237,8 +1237,8 @@ bool LightCommand::Execute()
         auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
             ComponentState::OneTimeChange :
             ComponentState::NoChange;
-        this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
-          state);
+        this->iface->ecm->SetChanged(lightEntity,
+            components::LightCmd::TypeIdStatic(), state);
       }
     }
   }
@@ -1307,8 +1307,8 @@ bool LightCommand::Execute()
       auto state = lightCmdComp->SetData(*lightMsg, this->lightEql) ?
           ComponentState::OneTimeChange :
           ComponentState::NoChange;
-      this->iface->ecm->SetChanged(lightEntity, components::LightCmd::typeId,
-        state);
+      this->iface->ecm->SetChanged(lightEntity,
+          components::LightCmd::TypeIdStatic(), state);
     }
   }
   return true;
@@ -1353,7 +1353,7 @@ bool updatePose(
     auto state = poseCmdComp->SetData(msgs::Convert(_poseMsg), pose3Eql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
-    _iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
+    _iface->ecm->SetChanged(entity, components::WorldPoseCmd::TypeIdStatic(),
         state);
   }
   return true;
@@ -1519,8 +1519,8 @@ bool SphericalCoordinatesCommand::Execute()
     auto state = poseCmdComp->SetData(pose, pose3Eql) ?
         ComponentState::OneTimeChange :
         ComponentState::NoChange;
-    this->iface->ecm->SetChanged(entity, components::WorldPoseCmd::typeId,
-        state);
+    this->iface->ecm->SetChanged(entity,
+        components::WorldPoseCmd::TypeIdStatic(), state);
   }
 
   return true;
@@ -1620,8 +1620,8 @@ bool DisableCollisionCommand::Execute()
     return false;
   }
 
-  this->iface->ecm->
-    RemoveComponent(entityMsg->id(), components::ContactSensorData::typeId);
+  this->iface->ecm->RemoveComponent(entityMsg->id(),
+      components::ContactSensorData::TypeIdStatic());
 
   gzdbg << "Disabled collision [" << entityMsg->id() << "]" << std::endl;
 
@@ -1689,7 +1689,7 @@ bool VisualCommand::Execute()
       auto state = visualCmdComp->SetData(*visualMsg, this->visualEql) ?
           ComponentState::OneTimeChange : ComponentState::NoChange;
       this->iface->ecm->SetChanged(
-          visualEntity, components::VisualCmd::typeId, state);
+          visualEntity, components::VisualCmd::TypeIdStatic(), state);
     }
   }
   else if (materialColorMsg != nullptr)
@@ -1747,7 +1747,7 @@ bool VisualCommand::Execute()
         auto state = visualCmdComp->SetData(visualMCMsg, this->visualEql) ?
             ComponentState::OneTimeChange : ComponentState::NoChange;
         this->iface->ecm->SetChanged(
-            visualEntity, components::VisualCmd::typeId, state);
+            visualEntity, components::VisualCmd::TypeIdStatic(), state);
       }
     }
   }
@@ -1799,7 +1799,7 @@ bool WheelSlipCommand::Execute()
         *wheelSlipMsg, this->wheelSlipEql) ? ComponentState::OneTimeChange
         : ComponentState::NoChange;
       this->iface->ecm->SetChanged(
-          linkEntity, components::WheelSlipCmd::typeId, state);
+          linkEntity, components::WheelSlipCmd::TypeIdStatic(), state);
     }
   };
   const components::BaseComponent * component =

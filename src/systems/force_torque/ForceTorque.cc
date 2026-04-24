@@ -233,7 +233,7 @@ Entity ForceTorquePrivate::GetLinkFromScopedName(
   auto entities = entitiesFromScopedName(_name, _ecm, _parentModel);
   for (const auto & entity : entities)
   {
-    if (_ecm.EntityHasComponentType(entity, components::Link::typeId))
+    if (_ecm.EntityHasComponentType(entity, components::Link::TypeIdStatic()))
     {
       return entity;
     }
@@ -379,7 +379,7 @@ void ForceTorquePrivate::AddSensor(
 
   // Parent has to be a joint
   if (!_ecm.EntityHasComponentType(jointEntity,
-                                   components::Joint::typeId))
+                                   components::Joint::TypeIdStatic()))
   {
     gzerr << "Parent entity of sensor [" << sensorScopedName
            << "] must be a joint. Failed to create sensor." << std::endl;
