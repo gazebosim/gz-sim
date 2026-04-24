@@ -395,6 +395,68 @@ every plugin rebuild.
 
 ---
 
+## Phase 0b — Parent-first entity iteration order (2026-04-24 update)
+
+**Context:** `gz sim -v4 shapes.sdf` segfaulted in the GUI client,
+specifically inside `EntityTree::AddEntity` at
+[src/gui/plugins/entity_tree/EntityTree.cc:189](../../src/gui/plugins/entity_tree/EntityTree.cc#L189).
+The crash was a null-/dangling-QString deref during atomic
+ref-counting.
+
+### Root cause
+`EntityTree::AddEntity` implements a pending-entities queue with a
+recursive dance: when an entity whose parent isn't yet known
+arrives, it's pushed onto `pendingEntities`; when a parent is
+later added, the method `std::partition`s `pendingEntities`,
+iterates the partitioned range, and recursively calls
+`AddEntity(childEntity, …)` inside the loop. The recursive
+`AddEntity` calls do their own `std::partition` on the same
+`pendingEntities` vector — which can swap elements into and out of
+the outer loop's iterator position, invalidating the outer `it`.
+The subsequent dereference reads a garbage `QString`, whose `d`
+pointer dereferences into unmapped memory, segfault.
+
+Whether the bug fires depends on the arrival order of entities on
+the state topic. **Parent-first order is safe** — `pendingEntities`
+stays empty, the fragile recursion never runs. Under the legacy
+ECM, the map iteration order happened to coincide with creation
+order (parents before children). Under the archetype facade my
+`AllEntitiesArchetypeFacade()` iterates `legacyToCore` which is a
+`std::unordered_map` — random order — so children could arrive
+before their parents, triggering the recursion, triggering the
+crash.
+
+### Fix
+- `AllEntitiesArchetypeFacade()` now returns legacy entity IDs
+  **sorted ascending**. gz-sim's creation convention is strictly
+  top-down (parent created before child), so ascending-ID order
+  equals parent-first order. This propagates to both `Each<T...>`
+  iteration and state-emission order.
+- `State(SerializedStateMap&, ...)` now iterates via
+  `AllEntitiesArchetypeFacade()` rather than directly over
+  `legacyToCore`, inheriting the sort.
+
+### Verification
+- `GZ_PARTITION=ecstest timeout 5 gz sim -s -v4 -r shapes.sdf` —
+  exits 124 (timeout), no segfault. Server runs clean.
+- `GZ_PARTITION=ecstest timeout 6 gz sim -v4 shapes.sdf` (with GUI) —
+  exits 124, no segfault. GUI client survives the 6-second window
+  with the scene populated.
+- `UNIT_EntityComponentManager_TEST` under legacy: 414/414 green.
+
+### Note on the upstream fragility
+`EntityTree::AddEntity`'s recursive-partition loop is fragile by
+design: it assumes the recursive calls don't mutate
+`pendingEntities` in ways that invalidate the outer iterator.
+That assumption holds only for certain arrival orderings. A
+proper upstream fix would replace the recursion with an explicit
+worklist that doesn't overlap with the partition's working range.
+Out of Phase 0b scope — the parent-first-emission workaround
+restores behavior for any downstream consumer that walks
+pendingEntities this way.
+
+---
+
 ## Phase 0b — Real facade scaffolding (2026-04-20 update)
 
 **Branch:** `main` (merged forward of `nkoenig/phase-0b-ecm-integration`)

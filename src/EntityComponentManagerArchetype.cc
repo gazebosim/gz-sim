@@ -201,10 +201,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // subset of this map (every core entity has a legacy id mirror);
     // the shadow store's keys are also a subset. One pass covers
     // both storage paths.
+    //
+    // Return sorted ascending. gz-sim's entity-creation convention
+    // is top-down: parents are created before children, so lower
+    // legacy IDs are always parents of higher ones. Downstream
+    // consumers — particularly the scene broadcaster's state
+    // emission and the GUI's EntityTree plugin — rely on
+    // parent-first arrival order to avoid a fragile recursive
+    // pending-entities dance that can invalidate iterators on
+    // arbitrary orderings. See docs/design/JOURNAL.md for the
+    // 2026-04-24 EntityTree crash root-cause note.
     std::vector<Entity> out;
     out.reserve(this->dataPtr->legacyToCore.size());
     for (const auto &[k, _] : this->dataPtr->legacyToCore)
       out.push_back(static_cast<Entity>(k));
+    std::sort(out.begin(), out.end());
     return out;
   }
 
@@ -685,9 +696,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   {
     // STUB(0b-delta): full=false should skip unchanged components
     // once change-tracking is implemented on the archetype backend.
-    for (const auto &[rawLegacy, _core] : this->dataPtr->legacyToCore)
+    //
+    // Iterate in sorted order: parent entities before children. The
+    // GUI's EntityTree plugin relies on parent-first arrival to
+    // avoid a recursive pending-entities dance that can invalidate
+    // iterators under arbitrary orderings (observed crash on
+    // shapes.sdf under archetype backend before this ordering was
+    // enforced).
+    for (Entity entity : this->AllEntitiesArchetypeFacade())
     {
-      Entity entity = static_cast<Entity>(rawLegacy);
       if (!_entities.empty() && _entities.find(entity) == _entities.end())
         continue;
       this->AddEntityToMessage(_state, entity, _types, /*_full=*/true);
