@@ -579,9 +579,76 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     return kNullEntity;
   }
 
-  void EntityComponentManager::CopyFrom(const EntityComponentManager &)
+  void EntityComponentManager::CopyFrom(
+      const EntityComponentManager &_from)
   {
-    GZ_SIM_ARCH_STUB_ONCE("CopyFrom");
+    auto &src = *_from.dataPtr;
+    auto &dst = *this->dataPtr;
+
+    // Wipe destination state. Destroy every entity currently in the
+    // archetype World, then clear the facade-side bookkeeping.
+    for (const auto &[_legacy, core] : dst.legacyToCore)
+      dst.world.Destroy(core);
+    dst.legacyToCore.clear();
+    dst.coreToLegacy.clear();
+    dst.shadowComponents.clear();
+    dst.newlyCreatedEntities.clear();
+    dst.pendingRemovals.clear();
+    dst.pinned.clear();
+    dst.entityGraph = EntityGraph();
+
+    // Recreate entities in the destination, preserving legacy IDs.
+    // The core handles will be different (the new world's
+    // EntityIndex allocates fresh), but the legacy↔core map keeps
+    // the outside world seeing the same IDs.
+    for (const auto &[rawLegacy, _srcCore] : src.legacyToCore)
+    {
+      Entity e = static_cast<Entity>(rawLegacy);
+      gz::sim::ecs::Entity core = dst.world.CreateEmpty();
+      dst.legacyToCore.emplace(rawLegacy, core);
+      dst.coreToLegacy.emplace(core.Raw(), e);
+      dst.entityGraph.AddVertex(std::to_string(e), e, e);
+    }
+
+    // Clone shadow components. BaseComponent::Clone() is virtual and
+    // does the right thing polymorphically.
+    for (const auto &[entity, typeMap] : src.shadowComponents)
+    {
+      for (const auto &[typeId, comp] : typeMap)
+      {
+        if (comp)
+          dst.shadowComponents[entity][typeId] = comp->Clone();
+      }
+    }
+
+    // NOTE(0b-copyfrom-archetype-data): Components that live in the
+    // archetype World (i.e., added via the template Add<T> path or
+    // via World::AddRaw once the Factory bridge lands) are not
+    // copied here — we only reach the shadow store. For Phase 0b
+    // this is acceptable because every component that lands in a
+    // fresh ECM does so via the legacy CreateComponent path, which
+    // writes to the shadow store. When the Factory ↔ registry
+    // bridge flips the default routing to the archetype World,
+    // CopyFrom will need an extra pass that clones columns via
+    // ComponentTypeInfo::copy thunks.
+
+    // Copy entity graph edges (parent/child links).
+    for (const auto &item : src.entityGraph.Vertices())
+    {
+      Entity parent = item.second.get().Data();
+      for (const auto &childPair :
+           src.entityGraph.AdjacentsFrom(parent))
+      {
+        Entity child = childPair.first;
+        dst.entityGraph.AddEdge({parent, child}, true);
+      }
+    }
+
+    // Copy remaining bookkeeping.
+    dst.newlyCreatedEntities = src.newlyCreatedEntities;
+    dst.pendingRemovals = src.pendingRemovals;
+    dst.pinned = src.pinned;
+    dst.nextLegacyId = src.nextLegacyId;
   }
 
   void EntityComponentManager::RebuildViews()
