@@ -60,6 +60,7 @@
 #include <gz/physics/FixedJoint.hh>
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/GetBatchRayIntersection.hh>
 #include <gz/physics/GetEntities.hh>
 #include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
@@ -557,6 +558,11 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetRayIntersectionFromLastStepFeature>{};
 
+  /// \brief Feature list for batched ray intersection queries.
+  public: struct BatchRayIntersectionFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetBatchRayIntersectionFromLastStepFeature>{};
+
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
             physics::FeatureList<
@@ -702,6 +708,7 @@ class gz::sim::systems::PhysicsPrivate
           ContactFeatureList,
           GravityFeatureList,
           RayIntersectionFeatureList,
+          BatchRayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
@@ -4307,6 +4314,72 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
+  // Prefer the batched ray intersection API when available.
+  auto worldBatchRayFeature =
+      this->entityWorldMap
+        .EntityCast<BatchRayIntersectionFeatureList>(worldEntity);
+
+  if (worldBatchRayFeature)
+  {
+    using BatchWorld = physics::World3d<BatchRayIntersectionFeatureList>;
+    using RayQuery = BatchWorld::RayQuery;
+
+    _ecm.Each<components::RaycastData,
+              components::Pose>(
+        [&](const Entity &_entity,
+            components::RaycastData *_raycastData,
+            components::Pose */*_pose*/) -> bool
+        {
+          if (!_raycastData->Data().needsRaycast)
+            return true;
+          _raycastData->Data().needsRaycast = false;
+
+          const auto &rays = _raycastData->Data().rays;
+          auto &results = _raycastData->Data().results;
+          results.clear();
+          results.reserve(rays.size());
+
+          const auto &entityWorldPose = worldPose(_entity, _ecm);
+
+          std::vector<RayQuery> batchInput;
+          batchInput.reserve(rays.size());
+          for (const auto &ray : rays)
+          {
+            RayQuery q;
+            q.origin = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.start));
+            q.target = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.end));
+            batchInput.push_back(q);
+          }
+
+          const auto batchOutput =
+            worldBatchRayFeature->GetBatchRayIntersectionFromLastStep(
+              batchInput);
+
+          for (const auto &hit : batchOutput)
+          {
+            results.emplace_back();
+            auto &result = results.back();
+
+            const math::Vector3d intersectionPoint =
+              math::eigen3::convert(hit.point);
+            result.point = entityWorldPose.Rot().RotateVectorReverse(
+              intersectionPoint - entityWorldPose.Pos());
+
+            result.fraction = hit.fraction;
+
+            const math::Vector3d normal = math::eigen3::convert(hit.normal);
+            result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+          }
+          return true;
+        });
+    return;
+  }
+
+  // Fallback: single-ray intersection
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
@@ -4333,6 +4406,10 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           components::Pose */*_pose*/) -> bool
       {
         // Retrieve the rays from the RaycastData component
+        if (!_raycastData->Data().needsRaycast)
+          return true;
+        _raycastData->Data().needsRaycast = false;
+
         const auto &rays = _raycastData->Data().rays;
 
         // Clear the previous results
