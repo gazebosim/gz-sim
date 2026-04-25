@@ -552,3 +552,73 @@ code needs to honor its preconditions.
 5. Edit `PERFORMANCE_each` to drop the cache-vs-cacheless
    assertion under archetype builds, with a short comment
    pointing at this document.
+
+---
+
+## §31. Resolution status (post-fix)
+
+After landing Patterns A/B/C plus follow-up fixes, the test surface
+looks like this:
+
+| Test | Status | Notes |
+|---|---|---|
+| UNIT_EntityComponentManager_TEST | ✅ 414/414 | Patterns A+B+C, plus ResetTo/Clone/ComputeEntityDiff/ApplyEntityDiff implementations |
+| UNIT_AddedMass_TEST | ✅ | Pattern A |
+| UNIT_Joint_TEST | ✅ 15/15 | Pattern A |
+| UNIT_Link_TEST | ✅ 7/7 | Pattern A |
+| UNIT_Model_TEST | ✅ 7/7 | Pattern A |
+| UNIT_SdfEntityCreator_TEST | ✅ 5/5 | Pattern A |
+| INTEGRATION_recreate_entities | ✅ 3/3 | Pattern A + change-tracking |
+| INTEGRATION_log_system | ✅ 13/13 | Pattern A + delta-state ordering |
+| PERFORMANCE_each | ✅ | Test edited — see §29 |
+
+### Follow-up fixes beyond Patterns A/B/C
+
+Several smaller fixes were needed once the Pattern fixes opened up
+the test surface:
+
+1. **Auto-OneTimeChange on CreateComponent.** Legacy ECM marks every
+   newly-created component in `oneTimeChangedComponents`; downstream
+   tests (SetChanged, ChangedStateComponents) assert that
+   `ComponentState` reports `OneTimeChange` for fresh components. The
+   archetype facade now does the same in
+   `CreateComponentImplementation`.
+
+2. **`modifiedComponents` tracking.** Mirroring legacy
+   `AddModifiedComponent`, the archetype facade now keeps a set of
+   entities whose components changed *and* which aren't already
+   covered by `newlyCreatedEntities` / `pendingRemovals`. This is
+   consumed by `ChangedState()` for the right delta-state shape.
+
+3. **Legacy `ChangedState()` ordering.** ChangedState emits in
+   newly-created → removed → modified order. Tests assert on
+   `entities(N)` by index, so the order matters.
+
+4. **`UpdatePeriodicChangeCache` cleanup.** Mirror legacy: drop
+   (entity,type) for components that were just removed, and (entity,*)
+   for entities pending removal.
+
+5. **`SetEntityCreateOffset`.** Legacy uses pre-increment, archetype
+   used post-increment — added `+1` to align IDs.
+
+6. **`RequestRemoveEntity` for invalid IDs.** Legacy enqueues invalid
+   entities into pendingRemovals (so `HasEntitiesMarkedForRemoval()`
+   returns true); ProcessRemoveEntityRequests skips them safely.
+
+7. **Recursive `PinEntity`/`UnpinEntity`.** The default `_recursive=true`
+   should walk descendants — was a no-op before.
+
+8. **`CopyFrom` completeness.** Side-table state
+   (modifiedComponents, periodic/oneTimeChangedComponents,
+   componentsMarkedAsRemoved, createdCompTypes) now propagates.
+
+9. **`ResetTo` / `ComputeEntityDiff` / `ApplyEntityDiff` /
+   `Clone`.** Were stubbed; now full archetype-facade
+   implementations mirroring legacy semantics.
+
+### What still needs verification
+
+This document was driven by a focused subset of failing tests. The
+broader integration suite (>200 tests) hasn't been re-swept post-fix.
+Suggested follow-up: run the full ctest suite under
+`GZ_SIM_ARCHETYPE_ECM=ON` and triage any new failures.

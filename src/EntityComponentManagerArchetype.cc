@@ -25,9 +25,16 @@
 
 #include <gz/common/Console.hh>
 
+#include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/Factory.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/Recreate.hh"
 #include "gz/sim/ecs/World.hh"
 #include "gz/sim/ecs/detail/Archetype.hh"
 #include "gz/sim/ecs/detail/ArchetypeGraph.hh"
@@ -88,6 +95,60 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         std::unordered_set<gz::sim::Entity>> periodicChangedComponents;
     public: std::unordered_map<ComponentTypeId,
         std::unordered_set<gz::sim::Entity>> oneTimeChangedComponents;
+
+    // Mirrors legacy `modifiedComponents`: entities whose components
+    // changed THIS step *and* which weren't already covered by the
+    // newlyCreatedEntities or pendingRemovals lists. Used by
+    // ChangedState() to walk modified-but-not-new entities. Populated
+    // via AddModifiedComponent(), drained on ClearAllChanged events.
+    public: std::unordered_set<gz::sim::Entity> modifiedComponents;
+
+    public: void AddModifiedComponent(gz::sim::Entity _e)
+    {
+      // Match legacy filter (src/EntityComponentManager.cc
+      // AddModifiedComponent): suppress when the entity is already
+      // covered by newly-created or pending-removal tracking.
+      if (this->newlyCreatedEntities.count(_e) ||
+          std::find(this->pendingRemovals.begin(),
+                    this->pendingRemovals.end(), _e) !=
+              this->pendingRemovals.end())
+        return;
+      this->modifiedComponents.insert(_e);
+    }
+
+    // Pattern B (Phase 0b test-failure analysis,
+    // docs/design/0b-test-failures.md §2): legacy ECM defers actual
+    // destruction of removed components until ClearRemovedComponents.
+    // This keeps pointers obtained before RemoveComponent valid for
+    // the rest of the step. Removed components move from
+    // shadowComponents into removedComponentsPending; reads via
+    // ComponentImplementation/EntityHasComponentType skip them, but
+    // memory stays alive until the end-of-step drain.
+    public: std::vector<std::unique_ptr<components::BaseComponent>>
+        removedComponentsPending;
+    // Per-(entity, typeId) set marking removed-but-not-yet-destroyed
+    // shadow entries. Read paths use this to filter, plus
+    // EachRemoved iterates it.
+    public: std::unordered_map<gz::sim::Entity,
+        std::unordered_set<ComponentTypeId>> componentsMarkedAsRemoved;
+
+    // Set of typeIds that have ever been seen in this ECM. Mirrors
+    // legacy ECM's createdCompTypes — backs HasComponentType.
+    public: std::unordered_set<ComponentTypeId> createdCompTypes;
+
+    // Working state for Clone(). Cleared at the top of the public
+    // Clone entrypoint. CloneImpl() populates these so the post-clone
+    // pass can fix up canonical-link and joint-link references on the
+    // cloned entities. Lifetimes are scoped to one Clone() call.
+    public: std::unordered_map<gz::sim::Entity, gz::sim::Entity>
+        oldToClonedCanonicalLink;
+    public: std::unordered_map<gz::sim::Entity, gz::sim::Entity>
+        oldModelCanonicalLink;
+    public: std::unordered_map<gz::sim::Entity, gz::sim::Entity>
+        originalToClonedLink;
+    public: std::unordered_map<gz::sim::Entity,
+                               std::pair<gz::sim::Entity, gz::sim::Entity>>
+        clonedToOriginalJointLinks;
 
     // Shadow component storage.
     //
@@ -165,6 +226,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       if (eit == this->shadowComponents.end()) return nullptr;
       auto cit = eit->second.find(_t);
       return cit == eit->second.end() ? nullptr : cit->second.get();
+    }
+
+    /// \brief Pattern B: a component was marked-removed this step.
+    public: bool IsMarkedRemoved(
+        gz::sim::Entity _e, ComponentTypeId _t) const
+    {
+      auto it = this->componentsMarkedAsRemoved.find(_e);
+      if (it == this->componentsMarkedAsRemoved.end()) return false;
+      return it->second.count(_t) > 0;
     }
   };
 
@@ -261,10 +331,35 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   void EntityComponentManager::RequestRemoveEntity(
       const Entity _entity, bool _recursive)
   {
-    (void)_recursive;
-    if (!this->HasEntity(_entity)) return;
-    if (this->dataPtr->pinned.count(_entity)) return;
-    this->dataPtr->pendingRemovals.push_back(_entity);
+    // Legacy semantics: invalid entities still appear as
+    // "marked for removal" — the test
+    // EntityComponentManagerFixture.RemoveEntity asserts this. The
+    // actual destruction happens (or silently no-ops for invalid IDs)
+    // in ProcessRemoveEntityRequests.
+    if (!this->HasEntity(_entity))
+    {
+      this->dataPtr->pendingRemovals.push_back(_entity);
+      return;
+    }
+
+    if (_recursive)
+    {
+      // Pattern C: enqueue the entity and every descendant in the
+      // entity graph. Pinning is honored — pinned entities are
+      // skipped (and their descendants survive too, matching legacy
+      // semantics where the pinned subtree is left intact).
+      auto descs = this->Descendants(_entity);
+      for (auto e : descs)
+      {
+        if (this->dataPtr->pinned.count(e)) continue;
+        this->dataPtr->pendingRemovals.push_back(e);
+      }
+    }
+    else
+    {
+      if (this->dataPtr->pinned.count(_entity)) return;
+      this->dataPtr->pendingRemovals.push_back(_entity);
+    }
   }
 
   void EntityComponentManager::ProcessRemoveEntityRequests()
@@ -280,6 +375,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       this->dataPtr->entityGraph.RemoveVertex(e);
       this->dataPtr->shadowComponents.erase(e);
       this->dataPtr->newlyCreatedEntities.erase(e);
+      this->dataPtr->modifiedComponents.erase(e);
+      this->dataPtr->componentsMarkedAsRemoved.erase(e);
+      for (auto &kv : this->dataPtr->periodicChangedComponents)
+        kv.second.erase(e);
+      for (auto &kv : this->dataPtr->oneTimeChangedComponents)
+        kv.second.erase(e);
     }
     this->dataPtr->pendingRemovals.clear();
   }
@@ -295,14 +396,28 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
   {
-    (void)_recursive;
-    this->dataPtr->pinned.insert(_entity);
+    if (_recursive)
+    {
+      for (auto e : this->Descendants(_entity))
+        this->dataPtr->pinned.insert(e);
+    }
+    else
+    {
+      this->dataPtr->pinned.insert(_entity);
+    }
   }
 
   void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
   {
-    (void)_recursive;
-    this->dataPtr->pinned.erase(_entity);
+    if (_recursive)
+    {
+      for (auto e : this->Descendants(_entity))
+        this->dataPtr->pinned.erase(e);
+    }
+    else
+    {
+      this->dataPtr->pinned.erase(_entity);
+    }
   }
 
   void EntityComponentManager::UnpinAllEntities()
@@ -334,6 +449,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     if (!this->HasEntity(_entity)) return false;
     if (!_data) return false;
 
+    // Track typeIds we've ever seen so HasComponentType() reports
+    // correctly, mirroring legacy's createdCompTypes.
+    this->dataPtr->createdCompTypes.insert(_componentTypeId);
+
     // If the type IS registered with the archetype registry (e.g.
     // because someone already called Component<T>(e) or Add<T> for
     // this T), prefer the archetype-native path so the data lands in
@@ -360,6 +479,38 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     if (!clone) return false;
     this->dataPtr->shadowComponents[_entity][_componentTypeId]
         = std::move(clone);
+
+    // Pattern A (Phase 0b test-failure analysis,
+    // docs/design/0b-test-failures.md §1): the legacy ECM auto-wires
+    // an entity-graph edge when a ParentEntity component is created.
+    // Many in-tree consumers (Joint::Sensors, Link::*, Model::Links,
+    // World::ModelByName, Physics, etc.) rely on the graph for
+    // parent/child queries. Mirror the legacy behavior so callers
+    // that build hierarchy via CreateComponent<ParentEntity> see
+    // the same effect.
+    if (_componentTypeId == components::ParentEntity::typeId)
+    {
+      auto *parentComp =
+          this->Component<components::ParentEntity>(_entity);
+      if (parentComp)
+        this->SetParentEntity(_entity, parentComp->Data());
+    }
+
+    // Mirror legacy CreateComponentImplementation
+    // (src/EntityComponentManager.cc ~1125): every new component is
+    // recorded as a one-time change for ComponentState() reporting,
+    // and the entity is added to modifiedComponents (subject to the
+    // newlyCreated/pendingRemoval filter inside AddModifiedComponent).
+    this->dataPtr->oneTimeChangedComponents[_componentTypeId].insert(
+        _entity);
+    this->dataPtr->AddModifiedComponent(_entity);
+    // Component re-added after a prior remove — clear the
+    // "marked as removed" flag so ChangedState doesn't emit a
+    // contradictory remove=true alongside the new value.
+    auto rit =
+        this->dataPtr->componentsMarkedAsRemoved.find(_entity);
+    if (rit != this->dataPtr->componentsMarkedAsRemoved.end())
+      rit->second.erase(_componentTypeId);
     return false;  // data was stored via clone; caller need not update.
   }
 
@@ -395,14 +546,46 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     // NOTE(0b-immediate-mode): immediate semantics per design §6.1.
     bool removed = false;
 
-    // Shadow store (non-template path).
+    // Pattern B: shadow-store removals defer destruction. Move the
+    // unique_ptr into removedComponentsPending so the caller's prior
+    // BaseComponent* stays valid until ClearRemovedComponents.
     auto eit = this->dataPtr->shadowComponents.find(_entity);
     if (eit != this->dataPtr->shadowComponents.end())
     {
-      if (eit->second.erase(_typeId)) removed = true;
+      auto cit = eit->second.find(_typeId);
+      if (cit != eit->second.end())
+      {
+        this->dataPtr->removedComponentsPending.push_back(
+            std::move(cit->second));
+        eit->second.erase(cit);
+        this->dataPtr->componentsMarkedAsRemoved[_entity].insert(
+            _typeId);
+        removed = true;
+      }
     }
 
-    // Archetype world (template path).
+    // Mirror legacy: removing a component clears any change-tracking
+    // for that (entity, type). Tests like SetChanged/SetRemoved* rely
+    // on ComponentState() reverting to NoChange after a remove.
+    auto pit = this->dataPtr->periodicChangedComponents.find(_typeId);
+    if (pit != this->dataPtr->periodicChangedComponents.end())
+      pit->second.erase(_entity);
+    auto oit = this->dataPtr->oneTimeChangedComponents.find(_typeId);
+    if (oit != this->dataPtr->oneTimeChangedComponents.end())
+      oit->second.erase(_entity);
+
+    // The entity has a structural change — surfacing it through
+    // ChangedState() requires modifiedComponents, mirroring legacy
+    // behavior at src/EntityComponentManager.cc RemoveComponent.
+    if (removed) this->dataPtr->AddModifiedComponent(_entity);
+
+    // Archetype world (template path) — destroyed immediately. The
+    // per-cell BaseComponent layout in the archetype world doesn't
+    // give us a non-template clone-out path today; pointers obtained
+    // through World::ComponentRaw before this call are invalidated.
+    // For Phase 0b this is acceptable because in-tree callers that
+    // hold pointers across removes use the legacy CreateComponent
+    // (shadow-store) path.
     gz::sim::ecs::Entity core;
     if (this->dataPtr->CoreFor(_entity, core) &&
         this->dataPtr->world.Has(core, _typeId))
@@ -416,7 +599,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   bool EntityComponentManager::HasComponentType(
       const ComponentTypeId _typeId) const
   {
-    return ecs::ComponentTypeRegistry::Instance().Get(_typeId) != nullptr;
+    // Mirror legacy: a type "exists" once we've seen it, even if no
+    // entity currently has one.
+    return this->dataPtr->createdCompTypes.count(_typeId) > 0;
   }
 
   bool EntityComponentManager::EntityHasComponentType(
@@ -540,6 +725,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   void EntityComponentManager::ClearRemovedComponents()
   {
+    // Pattern B: drain the deferred-destruction list and the
+    // marked-as-removed set. Until this point, BaseComponent
+    // pointers handed out before the RemoveComponent call remain
+    // valid.
+    this->dataPtr->removedComponentsPending.clear();
+    this->dataPtr->componentsMarkedAsRemoved.clear();
     this->dataPtr->world.ClearChangeBits();
   }
 
@@ -547,6 +738,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   {
     this->dataPtr->periodicChangedComponents.clear();
     this->dataPtr->oneTimeChangedComponents.clear();
+    this->dataPtr->modifiedComponents.clear();
     this->dataPtr->world.ClearChangeBits();
   }
 
@@ -562,7 +754,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   bool EntityComponentManager::HasRemovedComponents() const
   {
-    return !this->dataPtr->world.RemovedRecords().empty();
+    // Pattern B: components are removed-but-pending-destruction
+    // until ClearRemovedComponents drains the list.
+    return !this->dataPtr->removedComponentsPending.empty() ||
+           !this->dataPtr->world.RemovedRecords().empty();
   }
 
   bool EntityComponentManager::HasOneTimeComponentChanges() const
@@ -596,11 +791,218 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       }                                                                   \
     } while (0)
 
-  Entity EntityComponentManager::Clone(Entity, Entity,
-      const std::string&, bool)
+  Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
+      const std::string &_name, bool _allowRename)
   {
-    GZ_SIM_ARCH_STUB_ONCE("Clone");
-    return kNullEntity;
+    auto *d = this->dataPtr.get();
+    d->oldToClonedCanonicalLink.clear();
+    d->oldModelCanonicalLink.clear();
+    d->originalToClonedLink.clear();
+    d->clonedToOriginalJointLinks.clear();
+
+    // Recursive helper kept inside Clone() so it can call private
+    // CreateComponentImplementation. Mirrors legacy CloneImpl in
+    // src/EntityComponentManager.cc.
+    std::function<Entity(Entity, Entity, const std::string&, bool)> cloneImpl;
+    cloneImpl = [&](Entity ent, Entity parent, const std::string &name,
+                    bool allowRename) -> Entity
+    {
+      bool uniqueNameGenerated = false;
+      if (!this->HasEntity(ent))
+      {
+        gzerr << "Requested to clone entity [" << ent
+          << "], but this entity does not exist." << std::endl;
+        return kNullEntity;
+      }
+      if (!name.empty() && !allowRename)
+      {
+        auto origParentComp =
+            this->Component<components::ParentEntity>(ent);
+        Entity dup = this->EntityByComponents(components::Name(name),
+            components::ParentEntity(
+                origParentComp ? origParentComp->Data() : kNullEntity));
+        bool hasRecreateComp = false;
+        Entity rec = dup;
+        while (rec != kNullEntity && !hasRecreateComp)
+        {
+          hasRecreateComp =
+              this->Component<components::Recreate>(rec) != nullptr;
+          auto p = this->Component<components::ParentEntity>(rec);
+          rec = p ? p->Data() : kNullEntity;
+        }
+        if (kNullEntity != dup && !hasRecreateComp)
+        {
+          gzerr << "Requested to clone entity [" << ent
+            << "] with a name of [" << name << "], but another entity already "
+            << "has this name." << std::endl;
+          return kNullEntity;
+        }
+        uniqueNameGenerated = true;
+      }
+
+      Entity clonedEntity = this->CreateEntity();
+      if (parent != kNullEntity)
+      {
+        this->SetParentEntity(clonedEntity, parent);
+        this->CreateComponent(clonedEntity, components::ParentEntity(parent));
+      }
+
+      std::string clonedName = name;
+      if (!uniqueNameGenerated)
+      {
+        if (clonedName.empty())
+        {
+          auto orig = this->Component<components::Name>(ent);
+          clonedName = orig ? orig->Data() : "cloned_entity";
+        }
+        uint64_t suffix = 1;
+        while (kNullEntity != this->EntityByComponents(
+              components::Name(clonedName + "_" + std::to_string(suffix))))
+          suffix++;
+        clonedName += "_" + std::to_string(suffix);
+      }
+      this->CreateComponent(clonedEntity, components::Name(clonedName));
+
+      for (const auto &type : this->ComponentTypes(ent))
+      {
+        if (type == components::Name::typeId ||
+            type == components::ParentEntity::typeId)
+          continue;
+        auto orig = this->ComponentImplementation(ent, type);
+        if (!orig) continue;
+        auto cloned = orig->Clone();
+        if (!cloned) continue;
+        this->CreateComponentImplementation(clonedEntity, type, cloned.get());
+      }
+
+      if (auto modelCanonLinkComp =
+          this->Component<components::ModelCanonicalLink>(clonedEntity))
+      {
+        d->oldModelCanonicalLink[clonedEntity] = modelCanonLinkComp->Data();
+      }
+      else if (this->Component<components::CanonicalLink>(clonedEntity))
+      {
+        d->oldToClonedCanonicalLink[ent] = clonedEntity;
+      }
+
+      if (this->Component<components::Joint>(clonedEntity))
+      {
+        Entity originalParentLink = kNullEntity;
+        Entity originalChildLink = kNullEntity;
+        auto origParentComp =
+            this->Component<components::ParentEntity>(ent);
+        const auto &parentName =
+            this->Component<components::ParentLinkName>(ent);
+        if (parentName && origParentComp)
+        {
+          if (common::lowercase(parentName->Data()) == "world")
+          {
+            originalParentLink = this->Component<components::ParentEntity>(
+                origParentComp->Data())->Data();
+          }
+          else
+          {
+            originalParentLink = this->EntityByComponents<
+                components::Name, components::ParentEntity>(
+                  components::Name(parentName->Data()),
+                  components::ParentEntity(origParentComp->Data()));
+          }
+        }
+        const auto &childName =
+            this->Component<components::ChildLinkName>(ent);
+        if (childName && origParentComp)
+        {
+          originalChildLink = this->EntityByComponents<
+              components::Name, components::ParentEntity>(
+                components::Name(childName->Data()),
+                components::ParentEntity(origParentComp->Data()));
+        }
+        if (!originalParentLink || !originalChildLink)
+        {
+          gzerr << "The cloned joint entity [" << clonedEntity
+            << "] was unable to find the original joint entity's "
+            << "parent and/or child link." << std::endl;
+          this->RequestRemoveEntity(clonedEntity);
+          return kNullEntity;
+        }
+        d->clonedToOriginalJointLinks[clonedEntity] =
+            {originalParentLink, originalChildLink};
+      }
+      else if (this->Component<components::Link>(clonedEntity) ||
+               this->Component<components::CanonicalLink>(clonedEntity))
+      {
+        d->originalToClonedLink[ent] = clonedEntity;
+      }
+
+      for (const auto &childEntity :
+          this->EntitiesByComponents(components::ParentEntity(ent)))
+      {
+        std::string n;
+        if (!allowRename)
+        {
+          auto nameComp = this->Component<components::Name>(childEntity);
+          n = nameComp ? nameComp->Data() : "";
+        }
+        auto clonedChild = cloneImpl(childEntity, clonedEntity, n,
+            allowRename);
+        if (kNullEntity == clonedChild)
+        {
+          gzerr << "Cloning child entity [" << childEntity << "] failed.\n";
+          this->RequestRemoveEntity(clonedEntity);
+          return kNullEntity;
+        }
+      }
+      return clonedEntity;
+    };
+
+    auto clonedEntity = cloneImpl(_entity, _parent, _name, _allowRename);
+    if (kNullEntity == clonedEntity) return clonedEntity;
+
+    for (const auto &[clonedModel, oldCanonical] : d->oldModelCanonicalLink)
+    {
+      auto it = d->oldToClonedCanonicalLink.find(oldCanonical);
+      if (it == d->oldToClonedCanonicalLink.end())
+      {
+        gzerr << "Error: attempted to clone model(s) with canonical link(s),"
+          << " but entity [" << oldCanonical << "] was not cloned as a "
+          << "canonical link." << std::endl;
+        continue;
+      }
+      this->SetComponentData<components::ModelCanonicalLink>(
+          clonedModel, it->second);
+    }
+
+    auto repaintLinkName = [&](auto componentTag, Entity clonedJoint,
+                               Entity originalLink) -> bool
+    {
+      using Tag = decltype(componentTag);
+      auto it = d->originalToClonedLink.find(originalLink);
+      if (it == d->originalToClonedLink.end()) return false;
+      auto *nameComp = this->Component<components::Name>(it->second);
+      if (!nameComp) return false;
+      this->SetComponentData<Tag>(clonedJoint, nameComp->Data());
+      return true;
+    };
+
+    for (const auto &[clonedJoint, origLinks] : d->clonedToOriginalJointLinks)
+    {
+      if (!repaintLinkName(components::ParentLinkName{}, clonedJoint,
+              origLinks.first))
+      {
+        gzerr << "Error updating cloned parent link name for joint ["
+              << clonedJoint << "]" << std::endl;
+        continue;
+      }
+      if (!repaintLinkName(components::ChildLinkName{}, clonedJoint,
+              origLinks.second))
+      {
+        gzerr << "Error updating cloned child link name for joint ["
+              << clonedJoint << "]" << std::endl;
+        continue;
+      }
+    }
+
+    return clonedEntity;
   }
 
   void EntityComponentManager::CopyFrom(
@@ -673,6 +1075,11 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     dst.pendingRemovals = src.pendingRemovals;
     dst.pinned = src.pinned;
     dst.nextLegacyId = src.nextLegacyId;
+    dst.modifiedComponents = src.modifiedComponents;
+    dst.periodicChangedComponents = src.periodicChangedComponents;
+    dst.oneTimeChangedComponents = src.oneTimeChangedComponents;
+    dst.componentsMarkedAsRemoved = src.componentsMarkedAsRemoved;
+    dst.createdCompTypes = src.createdCompTypes;
   }
 
   void EntityComponentManager::RebuildViews()
@@ -742,22 +1149,27 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   msgs::SerializedState EntityComponentManager::ChangedState() const
   {
-    // Delta via SetChanged-populated side tables. Build the set of
-    // entities touched this step (either new, pending-removal, or
-    // with any changed component), emit just those.
-    std::unordered_set<Entity> touched = this->dataPtr->newlyCreatedEntities;
-    for (auto e : this->dataPtr->pendingRemovals) touched.insert(e);
-    for (const auto &[_, ents] : this->dataPtr->periodicChangedComponents)
-      touched.insert(ents.begin(), ents.end());
-    for (const auto &[_, ents] : this->dataPtr->oneTimeChangedComponents)
-      touched.insert(ents.begin(), ents.end());
-
+    // Mirror legacy ordering exactly (src/EntityComponentManager.cc
+    // ~ChangedState): newly-created → removed → modified. Tests like
+    // EntityComponentManagerFixture.State assert on entities(N) by
+    // index, so the order matters.
     msgs::SerializedState stateMsg;
-    if (touched.empty()) return stateMsg;
-    for (Entity entity : this->AllEntitiesArchetypeFacade())
+    std::unordered_set<Entity> emitted;
+
+    for (const auto &entity : this->dataPtr->newlyCreatedEntities)
     {
-      if (touched.find(entity) == touched.end()) continue;
-      this->AddEntityToMessage(stateMsg, entity, /*_types=*/{});
+      this->AddEntityToMessage(stateMsg, entity);
+      emitted.insert(entity);
+    }
+    for (const auto &entity : this->dataPtr->pendingRemovals)
+    {
+      if (!emitted.insert(entity).second) continue;
+      this->AddEntityToMessage(stateMsg, entity);
+    }
+    for (auto entity : this->dataPtr->modifiedComponents)
+    {
+      if (!emitted.insert(entity).second) continue;
+      this->AddEntityToMessage(stateMsg, entity);
     }
     return stateMsg;
   }
@@ -765,9 +1177,23 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   void EntityComponentManager::ChangedState(
       msgs::SerializedStateMap &_state) const
   {
-    // Delta variant. Emit per-entity delta via the _full=false
-    // path of AddEntityToMessage.
-    this->State(_state, {}, {}, /*_full=*/false);
+    // Same legacy ordering for the SerializedStateMap variant.
+    std::unordered_set<Entity> emitted;
+    for (const auto &entity : this->dataPtr->newlyCreatedEntities)
+    {
+      this->AddEntityToMessage(_state, entity, {}, /*_full=*/false);
+      emitted.insert(entity);
+    }
+    for (const auto &entity : this->dataPtr->pendingRemovals)
+    {
+      if (!emitted.insert(entity).second) continue;
+      this->AddEntityToMessage(_state, entity, {}, /*_full=*/false);
+    }
+    for (auto entity : this->dataPtr->modifiedComponents)
+    {
+      if (!emitted.insert(entity).second) continue;
+      this->AddEntityToMessage(_state, entity, {}, /*_full=*/false);
+    }
   }
 
   void EntityComponentManager::SetState(
@@ -1014,27 +1440,28 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       std::unordered_map<ComponentTypeId,
                          std::unordered_set<Entity>> &_changes) const
   {
-    // Mirror legacy: merge current periodic changes into the cache.
-    // The legacy version also removes entities that are no longer
-    // live — cheap to do here too.
+    // Mirror legacy (src/EntityComponentManager.cc UpdatePeriodicChangeCache):
+    //   1. Merge current periodic changes into the cache.
+    //   2. Drop (entity, type) pairs whose component was just removed.
+    //   3. Drop (entity, *) pairs for entities pending removal.
     for (const auto &[type, ents] : this->dataPtr->periodicChangedComponents)
-      for (auto e : ents)
-        _changes[type].insert(e);
+      _changes[type].insert(ents.begin(), ents.end());
 
-    // Drop entries for entities that no longer exist.
-    for (auto it = _changes.begin(); it != _changes.end(); )
+    for (const auto &[entity, comps] :
+        this->dataPtr->componentsMarkedAsRemoved)
     {
-      for (auto eit = it->second.begin(); eit != it->second.end(); )
+      for (auto comp : comps)
       {
-        if (!this->HasEntity(*eit))
-          eit = it->second.erase(eit);
-        else
-          ++eit;
+        auto it = _changes.find(comp);
+        if (it != _changes.end())
+          it->second.erase(entity);
       }
-      if (it->second.empty())
-        it = _changes.erase(it);
-      else
-        ++it;
+    }
+
+    for (auto entity : this->dataPtr->pendingRemovals)
+    {
+      for (auto &kv : _changes)
+        kv.second.erase(entity);
     }
   }
 
@@ -1055,6 +1482,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       auto it = this->dataPtr->oneTimeChangedComponents.find(_type);
       if (it != this->dataPtr->oneTimeChangedComponents.end())
         it->second.erase(_entity);
+      this->dataPtr->AddModifiedComponent(_entity);
     }
     else if (_c == sim::ComponentState::OneTimeChange)
     {
@@ -1062,6 +1490,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       if (it != this->dataPtr->periodicChangedComponents.end())
         it->second.erase(_entity);
       this->dataPtr->oneTimeChangedComponents[_type].insert(_entity);
+      this->dataPtr->AddModifiedComponent(_entity);
     }
     else
     {
@@ -1091,12 +1520,24 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
   void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
   {
-    this->dataPtr->nextLegacyId = _offset;
+    // Legacy semantics: next CreateEntity returns (_offset + 1).
+    // Legacy uses pre-increment on entityCount; we use post-increment
+    // on nextLegacyId, so add 1 here to keep IDs aligned with the
+    // legacy value the test (and downstream code) expects.
+    this->dataPtr->nextLegacyId = _offset + 1;
   }
 
-  void EntityComponentManager::ResetTo(const EntityComponentManager&)
+  void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
   {
-    GZ_SIM_ARCH_STUB_ONCE("ResetTo");
+    // Same algorithm as legacy (src/EntityComponentManager.cc
+    // EntityComponentManager::ResetTo): bring `_other`'s state into
+    // `this`, but preserve `this`'s currently-live entities by
+    // routing them through a tmp ECM and the diff/apply machinery.
+    auto ecmDiff = this->ComputeEntityDiff(_other);
+    EntityComponentManager tmpCopy;
+    tmpCopy.CopyFrom(_other);
+    tmpCopy.ApplyEntityDiff(*this, ecmDiff);
+    this->CopyFrom(tmpCopy);
   }
 
   std::optional<Entity> EntityComponentManager::EntityByName(
@@ -1119,16 +1560,84 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   }
 
   EntityComponentManagerDiff EntityComponentManager::ComputeEntityDiff(
-      const EntityComponentManager&) const
+      const EntityComponentManager &_other) const
   {
-    GZ_SIM_ARCH_STUB_ONCE("ComputeEntityDiff");
-    return EntityComponentManagerDiff{};
+    // Mirror legacy ComputeEntityDiff (src/EntityComponentManager.cc):
+    // - entities present in `_other` but not in `this` → "added"
+    // - entities present in `this` but not in `_other` → "removed"
+    EntityComponentManagerDiff diff;
+    for (const auto &[rawLegacy, _core] : _other.dataPtr->legacyToCore)
+    {
+      Entity e = static_cast<Entity>(rawLegacy);
+      if (!this->dataPtr->legacyToCore.count(rawLegacy))
+        diff.InsertAddedEntity(e);
+    }
+    for (const auto &[rawLegacy, _core] : this->dataPtr->legacyToCore)
+    {
+      Entity e = static_cast<Entity>(rawLegacy);
+      if (!_other.dataPtr->legacyToCore.count(rawLegacy))
+        diff.InsertRemovedEntity(e);
+    }
+    return diff;
   }
 
   void EntityComponentManager::ApplyEntityDiff(
-      const EntityComponentManager&, const EntityComponentManagerDiff&)
+      const EntityComponentManager &_other,
+      const EntityComponentManagerDiff &_diff)
   {
-    GZ_SIM_ARCH_STUB_ONCE("ApplyEntityDiff");
+    // Mirror legacy ApplyEntityDiff. For each entity flagged as
+    // "added" (in `_other` but not in `this`), recreate it and copy
+    // its components. For each "removed", create it and immediately
+    // mark it for removal so EachRemoved/Each pickups behave
+    // correctly downstream.
+    auto copyComponents = [&](Entity _e)
+    {
+      for (const auto compTypeId : _other.ComponentTypes(_e))
+      {
+        const components::BaseComponent *data =
+            _other.ComponentImplementation(_e, compTypeId);
+        if (!data) continue;
+        auto cloned = data->Clone();
+        if (!cloned) continue;
+        this->CreateComponentImplementation(_e, compTypeId, cloned.get());
+      }
+    };
+
+    auto materializeEntity = [&](Entity _e)
+    {
+      if (this->HasEntity(_e)) return;
+      gz::sim::ecs::Entity core = this->dataPtr->world.CreateEmpty();
+      this->dataPtr->legacyToCore.emplace(
+          static_cast<uint64_t>(_e), core);
+      this->dataPtr->coreToLegacy.emplace(core.Raw(), _e);
+      this->dataPtr->entityGraph.AddVertex(
+          std::to_string(_e), _e, _e);
+      this->dataPtr->newlyCreatedEntities.insert(_e);
+      if (_e >= this->dataPtr->nextLegacyId)
+        this->dataPtr->nextLegacyId = _e + 1;
+    };
+
+    for (auto entity : _diff.AddedEntities())
+    {
+      materializeEntity(entity);
+      copyComponents(entity);
+      auto p = _other.ParentEntity(entity);
+      if (p != kNullEntity) this->SetParentEntity(entity, p);
+    }
+
+    for (const auto &entity : _diff.RemovedEntities())
+    {
+      if (!this->HasEntity(entity))
+      {
+        materializeEntity(entity);
+        // ApplyEntityDiff treats these as already-removed, not new.
+        this->dataPtr->newlyCreatedEntities.erase(entity);
+        copyComponents(entity);
+        auto p = _other.ParentEntity(entity);
+        if (p != kNullEntity) this->SetParentEntity(entity, p);
+      }
+      this->RequestRemoveEntity(entity, /*_recursive=*/false);
+    }
   }
 
   bool EntityComponentManager::IsNewEntity(const Entity _entity) const
@@ -1161,16 +1670,36 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     }
 
     auto types = _types;
-    if (types.empty()) types = this->ComponentTypes(_entity);
+    if (types.empty())
+    {
+      types = this->ComponentTypes(_entity);
+      // Pattern B: include components that have been marked-removed
+      // this step so the receiver can clear its mirror.
+      auto rit = this->dataPtr->componentsMarkedAsRemoved.find(_entity);
+      if (rit != this->dataPtr->componentsMarkedAsRemoved.end())
+        types.insert(rit->second.begin(), rit->second.end());
+    }
 
     for (const ComponentTypeId type : types)
     {
+      bool isRemoved = this->dataPtr->IsMarkedRemoved(_entity, type);
+      auto compMsg = entityMsg->add_components();
+      compMsg->set_type(type);
+      if (isRemoved)
+      {
+        compMsg->set_remove(true);
+        continue;
+      }
+
       const components::BaseComponent *compBase =
           this->ComponentImplementation(_entity, type);
-      if (!compBase) continue;
-
-      auto compMsg = entityMsg->add_components();
-      compMsg->set_type(compBase->TypeId());
+      if (!compBase)
+      {
+        // Component disappeared between ComponentTypes() and now —
+        // remove the trailing entry rather than emit garbage.
+        entityMsg->mutable_components()->RemoveLast();
+        continue;
+      }
 
       std::ostringstream ostr;
       compBase->Serialize(ostr);
@@ -1187,8 +1716,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     if (!this->HasEntity(_entity)) return;
 
     auto types = _types;
-    if (types.empty()) types = this->ComponentTypes(_entity);
-    if (types.empty()) return;
+    if (types.empty())
+    {
+      types = this->ComponentTypes(_entity);
+      // Pattern B: include components that have been marked-removed
+      // this step. The legacy state message carries them with
+      // remove=true so the receiver can clear its mirror.
+      auto rit = this->dataPtr->componentsMarkedAsRemoved.find(_entity);
+      if (rit != this->dataPtr->componentsMarkedAsRemoved.end())
+        types.insert(rit->second.begin(), rit->second.end());
+    }
+    if (types.empty() &&
+        std::find(this->dataPtr->pendingRemovals.begin(),
+                  this->dataPtr->pendingRemovals.end(), _entity) ==
+            this->dataPtr->pendingRemovals.end())
+      return;
 
     // Add the entity sub-message if not already present.
     auto entIter = _msg.mutable_entities()->find(_entity);
@@ -1216,8 +1758,16 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     for (const ComponentTypeId type : types)
     {
-      // Delta mode: skip components that aren't marked as changed.
-      if (!_full)
+      // Pattern B: marked-as-removed components are emitted as
+      // remove=true. Always include them regardless of _full so
+      // receivers see the removal.
+      bool isRemoved = this->dataPtr->IsMarkedRemoved(_entity, type);
+
+      // Delta mode: skip components that aren't marked as changed
+      // (and aren't removed). CreateComponent auto-marks the new
+      // (entity,type) pair in oneTimeChangedComponents, so brand-new
+      // components on brand-new entities still flow through.
+      if (!_full && !isRemoved)
       {
         bool changed = false;
         auto oit = this->dataPtr->oneTimeChangedComponents.find(type);
@@ -1234,20 +1784,26 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         if (!changed) continue;
       }
 
-      const components::BaseComponent *compBase =
-          this->ComponentImplementation(_entity, type);
-      if (!compBase) continue;
-
       ensureEntity();
       auto compIter = entIter->second.mutable_components()->find(type);
       if (compIter == entIter->second.mutable_components()->end())
       {
         msgs::SerializedComponent cmp;
-        cmp.set_type(compBase->TypeId());
+        cmp.set_type(type);
         (*(entIter->second.mutable_components()))[
             static_cast<int64_t>(type)] = cmp;
         compIter = entIter->second.mutable_components()->find(type);
       }
+
+      if (isRemoved)
+      {
+        compIter->second.set_remove(true);
+        continue;
+      }
+
+      const components::BaseComponent *compBase =
+          this->ComponentImplementation(_entity, type);
+      if (!compBase) continue;
 
       std::ostringstream ostr;
       compBase->Serialize(ostr);

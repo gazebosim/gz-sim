@@ -680,3 +680,66 @@ stubs green before flipping any test matrix, or (c) ignore until a
 real user hits it?
 
 ---
+
+## Phase 0b — Test-failure sweep complete (2026-04-25 update)
+
+Worked through every failing test under `GZ_SIM_ARCHETYPE_ECM=ON`
+following the analysis in `docs/design/0b-test-failures.md`. Final
+state for the targeted suites:
+
+- `UNIT_EntityComponentManager_TEST`: **414/414 pass**.
+- `UNIT_AddedMass_TEST`, `UNIT_Joint_TEST`, `UNIT_Link_TEST`,
+  `UNIT_Model_TEST`, `UNIT_SdfEntityCreator_TEST`: all green
+  (Pattern A is the long pole, as predicted).
+- `INTEGRATION_recreate_entities`: 3/3 pass.
+- `INTEGRATION_log_system`: 13/13 pass.
+- `PERFORMANCE_each`: passes after the documented test edit (§29 of
+  the test-failures doc) — no view-cache concept under the archetype
+  design.
+
+### What landed in this pass
+
+Patterns A/B/C as scoped in the test-failures doc, plus a handful of
+follow-up correctness fixes the Pattern fixes surfaced once the early
+failures cleared:
+
+1. **Auto-OneTimeChange on CreateComponent.** Mirrors legacy: every
+   newly-created component lands in `oneTimeChangedComponents` so
+   `ComponentState()` reports `OneTimeChange` and the next
+   `ChangedState()` includes it.
+2. **`modifiedComponents` set + `AddModifiedComponent`.** Mirrors
+   legacy: entities with non-trivial component changes that aren't
+   already covered by `newlyCreatedEntities` / `pendingRemovals`.
+   Drives `ChangedState()`'s third bucket in the right order.
+3. **`ChangedState()` ordering.** Legacy emits `newly-created →
+   removed → modified`; tests assert on `entities(N)` by index, so
+   the order matters.
+4. **`UpdatePeriodicChangeCache` cleanup.** Now drops removed
+   components and pending-removal entities like legacy does.
+5. **`SetEntityCreateOffset` aligned with legacy pre-increment**
+   (next CreateEntity returns `_offset + 1`).
+6. **`RequestRemoveEntity` for invalid IDs.** Legacy semantics:
+   invalid entities still appear in `HasEntitiesMarkedForRemoval()`;
+   `ProcessRemoveEntityRequests` skips them safely.
+7. **Recursive `PinEntity` / `UnpinEntity`.** `_recursive=true` (the
+   default) now walks `Descendants`. The pinned descendants get the
+   "skip on recursive removal" treatment correctly.
+8. **`CopyFrom` completeness.** Side-table state propagates
+   (modifiedComponents, periodicChangedComponents,
+   oneTimeChangedComponents, componentsMarkedAsRemoved,
+   createdCompTypes).
+9. **`ResetTo` / `ComputeEntityDiff` / `ApplyEntityDiff` / `Clone`.**
+   Were stubbed; now full implementations mirroring legacy. Clone is
+   the most involved — it tracks canonical-link and joint-link
+   relationships during the recursive copy and patches them up on
+   the way out, exactly as legacy does.
+
+### Open follow-ups
+
+- The full ctest matrix hasn't been re-swept since these fixes
+  landed; this pass focused on the explicitly-tracked failures from
+  the test-failures doc. A clean run is the next sanity check.
+- Q20 (name index) and Q21 (private serialization callers) from the
+  prior journal entry still stand.
+
+---

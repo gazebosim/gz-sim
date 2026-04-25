@@ -125,7 +125,13 @@ TEST(EntityComponentManagerPerfrormance, Each)
         static_cast<double>(eachIterations);
       double cachelessEntityAvg = cachelessIterAvg / matchingEntityCount;
 
-      EXPECT_LT(cacheEntityAvg, cachelessEntityAvg)
+      // Under the archetype ECM, the legacy view-cache is a no-op:
+      // both Each and EachNoCache resolve to the same self-invalidating
+      // archetype walk, so the relative-timing premise of the test no
+      // longer holds. Replace it with an absolute-throughput floor.
+      // See docs/design/0b-test-failures.md §29 for the full rationale.
+      const double kPerEntityCeilingNs = 5000.0;
+      EXPECT_LT(cacheEntityAvg, kPerEntityCeilingNs)
         << "Matching Entity Count =\t\t"
         << matchingEntityCount << "\n"
         << "Nonmatching Entity Count =\t" << nonmatchingEntityCount << "\n"
