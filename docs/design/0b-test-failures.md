@@ -622,3 +622,22 @@ This document was driven by a focused subset of failing tests. The
 broader integration suite (>200 tests) hasn't been re-swept post-fix.
 Suggested follow-up: run the full ctest suite under
 `GZ_SIM_ARCHETYPE_ECM=ON` and triage any new failures.
+
+### Pattern C extension — DetachableJoint sweep on recursive remove
+
+The full ctest run surfaced one real regression after the initial
+A/B/C fixes:
+`INTEGRATION_entity_erase.RemoveModelWithDetachableJoints`. The
+detachable joint plugin creates orphan entities (no parent in the
+entity graph) that carry a `DetachableJoint{parentLink, childLink}`
+component. These joints aren't reachable via `Descendants`, so a
+recursive `RequestRemoveEntity(model)` leaves them dangling.
+
+Legacy ECM handles this with a special-case scan inside
+`RequestRemoveEntity(_recursive=true)`: walk
+`Each<DetachableJoint>` and pick up any joint whose endpoints land
+in the to-remove set. The archetype facade now mirrors that scan.
+
+This is still Pattern C semantics (entity-removal cascade);
+the extension just covers a non-tree relationship the original
+write-up didn't enumerate.

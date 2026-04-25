@@ -28,6 +28,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/DetachableJoint.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
@@ -349,6 +350,23 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       // skipped (and their descendants survive too, matching legacy
       // semantics where the pinned subtree is left intact).
       auto descs = this->Descendants(_entity);
+
+      // Mirror legacy: detachable joints are orphan entities (no
+      // parent in the entity graph) but they reference parent/child
+      // link entities. When we recursively remove a model, also
+      // sweep up any DetachableJoint whose endpoints are about to
+      // disappear — otherwise the joints leak. See
+      // src/EntityComponentManager.cc RequestRemoveEntity.
+      this->Each<components::DetachableJoint>(
+          [&](const Entity &_jointEntity,
+              const components::DetachableJoint *_jointInfo) -> bool
+          {
+            const auto &d = _jointInfo->Data();
+            if (descs.count(d.parentLink) || descs.count(d.childLink))
+              descs.insert(_jointEntity);
+            return true;
+          });
+
       for (auto e : descs)
       {
         if (this->dataPtr->pinned.count(e)) continue;

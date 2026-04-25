@@ -743,3 +743,31 @@ failures cleared:
   prior journal entry still stand.
 
 ---
+
+## Phase 0b — Full ctest sweep + DetachableJoint cascade fix (2026-04-25 update)
+
+Ran the full ctest suite (299 tests) under `GZ_SIM_ARCHETYPE_ECM=ON`.
+Initial run with `-j4`: 13 failures. Re-running each individually
+showed 12 of them pass standalone — they're parallel-execution flakes
+(resource contention, port conflicts, GPU contention). The one real
+regression was `INTEGRATION_entity_erase.RemoveModelWithDetachableJoints`.
+
+**Root cause.** Detachable-joint plugins create orphan entities (no
+parent in the entity graph) carrying a `DetachableJoint{parentLink,
+childLink}` component. Recursive `RequestRemoveEntity(model)` walks
+`Descendants`, but orphan joints aren't reachable from the model →
+they leak. Legacy ECM handles this with a special-case scan inside
+`RequestRemoveEntity(_recursive=true)`: walk
+`Each<DetachableJoint>` and pick up any joint whose
+`parentLink`/`childLink` lands in the to-remove set.
+
+**Fix.** Mirror legacy: archetype facade now does the same sweep
+inside `RequestRemoveEntity`. Still Pattern C semantics — just the
+non-tree-edge case the original write-up didn't enumerate.
+
+**Re-run with `-j2`:** 296/299 pass. The 3 remaining failures
+(UNIT_gz_TEST, INTEGRATION_ackermann_steering_system,
+INTEGRATION_diff_drive_system) all pass standalone — confirmed
+parallel flakes, not ECM regressions.
+
+---
