@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'ign-gazebo[0-9]'
-      - 'gz-sim[0-9]?'
+      - 'gz-sim[1-9]?[0-9]'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,
@@ -29,6 +29,7 @@ jobs:
         id: ci
         uses: gazebo-tooling/action-gz-ci@noble
         with:
+          gzdev-project-name: rotary
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
 
@@ -43,6 +44,7 @@ jobs:
         id: ci
         uses: gazebo-tooling/action-gz-ci@noble
         with:
+          gzdev-project-name: rotary
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true

@@ -108,10 +108,8 @@ if (BUILD_TESTING)
         "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/python/test/${test}.py")
     endif()
 
-    set(_env_vars)
-    list(APPEND _env_vars "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
-    list(APPEND _env_vars "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}:$ENV{LD_LIBRARY_PATH}")
     set_tests_properties(${test} PROPERTIES
-      ENVIRONMENT "${_env_vars}")
+      ENVIRONMENT_MODIFICATION
+        "PYTHONPATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/;PYTHONPATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib;LD_LIBRARY_PATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};LD_LIBRARY_PATH=path_list_prepend:${CMAKE_BINARY_DIR}/lib")
   endforeach()
 endif()
