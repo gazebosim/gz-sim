@@ -65,7 +65,10 @@ Barrier::ExitStatus Barrier::Wait()
   {
     this->dataPtr->generation.fetch_add(1, std::memory_order_release);
     this->dataPtr->count.store(this->dataPtr->threadCount, std::memory_order_release);
-    this->dataPtr->cv.notify_all();
+    {
+      std::unique_lock<std::mutex> lock(this->dataPtr->mutex);
+      this->dataPtr->cv.notify_all();
+    }
     return Barrier::ExitStatus::DONE_LAST;
   }
 
