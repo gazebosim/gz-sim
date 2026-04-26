@@ -623,40 +623,59 @@ void SimulationRunner::ProcessSystemQueue()
 
   this->systemMgr->ActivatePendingSystems();
 
-  unsigned int threadCount =
-    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
+  unsigned int coreCount = std::thread::hardware_concurrency();
+  unsigned int numSystems = this->systemMgr->SystemsPostUpdate().size();
+  unsigned int threadCount = std::min(numSystems, coreCount);
+
+  unsigned int barrierThreadCount = (threadCount > 0) ? threadCount + 1 : 0;
 
   gzdbg << "Creating PostUpdate worker threads: "
     << threadCount << std::endl;
 
-  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
-  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(barrierThreadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(barrierThreadCount);
 
   this->postUpdateThreadsRunning = true;
-  int id = 0;
 
-  for (auto &system : this->systemMgr->SystemsPostUpdate())
+  if (threadCount > 0)
   {
-    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+    const auto& systems = this->systemMgr->SystemsPostUpdate();
+    unsigned int systemsPerThread = numSystems / threadCount;
+    unsigned int systemsRemaining = numSystems % threadCount;
 
-    this->postUpdateThreads.push_back(std::thread([&, id]()
+    auto systemsIt = systems.begin();
+    for (unsigned int id = 0; id < threadCount; ++id)
     {
-      std::stringstream ss;
-      ss << "PostUpdateThread: " << id;
-      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
-      while (this->postUpdateThreadsRunning)
+      unsigned int chunkSize = systemsPerThread + ((id < systemsRemaining) ? 1 : 0);
+      std::vector<ISystemPostUpdate*> assignedSystems;
+      assignedSystems.reserve(chunkSize);
+
+      for (unsigned int i = 0; i < chunkSize; ++i)
       {
-        this->postUpdateStartBarrier->Wait();
-        if (this->postUpdateThreadsRunning)
-        {
-          system->PostUpdate(this->currentInfo, this->entityCompMgr);
-        }
-        this->postUpdateStopBarrier->Wait();
+        assignedSystems.push_back(*systemsIt++);
       }
-      gzdbg << "Exiting postupdate worker thread ("
-        << id << ")" << std::endl;
-    }));
-    id++;
+
+      this->postUpdateThreads.push_back(std::thread([&, id, assignedSystems]()
+      {
+        std::stringstream ss;
+        ss << "PostUpdateThread: " << id;
+        GZ_PROFILE_THREAD_NAME(ss.str().c_str());
+        while (this->postUpdateThreadsRunning)
+        {
+          this->postUpdateStartBarrier->Wait();
+          if (this->postUpdateThreadsRunning)
+          {
+            for (auto* system : assignedSystems)
+            {
+              system->PostUpdate(this->currentInfo, this->entityCompMgr);
+            }
+          }
+          this->postUpdateStopBarrier->Wait();
+        }
+        gzdbg << "Exiting postupdate worker thread ("
+          << id << ")" << std::endl;
+      }));
+    }
   }
 }
 
@@ -701,7 +720,6 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
@@ -713,7 +731,7 @@ void SimulationRunner::UpdateSystems()
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }
-    this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 

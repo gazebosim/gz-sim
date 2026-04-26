@@ -58,6 +58,8 @@ target_link_libraries(${gui_target}
     Qt::Widgets
 )
 
+target_compile_options(${gui_target} PRIVATE -UHAVE_PYBIND11)
+
 set(CMAKE_AUTOMOC OFF)
 set(CMAKE_AUTORCC OFF)
 
@@ -80,7 +82,12 @@ gz_build_tests(TYPE UNIT
     gz-transport::gz-transport
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  TEST_LIST gui_test_list
 )
+
+foreach(test_target ${gui_test_list})
+  target_compile_options(${test_target} PRIVATE -UHAVE_PYBIND11)
+endforeach()
 
 if(TARGET UNIT_Gui_clean_exit_TEST)
   set_tests_properties(UNIT_Gui_clean_exit_TEST PROPERTIES TIMEOUT 300)

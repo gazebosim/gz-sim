@@ -43,6 +43,8 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/Util.cc
   src/gz/sim/World.cc
   src/gz/sim/InstallationDirectories.cc
+  src/gz/sim/Components.cc
+  src/gz/sim/ComponentDataWrapper.cc
 )
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
@@ -83,6 +85,7 @@ if (BUILD_TESTING)
     sensor_TEST
     testFixture_TEST
     world_TEST
+    custom_component_TEST
   )
 
   execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version

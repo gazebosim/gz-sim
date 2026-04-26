@@ -50,6 +50,7 @@ function(gz_add_gui_library library_name)
       gz-sim-gui
       ${gz_add_gui_library_PRIVATE_LINK_LIBS}
   )
+  target_compile_options(${library_name} PRIVATE -UHAVE_PYBIND11)
 endfunction()
 
 
@@ -120,7 +121,13 @@ function(gz_add_gui_plugin plugin_name)
           # Used to make test_config.h visible to the unit tests
           ${PROJECT_BINARY_DIR}
         ENVIRONMENT
-          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+        TEST_LIST plugin_test_list
+      )
+
+      foreach(test_target ${plugin_test_list})
+        target_compile_options(${test_target} PRIVATE -UHAVE_PYBIND11)
+      endforeach()
     endif()
   endif()
 
