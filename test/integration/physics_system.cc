@@ -227,33 +227,26 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
     expectedLinPoses[linkName] = model->LinkByName(linkName)->RawPose();
   ASSERT_EQ(3u, expectedLinPoses.size());
 
-  // Create a system that records the poses of the links after physics
-  test::Relay testSystem;
+  server.Run(true, 1, false);
 
   std::unordered_map<std::string, math::Pose3d> postUpLinkPoses;
-  testSystem.OnPostUpdate(
-    [&modelName, &postUpLinkPoses](const UpdateInfo &,
-    const EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Link, components::Name, components::Pose,
-                components::ParentEntity>(
-        [&](const Entity &, const components::Link *,
-        const components::Name *_name, const components::Pose *_pose,
-        const components::ParentEntity *_parent)->bool
+  server.PeekEcm([&](const EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Link, components::Name, components::Pose,
+              components::ParentEntity>(
+      [&](const Entity &, const components::Link *,
+      const components::Name *_name, const components::Pose *_pose,
+      const components::ParentEntity *_parent)->bool
+      {
+        auto parentModel = _ecm.Component<components::Name>(_parent->Data());
+        EXPECT_TRUE(nullptr != parentModel);
+        if (parentModel->Data() == modelName)
         {
-          auto parentModel = _ecm.Component<components::Name>(_parent->Data());
-          EXPECT_TRUE(nullptr != parentModel);
-          if (parentModel->Data() == modelName)
-          {
-            postUpLinkPoses[_name->Data()] = _pose->Data();
-          }
-          return true;
-        });
-      return true;
-    });
-
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, 1, false);
+          postUpLinkPoses[_name->Data()] = _pose->Data();
+        }
+        return true;
+      });
+  });
 
   EXPECT_EQ(3u, postUpLinkPoses.size());
 
@@ -270,8 +263,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanonicalLink))
 
 /////////////////////////////////////////////////
 // Same as the CanonicalLink test, but with a non-default canonical link
-TEST_F(PhysicsSystemFixture,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(NonDefaultCanonicalLink))
 {
   ServerConfig serverConfig;
 
@@ -291,38 +283,31 @@ TEST_F(PhysicsSystemFixture,
 
   const std::string modelName{"nondefault_canonical"};
 
-  // Create a system that records the pose of the model.
-  test::Relay testSystem;
-
-  std::vector<math::Pose3d> modelPoses;
-  testSystem.OnPostUpdate(
-    [&modelName, &modelPoses](const UpdateInfo &,
-    const EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Model, components::Name, components::Pose>(
-        [&](const Entity &, const components::Model *,
-        const components::Name *_name, const components::Pose *_pose)->bool
-        {
-          if (_name->Data() == modelName)
-          {
-            modelPoses.push_back(_pose->Data());
-          }
-          return true;
-        });
-      return true;
-    });
-
-  server.AddSystem(testSystem.systemPtr);
   std::size_t nIters{2000};
   server.Run(true, nIters, false);
 
-  EXPECT_EQ(nIters, modelPoses.size());
+  math::Pose3d modelPose;
+  server.PeekEcm([&](const EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Model, components::Name, components::Pose>(
+      [&](const Entity &, const components::Model *,
+      const components::Name *_name, const components::Pose *_pose)->bool
+      {
+        if (_name->Data() == modelName)
+        {
+          modelPose = _pose->Data();
+          return false;
+        }
+        return true;
+      });
+  });
 
   // The model is attached to link2 (it's canonical link) so it will fall during
   // simulation. The new Z position of the model is an offset of -2 in the Z
   // direction from the center of link2.
-  EXPECT_NEAR(-(2.0 - 0.2), modelPoses.back().Pos().Z(), 1e-2);
+  EXPECT_NEAR(-(2.0 - 0.2), modelPose.Pos().Z(), 1e-2);
 }
+
 
 /////////////////////////////////////////////////
 // Test physics integration with revolute joints
@@ -411,79 +396,76 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
   Server server(serverConfig);
   server.SetPaused(false);
 
-  // Create a system just to get the ECM
-  // TODO(louise) It would be much more convenient if the Server just returned
-  // the ECM for us. This would save all the trouble which is causing us to
-  // create `Relay` systems in the first place. Consider keeping the ECM in a
-  // shared pointer owned by the SimulationRunner.
-  EntityComponentManager *ecm{nullptr};
-  test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const UpdateInfo &,
-                             EntityComponentManager &_ecm)
-      {
-        ecm = &_ecm;
-      });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check we have the ECM
-  EXPECT_EQ(nullptr, ecm);
+  // Run server
   server.Run(true, 1, false);
-  EXPECT_NE(nullptr, ecm);
 
-  // Check we don't have a new model yet
-  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("new_model")));
+  Entity worldEntity{kNullEntity};
+  Entity modelEntity{kNullEntity};
 
-  // Get world
-  auto worldEntity = ecm->EntityByComponents(components::World());
-  EXPECT_NE(kNullEntity, worldEntity);
+  server.PokeEcm([&](EntityComponentManager &_ecm)
+  {
+    // Check we don't have a new model yet
+    EXPECT_EQ(kNullEntity, _ecm.EntityByComponents(components::Model(),
+        components::Name("new_model")));
 
-  // Spawn a new model
-  auto modelEntity = ecm->CreateEntity();
-  ecm->CreateComponent(modelEntity, components::Model());
-  ecm->CreateComponent(modelEntity, components::Pose(math::Pose3d::Zero));
-  ecm->CreateComponent(modelEntity, components::Name("new_model"));
-  ecm->CreateComponent(modelEntity, components::Static(false));
-  ecm->SetParentEntity(modelEntity, worldEntity);
-  ecm->CreateComponent(modelEntity, components::ParentEntity(worldEntity));
+    // Get world
+    worldEntity = _ecm.EntityByComponents(components::World());
+    EXPECT_NE(kNullEntity, worldEntity);
 
-  auto linkEntity = ecm->CreateEntity();
-  ecm->CreateComponent(linkEntity, components::Link());
-  ecm->CreateComponent(linkEntity, components::CanonicalLink());
-  ecm->CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
-  ecm->CreateComponent(linkEntity, components::Name("link"));
-  ecm->CreateComponent(modelEntity, components::ModelCanonicalLink(linkEntity));
+    // Spawn a new model
+    modelEntity = _ecm.CreateEntity();
+    _ecm.CreateComponent(modelEntity, components::Model());
+    _ecm.CreateComponent(modelEntity, components::Pose(math::Pose3d::Zero));
+    _ecm.CreateComponent(modelEntity, components::Name("new_model"));
+    _ecm.CreateComponent(modelEntity, components::Static(false));
+    _ecm.SetParentEntity(modelEntity, worldEntity);
+    _ecm.CreateComponent(modelEntity, components::ParentEntity(worldEntity));
 
-  math::MassMatrix3d massMatrix;
-  massMatrix.SetMass(1.0);
-  massMatrix.SetInertiaMatrix(0.4, 0.4, 0.4, 0, 0, 0);
-  math::Inertiald inertia;
-  inertia.SetMassMatrix(massMatrix);
-  ecm->CreateComponent(linkEntity, components::Inertial(inertia));
+    auto linkEntity = _ecm.CreateEntity();
+    _ecm.CreateComponent(linkEntity, components::Link());
+    _ecm.CreateComponent(linkEntity, components::CanonicalLink());
+    _ecm.CreateComponent(linkEntity, components::Pose(math::Pose3d::Zero));
+    _ecm.CreateComponent(linkEntity, components::Name("link"));
+    _ecm.CreateComponent(modelEntity, components::ModelCanonicalLink(linkEntity));
 
-  ecm->SetParentEntity(linkEntity, modelEntity);
-  ecm->CreateComponent(linkEntity, components::ParentEntity(modelEntity));
+    math::MassMatrix3d massMatrix;
+    massMatrix.SetMass(1.0);
+    massMatrix.SetInertiaMatrix(0.4, 0.4, 0.4, 0, 0, 0);
+    math::Inertiald inertia;
+    inertia.SetMassMatrix(massMatrix);
+    _ecm.CreateComponent(linkEntity, components::Inertial(inertia));
 
-  // Check we have a new model
-  EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("new_model")));
+    _ecm.SetParentEntity(linkEntity, modelEntity);
+    _ecm.CreateComponent(linkEntity, components::ParentEntity(modelEntity));
 
-  // Run server and check new model keeps falling due to gravity
-  auto poseComp = ecm->Component<components::Pose>(modelEntity);
-  ASSERT_NE(nullptr, poseComp);
+    // Check we have a new model
+    EXPECT_NE(kNullEntity, _ecm.EntityByComponents(components::Model(),
+        components::Name("new_model")));
+  });
 
-  auto pose = poseComp->Data();
-  EXPECT_EQ(math::Pose3d::Zero, pose);
+  math::Pose3d pose;
+  server.PeekEcm([&](const EntityComponentManager &_ecm)
+  {
+    // Run server and check new model keeps falling due to gravity
+    auto poseComp = _ecm.Component<components::Pose>(modelEntity);
+    ASSERT_NE(nullptr, poseComp);
+
+    pose = poseComp->Data();
+    EXPECT_EQ(math::Pose3d::Zero, pose);
+  });
 
   for (int i = 0; i < 10; ++i)
   {
     server.Run(true, 100, false);
 
-    poseComp = ecm->Component<components::Pose>(modelEntity);
-    ASSERT_NE(nullptr, poseComp);
+    server.PeekEcm([&](const EntityComponentManager &_ecm)
+    {
+      auto poseComp = _ecm.Component<components::Pose>(modelEntity);
+      ASSERT_NE(nullptr, poseComp);
 
-    EXPECT_GT(pose.Pos().Z(), poseComp->Data().Pos().Z());
-    pose = poseComp->Data();
+      EXPECT_GT(pose.Pos().Z(), poseComp->Data().Pos().Z());
+      pose = poseComp->Data();
+    });
   }
 }
 

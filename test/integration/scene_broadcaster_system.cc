@@ -49,6 +49,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include <gz/sim/EntityComponentManager.hh>
 #include "gz/sim/Server.hh"
 #include "test_config.hh"
 
@@ -56,6 +57,7 @@
 #include "../helpers/Relay.hh"
 
 using namespace gz;
+using namespace sim;
 
 /// \brief Test SceneBroadcaster system
 class SceneBroadcasterTest
@@ -659,99 +661,6 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system that removes a component
-  gz::sim::test::Relay testSystem;
-
-  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
-    sim::EntityComponentManager &_ecm)
-    {
-      static bool periodicChangeMade = false;
-
-      // remove a component from an entity
-      if (_info.iterations == 2)
-      {
-        std::vector<sim::Entity> entitiesToRemoveFrom;
-        _ecm.Each<gz::sim::components::Model,
-                  gz::sim::components::Name,
-                  gz::sim::components::Pose>(
-          [&](const gz::sim::Entity &_entity,
-              const gz::sim::components::Model *,
-              const gz::sim::components::Name *_name,
-              const gz::sim::components::Pose *)->bool
-          {
-            if (_name->Data() == "box")
-            {
-              entitiesToRemoveFrom.push_back(_entity);
-            }
-            return true;
-          });
-        for (const auto &entity : entitiesToRemoveFrom)
-        {
-          _ecm.RemoveComponent<gz::sim::components::Pose>(entity);
-        }
-      }
-      // add a component to an entity
-      else if (_info.iterations == 3)
-      {
-        auto boxEntity = _ecm.EntityByComponents(
-            sim::components::Name("box"), sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, boxEntity);
-        EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
-        _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
-            gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
-        EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
-              gz::sim::components::Pose::typeId));
-      }
-      // remove an entity
-      else if (_info.iterations == 4)
-      {
-        auto boxEntity = _ecm.EntityByComponents(
-            sim::components::Name("box"), sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, boxEntity);
-        _ecm.RequestRemoveEntity(boxEntity);
-      }
-      // create an entity
-      else if (_info.iterations == 5)
-      {
-        EXPECT_EQ(sim::kNullEntity, _ecm.EntityByComponents(
-              sim::components::Name("newEntity"),
-              sim::components::Model()));
-        auto newEntity = _ecm.CreateEntity();
-        _ecm.CreateComponent(newEntity, sim::components::Name("newEntity"));
-        _ecm.CreateComponent(newEntity, sim::components::Model());
-        EXPECT_NE(sim::kNullEntity, _ecm.EntityByComponents(
-              sim::components::Name("newEntity"),
-              sim::components::Model()));
-      }
-      // modify an existing component via OneTimeChange
-      else if (_info.iterations == 6)
-      {
-        auto entity = _ecm.EntityByComponents(
-            sim::components::Name("newEntity"),
-            sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
-            "newEntity1"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
-            sim::ComponentState::OneTimeChange);
-      }
-      // modify an existing component via PeriodicChange
-      else if (_info.iterations > 6 && !periodicChangeMade)
-      {
-        auto entity = _ecm.EntityByComponents(
-            sim::components::Name("newEntity1"),
-            sim::components::Model());
-        ASSERT_NE(sim::kNullEntity, entity);
-        EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
-            "newEntity2"));
-        _ecm.SetChanged(entity, sim::components::Name::typeId,
-            sim::ComponentState::PeriodicChange);
-        periodicChangeMade = true;
-      }
-    });
-  server.AddSystem(testSystem.systemPtr);
-
   int receivedStates = 0;
   bool received = false;
   bool hasState = false;
@@ -859,33 +768,104 @@ TEST_P(SceneBroadcasterTest, DISABLED_AddRemoveEntitiesComponents)
   // Run server once. The first time should send the state message
   runServerOnce(true);
 
-  // Run server again. The second time shouldn't have state info. The
-  // message can still arrive due the passage of time (see `itsPubTime` in
-  // SceneBroadcaster::PostUpdate.
+  // Run server again. The second time shouldn't have state info.
+  // Before running, remove a component from an entity
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    std::vector<sim::Entity> entitiesToRemoveFrom;
+    _ecm.Each<gz::sim::components::Model,
+              gz::sim::components::Name,
+              gz::sim::components::Pose>(
+      [&](const gz::sim::Entity &_entity,
+          const gz::sim::components::Model *,
+          const gz::sim::components::Name *_name,
+          const gz::sim::components::Pose *)->bool
+      {
+        if (_name->Data() == "box")
+        {
+          entitiesToRemoveFrom.push_back(_entity);
+        }
+        return true;
+      });
+    for (const auto &entity : entitiesToRemoveFrom)
+    {
+      _ecm.RemoveComponent<gz::sim::components::Pose>(entity);
+    }
+  });
   runServerOnce(false);
 
   // Run server again. The third time should send the state message because
-  // the test system removed a component.
+  // we add a component.
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    auto boxEntity = _ecm.EntityByComponents(
+        sim::components::Name("box"), sim::components::Model());
+    ASSERT_NE(sim::kNullEntity, boxEntity);
+    EXPECT_FALSE(_ecm.EntityHasComponentType(boxEntity,
+          gz::sim::components::Pose::typeId));
+    _ecm.CreateComponent<gz::sim::components::Pose>(boxEntity,
+        gz::sim::components::Pose({1, 2, 3, 4, 5, 6}));
+    EXPECT_TRUE(_ecm.EntityHasComponentType(boxEntity,
+          gz::sim::components::Pose::typeId));
+  });
   runServerOnce(true);
 
   // Run server again. The fourth time should send the state message because
-  // the test system added a component.
+  // we requested to remove an entity.
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    auto boxEntity = _ecm.EntityByComponents(
+        sim::components::Name("box"), sim::components::Model());
+    ASSERT_NE(sim::kNullEntity, boxEntity);
+    _ecm.RequestRemoveEntity(boxEntity);
+  });
   runServerOnce(true);
 
   // Run server again. The fifth time should send the state message because
-  // the test system requested to remove an entity.
+  // we created an entity.
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    EXPECT_EQ(sim::kNullEntity, _ecm.EntityByComponents(
+          sim::components::Name("newEntity"),
+          sim::components::Model()));
+    auto newEntity = _ecm.CreateEntity();
+    _ecm.CreateComponent(newEntity, sim::components::Name("newEntity"));
+    _ecm.CreateComponent(newEntity, sim::components::Model());
+    EXPECT_NE(sim::kNullEntity, _ecm.EntityByComponents(
+          sim::components::Name("newEntity"),
+          sim::components::Model()));
+  });
   runServerOnce(true);
 
   // Run server again. The sixth time should send the state message because
-  // the test system created an entity.
-  runServerOnce(true);
-
-  // Run server again. The seventh time should send the state message because
-  // the test system modified a component and marked it as a OneTimeChange.
+  // we modified a component and marked it as a OneTimeChange.
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    auto entity = _ecm.EntityByComponents(
+        sim::components::Name("newEntity"),
+        sim::components::Model());
+    ASSERT_NE(sim::kNullEntity, entity);
+    EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
+        "newEntity1"));
+    _ecm.SetChanged(entity, sim::components::Name::typeId,
+        sim::ComponentState::OneTimeChange);
+  });
   runServerOnce(true);
 
   // Run server for a few iterations to make sure that the periodic change
-  // made by the test system is received.
+  // is received.
+  server.PokeEcm([](EntityComponentManager &_ecm)
+  {
+    auto entity = _ecm.EntityByComponents(
+        sim::components::Name("newEntity1"),
+        sim::components::Model());
+    ASSERT_NE(sim::kNullEntity, entity);
+    EXPECT_TRUE(_ecm.SetComponentData<sim::components::Name>(entity,
+        "newEntity2"));
+    _ecm.SetChanged(entity, sim::components::Name::typeId,
+        sim::ComponentState::PeriodicChange);
+  });
+
   received = false;
   hasState = false;
   server.Run(true, 10, false);
