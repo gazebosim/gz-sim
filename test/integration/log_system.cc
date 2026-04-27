@@ -1133,12 +1133,12 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   test::Relay testSystem;
 
-  EntityGraph entityGraph;
+  std::vector<Entity> entities;
 
   testSystem.OnPostUpdate(
       [&](const UpdateInfo &, const EntityComponentManager &_ecm)
       {
-        entityGraph = _ecm.Entities();
+        entities = _ecm.Entities();
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -1146,8 +1146,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store the entities at the beginning of playback
   std::set<uint64_t> entitiesAtTime0;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTime0.insert(v.first);
+  for (const auto &v : entities)
+    entitiesAtTime0.insert(v);
 
   // verify there are entities at the beginning of the playback
   EXPECT_TRUE(!entitiesAtTime0.empty());
@@ -1176,8 +1176,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time A
   std::set<uint64_t> entitiesAtTimeA;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeA.insert(v.first);
+  for (const auto &v : entities)
+    entitiesAtTimeA.insert(v);
 
   // Seek forward again
   req.mutable_seek()->set_sec(timeB);
@@ -1194,8 +1194,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time B
   std::set<uint64_t> entitiesAtTimeB;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeB.insert(v.first);
+  for (const auto &v : entities)
+    entitiesAtTimeB.insert(v);
 
   // the entities at time B should be different from time A as levels get
   // loaded and unloaded
@@ -1217,8 +1217,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time A after jumping back in time
   std::set<uint64_t> entitiesAtTimeAA;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeAA.insert(v.first);
+  for (const auto &v : entities)
+    entitiesAtTimeAA.insert(v);
 
   // verify the entities are the same at time A
   EXPECT_EQ(entitiesAtTimeA.size(), entitiesAtTimeAA.size());
@@ -1246,8 +1246,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time 0 after rewind
   std::set<uint64_t> entitiesAtTime00;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTime00.insert(v.first);
+  for (const auto &v : entities)
+    entitiesAtTime00.insert(v);
 
   // verify the entities are the same at beginning of playback
   EXPECT_EQ(entitiesAtTime0.size(), entitiesAtTime00.size());

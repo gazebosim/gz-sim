@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <mutex>
 #include <set>
 #include <string>
@@ -184,11 +185,16 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
         return _entityInfo.parentEntity != _entity;
       });
 
-  for (auto it = sep; it != this->pendingEntities.end(); ++it)
+  if (sep != this->pendingEntities.end())
   {
-    this->AddEntity(it->entity, it->name, it->parentEntity, it->type);
+    const std::vector<EntityInfo> children(std::make_move_iterator(sep), std::make_move_iterator(this->pendingEntities.end()));
+    this->pendingEntities.erase(sep, this->pendingEntities.end());
+
+    for (const auto &child : children)
+    {
+      this->AddEntity(child.entity, child.name, child.parentEntity, child.type);
+    }
   }
-  this->pendingEntities.erase(sep, this->pendingEntities.end());
 }
 
 /////////////////////////////////////////////////
