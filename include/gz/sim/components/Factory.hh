@@ -218,8 +218,6 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      const auto typeHash = ComponentTypeT::typeId;
-
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
       // only add them to the maps below once.
@@ -227,7 +225,7 @@ namespace components
 
       // Check if component has already been registered by another library
       auto runtimeName = typeid(ComponentTypeT).name();
-      auto runtimeNameIt = this->runtimeNamesById.find(typeHash);
+      auto runtimeNameIt = this->runtimeNamesById.find(ComponentTypeT::typeId);
       if (runtimeNameIt != this->runtimeNamesById.end())
       {
         // Warn user if type was previously registered with a different name.
@@ -256,9 +254,9 @@ namespace components
       }
 
       // Keep track of all types
-      this->compsById[typeHash].Add(_regObjId, _compDesc);
-      namesById[typeHash] = ComponentTypeT::typeName;
-      runtimeNamesById[typeHash] = runtimeName;
+      this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
+      namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
+      runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
