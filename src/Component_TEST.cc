@@ -35,6 +35,48 @@
 using namespace gz;
 using namespace sim;
 
+// Class with externally defined stream operator
+struct SimpleOperator
+{
+  int data{100};
+};
+
+struct Simple {};
+
+using CustomComponent =
+      components::Component<std::shared_ptr<int>, class CustomComponentTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MyCustom", CustomComponent)
+
+using CustomString = components::Component<std::string, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomString", CustomString)
+
+using CustomSimple = components::Component<Simple, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSimple", CustomSimple)
+
+using CustomOperator = components::Component<SimpleOperator, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomOperator", CustomOperator)
+
+using CustomInertial = components::Component<math::Inertiald, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomInertial", CustomInertial)
+
+using CustomSharedInt = components::Component<std::shared_ptr<int>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedInt", CustomSharedInt)
+
+using CustomSharedSimple = components::Component<std::shared_ptr<Simple>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimple", CustomSharedSimple)
+
+using CustomSharedSimpleOperator = components::Component<std::shared_ptr<SimpleOperator>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimpleOperator", CustomSharedSimpleOperator)
+
+using CustomSharedSdf = components::Component<std::shared_ptr<sdf::Element>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSdf", CustomSharedSdf)
+
+using CustomSharedInertial = components::Component<std::shared_ptr<math::Inertiald>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedInertial", CustomSharedInertial)
+
+using CustomMsg = components::Component<msgs::Int32, class CustomTag, serializers::MsgSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomMsg", CustomMsg)
+
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
 {
@@ -65,17 +107,6 @@ TEST_F(ComponentTest, ComponentCanBeCopiedAfterDefaultCtor)
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ComponentTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
 {
-  auto factory = components::Factory::Instance();
-
-  // Create a custom component with shared_ptr data
-  using CustomComponent =
-      components::Component<std::shared_ptr<int>, class CustomComponentTag>;
-
-  factory->Register<CustomComponent>(
-      "gz_sim_components.MyCustom",
-      new components::ComponentDescriptor<CustomComponent>(),
-      components::RegistrationObjectId(this));
-
   EntityComponentManager ecm;
   Entity entity = ecm.CreateEntity();
 
@@ -90,13 +121,6 @@ TEST_F(ComponentTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(DataByMove))
   // If "data" was moved, the use count should still be 2.
   EXPECT_EQ(2u, dataCopy.use_count());
 }
-
-// Class with externally defined stream operator
-struct SimpleOperator
-{
-  int data{100};
-};
-using CustomOperator = components::Component<SimpleOperator, class CustomTag>;
 
 inline std::ostream &operator<<(std::ostream &_out, const SimpleOperator &)
 {
@@ -151,6 +175,7 @@ inline std::istream &operator>>(std::istream &_in, Inertiald &_inertial)
 // Wrap existing class and give it a Serialize function
 using InertialBase =
     components::Component<math::Inertiald, class InertialBaseTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.InertialBase", InertialBase)
 class InertialWrapper : public InertialBase
 {
   public: InertialWrapper() : InertialBase()
@@ -194,7 +219,7 @@ TEST_F(ComponentTest, OStream)
 {
   // Component with data which has stream operator
   {
-    using Custom = components::Component<std::string, class CustomTag>;
+    using Custom = CustomString;
 
     auto data = std::string("banana");
     Custom comp(data);
@@ -206,8 +231,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with data which doesn't have stream operator
   {
-    struct Simple {};
-    using Custom = components::Component<Simple, class CustomTag>;
+    using Custom = CustomSimple;
 
     auto data = Simple();
     Custom comp(data);
@@ -230,7 +254,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with data which has custom stream operator
   {
-    using Custom = components::Component<math::Inertiald, class CustomTag>;
+    using Custom = CustomInertial;
 
     auto data = math::Inertiald();
     auto comp = new Custom(data);
@@ -264,8 +288,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with shared_ptr data which has stream operator
   {
-    using Custom =
-        components::Component<std::shared_ptr<int>, class CustomTag>;
+    using Custom = CustomSharedInt;
 
     auto data = std::make_shared<int>(123);
     Custom comp(data);
@@ -278,9 +301,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with shared_ptr data which doesn't have stream operator
   {
-    struct Simple {};
-    using Custom =
-        components::Component<std::shared_ptr<Simple>, class CustomTag>;
+    using Custom = CustomSharedSimple;
 
     auto data = std::make_shared<Simple>();
     Custom comp(data);
@@ -293,8 +314,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with shared_ptr data which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<SimpleOperator>,
-        class CustomTag>;
+    using Custom = CustomSharedSimpleOperator;
 
     auto data = std::make_shared<SimpleOperator>();
     Custom comp(data);
@@ -307,8 +327,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with shared_ptr sdf::Element, which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<sdf::Element>,
-        class CustomTag>;
+    using Custom = CustomSharedSdf;
 
     auto data = std::make_shared<sdf::Element>();
     data->SetName("element");
@@ -324,8 +343,7 @@ TEST_F(ComponentTest, OStream)
 
   // Component with shared_ptr math::Inertiald, which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<math::Inertiald>,
-        class CustomTag>;
+    using Custom = CustomSharedInertial;
 
     auto data = std::make_shared<math::Inertiald>();
     Custom comp(data);
@@ -338,8 +356,7 @@ TEST_F(ComponentTest, OStream)
   // Component with a msgs type that gets serialized by the default
   // serializer
   {
-    using Custom = components::Component<msgs::Int32, class CustomTag,
-        serializers::MsgSerializer>;
+    using Custom = CustomMsg;
 
     msgs::Int32 data;
     data.set_data(331);
@@ -368,7 +385,7 @@ TEST_F(ComponentTest, IStream)
 {
   // Component with data which has stream operator
   {
-    using Custom = components::Component<std::string, class CustomTag>;
+    using Custom = CustomString;
 
     std::istringstream istr("banana");
     Custom comp;
@@ -378,8 +395,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with data which doesn't have stream operator
   {
-    struct Simple {};
-    using Custom = components::Component<Simple, class CustomTag>;
+    using Custom = CustomSimple;
 
     // Prints warning and doesn't modify the component
     std::istringstream istr("banana");
@@ -399,7 +415,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with data which has custom stream operator
   {
-    using Custom = components::Component<math::Inertiald, class CustomTag>;
+    using Custom = CustomInertial;
 
     auto data = math::Inertiald();
     Custom comp(data);
@@ -421,8 +437,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with shared_ptr data which has stream operator
   {
-    using Custom =
-        components::Component<std::shared_ptr<int>, class CustomTag>;
+    using Custom = CustomSharedInt;
 
     auto data = std::make_shared<int>(123);
     Custom comp(data);
@@ -435,9 +450,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with shared_ptr data which doesn't have stream operator
   {
-    struct Simple {};
-    using Custom =
-        components::Component<std::shared_ptr<Simple>, class CustomTag>;
+    using Custom = CustomSharedSimple;
 
     auto data = std::make_shared<Simple>();
     Custom comp(data);
@@ -449,8 +462,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with shared_ptr data which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<SimpleOperator>,
-        class CustomTag>;
+    using Custom = CustomSharedSimpleOperator;
 
     auto data = std::make_shared<SimpleOperator>();
     Custom comp(data);
@@ -463,8 +475,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with shared_ptr sdf::Element, which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<sdf::Element>,
-        class CustomTag>;
+    using Custom = CustomSharedSdf;
 
     auto data = std::make_shared<sdf::Element>();
     Custom comp(data);
@@ -476,8 +487,7 @@ TEST_F(ComponentTest, IStream)
 
   // Component with shared_ptr math::Inertiald, which has custom stream operator
   {
-    using Custom = components::Component<std::shared_ptr<math::Inertiald>,
-        class CustomTag>;
+    using Custom = CustomSharedInertial;
 
     auto data = std::make_shared<math::Inertiald>();
     Custom comp(data);
@@ -490,8 +500,7 @@ TEST_F(ComponentTest, IStream)
   // Component with a msgs type that gets deserialized by the message
   // deserializer
   {
-    using Custom = components::Component<msgs::Int32, class CustomTag,
-        serializers::MsgSerializer>;
+    using Custom = CustomMsg;
 
     msgs::Int32 data;
     data.set_data(482);
@@ -536,25 +545,31 @@ TEST_F(ComponentTest, TypeId)
   }
 }
 
+using CustomInt = components::Component<int, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomInt", CustomInt)
+
+using CustomNoData = components::Component<components::NoData, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomNoData", CustomNoData)
+
 //////////////////////////////////////////////////
 TEST_F(ComponentTest, TypeName)
 {
   // Component with data
   {
-    using Custom = components::Component<int, class CustomTag>;
-    Custom::typeName = "123456";
+    CustomInt::typeName = "123456";
 
-    Custom comp;
+    CustomInt comp;
 
     EXPECT_EQ("123456", comp.typeName);
   }
 
+  // components::Component<double
+
   // Component without data
   {
-    using Custom = components::Component<components::NoData, class CustomTag>;
-    Custom::typeName = "123456";
+    CustomNoData::typeName = "123456";
 
-    Custom comp;
+    CustomNoData comp;
 
     EXPECT_EQ("123456", comp.typeName);
   }
@@ -565,13 +580,11 @@ TEST_F(ComponentTest, Clone)
 {
   // Component with data
   {
-    using Custom = components::Component<int, class CustomTag>;
-
     // create a component and a clone of it. The clone should initially have the
     // same data as the original component
-    Custom comp(5);
+    CustomInt comp(5);
     auto clonedComp = comp.Clone();
-    auto derivedClone = static_cast<Custom *>(clonedComp.get());
+    auto derivedClone = static_cast<CustomInt *>(clonedComp.get());
     EXPECT_EQ(comp, *derivedClone);
 
     // modify the data of the cloned component, and make sure that only the
@@ -584,11 +597,9 @@ TEST_F(ComponentTest, Clone)
 
   // Component without data
   {
-    using Custom = components::Component<components::NoData, class CustomTag>;
-
-    Custom comp;
+    CustomNoData comp;
     auto clonedComp = comp.Clone();
-    auto derivedClone = static_cast<Custom *>(clonedComp.get());
+    auto derivedClone = static_cast<CustomNoData *>(clonedComp.get());
 
     // since this component has no data, we cannot do the same check as we did
     // above for a component with data. However, we can make sure that the

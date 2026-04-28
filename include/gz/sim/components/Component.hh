@@ -207,6 +207,8 @@ namespace components
   template <typename T>
   constexpr ComponentTypeId componentTypeId(T*)  // NOLINT(readability/casting)
   {
+    static_assert(false, "Type ID not set, did you register the component "
+                  "through the GZ_SIM_REGISTER_COMPONENT macro?");
     return 0;
   }
 
