@@ -205,7 +205,7 @@ namespace components
   /// It is a template so it has lower priority than the non-template
   /// overloads defined by the GZ_SIM_REGISTER_COMPONENT macro.
   template <typename T>
-  constexpr ComponentTypeId componentTypeId(T*)
+  constexpr ComponentTypeId componentTypeId(T*)  // NOLINT(readability/casting)
   {
     return 0;
   }
