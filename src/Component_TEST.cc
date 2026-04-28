@@ -59,22 +59,32 @@ GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomOperator", CustomOperator)
 using CustomInertial = components::Component<math::Inertiald, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomInertial", CustomInertial)
 
-using CustomSharedInt = components::Component<std::shared_ptr<int>, class CustomTag>;
+using CustomSharedInt =
+    components::Component<std::shared_ptr<int>, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedInt", CustomSharedInt)
 
-using CustomSharedSimple = components::Component<std::shared_ptr<Simple>, class CustomTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimple", CustomSharedSimple)
+using CustomSharedSimple =
+    components::Component<std::shared_ptr<Simple>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimple",
+    CustomSharedSimple)
 
-using CustomSharedSimpleOperator = components::Component<std::shared_ptr<SimpleOperator>, class CustomTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimpleOperator", CustomSharedSimpleOperator)
+using CustomSharedSimpleOperator =
+    components::Component<std::shared_ptr<SimpleOperator>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSimpleOperator",
+    CustomSharedSimpleOperator)
 
-using CustomSharedSdf = components::Component<std::shared_ptr<sdf::Element>, class CustomTag>;
+using CustomSharedSdf =
+    components::Component<std::shared_ptr<sdf::Element>, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedSdf", CustomSharedSdf)
 
-using CustomSharedInertial = components::Component<std::shared_ptr<math::Inertiald>, class CustomTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedInertial", CustomSharedInertial)
+using CustomSharedInertial =
+    components::Component<std::shared_ptr<math::Inertiald>, class CustomTag>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSharedInertial",
+    CustomSharedInertial)
 
-using CustomMsg = components::Component<msgs::Int32, class CustomTag, serializers::MsgSerializer>;
+using CustomMsg =
+    components::Component<msgs::Int32, class CustomTag,
+    serializers::MsgSerializer>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomMsg", CustomMsg)
 
 //////////////////////////////////////////////////

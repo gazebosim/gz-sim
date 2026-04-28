@@ -205,7 +205,8 @@ namespace components
   /// It is a template so it has lower priority than the non-template
   /// overloads defined by the GZ_SIM_REGISTER_COMPONENT macro.
   template <typename T>
-  constexpr ComponentTypeId gzSimFactoryComponentTypeId(T*)  // NOLINT(readability/casting)
+  // NOLINTNEXTLINE(readability/casting)
+  constexpr ComponentTypeId gzSimFactoryComponentTypeId(T*)
   {
     static_assert(false, "Type ID not set, did you register the component "
                   "through the GZ_SIM_REGISTER_COMPONENT macro?");
