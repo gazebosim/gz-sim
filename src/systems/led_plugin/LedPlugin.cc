@@ -417,6 +417,21 @@ void LedPlugin::Configure(
     topicFromScopedName(_entity, _ecm, true) + "/"
     + this->dataPtr->ledGroupName + "/change_led_mode";
 
+  // Subscribe to the LED Mode change topic
+  auto validModeChangeTopicName =
+    transport::TopicUtils::AsValidTopic(modeChangeTopicName);
+  if (validModeChangeTopicName.empty())
+  {
+    gzerr << "Failed to create valid mode change topic. Name not valid: ["
+          << validModeChangeTopicName << "]" << std::endl;
+    return;
+  }
+
+  gzdbg << "LedPLugin subscribing to [" << validModeChangeTopicName
+        << "] topic for mode change requests" << std::endl;
+  this->dataPtr->node.Subscribe(validModeChangeTopicName,
+    &LedPluginPrivate::OnLedModeChange, this->dataPtr.get());
+
   // Read and create different LEDs as part of the group
   if (_sdf->HasElement("led"))
   {
@@ -525,19 +540,6 @@ void LedPlugin::Configure(
         << this->dataPtr->allLedModes.size() << " modes and "
         << this->dataPtr->startupLedMode.name
         << " as the startup mode" << std::endl;
-
-  // Subscribe to the LED Mode change topic
-  auto validModeChangeTopicName =
-    transport::TopicUtils::AsValidTopic(modeChangeTopicName);
-  if (validModeChangeTopicName.empty())
-  {
-    gzerr << "Failed to create valid mode change topic. Name not valid: ["
-          << validModeChangeTopicName << "]" << std::endl;
-    return;
-  }
-
-  this->dataPtr->node.Subscribe(validModeChangeTopicName,
-    &LedPluginPrivate::OnLedModeChange, this->dataPtr.get());
 
   gzdbg << "[LED PLUGIN] Initialized LedPlugin Plugin" << std::endl;
 }
