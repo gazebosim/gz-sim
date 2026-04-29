@@ -197,7 +197,9 @@ TEST_F(CpuLidarTest,
   // Subscribe to the sensor topic so HasConnections() returns true
   // and the system requests raycasts from Physics.
   transport::Node node;
-  node.Subscribe("/test/cpu_lidar", [](const msgs::LaserScan &){});
+  std::function<void(const msgs::LaserScan &)> cb =
+    [](const msgs::LaserScan &){};
+  node.Subscribe("/test/cpu_lidar", cb);
 
   test::Relay testSystem;
   testSystem.OnPostUpdate([&](const UpdateInfo &_info,
@@ -250,14 +252,15 @@ TEST_F(CpuLidarTest,
   bool messageReceived = false;
 
   transport::Node node;
-  node.Subscribe("/test/cpu_lidar",
+  std::function<void(const msgs::LaserScan &)> cb =
     [&](const msgs::LaserScan &_msg)
     {
       std::lock_guard<std::mutex> lock(mutex);
       received.push_back(_msg);
       messageReceived = true;
       cv.notify_one();
-    });
+    };
+  node.Subscribe("/test/cpu_lidar", cb);
 
   // Run server in background and wait for message with timeout
   std::thread serverThread([&]()
@@ -321,14 +324,15 @@ TEST_F(CpuLidarTest,
   bool messageReceived = false;
 
   transport::Node node;
-  node.Subscribe("/test/cpu_lidar/points",
+  std::function<void(const msgs::PointCloudPacked &)> cb =
     [&](const msgs::PointCloudPacked &_msg)
     {
       std::lock_guard<std::mutex> lock(mutex);
       received.push_back(_msg);
       messageReceived = true;
       cv.notify_one();
-    });
+    };
+  node.Subscribe("/test/cpu_lidar/points", cb);
 
   std::thread serverThread([&]()
   {
