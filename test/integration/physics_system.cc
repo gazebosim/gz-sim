@@ -3135,7 +3135,7 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
           ASSERT_TRUE(
             math::eigen3::convert(results2[i].normal).array().isNaN().all());
           ASSERT_TRUE(
-            std::isnan(results2[i].fraction));
+            std::isinf(results2[i].fraction));
         }
       });
 
