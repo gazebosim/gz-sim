@@ -32,8 +32,6 @@
 #include <utility>
 #include <vector>
 
-#include <boost/container/flat_set.hpp>
-
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
 #include "gz/sim/Entity.hh"
@@ -69,7 +67,7 @@ namespace gz
     struct NewEntity { };
     struct RemoveEntity { };
     struct Children {
-      boost::container::flat_set<Entity> data;
+      std::set<Entity> data;
     };
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
