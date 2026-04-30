@@ -397,6 +397,7 @@ class EntityByComponentsFixture: public benchmark::Fixture
     {
       Entity worldEntity = mgr->CreateEntity();
       mgr->CreateComponent(worldEntity, World());
+      mgr->CreateComponent(worldEntity, Inertial());
       mgr->CreateComponent(worldEntity, components::Name("child"));
       nonMatchingEntities.push_back(worldEntity);
     }
@@ -408,6 +409,7 @@ class EntityByComponentsFixture: public benchmark::Fixture
       {
         parentEntity = e;
       }
+      mgr->CreateComponent(e, Inertial());
       mgr->CreateComponent(e, components::Name("target"));
     }
     
