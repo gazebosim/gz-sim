@@ -2036,6 +2036,22 @@ void EntityComponentManager::SetAllComponentsUnchanged()
   this->dataPtr->modifiedComponents.clear();
 }
 
+//////////////////////////////////////////////////
+void EntityComponentManager::BeginPhase()
+{
+  // Legacy backend has no deferred-mutation buffer; phase boundaries
+  // are tracked by the existing ProcessRemoveEntityRequests /
+  // ClearRemovedComponents pair. This method exists for API parity
+  // with the archetype backend; under that backend it (eventually)
+  // arms the per-phase command buffer.
+}
+
+//////////////////////////////////////////////////
+void EntityComponentManager::CommitPhase()
+{
+  // No-op under the legacy backend. See BeginPhase().
+}
+
 /////////////////////////////////////////////////
 void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,

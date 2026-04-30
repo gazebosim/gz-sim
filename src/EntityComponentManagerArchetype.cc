@@ -760,6 +760,25 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     this->dataPtr->world.ClearChangeBits();
   }
 
+  void EntityComponentManager::BeginPhase()
+  {
+    // Phase 0c plumbing: the archetype core has full phase semantics
+    // (BeginPhase / Commit on `ecs::World`). The facade still runs in
+    // immediate-mutation mode while in-tree systems are audited (see
+    // docs/design/phase-0c-system-port.md §4.0). When the 0e flip
+    // lands, this becomes `this->dataPtr->world.BeginPhase()` and the
+    // CreateComponent/RemoveComponent/SetComponentData paths route
+    // through the World's command buffer. Until then, this is a
+    // documented no-op so SimulationRunner's wiring is in place.
+  }
+
+  void EntityComponentManager::CommitPhase()
+  {
+    // Same: no-op until the 0e flip. Will become
+    // `this->dataPtr->world.Commit()` plus a drain of any parallel
+    // shadow-store deferred buffer.
+  }
+
   bool EntityComponentManager::HasNewEntities() const
   {
     return !this->dataPtr->newlyCreatedEntities.empty();

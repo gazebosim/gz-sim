@@ -7,6 +7,47 @@ release will remove the deprecated code.
 
 ## Gazebo Sim 10.x to 11.0
 
+* **EntityComponentManager — pointer-validity contract (archetype ECM)**
+  Gazebo Sim 11 ships an opt-in archetype-backed `EntityComponentManager`
+  (CMake option `GZ_SIM_ARCHETYPE_ECM=ON`; default OFF in 11.x, will be
+  flipped on in a future release). Under the archetype backend, the
+  pointer returned by `EntityComponentManager::Component<T>(entity)` is
+  valid for the **current system phase only** — `PreUpdate`, `Update`,
+  or `PostUpdate`. The pointer is invalidated when the runner calls the
+  end-of-phase commit at the next phase boundary.
+  * **Recommended pattern** — read the component pointer inside the
+    callback that needs it, use the data, do not retain the pointer in
+    a system member field:
+    ```cpp
+    void MySystem::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Pose, components::LinearVelocity>(
+          [&](const Entity &, const components::Pose *_pose,
+              const components::LinearVelocity *_vel) -> bool
+          {
+            // OK: pointers used and dropped within the callback.
+            DoWork(*_pose, *_vel);
+            return true;
+          });
+    }
+    ```
+  * **Anti-pattern** — caching pointers across phase boundaries:
+    ```cpp
+    class MySystem
+    {
+      // BAD: poseComp is invalidated at the next phase commit.
+      private: components::Pose *poseComp = nullptr;
+    };
+    ```
+    Cache the `Entity` handle instead, or read fresh in each phase.
+  * **Mid-phase mutation visibility** — `CreateComponent`, `RemoveComponent`,
+    and `SetComponentData` will, in a future release, defer the mutation
+    until the next phase commit. Read-after-write within the same phase
+    is **not** guaranteed to see the mutation. Today (11.0) the archetype
+    backend keeps immediate-mutation semantics for compatibility, but new
+    code should not rely on that — combine the create with the data
+    (`CreateComponent(e, T{value})`) rather than `CreateComponent(e, T{}); ptr->Set(value)`.
+
 * **Removals**
   * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
     It was loaded but never used in any computation because the stability

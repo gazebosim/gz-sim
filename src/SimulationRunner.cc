@@ -629,8 +629,14 @@ void SimulationRunner::UpdateSystems()
     return;
   }
 
+  // Phase 0c: explicit phase boundaries on the ECM. These are no-ops
+  // under the legacy backend and the immediate-mode archetype facade
+  // today, but provide the wiring point for the 0e flip to deferred
+  // semantics. See docs/design/phase-0c-system-port.md §4.0 and
+  // EntityComponentManager::BeginPhase / CommitPhase.
   {
     GZ_PROFILE("PreUpdate");
+    this->entityCompMgr.BeginPhase();
     for (auto& [priority, systems] : this->systemMgr->SystemsPreUpdate())
     {
       for (auto& system : systems)
@@ -638,10 +644,12 @@ void SimulationRunner::UpdateSystems()
         system->PreUpdate(this->currentInfo, this->entityCompMgr);
       }
     }
+    this->entityCompMgr.CommitPhase();
   }
 
   {
     GZ_PROFILE("Update");
+    this->entityCompMgr.BeginPhase();
     for (auto& [priority, systems] : this->systemMgr->SystemsUpdate())
     {
       for (auto& system : systems)
@@ -649,10 +657,12 @@ void SimulationRunner::UpdateSystems()
         system->Update(this->currentInfo, this->entityCompMgr);
       }
     }
+    this->entityCompMgr.CommitPhase();
   }
 
   {
     GZ_PROFILE("PostUpdate");
+    this->entityCompMgr.BeginPhase();
     this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
@@ -666,6 +676,7 @@ void SimulationRunner::UpdateSystems()
       this->postUpdateStopBarrier->Wait();
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CommitPhase();
   }
 }
 

@@ -69,15 +69,15 @@ Run `python3 tools/0c-audit.py --update-checklist` to regenerate the
 | optical_tactile_plugin | auto-green | |
 | particle_emitter | auto-green | |
 | performer_detector | auto-green | |
-| physics | pending | Heavy ECM user — audit planned next session. |
+| physics | manual-green | Audited 2026-04-29: all `components::*` reads are local callback parameters or local vars inside `Each` callbacks; no member pointer caching. Member fields are gz-physics handles (EnginePtr/WorldPtr/ModelPtr/etc.), not gz-sim component pointers. |
 | pose_publisher | auto-green | Manually verified. |
 | projector | auto-green | |
 | rate_control | auto-green | |
 | reset_system | auto-green | |
 | rf_comms | auto-green | |
 | rgbd_camera_controller | auto-green | |
-| scene_broadcaster | pending | Serialization path — audit with 0b parity work. |
-| sensors | pending | Render thread interactions — audit next session. |
+| scene_broadcaster | manual-green | Audited 2026-04-29: every `Component<T>(e)` is a local var inside Configure or an Each callback parameter; no member-cached component pointers. Serialization round-trip uses State/SetState messages, not retained pointers. |
+| sensors | manual-green | Audited 2026-04-29: only member pointers are gz-sensors `CameraSensor*` (gz-rendering objects, not gz-sim components) and `EventManager*`; component reads are all local-scope. Render-thread interactions go through gz-sensors not the ECM. |
 | shader_param | auto-green | |
 | spacecraft_thruster_model | auto-green | |
 | spherical_coordinates | auto-green | |
@@ -96,11 +96,8 @@ Run `python3 tools/0c-audit.py --update-checklist` to regenerate the
 | Bucket | Count |
 |---|---|
 | `auto-green` | 72 |
-| `pending` (deferred to follow-up session) | 3 |
-| `manual-green` | 4 (diff_drive, joint_controller, odometry_publisher, pose_publisher) |
+| `manual-green` | 7 (diff_drive, joint_controller, odometry_publisher, pose_publisher, physics, sensors, scene_broadcaster) |
 
-The three `pending` systems (physics, sensors, scene_broadcaster) are
-the ones the design doc §6 specifically calls out as "heavy ECM users
-needing extra care." They are correctly flagged here for a dedicated
-audit. The other 72 systems came up clean on the automated pass and
-require only a confirming manual read.
+The three §6 "heavy ECM user" systems were audited 2026-04-29 — all
+clean. No system in the in-tree set retains component pointers across
+phase boundaries.

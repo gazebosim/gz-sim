@@ -716,6 +716,29 @@ namespace gz
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
 
+      /// \brief Begin a system-phase deferred-mutation window. Subsequent
+      /// CreateComponent / RemoveComponent / SetComponentData calls
+      /// queue into the per-phase command buffer instead of applying
+      /// immediately. The queue drains at the next CommitPhase().
+      ///
+      /// Today (Gazebo Sim 11.x), the legacy ECM and the archetype
+      /// facade both treat this as a no-op — the archetype backend
+      /// runs in immediate-mutation mode for compatibility while the
+      /// in-tree systems are audited (Phase 0c). The methods exist so
+      /// the SimulationRunner phase-boundary plumbing is ready for the
+      /// 0e flip; new code should call them at phase entry/exit even
+      /// though the deferred behavior isn't active yet.
+      ///
+      /// See `docs/design/phase-0c-system-port.md` §4.0 for the
+      /// migration plan and `Migration.md` for the pointer-validity
+      /// contract callers should follow.
+      public: void BeginPhase();
+
+      /// \brief End-of-phase commit. Drains the per-phase command
+      /// buffer (when active) and bumps the chunk generation, after
+      /// which any cached `Component<T>(e)` pointers are invalidated.
+      public: void CommitPhase();
+
       /// Compute the diff between this EntityComponentManager and _other at the
       /// entity level. This does not compute the diff between components of an
       /// entity.

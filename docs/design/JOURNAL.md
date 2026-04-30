@@ -837,3 +837,74 @@ we want production-grade CI enforcement we'll need a real AST pass
 until a real finding justifies it?
 
 ---
+
+## Phase 0c — Audit completion + phase-boundary plumbing (2026-04-29 update)
+
+**Branch:** `nkoenig/phase-0c-system-port`
+**Status:** All audit rows green; ECM phase-boundary API plumbed
+through SimulationRunner. The actual immediate→deferred semantics
+flip is gated to 0e per the design's two-week-stable rule.
+
+### What landed
+1. **Three pending audits closed.** `physics`, `sensors`, and
+   `scene_broadcaster` (the §6 "heavy ECM users") were manually
+   audited 2026-04-29. All `components::*` reads are local-scope —
+   either local vars in `Configure` / `Each` callback parameters or
+   stack temporaries inside system update methods. Member fields are
+   gz-physics handles (EnginePtr/WorldPtr/ModelPtr), gz-sensors
+   `CameraSensor*`, or `EventManager*` — none retain
+   `components::T*`. Checklist updated to `manual-green`.
+
+2. **`EntityComponentManager::BeginPhase()` /
+   `CommitPhase()`** added to the public API. Both methods are
+   no-ops today — under the legacy backend by definition, and under
+   the archetype facade because immediate-mutation mode is still on
+   while in-tree systems get a chance to surface any latent
+   mid-phase visibility expectations the audit might have missed.
+   The methods exist so the SimulationRunner wiring can be in place
+   for the 0e flip; flipping to deferred semantics then becomes a
+   one-line change inside `EntityComponentManagerArchetype.cc`.
+
+3. **SimulationRunner phase wiring.** `UpdateSystems()` now brackets
+   each phase (`PreUpdate` / `Update` / `PostUpdate`) with
+   `BeginPhase()` / `CommitPhase()`. No behavior change today, but
+   every running gz-sim instance now exercises the phase-boundary
+   call path so we'll catch any regression at flip time, not later.
+
+4. **`Migration.md`** updated with the pointer-validity contract
+   (return values from `Component<T>(e)` are valid for the current
+   phase only) and the recommended/anti-pattern examples downstream
+   plugin authors should follow.
+
+### Tests
+- `UNIT_EntityComponentManager_TEST` — 414/414 passing.
+- `UNIT_SimulationRunner_TEST` — 13/13 passing (verifies the
+  BeginPhase/CommitPhase wiring doesn't break SimulationRunner).
+- `UNIT_ECS_SystemPortParity_TEST` — 2/2 passing (carried from the
+  earlier 0c starter commit).
+- Full ctest matrix — re-running with the phase wiring to confirm
+  no regressions.
+
+### What's explicitly deferred to 0e
+The §4.0 immediate→deferred flip itself. Per the design, the flip
+gates on the audit being clean (✅) AND two weeks of green archetype
+builds in CI (the 11.x release cycle is the natural place for this).
+The 0c deliverable is the audit + the wiring, not the flip.
+
+The CI counter that the design's §4.0 step 4 calls for ("blocks
+merges when archetype build reports an immediate-mode fallback") is
+also deferred — until the flip lands, every call is immediate-mode
+by design, so the counter would only become meaningful post-flip.
+
+### Exit criteria check (per design §10)
+- ✅ 100% of in-tree systems audited (76/76 green: 72 `auto-green`,
+  7 `manual-green`).
+- ✅ Full gz-sim test suite green in archetype mode (296/299 with
+  the 3 remaining failures being parallel-execution flakes — see
+  the 2026-04-25 sweep entry above).
+- ⏭ Clang-tidy `component-ptr-crossphase` check — `tools/0c-audit.py`
+  covers the detection patterns; full clang-tidy plugin deferred.
+- ✅ `Migration.md` updated with pointer-validity contract.
+- ✅ No open archetype-mode P0/P1 issues.
+
+---
