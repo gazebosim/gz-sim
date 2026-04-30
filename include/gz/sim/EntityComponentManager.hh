@@ -49,6 +49,10 @@
 
 #include "gz/sim/components/Component.hh"
 
+// Custom implementation
+// TODO(anyone) switch to std <flat_set> when migrating to C++-23
+#include "gz/sim/flat_set.hh"
+
 namespace gz
 {
   namespace sim
@@ -67,7 +71,7 @@ namespace gz
     struct NewEntity { };
     struct RemoveEntity { };
     struct Children {
-      std::set<Entity> data;
+      FlatSet<Entity> data;
     };
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
