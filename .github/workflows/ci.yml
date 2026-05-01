@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'ign-gazebo[0-9]'
-      - 'gz-sim[0-9]?'
+      - 'gz-sim[1-9]?[0-9]'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,

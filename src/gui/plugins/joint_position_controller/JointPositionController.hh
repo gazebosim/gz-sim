@@ -36,7 +36,9 @@
 #  endif
 #endif
 
+/// \cond
 Q_DECLARE_METATYPE(gz::sim::Entity)
+/// \endcond
 
 namespace gz
 {
@@ -66,7 +68,7 @@ namespace gui
     public: static QHash<int, QByteArray> RoleNames();
 
     /// \brief Add a joint to the list.
-    /// \param[in] _typeId Joint to be added.
+    /// \param[in] _entity Joint to be added.
     /// \return Newly created item.
     public slots: QStandardItem *AddJoint(Entity _entity);
 
