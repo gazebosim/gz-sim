@@ -75,6 +75,8 @@
 #include <gz/physics/sdf/ConstructModel.hh>
 #include <gz/physics/sdf/ConstructNestedModel.hh>
 #include <gz/physics/sdf/ConstructWorld.hh>
+#include <gz/physics/Gravity.hh>
+#include <gz/physics/Model.hh>
 #include <gz/plugin/Loader.hh>
 #include <gz/plugin/PluginPtr.hh>
 #include <gz/plugin/Register.hh>
@@ -605,14 +607,14 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list for model static state.
   public: struct StaticStateFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            physics::SetFreeGroupStaticState>{};
+            physics::ModelStaticState>{};
 
   //////////////////////////////////////////////////
   // enabled gravity
   /// \brief Feature list for model gravity enabled.
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            physics::SetFreeGroupGravityEnabled>{};
+            physics::ModelGravityEnabled>{};
 
   // Link Bounding box
   /// \brief Feature list for model bounding box.
@@ -742,7 +744,9 @@ class gz::sim::systems::PhysicsPrivate
             ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
-            ConstructSdfJointFeatureList>;
+            ConstructSdfJointFeatureList,
+            StaticStateFeatureList,
+            GravityEnabledFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -798,9 +802,7 @@ class gz::sim::systems::PhysicsPrivate
   public: using EntityFreeGroupMap = EntityFeatureMap3d<
             physics::FreeGroup,
             MinimumFeatureList,
-            WorldVelocityCommandFeatureList,
-            StaticStateFeatureList,
-            GravityEnabledFeatureList
+            WorldVelocityCommandFeatureList
             >;
 
   /// \brief A map between collision entity ids in the ECM to FreeGroup Entities
@@ -2577,14 +2579,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == modelPtrPhys)
           return true;
 
-        auto freeGroup = modelPtrPhys->FindFreeGroup();
-        if (!freeGroup)
-          return true;
-
-        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
-
         auto ssModel =
-          this->entityFreeGroupMap.EntityCast<StaticStateFeatureList>(_entity);
+          this->entityModelMap.EntityCast<StaticStateFeatureList>(_entity);
 
         if (!ssModel)
         {
@@ -2593,7 +2589,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           {
             gzdbg << "Attempting to set a static state, but the physics "
                    << "engine doesn't support feature "
-                   << "[SetStaticState]. static state won't be populated."
+                   << "[ModelStaticState]. static state won't be populated."
                    << " " << _name->Data()
                    << std::endl;
             informed = true;
@@ -2617,7 +2613,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        ssModel->SetStaticState(_staticSateCmd->Data());
+        ssModel->SetStatic(_staticSateCmd->Data());
         return true;
       });
 
@@ -2646,14 +2642,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == modelPtrPhys)
           return true;
 
-        auto freeGroup = modelPtrPhys->FindFreeGroup();
-        if (!freeGroup)
-          return true;
-
-        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
-
         auto ssModel =
-          this->entityFreeGroupMap.EntityCast<GravityEnabledFeatureList>(
+          this->entityModelMap.EntityCast<GravityEnabledFeatureList>(
             _entity);
 
         if (!ssModel)
@@ -2661,15 +2651,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to set a static state, but the physics "
+            gzdbg << "Attempting to set gravity enabled, but the physics "
                    << "engine doesn't support feature "
-                   << "[SetGravityEnabled]. static state won't be populated."
+                   << "[ModelGravityEnabled]. Gravity state won't be populated."
                    << " " << _name->Data()
                    << std::endl;
             informed = true;
           }
 
-          // Break Each call since no Static state'es can be processed
+          // Break Each call since no gravity enabled'es can be processed
           return false;
         }
         ssModel->SetGravityEnabled(_gravityEnabledCmd->Data());
