@@ -614,22 +614,34 @@ void LedPlugin::PreUpdate(
       this->dataPtr->currentLedMode.activeLedNames)
     {
       // Set the visual properties if the visual entity is not null
-      if (this->dataPtr->allLedsInGroup[ledName].ledVisualEntity != kNullEntity)
+      try
       {
-        this->dataPtr->SetVisualProperties(
-          this->dataPtr->allLedsInGroup[ledName]
-            .ledVisualEntity,
-          _ecm, currentLedModeStep.ledColor);
-      }
+        if (this->dataPtr->allLedsInGroup.at(ledName).ledVisualEntity != kNullEntity)
+        {
+          this->dataPtr->SetVisualProperties(
+            this->dataPtr->allLedsInGroup.at(ledName)
+              .ledVisualEntity,
+            _ecm, currentLedModeStep.ledColor);
+        }
 
-      // Set the light properties if the light entity is not null
-      if (this->dataPtr->allLedsInGroup[ledName].ledLightEntity != kNullEntity)
+        // Set the light properties if the light entity is not null
+        if (this->dataPtr->allLedsInGroup.at(ledName).ledLightEntity != kNullEntity)
+        {
+          this->dataPtr->SetLightProperties(
+            this->dataPtr->allLedsInGroup.at(ledName)
+              .ledLightEntity,
+            _ecm, currentLedModeStep.ledColor,
+            currentLedModeStep.lightIntensity);
+        }
+      }
+      catch(const std::out_of_range& e)
       {
-        this->dataPtr->SetLightProperties(
-          this->dataPtr->allLedsInGroup[ledName]
-            .ledLightEntity,
-          _ecm, currentLedModeStep.ledColor,
-          currentLedModeStep.lightIntensity);
+        gzwarn << "[LED PLUGIN] LED name: " << ledName
+              << " specified in the active LEDs list for mode: "
+              << this->dataPtr->currentLedMode.name
+              << " is not found in the defined LEDs for the group. "
+              << " Skipping setting state for this LED." << std::endl;
+        continue;
       }
     }
   }
