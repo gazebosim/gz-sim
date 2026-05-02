@@ -227,7 +227,13 @@ struct LedMode
       return std::nullopt;
     }
 
+    // Set the mode name in lower case to keep
+    // requests case-insensitive
     ledMode.name = _sdf->Get<std::string>("name");
+    std::transform(
+      ledMode.name.begin(), ledMode.name.end(),
+      ledMode.name.begin(), ::tolower
+    );
     gzdbg << "Adding LED Mode: " << ledMode.name << std::endl;
 
     // Read the active LEDs for this mode if any
@@ -359,8 +365,8 @@ class gz::sim::systems::LedPluginPrivate
   /// \brief Index of the current step being executed of the mode
   public: size_t currentModeStepIdx{0};
 
-  /// \brief List of all the modes defined by the user
-  public: std::vector<LedMode> allLedModes;
+  /// \brief Map of all the modes with mode names defined by the user
+  public: std::unordered_map<std::string, LedMode> allLedModes;
 
   /// \brief Time the current cycle started.
   public: std::chrono::duration<double> cycleStartTime{0s};
@@ -397,8 +403,6 @@ void LedPlugin::Configure(
            << "Failed to initialize." << std::endl;
     return;
   }
-
-  this->dataPtr->allLedModes = std::vector<LedMode>();
 
   // Construct the name for the mode change topic of the led group
   std::string modeChangeTopicName;
@@ -468,7 +472,8 @@ void LedPlugin::Configure(
 
       if (ledMode.has_value())
       {
-        this->dataPtr->allLedModes.push_back(ledMode.value());
+        this->dataPtr->allLedModes.insert(
+          {ledMode.value().name, ledMode.value()});
       }
 
       ledModesElem = ledModesElem->GetNextElement("mode");
@@ -489,32 +494,21 @@ void LedPlugin::Configure(
       std::string startupModeName =
         _sdf->Get<std::string>("startup_mode");
 
-      auto startupModeIter = std::find_if(
-        this->dataPtr->allLedModes.begin(), this->dataPtr->allLedModes.end(),
-        [&](const LedMode _ledMode)
-        {
-          if (_ledMode.name == startupModeName)
-          {
-            return true;
-          }
-
-          return false;
-        });
-
-      if (startupModeIter == this->dataPtr->allLedModes.end())
+      try
+      {
+        this->dataPtr->startupLedMode =
+          this->dataPtr->allLedModes.at(startupModeName);
+      }
+      catch(const std::out_of_range& e)
       {
         gzwarn << "[LED PLUGIN] Could not find"
-              << " startup mode name: "
-              << startupModeName
-              << " in the led modes mentioned."
-              << " Using the first mode as startup."
-              << std::endl;
+               << " startup mode name: "
+               << startupModeName
+               << " in the led modes mentioned."
+               << " Using the first mode as startup."
+               << std::endl;
         this->dataPtr->startupLedMode =
-          this->dataPtr->allLedModes.front();
-      }
-      else
-      {
-        this->dataPtr->startupLedMode = *(startupModeIter);
+          this->dataPtr->allLedModes.begin()->second;
       }
     }
     else
@@ -523,7 +517,7 @@ void LedPlugin::Configure(
             << " mentioned. Using the first"
             << " mode as startup." << std::endl;
       this->dataPtr->startupLedMode =
-        this->dataPtr->allLedModes.front();
+        this->dataPtr->allLedModes.begin()->second;
     }
   }
   else
@@ -855,9 +849,6 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
   std::lock_guard<std::mutex> lock(this->mutex);
 
   std::string requestedModeName = _msg.data();
-  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] received request"
-        << " to change mode to: "
-        << requestedModeName << std::endl;
 
   // Case-insensitive comparison
   std::string requestedModeNameLower = requestedModeName;
@@ -878,47 +869,36 @@ void LedPluginPrivate::OnLedModeChange(const msgs::StringMsg &_msg)
     return;
   }
 
-  // Case-insensitive search for the requested mode
-  auto ledModeIter = std::find_if(
-    this->allLedModes.begin(),
-    this->allLedModes.end(),
-    [&](const LedMode &_mode)
-    {
-      std::string modeNameLower = _mode.name;
-      std::transform(
-        modeNameLower.begin(), modeNameLower.end(),
-        modeNameLower.begin(), ::tolower);
-      return modeNameLower == requestedModeNameLower;
-    });
+    gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Received request"
+          << " to change led mode from: "
+          << this->currentLedMode.name
+          << " to: " << requestedModeName
+          << std::endl;
 
-  // If the requested mode was not found
-  if (ledModeIter == this->allLedModes.end())
+  // Case-insensitive search for the requested mode
+  try
+  {
+    this->currentLedMode = this->allLedModes.at(requestedModeNameLower);
+    this->currentModeStepIdx = 0;
+    this->cycleStartTime = std::chrono::duration<double>::zero();
+    this->ledsOff = false;
+    gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Current"
+          << " led mode set to: "
+          << this->currentLedMode.name << std::endl;
+
+    // Setting LEDs as not ready as we want them
+    // to be reset after a mode change
+    // This is done because we cannot directly reset
+    // the LEDs from here as ECM is required
+    this->ledsReady = false;
+  }
+  catch (const std::out_of_range& e)
   {
     gzerr << "[LED PLUGIN] Requested LED Mode: "
           << requestedModeName
-          << " was not described" << std::endl;
+          << " was not found" << std::endl;
     return;
   }
-
-  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Changing"
-        << " led mode from: "
-        << this->currentLedMode.name
-        << " to: " << ledModeIter->name
-        << std::endl;
-
-  this->currentLedMode = *(ledModeIter);
-  this->currentModeStepIdx = 0;
-  this->cycleStartTime = std::chrono::duration<double>::zero();
-  this->ledsOff = false;
-  gzdbg << "[LED PLUGIN] [ON MODE CHANGE] Current"
-        << " led mode set to: "
-        << this->currentLedMode.name << std::endl;
-
-  // Setting LEDs as not ready as we want them
-  // to be reset after a mode change
-  // This is done because we cannot directly reset
-  // the LEDs from here as ECM is required
-  this->ledsReady = false;
 }
 
 /////////////////////////////////////////////////
