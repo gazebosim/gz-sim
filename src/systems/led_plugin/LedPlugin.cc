@@ -616,20 +616,22 @@ void LedPlugin::PreUpdate(
       // Set the visual properties if the visual entity is not null
       try
       {
-        if (this->dataPtr->allLedsInGroup.at(ledName).ledVisualEntity != kNullEntity)
+        if (this->dataPtr->allLedsInGroup.at(
+          ledName).ledVisualEntity != kNullEntity)
         {
           this->dataPtr->SetVisualProperties(
-            this->dataPtr->allLedsInGroup.at(ledName)
-              .ledVisualEntity,
+            this->dataPtr->allLedsInGroup.at(
+              ledName).ledVisualEntity,
             _ecm, currentLedModeStep.ledColor);
         }
 
         // Set the light properties if the light entity is not null
-        if (this->dataPtr->allLedsInGroup.at(ledName).ledLightEntity != kNullEntity)
+        if (this->dataPtr->allLedsInGroup.at(
+          ledName).ledLightEntity != kNullEntity)
         {
           this->dataPtr->SetLightProperties(
-            this->dataPtr->allLedsInGroup.at(ledName)
-              .ledLightEntity,
+            this->dataPtr->allLedsInGroup.at(
+              ledName).ledLightEntity,
             _ecm, currentLedModeStep.ledColor,
             currentLedModeStep.lightIntensity);
         }
