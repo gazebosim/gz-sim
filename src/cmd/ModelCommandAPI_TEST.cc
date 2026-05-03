@@ -85,6 +85,11 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
   EXPECT_EQ(expectedOutput, output);
 }
 
+// TODO(luca)
+// This unit tests currently fails because Each calls are _not_ guaranteed to be
+// executed in increasing order of entity, which this test expects.
+// Either change the test or have an API that runs on sorted entities.
+
 /////////////////////////////////////////////////
 // Tests `gz model` command.
 TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))

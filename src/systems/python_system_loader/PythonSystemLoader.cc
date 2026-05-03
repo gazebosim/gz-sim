@@ -32,6 +32,10 @@
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
+// Include all components known at compile time so that they get registered in
+// the ComponentPybindRegistry
+#include "gz/sim/components/components.hh"
+
 namespace py = pybind11;
 
 
@@ -135,10 +139,11 @@ void PythonSystemLoader::Configure(
   {
     try
     {
-      // _ecm and _eventMgr are passed in as pointers so pybind11 would use the
-      // write `return_value_policy`. Otherwise, it would use
-      // `return_value_policy = copy`.
-      this->pythonSystem.attr("configure")(_entity, _sdf, &_ecm, &_eventMgr);
+      // Cache the Python object for the EntityComponentManager. This avoids
+      // dynamically allocating and creating fresh Python wrappers for C++
+      // pointers on every single simulation step.
+      this->pyEcm = py::cast(&_ecm, py::return_value_policy::reference);
+      this->pythonSystem.attr("configure")(_entity, _sdf, this->pyEcm, &_eventMgr);
     }
     catch (const pybind11::error_already_set &_err)
     {
@@ -194,36 +199,76 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args &&..._args)
 void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
                                    EntityComponentManager &_ecm)
 {
-  // Add explicit scoped acquire and release of GIL, so that Python
-  // Systems can be executed.This acquire and release is only required
-  // from the PythonSystem code
-  py::gil_scoped_acquire gil;
-  CallPythonMethod(this->preUpdateMethod, _info, &_ecm);
+  (void)_ecm;
+  if (!this->preUpdateMethod)
+    return;
+
+  if (!this->pyInfo)
+  {
+    this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
+  }
+
+
+  CallPythonMethod(this->preUpdateMethod, this->pyInfo, this->pyEcm);
 }
 
 //////////////////////////////////////////////////
 void PythonSystemLoader::Update(const UpdateInfo &_info,
                                 EntityComponentManager &_ecm)
 {
-  py::gil_scoped_acquire gil;
-  CallPythonMethod(this->updateMethod, _info, &_ecm);
+  (void)_ecm;
+  if (!this->updateMethod)
+    return;
+
+  if (!this->pyInfo)
+  {
+    this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
+  }
+
+
+  CallPythonMethod(this->updateMethod, this->pyInfo, this->pyEcm);
 }
 
 //////////////////////////////////////////////////
 void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
                                     const EntityComponentManager &_ecm)
 {
+  if (!this->postUpdateMethod)
+    return;
+
+  if (!this->pyInfo)
+  {
+    this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
+  }
+
+  if (!this->pyConstEcm)
+  {
+    this->pyConstEcm = py::cast(&_ecm, py::return_value_policy::reference);
+  }
+
   py::gil_scoped_acquire gil;
-  CallPythonMethod(this->postUpdateMethod, _info, &_ecm);
+  CallPythonMethod(this->postUpdateMethod, this->pyInfo, this->pyConstEcm);
 }
+
 //////////////////////////////////////////////////
 void PythonSystemLoader::Reset(const UpdateInfo &_info,
                                EntityComponentManager &_ecm)
 {
+  (void)_ecm;
+  if (!this->resetMethod)
+    return;
+
+  if (!this->pyInfo)
+  {
+    this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
+  }
+
   py::gil_scoped_acquire gil;
-  CallPythonMethod(this->resetMethod, _info, &_ecm);
+  CallPythonMethod(this->resetMethod, this->pyInfo, this->pyEcm);
 }
 
+// GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
+//               ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
-              ISystemUpdate, ISystemPostUpdate, ISystemReset)
+              ISystemUpdate, ISystemReset)
 GZ_ADD_PLUGIN_ALIAS(PythonSystemLoader, "gz::sim::systems::PythonSystemLoader")
