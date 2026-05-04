@@ -56,7 +56,6 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
         message(STATUS "\n-------- Debugging glxinfo --------\n")
         execute_process(
           COMMAND glxinfo
-          COMMAND grep -C 5 "direct rendering"
           OUTPUT_VARIABLE GLX2
         )
         message(STATUS "glxinfo ${GLX2}")
