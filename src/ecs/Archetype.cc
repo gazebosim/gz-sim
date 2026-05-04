@@ -7,6 +7,24 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  */
+
+// Archetype — owner of one component-type set's chunked SoA storage.
+//
+// An archetype groups every entity that has *exactly* the same set of
+// component types. It owns:
+//   * The sorted, deduplicated list of `ComponentTypeId`s that defines
+//     the group.
+//   * Per-column byte offsets within a chunk, computed once at
+//     construction by `ComputeColumnLayout` (alignment-aware).
+//   * A list of chunks (16 KiB each by default), filled in order;
+//     allocation spills into a fresh chunk when the last one is full.
+//   * Change-tracking dirty bits, packed one bit per (row, column).
+//
+// The hot operation is `SwapRemove`: when an entity is destroyed or
+// moved to a different archetype, its row is overwritten by the
+// archetype's last row and the row counter shrinks. This keeps the
+// chunks dense (no holes) so iteration stays branch-free, at the cost
+// of one entity-index patch on the entity that was relocated.
 #include "gz/sim/ecs/detail/Archetype.hh"
 
 #include <algorithm>
@@ -18,6 +36,13 @@
 
 namespace gz::sim::ecs
 {
+  // The constructor establishes the chunk layout exactly once. After
+  // this runs, a row is just `chunk.bytes + col_offsets_[col] + row *
+  // info->size` — no per-access computation.
+  //
+  // Type vector invariant: sorted ascending and deduplicated. The
+  // ArchetypeGraph guarantees this, but we assert it here as well so
+  // a buggy caller fails loudly in debug builds.
   Archetype::Archetype(ArchetypeId _id,
                        std::vector<ComponentTypeId> _types,
                        std::vector<const ComponentTypeInfo *> _infos,
@@ -28,13 +53,16 @@ namespace gz::sim::ecs
       chunk_size_(_chunk_size)
   {
     assert(this->types_.size() == this->infos_.size());
-    // Types must be sorted for archetype equality.
     for (size_t i = 1; i < this->types_.size(); ++i)
       assert(this->types_[i - 1] < this->types_[i]);
 
     auto layout = detail::ComputeColumnLayout(this->infos_, _chunk_size);
     if (layout.capacity == 0)
     {
+      // A single row didn't fit in `_chunk_size` bytes after alignment.
+      // The default chunk size (16 KiB) handles every realistic
+      // component set; if a user component is large enough to trip
+      // this they need a bigger chunk size.
       throw std::runtime_error(
           "Archetype: row too large for configured chunk size");
     }
@@ -47,9 +75,12 @@ namespace gz::sim::ecs
     this->row_size_ = row_bytes;
   }
 
+  // Chunks own raw bytes — they don't know which columns they hold or
+  // how to destruct them. The archetype carries that knowledge, so it
+  // is responsible for destructing every live row before the chunk's
+  // storage is freed.
   Archetype::~Archetype()
   {
-    // Destruct everything still live in each chunk.
     for (auto &chunk_ptr : this->chunks_)
     {
       Chunk &chunk = *chunk_ptr;
@@ -65,6 +96,10 @@ namespace gz::sim::ecs
     }
   }
 
+  // Find the column index for `_id`. Returns `(size_t)-1` if this
+  // archetype doesn't carry that type. Binary search on the sorted
+  // type vector — typically 4–10 types per archetype, so this is a
+  // handful of comparisons.
   size_t Archetype::ColumnIndexOf(ComponentTypeId _id) const
   {
     auto it = std::lower_bound(
@@ -74,11 +109,17 @@ namespace gz::sim::ecs
     return static_cast<size_t>(it - this->types_.begin());
   }
 
+  // True when this archetype's type set includes `_id`.
   bool Archetype::Contains(ComponentTypeId _id) const
   {
     return this->ColumnIndexOf(_id) != static_cast<size_t>(-1);
   }
 
+  // Reserve a row in some chunk and return `(chunk_idx, row)` for
+  // the caller to populate. Walks the existing chunks in order
+  // looking for a non-full one; allocates a new chunk if none has
+  // space. The fresh chunk gets its dirty-bit bitset sized to
+  // `(rows * columns + 63) / 64` 64-bit words.
   std::pair<uint32_t, uint32_t> Archetype::AcquireRow()
   {
     for (size_t i = 0; i < this->chunks_.size(); ++i)
@@ -90,11 +131,9 @@ namespace gz::sim::ecs
       }
     }
 
-    // Spill to a fresh chunk.
     auto chunk = std::make_unique<Chunk>(
         this->chunk_size_, this->chunk_capacity_);
 
-    // Allocate dirty bits: one bit per (row, column).
     size_t words_per_col = (this->chunk_capacity_ + 63) / 64;
     chunk->AllocDirtyBits(words_per_col * this->infos_.size());
 
@@ -103,6 +142,9 @@ namespace gz::sim::ecs
     return {static_cast<uint32_t>(this->chunks_.size() - 1), row};
   }
 
+  // Run every column's destructor on the (chunk, row) tuple. Does
+  // not adjust the chunk's row count — `SwapRemove` calls this and
+  // then decides whether to pop the row or fill it with the last row.
   void Archetype::DestructRow(uint32_t _chunk_idx, uint32_t _row)
   {
     Chunk &chunk = *this->chunks_[_chunk_idx];
@@ -114,26 +156,36 @@ namespace gz::sim::ecs
     }
   }
 
+  // Remove a row by overwriting it with the chunk's last row, then
+  // shrinking the row count by one. Returns the entity that was
+  // relocated (so the caller can patch the entity index), or
+  // `kNullEntity` when the removed row was already the last.
+  //
+  // Why "swap" instead of "shift": shifting is O(n) per remove;
+  // swap-with-last is O(1) and keeps the chunks dense for the linear
+  // iteration that the `Each` hot loop depends on. The order within
+  // a chunk is not user-visible, so reordering is allowed.
   Entity Archetype::SwapRemove(uint32_t _chunk_idx, uint32_t _row)
   {
     Chunk &chunk = *this->chunks_[_chunk_idx];
     assert(chunk.Count() > _row);
 
-    // Destruct the removed row first.
+    // The removed row's component values are destroyed unconditionally;
+    // no slot reuse without explicit re-construction.
     this->DestructRow(_chunk_idx, _row);
 
     uint32_t last = chunk.Count() - 1;
     if (_row == last)
     {
-      // Just pop.
+      // The removed row was already the tail — nothing to relocate.
       chunk.SetCount(last);
-      // Zero entity slot defensively.
       chunk.Entities()[last] = kNullEntity;
       return kNullEntity;
     }
 
-    // Move the last row's columns into the victim's place. Use memcpy for
-    // trivially relocatable types, move-construct otherwise.
+    // Move every column's last-row value into the now-empty victim
+    // slot. Trivially relocatable types use a raw memcpy; others go
+    // through the user-supplied move-construct + destruct pair.
     Entity moved = chunk.Entities()[last];
     chunk.Entities()[_row] = moved;
 
@@ -160,6 +212,7 @@ namespace gz::sim::ecs
     return moved;
   }
 
+  // Sum live-row counts across this archetype's chunks. O(num_chunks).
   size_t Archetype::TotalRows() const
   {
     size_t n = 0;
@@ -167,11 +220,17 @@ namespace gz::sim::ecs
     return n;
   }
 
+  // Layout helper: how many 64-bit words of dirty bits each column
+  // occupies, given `chunk_capacity_` rows. Used for indexing into the
+  // packed bitset.
   size_t Archetype::DirtyWordsPerColumn() const
   {
     return (this->chunk_capacity_ + 63) / 64;
   }
 
+  // Bulk-zero the dirty bits across every chunk in this archetype.
+  // Called once per simulation step from `World::ClearChangeBits`,
+  // typically after PostUpdate's `Commit`.
   void Archetype::ClearDirtyBits()
   {
     for (auto &chunk_ptr : this->chunks_)
@@ -185,6 +244,10 @@ namespace gz::sim::ecs
     }
   }
 
+  // Set the dirty bit for one (column, row) within a specific chunk.
+  // The bitset is laid out as `[col0_words..., col1_words..., ...]`
+  // where each block is `DirtyWordsPerColumn()` words long; row i
+  // within a column lives at word `i / 64`, bit `i % 64`.
   void Archetype::MarkDirty(size_t _col_idx,
                             uint32_t _chunk_idx,
                             uint32_t _row)
@@ -199,6 +262,9 @@ namespace gz::sim::ecs
     bits[word] |= mask;
   }
 
+  // Test the dirty bit for one (column, row). Mirror of MarkDirty.
+  // Used by `EachChanged` to skip rows whose value didn't change this
+  // step.
   bool Archetype::IsDirty(size_t _col_idx,
                           uint32_t _chunk_idx,
                           uint32_t _row) const
