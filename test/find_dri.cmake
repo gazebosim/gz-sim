@@ -53,6 +53,14 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
         set(VALID_DRI_DISPLAY TRUE)
       else()
         set(CHECKER_ERROR "using glxinfo")
+        message(STATUS "\n-------- Debugging glxinfo --------\n")
+        execute_process(
+          COMMAND glxinfo
+          COMMAND grep -C 5 "direct rendering"
+          OUTPUT_VARIABLE GLX2
+        )
+        message(STATUS "glxinfo ${GLX2}")
+        message(STATUS "\n-------- Debugging glxinfo --------\n")
       endif()
     else()
       message(STATUS
