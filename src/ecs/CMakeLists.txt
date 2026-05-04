@@ -95,39 +95,6 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-# Benchmarks, built on demand with -DGZ_SIM_ECS_BENCH=ON.
-if(GZ_SIM_ECS_BENCH)
-  set(ECS_BENCH_SOURCES
-    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_iteration.cc
-    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_transitions.cc
-    ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_parallel.cc
-  )
-  foreach(bench_src ${ECS_BENCH_SOURCES})
-    get_filename_component(bench_name ${bench_src} NAME_WE)
-    if(EXISTS ${bench_src})
-      add_executable(${bench_name} ${bench_src})
-      target_link_libraries(${bench_name} PRIVATE gz-sim-ecs pthread)
-      target_include_directories(${bench_name} PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/benchmark/ecs)
-      target_compile_options(${bench_name} PRIVATE -O3 -DNDEBUG)
-    endif()
-  endforeach()
-
-  # Head-to-head bench vs the classic EntityComponentManager. Declared here,
-  # linked against the main gz-sim library. The main library target is
-  # created later in src/CMakeLists.txt; CMake resolves the link at
-  # generation time, so the forward reference is fine.
-  set(vs_ecm_src ${PROJECT_SOURCE_DIR}/benchmark/ecs/bench_vs_ecm.cc)
-  if(EXISTS ${vs_ecm_src})
-    add_executable(bench_vs_ecm ${vs_ecm_src})
-    target_link_libraries(bench_vs_ecm PRIVATE
-      gz-sim-ecs
-      gz-sim
-      pthread)
-    target_include_directories(bench_vs_ecm PRIVATE
-      ${CMAKE_CURRENT_SOURCE_DIR}
-      ${PROJECT_SOURCE_DIR}/benchmark/ecs)
-    target_compile_options(bench_vs_ecm PRIVATE -O3 -DNDEBUG)
-  endif()
-endif()
+# Archetype-ECS microbenches live under test/benchmark/ alongside the
+# rest of the gz-sim benchmarks; they are built when
+# GZ_SIM_ARCHETYPE_ECM=ON.
