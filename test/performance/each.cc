@@ -125,13 +125,21 @@ TEST(EntityComponentManagerPerfrormance, Each)
         static_cast<double>(eachIterations);
       double cachelessEntityAvg = cachelessIterAvg / matchingEntityCount;
 
-      // Under the archetype ECM, the legacy view-cache is a no-op:
-      // both Each and EachNoCache resolve to the same self-invalidating
-      // archetype walk, so the relative-timing premise of the test no
-      // longer holds. Replace it with an absolute-throughput floor.
-      // See docs/design/0b-test-failures.md §29 for the full rationale.
+#if defined(GZ_SIM_USE_ARCHETYPE_ECM)
+      // Under the archetype ECM, both Each and EachNoCache resolve to
+      // the same self-invalidating archetype walk — there is no view
+      // cache, so the legacy "cached should beat cacheless" assertion
+      // can't pass. Substitute an absolute throughput floor instead.
+      // See doc/archetype_ecs_architecture.md ("Performance" section)
+      // for the full rationale.
       const double kPerEntityCeilingNs = 5000.0;
       EXPECT_LT(cacheEntityAvg, kPerEntityCeilingNs)
+#else
+      // Legacy ECM: the cached `Each` path uses a view cache and is
+      // expected to beat `EachNoCache`. Regression-guards the cache
+      // implementation.
+      EXPECT_LT(cacheEntityAvg, cachelessEntityAvg)
+#endif
         << "Matching Entity Count =\t\t"
         << matchingEntityCount << "\n"
         << "Nonmatching Entity Count =\t" << nonmatchingEntityCount << "\n"
