@@ -629,11 +629,7 @@ void SimulationRunner::UpdateSystems()
     return;
   }
 
-  // Phase 0c: explicit phase boundaries on the ECM. These are no-ops
-  // under the legacy backend and the immediate-mode archetype facade
-  // today, but provide the wiring point for the 0e flip to deferred
-  // semantics. See docs/design/phase-0c-system-port.md §4.0 and
-  // EntityComponentManager::BeginPhase / CommitPhase.
+  // Explicit phase boundaries on the ECM.
   {
     GZ_PROFILE("PreUpdate");
     this->entityCompMgr.BeginPhase();

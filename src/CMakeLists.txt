@@ -6,8 +6,8 @@ endif()
 
 add_subdirectory(systems)
 
-# Phase 0a: standalone archetype ECS core library (gz-sim-ecs).
-# Built but not linked into libgz-sim yet — 0b flips that.
+# Standalone archetype ECS core library (gz-sim-ecs).
+# Built but not linked into libgz-sim yet.
 add_subdirectory(ecs)
 
 file(GLOB gz_msgs_proto_files
@@ -104,9 +104,9 @@ set (sources
   ${material_sources}
 )
 
-# Phase 0b: pick the EntityComponentManager backend. Exactly one .cc is
-# compiled per build — legacy or archetype — per design doc §3.1. The
-# legacy .cc is left byte-identical; archetype backend uses a parallel
+# Pick the EntityComponentManager backend. Exactly one .cc is
+# compiled per build — legacy or archetype. The legacy .cc is
+# left byte-identical; archetype backend uses a parallel
 # implementation file plus a tiny stubs file for the accessor symbols.
 if(GZ_SIM_ARCHETYPE_ECM)
   list(APPEND sources EntityComponentManagerArchetype.cc)
@@ -223,7 +223,7 @@ if(ENABLE_GUI)
   )
 endif()
 
-# Phase 0b: link the archetype ECS core when the archetype backend is
+# Link the archetype ECS core when the archetype backend is
 # selected. Under the legacy backend, gz-sim-ecs is still built (by
 # src/ecs/CMakeLists.txt) for its own tests + benchmarks, but isn't
 # linked into libgz-sim.

@@ -35,7 +35,7 @@
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
 #include "gz/sim/Entity.hh"
-#include "gz/sim/ecs/Entity.hh"  // gz::sim::ecs::Entity (small; no STL)
+#include "gz/sim/ecs/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
@@ -53,7 +53,7 @@ namespace gz
     class EntityComponentManagerDiff;
     class EntityComponentManager;
     }
-    // Forward-declare the archetype core world so the accessor below
+    // Forward-declare the core world so the accessor below
     // doesn't force callers to include all the ecs headers. Defined
     // in gz/sim/ecs/World.hh. (ecs::Entity is already visible via the
     // small include above.)
@@ -721,22 +721,29 @@ namespace gz
       /// queue into the per-phase command buffer instead of applying
       /// immediately. The queue drains at the next CommitPhase().
       ///
-      /// Today (Gazebo Sim 11.x), the legacy ECM and the archetype
-      /// facade both treat this as a no-op — the archetype backend
-      /// runs in immediate-mutation mode for compatibility while the
-      /// in-tree systems are audited (Phase 0c). The methods exist so
-      /// the SimulationRunner phase-boundary plumbing is ready for the
-      /// 0e flip; new code should call them at phase entry/exit even
-      /// though the deferred behavior isn't active yet.
+      /// **Plugin authors should not call this.** `SimulationRunner`
+      /// brackets each system phase (PreUpdate / Update / PostUpdate)
+      /// with `BeginPhase()` / `CommitPhase()` automatically. The
+      /// method is exposed publicly so alternative runners and tests
+      /// that drive the ECM directly can establish the same phase
+      /// boundaries; from inside a system callback the window is
+      /// already open.
       ///
-      /// See `docs/design/phase-0c-system-port.md` §4.0 for the
-      /// migration plan and `Migration.md` for the pointer-validity
-      /// contract callers should follow.
+      /// Today the legacy ECM and the archetype facade both treat
+      /// this as a no-op — the archetype backend runs in immediate-
+      /// mutation mode for compatibility while the in-tree systems
+      /// are audited. The hook exists so the centralized phase-
+      /// boundary plumbing is ready when the deferred-semantics
+      /// flip lands; until then it has no observable effect.
       public: void BeginPhase();
 
       /// \brief End-of-phase commit. Drains the per-phase command
       /// buffer (when active) and bumps the chunk generation, after
       /// which any cached `Component<T>(e)` pointers are invalidated.
+      ///
+      /// As with `BeginPhase()`, plugin code should not invoke this
+      /// directly; `SimulationRunner` does it at every phase
+      /// boundary.
       public: void CommitPhase();
 
       /// Compute the diff between this EntityComponentManager and _other at the
