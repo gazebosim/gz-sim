@@ -57,8 +57,9 @@ if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
         execute_process(
           COMMAND glxinfo
           OUTPUT_VARIABLE GLX2
+          ERROR_VARIABLE GLX2_ERROR
         )
-        message(STATUS "glxinfo ${GLX2}")
+        message(STATUS "glxinfo ${GLX2}\n${GLX2_ERROR")
         message(STATUS "\n-------- Debugging glxinfo --------\n")
       endif()
     else()
