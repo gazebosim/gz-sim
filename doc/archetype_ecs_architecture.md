@@ -351,6 +351,39 @@ host is expected — bandwidth-bound trivial lambdas don't keep that
 many cores fed; compute-bound system bodies (integration, control
 loops) scale closer to linear.
 
+### Entity creation is slower
+
+Per-call entity creation is *slower* under the archetype backend —
+about 2.6× slower than the legacy ECM at 1M entities. Each
+`Create` / `CreateComponent` pair has to:
+
+- sort and deduplicate the component-type pack so the archetype
+  hash key is canonical,
+- look up the destination archetype (and on first sighting of a
+  type set, allocate the archetype, compute the column layout,
+  size the dirty-bit bitset, and bump the query-cache version
+  counter),
+- reserve a row, then placement-construct each component at its
+  precomputed column offset.
+
+The legacy ECM does almost none of that — it hash-inserts each
+component into its own per-type map. The archetype trades that
+simpler write path for the cache-friendly read path that wins back
+8–50× during iteration.
+
+Why this is acceptable in practice:
+
+- World load and level load happen once. Iteration runs every
+  PreUpdate / Update / PostUpdate — typically ~1000 times per
+  simulated second.
+- The expensive parts amortize. Layout computation and dirty-bit
+  allocation only fire on the *first* create into a new archetype.
+  The 200th wheeled robot lands in an existing archetype and pays
+  only the per-row append cost.
+- Real spawn patterns batch — SDF model loads and level loads
+  produce groups of entities sharing the same component set, which
+  is exactly the case where the archetype lookup is a hash hit.
+
 ## File layout
 
 Public headers (the archetype core's surface):
