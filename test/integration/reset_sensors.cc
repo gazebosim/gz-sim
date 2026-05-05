@@ -17,19 +17,16 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/fluid_pressure.pb.h>
-#include <gz/msgs/world_control.pb.h>
 
+#include <chrono>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <sdf/Element.hh>
 #include <sdf/Root.hh>
 #include <gz/common/Image.hh>
-#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
@@ -41,10 +38,12 @@
 
 #include "plugins/MockSystem.hh"
 #include "helpers/EnvTestFixture.hh"
+#include "helpers/ResetUtils.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+namespace reset = gz::sim::test::reset;
 
 constexpr double kStartingAltitude = 100.0f;
 constexpr double kStartingPressure = 100129.46;
@@ -74,58 +73,6 @@ class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
 
   private: sim::SystemLoader sm;
 };
-
-template <typename T>
-struct MsgReceiver
-{
-  std::string topic;
-  std::mutex msgMutex;
-  T lastMsg;
-  transport::Node node;
-
-  std::atomic<bool> msgReceived = {false};
-  std::atomic<unsigned int> msgCount = 0;
-
-  void Start(const std::string &_topic) {
-    this->msgReceived = false;
-    this->node.Subscribe(_topic, &MsgReceiver<T>::Callback, this);
-    this->topic = _topic;
-  }
-
-  void Stop() {
-    this->node.Unsubscribe(this->topic);
-  }
-
-  void Callback(const T &_msg) {
-    std::lock_guard<std::mutex> lk(this->msgMutex);
-    this->lastMsg = _msg;
-    this->msgReceived = true;
-    this->msgCount++;
-  }
-
-  T Last() {
-    std::lock_guard<std::mutex> lk(this->msgMutex);
-    return this->lastMsg;
-  }
-};
-
-/////////////////////////////////////////////////
-void worldReset()
-{
-  gz::msgs::WorldControl req;
-  gz::msgs::Boolean rep;
-  req.mutable_reset()->set_all(true);
-  transport::Node node;
-
-  unsigned int timeout = 1000;
-  bool result;
-  bool executed =
-    node.Request("/world/default/control", req, timeout, rep, result);
-
-  ASSERT_TRUE(executed);
-  ASSERT_TRUE(result);
-  ASSERT_TRUE(rep.data());
-}
 
 common::Image toImage(const msgs::Image &_msg)
 {
@@ -169,8 +116,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   auto topic = "world/default/model/box/link/link/"
       "sensor/air_pressure_sensor/air_pressure";
 
-  auto pressureReceiver = MsgReceiver<msgs::FluidPressure>();
-  auto imageReceiver = MsgReceiver<msgs::Image>();
+  auto pressureReceiver = reset::MsgReceiver<msgs::FluidPressure>();
+  auto imageReceiver = reset::MsgReceiver<msgs::Image>();
 
   // A pointer to the ecm. This will be valid once we run the mock system
   sim::EntityComponentManager *ecm = nullptr;
@@ -215,22 +162,22 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   auto target = 2000u;
 
   // Run until a sensor measurement
-  pressureReceiver.Start(topic);
-  imageReceiver.Start("camera");
-  while (!pressureReceiver.msgReceived)
-  {
-    // Step once to get sensor to output measurement
-    server.Run(true, 1, false);
-  }
+  ASSERT_TRUE(pressureReceiver.Start(topic));
+  ASSERT_TRUE(imageReceiver.Start("camera"));
+  ASSERT_TRUE(reset::StepUntil(server, target,
+      [&pressureReceiver]()
+      {
+        return pressureReceiver.Received();
+      }));
 
   EXPECT_GE(server.IterationCount().value(), current);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  while (!imageReceiver.msgReceived)
-  {
-    // Step once to get sensor to output measurement
-    server.Run(true, 1, false);
-  }
+  ASSERT_TRUE(reset::StepUntil(server, target,
+      [&imageReceiver]()
+      {
+        return imageReceiver.Received();
+      }));
 
   // Mostly green box
   {
@@ -241,9 +188,14 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FLOAT_EQ(0.0, centerPix.B());
   }
   // Run until 2000 steps
-  pressureReceiver.msgReceived = false;
-  imageReceiver.msgReceived = false;
+  pressureReceiver.ClearReceived();
+  imageReceiver.ClearReceived();
   server.Run(true, target - server.IterationCount().value(), false);
+  ASSERT_TRUE(reset::WaitUntil(5s,
+      [&pressureReceiver, &imageReceiver]()
+      {
+        return pressureReceiver.Received() && imageReceiver.Received();
+      }));
 
   // Check iterator state
   EXPECT_EQ(target, server.IterationCount().value());
@@ -254,8 +206,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_EQ(target, this->mockSystem->postUpdateCallCount);
 
   // Check world state
-  EXPECT_TRUE(pressureReceiver.msgReceived);
-  EXPECT_TRUE(imageReceiver.msgReceived);
+  EXPECT_TRUE(pressureReceiver.Received());
+  EXPECT_TRUE(imageReceiver.Received());
   EXPECT_FLOAT_EQ(kEndingAltitude, poseComp->Data().Z());
   EXPECT_FLOAT_EQ(kEndingPressure, pressureReceiver.Last().pressure());
 
@@ -270,26 +222,29 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   // wait until expected no. of messages are received.
   // sim runs for 2000 iterations with camera at 10 Hz + 1 msg at t=0
-  while (imageReceiver.msgCount < 21)
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  ASSERT_TRUE(reset::WaitUntil(5s,
+      [&imageReceiver]()
+      {
+        return imageReceiver.Count() >= 21u;
+      }));
 
   // Send command to reset to initial state
-  worldReset();
+  reset::RequestWorldReset("default");
 
   // It takes two iterations for this to propagate,
   // the first is for the message to be received and internal state setup
-  server.Run(true, 1, false);
+  reset::ConsumeResetRequest(server);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
   EXPECT_EQ(0u, this->mockSystem->resetCallCount);
   EXPECT_EQ(target + 1, this->mockSystem->preUpdateCallCount);
   EXPECT_EQ(target + 1, this->mockSystem->updateCallCount);
   EXPECT_EQ(target + 1, this->mockSystem->postUpdateCallCount);
 
-  imageReceiver.msgReceived = false;
-  pressureReceiver.msgReceived = false;
+  imageReceiver.ClearReceived();
+  pressureReceiver.ClearReceived();
 
   // The second iteration is where the reset actually occurs.
-  server.Run(true, 1, false);
+  reset::ApplyWorldReset(server);
   {
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(1u, this->mockSystem->resetCallCount);
@@ -302,26 +257,26 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FLOAT_EQ(kStartingAltitude, poseComp->Data().Z());
 
     // Reset does not cause messages to be sent
-    EXPECT_FALSE(imageReceiver.msgReceived);
-    EXPECT_FALSE(pressureReceiver.msgReceived);
+    EXPECT_FALSE(imageReceiver.Received());
+    EXPECT_FALSE(pressureReceiver.Received());
   }
 
   current = 2001;
   target = 4001;
 
-  while (!pressureReceiver.msgReceived)
-  {
-    // Step once to get sensor to output measurement
-    server.Run(true, 1, false);
-  }
+  ASSERT_TRUE(reset::StepUntil(server, 2000u,
+      [&pressureReceiver]()
+      {
+        return pressureReceiver.Received();
+      }));
   EXPECT_GE(server.IterationCount().value(), 1u);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  while (!imageReceiver.msgReceived)
-  {
-    // Step once to get sensor to output measurement
-    server.Run(true, 1, false);
-  }
+  ASSERT_TRUE(reset::StepUntil(server, 2000u,
+      [&imageReceiver]()
+      {
+        return imageReceiver.Received();
+      }));
 
   // Mostly green box
   {
@@ -333,11 +288,15 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   }
 
   // Run until target steps
-  pressureReceiver.msgReceived = false;
-  imageReceiver.msgReceived = false;
+  pressureReceiver.ClearReceived();
+  imageReceiver.ClearReceived();
 
   server.Run(true, 2000 - server.IterationCount().value(), false);
-  std::this_thread::sleep_for(20ms);
+  ASSERT_TRUE(reset::WaitUntil(5s,
+      [&pressureReceiver, &imageReceiver]()
+      {
+        return pressureReceiver.Received() && imageReceiver.Received();
+      }));
 
   // Check iterator state
   EXPECT_EQ(2000u, server.IterationCount().value());
@@ -348,8 +307,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_EQ(target, this->mockSystem->postUpdateCallCount);
 
   // Check world state
-  EXPECT_TRUE(pressureReceiver.msgReceived);
-  EXPECT_TRUE(imageReceiver.msgReceived);
+  EXPECT_TRUE(pressureReceiver.Received());
+  EXPECT_TRUE(imageReceiver.Received());
   EXPECT_FLOAT_EQ(kEndingAltitude, poseComp->Data().Z());
   EXPECT_FLOAT_EQ(kEndingPressure, pressureReceiver.Last().pressure());
 

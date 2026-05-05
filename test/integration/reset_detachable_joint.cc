@@ -33,9 +33,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/contacts.pb.h>
-#include <gz/msgs/world_control.pb.h>
 
 #include <string>
 #include <vector>
@@ -44,7 +42,6 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Entity.hh"
@@ -69,10 +66,12 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "helpers/ResetUtils.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+namespace reset = gz::sim::test::reset;
 
 /// \brief Name of the arm model
 constexpr const char* kArmName = "simple_arm";
@@ -261,25 +260,6 @@ class ResetDetachableJointTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-/// \brief Reset the simulation world via transport
-void worldReset()
-{
-  gz::msgs::WorldControl req;
-  gz::msgs::Boolean rep;
-  req.mutable_reset()->set_all(true);
-  transport::Node node;
-
-  unsigned int timeout = 1000;
-  bool result;
-  bool executed =
-    node.Request("/world/default/control", req, timeout, rep, result);
-
-  ASSERT_TRUE(executed);
-  ASSERT_TRUE(result);
-  ASSERT_TRUE(rep.data());
-}
-
-/////////////////////////////////////////////////
 TEST_F(ResetDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {
   this->StartServer("/test/worlds/reset_detachable_joint.sdf");
@@ -288,14 +268,14 @@ TEST_F(ResetDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   ASSERT_FALSE(this->system->errorLogged);
 
   // First Reset
-  worldReset();
-  this->server->Run(true, 5000, false);
+  reset::RequestAndApplyWorldReset(*this->server, "default");
+  this->server->Run(true, 4998, false);
   ASSERT_TRUE(this->system->didReset);
   ASSERT_FALSE(this->system->errorLogged);
 
   // Second Reset
-  worldReset();
-  server->Run(true, 1000, false);
+  reset::RequestAndApplyWorldReset(*this->server, "default");
+  server->Run(true, 998, false);
   ASSERT_TRUE(this->system->didReset);
   ASSERT_FALSE(this->system->errorLogged);
 }
