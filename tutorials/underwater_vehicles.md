@@ -87,11 +87,11 @@ There's a total of `148.3571` kg (`147.8671` + `0.2` + `0.2` + `0.09` kgs) when
 we add the mass of the chassis, fins and propeller. The buoyancy force is
 proportional the volume of air in the vehicle according to this equation:
 
-$$volume\\_neutral = \frac{mass}{waterDensity}$$
+\f[volume\_neutral = \frac{mass}{waterDensity}\f]
 
 In our case:
 
-$$volume\\_neutral = \frac{148.3571}{1000} = 0.1483571$$
+\f[volume\_neutral = \frac{148.3571}{1000} = 0.1483571\f]
 
 That's the total volume of air that our vehicle should contain to keep the robot
 neutral. If the volume is smaller, the vehicle will sink. If the vehicle's
@@ -101,7 +101,7 @@ volume is bigger, it will move up. The buoyancy plugin uses all the
 Let's verify the total amount of air volume in our vehicle adding up the volumes
 of all the collision elements:
 
-$$volume = (2 * 0.3 * 0.2464451666666667) + (0.1 * 0.1 * 0.02) + (0.1 * 0.1 * 0.02) + (0.03 * 0.1 * 0.03) = 0.14835710000000002$$
+\f[volume = (2 * 0.3 * 0.2464451666666667) + (0.1 * 0.1 * 0.02) + (0.1 * 0.1 * 0.02) + (0.03 * 0.1 * 0.03) = 0.14835710000000002\f]
 
 This is the volume that we were looking for to achieve neutral buoyancy. Let's
 test it! Uncomment the lines in `model.sdf:18--24` to restore the buoyancy and
@@ -179,7 +179,7 @@ gz topic -t /model/my_lrauv/joint/propeller_joint/cmd_thrust -m gz.msgs.Double -
 We should see the model move. The thrusters are governed by the equation on
 page 246 of Fossen's book. In particular it relates force to rpm as follows:
 
-$$thrust = fluid\\_density * RPM^2 * thrust\\_constant * propeller\\_blade\\_size^4$$
+\f[thrust = fluid\_density * RPM^2 * thrust\_constant * propeller\_blade\_size^4\f]
 
 The plugin takes in commands in newtons. So if you have a different thrust
 curve you can still use the plugin with some type of adapter script. The thrust
@@ -196,19 +196,34 @@ this. For better understanding of the parameters here, I would refer you to
 his book. Usually these parameters can be found via fluid simulation programs or
 experimental tests in a water tub.
 
-Uncomment the following block from `buoyant_lrauv.sdf` to enable hydrodynamics.
+Hydrodynamics in Gazebo is split into two parts:
+
+1. **Added mass and Coriolis**: specified using the SDF `<fluid_added_mass>` tag
+   on the link's `<inertial>` element. The physics engine handles these
+   implicitly.
+2. **Damping (drag)**: specified using the Hydrodynamics plugin parameters.
+
+First, add the `<fluid_added_mass>` to the `base_link`'s `<inertial>` element
+in `model.sdf`:
+
+```xml
+<fluid_added_mass>
+  <xx>4.876161</xx>
+  <yy>126.324739</yy>
+  <zz>126.324739</zz>
+  <qq>33.46</qq>
+  <rr>33.46</rr>
+</fluid_added_mass>
+```
+
+Then, uncomment the following block from `buoyant_lrauv.sdf` to enable
+hydrodynamic damping:
 
 ```xml
 <plugin
 filename="gz-sim-hydrodynamics-system"
 name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-4.876161</xDotU>
-  <yDotV>-126.324739</yDotV>
-  <zDotW>-126.324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-33.46</mDotQ>
-  <nDotR>-33.46</nDotR>
   <xUabsU>-6.2282</xUabsU>
   <xU>0</xU>
   <yVabsV>-601.27</yVabsV>

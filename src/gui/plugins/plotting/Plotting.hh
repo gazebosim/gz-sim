@@ -138,7 +138,7 @@ class Plotting : public gz::sim::GuiSystem
   /// \brief Set the Component data of given id to the given
   /// physics properties
   /// \param [in] _Id Component Key of the components map
-  /// \param [in] _value physics Data to be set to the component
+  /// \param[in] _physics Physics data to be set to the component
   public: void SetData(std::string _Id, const sdf::Physics &_physics);
 
   /// \brief Set the Component data of given id to the given number

@@ -355,7 +355,7 @@ namespace gz
       /// \brief Reset all runners in this simulation
       public: void ResetAll();
       /// \brief Reset a specific runner in this server
-      /// \param[in] runnerId - The runner which you want to reset
+      /// \param[in] _runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
 

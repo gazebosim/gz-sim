@@ -65,7 +65,7 @@ namespace systems
   /// The default value is 30.
   ///
   /// - `<force_length>`: Length in meters of the forces visualized if
-  /// <visualize_forces> is set to true. This parameter is
+  /// `<visualize_forces>` is set to true. This parameter is
   /// optional, and the default value is 0.01.
   ///
   /// - `<extended_sensing>`: Extended sensing distance in meters. The sensor

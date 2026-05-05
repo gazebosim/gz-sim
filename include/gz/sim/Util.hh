@@ -244,7 +244,7 @@ namespace gz
     /// full system file path.
     /// The provided SDF filename may be a Fuel URI, relative path, name
     /// of an installed Gazebo world filename, or an absolute path.
-    /// \param[in] _sdfFile An SDF world filename such as:
+    /// \param[in] _sdfFilename An SDF world filename such as:
     ///    1. "shapes.sdf" - This is referencing an installed world file.
     ///    2. "../shapes.sdf" - This is referencing a relative world file.
     ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
@@ -361,7 +361,7 @@ namespace gz
     GZ_SIM_VISIBLE const std::string &staticPluginPrefixStr();
 
     /// \brief Check if input filename of a library is a static plugin or not.
-    /// \param _filename_ Library filename to check
+    /// \param _filename Library filename to check
     /// \return True if input filename has a static plugin string format.
     GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
 

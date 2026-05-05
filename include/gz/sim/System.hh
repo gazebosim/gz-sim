@@ -177,6 +177,7 @@ namespace gz
 
       /// \brief Configure the parameters of the system.
       /// \param[in] _registry The parameter registry.
+      /// \param[in] _ecm The entity component manager.
       public: virtual void ConfigureParameters(
                   gz::transport::parameters::ParametersRegistry &_registry,
                   EntityComponentManager &_ecm) = 0;
