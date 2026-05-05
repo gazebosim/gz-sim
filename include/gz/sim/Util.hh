@@ -160,6 +160,20 @@ namespace gz
     std::string GZ_SIM_VISIBLE removeParentScope(
         const std::string &_name, const std::string &_delim);
 
+    /// \brief Normalize deprecated ignition plugin identifiers in a plugin
+    /// name to gz equivalents.
+    /// \param[in] _name Plugin name to normalize.
+    /// \return Normalized plugin name.
+    std::string GZ_SIM_VISIBLE normalizePluginName(
+      const std::string &_name);
+
+    /// \brief Normalize deprecated ignition plugin identifiers in a plugin
+    /// filename to gz equivalents.
+    /// \param[in] _filename Plugin filename to normalize.
+    /// \return Normalized plugin filename.
+    std::string GZ_SIM_VISIBLE normalizePluginFilename(
+      const std::string &_filename);
+
     /// \brief Combine a URI and a file path into a full path.
     /// If the URI is already a full path or contains a scheme, it won't be
     /// modified.
@@ -230,7 +244,7 @@ namespace gz
     /// full system file path.
     /// The provided SDF filename may be a Fuel URI, relative path, name
     /// of an installed Gazebo world filename, or an absolute path.
-    /// \param[in] _sdfFile An SDF world filename such as:
+    /// \param[in] _sdfFilename An SDF world filename such as:
     ///    1. "shapes.sdf" - This is referencing an installed world file.
     ///    2. "../shapes.sdf" - This is referencing a relative world file.
     ///    3. "/home/user/shapes.sdf" - This is reference an absolute world
@@ -347,7 +361,7 @@ namespace gz
     GZ_SIM_VISIBLE const std::string &staticPluginPrefixStr();
 
     /// \brief Check if input filename of a library is a static plugin or not.
-    /// \param _filename_ Library filename to check
+    /// \param _filename Library filename to check
     /// \return True if input filename has a static plugin string format.
     GZ_SIM_VISIBLE bool isStaticPlugin(const std::string &_filename);
 

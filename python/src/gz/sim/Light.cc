@@ -30,7 +30,10 @@ namespace python
 {
 void defineSimLight(py::object module)
 {
-  py::class_<gz::sim::Light>(module, "Light")
+  py::class_<gz::sim::Light>(module, "Light",
+    "A convenience wrapper around a light entity. This class provides easy "
+    "access to light properties such as type, color, intensity, direction, "
+    "and attenuation.")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Light>())
   .def("entity", &gz::sim::Light::Entity,

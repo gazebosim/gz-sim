@@ -36,6 +36,7 @@
 #include <sdf/Geometry.hh>
 #include <sdf/Heightmap.hh>
 
+#include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Link.hh"
@@ -212,22 +213,19 @@ void LookupWheelSlip::Configure(const Entity &_entity,
     return;
   }
 
-  // transformation matrix from world to image coordinates
-  std::string filePath;
-  if (common::isFile(this->dataPtr->slipMapFilename))
-  {
-    filePath = this->dataPtr->slipMapFilename;
-  }
-  else if (common::isRelativePath(this->dataPtr->slipMapFilename))
+  // find the slip map file
+  auto modelPath =
+    _ecm.ComponentData<components::SourceFilePath>(_entity);
+  std::string filePath = common::findFile(asFullPath(
+      this->dataPtr->slipMapFilename, modelPath.value()), false);
+  if (filePath.empty())
   {
     auto *component =
         _ecm.Component<components::WorldSdf>(worldEntity(_ecm));
     const std::string rootPath =
         common::parentPath(component->Data().Element()->FilePath());
-    std::string path = common::joinPaths(rootPath,
-        this->dataPtr->slipMapFilename);
-    if (common::isFile(path))
-      filePath = path;
+    filePath = common::findFile(asFullPath(this->dataPtr->slipMapFilename,
+        component->Data().Element()->FilePath()), false);
   }
   if (filePath.empty())
   {
@@ -237,6 +235,7 @@ void LookupWheelSlip::Configure(const Entity &_entity,
     return;
   }
   gzdbg << "Using slip_map: " << filePath << std::endl;
+  // transformation matrix from world to image coordinates
   this->dataPtr->slipMapImg.Load(filePath);
   this->dataPtr->slipMapRgb = this->dataPtr->slipMapImg.RGBData();
   this->dataPtr->worldToImgTransform(0, 0) =

@@ -29,7 +29,10 @@ namespace python
 {
 void defineSimLink(py::object module)
 {
-  py::class_<gz::sim::Link>(module, "Link")
+   py::class_<gz::sim::Link>(module, "Link",
+    "A convenience wrapper around a link entity. This class provides easy "
+    "access to link properties such as pose, velocity, acceleration, forces, "
+    "and child entities (collisions, sensors, visuals).")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Link>())
   .def("entity", &gz::sim::Link::Entity,

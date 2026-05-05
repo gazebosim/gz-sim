@@ -6,6 +6,7 @@
   <file>Float.qml</file>
   <file>Inertial.qml</file>
   <file>Integer.qml</file>
+  <file>Gravity.qml</file>
   <file>Light.qml</file>
   <file>NoData.qml</file>
   <file>Material.qml</file>

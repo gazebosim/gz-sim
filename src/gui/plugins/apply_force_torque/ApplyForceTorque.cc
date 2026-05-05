@@ -448,6 +448,10 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
 
     if (this->dataPtr->selectedEntity.has_value())
     {
+      if (this->dataPtr->linkNameList.empty())
+      {
+        return;
+      }
       auto parentModel = Link(*this->dataPtr->selectedEntity).ParentModel(_ecm);
       std::string linkName =
         this->dataPtr->linkNameList[this->dataPtr->linkIndex].toStdString();

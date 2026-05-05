@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
+
 <!--
   You can echo logical camera sensor messages using:
-    gz topic -e -t /logical_camera_sensor
+    gz topic -e -t /logical_camera
 -->
+
 <sdf version="1.10">
   <world name="visualize_frustum_world">
     <physics name="1ms" type="ignored">
@@ -433,7 +435,6 @@
             <horizontal_fov>1.04719755</horizontal_fov>
             <aspect_ratio>1.778</aspect_ratio>
           </logical_camera>
-          <alwaysOn>1</alwaysOn>
           <visualize>true</visualize>
           <topic>logical_camera</topic>
           <enable_metrics>true</enable_metrics>

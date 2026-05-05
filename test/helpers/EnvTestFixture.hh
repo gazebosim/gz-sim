@@ -48,6 +48,8 @@ class InternalFixture : public TestType
   // Documentation inherited
   protected: void TearDown() override
   {
+    // Clean up fake home directory so that subsequent tests run on a clean slate.
+    common::removeAll(this->kFakeHome);
     // Restore $HOME
     EXPECT_TRUE(common::setenv(GZ_HOMEDIR, this->realHome.c_str()));
   }

@@ -92,7 +92,7 @@ namespace components
     }
 
     /// \brief Construct object from a uintptr_t.
-    /// \param[in] _ptr Arbitrary pointer address.
+    /// \param[in] _ptrAddress Arbitrary pointer address.
     explicit RegistrationObjectId(std::uintptr_t _ptrAddress)
         : id(_ptrAddress)
     {

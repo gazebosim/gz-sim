@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <gz/msgs/entity.pb.h>
@@ -179,6 +180,40 @@ std::string scopedName(const Entity &_entity,
 
     entity = parentComp->Data();
   }
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+std::string normalizePluginName(const std::string &_name)
+{
+  std::string result = _name;
+  constexpr std::string_view deprecated{"ignition::gazebo"};
+  constexpr std::string_view current{"gz::sim"};
+  if (result.rfind(deprecated, 0) != 0)
+    return result;
+
+  if (result.find(deprecated, deprecated.size()) != std::string::npos)
+    return result;
+
+  result.replace(0, deprecated.size(), current);
+
+  return result;
+}
+
+//////////////////////////////////////////////////
+std::string normalizePluginFilename(const std::string &_filename)
+{
+  std::string result = _filename;
+  constexpr std::string_view deprecated{"ignition-gazebo"};
+  constexpr std::string_view current{"gz-sim"};
+  if (result.rfind(deprecated, 0) != 0)
+    return result;
+
+  if (result.find(deprecated, deprecated.size()) != std::string::npos)
+    return result;
+
+  result.replace(0, deprecated.size(), current);
 
   return result;
 }
@@ -890,7 +925,7 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
   if (mesh && _meshSdf.Optimization() != sdf::MeshOptimization::NONE)
   {
     const common::Mesh *optimizedMesh = optimizeMesh(_meshSdf, *mesh);
-    if (optimizedMesh)
+    if (optimizedMesh && optimizedMesh->SubMeshCount() > 0u)
       return optimizedMesh;
     else
       gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
@@ -966,24 +1001,20 @@ const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
         *mergedSubmesh.get(), maxConvexHulls, voxelResolution);
       gzdbg << "Optimizing mesh (" << _meshSdf.OptimizationStr() << "): "
             <<  _mesh.Name() << std::endl;
-      // Create decomposed mesh and add it to MeshManager
-      // Note: MeshManager will call delete on this mesh in its destructor
-      // \todo(iche033) Consider updating MeshManager to accept
-      // unique pointers instead
-      common::Mesh *convexMesh = new common::Mesh;
-      convexMesh->SetName(convexMeshName);
+
+      common::Mesh *convexMesh = meshManager.CreateMesh(convexMeshName);
       for (const auto & submesh : decomposed)
         convexMesh->AddSubMesh(submesh);
-      meshManager.AddMesh(convexMesh);
+
       if (decomposed.empty())
       {
         // Print an error if convex decomposition returned empty submeshes
-        // but still add it to MeshManager to avoid going through the
+        // but still keep it in the MeshManager to avoid going through the
         // expensive convex decomposition process for the same mesh again
         gzerr << "Convex decomposition generated zero meshes: "
                << _mesh.Name() << std::endl;
       }
-      optimizedMesh = meshManager.MeshByName(convexMeshName);
+      optimizedMesh = convexMesh;
     }
   }
   return optimizedMesh;

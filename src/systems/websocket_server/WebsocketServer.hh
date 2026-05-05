@@ -51,43 +51,43 @@ namespace systems
     ///
     /// # Plugin parameters
     ///
-    /// * <publication_hz> : An integer that is the maximum publication
+    /// * `<publication_hz>` : An integer that is the maximum publication
     /// hertz rate.
     ///
-    /// * <port> : An integer that is websocket port.
+    /// * `<port>` : An integer that is websocket port.
     ///
-    /// * <authorization_key> : A key used for authentication. If this is
+    /// * `<authorization_key>` : A key used for authentication. If this is
     /// set, then a connection must provide the matching key using an "auth"
-    /// call on the websocket. If the <admin_authorization_key> is set, then
+    /// call on the websocket. If the `<admin_authorization_key>` is set, then
     /// the connection can provide that key.
     ///
-    /// * <admin_authorization_key> : An admin key used for authentication. If
+    /// * `<admin_authorization_key>` : An admin key used for authentication. If
     /// this is set, then a connection must provide the matching key using an
-    /// "auth" call on the websocket. If the <authorization_key> is set, then
+    /// "auth" call on the websocket. If the `<authorization_key>` is set, then
     /// the connection can provide that key.
     ///
-    /// * <max_connections> : An integer that specifies the maximum number
+    /// * `<max_connections>` : An integer that specifies the maximum number
     /// of active websocket connections. A value less than zero indicates an
     /// unlimited number, this is the default. A websocket client error
     /// code of 1008 along with a reason set to "max_connections" will be
     /// returned if a new connection is rejected due to the max connection
     /// threshold.
     ///
-    /// * <ssl> : Element that contains SSL configuration. For testing
+    /// * `<ssl>` : Element that contains SSL configuration. For testing
     ///           purposes you can create self-signed SSL certificates. Run
     ///
     /** \code{.sh}
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key \
             -out server.cert
-    */
+    \endcode */
     ///  Use "localhost" for the  "Common Name" question. If you are testing
-    ///  with a browser, first navigate to "https://localhost:<port>" and
+    ///  with a browser, first navigate to "https://localhost:`<port>`" and
     ///  accept the self-signed certificate.
     ///
-    ///     * <cert_file>: Child element of <ssl> that contains the path to
+    ///     * `<cert_file>`: Child element of `<ssl>` that contains the path to
     ///                     the SSL certificate file.
-    ///     * <private_key_file>: Child element of <ssl> that contains the path
-    ///                           to SSL private key file.
+    ///     * `<private_key_file>`: Child element of `<ssl>` that
+    ///       contains the path to SSL private key file.
     ///
     /// # Websocket Server Interface
     ///
@@ -156,12 +156,14 @@ namespace systems
     /// 1. Add the following to the top of an SDF file to include the websocket
     /// server system when launching a world.
     ///
+    /// \code{.xml}
     ///  <plugin name="gz::sim::WebsocketServer"
     ///      filename="gz-sim-websocket-server-system">
     ///
     ///    <!-- Publication Hz -->
     ///    <publication_hz>30</publication_hz>
     /// </plugin>
+    /// \endcode
     ///
     /// 2. Launch your SDF world file, e.g.
     ///

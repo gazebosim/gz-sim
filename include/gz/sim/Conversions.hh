@@ -681,7 +681,6 @@ namespace gz
 
     /// \brief Generic conversion from a particle emitter SDF object to another
     /// type.
-    /// \param[in] _in Particle emitter SDF object.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -699,7 +698,6 @@ namespace gz
 
     /// \brief Generic conversion from a particle emitter SDF object to another
     /// type.
-    /// \param[in] _in Particle emitter SDF object.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -717,7 +715,6 @@ namespace gz
 
     /// \brief Generic conversion from a projector SDF object to another
     /// type.
-    /// \param[in] _in Projector SDF object.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -735,7 +732,6 @@ namespace gz
 
     /// \brief Generic conversion from a projector SDF object to another
     /// type.
-    /// \param[in] _in Projector SDF object.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -753,7 +749,6 @@ namespace gz
 
 
     /// \brief Generic conversion from an SDF element to another type.
-    /// \param[in] _in SDF element.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -769,7 +764,6 @@ namespace gz
     msgs::Plugin convert(const sdf::Element &_in);
 
     /// \brief Generic conversion from an SDF plugin to another type.
-    /// \param[in] _in SDF plugin.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -785,7 +779,6 @@ namespace gz
     msgs::Plugin convert(const sdf::Plugin &_in);
 
     /// \brief Generic conversion from an SDF plugins to another type.
-    /// \param[in] _in SDF plugins.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -801,7 +794,6 @@ namespace gz
     msgs::Plugin_V convert(const sdf::Plugins &_in);
 
     /// \brief Generic conversion from a msgs::Plugin to another type.
-    /// \param[in] _in msgs::Plugin.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>
@@ -817,7 +809,6 @@ namespace gz
     sdf::Plugin convert(const msgs::Plugin &_in);
 
     /// \brief Generic conversion from a msgs::Plugin_V to another type.
-    /// \param[in] _in msgs::Plugin_V.
     /// \return Conversion result.
     /// \tparam Out Output type.
     template<class Out>

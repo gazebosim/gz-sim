@@ -74,7 +74,7 @@ class gz::sim::GuiRunner::Implementation
   public: std::thread updateThread;
 
   /// \brief True if the initial state has been received and processed.
-  public: bool receivedInitialState{false};
+  public: std::atomic<bool> receivedInitialState{false};
 
   /// \brief Name of WorldControl service
   public: std::string controlService;
@@ -264,7 +264,6 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
                             Q_ARG(gz::msgs::SerializedStepMap, _res));
-  this->dataPtr->receivedInitialState = true;
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
@@ -302,6 +301,8 @@ void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
   // Update all plugins
   this->dataPtr->updateInfo = convert<UpdateInfo>(_msg.stats());
   this->UpdatePlugins();
+
+  this->dataPtr->receivedInitialState = true;
 }
 
 /////////////////////////////////////////////////

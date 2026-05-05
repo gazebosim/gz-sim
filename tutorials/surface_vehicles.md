@@ -28,7 +28,7 @@ To compile all the custom libraries in the right order `colcon` is recommended.
 The `colcon` tool is available on all platforms using `pip3`.
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim8/tutorials/files/surface_vehicles/gz_maritime_ws.zip -O ~/gz_maritime_ws.zip
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/surface_vehicles/gz_maritime_ws.zip -O ~/gz_maritime_ws.zip
 unzip ~/gz_maritime_ws.zip
 ```
 
@@ -230,14 +230,11 @@ Uncomment the following block from
 hydrodynamics.
 
 ```xml
-<!-- Hydrodynamics -->
+<!-- Hydrodynamics (damping only) -->
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>0.0</xDotU>
-  <yDotV>0.0</yDotV>
-  <nDotR>0.0</nDotR>
   <xU>-51.3</xU>
   <xAbsU>-72.4</xAbsU>
   <yV>-40.0</yV>

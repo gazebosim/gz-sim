@@ -10,7 +10,7 @@ essential piece needed in most of the maritime simulations.
 This plugin is attached to the world to provide certain buoyancy to the
 vehicles. The buoyancy force opposes gravity exerted on the robot. The
 parameters of the plugin are configured via SDF in the world file. Check the
-[Buoyancy.hh](https://github.com/gazebosim/gz-sim/blob/gz-sim8/src/systems/buoyancy/Buoyancy.hh)
+[Buoyancy.hh](https://github.com/gazebosim/gz-sim/blob/main/src/systems/buoyancy/Buoyancy.hh)
 Gazebo header file for a complete description of all the accepted parameters.
 
 The buoyancy plugin uses the `<collision>` elements of each SDF model to compute
@@ -32,7 +32,7 @@ to match your expected center of buoyancy.
 The buoyancy force is proportional to the volume of air in the vehicle according
 to this equation:
 
-$$volume\\_neutral = \frac{mass}{waterDensity}$$
+\f[volume\_neutral = \frac{mass}{waterDensity}\f]
 
 Pure water's density is `1000 kgm^-3` and seawater's density is `1025 kgm^-3`
 approximately. The mass of your vehicle is something that you'll decide or know
@@ -94,5 +94,6 @@ fluid density of `1 kgm^-3`.
 
 # Known limitations
 
-When the buoyancy plugin is configured in `graded buoyancy mode`, only `<box>`
-and `<sphere>` collision geometries are supported.
+The graded buoyancy mode supports `<box>`, `<sphere>`, `<cylinder>`,
+`<capsule>`, `<ellipsoid>`, and `<cone>` collision geometries.
+`<mesh>` and `<plane>` geometries are not supported in graded mode.
