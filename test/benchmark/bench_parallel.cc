@@ -1,14 +1,31 @@
 /*
  * Copyright (C) 2026 Open Source Robotics Foundation
- * Licensed under the Apache License, Version 2.0
  *
- * bench_parallel: measure EachParallel scaling. Gate: ≥ 0.7× linear
- * speedup at 8 workers on the 10M-entity scene.
- */
-#include <cstdio>
-#include <vector>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 
-#include "bench_common.hh"
+// EachParallel scaling benchmark. The argument selects how many
+// worker threads the World's WorkerPool uses; running the bench
+// across t = 1, 2, 4, 8, 16 lets us read the speedup curve.
+//
+// Note: state.range(0) feeds the thread count into the World
+// constructor — this is *not* google-benchmark's `Threads()`
+// modifier, which would replicate the body across N threads. We
+// want one body running EachParallel internally on N workers.
+
+#include <benchmark/benchmark.h>
+
 #include "gz/sim/ecs/World.hh"
 
 using namespace gz::sim::ecs;
@@ -19,43 +36,34 @@ namespace
   struct Velocity { double vx, vy, vz; };
 }
 
-int main()
+static void BM_ArchetypeEachParallel(benchmark::State &_state)
 {
-  const size_t N = 1'000'000;
-  const unsigned int kThreadCounts[] = {1, 2, 4, 8, 16};
+  const unsigned int t = static_cast<unsigned int>(_state.range(0));
+  const int64_t N = 1000000;
+  World w(t);
+  for (int64_t i = 0; i < N; ++i)
+    w.Create(Pose{double(i), 0, 0}, Velocity{});
 
-  double baseline = 0.0;
-  for (unsigned int t : kThreadCounts)
+  // Warm: get worker threads spun up and the chunks into cache.
+  w.EachParallel<const Pose, Velocity>(
+      [](Entity, const Pose &p, Velocity &v) { v.vx = p.x; });
+
+  for (auto _ : _state)
   {
-    World w(t);
-    for (size_t i = 0; i < N; ++i)
-      w.Create(Pose{double(i), 0, 0}, Velocity{});
-
-    // Warm up.
     w.EachParallel<const Pose, Velocity>(
-        [](Entity, const Pose &p, Velocity &v) { v.vx = p.x; });
-
-    bench::Timer timer;
-    timer.Reset();
-    const int iters = 20;
-    for (int k = 0; k < iters; ++k)
-    {
-      w.EachParallel<const Pose, Velocity>(
-          [](Entity, const Pose &p, Velocity &v) { v.vy = p.x * 0.5; });
-    }
-    double secs = timer.Seconds();
-
-    char name[64];
-    std::snprintf(name, sizeof(name),
-        "bench_parallel / EachParallel t=%u", t);
-    bench::Report(name, secs, N * iters);
-    if (t == 1) baseline = secs;
-    else
-    {
-      double speedup = baseline / secs;
-      std::printf("   %u-thread speedup: %.2f× (linear=%u)\n",
-          t, speedup, t);
-    }
+        [](Entity, const Pose &p, Velocity &v) { v.vy = p.x * 0.5; });
   }
-  return 0;
+  _state.SetItemsProcessed(_state.iterations() * N);
 }
+BENCHMARK(BM_ArchetypeEachParallel)
+  ->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(16)
+  ->Unit(benchmark::kMillisecond);
+
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic pop
+#endif

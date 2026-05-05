@@ -1,19 +1,34 @@
 /*
  * Copyright (C) 2026 Open Source Robotics Foundation
- * Licensed under the Apache License, Version 2.0
  *
- * microbench_10m + robot_mix_50 (section 12 of the Phase 0a design).
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * NOTE: The design calls for a ≥ 5× and ≥ 3× speedup vs the current
- * unordered_map-based ECM. Implementing the baseline-comparison scaffold
- * requires building against the existing EntityComponentManager, which is
- * only sensible after 0b integration. In 0a this bench reports the ECS's
- * absolute numbers — comparison to the baseline is a 0b deliverable.
- */
-#include <cstdio>
-#include <string>
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
 
-#include "bench_common.hh"
+// Iteration microbenchmarks for the archetype ECS core
+// (`gz::sim::ecs::World`). Two scenes:
+//
+//   * microbenchN — N entities, all sharing one archetype
+//     ({Pose, Velocity, Name}). Stresses the inner Each<...> loop in
+//     its best-case (single-archetype, dense chunks) shape.
+//
+//   * robot_mix_50 — 50 "robots" × 20 entities each, where half of
+//     each robot's entities have Name and half don't. Two
+//     archetypes, ~1000 entities total. Probes the archetype-graph
+//     traversal cost when the query matches more than one archetype.
+
+#include <benchmark/benchmark.h>
+
 #include "gz/sim/ecs/World.hh"
 
 using namespace gz::sim::ecs;
@@ -25,76 +40,89 @@ namespace
   struct Name     { char   value[32]; };
 }
 
-static void Microbench10M(size_t _n)
+// microbenchN / iteration. Build the world once outside the timing
+// loop; the timed body is one Each<const Pose, Velocity> pass.
+static void BM_ArchetypeMicrobenchEach(benchmark::State &_state)
 {
+  const int64_t N = _state.range(0);
   World w(1);
-  bench::Timer t;
-
-  t.Reset();
-  for (size_t i = 0; i < _n; ++i)
+  for (int64_t i = 0; i < N; ++i)
   {
     w.Create(
         Pose{double(i), 0, 0, 0, 0, 0, 1},
         Velocity{0, 0, 0, 0, 0, 0},
         Name{});
   }
-  double build = t.Seconds();
-  bench::Report("microbench_10m / build", build, _n);
+  // Warm the chunks into cache.
+  w.Each<const Pose, Velocity>(
+      [](Entity, const Pose &p, Velocity &v) { v.vx = p.x; });
 
-  // Warm iteration pass.
-  w.Each<const Pose, Velocity>([](Entity, const Pose &p, Velocity &v)
-  { v.vx = p.x; });
-
-  const int kIters = 10;
-  t.Reset();
-  for (int k = 0; k < kIters; ++k)
+  for (auto _ : _state)
   {
     w.Each<const Pose, Velocity>(
         [](Entity, const Pose &p, Velocity &v) { v.vy = p.x * 0.5; });
   }
-  double each = t.Seconds();
-  bench::Report("microbench_10m / Each<Pose,Velocity>",
-                each, _n * kIters);
+  _state.SetItemsProcessed(_state.iterations() * N);
 }
+BENCHMARK(BM_ArchetypeMicrobenchEach)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
 
-static void RobotMix50()
+// microbenchN / build path. Each timed iteration constructs a fresh
+// World and creates N entities — measures the per-entity cost of
+// type-pack sort, archetype lookup, and column placement-construction.
+static void BM_ArchetypeMicrobenchBuild(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
+  {
+    World w(1);
+    for (int64_t i = 0; i < N; ++i)
+    {
+      w.Create(
+          Pose{double(i), 0, 0, 0, 0, 0, 1},
+          Velocity{0, 0, 0, 0, 0, 0},
+          Name{});
+    }
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_ArchetypeMicrobenchBuild)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
+
+// robot_mix_50: 50 robots × 20 entities ≈ 1000 entities, split across
+// two archetypes ({Pose, Velocity, Name} and {Pose, Velocity}).
+static void BM_ArchetypeRobotMix50(benchmark::State &_state)
 {
   World w(1);
-  // 50 robots × ~20 components ≈ 1000 entities, one per "robot body".
-  // For realism we vary archetypes (mix of Name present/absent).
   for (int i = 0; i < 50; ++i)
   {
     for (int j = 0; j < 20; ++j)
     {
       if (j % 2 == 0)
-      {
         w.Create(Pose{}, Velocity{}, Name{});
-      }
       else
-      {
         w.Create(Pose{}, Velocity{});
-      }
     }
   }
-  bench::Timer t;
-  t.Reset();
-  for (int k = 0; k < 10'000; ++k)
+  for (auto _ : _state)
   {
     w.Each<const Pose, Velocity>(
         [](Entity, const Pose &p, Velocity &v)
         { v.vx = p.x + 1.0; v.vy = p.y; });
   }
-  double each = t.Seconds();
-  bench::Report("robot_mix_50 / Each<Pose,Velocity>",
-                each, 1000 * 10'000);
+  _state.SetItemsProcessed(_state.iterations() * 1000);
 }
+BENCHMARK(BM_ArchetypeRobotMix50)->Unit(benchmark::kMicrosecond);
 
-int main(int argc, char **argv)
-{
-  size_t n = 10'000'000;
-  if (argc > 1) n = std::stoull(argv[1]);
-  std::printf("== Phase 0a ECS iteration bench ==\n");
-  Microbench10M(n);
-  RobotMix50();
-  return 0;
-}
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic pop
+#endif

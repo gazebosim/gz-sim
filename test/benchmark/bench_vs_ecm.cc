@@ -1,15 +1,32 @@
 /*
  * Copyright (C) 2026 Open Source Robotics Foundation
- * Licensed under the Apache License, Version 2.0
  *
- * Head-to-head bench: gz::sim::EntityComponentManager (classic) vs
- * gz::sim::ecs::World (Phase 0a archetype ECS) on the same workload.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Same component types, same entity count, same write pattern — just
- * different storage. Prints ns/entity for each and the speedup ratio.
- */
-#include <cstdio>
-#include <string>
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+*/
+
+// Head-to-head bench: gz::sim::EntityComponentManager (the public
+// ECM facade) versus gz::sim::ecs::World (the archetype core
+// directly), running the same workload.
+//
+// Under GZ_SIM_ARCHETYPE_ECM=ON the public facade is itself
+// archetype-backed, so the comparison measures *facade overhead*
+// (legacy↔core handle translation, shadow-store maintenance) on
+// top of the same underlying storage. Under
+// GZ_SIM_ARCHETYPE_ECM=OFF the archetype benches don't build, so
+// this file always runs in the archetype configuration.
+
+#include <benchmark/benchmark.h>
 
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
@@ -18,28 +35,50 @@
 #include <gz/sim/components/LinearVelocity.hh>
 #include <gz/sim/components/Pose.hh>
 
-#include "bench_common.hh"
 #include "gz/sim/ecs/World.hh"
 
 using gz::sim::components::LinearVelocity;
 using gz::sim::components::Pose;
 
-namespace
+// Public ECM facade — iteration. Build once, measure Each.
+static void BM_FacadeEach(benchmark::State &_state)
 {
-  struct Result
+  const int64_t N = _state.range(0);
+  gz::sim::EntityComponentManager ecm;
+  for (int64_t i = 0; i < N; ++i)
   {
-    double build_s;
-    double iter_s;
-    uint64_t iter_items;
-  };
+    auto e = ecm.CreateEntity();
+    ecm.CreateComponent<Pose>(e, Pose(
+        gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+    ecm.CreateComponent<LinearVelocity>(e, LinearVelocity(
+        gz::math::Vector3d(0, 0, 0)));
+  }
+  // Warm.
+  ecm.Each<Pose, LinearVelocity>(
+      [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+      { v->Data().X() = p->Data().Pos().X(); return true; });
 
-  Result RunEcm(size_t _n, int _iters)
+  for (auto _ : _state)
+  {
+    ecm.Each<Pose, LinearVelocity>(
+        [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+        { v->Data().X() = p->Data().Pos().X() * 0.5; return true; });
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_FacadeEach)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
+
+// Public ECM facade — build path.
+static void BM_FacadeBuild(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
   {
     gz::sim::EntityComponentManager ecm;
-    gz::sim::ecs::bench::Timer t;
-
-    t.Reset();
-    for (size_t i = 0; i < _n; ++i)
+    for (int64_t i = 0; i < N; ++i)
     {
       auto e = ecm.CreateEntity();
       ecm.CreateComponent<Pose>(e, Pose(
@@ -47,95 +86,69 @@ namespace
       ecm.CreateComponent<LinearVelocity>(e, LinearVelocity(
           gz::math::Vector3d(0, 0, 0)));
     }
-    double build = t.Seconds();
-
-    // Warm.
-    ecm.Each<Pose, LinearVelocity>(
-        [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
-    {
-      v->Data().X() = p->Data().Pos().X();
-      return true;
-    });
-
-    t.Reset();
-    for (int k = 0; k < _iters; ++k)
-    {
-      ecm.Each<Pose, LinearVelocity>(
-          [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
-      {
-        v->Data().X() = p->Data().Pos().X() * 0.5;
-        return true;
-      });
-    }
-    double iter = t.Seconds();
-    return {build, iter, _n * static_cast<uint64_t>(_iters)};
   }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_FacadeBuild)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
 
-  Result RunArchetype(size_t _n, int _iters)
+// Direct ecs::World use — iteration. Build once, measure Each.
+static void BM_ArchetypeWorldEach(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  gz::sim::ecs::World w(1);
+  for (int64_t i = 0; i < N; ++i)
+  {
+    w.Create(
+        Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)),
+        LinearVelocity(gz::math::Vector3d(0, 0, 0)));
+  }
+  // Warm.
+  w.Each<Pose, LinearVelocity>(
+      [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+      { v.Data().X() = p.Data().Pos().X(); });
+
+  for (auto _ : _state)
+  {
+    w.Each<Pose, LinearVelocity>(
+        [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+        { v.Data().X() = p.Data().Pos().X() * 0.5; });
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_ArchetypeWorldEach)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
+
+// Direct ecs::World use — build path.
+static void BM_ArchetypeWorldBuild(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
   {
     gz::sim::ecs::World w(1);
-    gz::sim::ecs::bench::Timer t;
-
-    t.Reset();
-    for (size_t i = 0; i < _n; ++i)
+    for (int64_t i = 0; i < N; ++i)
     {
       w.Create(
           Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)),
           LinearVelocity(gz::math::Vector3d(0, 0, 0)));
     }
-    double build = t.Seconds();
-
-    // Warm.
-    w.Each<Pose, LinearVelocity>(
-        [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
-    {
-      v.Data().X() = p.Data().Pos().X();
-    });
-
-    t.Reset();
-    for (int k = 0; k < _iters; ++k)
-    {
-      w.Each<Pose, LinearVelocity>(
-          [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
-      {
-        v.Data().X() = p.Data().Pos().X() * 0.5;
-      });
-    }
-    double iter = t.Seconds();
-    return {build, iter, _n * static_cast<uint64_t>(_iters)};
   }
+  _state.SetItemsProcessed(_state.iterations() * N);
 }
+BENCHMARK(BM_ArchetypeWorldBuild)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
 
-int main(int argc, char **argv)
-{
-  size_t n = 1'000'000;
-  int iters = 50;
-  if (argc > 1) n = std::stoull(argv[1]);
-  if (argc > 2) iters = std::stoi(argv[2]);
-
-  std::printf("== Head-to-head: classic ECM vs Phase 0a archetype ECS ==\n");
-  std::printf("   entities = %zu, iterations = %d\n", n, iters);
-
-  auto ecm  = RunEcm(n, iters);
-  auto arch = RunArchetype(n, iters);
-
-  std::printf("\nBuild (Create+CreateComponent/Create):\n");
-  std::printf("  ECM       : %.3f s  (%.1f ns/entity)\n",
-      ecm.build_s,  ecm.build_s  / n * 1e9);
-  std::printf("  Archetype : %.3f s  (%.1f ns/entity)\n",
-      arch.build_s, arch.build_s / n * 1e9);
-  std::printf("  Ratio (ECM build / Arch build): %.2f×\n",
-      ecm.build_s / arch.build_s);
-
-  std::printf("\nIteration (Each<Pose, LinearVelocity>, %d passes):\n", iters);
-  std::printf("  ECM       : %.3f ms  (%.2f ns/entity)\n",
-      ecm.iter_s  * 1000.0, ecm.iter_s  / ecm.iter_items  * 1e9);
-  std::printf("  Archetype : %.3f ms  (%.2f ns/entity)\n",
-      arch.iter_s * 1000.0, arch.iter_s / arch.iter_items * 1e9);
-
-  double ecm_ns_per  = ecm.iter_s  / ecm.iter_items;
-  double arch_ns_per = arch.iter_s / arch.iter_items;
-  std::printf("  Speedup   : %.2f×  (gate: ≥ 5× for microbench_10m)\n",
-      ecm_ns_per / arch_ns_per);
-  return 0;
-}
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+BENCHMARK_MAIN();
+#if !defined(_MSC_VER)
+#pragma GCC diagnostic pop
+#endif
