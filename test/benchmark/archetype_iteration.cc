@@ -15,52 +15,78 @@
  *
 */
 
-// Iteration microbenchmarks for the archetype ECS core
-// (`gz::sim::ecs::World`). Two scenes:
+// Iteration microbenchmarks comparing the archetype core
+// (`gz::sim::ecs::World`) against the public
+// `gz::sim::EntityComponentManager`. Both sides use the same
+// in-tree gz::sim::components types so the comparison is
+// apples-to-apples — same component data layout, same call
+// pattern, only the storage strategy differs.
 //
-//   * microbenchN — N entities, all sharing one archetype
-//     ({Pose, Velocity, Name}). Stresses the inner Each<...> loop in
-//     its best-case (single-archetype, dense chunks) shape.
+// Two scenes:
+//
+//   * microbench / N — N entities, all sharing one component set
+//     ({Pose, LinearVelocity, Name}). Best case for the archetype
+//     (single dense archetype) and a representative case for the
+//     legacy ECM (its per-type maps see the same N keys).
 //
 //   * robot_mix_50 — 50 "robots" × 20 entities each, where half of
-//     each robot's entities have Name and half don't. Two
-//     archetypes, ~1000 entities total. Probes the archetype-graph
-//     traversal cost when the query matches more than one archetype.
+//     each robot's entities have a Name and half don't. Two
+//     archetypes / two distinct key sets, ~1000 entities total.
+//
+// What "Legacy" measures depends on the build flag:
+//   * GZ_SIM_ARCHETYPE_ECM=OFF — BM_Legacy* runs against the
+//     legacy unordered_map ECM; BM_Archetype* runs against the
+//     standalone gz-sim-ecs core. Read this run for true
+//     legacy-vs-archetype comparison.
+//   * GZ_SIM_ARCHETYPE_ECM=ON  — the public ECM is itself
+//     archetype-backed, so BM_Legacy* measures the facade on top
+//     of the archetype core, and BM_Archetype* measures the core
+//     directly. Read this run for facade-vs-direct comparison.
 
 #include <benchmark/benchmark.h>
 
+#include <string>
+
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Name.hh>
+#include <gz/sim/components/Pose.hh>
+
 #include "gz/sim/ecs/World.hh"
 
-using namespace gz::sim::ecs;
+using gz::sim::components::LinearVelocity;
+using gz::sim::components::Name;
+using gz::sim::components::Pose;
 
-namespace
-{
-  struct Pose     { double x, y, z, rx, ry, rz, rw; };
-  struct Velocity { double vx, vy, vz, wx, wy, wz; };
-  struct Name     { char   value[32]; };
-}
+// ---------------------------------------------------------------------------
+// Archetype core (gz::sim::ecs::World)
+// ---------------------------------------------------------------------------
 
-// microbenchN / iteration. Build the world once outside the timing
-// loop; the timed body is one Each<const Pose, Velocity> pass.
+// microbench / iteration. Build once, time Each.
 static void BM_ArchetypeMicrobenchEach(benchmark::State &_state)
 {
   const int64_t N = _state.range(0);
-  World w(1);
+  gz::sim::ecs::World w(1);
   for (int64_t i = 0; i < N; ++i)
   {
     w.Create(
-        Pose{double(i), 0, 0, 0, 0, 0, 1},
-        Velocity{0, 0, 0, 0, 0, 0},
-        Name{});
+        Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)),
+        LinearVelocity(gz::math::Vector3d(0, 0, 0)),
+        Name(std::string("e")));
   }
   // Warm the chunks into cache.
-  w.Each<const Pose, Velocity>(
-      [](Entity, const Pose &p, Velocity &v) { v.vx = p.x; });
+  w.Each<Pose, LinearVelocity>(
+      [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+      { v.Data().X() = p.Data().Pos().X(); });
 
   for (auto _ : _state)
   {
-    w.Each<const Pose, Velocity>(
-        [](Entity, const Pose &p, Velocity &v) { v.vy = p.x * 0.5; });
+    w.Each<Pose, LinearVelocity>(
+        [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+        { v.Data().X() = p.Data().Pos().X() * 0.5; });
   }
   _state.SetItemsProcessed(_state.iterations() * N);
 }
@@ -69,21 +95,21 @@ BENCHMARK(BM_ArchetypeMicrobenchEach)
   ->Arg(1000000)
   ->Unit(benchmark::kMillisecond);
 
-// microbenchN / build path. Each timed iteration constructs a fresh
+// microbench / build path. Each timed iteration constructs a fresh
 // World and creates N entities — measures the per-entity cost of
-// type-pack sort, archetype lookup, and column placement-construction.
+// type-pack sort, archetype lookup, and column placement.
 static void BM_ArchetypeMicrobenchBuild(benchmark::State &_state)
 {
   const int64_t N = _state.range(0);
   for (auto _ : _state)
   {
-    World w(1);
+    gz::sim::ecs::World w(1);
     for (int64_t i = 0; i < N; ++i)
     {
       w.Create(
-          Pose{double(i), 0, 0, 0, 0, 0, 1},
-          Velocity{0, 0, 0, 0, 0, 0},
-          Name{});
+          Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)),
+          LinearVelocity(gz::math::Vector3d(0, 0, 0)),
+          Name(std::string("e")));
     }
   }
   _state.SetItemsProcessed(_state.iterations() * N);
@@ -93,30 +119,119 @@ BENCHMARK(BM_ArchetypeMicrobenchBuild)
   ->Arg(1000000)
   ->Unit(benchmark::kMillisecond);
 
-// robot_mix_50: 50 robots × 20 entities ≈ 1000 entities, split across
-// two archetypes ({Pose, Velocity, Name} and {Pose, Velocity}).
+// robot_mix_50 / iteration. ~1000 entities split across two
+// archetypes ({Pose, LinearVelocity, Name} and {Pose, LinearVelocity}).
 static void BM_ArchetypeRobotMix50(benchmark::State &_state)
 {
-  World w(1);
+  gz::sim::ecs::World w(1);
   for (int i = 0; i < 50; ++i)
   {
     for (int j = 0; j < 20; ++j)
     {
       if (j % 2 == 0)
-        w.Create(Pose{}, Velocity{}, Name{});
+        w.Create(Pose(), LinearVelocity(), Name(std::string("e")));
       else
-        w.Create(Pose{}, Velocity{});
+        w.Create(Pose(), LinearVelocity());
     }
   }
   for (auto _ : _state)
   {
-    w.Each<const Pose, Velocity>(
-        [](Entity, const Pose &p, Velocity &v)
-        { v.vx = p.x + 1.0; v.vy = p.y; });
+    w.Each<Pose, LinearVelocity>(
+        [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+        {
+          v.Data().X() = p.Data().Pos().X() + 1.0;
+          v.Data().Y() = p.Data().Pos().Y();
+        });
   }
   _state.SetItemsProcessed(_state.iterations() * 1000);
 }
 BENCHMARK(BM_ArchetypeRobotMix50)->Unit(benchmark::kMicrosecond);
+
+// ---------------------------------------------------------------------------
+// Legacy / public-facade comparison benches
+// ---------------------------------------------------------------------------
+
+static void BM_LegacyMicrobenchEach(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  gz::sim::EntityComponentManager ecm;
+  for (int64_t i = 0; i < N; ++i)
+  {
+    auto e = ecm.CreateEntity();
+    ecm.CreateComponent<Pose>(e, Pose(
+        gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+    ecm.CreateComponent<LinearVelocity>(e, LinearVelocity(
+        gz::math::Vector3d(0, 0, 0)));
+    ecm.CreateComponent<Name>(e, Name(std::string("e")));
+  }
+  // Warm.
+  ecm.Each<Pose, LinearVelocity>(
+      [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+      { v->Data().X() = p->Data().Pos().X(); return true; });
+
+  for (auto _ : _state)
+  {
+    ecm.Each<Pose, LinearVelocity>(
+        [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+        { v->Data().X() = p->Data().Pos().X() * 0.5; return true; });
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyMicrobenchEach)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
+
+static void BM_LegacyMicrobenchBuild(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
+  {
+    gz::sim::EntityComponentManager ecm;
+    for (int64_t i = 0; i < N; ++i)
+    {
+      auto e = ecm.CreateEntity();
+      ecm.CreateComponent<Pose>(e, Pose(
+          gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+      ecm.CreateComponent<LinearVelocity>(e, LinearVelocity(
+          gz::math::Vector3d(0, 0, 0)));
+      ecm.CreateComponent<Name>(e, Name(std::string("e")));
+    }
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyMicrobenchBuild)
+  ->Arg(100000)
+  ->Arg(1000000)
+  ->Unit(benchmark::kMillisecond);
+
+static void BM_LegacyRobotMix50(benchmark::State &_state)
+{
+  gz::sim::EntityComponentManager ecm;
+  for (int i = 0; i < 50; ++i)
+  {
+    for (int j = 0; j < 20; ++j)
+    {
+      auto e = ecm.CreateEntity();
+      ecm.CreateComponent<Pose>(e, Pose());
+      ecm.CreateComponent<LinearVelocity>(e, LinearVelocity());
+      if (j % 2 == 0)
+        ecm.CreateComponent<Name>(e, Name(std::string("e")));
+    }
+  }
+  for (auto _ : _state)
+  {
+    ecm.Each<Pose, LinearVelocity>(
+        [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+        {
+          v->Data().X() = p->Data().Pos().X() + 1.0;
+          v->Data().Y() = p->Data().Pos().Y();
+          return true;
+        });
+  }
+  _state.SetItemsProcessed(_state.iterations() * 1000);
+}
+BENCHMARK(BM_LegacyRobotMix50)->Unit(benchmark::kMicrosecond);
 
 #if !defined(_MSC_VER)
 #pragma GCC diagnostic push

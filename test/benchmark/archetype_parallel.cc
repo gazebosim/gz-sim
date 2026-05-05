@@ -15,49 +15,105 @@
  *
 */
 
-// EachParallel scaling benchmark. The argument selects how many
-// worker threads the World's WorkerPool uses; running the bench
-// across t = 1, 2, 4, 8, 16 lets us read the speedup curve.
+// EachParallel scaling benchmark for the archetype core, with a
+// single-threaded baseline against the public
+// `gz::sim::EntityComponentManager` for context.
 //
-// Note: state.range(0) feeds the thread count into the World
-// constructor — this is *not* google-benchmark's `Threads()`
-// modifier, which would replicate the body across N threads. We
-// want one body running EachParallel internally on N workers.
+// The argument on BM_ArchetypeEachParallel selects the worker
+// count for the World's WorkerPool (1, 2, 4, 8, 16) — this is
+// *not* google-benchmark's `Threads()` modifier, which would
+// replicate the body across N threads. Reading the curve:
+//   * 1 thread vs Legacy serial: pure storage-layout speedup.
+//   * 1 thread vs N threads:     parallel scaling factor.
+//
+// What "Legacy" measures depends on the build flag:
+//   * GZ_SIM_ARCHETYPE_ECM=OFF — BM_LegacyEach runs against the
+//     legacy unordered_map ECM. Read this run for the true
+//     legacy-vs-archetype-parallel comparison.
+//   * GZ_SIM_ARCHETYPE_ECM=ON  — the public ECM is itself
+//     archetype-backed, so BM_LegacyEach measures the facade on
+//     top of the archetype core. Read this run for
+//     facade-vs-direct comparison.
 
 #include <benchmark/benchmark.h>
 
+#include <gz/math/Pose3.hh>
+#include <gz/math/Vector3.hh>
+
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/Pose.hh>
+
 #include "gz/sim/ecs/World.hh"
 
-using namespace gz::sim::ecs;
+using gz::sim::components::LinearVelocity;
+using gz::sim::components::Pose;
 
-namespace
-{
-  struct Pose     { double x, y, z; };
-  struct Velocity { double vx, vy, vz; };
-}
+// ---------------------------------------------------------------------------
+// Archetype core — parallel iteration, parameterized by worker count.
+// ---------------------------------------------------------------------------
 
 static void BM_ArchetypeEachParallel(benchmark::State &_state)
 {
   const unsigned int t = static_cast<unsigned int>(_state.range(0));
   const int64_t N = 1000000;
-  World w(t);
+  gz::sim::ecs::World w(t);
   for (int64_t i = 0; i < N; ++i)
-    w.Create(Pose{double(i), 0, 0}, Velocity{});
-
-  // Warm: get worker threads spun up and the chunks into cache.
-  w.EachParallel<const Pose, Velocity>(
-      [](Entity, const Pose &p, Velocity &v) { v.vx = p.x; });
+  {
+    w.Create(
+        Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)),
+        LinearVelocity(gz::math::Vector3d(0, 0, 0)));
+  }
+  // Warm: spin up the worker threads and pull chunks into cache.
+  w.EachParallel<Pose, LinearVelocity>(
+      [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+      { v.Data().X() = p.Data().Pos().X(); });
 
   for (auto _ : _state)
   {
-    w.EachParallel<const Pose, Velocity>(
-        [](Entity, const Pose &p, Velocity &v) { v.vy = p.x * 0.5; });
+    w.EachParallel<Pose, LinearVelocity>(
+        [](gz::sim::ecs::Entity, Pose &p, LinearVelocity &v)
+        { v.Data().X() = p.Data().Pos().X() * 0.5; });
   }
   _state.SetItemsProcessed(_state.iterations() * N);
 }
 BENCHMARK(BM_ArchetypeEachParallel)
   ->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(16)
   ->Unit(benchmark::kMillisecond);
+
+// ---------------------------------------------------------------------------
+// Legacy / public-facade comparison — single-threaded Each over the
+// same workload. The legacy ECM has no parallel iteration primitive,
+// so this is the natural reference point against which the
+// archetype's parallel curve is read.
+// ---------------------------------------------------------------------------
+
+static void BM_LegacyEach(benchmark::State &_state)
+{
+  const int64_t N = 1000000;
+  gz::sim::EntityComponentManager ecm;
+  for (int64_t i = 0; i < N; ++i)
+  {
+    auto e = ecm.CreateEntity();
+    ecm.CreateComponent<Pose>(e, Pose(
+        gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+    ecm.CreateComponent<LinearVelocity>(e, LinearVelocity(
+        gz::math::Vector3d(0, 0, 0)));
+  }
+  // Warm.
+  ecm.Each<Pose, LinearVelocity>(
+      [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+      { v->Data().X() = p->Data().Pos().X(); return true; });
+
+  for (auto _ : _state)
+  {
+    ecm.Each<Pose, LinearVelocity>(
+        [](const gz::sim::Entity &, Pose *p, LinearVelocity *v) -> bool
+        { v->Data().X() = p->Data().Pos().X() * 0.5; return true; });
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyEach)->Unit(benchmark::kMillisecond);
 
 #if !defined(_MSC_VER)
 #pragma GCC diagnostic push

@@ -15,40 +15,60 @@
  *
 */
 
-// Archetype-transition benchmarks. Adding or removing a component
-// moves an entity to a different archetype, which involves looking
-// up (or lazily creating) the destination archetype, copying every
-// shared column across, and patching the EntityIndex. The bench
-// also reports a baseline Each pass so the per-transition cost can
-// be compared against per-iteration cost (the design's "< 10×"
-// gate is checked via the absolute timings these benches print).
+// Component add/remove benchmarks comparing the archetype core
+// against the public `gz::sim::EntityComponentManager`.
+//
+// Adding or removing a component on the archetype side moves the
+// entity to a different archetype (look up destination, copy each
+// shared column across, swap-with-last on the source). On the legacy
+// side, the same operation is just a hash insertion or erasure in
+// the per-type map. Two qualitatively different write paths — this
+// bench measures the per-call cost of each.
+//
+// `gz::sim::components::Visual` is used as the tag component; it's
+// a `Component<NoData, ...>` with no payload, which matches the
+// "tag" workload the original phase-0a bench was after.
+//
+// What "Legacy" measures depends on the build flag:
+//   * GZ_SIM_ARCHETYPE_ECM=OFF — BM_Legacy* runs against the
+//     legacy unordered_map ECM (Add = hash-insert, Remove =
+//     hash-erase). Read this run for true legacy-vs-archetype.
+//   * GZ_SIM_ARCHETYPE_ECM=ON  — the public ECM is itself
+//     archetype-backed, so BM_Legacy* measures the facade
+//     overhead on top of the archetype core. Read this run for
+//     facade-vs-direct comparison.
 
 #include <benchmark/benchmark.h>
 
 #include <vector>
 
+#include <gz/math/Pose3.hh>
+
+#include <gz/sim/EntityComponentManager.hh>
+#include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/Visual.hh>
+
 #include "gz/sim/ecs/World.hh"
 
-using namespace gz::sim::ecs;
+using gz::sim::components::Pose;
+using gz::sim::components::Visual;
 
-namespace
-{
-  struct Pose { double x, y, z; };
-  struct Tag  {};
-}
+// ---------------------------------------------------------------------------
+// Archetype core (gz::sim::ecs::World)
+// ---------------------------------------------------------------------------
 
-// Baseline iteration over N entities — used as the reference cost
-// for the Add / Remove benches above.
+// Baseline iteration over N entities — the reference cost the
+// per-transition benches are read against.
 static void BM_ArchetypeEachBaseline(benchmark::State &_state)
 {
   const int64_t N = _state.range(0);
-  World w(1);
+  gz::sim::ecs::World w(1);
   for (int64_t i = 0; i < N; ++i)
-    w.Create(Pose{double(i), 0, 0});
+    w.Create(Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
 
   for (auto _ : _state)
   {
-    w.Each<const Pose>([](Entity, const Pose &) {});
+    w.Each<Pose>([](gz::sim::ecs::Entity, Pose &) {});
   }
   _state.SetItemsProcessed(_state.iterations() * N);
 }
@@ -57,8 +77,8 @@ BENCHMARK(BM_ArchetypeEachBaseline)
   ->Arg(100000)
   ->Unit(benchmark::kMicrosecond);
 
-// Add a Tag to N entities. Each entity transitions from
-// {Pose} -> {Pose, Tag}. PauseTiming/ResumeTiming bracket the
+// Add a Visual tag to N entities. Each entity transitions from
+// {Pose} -> {Pose, Visual}. PauseTiming/ResumeTiming bracket the
 // per-iteration setup so only the Add work is measured.
 static void BM_ArchetypeAddTag(benchmark::State &_state)
 {
@@ -66,14 +86,15 @@ static void BM_ArchetypeAddTag(benchmark::State &_state)
   for (auto _ : _state)
   {
     _state.PauseTiming();
-    World w(1);
-    std::vector<Entity> es;
+    gz::sim::ecs::World w(1);
+    std::vector<gz::sim::ecs::Entity> es;
     es.reserve(N);
     for (int64_t i = 0; i < N; ++i)
-      es.push_back(w.Create(Pose{double(i), 0, 0}));
+      es.push_back(w.Create(
+          Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0))));
     _state.ResumeTiming();
 
-    for (auto e : es) w.Add(e, Tag{});
+    for (auto e : es) w.Add(e, Visual{});
   }
   _state.SetItemsProcessed(_state.iterations() * N);
 }
@@ -82,31 +103,112 @@ BENCHMARK(BM_ArchetypeAddTag)
   ->Arg(100000)
   ->Unit(benchmark::kMillisecond);
 
-// Remove a Tag from N entities. Each entity transitions from
-// {Pose, Tag} -> {Pose}. Setup creates the entities WITH the tag
-// already present so the timed body is purely the Remove work.
+// Remove a Visual tag from N entities. Setup creates the entities
+// WITH the tag already present so the timed body is purely the
+// Remove work.
 static void BM_ArchetypeRemoveTag(benchmark::State &_state)
 {
   const int64_t N = _state.range(0);
   for (auto _ : _state)
   {
     _state.PauseTiming();
-    World w(1);
-    std::vector<Entity> es;
+    gz::sim::ecs::World w(1);
+    std::vector<gz::sim::ecs::Entity> es;
     es.reserve(N);
     for (int64_t i = 0; i < N; ++i)
     {
-      auto e = w.Create(Pose{double(i), 0, 0});
-      w.Add(e, Tag{});
+      auto e = w.Create(Pose(gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+      w.Add(e, Visual{});
       es.push_back(e);
     }
     _state.ResumeTiming();
 
-    for (auto e : es) w.Remove<Tag>(e);
+    for (auto e : es) w.Remove<Visual>(e);
   }
   _state.SetItemsProcessed(_state.iterations() * N);
 }
 BENCHMARK(BM_ArchetypeRemoveTag)
+  ->Arg(10000)
+  ->Arg(100000)
+  ->Unit(benchmark::kMillisecond);
+
+// ---------------------------------------------------------------------------
+// Legacy / public-facade comparison benches
+// ---------------------------------------------------------------------------
+
+static void BM_LegacyEachBaseline(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  gz::sim::EntityComponentManager ecm;
+  for (int64_t i = 0; i < N; ++i)
+  {
+    auto e = ecm.CreateEntity();
+    ecm.CreateComponent<Pose>(e, Pose(
+        gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+  }
+  for (auto _ : _state)
+  {
+    ecm.Each<Pose>(
+        [](const gz::sim::Entity &, Pose *) -> bool { return true; });
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyEachBaseline)
+  ->Arg(10000)
+  ->Arg(100000)
+  ->Unit(benchmark::kMicrosecond);
+
+static void BM_LegacyAddTag(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
+  {
+    _state.PauseTiming();
+    gz::sim::EntityComponentManager ecm;
+    std::vector<gz::sim::Entity> es;
+    es.reserve(N);
+    for (int64_t i = 0; i < N; ++i)
+    {
+      auto e = ecm.CreateEntity();
+      ecm.CreateComponent<Pose>(e, Pose(
+          gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+      es.push_back(e);
+    }
+    _state.ResumeTiming();
+
+    for (auto e : es) ecm.CreateComponent<Visual>(e, Visual());
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyAddTag)
+  ->Arg(10000)
+  ->Arg(100000)
+  ->Unit(benchmark::kMillisecond);
+
+static void BM_LegacyRemoveTag(benchmark::State &_state)
+{
+  const int64_t N = _state.range(0);
+  for (auto _ : _state)
+  {
+    _state.PauseTiming();
+    gz::sim::EntityComponentManager ecm;
+    std::vector<gz::sim::Entity> es;
+    es.reserve(N);
+    for (int64_t i = 0; i < N; ++i)
+    {
+      auto e = ecm.CreateEntity();
+      ecm.CreateComponent<Pose>(e, Pose(
+          gz::math::Pose3d(double(i), 0, 0, 0, 0, 0)));
+      ecm.CreateComponent<Visual>(e, Visual());
+      es.push_back(e);
+    }
+    _state.ResumeTiming();
+
+    for (auto e : es) ecm.RemoveComponent(e, Visual::typeId);
+  }
+  _state.SetItemsProcessed(_state.iterations() * N);
+}
+BENCHMARK(BM_LegacyRemoveTag)
   ->Arg(10000)
   ->Arg(100000)
   ->Unit(benchmark::kMillisecond);
