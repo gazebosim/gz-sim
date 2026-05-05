@@ -14,10 +14,10 @@ if (GzBenchmark_FOUND)
   # under GZ_SIM_ARCHETYPE_ECM=ON.
   if (GZ_SIM_ARCHETYPE_ECM)
     list(APPEND tests
-      bench_iteration.cc
-      bench_parallel.cc
-      bench_transitions.cc
-      bench_vs_ecm.cc
+      archetype_iteration.cc
+      archetype_parallel.cc
+      archetype_transitions.cc
+      archetype_vs_ecm.cc
     )
   endif()
 
@@ -29,8 +29,8 @@ if (GzBenchmark_FOUND)
   # archetype build), so no extra link is needed — but the consumer
   # TUs still need the C++20 standard set.
   if (GZ_SIM_ARCHETYPE_ECM)
-    foreach(bench_name bench_iteration bench_parallel bench_transitions
-                       bench_vs_ecm)
+    foreach(bench_name archetype_iteration archetype_parallel
+                       archetype_transitions archetype_vs_ecm)
       set(bench_target BENCHMARK_${bench_name})
       if (TARGET ${bench_target})
         target_compile_features(${bench_target} PRIVATE cxx_std_20)
