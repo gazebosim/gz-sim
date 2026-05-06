@@ -61,7 +61,9 @@ namespace gz::sim::ecs
       return out;
     }
 
-    /// \brief fn(e, col0[row], col1[row], ...).
+    /// \brief fn(e, col0[row], col1[row], ...) for a single row.
+    /// Used by per-row paths (EachNew, EachChanged) where we walk
+    /// a sparse subset of rows.
     template <class Fn, class... Cs, std::size_t... Is>
     inline void InvokeRow(Fn &_fn, Entity _e,
                           const std::array<void *, sizeof...(Cs)> &_cols,
@@ -72,16 +74,50 @@ namespace gz::sim::ecs
               _cols[Is])[_row]...);
     }
 
+    /// \brief Per-chunk inner loop. Typed column pointers are passed
+    /// as named function parameters (a parameter pack), not stuffed
+    /// into a tuple — this keeps them in registers across the row
+    /// loop and lets the compiler hoist any lambda-internal
+    /// loop-invariants (e.g. literal constants) out of the loop body.
     template <class Fn, class... Cs>
-    inline void InvokeChunk(Fn &_fn, Entity *_ents,
-                            const std::array<void *, sizeof...(Cs)> &_cols,
-                            uint32_t _count)
+    [[gnu::always_inline]] inline void InvokeChunkPacked(
+        Fn &_fn, const Entity *_ents, uint32_t _count,
+        std::add_pointer_t<std::remove_reference_t<Cs>>... _typed)
     {
+      // ivdep tells GCC the row iterations are independent (columns
+      // never alias by archetype construction). This unlocks SSE2
+      // vectorization of the lambda body — measurable but small win
+      // because the iteration is already memory-bandwidth bound.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC ivdep
+#endif
       for (uint32_t r = 0; r < _count; ++r)
       {
-        InvokeRow<Fn, Cs...>(_fn, _ents[r], _cols, r,
-            std::index_sequence_for<Cs...>{});
+        _fn(_ents[r], _typed[r]...);
       }
+    }
+
+    /// \brief Trampoline that expands the pack via index_sequence and
+    /// hands typed pointers to InvokeChunkPacked as named parameters.
+    template <class Fn, class... Cs, std::size_t... Is>
+    [[gnu::always_inline]] inline void InvokeChunkImpl(
+        Fn &_fn, const Entity *_ents,
+        const std::array<void *, sizeof...(Cs)> &_cols, uint32_t _count,
+        std::index_sequence<Is...>)
+    {
+      InvokeChunkPacked<Fn, Cs...>(_fn, _ents, _count,
+          static_cast<std::add_pointer_t<std::remove_reference_t<Cs>>>(
+              _cols[Is])...);
+    }
+
+    template <class Fn, class... Cs>
+    [[gnu::always_inline]] inline void InvokeChunk(
+        Fn &_fn, Entity *_ents,
+        const std::array<void *, sizeof...(Cs)> &_cols,
+        uint32_t _count)
+    {
+      InvokeChunkImpl<Fn, Cs...>(_fn, _ents, _cols, _count,
+          std::index_sequence_for<Cs...>{});
     }
   }
 
