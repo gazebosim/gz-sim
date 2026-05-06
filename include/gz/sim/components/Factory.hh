@@ -251,7 +251,6 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      const auto typeHash = ComponentTypeT::typeIdStatic();
       this->RegisterType<ComponentTypeT>();
 
       // Initialize static member variable - we need to set these
@@ -261,7 +260,7 @@ namespace components
 
       // Check if component has already been registered by another library
       auto runtimeName = typeid(ComponentTypeT).name();
-      auto runtimeNameIt = this->runtimeNamesById.find(typeHash);
+      auto runtimeNameIt = this->runtimeNamesById.find(ComponentTypeT::typeId);
       if (runtimeNameIt != this->runtimeNamesById.end())
       {
         // Warn user if type was previously registered with a different name.
@@ -290,9 +289,9 @@ namespace components
       }
 
       // Keep track of all types
-      this->compsById[typeHash].Add(_regObjId, _compDesc);
-      namesById[typeHash] = ComponentTypeT::typeName;
-      runtimeNamesById[typeHash] = runtimeName;
+      this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
+      namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
+      runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -304,7 +303,7 @@ namespace components
     public: template<typename ComponentTypeT>
     void Unregister(RegistrationObjectId  _regObjId)
     {
-      this->Unregister(ComponentTypeT::typeIdStatic(), _regObjId);
+      this->Unregister(ComponentTypeT::typeId, _regObjId);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -444,9 +443,9 @@ namespace components
 
 namespace entt {
 template<typename Type>
-struct type_hash<Type, std::void_t<decltype(Type::typeIdStatic())>> {
+struct type_hash<Type, std::void_t<decltype(Type::typeId)>> {
   static constexpr ENTT_ID_TYPE value() noexcept {
-      return Type::typeIdStatic();
+      return Type::typeId;
   }
 };
 }
@@ -460,9 +459,10 @@ struct type_hash<Type, std::void_t<decltype(Type::typeIdStatic())>> {
 /// \param[in] _compType Component type name.
 /// \param[in] _classname Class name for component.
 ///
-/// This macro defines a non-member function `componentTypeId` in the current
-/// namespace. This function is used by the `Component` class template to
-/// discover the component's unique ID via Argument Dependent Lookup (ADL).
+/// This macro defines a non-member function `gzSimFactorycomponentTypeId`
+/// in the current namespace. This function is used by the `Component` class
+/// template to discover the component's unique ID via Argument Dependent
+/// Lookup (ADL).
 /// This removes the constraint that all components must be defined inside the
 /// `gz::sim::components` namespace, enabling custom components to be defined
 /// in any namespace.
@@ -471,8 +471,10 @@ struct type_hash<Type, std::void_t<decltype(Type::typeIdStatic())>> {
 /// and support distinguishing components that share the same tag type but have
 /// different data types.
 #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
-inline constexpr ::gz::sim::ComponentTypeId componentTypeId(_classname*) \
+inline constexpr ::gz::sim::ComponentTypeId \
+  gzSimFactoryComponentTypeId(_classname* ptr) \
 { \
+  (void)ptr; \
   return ::gz::common::hash64(_compType); \
 } \
 class GzSimComponents##_classname \
@@ -481,7 +483,8 @@ class GzSimComponents##_classname \
   { \
     using Desc = ::gz::sim::components::ComponentDescriptor<_classname>; \
     ::gz::sim::components::Factory::Instance()->Register<_classname>(\
-      _compType, new Desc(), ::gz::sim::components::RegistrationObjectId(this));\
+      _compType, new Desc(), \
+      ::gz::sim::components::RegistrationObjectId(this));\
   } \
   public: GzSimComponents##_classname( \
               const GzSimComponents##_classname&) = delete; \

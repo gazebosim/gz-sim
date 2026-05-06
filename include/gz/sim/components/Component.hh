@@ -205,8 +205,11 @@ namespace components
   /// It is a template so it has lower priority than the non-template
   /// overloads defined by the GZ_SIM_REGISTER_COMPONENT macro.
   template <typename T>
-  constexpr ComponentTypeId componentTypeId(T*)
+  // NOLINTNEXTLINE(readability/casting)
+  constexpr ComponentTypeId gzSimFactoryComponentTypeId(T*)
   {
+    static_assert(false, "Type ID not set, did you register the component "
+                  "through the GZ_SIM_REGISTER_COMPONENT macro?");
     return 0;
   }
 
@@ -359,25 +362,6 @@ namespace components
     // Documentation inherited
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
-    /// \brief Returns the unique ID for the component's type.
-    public: static constexpr ComponentTypeId typeIdStatic()
-    {
-      // This call triggers Argument Dependent Lookup (ADL) to find the
-      // `componentTypeId` function defined by the GZ_SIM_REGISTER_COMPONENT
-      // macro in the component's namespace.
-      //
-      // We pass a null pointer of the type `Component*` to trigger ADL. ADL
-      // searches the namespaces of the template arguments of `Component`,
-      // which includes the namespace where the tag type (and thus the
-      // component) is defined. This removes the constraint that all
-      // components must be defined in the `gz::sim::components` namespace.
-      //
-      // Passing `Component*` also ensures that components sharing the same
-      // tag type but having different data types generate unique function
-      // overloads, preventing ODR collisions.
-      return componentTypeId((Component*)nullptr);
-    }
-
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
 
@@ -410,9 +394,21 @@ namespace components
     /// \brief Private data pointer.
     private: DataType data;
 
-    /// \brief Unique ID for this component type. This is set through the
-    /// Factory registration.
-    public: inline static ComponentTypeId typeId = typeIdStatic();
+    // This call triggers Argument Dependent Lookup (ADL) to find the
+    // `gzSimFactoryComponentTypeId` function defined by the
+    // GZ_SIM_REGISTER_COMPONENT macro in the component's namespace.
+    //
+    // We pass a null pointer of the type `Component*` to trigger ADL. ADL
+    // searches the namespaces of the template arguments of `Component`,
+    // which includes the namespace where the tag type (and thus the
+    // component) is defined. This removes the constraint that all
+    // components must be defined in the `gz::sim::components` namespace.
+    //
+    // Passing `Component*` also ensures that components sharing the same
+    // tag type but having different data types generate unique function
+    // overloads, preventing ODR collisions.
+    public: inline static constexpr ComponentTypeId typeId =
+            gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -448,25 +444,6 @@ namespace components
     // Documentation inherited
     public: std::unique_ptr<BaseComponent> Clone() const override;
 
-    /// \brief Returns the unique ID for the component's type.
-    public: static constexpr ComponentTypeId typeIdStatic()
-    {
-      // This call triggers Argument Dependent Lookup (ADL) to find the
-      // `componentTypeId` function defined by the GZ_SIM_REGISTER_COMPONENT
-      // macro in the component's namespace.
-      //
-      // We pass a null pointer of the type `Component*` to trigger ADL. ADL
-      // searches the namespaces of the template arguments of `Component`,
-      // which includes the namespace where the tag type (and thus the
-      // component) is defined. This removes the constraint that all
-      // components must be defined in the `gz::sim::components` namespace.
-      //
-      // Passing `Component*` also ensures that components sharing the same
-      // tag type but having different data types generate unique function
-      // overloads, preventing ODR collisions.
-      return componentTypeId((Component*)nullptr);
-    }
-
     // Documentation inherited
     public: ComponentTypeId TypeId() const override;
 
@@ -478,9 +455,21 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public:
-    // [[deprecated("Use TypeId() or TypeIdStatic() for constexpr context. Editing this variable at runtime is not supported.")]]
-    inline static ComponentTypeId typeId = typeIdStatic();
+    // This call triggers Argument Dependent Lookup (ADL) to find the
+    // `gzSimFactoryComponentTypeId` function defined by the
+    // GZ_SIM_REGISTER_COMPONENT macro in the component's namespace.
+    //
+    // We pass a null pointer of the type `Component*` to trigger ADL. ADL
+    // searches the namespaces of the template arguments of `Component`,
+    // which includes the namespace where the tag type (and thus the
+    // component) is defined. This removes the constraint that all
+    // components must be defined in the `gz::sim::components` namespace.
+    //
+    // Passing `Component*` also ensures that components sharing the same
+    // tag type but having different data types generate unique function
+    // overloads, preventing ODR collisions.
+    public: inline static constexpr ComponentTypeId typeId =
+            gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -565,7 +554,7 @@ namespace components
   template <typename DataType, typename Identifier, typename Serializer>
   ComponentTypeId Component<DataType, Identifier, Serializer>::TypeId() const
   {
-    return typeIdStatic();
+    return typeId;
   }
 
   //////////////////////////////////////////////////
@@ -596,7 +585,7 @@ namespace components
   template <typename Identifier, typename Serializer>
   ComponentTypeId Component<NoData, Identifier, Serializer>::TypeId() const
   {
-    return typeIdStatic();
+    return typeId;
   }
 
   //////////////////////////////////////////////////
