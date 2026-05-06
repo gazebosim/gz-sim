@@ -39,10 +39,13 @@
 #include "gz/sim/Model.hh"
 
 #include <gz/common/Image.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/world_control.pb.h>
 #include <gz/rendering/Camera.hh>
 #include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
+#include <gz/transport/Node.hh>
 #include <gz/rendering/Visual.hh>
 
 
@@ -244,12 +247,6 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
 
     fixture.Server()->SetUpdatePeriod(1ns);
 
-    for (int i = 0; i < 50; ++i)
-    {
-      fixture.Server()->RunOnce(true);
-    }
-    this->LoadPoseValues();
-
     fixture.OnPreUpdate([&](const sim::UpdateInfo &,
                             sim::EntityComponentManager &_ecm)
     {
@@ -291,22 +288,82 @@ class ModelPhotoShootTest : public InternalFixture<::testing::Test>
       }
     });
 
+    this->RunPhotoShootCycle(fixture);
+
+    postRenderConn.reset();
+  }
+
+  /// \brief Tests the Model Photo Shoot plugin still works after a world reset.
+  /// \param[in] _sdfWorld SDF World to use for the test.
+  protected: void ModelPhotoShootResetTestCmd(const std::string &_sdfWorld)
+  {
+    TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        _sdfWorld));
+
+    common::ConnectionPtr postRenderConn;
+    fixture.OnConfigure([&](
+      const Entity &,
+      const std::shared_ptr<const sdf::Element> &,
+      EntityComponentManager &,
+      EventManager &_eventMgr)
+    {
+      postRenderConn = _eventMgr.Connect<sim::events::PostRender>(
+            std::bind(&ModelPhotoShootTest::OnPostRender, this));
+    }).Finalize();
+
+    fixture.Server()->SetUpdatePeriod(1ns);
+
+    this->RunPhotoShootCycle(fixture);
+    this->RequestWorldReset();
+    this->RunPhotoShootCycle(fixture);
+
+    postRenderConn.reset();
+  }
+
+  /// \brief Run one photo shoot cycle and compare output images.
+  /// \param[in] _fixture Fixture running the world.
+  protected: void RunPhotoShootCycle(TestFixture &_fixture)
+  {
+    for (int i = 0; i < 50; ++i)
+    {
+      _fixture.Server()->RunOnce(true);
+    }
+
+    this->LoadPoseValues();
     this->takeTestPics = true;
 
-    const auto end_time = std::chrono::steady_clock::now() +
+    const auto endTime = std::chrono::steady_clock::now() +
         std::chrono::milliseconds(3000);
-    while (takeTestPics && end_time > std::chrono::steady_clock::now())
+    while (this->takeTestPics && endTime > std::chrono::steady_clock::now())
     {
-      fixture.Server()->RunOnce(true);
+      _fixture.Server()->RunOnce(true);
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+
+    ASSERT_FALSE(this->takeTestPics);
     testImages("1.png", "1_test.png");
     testImages("2.png", "2_test.png");
     testImages("3.png", "3_test.png");
     testImages("4.png", "4_test.png");
     testImages("5.png", "5_test.png");
+  }
 
-    postRenderConn.reset();
+  /// \brief Request a reset on the default world.
+  protected: static void RequestWorldReset()
+  {
+    gz::msgs::WorldControl req;
+    gz::msgs::Boolean rep;
+    req.mutable_reset()->set_all(true);
+    transport::Node node;
+
+    unsigned int timeout = 1000;
+    bool result;
+    bool executed =
+      node.Request("/world/default/control", req, timeout, rep, result);
+
+    ASSERT_TRUE(executed);
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(rep.data());
   }
 
   private: bool takeTestPics{false};
