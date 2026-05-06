@@ -44,7 +44,7 @@ namespace gz
       public: bool insert(T value)
       {
         const auto it = std::lower_bound(data.begin(), data.end(), value);
-        if (*it != value)
+        if (it == data.end() || *it != value)
         {
           data.emplace(it, std::move(value));
           return true;
