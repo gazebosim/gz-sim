@@ -221,6 +221,103 @@ Each worker writes its mutations to a thread-local command buffer;
 all buffers merge at the next `Commit`. No cross-worker
 synchronization on the hot path.
 
+## Tier-aware archetypes
+
+Every entity in the adjustable-fidelity model carries a *fidelity
+tier* (e.g., `Kinematic`, `ReducedDynamics`, `FullMultibody`,
+`Dormant`). Tier is part of archetype identity, not an ordinary
+tag — making tier-scoped iteration the same cost as type-scoped
+iteration and making tier transitions structural archetype moves
+rather than predicate filters.
+
+### Tier as part of archetype identity
+
+An archetype is keyed by `(sorted ComponentTypeIds, tier)`. Two
+entities with the same component set but different tiers live in
+different archetypes. Per-tier iteration is matching-archetype
+filtering — the query's compiled match-list excludes wrong-tier
+archetypes — not a per-row check, so it costs nothing in the
+inner loop.
+
+### Tier transitions are archetype moves
+
+`World::SetTier(entity, NewTier)` follows a tier-edge in the
+archetype graph, analogous to the add/remove-component edges
+described under *Archetype graph*. The destination archetype has
+the same component set; only its tier label differs. Cost is the
+same O(k) column move as a normal archetype transition, where k
+is the number of components on the entity. Trivially-relocatable
+types use `memcpy` for the column migration.
+
+### Per-tier scheduling
+
+Systems declare a tier scope at registration. The exact API
+spelling is forward-looking; the contract is that the scheduler
+dispatches each system over only archetypes of its declared tier:
+
+```cpp
+ecm.Each<components::Pose, components::JointState>()
+   .InTier(Tier::FullMultibody)
+   .Run([&](const Entity &, const Pose *, JointState *) { ... });
+```
+
+Per-tier tick rates (kinematic at 100 Hz, full multibody at 1 kHz,
+dormant at 0 Hz) and per-tier time budgets are scheduler concerns,
+not component concerns — the ECM itself stays agnostic to
+wall-clock policy.
+
+### Tier promotion / demotion
+
+A `TierPolicy` system inspects budget, proximity, and visibility
+signals each frame and issues `SetTier` commands through the
+command buffer. Tier moves defer to the next `Commit`, sharing
+the deferral semantics described in *Mutation visibility*.
+
+## Solver coupling
+
+Physics solvers (DART, Bullet, MuJoCo) maintain state in dense
+arrays whose layout the solver dictates. The archetype ECS's
+per-column SoA storage is well-suited to *be* the solver's input
+buffer — but only if specific layout invariants hold and only if
+the relevant entities cluster into a small set of solver-tier
+archetypes.
+
+### Layout invariants for solver-readable columns
+
+The column-storage properties shown under *Chunk* — contiguous
+per chunk, stride equal to `sizeof(T)`, alignment at least the
+type's natural alignment — become a documented contract:
+solver-coupled component types may rely on them indefinitely. A
+future opt-in registration variant of `GZ_SIM_REGISTER_COMPONENT`
+will allow forcing higher alignment (e.g., 32-byte for
+SIMD-vectorized solver kernels).
+
+### Zero-copy adapter pattern
+
+A `PhysicsAdapter` queries solver-tier archetypes, retrieves
+column pointers, and passes them to the solver as its q / qdot /
+contact state vectors. The solver writes back through the same
+pointers; rows are marked dirty via `Modify<T>` so `EachChanged`
+consumers (logging, scene_broadcaster, ROS2 bridge) observe the
+updates. No transpose, no per-step staging buffer.
+
+### When zero-copy isn't possible
+
+Solvers that own their state internally (notably MuJoCo, which
+holds `mjData` in solver-private memory) get a sync adapter:
+`PreUpdate` pushes ECM → solver, `PostUpdate` pulls solver →
+ECM. Both directions are bulk contiguous copies gated by
+`EachChanged`, so untouched joints don't pay the round-trip cost.
+
+### Multi-archetype solvers
+
+A robot's joints, links, and collision pairs typically span
+multiple archetypes (different component sets). The adapter
+assembles them into one solver world using entity-ID order as the
+joining key — the *Determinism* section's ID-stability guarantees
+make this reproducible across runs without an explicit fixup
+table.
+
 ## Pointer-validity contract
 
 A pointer or reference returned by `EntityComponentManager::Component<T>(entity)`
@@ -305,10 +402,74 @@ semantics. See `Migration.md` for the transition plan.
 - `Commit` is single-threaded — `SimulationRunner` calls it between
   phases.
 - Component-type registration is mutex-guarded (cold path).
-- Determinism: `EachParallel`'s chunk assignment is deterministic
-  given a fixed worker count, and command-buffer merge order is
-  `(thread_id, insertion_order)`. Step-for-step determinism across
-  machines requires pinning the worker count.
+- Determinism — see the *Determinism* section.
+
+## Determinism
+
+The archetype ECS targets bit-exact reproducibility on a single
+machine, given a fixed input. This is the substrate for the
+adjustable-fidelity project's regression-replay and RL-training
+infrastructure: re-running the same scenario produces identical
+component values, identical entity handles, and identical
+archetype IDs.
+
+### Reproducibility envelope
+
+Bit-exact reproducibility on a single machine is guaranteed
+given:
+
+- The same input scene / SDF.
+- The same `EachParallel` worker count.
+- The same compiler and stdlib (relevant for `std::sort`
+  stability and floating-point reduction codegen).
+
+Cross-machine bit-exactness is not promised: float ABIs, FMA
+contraction, and stdlib `<algorithm>` implementations all vary.
+For cross-machine reproducibility, pin worker count to 1 and use
+deterministic float math in system code.
+
+### Stable entity IDs
+
+`EntityIndex` slot allocation uses a deterministic LIFO free-list:
+a fresh world creating entities in the same order always produces
+identical `Entity` handles, run after run. Generation increments
+deterministically on destroy. `Reset()` rewinds the index to a
+deterministic baseline.
+
+### Stable archetype IDs
+
+Archetype IDs come from a monotonic counter assigned at
+first-sighting of a type set. Combined with `ComponentTypeId`
+stability (`Factory::Register` hashes the registered type name —
+see *What stays the same*), archetype identity is stable across
+runs and across the legacy / archetype backend split.
+
+### Iteration order
+
+`Each` walks matching archetypes in graph-insertion order, chunks
+in stored order, and rows `0..count`. The swap-with-last erase
+used by *Add component* / *Remove component* changes which row a
+given entity occupies, but full iteration of all rows is
+order-stable.
+
+### Parallel determinism
+
+`EachParallel` partitions work units `(archetype_id, chunk_idx)`
+deterministically given a fixed worker count. `Commit` merges
+per-worker command buffers in `(thread_id, insertion_order)`,
+independent of which worker happened to finish first.
+Floating-point reductions inside parallel system bodies are out
+of scope — system authors needing strict reproducibility should
+use deterministic reduction patterns (e.g., reduce per-archetype
+serially, then combine).
+
+### Replay & regression testing
+
+Given the above, recording an SDF plus a worker count is
+sufficient to reproduce a simulation run bit-for-bit. This is
+what makes the archetype ECM viable as the substrate for the
+regression-replay infrastructure described in the
+adjustable-fidelity project.
 
 ## Build flag
 
