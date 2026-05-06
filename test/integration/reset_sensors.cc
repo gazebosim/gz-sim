@@ -40,6 +40,7 @@
 #include "helpers/EnvTestFixture.hh"
 #include "helpers/Util.hh"
 #include "helpers/ResetUtils.hh"
+#include "helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -117,8 +118,9 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   auto topic = "world/default/model/box/link/link/"
       "sensor/air_pressure_sensor/air_pressure";
 
-  auto pressureReceiver = reset::MsgReceiver<msgs::FluidPressure>();
-  auto imageReceiver = reset::MsgReceiver<msgs::Image>();
+  transport::Node node;
+  Subscription<msgs::FluidPressure> pressureReceiver;
+  Subscription<msgs::Image> imageReceiver;
 
   // A pointer to the ecm. This will be valid once we run the mock system
   sim::EntityComponentManager *ecm = nullptr;
@@ -161,23 +163,28 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   auto current = 1u;
   auto target = 2000u;
+  const auto remainingSteps = [&server](uint64_t _target)
+  {
+    const auto iteration = server.IterationCount().value_or(0u);
+    return iteration < _target ? _target - iteration : 0u;
+  };
 
   // Run until a sensor measurement
-  ASSERT_TRUE(pressureReceiver.Start(topic));
-  ASSERT_TRUE(imageReceiver.Start("camera"));
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, target,
+  pressureReceiver.Subscribe(node, topic, 1u);
+  imageReceiver.Subscribe(node, "camera", 1u);
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, remainingSteps(target),
       [&pressureReceiver]()
       {
-        return pressureReceiver.Received();
+        return pressureReceiver.Count() > 0u;
       }));
 
   EXPECT_GE(server.IterationCount().value(), current);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, target,
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, remainingSteps(target),
       [&imageReceiver]()
       {
-        return imageReceiver.Received();
+        return imageReceiver.Count() > 0u;
       }));
 
   // Mostly green box
@@ -189,13 +196,15 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FLOAT_EQ(0.0, centerPix.B());
   }
   // Run until 2000 steps
-  pressureReceiver.ClearReceived();
-  imageReceiver.ClearReceived();
-  server.Run(true, target - server.IterationCount().value(), false);
+  const auto pressureCountBeforeRun = pressureReceiver.Count();
+  const auto imageCountBeforeRun = imageReceiver.Count();
+  server.Run(true, remainingSteps(target), false);
   ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
-      [&pressureReceiver, &imageReceiver]()
+      [&pressureReceiver, &imageReceiver, pressureCountBeforeRun,
+       imageCountBeforeRun]()
       {
-        return pressureReceiver.Received() && imageReceiver.Received();
+        return pressureReceiver.Count() > pressureCountBeforeRun &&
+            imageReceiver.Count() > imageCountBeforeRun;
       }));
 
   // Check iterator state
@@ -207,8 +216,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_EQ(target, this->mockSystem->postUpdateCallCount);
 
   // Check world state
-  EXPECT_TRUE(pressureReceiver.Received());
-  EXPECT_TRUE(imageReceiver.Received());
+  EXPECT_GT(pressureReceiver.Count(), pressureCountBeforeRun);
+  EXPECT_GT(imageReceiver.Count(), imageCountBeforeRun);
   EXPECT_FLOAT_EQ(kEndingAltitude, poseComp->Data().Z());
   EXPECT_FLOAT_EQ(kEndingPressure, pressureReceiver.Last().pressure());
 
@@ -241,8 +250,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_EQ(target + 1, this->mockSystem->updateCallCount);
   EXPECT_EQ(target + 1, this->mockSystem->postUpdateCallCount);
 
-  imageReceiver.ClearReceived();
-  pressureReceiver.ClearReceived();
+  const auto imageCountBeforeResetApply = imageReceiver.Count();
+  const auto pressureCountBeforeResetApply = pressureReceiver.Count();
 
   // The second iteration is where the reset actually occurs.
   reset::ApplyWorldReset(server);
@@ -258,24 +267,27 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FLOAT_EQ(kStartingAltitude, poseComp->Data().Z());
 
     // Reset does not cause messages to be sent
-    EXPECT_FALSE(imageReceiver.Received());
-    EXPECT_FALSE(pressureReceiver.Received());
+    EXPECT_EQ(imageCountBeforeResetApply, imageReceiver.Count());
+    EXPECT_EQ(pressureCountBeforeResetApply, pressureReceiver.Count());
   }
 
   target = 4001;
+  const auto postResetTarget = 2000u;
 
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, 2000u,
-      [&pressureReceiver]()
+  const auto pressureCountBeforePostReset = pressureReceiver.Count();
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, remainingSteps(postResetTarget),
+      [&pressureReceiver, pressureCountBeforePostReset]()
       {
-        return pressureReceiver.Received();
+        return pressureReceiver.Count() > pressureCountBeforePostReset;
       }));
   EXPECT_GE(server.IterationCount().value(), 1u);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, 2000u,
-      [&imageReceiver]()
+  const auto imageCountBeforePostReset = imageReceiver.Count();
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, remainingSteps(postResetTarget),
+      [&imageReceiver, imageCountBeforePostReset]()
       {
-        return imageReceiver.Received();
+        return imageReceiver.Count() > imageCountBeforePostReset;
       }));
 
   // Mostly green box
@@ -288,18 +300,20 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   }
 
   // Run until target steps
-  pressureReceiver.ClearReceived();
-  imageReceiver.ClearReceived();
+  const auto pressureCountBeforeSecondRun = pressureReceiver.Count();
+  const auto imageCountBeforeSecondRun = imageReceiver.Count();
 
-  server.Run(true, 2000 - server.IterationCount().value(), false);
+  server.Run(true, remainingSteps(postResetTarget), false);
   ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
-      [&pressureReceiver, &imageReceiver]()
+      [&pressureReceiver, &imageReceiver, pressureCountBeforeSecondRun,
+       imageCountBeforeSecondRun]()
       {
-        return pressureReceiver.Received() && imageReceiver.Received();
+        return pressureReceiver.Count() > pressureCountBeforeSecondRun &&
+            imageReceiver.Count() > imageCountBeforeSecondRun;
       }));
 
   // Check iterator state
-  EXPECT_EQ(2000u, server.IterationCount().value());
+  EXPECT_EQ(postResetTarget, server.IterationCount().value());
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
   EXPECT_EQ(1u, this->mockSystem->resetCallCount);
   EXPECT_EQ(target, this->mockSystem->preUpdateCallCount);
@@ -307,8 +321,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_EQ(target, this->mockSystem->postUpdateCallCount);
 
   // Check world state
-  EXPECT_TRUE(pressureReceiver.Received());
-  EXPECT_TRUE(imageReceiver.Received());
+  EXPECT_GT(pressureReceiver.Count(), pressureCountBeforeSecondRun);
+  EXPECT_GT(imageReceiver.Count(), imageCountBeforeSecondRun);
   EXPECT_FLOAT_EQ(kEndingAltitude, poseComp->Data().Z());
   EXPECT_FLOAT_EQ(kEndingPressure, pressureReceiver.Last().pressure());
 
