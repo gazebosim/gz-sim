@@ -396,8 +396,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       EXPECT_NE(nullptr, _name);
 
       collisionCount++;
-      // TODO(luca)
-      // This test expects ordered entities and that is not guaranteed anymore.
+
       if (collisionCount == 1)
       {
         EXPECT_EQ(math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),

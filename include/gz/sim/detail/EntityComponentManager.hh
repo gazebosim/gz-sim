@@ -17,7 +17,6 @@
 #ifndef GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 #define GZ_SIM_DETAIL_ENTITYCOMPONENTMANAGER_HH_
 
-#include <algorithm>
 #include <cstring>
 #include <map>
 #include <memory>
