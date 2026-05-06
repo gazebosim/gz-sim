@@ -106,13 +106,47 @@ namespace gz::sim::ecs
     return this->graph_->Get(rec.archetype).Contains(_id);
   }
 
-  // Vend the calling thread's command buffer, registering a fresh
-  // slot if this thread hasn't been seen before. The mutex guards
-  // both the thread-id lookup and any vector growth that follows.
-  // Worker count is small (typically <= hardware_concurrency()), so
-  // a linear scan beats hashing.
+  // Per-thread override slot for parallel-mutation determinism.
+  // EachParallel sets this to the worker's pre-assigned slot index
+  // before invoking the user body, then clears it. With the override
+  // active, LocalBuffer() bypasses the thread-id lookup and returns
+  // the pre-assigned slot directly. Without this, slot assignment
+  // would depend on which worker thread first called LocalBuffer,
+  // which is scheduler-dependent — and that would make Commit's
+  // replay order non-deterministic across runs.
+  namespace
+  {
+    constexpr size_t kNoSlotOverride = static_cast<size_t>(-1);
+    thread_local size_t tl_slot_override = kNoSlotOverride;
+  }
+
+  // RAII helper that EachParallel uses to scope a slot override.
+  // The struct is declared in World.hh; bodies live here to keep
+  // the thread_local symbol private to this TU.
+  World::SlotOverrideGuard::SlotOverrideGuard(size_t _slot)
+    : prev(tl_slot_override)
+  {
+    tl_slot_override = _slot;
+  }
+  World::SlotOverrideGuard::~SlotOverrideGuard()
+  {
+    tl_slot_override = prev;
+  }
+
+  // Vend the calling thread's command buffer. Two routes:
+  //   1. If a parallel-walk slot override is active (set by
+  //      EachParallel), return that slot directly. This is the
+  //      fast deterministic path under EachParallel.
+  //   2. Otherwise, look up by std::this_thread::get_id(),
+  //      registering a new slot on first visit. Used by main-thread
+  //      and ad-hoc threads outside EachParallel.
   CommandBuffer &World::LocalBuffer()
   {
+    if (tl_slot_override != kNoSlotOverride)
+    {
+      std::lock_guard<std::mutex> lock(this->command_buffers_mutex_);
+      return *this->command_buffers_[tl_slot_override];
+    }
     auto tid = std::this_thread::get_id();
     {
       std::lock_guard<std::mutex> lock(this->command_buffers_mutex_);
@@ -127,6 +161,33 @@ namespace gz::sim::ecs
       this->thread_slots_.push_back({tid, idx});
       return *this->command_buffers_[idx];
     }
+  }
+
+  // Reserve `_n` consecutive command-buffer slots starting at the
+  // current end, and return the first slot's index. Called once
+  // per EachParallel before the worker dispatch loop, so the slot
+  // indices match the worker indices `0..n-1` in lockstep — that
+  // pins Commit's merge order regardless of which worker actually
+  // starts first on the OS scheduler.
+  size_t World::ReserveBufferSlots(size_t _n)
+  {
+    std::lock_guard<std::mutex> lock(this->command_buffers_mutex_);
+    size_t base = this->command_buffers_.size();
+    for (size_t i = 0; i < _n; ++i)
+      this->command_buffers_.push_back(std::make_unique<CommandBuffer>());
+    return base;
+  }
+
+  // Direct buffer access by slot index. Internal; used by
+  // EachParallel workers via the SlotOverrideGuard set up around
+  // the user body. Locking is necessary because Commit may be
+  // running concurrently on the main thread (in fact it isn't —
+  // EachParallel is synchronous — but the mutex is cheap and
+  // documents the invariant).
+  CommandBuffer &World::BufferAtSlot(size_t _slot)
+  {
+    std::lock_guard<std::mutex> lock(this->command_buffers_mutex_);
+    return *this->command_buffers_[_slot];
   }
 
   // Switch the world into deferred-mutation mode. Subsequent

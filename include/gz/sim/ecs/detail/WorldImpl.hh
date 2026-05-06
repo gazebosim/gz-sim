@@ -185,14 +185,24 @@ namespace gz::sim::ecs
     auto *pool = this->WorkerPoolInternal();
     auto *world = this;
 
+    // Determinism: pre-reserve `threads` command-buffer slots in
+    // a deterministic loop, BEFORE dispatching work. Each worker
+    // index t binds to slot (base_slot + t) via the
+    // SlotOverrideGuard. Without this, slot order would depend on
+    // which worker thread first calls LocalBuffer — scheduler-
+    // dependent — and Commit's replay order would vary across
+    // runs even with identical inputs and worker counts.
+    const size_t base_slot = world->ReserveBufferSlots(threads);
+
     for (unsigned int t = 0; t < threads; ++t)
     {
       size_t lo = t * per;
       size_t hi = std::min(lo + per, units.size());
       if (lo >= hi) break;
-      pool->AddWork([world, &units, &_fn, lo, hi]()
+      const size_t slot = base_slot + t;
+      pool->AddWork([world, &units, &_fn, lo, hi, slot]()
       {
-        (void)world->LocalBuffer();
+        World::SlotOverrideGuard guard(slot);
         for (size_t i = lo; i < hi; ++i)
         {
           auto u = units[i];

@@ -240,6 +240,33 @@ namespace gz::sim::ecs
     // Thread-local command-buffer access.
     private: CommandBuffer &LocalBuffer();
 
+    // Reserve N consecutive command-buffer slots and return the
+    // first slot's index. Used by EachParallel to pre-register
+    // worker slots in deterministic order before dispatching work
+    // — without this, slot assignment via LocalBuffer() depends on
+    // which worker thread happens to call first, which makes
+    // Commit's merge order non-deterministic. This API is internal.
+    public: size_t ReserveBufferSlots(size_t _n);
+
+    // Direct buffer access by pre-reserved slot index. Bypasses
+    // the thread-id lookup that LocalBuffer() performs. EachParallel
+    // workers use this to write into their pre-assigned slot.
+    public: CommandBuffer &BufferAtSlot(size_t _slot);
+
+    // RAII guard that pins LocalBuffer() to a specific slot for
+    // the calling thread's lifetime of the guard. EachParallel
+    // wraps each worker's user-body call so deferred mutations
+    // route through the worker's pre-assigned slot. Implementation
+    // in World.cc.
+    public: struct SlotOverrideGuard
+    {
+      size_t prev;
+      explicit SlotOverrideGuard(size_t _slot);
+      ~SlotOverrideGuard();
+      SlotOverrideGuard(const SlotOverrideGuard &) = delete;
+      SlotOverrideGuard &operator=(const SlotOverrideGuard &) = delete;
+    };
+
     private: friend class Query;
     private: friend class QueryTestAccess;
 
