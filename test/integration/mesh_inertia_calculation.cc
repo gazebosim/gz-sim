@@ -96,66 +96,57 @@ void cylinderColladaMeshInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
 
-  // Get link of collada cylinder
-  gz::sim::Entity modelEntity = ecm->EntityByComponents(
-    gz::sim::components::Name("cylinder_dae"),
-    gz::sim::components::Model()
-  );
+  server.PokeEcm([&](EntityComponentManager &_ecm)
+  {
+    // Get link of collada cylinder
+    gz::sim::Entity modelEntity = _ecm.EntityByComponents(
+      gz::sim::components::Name("cylinder_dae"),
+      gz::sim::components::Model()
+    );
 
-  gz::sim::Model model = gz::sim::Model(modelEntity);
-  ASSERT_TRUE(model.Valid(*ecm));
+    gz::sim::Model model = gz::sim::Model(modelEntity);
+    ASSERT_TRUE(model.Valid(_ecm));
 
-  gz::sim::Entity linkEntity = model.LinkByName(*ecm, "cylinder_dae");
-  gz::sim::Link link = gz::sim::Link(linkEntity);
-  ASSERT_TRUE(link.Valid(*ecm));
+    gz::sim::Entity linkEntity = model.LinkByName(_ecm, "cylinder_dae");
+    gz::sim::Link link = gz::sim::Link(linkEntity);
+    ASSERT_TRUE(link.Valid(_ecm));
 
-  // Enable checks for pose values
-  link.EnableVelocityChecks(*ecm);
+    // Enable checks for pose values
+    link.EnableVelocityChecks(_ecm);
 
-  ASSERT_NE(link.WorldInertiaMatrix(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldInertialPose(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldPose(*ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertiaMatrix(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertialPose(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldPose(_ecm), std::nullopt);
 
-  // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
-  // Volume: πr²h = 2π ≈ 6.283
-  // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
-  // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
-  // Iz : ½mr² ≈ 3895.57
-  gz::math::Inertiald meshInertial;
-  meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
-      7791.1497,
-      gz::math::Vector3d(4544.83, 4544.83, 3895.57),
-      gz::math::Vector3d::Zero
-    ));
-    meshInertial.SetPose(gz::math::Pose3d::Zero);
-  gz::math::Matrix3 inertiaMatrix = meshInertial.Moi();
+    // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
+    // Volume: πr²h = 2π ≈ 6.283
+    // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
+    // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
+    // Iz : ½mr² ≈ 3895.57
+    gz::math::Inertiald meshInertial;
+    meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
+        7791.1497,
+        gz::math::Vector3d(4544.83, 4544.83, 3895.57),
+        gz::math::Vector3d::Zero
+      ));
+      meshInertial.SetPose(gz::math::Pose3d::Zero);
+    gz::math::Matrix3 inertiaMatrix = meshInertial.Moi();
 
-  // Check the Inertia Matrix within a tolerance of 0.005 since we are
-  // comparing a mesh cylinder with an ideal cylinder. For values more closer
-  // to the ideal, a higher number of vertices would be required in mesh
-  EXPECT_TRUE(
-    link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
+    // Check the Inertia Matrix within a tolerance of 0.005 since we are
+    // comparing a mesh cylinder with an ideal cylinder. For values more closer
+    // to the ideal, a higher number of vertices would be required in mesh
+    EXPECT_TRUE(
+      link.WorldInertiaMatrix(_ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose and Link Pose. Their world poses should be the
-  // same since the inertial pose relative to the link is zero.
-  EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
-    worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero);
+    // Check the Inertial Pose and Link Pose. Their world poses should be the
+    // same since the inertial pose relative to the link is zero.
+    EXPECT_EQ(link.WorldInertialPose(_ecm).value(),
+      worldPose(linkEntity, _ecm) * gz::math::Pose3d::Zero);
+  });
 }
 
 // Tests are disabled on Windows
@@ -186,68 +177,59 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
 
-  // Get link of collada cylinder
-  gz::sim::Entity modelEntity = ecm->EntityByComponents(
-    gz::sim::components::Name("cylinder_dae_bottom_origin"),
-    gz::sim::components::Model()
-  );
+  server.PokeEcm([&](EntityComponentManager &_ecm)
+  {
+    // Get link of collada cylinder
+    gz::sim::Entity modelEntity = _ecm.EntityByComponents(
+      gz::sim::components::Name("cylinder_dae_bottom_origin"),
+      gz::sim::components::Model()
+    );
 
-  gz::sim::Model model = gz::sim::Model(modelEntity);
-  ASSERT_TRUE(model.Valid(*ecm));
+    gz::sim::Model model = gz::sim::Model(modelEntity);
+    ASSERT_TRUE(model.Valid(_ecm));
 
-  gz::sim::Entity linkEntity = model.LinkByName(*ecm,
-    "cylinder_dae_bottom_origin");
-  gz::sim::Link link = gz::sim::Link(linkEntity);
-  ASSERT_TRUE(link.Valid(*ecm));
+    gz::sim::Entity linkEntity = model.LinkByName(_ecm,
+      "cylinder_dae_bottom_origin");
+    gz::sim::Link link = gz::sim::Link(linkEntity);
+    ASSERT_TRUE(link.Valid(_ecm));
 
-  // Enable checks for pose values
-  link.EnableVelocityChecks(*ecm);
+    // Enable checks for pose values
+    link.EnableVelocityChecks(_ecm);
 
-  ASSERT_NE(link.WorldInertiaMatrix(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldInertialPose(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldPose(*ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertiaMatrix(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertialPose(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldPose(_ecm), std::nullopt);
 
-  // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
-  // Volume: πr²h = 2π ≈ 6.283
-  // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
-  // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
-  // Iz : ½mr² ≈ 3895.57
-  gz::math::Inertiald meshInertial;
-  meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
-      7791.1497,
-      gz::math::Vector3d(4544.83, 4544.83, 3895.57),
-      gz::math::Vector3d::Zero
-    ));
-    meshInertial.SetPose(gz::math::Pose3d::Zero);
-  gz::math::Matrix3 inertiaMatrix = meshInertial.Moi();
+    // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
+    // Volume: πr²h = 2π ≈ 6.283
+    // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
+    // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
+    // Iz : ½mr² ≈ 3895.57
+    gz::math::Inertiald meshInertial;
+    meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
+        7791.1497,
+        gz::math::Vector3d(4544.83, 4544.83, 3895.57),
+        gz::math::Vector3d::Zero
+      ));
+      meshInertial.SetPose(gz::math::Pose3d::Zero);
+    gz::math::Matrix3 inertiaMatrix = meshInertial.Moi();
 
-  // Check the Inertia Matrix within a tolerance of 0.005 since we are
-  // comparing a mesh cylinder with an ideal cylinder. For values more closer
-  // to the ideal, a higher number of vertices would be required in mesh
-  EXPECT_TRUE(
-    link.WorldInertiaMatrix(*ecm).value().Equal(inertiaMatrix, 0.005));
+    // Check the Inertia Matrix within a tolerance of 0.005 since we are
+    // comparing a mesh cylinder with an ideal cylinder. For values more closer
+    // to the ideal, a higher number of vertices would be required in mesh
+    EXPECT_TRUE(
+      link.WorldInertiaMatrix(_ecm).value().Equal(inertiaMatrix, 0.005));
 
-  // Check the Inertial Pose
-  // Since the height of cylinder is 2m and origin is at center of bottom face
-  // the center of mass (inertial pose) will be 1m above the ground
-  EXPECT_EQ(link.WorldInertialPose(*ecm).value(),
-    worldPose(linkEntity, *ecm) * gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+    // Check the Inertial Pose
+    // Since the height of cylinder is 2m and origin is at center of bottom face
+    // the center of mass (inertial pose) will be 1m above the ground
+    EXPECT_EQ(link.WorldInertialPose(_ecm).value(),
+      worldPose(linkEntity, _ecm) * gz::math::Pose3d(0, 0, 1, 0, 0, 0));
+  });
 }
 
 // Tests are disabled on Windows
@@ -282,74 +264,65 @@ void cylinderColladaOptimizedMeshInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
 
-  // Get link of collada cylinder
-  gz::sim::Entity modelEntity = ecm->EntityByComponents(
-    gz::sim::components::Name("cylinder_dae_convex_decomposition"),
-    gz::sim::components::Model()
-  );
+  server.PokeEcm([&](EntityComponentManager &_ecm)
+  {
+    // Get link of collada cylinder
+    gz::sim::Entity modelEntity = _ecm.EntityByComponents(
+      gz::sim::components::Name("cylinder_dae_convex_decomposition"),
+      gz::sim::components::Model()
+    );
 
-  gz::sim::Model model = gz::sim::Model(modelEntity);
-  ASSERT_TRUE(model.Valid(*ecm));
+    gz::sim::Model model = gz::sim::Model(modelEntity);
+    ASSERT_TRUE(model.Valid(_ecm));
 
-  gz::sim::Entity linkEntity =
-      model.LinkByName(*ecm, "cylinder_dae_convex_decomposition");
-  gz::sim::Link link = gz::sim::Link(linkEntity);
-  ASSERT_TRUE(link.Valid(*ecm));
+    gz::sim::Entity linkEntity =
+        model.LinkByName(_ecm, "cylinder_dae_convex_decomposition");
+    gz::sim::Link link = gz::sim::Link(linkEntity);
+    ASSERT_TRUE(link.Valid(_ecm));
 
-  // Enable checks for pose values
-  link.EnableVelocityChecks(*ecm);
+    // Enable checks for pose values
+    link.EnableVelocityChecks(_ecm);
 
-  ASSERT_NE(link.WorldInertiaMatrix(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldInertialPose(*ecm), std::nullopt);
-  ASSERT_NE(link.WorldPose(*ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertiaMatrix(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldInertialPose(_ecm), std::nullopt);
+    ASSERT_NE(link.WorldPose(_ecm), std::nullopt);
 
-  // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
-  // Volume: πr²h = 2π ≈ 6.283
-  // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
-  // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
-  // Iz : ½mr² ≈ 3895.57
-  gz::math::Inertiald meshInertial;
-  meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
-      7791.1497,
-      gz::math::Vector3d(4544.83, 4544.83, 3895.57),
-      gz::math::Vector3d::Zero
-    ));
-    meshInertial.SetPose(gz::math::Pose3d::Zero);
+    // The cylinder has a radius of 1m, length of 2m, and density of 1240 kg/m³.
+    // Volume: πr²h = 2π ≈ 6.283
+    // Mass: ρV = (1240.0) * 2π ≈ 7791.1497
+    // Ix = Iy : 1/12 * m(3r² + h²)  = m/12 * (3 + 4) ≈ 4544.83
+    // Iz : ½mr² ≈ 3895.57
+    gz::math::Inertiald meshInertial;
+    meshInertial.SetMassMatrix(gz::math::MassMatrix3d(
+        7791.1497,
+        gz::math::Vector3d(4544.83, 4544.83, 3895.57),
+        gz::math::Vector3d::Zero
+      ));
+      meshInertial.SetPose(gz::math::Pose3d::Zero);
 
-  // Check the Inertia Matrix within a larger tolerance since we are
-  // comparing a mesh cylinder made of convex hulls with an ideal cylinder.
-  // For values more closer to the ideal, a higher number convex decomposition
-  // parameters would be required in the mesh sdf.
-  double ixxyyzzTol = meshInertial.MassMatrix().DiagonalMoments().Max() * 0.1;
-  gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(*ecm).value()(0, 0),
-                                   link.WorldInertiaMatrix(*ecm).value()(1, 1),
-                                   link.WorldInertiaMatrix(*ecm).value()(2, 2));
-  gz::math::Vector3d actualIxyxzyz(link.WorldInertiaMatrix(*ecm).value()(0, 1),
-                                   link.WorldInertiaMatrix(*ecm).value()(0, 2),
-                                   link.WorldInertiaMatrix(*ecm).value()(1, 2));
-  EXPECT_TRUE(actualIxxyyzz.Equal(meshInertial.MassMatrix().DiagonalMoments(),
-              ixxyyzzTol));
-  EXPECT_TRUE(actualIxyxzyz.Equal(
-              meshInertial.MassMatrix().OffDiagonalMoments(), 3.5));
-  // Check the Inertial Pose
-  EXPECT_TRUE(link.WorldInertialPose(*ecm).value().Equal(
-              worldPose(linkEntity, *ecm) * gz::math::Pose3d::Zero, 1e-2));
+    // Check the Inertia Matrix within a larger tolerance since we are
+    // comparing a mesh cylinder made of convex hulls with an ideal cylinder.
+    // For values more closer to the ideal, a higher number convex decomposition
+    // parameters would be required in the mesh sdf.
+    double ixxyyzzTol = meshInertial.MassMatrix().DiagonalMoments().Max() * 0.1;
+    gz::math::Vector3d actualIxxyyzz(link.WorldInertiaMatrix(_ecm).value()(0, 0),
+                                     link.WorldInertiaMatrix(_ecm).value()(1, 1),
+                                     link.WorldInertiaMatrix(_ecm).value()(2, 2));
+    gz::math::Vector3d actualIxyxzyz(link.WorldInertiaMatrix(_ecm).value()(0, 1),
+                                     link.WorldInertiaMatrix(_ecm).value()(0, 2),
+                                     link.WorldInertiaMatrix(_ecm).value()(1, 2));
+    EXPECT_TRUE(actualIxxyyzz.Equal(meshInertial.MassMatrix().DiagonalMoments(),
+                ixxyyzzTol));
+    EXPECT_TRUE(actualIxyxzyz.Equal(
+                meshInertial.MassMatrix().OffDiagonalMoments(), 3.5));
+    // Check the Inertial Pose
+    EXPECT_TRUE(link.WorldInertialPose(_ecm).value().Equal(
+                worldPose(linkEntity, _ecm) * gz::math::Pose3d::Zero, 1e-2));
+  });
 }
 
 // Tests are disabled on Windows

@@ -69,21 +69,20 @@ TEST_F(JointControllerTestFixture,
 
   const std::string linkName = "rotor";
 
+  server.PokeEcm([&](EntityComponentManager &_ecm)
+  {
+    auto link = _ecm.EntityByComponents(components::Link(),
+                                        components::Name(linkName));
+    // Create an AngularVelocity component. This signals
+    // physics system to populate the component
+    if (nullptr == _ecm.Component<components::AngularVelocity>(link))
+    {
+      _ecm.CreateComponent(link, components::AngularVelocity());
+    }
+  });
+
   test::Relay testSystem;
   std::vector<math::Vector3d> angularVelocities;
-  testSystem.OnPreUpdate(
-      [&](const UpdateInfo &, EntityComponentManager &_ecm)
-      {
-        auto link = _ecm.EntityByComponents(components::Link(),
-                                            components::Name(linkName));
-        // Create an AngularVelocity component if it doesn't exist. This signals
-        // physics system to populate the component
-        if (nullptr == _ecm.Component<components::AngularVelocity>(link))
-        {
-          _ecm.CreateComponent(link, components::AngularVelocity());
-        }
-      });
-
   testSystem.OnPostUpdate([&](const UpdateInfo &,
                               const EntityComponentManager &_ecm)
       {
