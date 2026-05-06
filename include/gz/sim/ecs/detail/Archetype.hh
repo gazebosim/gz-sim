@@ -111,6 +111,12 @@ namespace gz::sim::ecs
     private: size_t                                 chunk_capacity_{0};
     private: size_t                                 chunk_size_{0};
     private: std::vector<std::unique_ptr<Chunk>>    chunks_;
+    // Stack of chunk indices known to have at least one free row.
+    // Pushed by SwapRemove (a row was freed); popped by AcquireRow.
+    // The "tail" chunk (chunks_.back()) is handled separately in
+    // AcquireRow without going through this stack — that's the
+    // hot path for the build workload (no removals).
+    private: std::vector<uint32_t>                  free_chunk_stack_;
     private: std::vector<NewRecord>                 newly_added_;
   };
 }

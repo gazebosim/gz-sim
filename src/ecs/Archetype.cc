@@ -116,21 +116,51 @@ namespace gz::sim::ecs
   }
 
   // Reserve a row in some chunk and return `(chunk_idx, row)` for
-  // the caller to populate. Walks the existing chunks in order
-  // looking for a non-full one; allocates a new chunk if none has
-  // space. The fresh chunk gets its dirty-bit bitset sized to
-  // `(rows * columns + 63) / 64` 64-bit words.
+  // the caller to populate. O(1) amortized.
+  //
+  // Strategy:
+  //   1. The tail chunk is the hot-path target — bulk creation
+  //      fills it row-by-row with no scan needed.
+  //   2. If the tail is full, pop a chunk index from
+  //      `free_chunk_stack_` (chunks that became non-full via
+  //      SwapRemove). Skip stale entries from chunks that filled
+  //      back up.
+  //   3. If both routes fail, allocate a fresh chunk.
+  //
+  // The freshly-allocated chunk gets its dirty-bit bitset sized
+  // to `(rows * columns + 63) / 64` 64-bit words.
   std::pair<uint32_t, uint32_t> Archetype::AcquireRow()
   {
-    for (size_t i = 0; i < this->chunks_.size(); ++i)
+    // Hot path — the tail chunk almost always has space during
+    // bulk creation.
+    if (!this->chunks_.empty() && !this->chunks_.back()->Full())
     {
-      if (!this->chunks_[i]->Full())
-      {
-        uint32_t row = this->chunks_[i]->AcquireRow();
-        return {static_cast<uint32_t>(i), row};
-      }
+      uint32_t ci = static_cast<uint32_t>(this->chunks_.size() - 1);
+      uint32_t row = this->chunks_[ci]->AcquireRow();
+      return {ci, row};
     }
 
+    // Cold path — drain the stack of chunks that became non-full
+    // via SwapRemove. Entries can be stale (a chunk may have
+    // refilled since the push), so loop until we hit a real
+    // non-full chunk or empty out.
+    while (!this->free_chunk_stack_.empty())
+    {
+      uint32_t ci = this->free_chunk_stack_.back();
+      if (ci < this->chunks_.size() && !this->chunks_[ci]->Full())
+      {
+        uint32_t row = this->chunks_[ci]->AcquireRow();
+        // Leave the entry on the stack until the chunk is full —
+        // this is cheap to re-check on the next AcquireRow and
+        // avoids losing chunks that have multiple free slots.
+        if (this->chunks_[ci]->Full())
+          this->free_chunk_stack_.pop_back();
+        return {ci, row};
+      }
+      this->free_chunk_stack_.pop_back();
+    }
+
+    // Allocate a fresh chunk.
     auto chunk = std::make_unique<Chunk>(
         this->chunk_size_, this->chunk_capacity_);
 
@@ -209,6 +239,11 @@ namespace gz::sim::ecs
 
     chunk.Entities()[last] = kNullEntity;
     chunk.SetCount(last);
+    // The chunk now has a free slot at the tail. Push its index
+    // onto the free-slot stack so AcquireRow can reuse it without
+    // a linear scan. Duplicates are harmless — AcquireRow's drain
+    // loop tolerates stale entries by re-checking Full().
+    this->free_chunk_stack_.push_back(_chunk_idx);
     return moved;
   }
 
