@@ -23,8 +23,6 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
-#include <atomic>
-#include <mutex>
 #include <string>
 
 #include <gz/sim/Server.hh>
@@ -91,116 +89,6 @@ inline void RequestAndApplyWorldReset(
   ApplyWorldReset(_server);
 }
 
-/////////////////////////////////////////////////
-/// \brief Helper that records messages from a topic.
-template <typename T>
-class MsgReceiver
-{
-  /// \brief Destructor.
-  public: ~MsgReceiver()
-  {
-    this->Stop();
-  }
-
-  /// \brief Subscribe to a topic and clear received state.
-  /// \param[in] _topic Topic to subscribe to.
-  /// \return True when subscription succeeded.
-  public: bool Start(const std::string &_topic)
-  {
-    this->Stop();
-    this->topic = _topic;
-    this->Clear();
-
-    const bool subscribed =
-      this->node.Subscribe(_topic, &MsgReceiver<T>::Callback, this);
-    if (!subscribed)
-      this->topic.clear();
-
-    return subscribed;
-  }
-
-  /// \brief Unsubscribe from the current topic.
-  public: void Stop()
-  {
-    if (!this->topic.empty())
-    {
-      this->node.Unsubscribe(this->topic);
-      this->topic.clear();
-    }
-  }
-
-  /// \brief Clear post-reset received state and count.
-  ///
-  /// The last message is intentionally kept for debugging. Tests should check
-  /// Received() or Count() before reading Msg() after Clear().
-  public: void Clear()
-  {
-    this->msgReceived = false;
-    this->msgCount = 0u;
-  }
-
-  /// \brief Clear only the received flag while preserving the message count.
-  ///
-  /// This is useful when a test wants to wait for a fresh message but still
-  /// keep a cumulative count.
-  public: void ClearReceived()
-  {
-    this->msgReceived = false;
-  }
-
-  /// \brief Return whether a message was received after the last Clear().
-  public: bool Received() const
-  {
-    return this->msgReceived.load();
-  }
-
-  /// \brief Return the number of messages received after the last Clear().
-  public: unsigned int Count() const
-  {
-    return this->msgCount.load();
-  }
-
-  /// \brief Return the latest message.
-  public: T Msg() const
-  {
-    std::lock_guard<std::mutex> lk(this->msgMutex);
-    return this->lastMsg;
-  }
-
-  /// \brief Return the latest message.
-  public: T Last() const
-  {
-    return this->Msg();
-  }
-
-  /// \brief Topic callback.
-  /// \param[in] _msg Received message.
-  private: void Callback(const T &_msg)
-  {
-    std::lock_guard<std::mutex> lk(this->msgMutex);
-    this->lastMsg = _msg;
-    this->msgReceived = true;
-    ++this->msgCount;
-  }
-
-  /// \brief Topic name.
-  private: std::string topic;
-
-  /// \brief Guards latest message access.
-  private: mutable std::mutex msgMutex;
-
-  /// \brief Latest message.
-  private: T lastMsg;
-
-  /// \brief Transport node.
-  private: gz::transport::Node node;
-
-  /// \brief True when a message was received after the last Clear().
-  private: std::atomic<bool> msgReceived{false};
-
-  /// \brief Number of messages received after the last Clear().
-  private: std::atomic<unsigned int> msgCount{0u};
-};
 }
 
 #endif  // GZ_SIM_TEST_HELPERS_RESET_UTILS_HH_
