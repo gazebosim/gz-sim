@@ -66,12 +66,10 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "helpers/ResetUtils.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
-namespace reset = gz::sim::test::reset;
 
 /// \brief Name of the arm model
 constexpr const char* kArmName = "simple_arm";
@@ -268,14 +266,16 @@ TEST_F(ResetDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   ASSERT_FALSE(this->system->errorLogged);
 
   // First Reset
-  reset::RequestAndApplyWorldReset(*this->server, "default");
+  this->server->ResetAll();
+  this->server->Run(true, 2, false);
   this->server->Run(true, 4998, false);
   ASSERT_TRUE(this->system->didReset);
   ASSERT_FALSE(this->system->errorLogged);
 
   // Second Reset
-  reset::RequestAndApplyWorldReset(*this->server, "default");
-  server->Run(true, 998, false);
+  this->server->ResetAll();
+  this->server->Run(true, 2, false);
+  this->server->Run(true, 998, false);
   ASSERT_TRUE(this->system->didReset);
   ASSERT_FALSE(this->system->errorLogged);
 }

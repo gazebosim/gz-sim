@@ -170,8 +170,7 @@ class TestFixture
   public: template <typename Predicate>
   bool StepUntil(uint64_t _maxSteps, Predicate _predicate)
   {
-    return sim::test::reset::StepUntil(
-        *this->Simulator(), _maxSteps, _predicate);
+    return sim::test::StepUntil(*this->Simulator(), _maxSteps, _predicate);
   }
 
   /// Returns the total number of simulation iterations so far.

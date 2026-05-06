@@ -32,6 +32,8 @@
 #include <gz/sim/Server.hh>
 #include <gz/transport/Node.hh>
 
+#include "helpers/Util.hh"
+
 namespace gz::sim::test::reset
 {
 namespace detail
@@ -103,17 +105,7 @@ template <typename Predicate>
 bool StepUntil(
     gz::sim::Server &_server, uint64_t _maxSteps, Predicate _predicate)
 {
-  if (_predicate())
-    return true;
-
-  for (uint64_t i = 0; i < _maxSteps; ++i)
-  {
-    detail::RunOneUnpausedStep(_server);
-    if (_predicate())
-      return true;
-  }
-
-  return false;
+  return ::gz::sim::test::StepUntil(_server, _maxSteps, _predicate);
 }
 
 /////////////////////////////////////////////////
@@ -126,16 +118,7 @@ bool WaitUntil(
     const std::chrono::steady_clock::duration &_timeout,
     Predicate _predicate)
 {
-  const auto deadline = std::chrono::steady_clock::now() + _timeout;
-  while (std::chrono::steady_clock::now() < deadline)
-  {
-    if (_predicate())
-      return true;
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-
-  return _predicate();
+  return ::gz::sim::test::WaitUntil(_timeout, _predicate);
 }
 
 /////////////////////////////////////////////////
