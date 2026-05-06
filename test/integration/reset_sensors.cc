@@ -38,6 +38,7 @@
 
 #include "plugins/MockSystem.hh"
 #include "helpers/EnvTestFixture.hh"
+#include "helpers/Util.hh"
 #include "helpers/ResetUtils.hh"
 
 using namespace gz;
@@ -164,7 +165,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   // Run until a sensor measurement
   ASSERT_TRUE(pressureReceiver.Start(topic));
   ASSERT_TRUE(imageReceiver.Start("camera"));
-  ASSERT_TRUE(reset::StepUntil(server, target,
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, target,
       [&pressureReceiver]()
       {
         return pressureReceiver.Received();
@@ -173,7 +174,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_GE(server.IterationCount().value(), current);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  ASSERT_TRUE(reset::StepUntil(server, target,
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, target,
       [&imageReceiver]()
       {
         return imageReceiver.Received();
@@ -191,7 +192,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   pressureReceiver.ClearReceived();
   imageReceiver.ClearReceived();
   server.Run(true, target - server.IterationCount().value(), false);
-  ASSERT_TRUE(reset::WaitUntil(5s,
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
       [&pressureReceiver, &imageReceiver]()
       {
         return pressureReceiver.Received() && imageReceiver.Received();
@@ -222,7 +223,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   // wait until expected no. of messages are received.
   // sim runs for 2000 iterations with camera at 10 Hz + 1 msg at t=0
-  ASSERT_TRUE(reset::WaitUntil(5s,
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
       [&imageReceiver]()
       {
         return imageReceiver.Count() >= 21u;
@@ -263,7 +264,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   target = 4001;
 
-  ASSERT_TRUE(reset::StepUntil(server, 2000u,
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, 2000u,
       [&pressureReceiver]()
       {
         return pressureReceiver.Received();
@@ -271,7 +272,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   EXPECT_GE(server.IterationCount().value(), 1u);
   EXPECT_FLOAT_EQ(kStartingPressure, pressureReceiver.Last().pressure());
 
-  ASSERT_TRUE(reset::StepUntil(server, 2000u,
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, 2000u,
       [&imageReceiver]()
       {
         return imageReceiver.Received();
@@ -291,7 +292,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   imageReceiver.ClearReceived();
 
   server.Run(true, 2000 - server.IterationCount().value(), false);
-  ASSERT_TRUE(reset::WaitUntil(5s,
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
       [&pressureReceiver, &imageReceiver]()
       {
         return pressureReceiver.Received() && imageReceiver.Received();

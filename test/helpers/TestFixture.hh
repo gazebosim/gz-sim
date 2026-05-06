@@ -37,6 +37,7 @@
 
 #include "helpers/ModelManipulator.hh"
 #include "helpers/ModelObserver.hh"
+#include "helpers/Util.hh"
 #include "helpers/ResetUtils.hh"
 
 using namespace gz;

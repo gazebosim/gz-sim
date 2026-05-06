@@ -24,15 +24,11 @@
 #include <gz/msgs/world_control.pb.h>
 
 #include <atomic>
-#include <chrono>
 #include <mutex>
 #include <string>
-#include <thread>
 
 #include <gz/sim/Server.hh>
 #include <gz/transport/Node.hh>
-
-#include "helpers/Util.hh"
 
 namespace gz::sim::test::reset
 {
@@ -93,32 +89,6 @@ inline void RequestAndApplyWorldReset(
   RequestWorldReset(_worldName);
   ConsumeResetRequest(_server);
   ApplyWorldReset(_server);
-}
-
-/////////////////////////////////////////////////
-/// \brief Step the server until a predicate becomes true.
-/// \param[in] _server Server to step.
-/// \param[in] _maxSteps Maximum number of single steps.
-/// \param[in] _predicate Predicate to evaluate before and after each step.
-/// \return True when the predicate became true.
-template <typename Predicate>
-bool StepUntil(
-    gz::sim::Server &_server, uint64_t _maxSteps, Predicate _predicate)
-{
-  return ::gz::sim::test::StepUntil(_server, _maxSteps, _predicate);
-}
-
-/////////////////////////////////////////////////
-/// \brief Wait without advancing simulation until a predicate becomes true.
-/// \param[in] _timeout Maximum wall-clock wait.
-/// \param[in] _predicate Predicate to evaluate.
-/// \return True when the predicate became true.
-template <typename Predicate>
-bool WaitUntil(
-    const std::chrono::steady_clock::duration &_timeout,
-    Predicate _predicate)
-{
-  return ::gz::sim::test::WaitUntil(_timeout, _predicate);
 }
 
 /////////////////////////////////////////////////
