@@ -718,6 +718,11 @@ namespace gz::sim::ecs
             info->destruct(src);
             break;
           }
+          default:
+            // Every CommandKind is enumerated above; default is a
+            // no-op satisfying -Wswitch-default. -Wswitch will catch
+            // any new kind added to the enum that misses a case.
+            break;
         }
       }
     }

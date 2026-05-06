@@ -36,7 +36,17 @@ TEST(EachParallel, VisitsAllEntities)
   w.Each<const Pose, const Vel>(
       [&](Entity, const Pose &p, const Vel &v)
   {
+    // Each entity's vx is set to exactly p.x * 2.0 by the same
+    // arithmetic in EachParallel above, so a bit-exact compare is
+    // intentional here.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
     if (v.vx == p.x * 2.0) ++good;
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
   });
   EXPECT_EQ(good, N);
 }

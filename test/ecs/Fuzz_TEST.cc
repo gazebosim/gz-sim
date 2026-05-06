@@ -138,6 +138,9 @@ TEST(Fuzz, RandomSequenceMatchesOracle)
         }
         break;
       }
+      default:
+        // op is in [0, 9] — covered above.
+        break;
     }
   }
 
@@ -151,10 +154,16 @@ TEST(Fuzz, RandomSequenceMatchesOracle)
     EXPECT_EQ(w.Has<B>(e), oe.b.has_value()) << "seed=" << kSeed;
     EXPECT_EQ(w.Has<C>(e), oe.c.has_value()) << "seed=" << kSeed;
     if (oe.a)
+    {
       EXPECT_DOUBLE_EQ(w.Component<A>(e)->v, oe.a->v) << "seed=" << kSeed;
+    }
     if (oe.b)
+    {
       EXPECT_EQ(w.Component<B>(e)->v, oe.b->v) << "seed=" << kSeed;
+    }
     if (oe.c)
+    {
       EXPECT_FLOAT_EQ(w.Component<C>(e)->v, oe.c->v) << "seed=" << kSeed;
+    }
   }
 }
