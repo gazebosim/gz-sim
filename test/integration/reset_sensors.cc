@@ -261,7 +261,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_FALSE(pressureReceiver.Received());
   }
 
-  current = 2001;
   target = 4001;
 
   ASSERT_TRUE(reset::StepUntil(server, 2000u,
