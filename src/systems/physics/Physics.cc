@@ -614,7 +614,7 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list for model gravity enabled.
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
-            physics::ModelGravityEnabled>{};
+            physics::GravityEnabled>{};
 
   // Link Bounding box
   /// \brief Feature list for model bounding box.
@@ -2653,7 +2653,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           {
             gzdbg << "Attempting to set gravity enabled, but the physics "
                    << "engine doesn't support feature "
-                   << "[ModelGravityEnabled]. Gravity state won't be populated."
+                   << "[GravityEnabled]. Gravity state won't be populated."
                    << " " << _name->Data()
                    << std::endl;
             informed = true;

@@ -257,18 +257,20 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
     return;
   }
 
+  std::string nsParam;
   // Namespace
-  if (!_sdf->HasElement("namespace"))
+  if (_sdf->HasElement("namespace"))
   {
-    gzerr << "Missing required parameter <namespace>" << std::endl;
-    return;
+    nsParam = _sdf->Get<std::string>("namespace");
   }
-  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
-      "namespace"));
+  else
+  {
+    nsParam = this->model.Name(_ecm) + "/touch";
+  }
+  this->ns = transport::TopicUtils::AsValidTopic(nsParam);
   if (this->ns.empty())
   {
-    gzerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
-           << "] is invalid." << std::endl;
+    gzerr << "<namespace> [" << nsParam << "] is invalid." << std::endl;
     return;
   }
 
