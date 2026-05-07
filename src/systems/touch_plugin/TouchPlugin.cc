@@ -265,7 +265,7 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
   }
   else
   {
-    nsParam = this->model.Name(_ecm) + "/touch";
+    nsParam = scopedName(this->model.Entity(), _ecm) + "/touch";
     gzmsg << "No namespace specified for TouchPlugin, defaulting to " <<
       nsParam << std::endl;
   }

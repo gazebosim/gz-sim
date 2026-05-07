@@ -66,7 +66,7 @@ namespace systems
   ///                 contact sensors inside links in SDF. Default to false.
   ///
   /// - `<namespace>` Optional parameter. Namespace for transport topics and
-  ///                 services. Defaults to `<model_name>/touch`.
+  ///                 services. Defaults to `<scoped_name>/touch`.
   ///                 Note that if multiple touch plugins without a namespace
   ///                 are added to a model their topic / service will conflict.
   ///                 In this case, it is recommended to either specify the
