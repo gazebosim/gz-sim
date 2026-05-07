@@ -19,6 +19,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 
 #include <algorithm>
+#include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -246,6 +247,18 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   EntityComponentManager::EntityComponentManager()
     : dataPtr(std::make_unique<EntityComponentManagerPrivate>())
   {
+    // One-shot startup banner: announce that this build is using
+    // the archetype-backed ECS (GZ_SIM_ARCHETYPE_ECM=ON). Fires
+    // exactly once per process at the first ECM construction —
+    // typically when SimulationRunner loads the first world. Uses
+    // gzmsg so it shows up at -v 3+ alongside the rest of
+    // SimulationRunner's startup output.
+    static std::once_flag s_announce;
+    std::call_once(s_announce, []()
+    {
+      gzmsg << "EntityComponentManager: archetype ECS backend "
+            << "(GZ_SIM_ARCHETYPE_ECM=ON)." << std::endl;
+    });
   }
 
   EntityComponentManager::~EntityComponentManager() = default;
