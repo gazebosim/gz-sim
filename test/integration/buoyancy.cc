@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <chrono>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -34,6 +37,7 @@
 #include "gz/sim/components/Volume.hh"
 
 #include "test_config.hh"
+#include "../helpers/ResetUtils.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
@@ -43,6 +47,14 @@ using namespace sim;
 class BuoyancyTest : public InternalFixture<::testing::Test>
 {
 };
+
+namespace
+{
+constexpr std::array<const char *, 3> kResetAuditModels{
+    "neutral_buoyancy",
+    "lighter_than_water",
+    "box_no_buoyancy"};
+}
 
 /////////////////////////////////////////////////
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
@@ -756,4 +768,90 @@ TEST_F(BuoyancyTest,
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterations, false);
   EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "graded_buoyancy.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(std::chrono::steady_clock::duration::zero());
+
+  std::array<std::vector<math::Pose3d>, kResetAuditModels.size()> poseHistory;
+  test::Relay poseRecorder;
+  poseRecorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+    {
+      for (std::size_t i = 0; i < kResetAuditModels.size(); ++i)
+      {
+        const auto entity = _ecm.EntityByComponents(
+            components::Model(), components::Name(kResetAuditModels[i]));
+        ASSERT_NE(kNullEntity, entity);
+
+        const auto poseComp = _ecm.Component<components::Pose>(entity);
+        ASSERT_NE(nullptr, poseComp);
+        poseHistory[i].push_back(poseComp->Data());
+      }
+    });
+  server.AddSystem(poseRecorder.systemPtr);
+
+  const std::size_t baselineSteps = 400u;
+  server.Run(true, baselineSteps, false);
+  for (const auto &history : poseHistory)
+  {
+    ASSERT_EQ(baselineSteps, history.size());
+  }
+
+  const auto baselineNeutral200 = poseHistory[0][199];
+  const auto baselineNeutral400 = poseHistory[0][399];
+  const auto baselineBuoyant200 = poseHistory[1][199];
+  const auto baselineBuoyant400 = poseHistory[1][399];
+  const auto baselineSinking200 = poseHistory[2][199];
+  const auto baselineSinking400 = poseHistory[2][399];
+
+  // Let the autonomous buoyancy dynamics drift away from the start state so
+  // reset must rewind more than just the latest pose sample.
+  server.Run(true, 600, false);
+  ASSERT_GT(poseHistory[1].back().Pos().Z(), baselineBuoyant400.Pos().Z() +
+      0.1);
+  ASSERT_LT(poseHistory[2].back().Pos().Z(), baselineSinking400.Pos().Z() -
+      0.1);
+
+  gz::sim::test::reset::RequestAndApplyWorldReset(server, "buoyancy");
+  for (auto &history : poseHistory)
+  {
+    history.clear();
+  }
+
+  server.Run(true, baselineSteps, false);
+  for (const auto &history : poseHistory)
+  {
+    ASSERT_EQ(baselineSteps, history.size());
+  }
+
+  const auto postResetNeutral200 = poseHistory[0][199];
+  const auto postResetNeutral400 = poseHistory[0][399];
+  const auto postResetBuoyant200 = poseHistory[1][199];
+  const auto postResetBuoyant400 = poseHistory[1][399];
+  const auto postResetSinking200 = poseHistory[2][199];
+  const auto postResetSinking400 = poseHistory[2][399];
+
+  // Reset should replay the same early-episode buoyancy evolution rather than
+  // continue the previous episode's motion.
+  EXPECT_NEAR(postResetNeutral200.Pos().Distance(baselineNeutral200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetNeutral400.Pos().Distance(baselineNeutral400.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetBuoyant200.Pos().Distance(baselineBuoyant200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetBuoyant400.Pos().Distance(baselineBuoyant400.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetSinking200.Pos().Distance(baselineSinking200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetSinking400.Pos().Distance(baselineSinking400.Pos()),
+      0.0, 0.05);
 }
