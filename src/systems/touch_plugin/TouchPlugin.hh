@@ -65,14 +65,13 @@ namespace systems
   ///                 TouchPlugin system to be used without explicitly defining
   ///                 contact sensors inside links in SDF. Default to false.
   ///
-  /// - `<namespace>` Optional parameter. Namespace for transport topics and
-  ///                 services. Defaults to `<model_name>/touch`.
+  /// - `<time>` Target time in seconds to maintain contact.
+  ///
+  /// - `<namespace>` Namespace for transport topics/services:
   ///   - `/<namespace>/enable` : Service used to enable and disable
   ///                             the plugin.
   ///   - `/<namespace>/touched` : Topic where a message is published
   ///                              once the touch event occurs.
-  ///
-  /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<enabled>` Set this to true so the plugin works from the start and
   ///               doesn't need to be enabled.
