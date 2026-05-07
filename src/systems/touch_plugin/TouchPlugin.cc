@@ -261,11 +261,11 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
   // Namespace
   if (_sdf->HasElement("namespace"))
   {
-    nsParam = _sdf->Get<std::string>("namespace");
+    nsParam = "/" + _sdf->Get<std::string>("namespace");
   }
   else
   {
-    nsParam = scopedName(this->model.Entity(), _ecm) + "/touch";
+    nsParam = topicFromScopedName(this->model.Entity(), _ecm, true) + "/touch";
     gzmsg << "No namespace specified for TouchPlugin, defaulting to " <<
       nsParam << std::endl;
   }
@@ -286,7 +286,7 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
   this->targetTime = DurationType(_sdf->Get<double>("time"));
 
   // Start/stop "service"
-  std::string enableService{"/" + this->ns + "/enable"};
+  std::string enableService{this->ns + "/enable"};
   std::function<void(const msgs::Boolean &)> enableCb =
       [this](const msgs::Boolean &_req)
       {
@@ -313,7 +313,7 @@ void TouchPluginPrivate::Enable(const bool _value)
   {
     if (!this->touchedPub.has_value()){
       this->touchedPub = this->node.Advertise<msgs::Boolean>(
-          "/" + this->ns + "/touched");
+          this->ns + "/touched");
     }
 
     this->touchStart = DurationType::zero();
