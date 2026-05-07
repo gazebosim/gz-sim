@@ -107,7 +107,7 @@ The output of the plugin is via
         name="gz::sim::systems::TouchPlugin">
         <target>green_box_for_white</target>
         <time>3</time>
-<!--        <namespace>white_touches_only_green</namespace>-->
+        <namespace>white_touches_only_green</namespace>
         <enabled>true</enabled>
       </plugin>
     </model>
