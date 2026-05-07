@@ -299,6 +299,8 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_EQ(target + 1, this->mockSystem->updateCallCount);
     EXPECT_EQ(target + 1, this->mockSystem->postUpdateCallCount);
 
+    poseComp = ecm->Component<components::Pose>(entity);
+    ASSERT_NE(nullptr, poseComp);
     EXPECT_FLOAT_EQ(kStartingAltitude, poseComp->Data().Z());
 
     // Reset does not cause messages to be sent

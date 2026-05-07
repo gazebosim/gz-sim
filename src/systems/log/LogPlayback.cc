@@ -501,9 +501,9 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Create a list of entities to be removed. The list will be updated later
     // as the log steps forward below
     seekRewind = true;
-    const auto &entities = _ecm.Entities().Vertices();
+    const auto &entities = _ecm.Entities();
     for (const auto &entity : entities)
-      entitiesToRemove.insert(Entity(entity.first));
+      entitiesToRemove.insert(entity);
 
     startTime = std::chrono::steady_clock::duration::zero();
   }

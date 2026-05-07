@@ -701,7 +701,6 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    this->entityCompMgr.LockAddingEntitiesToViews(true);
     // If no systems implementing PostUpdate have been added, then
     // the barriers will be uninitialized, so guard against that condition.
     if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
@@ -713,7 +712,7 @@ void SimulationRunner::UpdateSystems()
       this->postUpdateStartBarrier->Wait();
       this->postUpdateStopBarrier->Wait();
     }
-    this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 
