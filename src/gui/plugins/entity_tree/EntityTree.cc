@@ -187,7 +187,8 @@ void TreeModel::AddEntity(Entity _entity, const QString &_entityName,
 
   if (sep != this->pendingEntities.end())
   {
-    const std::vector<EntityInfo> children(std::make_move_iterator(sep), std::make_move_iterator(this->pendingEntities.end()));
+    const std::vector<EntityInfo> children(std::make_move_iterator(sep),
+        std::make_move_iterator(this->pendingEntities.end()));
     this->pendingEntities.erase(sep, this->pendingEntities.end());
 
     for (const auto &child : children)
