@@ -389,8 +389,8 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
-  /// \brief Entities whose static commands have been processed and should be
-  /// deleted the following iteration.
+  /// \brief Entities whose static state commands have been processed and should
+  /// be deleted the following iteration.
   public: std::unordered_set<Entity> staticStateCmdsToRemove;
 
   /// \brief Entities whose gravity enabled commands have been processed and
@@ -603,19 +603,21 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
-  // static
+  //////////////////////////////////////////////////
+  // Static State
   /// \brief Feature list for model static state.
   public: struct StaticStateFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::ModelStaticState>{};
 
   //////////////////////////////////////////////////
-  // enabled gravity
-  /// \brief Feature list for model gravity enabled.
+  // Gravity Enabled
+  /// \brief Feature list for gravity enabled.
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GravityEnabled>{};
 
+  //////////////////////////////////////////////////
   // Link Bounding box
   /// \brief Feature list for model bounding box.
   public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
