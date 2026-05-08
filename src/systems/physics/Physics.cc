@@ -2745,8 +2745,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
-  // Remove gravity enabled commands from previous iteration. We let them rotate one
-  // iteration so other systems have a chance to react to them too.
+  // Remove gravity enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
   for (const Entity &entity : olderGravityEnabledCmdsToRemove)
   {
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
