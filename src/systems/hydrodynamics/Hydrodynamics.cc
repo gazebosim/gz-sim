@@ -72,6 +72,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
+  /// \brief Configured default current restored on reset.
+  public: math::Vector3d defaultCurrentVector {0, 0, 0};
+
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
   public: Eigen::Matrix<double, 6, 6> Ma;
@@ -444,8 +447,10 @@ void Hydrodynamics::Configure(
 
   if(_sdf->HasElement("default_current"))
   {
-    this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
+    this->dataPtr->defaultCurrentVector =
+      _sdf->Get<math::Vector3d>("default_current");
   }
+  this->dataPtr->currentVector = this->dataPtr->defaultCurrentVector;
 
   this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
 
@@ -649,6 +654,15 @@ void Hydrodynamics::Reset(
 {
   this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
   this->dataPtr->firstIteration = true;
+  {
+    std::lock_guard lock(this->dataPtr->mtx);
+    this->dataPtr->currentVector = this->dataPtr->defaultCurrentVector;
+  }
+  this->dataPtr->gridField.reset();
+  for (auto &session : this->dataPtr->session)
+  {
+    session.reset();
+  }
 }
 
 GZ_ADD_PLUGIN(
