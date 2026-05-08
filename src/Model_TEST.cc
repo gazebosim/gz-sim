@@ -21,10 +21,12 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Static.hh"
 
 /////////////////////////////////////////////////
 TEST(ModelTest, Constructor)
@@ -222,4 +224,57 @@ TEST(ModelTest, Models)
 
   gz::sim::Model modelD(modelDEntity);
   EXPECT_EQ(0u, modelD.Models(ecm).size());
+}
+
+/////////////////////////////////////////////////
+TEST(ModelTest, Gravity)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto modelEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelEntity, gz::sim::components::Model());
+
+  gz::sim::Model model(modelEntity);
+
+  // Set command (creates component)
+  EXPECT_EQ(nullptr,
+      ecm.Component<gz::sim::components::GravityEnabledCmd>(modelEntity));
+  model.SetGravityEnabledCmd(ecm, false);
+  auto cmd = ecm.Component<gz::sim::components::GravityEnabledCmd>(modelEntity);
+  ASSERT_NE(nullptr, cmd);
+  EXPECT_FALSE(cmd->Data());
+
+  // Set command (updates component)
+  model.SetGravityEnabledCmd(ecm, true);
+  EXPECT_TRUE(cmd->Data());
+}
+
+/////////////////////////////////////////////////
+TEST(ModelTest, Static)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto modelEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelEntity, gz::sim::components::Model());
+
+  gz::sim::Model model(modelEntity);
+
+  // Component missing
+  EXPECT_FALSE(model.Static(ecm));
+
+  // Populate component
+  ecm.CreateComponent(modelEntity, gz::sim::components::Static(true));
+  EXPECT_TRUE(model.Static(ecm));
+
+  // Set command (creates component)
+  EXPECT_EQ(nullptr,
+      ecm.Component<gz::sim::components::StaticStateCmd>(modelEntity));
+  model.SetStaticStateCmd(ecm, true);
+  auto cmd = ecm.Component<gz::sim::components::StaticStateCmd>(modelEntity);
+  ASSERT_NE(nullptr, cmd);
+  EXPECT_TRUE(cmd->Data());
+
+  // Set command (updates component)
+  model.SetStaticStateCmd(ecm, false);
+  EXPECT_FALSE(cmd->Data());
 }

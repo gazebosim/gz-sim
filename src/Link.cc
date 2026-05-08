@@ -28,6 +28,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
@@ -202,6 +203,13 @@ bool Link::WindMode(const EntityComponentManager &_ecm) const
 }
 
 //////////////////////////////////////////////////
+std::optional<bool> Link::GravityEnabled(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::GravityEnabled>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
@@ -347,6 +355,29 @@ void Link::SetAngularVelocity(EntityComponentManager &_ecm,
     else
     {
       vel->Data() = _vel;
+    }
+}
+
+//////////////////////////////////////////////////
+void Link::SetGravityEnabledCmd(EntityComponentManager &_ecm,
+  bool _enabled) const
+{
+    auto comp =
+      _ecm.Component<components::GravityEnabledCmd>(this->dataPtr->id);
+
+    if (comp == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::GravityEnabledCmd(_enabled));
+    }
+    else
+    {
+      comp->SetData(_enabled,
+          [](const bool &, const bool &){return false;});
+      _ecm.SetChanged(this->dataPtr->id,
+          components::GravityEnabledCmd::typeId,
+          ComponentState::OneTimeChange);
     }
 }
 

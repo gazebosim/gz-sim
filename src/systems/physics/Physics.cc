@@ -763,7 +763,8 @@ class gz::sim::systems::PhysicsPrivate
             HeightmapFeatureList,
             LinkForceFeatureList,
             MeshFeatureList,
-            LinkBoundingBoxFeatureList>;
+            LinkBoundingBoxFeatureList,
+            GravityEnabledFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -2572,7 +2573,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     components::StaticStateCmd,
     components::Name>(
       [&](const Entity &_entity, const components::Model *,
-          const components::StaticStateCmd *_staticSateCmd,
+          const components::StaticStateCmd *_staticStateCmd,
           const components::Name *_name)->bool
       {
         this->staticStateCmdsToRemove.insert(_entity);
@@ -2581,10 +2582,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == modelPtrPhys)
           return true;
 
-        auto ssModel =
+        auto modelStaticStateFeature =
           this->entityModelMap.EntityCast<StaticStateFeatureList>(_entity);
 
-        if (!ssModel)
+        if (!modelStaticStateFeature)
         {
           static bool informed{false};
           if (!informed)
@@ -2597,15 +2598,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             informed = true;
           }
 
-          // Break Each call since no Static state'es can be processed
-          return false;
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
         }
 
-        bool is_static = this->staticEntities.find(_entity) !=
+        bool isStatic = this->staticEntities.find(_entity) !=
             this->staticEntities.end();
-        if (is_static != _staticSateCmd->Data())
+        if (isStatic != _staticStateCmd->Data())
         {
-          if (is_static)
+          if (isStatic)
           {
             this->staticEntities.erase(_entity);
           }
@@ -2615,11 +2616,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        ssModel->SetStatic(_staticSateCmd->Data());
+        modelStaticStateFeature->SetStatic(_staticStateCmd->Data());
         return true;
       });
 
-  // Remove world commands from previous iteration. We let them rotate one
+  // Remove static state commands from previous iteration. We let them rotate one
   // iteration so other systems have a chance to react to them too.
   for (const Entity &entity : olderStaticStateCmdsToRemove)
   {
@@ -2644,11 +2645,11 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == modelPtrPhys)
           return true;
 
-        auto ssModel =
+        auto modelGravityEnabledFeature =
           this->entityModelMap.EntityCast<GravityEnabledFeatureList>(
             _entity);
 
-        if (!ssModel)
+        if (!modelGravityEnabledFeature)
         {
           static bool informed{false};
           if (!informed)
@@ -2661,14 +2662,54 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             informed = true;
           }
 
-          // Break Each call since no gravity enabled'es can be processed
-          return false;
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
         }
-        ssModel->SetGravityEnabled(_gravityEnabledCmd->Data());
+        modelGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
         return true;
       });
 
-  // Remove world commands from previous iteration. We let them rotate one
+  // update Link Gravity enabled
+  _ecm.Each<components::Link,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto linkGravityEnabledFeature =
+          this->entityLinkMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
+
+        if (!linkGravityEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link gravity enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GravityEnabled]. Gravity state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
+        }
+        linkGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // Remove gravity enabled commands from previous iteration. We let them rotate one
   // iteration so other systems have a chance to react to them too.
   for (const Entity &entity : olderGravityEnabledCmdsToRemove)
   {
