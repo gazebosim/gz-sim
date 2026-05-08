@@ -14,9 +14,11 @@
  * limitations under the License.
  *
  */
+#include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <string>
-
+#include <iterator>
 #include <Eigen/Eigen>
 
 #include <gz/msgs/vector3d.pb.h>
@@ -110,9 +112,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
   /////////////////////////////////////////////////
-  /// \brief Set the current table
-  /// \param[in] _ecm - The Entity Component Manager
-  /// \param[in] _currTime - The current time
+  /// \brief Initialize the environment lookup sessions for the current table.
+  /// \param[in] _environment The environment component holding lookup fields.
+  /// \param[in] _currTime The current simulation time.
   public: bool InitializeWaterCurrentTable(
     const components::Environment *_environment,
     const std::chrono::steady_clock::duration &_currTime)
@@ -124,7 +126,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
     if (!this->gridField)
       return false;
 
-    for (std::size_t i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < std::size(this->axisComponents); ++i)
     {
       this->session[i].reset();
 
@@ -221,7 +223,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
       return current;
     }
 
-    for (std::size_t i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < std::size(this->axisComponents); ++i)
     {
       if (!this->axisComponents[i].empty())
       {
