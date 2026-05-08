@@ -113,43 +113,91 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Set the current table
   /// \param[in] _ecm - The Entity Component Manager
   /// \param[in] _currTime - The current time
+  public: bool InitializeWaterCurrentTable(
+    const components::Environment *_environment,
+    const std::chrono::steady_clock::duration &_currTime)
+  {
+    if (nullptr == _environment)
+      return false;
+
+    this->gridField = _environment->Data();
+    if (!this->gridField)
+      return false;
+
+    for (std::size_t i = 0; i < 3; i++)
+    {
+      this->session[i].reset();
+
+      if (this->axisComponents[i].empty())
+        continue;
+
+      if (!this->gridField->frame.Has(this->axisComponents[i]))
+      {
+        gzwarn << "Environmental sensor could not find field "
+          << this->axisComponents[i] << "\n";
+        continue;
+      }
+
+      this->session[i] =
+        this->gridField->frame[this->axisComponents[i]].CreateSession();
+      if (!this->gridField->staticTime)
+      {
+        this->session[i] =
+          this->gridField->frame[this->axisComponents[i]].StepTo(
+            *this->session[i],
+            std::chrono::duration<double>(_currTime).count());
+      }
+
+      if (!this->session[i].has_value())
+      {
+        gzerr << "Exceeded time stamp." << std::endl;
+      }
+    }
+
+    return true;
+  }
+
+  /// \brief Whether a current-table session is ready to be queried.
+  public: bool HasCurrentTableSession() const
+  {
+    if (!this->gridField)
+      return false;
+
+    for (const auto &sessionValue : this->session)
+    {
+      if (sessionValue.has_value())
+        return true;
+    }
+
+    return false;
+  }
+
+  /// \brief Set the current table
+  /// \param[in] _ecm - The Entity Component Manager
+  /// \param[in] _currTime - The current time
   public: void SetWaterCurrentTable(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime)
   {
+    auto refreshFromEnvironment =
+      [&](const components::Environment *_environment) -> bool
+      {
+        return this->InitializeWaterCurrentTable(_environment, _currTime);
+      };
+
     _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
       const components::Environment *_environment) -> bool
     {
-      this->gridField = _environment->Data();
+      return !refreshFromEnvironment(_environment);
+    });
 
-      for (std::size_t i = 0; i < 3; i++)
-      {
-        if (!this->axisComponents[i].empty())
-        {
-          if (!this->gridField->frame.Has(this->axisComponents[i]))
-          {
-            gzwarn << "Environmental sensor could not find field "
-              << this->axisComponents[i] << "\n";
-            continue;
-          }
+    if (this->HasCurrentTableSession())
+      return;
 
-          this->session[i] =
-            this->gridField->frame[this->axisComponents[i]].CreateSession();
-          if (!this->gridField->staticTime)
-          {
-            this->session[i] =
-              this->gridField->frame[this->axisComponents[i]].StepTo(
-                *this->session[i],
-                std::chrono::duration<double>(_currTime).count());
-          }
-
-          if(!this->session[i].has_value())
-          {
-            gzerr << "Exceeded time stamp." << std::endl;
-          }
-        }
-      }
-      return true;
+    _ecm.Each<components::Environment>([&](const Entity &/*_entity*/,
+      const components::Environment *_environment) -> bool
+    {
+      return !refreshFromEnvironment(_environment);
     });
   }
 
