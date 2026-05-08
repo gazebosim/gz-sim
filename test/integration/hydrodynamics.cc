@@ -17,7 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <thread>
+
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -31,9 +35,14 @@
 #include "gz/sim/TestFixture.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/ResetUtils.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -200,4 +209,112 @@ TEST_F(HydrodynamicsTest,
     EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsRuntimeCurrentState))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "hydrodynamics_reset.sdf"));
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  Link body;
+  std::vector<math::Pose3d> poses;
+  std::vector<math::Vector3d> linearVelocities;
+  test::Relay recorder;
+  recorder.OnPreUpdate(
+      [&](const UpdateInfo &,
+          EntityComponentManager &_ecm)
+      {
+        if (body.Entity() != kNullEntity)
+          return;
+
+        const auto modelEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("reset_body"));
+        ASSERT_NE(kNullEntity, modelEntity);
+
+        Model model(modelEntity);
+        const auto bodyEntity = model.LinkByName(_ecm, "body");
+        ASSERT_NE(kNullEntity, bodyEntity);
+
+        body = Link(bodyEntity);
+        body.EnableVelocityChecks(_ecm);
+      });
+  recorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+      {
+        const auto bodyPose = body.WorldPose(_ecm);
+        const auto bodyVelocity = body.WorldLinearVelocity(_ecm);
+        ASSERT_TRUE(bodyPose.has_value());
+        ASSERT_TRUE(bodyVelocity.has_value());
+        poses.push_back(bodyPose.value());
+        linearVelocities.push_back(bodyVelocity.value());
+      });
+  server.AddSystem(recorder.systemPtr);
+
+  transport::Node node;
+  auto currentPub = node.Advertise<msgs::Vector3d>(
+      "/model/reset_body/ocean_current");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
+      {
+        return currentPub.HasConnections();
+      }));
+
+  server.Run(true, 50, false);
+  ASSERT_FALSE(poses.empty());
+  const auto initialPose = poses.front();
+  EXPECT_NEAR(initialPose.Pos().X(), poses.back().Pos().X(), 1e-6);
+  EXPECT_NEAR(0.0, linearVelocities.back().X(), 1e-6);
+
+  // Drive the plugin with runtime current so any stale input or derivative
+  // state becomes visible after reset.
+  msgs::Vector3d currentMsg;
+  currentMsg.set_x(1.0);
+  currentMsg.set_y(0.0);
+  currentMsg.set_z(0.0);
+  EXPECT_TRUE(currentPub.Publish(currentMsg));
+  std::this_thread::sleep_for(100ms);
+
+  poses.clear();
+  linearVelocities.clear();
+  server.Run(true, 500, false);
+  ASSERT_FALSE(poses.empty());
+  ASSERT_FALSE(linearVelocities.empty());
+  EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
+  EXPECT_LT(linearVelocities.back().X(), -0.05);
+
+  gz::sim::test::reset::RequestAndApplyWorldReset(server,
+      "hydrodynamics_reset");
+
+  poses.clear();
+  linearVelocities.clear();
+  server.Run(true, 200, false);
+  ASSERT_FALSE(poses.empty());
+  ASSERT_FALSE(linearVelocities.empty());
+
+  // Without a fresh current message, reset should return the model to a calm
+  // episode instead of continuing the pre-reset ocean current.
+  EXPECT_NEAR(poses.back().Pos().X(), initialPose.Pos().X(), 0.02);
+  EXPECT_NEAR(poses.back().Pos().Y(), initialPose.Pos().Y(), 0.02);
+  EXPECT_NEAR(linearVelocities.back().X(), 0.0, 0.02);
+  EXPECT_NEAR(linearVelocities.back().Y(), 0.0, 0.02);
+  EXPECT_NEAR(linearVelocities.back().Z(), 0.0, 0.02);
+
+  // Fresh runtime current should still influence the body after reset.
+  EXPECT_TRUE(currentPub.Publish(currentMsg));
+  std::this_thread::sleep_for(100ms);
+
+  poses.clear();
+  linearVelocities.clear();
+  server.Run(true, 500, false);
+  ASSERT_FALSE(poses.empty());
+  ASSERT_FALSE(linearVelocities.empty());
+  EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
+  EXPECT_LT(linearVelocities.back().X(), -0.05);
 }
