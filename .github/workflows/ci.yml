@@ -49,3 +49,38 @@ jobs:
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true
+
+  resolute-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Resolute CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.0
+        with:
+          extra_args: --all-files
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@resolute
+        with:
+          gzdev-project-name: rotary
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+
+  resolute-ci-disable-gui:
+    runs-on: ubuntu-latest
+    name: Ubuntu Resolute CI (GUI disabled)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: actions/setup-python@v3
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@resolute
+        with:
+          gzdev-project-name: rotary
+          # per bug https://github.com/gazebosim/gz-sim/issues/1409
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
+          cppcheck-enabled: true
+          cpplint-enabled: true
