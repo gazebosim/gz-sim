@@ -2601,17 +2601,55 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
+        // Make sure to update the set of staticEntities
         bool isStatic = this->staticEntities.find(_entity) !=
             this->staticEntities.end();
         if (isStatic != _staticCmd->Data())
         {
+          sim::Model model(_entity);
+          auto links = model.Links(_ecm);
+
           if (isStatic)
           {
             this->staticEntities.erase(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.erase(linkEntity);
+            }
           }
           else
           {
             this->staticEntities.insert(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.insert(linkEntity);
+
+              // Zero out velocities in ECM when making static.
+              // This is needed because the physics engine (e.g., DART)
+              // freezes the model but may keep stale velocities in its
+              // body node cache. By zeroing them here and adding links to
+              // staticEntities, we ensure they stay zero.
+              auto linVelComp =
+                  _ecm.Component<components::WorldLinearVelocity>(
+                      linkEntity);
+              if (linVelComp)
+              {
+                linVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldLinearVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+              auto angVelComp =
+                  _ecm.Component<components::WorldAngularVelocity>(
+                      linkEntity);
+              if (angVelComp)
+              {
+                angVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldAngularVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+            }
           }
         }
 
