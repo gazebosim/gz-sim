@@ -17,12 +17,15 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <string>
+#include <thread>
 
 #include <gz/common/Battery.hh>
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/common/Filesystem.hh>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -44,9 +47,12 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/ResetUtils.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
+using namespace std::chrono_literals;
 
 class BatteryPluginTest : public InternalFixture<::testing::Test>
 {
@@ -425,4 +431,111 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
 
   // The state of charge should be the same since the discharge was stopped
   EXPECT_DOUBLE_EQ(batComp->Data(), stateOfCharge);
+}
+
+/////////////////////////////////////////////////
+// Battery reset should restore SoC and clear topic-triggered drain state.
+TEST_F(BatteryPluginTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsDrainState))
+{
+  const auto sdfPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "battery.sdf");
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfPath);
+
+  sim::EntityComponentManager *ecm = nullptr;
+  this->mockSystem->preUpdateCallback =
+    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+    {
+      ecm = &_ecm;
+    };
+
+  Server server(serverConfig);
+  server.AddSystem(this->systemPtr);
+  server.Run(true, 100, false);
+  ASSERT_NE(nullptr, ecm);
+
+  const auto findBatterySoC = [&]() -> std::pair<Entity, double>
+  {
+    const Entity batEntity = ecm->EntityByComponents(
+      components::Name("linear_battery_topics"));
+    EXPECT_NE(kNullEntity, batEntity);
+    EXPECT_TRUE(ecm->EntityHasComponentType(
+      batEntity, components::BatterySoC::typeId));
+    const auto *batComp = ecm->Component<components::BatterySoC>(batEntity);
+    EXPECT_NE(nullptr, batComp);
+    return {batEntity, batComp->Data()};
+  };
+
+  const auto batteryCount = [&]() -> int
+  {
+    int count = 0;
+    ecm->Each<components::BatterySoC, components::Name>(
+      [&](const Entity &,
+          const components::BatterySoC *,
+          const components::Name *_nameComp) -> bool
+      {
+        if (_nameComp->Data() == "linear_battery_topics")
+          ++count;
+        return true;
+      });
+    return count;
+  };
+
+  const auto [initialBatteryEntity, initialSoC] = findBatterySoC();
+  EXPECT_NE(kNullEntity, initialBatteryEntity);
+  EXPECT_DOUBLE_EQ(initialSoC, 1.0);
+  EXPECT_EQ(1, batteryCount());
+
+  gz::transport::Node node;
+  auto dischargePub = node.Advertise<msgs::StringMsg>("/battery/discharge");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s, [&dischargePub]
+      {
+        return dischargePub.HasConnections();
+      }));
+
+  msgs::StringMsg msg;
+  ASSERT_TRUE(dischargePub.Publish(msg));
+  std::this_thread::sleep_for(100ms);
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]()
+      {
+        return findBatterySoC().second < 1.0;
+      }));
+
+  const auto [drainedBatteryEntity, drainedSoC] = findBatterySoC();
+  EXPECT_NE(kNullEntity, drainedBatteryEntity);
+  EXPECT_LT(drainedSoC, 1.0);
+
+  gz::sim::test::reset::RequestAndApplyWorldReset(server, "batteries");
+
+  server.Run(true, 100, false);
+
+  const auto [resetBatteryEntity, resetSoC] = findBatterySoC();
+  EXPECT_NE(kNullEntity, resetBatteryEntity);
+  EXPECT_DOUBLE_EQ(resetSoC, 1.0);
+  EXPECT_EQ(1, batteryCount());
+
+  server.Run(true, 100, false);
+  const auto [stableBatteryEntity, stableSoC] = findBatterySoC();
+  EXPECT_NE(kNullEntity, stableBatteryEntity);
+  EXPECT_DOUBLE_EQ(stableSoC, resetSoC);
+
+  gz::transport::Node postResetNode;
+  auto postResetDischargePub =
+    postResetNode.Advertise<msgs::StringMsg>("/battery/discharge");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s, [&postResetDischargePub]
+      {
+        return postResetDischargePub.HasConnections();
+      }));
+  ASSERT_TRUE(postResetDischargePub.Publish(msg));
+  std::this_thread::sleep_for(100ms);
+  ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]()
+      {
+        return findBatterySoC().second < resetSoC;
+      }));
+
+  const auto [freshBatteryEntity, freshDrainSoC] = findBatterySoC();
+  EXPECT_NE(kNullEntity, freshBatteryEntity);
+  EXPECT_LT(freshDrainSoC, resetSoC);
 }
