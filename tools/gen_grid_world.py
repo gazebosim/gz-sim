@@ -7,23 +7,38 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 
-"""Generate an SDF world with N double pendulums on a grid.
+"""Generate an SDF world with N models laid out on a grid.
 
-Each pendulum mirrors the structure used by gz-sim's existing
-double-pendulum example worlds (a static base with a 2.2 m pole, an
-upper arm hinged at the pole top, and a lower arm hinged at the
-upper arm's tip). The pendulums are arranged in a roughly-square
-grid on a single ground plane, all simulated by the standard
-Physics + SceneBroadcaster + UserCommands plugin set.
+Two shapes are available via `--shape`:
+
+  static_box (default)
+    A simple 1 m cube flagged <static>true</static>. No joints,
+    no dynamics — physics solving is essentially free, so this
+    workload is dominated by ECS / scene-broadcaster work and is
+    the right scenario for measuring the archetype-ECM speedup
+    in a real `gz sim` run.
+
+  double_pendulum
+    A static base with a 2.2 m pole, an upper arm hinged at the
+    pole top, and a lower arm hinged at the upper arm's tip.
+    Mirrors the structure of
+    examples/worlds/log_record_dbl_pendulum.sdf. Useful as a
+    physics-saturated reference: most of the per-step time goes
+    to the joint constraint solver, so ECS storage gains are
+    invisible.
+
+Models are arranged in a roughly-square grid on a single ground
+plane, with the standard Physics + SceneBroadcaster +
+UserCommands plugin set.
 
 Typical use:
 
-  # 25 pendulums, default 4 m spacing, write to stdout
-  ./tools/gen_double_pendulum_world.py -n 25 > /tmp/grid.sdf
+  # 1000 static boxes (no physics) — exposes ECS bottlenecks.
+  ./tools/gen_grid_world.py -n 1000 -o /tmp/grid.sdf
 
-  # 100 pendulums, 5 m spacing, written to a file
-  ./tools/gen_double_pendulum_world.py -n 100 --spacing 5 \\
-      -o /tmp/grid.sdf
+  # 100 pendulums for a physics-bound comparison.
+  ./tools/gen_grid_world.py -n 100 --shape double_pendulum \\
+      --spacing 5 -o /tmp/grid.sdf
 
   gz sim -v 4 /tmp/grid.sdf
 """
@@ -106,6 +121,36 @@ _WORLD_FOOTER = """\
 
   </world>
 </sdf>
+"""
+
+# Static 1 m cube. <static>true</static> tells gz-physics to skip
+# integration entirely — no constraints, no contact resolution
+# beyond the trivial ground-plane case. The grid becomes a near-
+# zero-cost physics workload, so the per-step time is dominated by
+# the ECS / scene-broadcaster path and the archetype speedup is
+# observable in wall-clock numbers.
+_STATIC_BOX_TEMPLATE = """\
+    <model name="{name}">
+      <pose>{x} {y} 0.5 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry>
+            <box><size>1.0 1.0 1.0</size></box>
+          </geometry>
+          <material>
+            <ambient>0.4 0.4 0.8 1</ambient>
+            <diffuse>0.4 0.4 0.8 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+          </material>
+        </visual>
+        <collision name="collision">
+          <geometry>
+            <box><size>1.0 1.0 1.0</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
 """
 
 # A single double pendulum model. The model is wrapped in an outer
@@ -293,14 +338,29 @@ def grid_dimensions(n):
     return cols, rows
 
 
-def render_world(n, spacing, world_name):
-    """Build the full SDF world string."""
+# Per-shape metadata: SDF template, model-name prefix, and a
+# default per-cell spacing safe for that shape's footprint.
+_SHAPES = {
+    "static_box": {
+        "template": _STATIC_BOX_TEMPLATE,
+        "name_prefix": "static_box",
+        "default_spacing": 2.0,
+    },
+    "double_pendulum": {
+        "template": _PENDULUM_TEMPLATE,
+        "name_prefix": "double_pendulum",
+        "default_spacing": 4.0,
+    },
+}
+
+
+def render_world(n, spacing, world_name, shape):
+    """Build the full SDF world string for the chosen shape."""
     cols, rows = grid_dimensions(n)
+    shape_info = _SHAPES[shape]
 
     # Center the grid on the world origin so the camera-default view
-    # frames it nicely. Each pendulum's footprint is ~1.6 m wide
-    # (base diameter); spacing should be larger than that to avoid
-    # collisions or visual overlap.
+    # frames it nicely.
     x0 = -(cols - 1) * spacing / 2.0
     y0 = -(rows - 1) * spacing / 2.0
 
@@ -321,8 +381,8 @@ def render_world(n, spacing, world_name):
         row = i // cols
         x = x0 + col * spacing
         y = y0 + row * spacing
-        out.append(_PENDULUM_TEMPLATE.format(
-            name=f"double_pendulum_{i:04d}",
+        out.append(shape_info["template"].format(
+            name=f"{shape_info['name_prefix']}_{i:04d}",
             x=f"{x:.4f}",
             y=f"{y:.4f}",
         ))
@@ -338,37 +398,43 @@ def main():
     )
     parser.add_argument(
         "-n", "--count", type=int, required=True,
-        help="number of double pendulums to generate (>= 1)")
+        help="number of models to generate (>= 1)")
     parser.add_argument(
         "-o", "--output", type=str, default=None,
         help="output file path (default: stdout)")
     parser.add_argument(
-        "--spacing", type=float, default=4.0,
-        help="grid spacing between pendulum centers, in meters "
-             "(default: 4.0). Each pendulum's base is 1.6 m across, so "
-             "values below ~2.5 risk overlap.")
+        "--shape", choices=sorted(_SHAPES.keys()),
+        default="static_box",
+        help="model shape to generate at each grid cell (default: "
+             "static_box)")
+    parser.add_argument(
+        "--spacing", type=float, default=None,
+        help="grid spacing between model centers, in meters. "
+             "Default depends on --shape: 2.0 m for static_box, "
+             "4.0 m for double_pendulum.")
     parser.add_argument(
         "--world-name", type=str, default=None,
-        help="SDF <world name=...>. Default: "
-             "double_pendulum_grid_<count>.")
+        help="SDF <world name=...>. Default: <shape>_grid_<count>.")
     args = parser.parse_args()
 
     if args.count < 1:
         parser.error("--count must be >= 1")
-    if args.spacing <= 0:
+    spacing = (args.spacing if args.spacing is not None
+               else _SHAPES[args.shape]["default_spacing"])
+    if spacing <= 0:
         parser.error("--spacing must be positive")
 
-    world_name = (args.world_name
-                  or f"double_pendulum_grid_{args.count}")
-    sdf = render_world(args.count, args.spacing, world_name)
+    world_name = args.world_name or f"{args.shape}_grid_{args.count}"
+    sdf = render_world(args.count, spacing, world_name, args.shape)
 
     if args.output:
         with open(args.output, "w") as f:
             f.write(sdf)
         cols, rows = grid_dimensions(args.count)
         print(
-            f"Wrote {args.count} pendulums ({cols}x{rows} grid, "
-            f"spacing {args.spacing} m) to {args.output}",
+            f"Wrote {args.count} {args.shape} models "
+            f"({cols}x{rows} grid, spacing {spacing} m) "
+            f"to {args.output}",
             file=sys.stderr,
         )
     else:
