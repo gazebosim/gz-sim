@@ -220,7 +220,7 @@ TEST(LinkTest, Gravity)
 
   gz::sim::Link link(linkEntity);
 
-  // Component missing
+  // Verify no gravity component
   EXPECT_FALSE(link.GravityEnabled(ecm).has_value());
 
   // Populate component
@@ -231,12 +231,12 @@ TEST(LinkTest, Gravity)
   // Set command (creates component)
   EXPECT_EQ(nullptr,
       ecm.Component<gz::sim::components::GravityEnabledCmd>(linkEntity));
-  link.SetGravityEnabledCmd(ecm, false);
+  link.SetGravityEnabled(ecm, false);
   auto cmd = ecm.Component<gz::sim::components::GravityEnabledCmd>(linkEntity);
   ASSERT_NE(nullptr, cmd);
   EXPECT_FALSE(cmd->Data());
 
   // Set command (updates component)
-  link.SetGravityEnabledCmd(ecm, true);
+  link.SetGravityEnabled(ecm, true);
   EXPECT_TRUE(cmd->Data());
 }

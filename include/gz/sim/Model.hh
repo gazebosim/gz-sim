@@ -191,13 +191,18 @@ namespace gz
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _state True to make the model static, false to make
       /// it dynamic.
-      public: void SetStaticStateCmd(EntityComponentManager &_ecm,
-          bool _state);
+      public: void SetStatic(EntityComponentManager &_ecm, bool _state);
+
+      /// \brief Get whether this model has gravity enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if gravity mode is on, nullopt if component is missing.
+      public: std::optional<bool> GravityEnabled(
+          const EntityComponentManager &_ecm) const;
 
       /// \brief Set a new command to change the model's gravity.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _enabled True to enable gravity, false otherwise.
-      public: void SetGravityEnabledCmd(EntityComponentManager &_ecm,
+      public: void SetGravityEnabled(EntityComponentManager &_ecm,
           bool _enabled);
 
       /// \brief Get the model's canonical link entity.

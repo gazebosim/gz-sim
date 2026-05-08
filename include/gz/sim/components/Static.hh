@@ -34,12 +34,11 @@ namespace components
   using Static = Component<bool, class StaticTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
 
-  /// \brief A component type that contains the commanded static state of an
-  /// entity represented by bool.
-  using StaticStateCmd = Component<
-    bool, class StaticStateCmdTag>;
+  /// \brief A component that contains a bool command to change the static state
+  /// of an entity.
+  using StaticCmd = Component<bool, class StaticCmdTag>;
   GZ_SIM_REGISTER_COMPONENT(
-      "gz_sim_components.StaticStateCmd", StaticStateCmd)
+      "gz_sim_components.StaticCmd", StaticCmd)
 }
 }
 }

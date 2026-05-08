@@ -389,9 +389,9 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
-  /// \brief Entities whose static state commands have been processed and should
+  /// \brief Entities whose static commands have been processed and should
   /// be deleted the following iteration.
-  public: std::unordered_set<Entity> staticStateCmdsToRemove;
+  public: std::unordered_set<Entity> staticCmdsToRemove;
 
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
@@ -2566,17 +2566,17 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       });
 
   // update Static State
-  auto olderStaticStateCmdsToRemove = std::move(this->staticStateCmdsToRemove);
-  this->staticStateCmdsToRemove.clear();
+  auto olderStaticStatesToRemove = std::move(this->staticCmdsToRemove);
+  this->staticCmdsToRemove.clear();
 
   _ecm.Each<components::Model,
-    components::StaticStateCmd,
+    components::StaticCmd,
     components::Name>(
       [&](const Entity &_entity, const components::Model *,
-          const components::StaticStateCmd *_staticStateCmd,
+          const components::StaticCmd *_staticCmd,
           const components::Name *_name)->bool
       {
-        this->staticStateCmdsToRemove.insert(_entity);
+        this->staticCmdsToRemove.insert(_entity);
 
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
         if (nullptr == modelPtrPhys)
@@ -2590,21 +2590,20 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           static bool informed{false};
           if (!informed)
           {
-            gzdbg << "Attempting to set a static state, but the physics "
+            gzdbg << "Attempting to set static state, but the physics "
                    << "engine doesn't support feature "
-                   << "[ModelStaticState]. static state won't be populated."
+                   << "[ModelStaticState]. Static state won't be populated."
                    << " " << _name->Data()
                    << std::endl;
             informed = true;
           }
 
-          // Continue loop so commands are marked for removal in next iteration
           return true;
         }
 
         bool isStatic = this->staticEntities.find(_entity) !=
             this->staticEntities.end();
-        if (isStatic != _staticStateCmd->Data())
+        if (isStatic != _staticCmd->Data())
         {
           if (isStatic)
           {
@@ -2616,15 +2615,15 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        modelStaticStateFeature->SetStatic(_staticStateCmd->Data());
+        modelStaticStateFeature->SetStatic(_staticCmd->Data());
         return true;
       });
 
-  // Remove static state commands from previous iteration. We let them rotate one
+  // Remove static commands from previous iteration. We let them rotate one
   // iteration so other systems have a chance to react to them too.
-  for (const Entity &entity : olderStaticStateCmdsToRemove)
+  for (const Entity &entity : olderStaticStatesToRemove)
   {
-    _ecm.RemoveComponent<components::StaticStateCmd>(entity);
+    _ecm.RemoveComponent<components::StaticCmd>(entity);
   }
 
   // update Gravity enabled
@@ -2662,7 +2661,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             informed = true;
           }
 
-          // Continue loop so commands are marked for removal in next iteration
           return true;
         }
         modelGravityEnabledFeature->SetGravityEnabled(
@@ -3173,7 +3171,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
-  this->staticStateCmdsToRemove.clear();
+  this->staticCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);

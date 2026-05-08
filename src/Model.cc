@@ -221,26 +221,33 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Model::SetStaticStateCmd(EntityComponentManager &_ecm,
+void Model::SetStatic(EntityComponentManager &_ecm,
     bool _state)
 {
-  auto staticComp = _ecm.Component<components::StaticStateCmd>(
+  auto staticComp = _ecm.Component<components::StaticCmd>(
       this->dataPtr->id);
   if (!staticComp)
   {
-    _ecm.CreateComponent(this->dataPtr->id, components::StaticStateCmd(_state));
+    _ecm.CreateComponent(this->dataPtr->id, components::StaticCmd(_state));
   }
   else
   {
     staticComp->SetData(_state,
         [](const bool &, const bool &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
-        components::StaticStateCmd::typeId, ComponentState::OneTimeChange);
+        components::StaticCmd::typeId, ComponentState::OneTimeChange);
   }
 }
 
 //////////////////////////////////////////////////
-void Model::SetGravityEnabledCmd(EntityComponentManager &_ecm,
+std::optional<bool> Model::GravityEnabled(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::GravityEnabled>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+void Model::SetGravityEnabled(EntityComponentManager &_ecm,
     bool _enabled)
 {
   auto staticComp = _ecm.Component<components::GravityEnabledCmd>(

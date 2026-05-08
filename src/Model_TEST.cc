@@ -236,16 +236,24 @@ TEST(ModelTest, Gravity)
 
   gz::sim::Model model(modelEntity);
 
+  // Verify no gravity component
+  EXPECT_FALSE(model.GravityEnabled(ecm).has_value());
+
+  // Populate component
+  ecm.CreateComponent(modelEntity, gz::sim::components::GravityEnabled(true));
+  EXPECT_TRUE(model.GravityEnabled(ecm).has_value());
+  EXPECT_TRUE(model.GravityEnabled(ecm).value());
+
   // Set command (creates component)
   EXPECT_EQ(nullptr,
       ecm.Component<gz::sim::components::GravityEnabledCmd>(modelEntity));
-  model.SetGravityEnabledCmd(ecm, false);
+  model.SetGravityEnabled(ecm, false);
   auto cmd = ecm.Component<gz::sim::components::GravityEnabledCmd>(modelEntity);
   ASSERT_NE(nullptr, cmd);
   EXPECT_FALSE(cmd->Data());
 
   // Set command (updates component)
-  model.SetGravityEnabledCmd(ecm, true);
+  model.SetGravityEnabled(ecm, true);
   EXPECT_TRUE(cmd->Data());
 }
 
@@ -259,7 +267,7 @@ TEST(ModelTest, Static)
 
   gz::sim::Model model(modelEntity);
 
-  // Component missing
+  // Verify no static component
   EXPECT_FALSE(model.Static(ecm));
 
   // Populate component
@@ -268,13 +276,13 @@ TEST(ModelTest, Static)
 
   // Set command (creates component)
   EXPECT_EQ(nullptr,
-      ecm.Component<gz::sim::components::StaticStateCmd>(modelEntity));
-  model.SetStaticStateCmd(ecm, true);
-  auto cmd = ecm.Component<gz::sim::components::StaticStateCmd>(modelEntity);
+      ecm.Component<gz::sim::components::StaticCmd>(modelEntity));
+  model.SetStatic(ecm, true);
+  auto cmd = ecm.Component<gz::sim::components::StaticCmd>(modelEntity);
   ASSERT_NE(nullptr, cmd);
   EXPECT_TRUE(cmd->Data());
 
   // Set command (updates component)
-  model.SetStaticStateCmd(ecm, false);
+  model.SetStatic(ecm, false);
   EXPECT_FALSE(cmd->Data());
 }

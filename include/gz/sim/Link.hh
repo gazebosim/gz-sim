@@ -275,7 +275,7 @@ namespace gz
       /// \brief Set a new command to change the link's gravity.
       /// \param[in] _ecm Entity-component manager.
       /// \param[in] _enabled True to enable gravity, false otherwise.
-      public: void SetGravityEnabledCmd(EntityComponentManager &_ecm,
+      public: void SetGravityEnabled(EntityComponentManager &_ecm,
           bool _enabled) const;
 
       /// \brief Get the angular acceleration of the body in the world frame.

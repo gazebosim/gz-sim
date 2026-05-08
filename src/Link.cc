@@ -359,7 +359,7 @@ void Link::SetAngularVelocity(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void Link::SetGravityEnabledCmd(EntityComponentManager &_ecm,
+void Link::SetGravityEnabled(EntityComponentManager &_ecm,
   bool _enabled) const
 {
     auto comp =
