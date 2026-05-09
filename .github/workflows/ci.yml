@@ -29,24 +29,6 @@ jobs:
         with:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
-<<<<<<< HEAD
           codecov-enabled: true
-=======
-
-  noble-ci-disable-gui:
-    runs-on: ubuntu-latest
-    name: Ubuntu Noble CI (GUI disabled)
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - uses: actions/setup-python@v3
-      - name: Compile and test
-        id: ci
-        uses: gazebo-tooling/action-gz-ci@noble
-        with:
-          gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
->>>>>>> 1f6a727d (🛠️ Bump actions/checkout from 4 to 6 (#3507))
           cppcheck-enabled: true
           cpplint-enabled: true
