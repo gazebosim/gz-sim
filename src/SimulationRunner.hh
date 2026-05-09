@@ -544,11 +544,6 @@ namespace gz
       private: bool threadsNeedCleanUp{false};
 
       private: bool resetInitiated{false};
-
-      /// \brief Flag indicating if the server encountered errors during
-      /// initialization and should exit immediately. See
-      /// `SetExitedWithErrors()`.
-      private: bool exitedWithErrors{false};
 #ifdef _WIN32
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;
