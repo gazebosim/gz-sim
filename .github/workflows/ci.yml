@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'ign-gazebo[0-9]'
-      - 'gz-sim[0-9]?'
+      - 'gz-sim[1-9]?[0-9]'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,
@@ -20,7 +20,7 @@ jobs:
     name: Ubuntu Noble CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
         with:
@@ -38,7 +38,7 @@ jobs:
     name: Ubuntu Noble CI (GUI disabled)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
       - name: Compile and test
         id: ci

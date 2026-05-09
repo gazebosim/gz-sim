@@ -200,6 +200,11 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 {
   gz::rendering::ScenePtr scene =
       gz::rendering::sceneFromFirstRenderEngine();
+  if (!scene)
+  {
+    gzerr << "Scene not found, cannot take picture." << std::endl;
+    return;
+  }
   gz::rendering::VisualPtr modelVisual =
       scene->VisualByName(this->modelName);
 
@@ -207,22 +212,8 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
 
   if (modelVisual && this->takePicture)
   {
-    scene->SetAmbientLight(0.3, 0.3, 0.3);
-
-    // create directional light
-    gz::rendering::DirectionalLightPtr light0 =
-        scene->CreateDirectionalLight();
-    light0->SetDirection(-0.5, 0.5, -1);
-    light0->SetDiffuseColor(0.8, 0.8, 0.8);
-    light0->SetSpecularColor(0.5, 0.5, 0.5);
-    root->AddChild(light0);
-
-    // create point light
-    gz::rendering::PointLightPtr light2 = scene->CreatePointLight();
-    light2->SetDiffuseColor(0.5, 0.5, 0.5);
-    light2->SetSpecularColor(0.5, 0.5, 0.5);
-    light2->SetLocalPosition(3, 5, 5);
-    root->AddChild(light2);
+    // find the camera we created for photo shoot
+    gz::rendering::CameraPtr photoCamera = nullptr;
 
     for (unsigned int i = 0; i < scene->NodeCount(); ++i)
     {
@@ -230,57 +221,90 @@ void ModelPhotoShootPrivate::PerformPostRenderingOperations()
           scene->NodeByIndex(i));
       if (nullptr != camera && camera->Name() == "photo_shoot::link::camera")
       {
-        // Compute the translation we have to apply to the cameras to
-        // center the model in the image.
-        gz::math::AxisAlignedBox bbox = modelVisual->LocalBoundingBox();
-        double scaling = 1.0 / bbox.Size().Max();
-        gz::math::Vector3d bboxCenter = bbox.Center();
-        gz::math::Vector3d translation =
-            bboxCenter + this->modelPose3D.Pos();
-        if (this->savingFile.is_open()) {
-          this->savingFile << "Translation: " << translation << std::endl;
-          this->savingFile << "Scaling: " << scaling << std::endl;
-        }
-
-        gz::math::Pose3d pose;
-        // Perspective view
-        pose.Pos().Set(1.6 / scaling + translation.X(),
-                       -1.6 / scaling + translation.Y(),
-                       1.2 / scaling + translation.Z());
-        pose.Rot().SetFromEuler(0, GZ_DTOR(30), GZ_DTOR(-225));
-        SavePicture(camera, pose, "1.png");
-
-        // Top view
-        pose.Pos().Set(0 + translation.X(),
-                       0 + translation.Y(),
-                       2.2 / scaling + translation.Z());
-        pose.Rot().SetFromEuler(0, GZ_DTOR(90), 0);
-        SavePicture(camera, pose, "2.png");
-
-        // Front view
-        pose.Pos().Set(2.2 / scaling + translation.X(),
-                       0 + translation.Y(),
-                       0 + translation.Z());
-        pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-180));
-        SavePicture(camera, pose, "3.png");
-
-        // Side view
-        pose.Pos().Set(0 + translation.X(),
-                       2.2 / scaling + translation.Y(),
-                       0 + translation.Z());
-        pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-90));
-        SavePicture(camera, pose, "4.png");
-
-        // Back view
-        pose.Pos().Set(-2.2 / scaling + translation.X(),
-                       0 + translation.Y(),
-                       0 + translation.Z());
-        pose.Rot().SetFromEuler(0, 0, 0);
-        SavePicture(camera, pose, "5.png");
-
-        this->takePicture = false;
+        photoCamera = camera;
+        break;
       }
     }
+
+    // if camera not found, return early and try again in the next frame
+    if (!photoCamera)
+    {
+      return;
+    }
+
+    // check if lights exist, if not create them
+    // and avoid them being created every time the reset service is called
+    scene->SetAmbientLight(0.3, 0.3, 0.3);
+
+    if (!scene->NodeByName("photo_shoot_dir_light"))
+    {
+      gz::rendering::DirectionalLightPtr light0 =
+          scene->CreateDirectionalLight("photo_shoot_dir_light");
+      light0->SetDirection(-0.5, 0.5, -1);
+      light0->SetDiffuseColor(0.8, 0.8, 0.8);
+      light0->SetSpecularColor(0.5, 0.5, 0.5);
+      root->AddChild(light0);
+    }
+
+    if (!scene->NodeByName("photo_shoot_pt_light"))
+    {
+      gz::rendering::PointLightPtr light2 =
+          scene->CreatePointLight("photo_shoot_pt_light");
+      light2->SetDiffuseColor(0.5, 0.5, 0.5);
+      light2->SetSpecularColor(0.5, 0.5, 0.5);
+      light2->SetLocalPosition(3, 5, 5);
+      root->AddChild(light2);
+    }
+
+    gz::math::AxisAlignedBox bbox = modelVisual->LocalBoundingBox();
+    double scaling = 1.0 / bbox.Size().Max();
+    gz::math::Vector3d bboxCenter = bbox.Center();
+    gz::math::Vector3d translation =
+        bboxCenter + this->modelPose3D.Pos();
+
+    if (this->savingFile.is_open())
+    {
+      this->savingFile << "Translation: " << translation << std::endl;
+      this->savingFile << "Scaling: " << scaling << std::endl;
+    }
+
+    gz::math::Pose3d pose;
+    // Perspective view
+    pose.Pos().Set(1.6 / scaling + translation.X(),
+                   -1.6 / scaling + translation.Y(),
+                   1.2 / scaling + translation.Z());
+    pose.Rot().SetFromEuler(0, GZ_DTOR(30), GZ_DTOR(-225));
+    SavePicture(photoCamera, pose, "1.png");
+
+    // Top view
+    pose.Pos().Set(translation.X(),
+                   translation.Y(),
+                   2.2 / scaling + translation.Z());
+    pose.Rot().SetFromEuler(0, GZ_DTOR(90), 0);
+    SavePicture(photoCamera, pose, "2.png");
+
+    // Front view
+    pose.Pos().Set(2.2 / scaling + translation.X(),
+                   translation.Y(),
+                   translation.Z());
+    pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-180));
+    SavePicture(photoCamera, pose, "3.png");
+
+    // Side view
+    pose.Pos().Set(translation.X(),
+                   2.2 / scaling + translation.Y(),
+                   translation.Z());
+    pose.Rot().SetFromEuler(0, 0, GZ_DTOR(-90));
+    SavePicture(photoCamera, pose, "4.png");
+
+    // Back view
+    pose.Pos().Set(-2.2 / scaling + translation.X(),
+                   translation.Y(),
+                   translation.Z());
+    pose.Rot().SetFromEuler(0, 0, 0);
+    SavePicture(photoCamera, pose, "5.png");
+
+    this->takePicture = false;
   }
 }
 

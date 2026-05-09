@@ -53,7 +53,7 @@ using IntComponent = Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
-using UIntComponent = Component<int, class IntComponentTag>;
+using UIntComponent = Component<uint32_t, class UIntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.UIntComponent",
     UIntComponent)
 
