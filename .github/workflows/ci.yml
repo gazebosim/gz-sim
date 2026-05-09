@@ -14,42 +14,11 @@ jobs:
     name: Ubuntu Jammy CI
     steps:
       - name: Checkout
-<<<<<<< HEAD
-        uses: actions/checkout@v4
-=======
         uses: actions/checkout@v6
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: --all-files
->>>>>>> 1f6a727d (🛠️ Bump actions/checkout from 4 to 6 (#3507))
       - name: Compile and test
         id: ci
         uses: ignition-tooling/action-ignition-ci@jammy
         with:
-<<<<<<< HEAD
           # per bug https://github.com/ignitionrobotics/ign-gazebo/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF'
           codecov-enabled: true
-=======
-          gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
-
-  noble-ci-disable-gui:
-    runs-on: ubuntu-latest
-    name: Ubuntu Noble CI (GUI disabled)
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - uses: actions/setup-python@v3
-      - name: Compile and test
-        id: ci
-        uses: gazebo-tooling/action-gz-ci@noble
-        with:
-          gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
-          cppcheck-enabled: true
-          cpplint-enabled: true
->>>>>>> 1f6a727d (🛠️ Bump actions/checkout from 4 to 6 (#3507))
