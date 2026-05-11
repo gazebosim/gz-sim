@@ -43,7 +43,6 @@
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
-#include "../helpers/ResetUtils.hh"
 #include "../helpers/Util.hh"
 
 using namespace gz;
@@ -266,14 +265,6 @@ TEST_F(HydrodynamicsTest,
       });
   server.AddSystem(recorder.systemPtr);
 
-  transport::Node node;
-  auto currentPub = node.Advertise<msgs::Vector3d>(
-      "/model/reset_body/ocean_current");
-  ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
-      {
-        return currentPub.HasConnections();
-      }));
-
   server.Run(true, 50, false);
   ASSERT_FALSE(poses.empty());
   const auto initialPose = poses.front();
@@ -286,19 +277,29 @@ TEST_F(HydrodynamicsTest,
   currentMsg.set_x(1.0);
   currentMsg.set_y(0.0);
   currentMsg.set_z(0.0);
-  EXPECT_TRUE(currentPub.Publish(currentMsg));
+  {
+    transport::Node node;
+    auto currentPub = node.Advertise<msgs::Vector3d>(
+        "/model/reset_body/ocean_current");
+    ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
+        {
+          return currentPub.HasConnections();
+        }));
+    EXPECT_TRUE(currentPub.Publish(currentMsg));
+    std::this_thread::sleep_for(100ms);
+
+    poses.clear();
+    linearVelocities.clear();
+    server.Run(true, 500, false);
+    ASSERT_FALSE(poses.empty());
+    ASSERT_FALSE(linearVelocities.empty());
+    EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
+    EXPECT_LT(linearVelocities.back().X(), -0.05);
+  }
   std::this_thread::sleep_for(100ms);
 
-  poses.clear();
-  linearVelocities.clear();
-  server.Run(true, 500, false);
-  ASSERT_FALSE(poses.empty());
-  ASSERT_FALSE(linearVelocities.empty());
-  EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
-  EXPECT_LT(linearVelocities.back().X(), -0.05);
-
-  gz::sim::test::reset::RequestAndApplyWorldReset(server,
-      "hydrodynamics_reset");
+  server.ResetAll();
+  server.Run(true, 2, false);
 
   poses.clear();
   linearVelocities.clear();
@@ -315,6 +316,13 @@ TEST_F(HydrodynamicsTest,
   EXPECT_NEAR(linearVelocities.back().Z(), 0.0, 0.02);
 
   // Fresh runtime current should still influence the body after reset.
+  transport::Node node;
+  auto currentPub = node.Advertise<msgs::Vector3d>(
+      "/model/reset_body/ocean_current");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
+      {
+        return currentPub.HasConnections();
+      }));
   EXPECT_TRUE(currentPub.Publish(currentMsg));
   std::this_thread::sleep_for(100ms);
 
@@ -391,6 +399,8 @@ TEST_F(HydrodynamicsTest,
         return {poses, linearVelocities};
       };
 
+  server.Run(true, 2, false);
+
   const auto preResetSamples = runAndCapture(1000);
   const auto &preResetPoses = preResetSamples.first;
   const auto &preResetVelocities = preResetSamples.second;
@@ -404,7 +414,8 @@ TEST_F(HydrodynamicsTest,
   EXPECT_GT(preResetDeltaX, 0.05);
   EXPECT_GT(preResetEndVelocity.X(), 0.05);
 
-  gz::sim::test::reset::RequestAndApplyWorldReset(server, "hydrodynamics");
+  server.ResetAll();
+  server.Run(true, 2, false);
 
   const auto postResetSamples = runAndCapture(1000);
   const auto &postResetPoses = postResetSamples.first;
