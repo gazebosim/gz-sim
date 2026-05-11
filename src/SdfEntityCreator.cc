@@ -956,14 +956,18 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
     sdf::Material visualMaterial = *_visual->Material();
     if (!_visual->Material()->ScriptUri().empty())
     {
-      gzwarn << "Gazebo does not support Ogre material scripts. See " <<
+      gzwarn << "[" << _visual->Material()->FilePath() << ":L"
+             << _visual->Material()->LineNumber().value_or(0) << "]: "
+             << "Gazebo does not support Ogre material scripts. See " <<
       "https://gazebosim.org/api/sim/8/migrationsdf.html#:~:text=Materials " <<
       "for details." << std::endl;
       std::string scriptUri = visualMaterial.ScriptUri();
       if (scriptUri != ServerPrivate::kClassicMaterialScriptUri)
       {
-        gzwarn << "Custom material scripts are not supported."
-          << std::endl;
+        gzwarn << "[" << _visual->Material()->FilePath() << ":L"
+               << _visual->Material()->LineNumber().value_or(0) << "]: "
+               << "Custom material scripts are not supported."
+               << std::endl;
       }
     }
     if (!_visual->Material()->ScriptName().empty())
@@ -972,7 +976,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
 
       if ((scriptName.find("Gazebo/") == 0u))
       {
-        gzwarn << "Using an internal gazebo.material to parse "
+        gzwarn << "[" << _visual->Material()->FilePath() << ":L"
+          << _visual->Material()->LineNumber().value_or(0) << "]: "
+          << "Using an internal gazebo.material to parse "
           << scriptName << std::endl;
         std::optional<MaterialParser::MaterialValues> parsed =
           this->dataPtr->materialParser.GetMaterialValues(scriptName);
@@ -988,7 +994,9 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Visual *_visual)
         }
         else
         {
-          gzwarn << "Material " << scriptName <<
+          gzwarn << "[" << _visual->Material()->FilePath() << ":L"
+            << _visual->Material()->LineNumber().value_or(0) << "]: "
+            << "Material " << scriptName <<
             " not recognized or supported, using default." << std::endl;
         }
       }
