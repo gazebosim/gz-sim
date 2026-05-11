@@ -20,6 +20,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <gz/common/Battery.hh>
 #include <gz/common/Console.hh>
@@ -47,7 +48,6 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/ResetUtils.hh"
 #include "../helpers/Util.hh"
 
 using namespace gz;
@@ -507,8 +507,8 @@ TEST_F(BatteryPluginTest,
   EXPECT_NE(kNullEntity, drainedBatteryEntity);
   EXPECT_LT(drainedSoC, 1.0);
 
-  gz::sim::test::reset::RequestAndApplyWorldReset(server, "batteries");
-
+  server.ResetAll();
+  server.Run(true, 2, false);
   server.Run(true, 100, false);
 
   const auto [resetBatteryEntity, resetSoC] = findBatterySoC();
