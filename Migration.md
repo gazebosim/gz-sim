@@ -95,6 +95,11 @@ release will remove the deprecated code.
     `/<model_name>/pose` to `/model/<model>/pose`. The new topic name is
     is consistent with the topic names for models that already exist in the
     world, i.e. models that are not spawned.
+  * Component's `typeId` is now `constexpr`. It is not allowed to change it
+    at runtime anymore. Furthermore component registration is now only allowed
+    through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
+    registered before they are instantiated, else a static assertion failure
+    will be triggered at compile time.
 
 ## Gazebo Sim 9.x to 10.0
 
