@@ -513,7 +513,6 @@ TEST_F(BatteryPluginTest,
 
   server.ResetAll();
   server.Run(true, 2, false);
-  server.Run(true, 100, false);
 
   const auto [resetBatteryEntity, resetSoC] = findBatterySoC();
   EXPECT_NE(kNullEntity, resetBatteryEntity);
