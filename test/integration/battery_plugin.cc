@@ -19,7 +19,6 @@
 
 #include <chrono>
 #include <string>
-#include <thread>
 #include <utility>
 
 #include <gz/common/Battery.hh>
@@ -496,12 +495,17 @@ TEST_F(BatteryPluginTest,
       }));
 
   msgs::StringMsg msg;
-  ASSERT_TRUE(dischargePub.Publish(msg));
-  std::this_thread::sleep_for(100ms);
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]()
+  const auto publishAndWaitForDrain =
+    [&](auto &_pub, double _threshold) -> bool
+    {
+      return gz::sim::test::StepUntil(server, 200u, [&]()
       {
-        return findBatterySoC().second < 1.0;
-      }));
+        _pub.Publish(msg);
+        return findBatterySoC().second < _threshold;
+      });
+    };
+
+  ASSERT_TRUE(publishAndWaitForDrain(dischargePub, 1.0));
 
   const auto [drainedBatteryEntity, drainedSoC] = findBatterySoC();
   EXPECT_NE(kNullEntity, drainedBatteryEntity);
@@ -528,12 +532,7 @@ TEST_F(BatteryPluginTest,
       {
         return postResetDischargePub.HasConnections();
       }));
-  ASSERT_TRUE(postResetDischargePub.Publish(msg));
-  std::this_thread::sleep_for(100ms);
-  ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]()
-      {
-        return findBatterySoC().second < resetSoC;
-      }));
+  ASSERT_TRUE(publishAndWaitForDrain(postResetDischargePub, resetSoC));
 
   const auto [freshBatteryEntity, freshDrainSoC] = findBatterySoC();
   EXPECT_NE(kNullEntity, freshBatteryEntity);
