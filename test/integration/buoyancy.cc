@@ -37,7 +37,6 @@
 #include "gz/sim/components/Volume.hh"
 
 #include "test_config.hh"
-#include "../helpers/ResetUtils.hh"
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
@@ -821,7 +820,8 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
   ASSERT_LT(poseHistory[2].back().Pos().Z(), baselineSinking400.Pos().Z() -
       0.1);
 
-  gz::sim::test::reset::RequestAndApplyWorldReset(server, "buoyancy");
+  server.ResetAll();
+  server.Run(true, 2, false);
   for (auto &history : poseHistory)
   {
     history.clear();
