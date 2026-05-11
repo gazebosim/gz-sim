@@ -19,6 +19,7 @@
 
 #include <gz/msgs/contacts.pb.h>
 
+#include <cmath>
 #include <thread>
 
 #include <gz/common/Console.hh>
@@ -32,6 +33,8 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -39,6 +42,36 @@ using namespace sim;
 class ContactSystemTest : public InternalFixture<::testing::Test>
 {
 };
+
+/////////////////////////////////////////////////
+bool validMultipleCollisionContacts(const msgs::Contacts &_contacts)
+{
+  if (_contacts.contact_size() != 4)
+    return false;
+
+  for (const auto &contact : _contacts.contact())
+  {
+    if (contact.position_size() != 1)
+      return false;
+
+    if (std::abs(std::abs(contact.position(0).x()) - 0.25) > 5e-2 ||
+        std::abs(std::abs(contact.position(0).y()) - 1.0) > 5e-2 ||
+        std::abs(contact.position(0).z() - 1.0) > 5e-2)
+    {
+      return false;
+    }
+
+    const bool entityNameFound =
+      contact.collision1().name() ==
+      "contact_model::link::collision_sphere1" ||
+      contact.collision1().name() ==
+      "contact_model::link::collision_sphere2";
+    if (!entityNameFound)
+      return false;
+  }
+
+  return true;
+}
 
 /////////////////////////////////////////////////
 // This test verifies that colliding entity names are populated in
@@ -270,6 +303,53 @@ TEST_F(ContactSystemTest,
     std::lock_guard<std::mutex> lock(contactMutex);
     EXPECT_EQ(0u, contactMsgs.size());
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(ContactSystemTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyContacts))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  transport::Node node;
+  Subscription<msgs::Contacts> initialContacts;
+  initialContacts.Subscribe(node, "/test_multiple_collisions", 1);
+  auto waitForContacts =
+      [&server](Subscription<msgs::Contacts> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u &&
+              validMultipleCollisionContacts(_subscription.Last());
+        });
+      };
+
+  ASSERT_TRUE(waitForContacts(initialContacts));
+
+  server.ResetAll();
+  server.Run(true, 2, false);
+
+  // Use a fresh subscription after reset so pre-reset transport messages cannot
+  // be mistaken for new episode contact data.
+  transport::Node postResetNode;
+  Subscription<msgs::Contacts> postResetContacts;
+  postResetContacts.Subscribe(postResetNode, "/test_multiple_collisions", 1);
+
+  ASSERT_TRUE(waitForContacts(postResetContacts));
+  const auto postResetContactMsg = postResetContacts.Last();
+
+  EXPECT_TRUE(validMultipleCollisionContacts(postResetContactMsg));
 }
 
 /////////////////////////////////////////////////
