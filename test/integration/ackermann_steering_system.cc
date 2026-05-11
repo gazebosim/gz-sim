@@ -46,6 +46,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define tol 10e-4
 
@@ -213,6 +215,126 @@ class AckermannSteeringTest
     EXPECT_LT(a, 1);
   }
 };
+
+/////////////////////////////////////////////////
+TEST_P(AckermannSteeringTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "ackermann_steering.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+
+  bool publishCommand{false};
+  msgs::Twist cmd;
+  msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(cmd.mutable_angular(), math::Vector3d(0, 0, 0.1));
+
+  test::Relay poseRecorder;
+  std::vector<math::Pose3d> modelPoses;
+  poseRecorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+  {
+    auto model = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle"));
+    ASSERT_NE(kNullEntity, model);
+
+    auto poseComp = _ecm.Component<components::Pose>(model);
+    ASSERT_NE(nullptr, poseComp);
+    modelPoses.push_back(poseComp->Data());
+  });
+  server.AddSystem(poseRecorder.systemPtr);
+
+  test::Relay commandRelay;
+  commandRelay.OnPreUpdate([&](const UpdateInfo &,
+      EntityComponentManager &)
+  {
+    if (publishCommand)
+      pub.Publish(cmd);
+  });
+  server.AddSystem(commandRelay.systemPtr);
+
+  Subscription<msgs::Odometry> odom;
+  odom.Subscribe(node, "/model/vehicle/odometry", 1);
+
+  server.Run(true, 1, false);
+  ASSERT_FALSE(modelPoses.empty());
+  const auto initialModelPose = modelPoses.back();
+
+  publishCommand = true;
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&]
+      {
+        if (odom.Count() == 0u)
+          return false;
+
+        const auto msg = odom.Last();
+        return msgs::Convert(msg.pose()).Pos().Length() > 0.05;
+      }));
+
+  publishCommand = false;
+  server.ResetAll();
+  server.Run(true, 2, false);
+
+  transport::Node postResetNode;
+  Subscription<msgs::Odometry> postResetOdom;
+  postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
+
+  const auto postResetPoseBegin = modelPoses.size();
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&]
+      {
+        if (postResetOdom.Count() == 0u)
+          return false;
+
+        const auto msg = postResetOdom.Last();
+        const auto pose = msgs::Convert(msg.pose());
+        const auto linVel = msgs::Convert(msg.twist().linear());
+        const auto angVel = msgs::Convert(msg.twist().angular());
+        return std::abs(pose.Pos().X()) < 0.05 &&
+            std::abs(pose.Pos().Y()) < 0.05 &&
+            std::abs(pose.Rot().Yaw()) < 0.05 &&
+            std::abs(linVel.X()) < 0.05 &&
+            std::abs(linVel.Y()) < 0.05 &&
+            std::abs(angVel.Z()) < 0.05;
+      }));
+  ASSERT_GT(modelPoses.size(), postResetPoseBegin);
+  const auto postReset = postResetOdom.Last();
+  const auto postResetPose = msgs::Convert(postReset.pose());
+  const auto postResetLinVel = msgs::Convert(postReset.twist().linear());
+  const auto postResetAngVel = msgs::Convert(postReset.twist().angular());
+
+  EXPECT_NEAR(postResetPose.Pos().X(), 0.0, 0.05);
+  EXPECT_NEAR(postResetPose.Pos().Y(), 0.0, 0.05);
+  EXPECT_NEAR(postResetPose.Rot().Yaw(), 0.0, 0.05);
+  EXPECT_NEAR(postResetLinVel.X(), 0.0, 0.05);
+  EXPECT_NEAR(postResetLinVel.Y(), 0.0, 0.05);
+  EXPECT_NEAR(postResetAngVel.Z(), 0.0, 0.05);
+
+  // The real model pose should also stay at the reset pose without old input.
+  EXPECT_NEAR(modelPoses.back().Pos().X(), initialModelPose.Pos().X(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Pos().Y(), initialModelPose.Pos().Y(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Rot().Yaw(), initialModelPose.Rot().Yaw(),
+      0.05);
+
+  // A fresh command after reset should still produce odometry motion.
+  publishCommand = true;
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&]
+      {
+        if (postResetOdom.Count() == 0u)
+          return false;
+
+        const auto msg = postResetOdom.Last();
+        return std::abs(msgs::Convert(msg.twist().linear()).X()) > 0.05;
+      }));
+}
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
