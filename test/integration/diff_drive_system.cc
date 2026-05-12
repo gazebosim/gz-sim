@@ -292,7 +292,6 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
   // Stop injecting commands only after the dirty pre-reset state is observed.
   publishCommand = false;
   server.ResetAll();
-  server.Run(true, 2, false);
 
   transport::Node postResetNode;
   Subscription<msgs::Odometry> postResetOdom;

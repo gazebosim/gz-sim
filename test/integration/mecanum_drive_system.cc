@@ -308,7 +308,6 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
 
   publishCommand = false;
   server.ResetAll();
-  server.Run(true, 2, false);
 
   transport::Node postResetNode;
   Subscription<msgs::Odometry> postResetOdom;
