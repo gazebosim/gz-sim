@@ -29,11 +29,14 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Name.hh"
 #include "test_config.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Subscription.hh"
+#include "../helpers/Relay.hh"
 #include "../helpers/Util.hh"
 
 using namespace gz;
@@ -68,6 +71,32 @@ bool validMultipleCollisionContacts(const msgs::Contacts &_contacts)
       "contact_model::link::collision_sphere2";
     if (!entityNameFound)
       return false;
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool contactsFromEcm(const EntityComponentManager &_ecm,
+    msgs::Contacts &_contacts)
+{
+  _contacts.Clear();
+
+  for (const auto &collisionName :
+       {"collision_sphere1", "collision_sphere2"})
+  {
+    const auto collision = _ecm.EntityByComponents(
+        components::Collision(), components::Name(collisionName));
+    if (kNullEntity == collision)
+      return false;
+
+    const auto contactData =
+        _ecm.Component<components::ContactSensorData>(collision);
+    if (nullptr == contactData)
+      return false;
+
+    for (const auto &contact : contactData->Data().contact())
+      *_contacts.add_contact() = contact;
   }
 
   return true;
@@ -322,33 +351,30 @@ TEST_F(ContactSystemTest,
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
+  msgs::Contacts contacts;
+  test::Relay contactDataRecorder;
+  contactDataRecorder.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        contactsFromEcm(_ecm, contacts);
+      });
+  server.AddSystem(contactDataRecorder.systemPtr);
+
   auto waitForContacts =
-      [&server](Subscription<msgs::Contacts> &_subscription)
+      [&server, &contacts]()
       {
         return test::StepUntil(server, 2000, [&]
         {
-          return _subscription.Count() > 0u &&
-              validMultipleCollisionContacts(_subscription.Last());
+          return validMultipleCollisionContacts(contacts);
         });
       };
 
-  {
-    Subscription<msgs::Contacts> initialContacts;
-    transport::Node node;
-    initialContacts.Subscribe(node, "/test_multiple_collisions", 1);
-
-    ASSERT_TRUE(waitForContacts(initialContacts));
-  }
+  ASSERT_TRUE(waitForContacts());
 
   server.ResetAll();
 
-  // Use a fresh subscription after reset so pre-reset transport messages cannot
-  // be mistaken for new episode contact data.
-  Subscription<msgs::Contacts> postResetContacts;
-  transport::Node postResetNode;
-  postResetContacts.Subscribe(postResetNode, "/test_multiple_collisions", 1);
-
-  ASSERT_TRUE(waitForContacts(postResetContacts));
+  contacts.Clear();
+  ASSERT_TRUE(waitForContacts());
 }
 
 /////////////////////////////////////////////////
