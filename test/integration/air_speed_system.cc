@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <thread>
+
 #include <gz/msgs/air_speed.pb.h>
 
 #include <gz/common/Console.hh>
@@ -33,6 +35,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -133,4 +137,49 @@ TEST_F(AirSpeedTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirSpeed))
   EXPECT_LT(0, msg.header().stamp().nsec());
   EXPECT_DOUBLE_EQ(0, msg.diff_pressure());
   EXPECT_DOUBLE_EQ(288.14999389648438, msg.temperature());
+}
+
+/////////////////////////////////////////////////
+TEST_F(AirSpeedTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = gz::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "air_speed.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic =
+      "world/air_speed_sensor/model/air_speed_model/link/link/"
+      "sensor/air_speed_sensor/air_speed";
+
+  transport::Node node;
+  Subscription<msgs::AirSpeed> initialAirSpeed;
+  initialAirSpeed.Subscribe(node, topic, 1);
+  auto waitForAirSpeed =
+      [&server](Subscription<msgs::AirSpeed> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForAirSpeed(initialAirSpeed));
+  const auto baseline = initialAirSpeed.Last();
+
+  server.Run(true, 300, false);
+  server.ResetAll();
+
+  // Re-subscribe after reset to avoid accepting late pre-reset transport data.
+  transport::Node postResetNode;
+  Subscription<msgs::AirSpeed> postResetAirSpeed;
+  postResetAirSpeed.Subscribe(postResetNode, topic, 1);
+
+  ASSERT_TRUE(waitForAirSpeed(postResetAirSpeed));
+  const auto postReset = postResetAirSpeed.Last();
+  EXPECT_DOUBLE_EQ(baseline.diff_pressure(), postReset.diff_pressure());
+  EXPECT_DOUBLE_EQ(baseline.temperature(), postReset.temperature());
 }
