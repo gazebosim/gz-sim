@@ -280,7 +280,6 @@ TEST_P(AckermannSteeringTest,
 
   publishCommand = false;
   server.ResetAll();
-  server.Run(true, 2, false);
 
   transport::Node postResetNode;
   Subscription<msgs::Odometry> postResetOdom;

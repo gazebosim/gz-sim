@@ -761,10 +761,9 @@ TEST_P(OdometryPublisherTest,
   ASSERT_TRUE(vehiclePose.has_value());
   EXPECT_GT(vehiclePose->Pos().Length(), 0.05);
 
-  // Keep the model moving until reset so stale motion state is not hidden.
-  server.ResetAll();
-  server.Run(true, 2, false);
+  // Stop writing commands only after dirty pre-reset motion is observed.
   driveModel = false;
+  server.ResetAll();
 
   transport::Node postResetNode;
   Subscription<msgs::Odometry> postResetOdom;
