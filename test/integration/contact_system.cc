@@ -341,7 +341,6 @@ TEST_F(ContactSystemTest,
   }
 
   server.ResetAll();
-  server.Run(true, 2, false);
 
   // Use a fresh subscription after reset so pre-reset transport messages cannot
   // be mistaken for new episode contact data.
