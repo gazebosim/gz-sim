@@ -887,6 +887,28 @@ hydrodynamics_test_sources = glob([
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/hydrostatic_pressure/**/*.cc",
+            "src/systems/hydrostatic_pressure/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-hydrostatic-pressure-system.so",
+    static_lib_name = "gz-sim-hydrostatic-pressure-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/imu/**/*.cc",
             "src/systems/imu/**/*.hh",
         ],
