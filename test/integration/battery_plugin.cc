@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -456,16 +457,22 @@ TEST_F(BatteryPluginTest,
   server.Run(true, 100, false);
   ASSERT_NE(nullptr, ecm);
 
-  const auto findBatterySoC = [&]() -> std::pair<Entity, double>
+  const auto findBatterySoC = [&]() -> std::optional<std::pair<Entity, double>>
   {
     const Entity batEntity = ecm->EntityByComponents(
       components::Name("linear_battery_topics"));
     EXPECT_NE(kNullEntity, batEntity);
+    if (kNullEntity == batEntity)
+      return std::nullopt;
+
     EXPECT_TRUE(ecm->EntityHasComponentType(
       batEntity, components::BatterySoC::typeId));
     const auto *batComp = ecm->Component<components::BatterySoC>(batEntity);
     EXPECT_NE(nullptr, batComp);
-    return {batEntity, batComp->Data()};
+    if (nullptr == batComp)
+      return std::nullopt;
+
+    return std::make_pair(batEntity, batComp->Data());
   };
 
   const auto batteryCount = [&]() -> int
@@ -483,7 +490,9 @@ TEST_F(BatteryPluginTest,
     return count;
   };
 
-  const auto [initialBatteryEntity, initialSoC] = findBatterySoC();
+  const auto initialBattery = findBatterySoC();
+  ASSERT_TRUE(initialBattery.has_value());
+  const auto [initialBatteryEntity, initialSoC] = *initialBattery;
   EXPECT_NE(kNullEntity, initialBatteryEntity);
   EXPECT_DOUBLE_EQ(initialSoC, 1.0);
   EXPECT_EQ(1, batteryCount());
@@ -502,29 +511,38 @@ TEST_F(BatteryPluginTest,
       return gz::sim::test::StepUntil(server, 200u, [&]()
       {
         _pub.Publish(msg);
-        return findBatterySoC().second < _threshold;
+        const auto batterySoC = findBatterySoC();
+        return batterySoC.has_value() && batterySoC->second < _threshold;
       });
     };
 
   ASSERT_TRUE(publishAndWaitForDrain(dischargePub, 1.0));
 
-  const auto [drainedBatteryEntity, drainedSoC] = findBatterySoC();
+  const auto drainedBattery = findBatterySoC();
+  ASSERT_TRUE(drainedBattery.has_value());
+  const auto [drainedBatteryEntity, drainedSoC] = *drainedBattery;
   EXPECT_NE(kNullEntity, drainedBatteryEntity);
   EXPECT_LT(drainedSoC, 1.0);
 
   server.ResetAll();
   ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]()
   {
-    return std::abs(findBatterySoC().second - 1.0) < 1e-12;
+    const auto batterySoC = findBatterySoC();
+    return batterySoC.has_value() &&
+        std::abs(batterySoC->second - 1.0) < 1e-12;
   }));
 
-  const auto [resetBatteryEntity, resetSoC] = findBatterySoC();
+  const auto resetBattery = findBatterySoC();
+  ASSERT_TRUE(resetBattery.has_value());
+  const auto [resetBatteryEntity, resetSoC] = *resetBattery;
   EXPECT_NE(kNullEntity, resetBatteryEntity);
   EXPECT_DOUBLE_EQ(resetSoC, 1.0);
   EXPECT_EQ(1, batteryCount());
 
   server.Run(true, 100, false);
-  const auto [stableBatteryEntity, stableSoC] = findBatterySoC();
+  const auto stableBattery = findBatterySoC();
+  ASSERT_TRUE(stableBattery.has_value());
+  const auto [stableBatteryEntity, stableSoC] = *stableBattery;
   EXPECT_NE(kNullEntity, stableBatteryEntity);
   EXPECT_DOUBLE_EQ(stableSoC, 1.0);
 
@@ -534,7 +552,9 @@ TEST_F(BatteryPluginTest,
       }));
   ASSERT_TRUE(publishAndWaitForDrain(dischargePub, resetSoC));
 
-  const auto [freshBatteryEntity, freshDrainSoC] = findBatterySoC();
+  const auto freshBattery = findBatterySoC();
+  ASSERT_TRUE(freshBattery.has_value());
+  const auto [freshBatteryEntity, freshDrainSoC] = *freshBattery;
   EXPECT_NE(kNullEntity, freshBatteryEntity);
   EXPECT_LT(freshDrainSoC, resetSoC);
 }

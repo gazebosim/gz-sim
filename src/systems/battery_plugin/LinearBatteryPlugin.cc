@@ -157,7 +157,7 @@ class gz::sim::systems::LinearBatteryPluginPrivate
 
   /// \brief Battery consumer identifier.
   /// Current implementation limits one consumer (Model) per battery.
-  public: int32_t consumerId;
+  public: int32_t consumerId{-1};
 
   /// \brief The start time when battery starts draining in seconds
   public: int drainStartTime{-1};
@@ -291,7 +291,8 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     // Reuse the existing battery entity on reset instead of creating
     // a duplicate entity with the same name under the model.
     this->dataPtr->batteryEntity = _ecm.EntityByComponents(
-      components::Name(this->dataPtr->batteryName));
+      components::Name(this->dataPtr->batteryName),
+      components::ParentEntity(_entity));
 
     if (this->dataPtr->batteryEntity == kNullEntity)
     {
@@ -545,10 +546,13 @@ void LinearBatteryPlugin::PreUpdate(
       return true;
     });
 
-  bool success = this->dataPtr->battery->SetPowerLoad(
-      this->dataPtr->consumerId, total_power_load);
-  if (!success)
+  if (this->dataPtr->consumerId != -1)
+  {
+    bool success = this->dataPtr->battery->SetPowerLoad(
+        this->dataPtr->consumerId, total_power_load);
+    if (!success)
       gzerr << "Failed to set consumer power load." << std::endl;
+  }
 
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
@@ -707,11 +711,14 @@ void LinearBatteryPlugin::Reset(const UpdateInfo &/*_info*/,
   if (batteryEntity == kNullEntity || !_ecm.HasEntity(batteryEntity))
   {
     batteryEntity = _ecm.EntityByComponents(
-      components::Name(this->dataPtr->batteryName));
+      components::Name(this->dataPtr->batteryName),
+      components::ParentEntity(this->dataPtr->model.Entity()));
   }
 
   if (batteryEntity == kNullEntity)
     return;
+
+  this->dataPtr->batteryEntity = batteryEntity;
 
   auto *batteryComp = _ecm.Component<components::BatterySoC>(batteryEntity);
   if (batteryComp)
