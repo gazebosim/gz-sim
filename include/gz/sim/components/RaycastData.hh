@@ -67,9 +67,6 @@ struct RaycastDataInfo
 
   /// @brief The results of the raycasting.
   std::vector<RaycastResultInfo> results;
-
-  /// @brief Whether the sensor needs fresh raycast results this step.
-  bool needsRaycast = true;
 };
 }
 
@@ -104,6 +101,13 @@ using RaycastData = Component<RaycastDataInfo, class RaycastDataTag,
                               serializers::DefaultSerializer<RaycastDataInfo>>;
 
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RaycastData", RaycastData)
+
+/// \brief Tag component that requests the physics system to perform raycasting
+/// for this entity on the current step. Set by sensor systems in PreUpdate,
+/// cleared by the physics system after the raycast is performed.
+using NeedsRaycast = Component<bool, class NeedsRaycastTag>;
+
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.NeedsRaycast", NeedsRaycast)
 }
 }
 }

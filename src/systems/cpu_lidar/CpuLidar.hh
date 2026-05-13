@@ -18,8 +18,17 @@
 #define GZ_SIM_SYSTEMS_CPU_LIDAR_HH_
 
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
+
+#include <gz/sensors/CpuLidarSensor.hh>
+#include <gz/sensors/SensorFactory.hh>
 #include <gz/sim/config.hh>
+#include <gz/sim/Entity.hh>
+#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/System.hh>
+#include "gz/sim/components/CpuLidar.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
 namespace gz
 {
@@ -29,9 +38,6 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace systems
 {
-  // Forward declarations.
-  class CpuLidarPrivate;
-
   /// \class CpuLidar CpuLidar.hh gz/sim/systems/CpuLidar.hh
   /// \brief This system manages all CPU-based lidar sensors in simulation.
   /// Each sensor publishes lidar scan data over Gazebo Transport.
@@ -41,7 +47,7 @@ namespace systems
     public ISystemPostUpdate
   {
     /// \brief Constructor
-    public: explicit CpuLidar();
+    public: CpuLidar();
 
     /// \brief Destructor
     public: ~CpuLidar() override;
@@ -54,8 +60,28 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
-    /// \brief Private data pointer.
-    private: std::unique_ptr<CpuLidarPrivate> dataPtr;
+    private: void CreateSensors(const EntityComponentManager &_ecm);
+
+    private: void Update(const EntityComponentManager &_ecm);
+
+    private: void AddSensor(
+      const EntityComponentManager &_ecm,
+      const Entity _entity,
+      const components::CpuLidar *_cpuLidar,
+      const components::ParentEntity *_parent);
+
+    private: void RemoveSensorEntities(const EntityComponentManager &_ecm);
+
+    private: std::unordered_map<Entity,
+        std::unique_ptr<sensors::CpuLidarSensor>> entitySensorMap;
+
+    private: sensors::SensorFactory sensorFactory;
+
+    private: std::unordered_set<Entity> newSensors;
+
+    private: Entity worldEntity = kNullEntity;
+
+    private: bool initialized = false;
   };
   }
 }

@@ -29,13 +29,8 @@
 
 #include <gz/common/Profiler.hh>
 
-#include <gz/sensors/SensorFactory.hh>
-#include <gz/sensors/CpuLidarSensor.hh>
-
-#include "gz/sim/components/CpuLidar.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
-#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
@@ -46,55 +41,8 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
-/// \brief Private CpuLidar data class.
-class gz::sim::systems::CpuLidarPrivate
-{
-  /// \brief A map of CPU lidar entity to its sensor.
-  public: std::unordered_map<Entity,
-      std::unique_ptr<sensors::CpuLidarSensor>> entitySensorMap;
-
-  /// \brief gz-sensors sensor factory for creating sensors
-  public: sensors::SensorFactory sensorFactory;
-
-  /// \brief Keep list of sensors that were created during the previous
-  /// `PostUpdate`, so that components can be created during the next
-  /// `PreUpdate`.
-  public: std::unordered_set<Entity> newSensors;
-
-  /// \brief Keep track of world ID.
-  /// Defaults to kNullEntity.
-  public: Entity worldEntity = kNullEntity;
-
-  /// True if the system has been initialized
-  public: bool initialized = false;
-
-  /// \brief Create CPU lidar sensors in gz-sensors
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateSensors(const EntityComponentManager &_ecm);
-
-  /// \brief Update CPU lidar sensor data based on physics raycast data
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: void Update(const EntityComponentManager &_ecm);
-
-  /// \brief Create sensor
-  /// \param[in] _ecm Immutable reference to ECM.
-  /// \param[in] _entity Entity of the CPU lidar
-  /// \param[in] _cpuLidar CpuLidar component.
-  /// \param[in] _parent Parent entity component.
-  public: void AddSensor(
-    const EntityComponentManager &_ecm,
-    const Entity _entity,
-    const components::CpuLidar *_cpuLidar,
-    const components::ParentEntity *_parent);
-
-  /// \brief Remove CPU lidar sensors if their entities have been removed from
-  /// simulation.
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: void RemoveSensorEntities(const EntityComponentManager &_ecm);
-};
-
 //////////////////////////////////////////////////
-CpuLidar::CpuLidar() : System(), dataPtr(std::make_unique<CpuLidarPrivate>())
+CpuLidar::CpuLidar() : System()
 {
 }
 
@@ -107,10 +55,10 @@ void CpuLidar::PreUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("CpuLidar::PreUpdate");
 
-  for (auto entity : this->dataPtr->newSensors)
+  for (auto entity : this->newSensors)
   {
-    auto it = this->dataPtr->entitySensorMap.find(entity);
-    if (it == this->dataPtr->entitySensorMap.end())
+    auto it = this->entitySensorMap.find(entity);
+    if (it == this->entitySensorMap.end())
     {
       gzerr << "Entity [" << entity
              << "] isn't in sensor map, this shouldn't happen." << std::endl;
@@ -128,18 +76,19 @@ void CpuLidar::PreUpdate(const UpdateInfo &_info,
     }
 
     _ecm.CreateComponent(entity, components::RaycastData(raycastData));
+    _ecm.CreateComponent(entity, components::NeedsRaycast(true));
   }
-  this->dataPtr->newSensors.clear();
+  this->newSensors.clear();
 
   // Only raycast when the sensor needs fresh data.
   if (!_info.paused)
   {
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (auto &it : this->entitySensorMap)
     {
-      auto *comp = _ecm.Component<components::RaycastData>(it.first);
-      if (comp)
+      auto *needsRaycast = _ecm.Component<components::NeedsRaycast>(it.first);
+      if (needsRaycast)
       {
-        comp->Data().needsRaycast =
+        needsRaycast->Data() =
           (it.second->NextDataUpdateTime() <= _info.simTime &&
            it.second->HasConnections());
       }
@@ -160,12 +109,12 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
            << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateSensors(_ecm);
+  this->CreateSensors(_ecm);
 
   if (!_info.paused)
   {
     bool needsUpdate = false;
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (auto &it : this->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
           it.second->HasConnections())
@@ -177,19 +126,19 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
     if (!needsUpdate)
       return;
 
-    this->dataPtr->Update(_ecm);
+    this->Update(_ecm);
 
-    for (auto &it : this->dataPtr->entitySensorMap)
+    for (auto &it : this->entitySensorMap)
     {
       it.second->Update(_info.simTime, false);
     }
   }
 
-  this->dataPtr->RemoveSensorEntities(_ecm);
+  this->RemoveSensorEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
-void CpuLidarPrivate::AddSensor(
+void CpuLidar::AddSensor(
   const EntityComponentManager &_ecm,
   const Entity _entity,
   const components::CpuLidar *_cpuLidar,
@@ -201,7 +150,7 @@ void CpuLidarPrivate::AddSensor(
   data.SetName(sensorScopedName);
   if (data.Topic().empty())
   {
-    std::string topic = scopedName(_entity, _ecm) + "/cpu_lidar";
+    std::string topic = scopedName(_entity, _ecm) + "/lidar";
     data.SetTopic(topic);
   }
   std::unique_ptr<sensors::CpuLidarSensor> sensor =
@@ -224,9 +173,9 @@ void CpuLidarPrivate::AddSensor(
 }
 
 //////////////////////////////////////////////////
-void CpuLidarPrivate::CreateSensors(const EntityComponentManager &_ecm)
+void CpuLidar::CreateSensors(const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("CpuLidarPrivate::CreateSensors");
+  GZ_PROFILE("CpuLidar::CreateSensors");
   if (kNullEntity == this->worldEntity)
     this->worldEntity = _ecm.EntityByComponents(components::World());
   if (kNullEntity == this->worldEntity)
@@ -261,21 +210,19 @@ void CpuLidarPrivate::CreateSensors(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void CpuLidarPrivate::Update(const EntityComponentManager &_ecm)
+void CpuLidar::Update(const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("CpuLidarPrivate::Update");
+  GZ_PROFILE("CpuLidar::Update");
   _ecm.Each<components::CpuLidar,
-            components::RaycastData,
-            components::WorldPose>(
+            components::RaycastData>(
     [&](const Entity &_entity,
         const components::CpuLidar * /*_cpuLidar*/,
-        const components::RaycastData *_raycastData,
-        const components::WorldPose *_worldPose)->bool
+        const components::RaycastData *_raycastData)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          it->second->SetPose(_worldPose->Data());
+          it->second->SetPose(worldPose(_entity, _ecm));
 
           const auto &results = _raycastData->Data().results;
           if (!results.empty())
@@ -304,10 +251,10 @@ void CpuLidarPrivate::Update(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void CpuLidarPrivate::RemoveSensorEntities(
+void CpuLidar::RemoveSensorEntities(
     const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("CpuLidarPrivate::RemoveSensorEntities");
+  GZ_PROFILE("CpuLidar::RemoveSensorEntities");
   _ecm.EachRemoved<components::CpuLidar>(
     [&](const Entity &_entity,
         const components::CpuLidar *)->bool

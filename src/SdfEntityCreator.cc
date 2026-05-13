@@ -1138,9 +1138,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
         components::CpuLidar(*_sensor));
-
-    this->dataPtr->ecm->CreateComponent(sensorEntity,
-        components::WorldPose(math::Pose3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
   {
