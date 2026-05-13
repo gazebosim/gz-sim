@@ -4417,7 +4417,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
   _ecm.Each<components::RaycastData,
             components::NeedsRaycast,
             components::WorldPose>(
-      [&](const Entity &_entity,
+      [&](const Entity & /*_entity*/,
           components::RaycastData *_raycastData,
           components::NeedsRaycast *_needsRaycast,
           const components::WorldPose *_worldPose) -> bool
@@ -4463,6 +4463,14 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             math::eigen3::convert(rayIntersectionResult.normal);
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
         }
+        return true;
+      });
+
+  _ecm.EachRemoved<components::RaycastData>(
+      [&](const Entity &_entity,
+          const components::RaycastData *) -> bool
+      {
+        this->batchRayCache.erase(_entity);
         return true;
       });
 }
