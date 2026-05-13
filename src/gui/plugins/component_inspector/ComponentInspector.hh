@@ -37,7 +37,9 @@
 
 #include <gz/msgs/light.pb.h>
 
+/// \cond
 Q_DECLARE_METATYPE(gz::sim::ComponentTypeId)
+/// \endcond
 
 namespace gz
 {
@@ -274,8 +276,10 @@ namespace sim
       double _falloff, double _intensity, int _type, bool _isLightOn,
       bool _visualizeVisual);
 
-    /// \brief Callback in Qt thread when gravity change.
-    /// \param[in] _gravity vector
+    /// \brief Callback in Qt thread when gravity changes.
+    /// \param[in] _x Gravity X component.
+    /// \param[in] _y Gravity Y component.
+    /// \param[in] _z Gravity Z component.
     public: Q_INVOKABLE void OnGravity(double _x, double _y, double _z);
 
     /// \brief Callback in Qt thread when physics' properties change.
@@ -350,7 +354,7 @@ namespace sim
 
     /// \brief Set the type of entity currently inspected.
     /// \param[in] _type Type, such as 'world' or 'model'.
-    public: Q_INVOKABLE void SetType(const QString &_entity);
+    public: Q_INVOKABLE void SetType(const QString &_type);
 
     /// \brief Notify that entity type has changed
     signals: void TypeChanged();
@@ -393,7 +397,7 @@ namespace sim
     public: Q_INVOKABLE QStringList SystemNameList() const;
 
     /// \brief Set the system plugin display name list
-    /// \param[in] _systempFilenameList A list of system plugin display names
+    /// \param[in] _systemNameList A list of system plugin display names
     public: Q_INVOKABLE void SetSystemNameList(
         const QStringList &_systemNameList);
 

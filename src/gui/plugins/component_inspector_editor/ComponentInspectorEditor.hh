@@ -36,7 +36,9 @@
 #include <gz/msgs/light.pb.h>
 
 #include "Types.hh"
+/// \cond
 Q_DECLARE_METATYPE(gz::sim::ComponentTypeId)
+/// \endcond
 
 namespace gz
 {
@@ -334,7 +336,7 @@ namespace sim
 
     /// \brief Set the type of entity currently inspected.
     /// \param[in] _type Type, such as 'world' or 'model'.
-    public: Q_INVOKABLE void SetType(const QString &_entity);
+    public: Q_INVOKABLE void SetType(const QString &_type);
 
     /// \brief Notify that entity type has changed
     signals: void TypeChanged();
