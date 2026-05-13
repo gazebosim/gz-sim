@@ -356,7 +356,7 @@ void EntityContextMenu::OnRequest(const QString &_request, const QString &_data)
 void EntityContextMenu::OnInspect(const QString &_entityId)
 {
   bool ok{false};
-  auto id = _entityId.toULongLong(&ok);
+  const auto id = _entityId.toULongLong(&ok);
   if (!ok || id == kNullEntity)
   {
     gzwarn << "Invalid entity id for inspect: [" << _entityId.toStdString()
@@ -374,7 +374,7 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
   bool inspectorOpen{false};
   bool inspectorJustLoaded{false};
   auto plugins = mainWindow->findChildren<gz::gui::Plugin *>();
-  for (const auto plugin : plugins)
+  for (const auto *plugin : plugins)
   {
     if (plugin == nullptr)
       continue;
@@ -384,12 +384,8 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
       continue;
 
     const std::string className(classNameC);
-    const std::string suffix("::ComponentInspector");
-    const bool matchesExact = (className == "ComponentInspector");
-    const bool matchesSuffix = (className.size() >= suffix.size() &&
-      className.compare(className.size() - suffix.size(),
-        suffix.size(), suffix) == 0);
-    if (matchesExact || matchesSuffix)
+    if (className.find("::ComponentInspector") != std::string::npos ||
+        className == "ComponentInspector")
     {
       inspectorOpen = true;
       break;
@@ -409,9 +405,9 @@ void EntityContextMenu::OnInspect(const QString &_entityId)
     }
   }
 
-  std::vector<Entity> entitySet{static_cast<Entity>(id)};
-  auto sendSelection = [mainWindow, entitySet]()
+  auto sendSelection = [mainWindow, id]()
   {
+    std::vector<Entity> entitySet{static_cast<Entity>(id)};
     gui::events::EntitiesSelected event(entitySet, true);
     gz::gui::App()->sendEvent(mainWindow, &event);
   };

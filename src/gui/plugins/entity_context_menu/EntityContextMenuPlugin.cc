@@ -204,14 +204,10 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
     }
 
     gz::sim::Entity entityId = gz::sim::kNullEntity;
-    try
-    {
-      entityId = std::get<uint64_t>(visual->UserData("gazebo-entity"));
-    }
-    catch(const std::bad_variant_access &)
-    {
-      // It's ok to get here
-    }
+    const auto userData = visual->UserData("gazebo-entity");
+    const auto *entityIdPtr = std::get_if<uint64_t>(&userData);
+    if (entityIdPtr)
+      entityId = *entityIdPtr;
 
     emit ContextMenuRequested(
       visual->Name().c_str(),
