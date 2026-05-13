@@ -4336,10 +4336,12 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     using RayIntersection = BatchWorld::RayIntersection;
 
     _ecm.Each<components::RaycastData,
-              components::NeedsRaycast>(
+              components::NeedsRaycast,
+              components::WorldPose>(
         [&](const Entity &_entity,
             components::RaycastData *_raycastData,
-            components::NeedsRaycast *_needsRaycast) -> bool
+            components::NeedsRaycast *_needsRaycast,
+            const components::WorldPose *_worldPose) -> bool
         {
           if (!_needsRaycast->Data())
             return true;
@@ -4350,7 +4352,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           results.clear();
           results.reserve(rays.size());
 
-          const auto &entityWorldPose = worldPose(_entity, _ecm);
+          const auto &entityWorldPose = _worldPose->Data();
 
           auto &cache = this->batchRayCache[_entity];
           auto &batchInput = cache.input;
@@ -4413,10 +4415,12 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
   // Go through each entity that has a RaycastData component, trace the
   // rays and store the results
   _ecm.Each<components::RaycastData,
-            components::NeedsRaycast>(
+            components::NeedsRaycast,
+            components::WorldPose>(
       [&](const Entity &_entity,
           components::RaycastData *_raycastData,
-          components::NeedsRaycast *_needsRaycast) -> bool
+          components::NeedsRaycast *_needsRaycast,
+          const components::WorldPose *_worldPose) -> bool
       {
         if (!_needsRaycast->Data())
           return true;
@@ -4428,7 +4432,7 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
         results.clear();
         results.reserve(rays.size());
 
-        const auto &entityWorldPose = worldPose(_entity, _ecm);
+        const auto &entityWorldPose = _worldPose->Data();
 
         for (const auto &ray : rays)
         {

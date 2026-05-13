@@ -214,15 +214,17 @@ void CpuLidar::Update(const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("CpuLidar::Update");
   _ecm.Each<components::CpuLidar,
-            components::RaycastData>(
+            components::RaycastData,
+            components::WorldPose>(
     [&](const Entity &_entity,
         const components::CpuLidar * /*_cpuLidar*/,
-        const components::RaycastData *_raycastData)->bool
+        const components::RaycastData *_raycastData,
+        const components::WorldPose *_worldPose)->bool
       {
         auto it = this->entitySensorMap.find(_entity);
         if (it != this->entitySensorMap.end())
         {
-          it->second->SetPose(worldPose(_entity, _ecm));
+          it->second->SetPose(_worldPose->Data());
 
           const auto &results = _raycastData->Data().results;
           if (!results.empty())
