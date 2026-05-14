@@ -403,7 +403,10 @@ TEST_F(ApplyLinkWrenchTestFixture,
   transport::Node node;
   auto pubPersistent = node.Advertise<msgs::EntityWrench>(
       "/world/apply_link_wrench/wrench/persistent");
-  ASSERT_TRUE(test::WaitUntil(3s, [&] { return pubPersistent.HasConnections(); }));
+  ASSERT_TRUE(test::WaitUntil(3s, [&]
+      {
+        return pubPersistent.HasConnections();
+      }));
 
   msgs::EntityWrench msg;
   msg.mutable_entity()->set_name("model3");
