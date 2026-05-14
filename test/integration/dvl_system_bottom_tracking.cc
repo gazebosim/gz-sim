@@ -28,6 +28,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
@@ -51,6 +52,69 @@ static constexpr math::Vector3d sensorPositionInSFMFrame{0., 0.6, -0.16};
 
 // Account for slight roll and limited resolution
 static constexpr double kRangeTolerance{0.2};
+
+//////////////////////////////////////////////////
+bool bottomTrackingAtRest(const DVLVelocityTracking &_message,
+    double _expectedBeamRange)
+{
+  if (!_message.has_target() ||
+      _message.target().type() != DVLTrackingTarget::DVL_TARGET_BOTTOM)
+  {
+    return false;
+  }
+
+  if (std::abs(_message.target().range().mean() - _expectedBeamRange) >
+      kRangeTolerance)
+  {
+    return false;
+  }
+
+  for (int i = 0; i < _message.beams_size(); ++i)
+  {
+    const DVLBeamState &beam = _message.beams(i);
+    if (beam.id() != i + 1 || !beam.locked() ||
+        std::abs(beam.range().mean() - _expectedBeamRange) >
+        kRangeTolerance)
+    {
+      return false;
+    }
+  }
+
+  if (!_message.has_velocity())
+  {
+    return false;
+  }
+
+  const math::Vector3d velocityEstimate =
+      msgs::Convert(_message.velocity().mean());
+  constexpr double kVelocityTolerance{1e-2};
+  return velocityEstimate.Length() < kVelocityTolerance;
+}
+
+//////////////////////////////////////////////////
+void expectBottomTrackingAtRest(const DVLVelocityTracking &_message,
+    double _expectedBeamRange)
+{
+  ASSERT_TRUE(_message.has_target());
+  const DVLTrackingTarget &target = _message.target();
+  EXPECT_EQ(target.type(), DVLTrackingTarget::DVL_TARGET_BOTTOM);
+  EXPECT_NEAR(target.range().mean(), _expectedBeamRange, kRangeTolerance);
+  for (int i = 0; i < _message.beams_size(); ++i)
+  {
+    const DVLBeamState &beam = _message.beams(i);
+    EXPECT_EQ(beam.id(), i + 1);
+    EXPECT_TRUE(beam.locked()) << "Beam #" << beam.id() << " not locked";
+    EXPECT_NEAR(beam.range().mean(), _expectedBeamRange, kRangeTolerance)
+        << "Beam #" << beam.id() << " range is off";
+  }
+  ASSERT_TRUE(_message.has_velocity());
+  const math::Vector3d velocityEstimate =
+      msgs::Convert(_message.velocity().mean());
+  constexpr double kVelocityTolerance{1e-2};
+  EXPECT_NEAR(0., velocityEstimate.X(), kVelocityTolerance);
+  EXPECT_NEAR(0., velocityEstimate.Y(), kVelocityTolerance);
+  EXPECT_NEAR(0., velocityEstimate.Z(), kVelocityTolerance);
+}
 
 //////////////////////////////////////////////////
 TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
@@ -173,4 +237,57 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(BottomTracking))
     EXPECT_NEAR(expectedLinearVelocityEstimate.Z(),
                 linearVelocityEstimate.Z(), kVelocityTolerance);
   }
+}
+
+//////////////////////////////////////////////////
+TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresBottomTracking))
+{
+  const std::string worldFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test",
+      "worlds", "dvl_reset.sdf");
+  TestFixtureWithModel fixture(worldFile, "dvl_model");
+
+  constexpr double seaBedDepth{20.};
+  const double expectedBeamRange =
+      (seaBedDepth + sensorPositionInSFMFrame.Z()) /
+      std::cos(beamInclination);
+
+  transport::Node node;
+  Subscription<DVLVelocityTracking> velocitySubscription;
+  velocitySubscription.Subscribe(node, "/dvl/velocity", 1);
+
+  ASSERT_TRUE(fixture.StepUntil(2000, [&]
+  {
+    return velocitySubscription.Count() > 0u &&
+        bottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
+  }));
+  expectBottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
+
+  // Move away from the initial episode so reset has dirty state to clear.
+  fixture.Manipulator().SetLinearVelocity(math::Vector3d::UnitX);
+  fixture.Manipulator().SetAngularVelocity(math::Vector3d::UnitZ);
+  velocitySubscription.Clear();
+  ASSERT_TRUE(fixture.StepUntil(2000, [&]
+  {
+    if (velocitySubscription.Count() == 0u ||
+        !velocitySubscription.Last().has_velocity())
+    {
+      return false;
+    }
+
+    return msgs::Convert(
+        velocitySubscription.Last().velocity().mean()).Length() > 0.1;
+  }));
+
+  fixture.Manipulator().SetLinearVelocity(math::Vector3d::Zero);
+  fixture.Manipulator().SetAngularVelocity(math::Vector3d::Zero);
+  velocitySubscription.Clear();
+  fixture.Simulator()->ResetAll();
+
+  ASSERT_TRUE(fixture.StepUntil(2000, [&]
+  {
+    return velocitySubscription.Count() > 0u &&
+        bottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
+  }));
+  expectBottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
 }
