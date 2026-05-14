@@ -251,6 +251,141 @@ TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
       "/model/vehicle_blue/link/caster/cmd_vel");
 }
 
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsModelCommand))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/velocity_control.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  test::Relay testSystem;
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle_blue"));
+      ASSERT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 500, false);
+  ASSERT_EQ(500u, poses.size());
+  const auto initialPose = poses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
+  pub.Publish(msg);
+  std::this_thread::sleep_for(100ms);
+
+  server.Run(true, 1000, false);
+  ASSERT_EQ(1500u, poses.size());
+  EXPECT_GT(poses.back().Pos().Distance(initialPose.Pos()), 0.05);
+
+  server.ResetAll();
+  // Let reset settle before measuring the post-reset motion window.
+  server.Run(true, 2, false);
+
+  const auto postResetStartIndex = poses.size();
+  server.Run(true, 500, false);
+  ASSERT_EQ(postResetStartIndex + 500u, poses.size());
+
+  // Without a fresh command, the pre-reset command must not keep driving the
+  // model in the new episode.
+  const auto postResetStart = poses[postResetStartIndex];
+  const auto postResetEnd = poses.back();
+  EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
+
+  pub.Publish(msg);
+  std::this_thread::sleep_for(100ms);
+  const auto freshStartIndex = poses.size();
+  server.Run(true, 500, false);
+  ASSERT_EQ(freshStartIndex + 500u, poses.size());
+  EXPECT_GT(poses.back().Pos().Distance(poses[freshStartIndex].Pos()), 0.02);
+}
+
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsLinkCommand))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/velocity_control.sdf");
+  serverConfig.SetPhysicsEngine("gz-physics-tpe-plugin");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  test::Relay testSystem;
+  std::vector<math::Pose3d> linkPoses;
+  testSystem.OnPostUpdate([&linkPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      auto linkId = _ecm.EntityByComponents(
+        components::Link(), components::Name("caster"));
+      ASSERT_NE(kNullEntity, linkId);
+
+      auto poseComp = _ecm.Component<components::Pose>(linkId);
+      ASSERT_NE(nullptr, poseComp);
+
+      linkPoses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 500, false);
+  ASSERT_EQ(500u, linkPoses.size());
+  const auto initialPose = linkPoses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>(
+      "/model/vehicle_blue/link/caster/cmd_vel");
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
+  pub.Publish(msg);
+  std::this_thread::sleep_for(100ms);
+
+  server.Run(true, 1000, false);
+  ASSERT_EQ(1500u, linkPoses.size());
+  EXPECT_GT(linkPoses.back().Pos().Distance(initialPose.Pos()), 0.05);
+
+  server.ResetAll();
+  // Let reset settle before measuring the post-reset motion window.
+  server.Run(true, 2, false);
+
+  const auto postResetStartIndex = linkPoses.size();
+  server.Run(true, 500, false);
+  ASSERT_EQ(postResetStartIndex + 500u, linkPoses.size());
+
+  // The link may settle to a reset baseline, but the old link command should
+  // not continue to move it across the post-reset window.
+  const auto postResetStart = linkPoses[postResetStartIndex];
+  const auto postResetEnd = linkPoses.back();
+  EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
+
+  pub.Publish(msg);
+  std::this_thread::sleep_for(100ms);
+  const auto freshStartIndex = linkPoses.size();
+  server.Run(true, 500, false);
+  ASSERT_EQ(freshStartIndex + 500u, linkPoses.size());
+  EXPECT_GT(linkPoses.back().Pos().Distance(linkPoses[freshStartIndex].Pos()),
+      0.02);
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, VelocityControlTest,
     ::testing::Range(1, 2));

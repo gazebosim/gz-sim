@@ -47,6 +47,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define tol 10e-4
 
@@ -704,4 +706,171 @@ TEST_F(TrackedVehicleTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Conveyor))
     "/test/worlds/conveyor.sdf",
     "/model/conveyor/link/base_link/track_cmd_vel",
     "/model/conveyor/link/base_link/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_F(TrackedVehicleTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TrackedVehicleResetStateContamination))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/tracked_vehicle_simple.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  test::Relay ecmGetterSystem;
+  EntityComponentManager *ecm{nullptr};
+  ecmGetterSystem.OnPreUpdate([&ecm](const UpdateInfo &,
+                                     EntityComponentManager &_ecm)
+      {
+        if (ecm == nullptr)
+        {
+          ecm = &_ecm;
+        }
+      });
+  server.AddSystem(ecmGetterSystem.systemPtr);
+  server.Run(true, 1, false);
+
+  ASSERT_NE(nullptr, ecm);
+  bool shouldSkipTest = false;
+  this->SkipTestIfNotSupported(*ecm, shouldSkipTest);
+  if (shouldSkipTest)
+  {
+    GTEST_SKIP() << "Skipping test because physics engine does not support "
+      "SetContactPropertiesCallbackFeature";
+  }
+
+  transport::Node node;
+  Subscription<msgs::Odometry> odomSub;
+  odomSub.Subscribe(node, "/model/simple_tracked/odometry", 10u);
+  auto pub = node.Advertise<msgs::Twist>("/model/simple_tracked/cmd_vel");
+  ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
+
+  server.Run(true, 1000, false);
+  odomSub.Clear();
+
+  msgs::Twist msg;
+  msg.mutable_linear()->set_x(1.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return odomSub.Count() > 0u &&
+            odomSub.Last().pose().position().x() > 0.05 &&
+            odomSub.Last().twist().linear().x() > 0.05;
+      }));
+
+  odomSub.Clear();
+  server.ResetAll();
+
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&]
+      {
+        if (odomSub.Count() == 0u)
+          return false;
+
+        const auto &odom = odomSub.Last();
+        return std::abs(odom.pose().position().x()) < 1e-2 &&
+            std::abs(odom.pose().position().y()) < 1e-2 &&
+            std::abs(odom.twist().linear().x()) < 1e-2 &&
+            std::abs(odom.twist().angular().z()) < 1e-2;
+      }));
+
+  auto postResetOdom = odomSub.Last();
+  EXPECT_NEAR(0.0, postResetOdom.pose().position().x(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.pose().position().y(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.twist().linear().x(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.twist().angular().z(), 1e-2);
+
+  server.Run(true, 500, false);
+  auto settledOdom = odomSub.Last();
+  EXPECT_NEAR(0.0, settledOdom.pose().position().x(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.pose().position().y(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.twist().linear().x(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.twist().angular().z(), 0.05);
+
+  odomSub.Clear();
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return odomSub.Count() > 0u &&
+            odomSub.Last().twist().linear().x() > 0.05;
+      }));
+}
+
+/////////////////////////////////////////////////
+TEST_F(TrackedVehicleTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TrackControllerResetStateContamination))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/conveyor.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  transport::Node node;
+  Subscription<msgs::Odometry> odomSub;
+  odomSub.Subscribe(node, "/model/conveyor/link/base_link/odometry", 10u);
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/conveyor/link/base_link/track_cmd_vel");
+  ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
+
+  server.Run(true, 1000, false);
+  odomSub.Clear();
+
+  msgs::Double msg;
+  msg.set_data(1.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return odomSub.Count() > 0u &&
+            odomSub.Last().pose().position().x() > 0.05 &&
+            odomSub.Last().twist().linear().x() > 0.05;
+      }));
+
+  odomSub.Clear();
+  server.ResetAll();
+
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&]
+      {
+        if (odomSub.Count() == 0u)
+          return false;
+
+        const auto &odom = odomSub.Last();
+        return std::abs(odom.pose().position().x()) < 1e-2 &&
+            std::abs(odom.pose().position().y()) < 1e-2 &&
+            std::abs(odom.twist().linear().x()) < 1e-2 &&
+            std::abs(odom.twist().angular().z()) < 1e-2;
+      }));
+
+  auto postResetOdom = odomSub.Last();
+  EXPECT_NEAR(0.0, postResetOdom.pose().position().x(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.pose().position().y(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.twist().linear().x(), 1e-2);
+  EXPECT_NEAR(0.0, postResetOdom.twist().angular().z(), 1e-2);
+
+  server.Run(true, 500, false);
+  auto settledOdom = odomSub.Last();
+  EXPECT_NEAR(0.0, settledOdom.pose().position().x(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.pose().position().y(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.twist().linear().x(), 0.05);
+  EXPECT_NEAR(0.0, settledOdom.twist().angular().z(), 0.05);
+
+  odomSub.Clear();
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return odomSub.Count() > 0u &&
+            odomSub.Last().twist().linear().x() > 0.05;
+      }));
 }
