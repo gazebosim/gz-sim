@@ -271,10 +271,25 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
 
-  bool publishCommand{true};
+  bool publishCommand{false};
   msgs::Twist cmd;
   msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0.5, 0));
   msgs::Set(cmd.mutable_angular(), math::Vector3d(0, 0, 0.1));
+
+  test::Relay poseRecorder;
+  std::vector<math::Pose3d> modelPoses;
+  poseRecorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+  {
+    auto model = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle_blue"));
+    ASSERT_NE(kNullEntity, model);
+
+    auto poseComp = _ecm.Component<components::Pose>(model);
+    ASSERT_NE(nullptr, poseComp);
+    modelPoses.push_back(poseComp->Data());
+  });
+  server.AddSystem(poseRecorder.systemPtr);
 
   test::Relay commandRelay;
   commandRelay.OnPreUpdate([&](const UpdateInfo &,
@@ -300,6 +315,11 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
         });
       };
 
+  server.Run(true, 1, false);
+  ASSERT_FALSE(modelPoses.empty());
+  const auto initialModelPose = modelPoses.back();
+
+  publishCommand = true;
   ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
@@ -308,12 +328,10 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
 
   publishCommand = false;
   server.ResetAll();
+  odom.Clear();
 
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdom;
-  postResetOdom.Subscribe(postResetNode, "/model/vehicle_blue/odometry", 1);
-
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  const auto postResetPoseBegin = modelPoses.size();
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         const auto pose = msgs::Convert(_msg.pose());
@@ -326,7 +344,8 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
             std::abs(linVel.Y()) < 0.05 &&
             std::abs(angVel.Z()) < 0.05;
       }));
-  const auto postReset = postResetOdom.Last();
+  ASSERT_GT(modelPoses.size(), postResetPoseBegin);
+  const auto postReset = odom.Last();
   const auto postResetPose = msgs::Convert(postReset.pose());
   const auto postResetLinVel = msgs::Convert(postReset.twist().linear());
   const auto postResetAngVel = msgs::Convert(postReset.twist().angular());
@@ -338,9 +357,15 @@ TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
   EXPECT_NEAR(postResetLinVel.Y(), 0.0, 0.05);
   EXPECT_NEAR(postResetAngVel.Z(), 0.0, 0.05);
 
+  // The real model pose should also stay at the reset pose without old input.
+  EXPECT_NEAR(modelPoses.back().Pos().X(), initialModelPose.Pos().X(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Pos().Y(), initialModelPose.Pos().Y(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Rot().Yaw(), initialModelPose.Rot().Yaw(),
+      0.05);
+
   // A fresh command after reset should still produce odometry motion.
   publishCommand = true;
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.05;

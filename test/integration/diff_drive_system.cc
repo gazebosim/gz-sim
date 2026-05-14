@@ -292,13 +292,10 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
   // Stop injecting commands only after the dirty pre-reset state is observed.
   publishCommand = false;
   server.ResetAll();
-
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdom;
-  postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
+  odom.Clear();
 
   const auto postResetPoseBegin = modelPoses.size();
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         const auto pose = msgs::Convert(_msg.pose());
@@ -312,7 +309,7 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
             std::abs(angVel.Z()) < 0.05;
       }));
   ASSERT_GT(modelPoses.size(), postResetPoseBegin);
-  const auto postReset = postResetOdom.Last();
+  const auto postReset = odom.Last();
   const auto postResetPose = msgs::Convert(postReset.pose());
   const auto postResetLinVel = msgs::Convert(postReset.twist().linear());
   const auto postResetAngVel = msgs::Convert(postReset.twist().angular());
@@ -332,7 +329,7 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
 
   // A fresh command after reset should still drive the system.
   publishCommand = true;
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.05;

@@ -764,12 +764,9 @@ TEST_P(OdometryPublisherTest,
   // Stop writing commands only after dirty pre-reset motion is observed.
   driveModel = false;
   server.ResetAll();
+  odom.Clear();
 
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdom;
-  postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
-
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         const auto pose = msgs::Convert(_msg.pose());
@@ -782,7 +779,7 @@ TEST_P(OdometryPublisherTest,
             std::abs(linVel.Y()) < 0.05 &&
             std::abs(angVel.Z()) < 0.05;
       }));
-  const auto postReset = postResetOdom.Last();
+  const auto postReset = odom.Last();
   const auto postResetPose = msgs::Convert(postReset.pose());
   const auto postResetLinVel = msgs::Convert(postReset.twist().linear());
   const auto postResetAngVel = msgs::Convert(postReset.twist().angular());
@@ -802,7 +799,7 @@ TEST_P(OdometryPublisherTest,
 
   // Fresh velocity commands after reset should still be reflected in odom.
   driveModel = true;
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(waitForOdom(odom,
       [](const msgs::Odometry &_msg)
       {
         return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.1;
