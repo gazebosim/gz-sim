@@ -1,5 +1,35 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.3.0 (2026-05-14)
+
+1. Add components for setting gravity and static state of entities (backport #3532)
+    * [Pull request #3555](https://github.com/gazebosim/gz-sim/pull/3555)
+
+1. Fix EventManager RTTI failures across shared-library boundaries
+    * [Pull request #3542](https://github.com/gazebosim/gz-sim/pull/3542)
+
+1. Fix crash when adding a `Light` via `Component Inspector Editor` (#3137)
+    * [Pull request #3504](https://github.com/gazebosim/gz-sim/pull/3504)
+
+1. Add getters for joint velocity, effort, and position limits (#3272)
+    * [Pull request #3534](https://github.com/gazebosim/gz-sim/pull/3534)
+
+1. Create RenderEngineServerApiBackend component in SimulationRunner
+    * [Pull request #3471](https://github.com/gazebosim/gz-sim/pull/3471)
+
+1. Improve performance of `ECM::Entit(y|ies)ByComponents` and `ECM::ChildrenByComponents` (#3375)
+    * [Pull request #3525](https://github.com/gazebosim/gz-sim/pull/3525)
+
+1. Fix potential iterator invalidation in EntityTree (#3514)
+    * [Pull request #3515](https://github.com/gazebosim/gz-sim/pull/3515)
+
+1. Fix Python test PYTHONPATH: use `ENVIRONMENT_MODIFICATION` instead of ENVIRONMENT (#3480)
+    * [Pull request #3500](https://github.com/gazebosim/gz-sim/pull/3500)
+
+1. Infrastructure
+    * [Pull request #3492](https://github.com/gazebosim/gz-sim/pull/3492)
+    * [Pull request #3521](https://github.com/gazebosim/gz-sim/pull/3521)
+
 ### Gazebo Sim 10.2.0 (2026-04-22)
 
 1. Use high resolution timer on Windows (#3478)
