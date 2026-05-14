@@ -39,6 +39,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -289,6 +290,94 @@ TEST_F(JointPositionControllerTestFixture,
   server.Run(true, testIters, false);
 
   EXPECT_NEAR(targetPosition, currentPosition.at(0), TOL);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointPositionControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds",
+      "joint_position_controller.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  const std::string jointName = "j1";
+  test::Relay testSystem;
+  std::vector<double> currentPosition;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(
+            components::Joint(), components::Name(jointName));
+        if (nullptr == _ecm.Component<components::JointPosition>(joint))
+        {
+          _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Joint, components::Name,
+                  components::JointPosition>(
+            [&](const Entity &,
+                const components::Joint *,
+                const components::Name *_name,
+                const components::JointPosition *_position) -> bool
+            {
+              if (_name->Data() == jointName)
+              {
+                currentPosition = _position->Data();
+              }
+              return true;
+            });
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  ASSERT_TRUE(test::StepUntil(server, 100,
+      [&] { return !currentPosition.empty(); }));
+  EXPECT_NEAR(0.0, currentPosition.at(0), TOL);
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_position_controller_test/joint/j1/0/cmd_pos");
+  ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
+
+  msgs::Double msg;
+  msg.set_data(2.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&]
+      {
+        return !currentPosition.empty() &&
+            std::abs(currentPosition.at(0) - 2.0) < TOL;
+      }));
+
+  server.ResetAll();
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&]
+      {
+        return !currentPosition.empty() &&
+            std::abs(currentPosition.at(0)) < TOL;
+      }));
+
+  server.Run(true, 100, false);
+  EXPECT_NEAR(0.0, currentPosition.at(0), TOL);
+
+  msg.set_data(1.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&]
+      {
+        return !currentPosition.empty() &&
+            std::abs(currentPosition.at(0) - 1.0) < TOL;
+      }));
 }
 
 
