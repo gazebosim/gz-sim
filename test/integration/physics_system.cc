@@ -55,6 +55,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointEffortLimitsCmd.hh"
@@ -3147,4 +3148,263 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
+}
+
+/////////////////////////////////////////////////
+// Test setting GravityEnabledCmd and verify that the object stops accelerating
+// downwards when gravity is disabled.
+TEST_F(PhysicsSystemFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(GravityEnabledCmd))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/falling.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay relaySystem;
+  relaySystem.OnPreUpdate([&](const UpdateInfo &,
+                              EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(relaySystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  const std::string modelName = "sphere";
+  const std::string linkName = "sphere_link";
+
+  auto modelEntity = ecm->EntityByComponents(
+      components::Model(), components::Name(modelName));
+  auto linkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(linkName));
+
+  Link link(linkEntity);
+  link.EnableVelocityChecks(*ecm, true);
+  link.EnableAccelerationChecks(*ecm, true);
+
+  auto getPose = [&]() {
+    return ecm->Component<components::Pose>(modelEntity)->Data();
+  };
+  auto getLinVel = [&]() {
+    return ecm->Component<components::WorldLinearVelocity>(
+        linkEntity)->Data();
+  };
+  auto getLinAcc = [&]() {
+    return link.WorldLinearAcceleration(*ecm);
+  };
+
+  // Run for a bit to let it fall
+  server.Run(true, 100, false);
+
+  double z1 = getPose().Pos().Z();
+  double v1 = getLinVel().Z();
+
+  ASSERT_TRUE(getLinAcc().has_value());
+  double a1 = getLinAcc()->Z();
+
+  server.Run(true, 100, false);
+
+  double z2 = getPose().Pos().Z();
+  double v2 = getLinVel().Z();
+  double a2 = getLinAcc()->Z();
+
+  // It should be falling
+  EXPECT_LT(z2, z1);
+  // Velocity should be negative and increasing in magnitude (accelerating)
+  EXPECT_LT(v2, v1);
+  EXPECT_LT(v2, 0.0);
+
+  // Acceleration should be around -9.8
+  EXPECT_NEAR(a1, -9.8, 1e-2);
+  EXPECT_NEAR(a2, -9.8, 1e-2);
+
+  // Now disable gravity
+  ecm->CreateComponent(modelEntity, components::GravityEnabledCmd(false));
+
+  // Run again
+  server.Run(true, 100, false);
+
+  double z3 = getPose().Pos().Z();
+  double v3 = getLinVel().Z();
+  double a3 = getLinAcc()->Z();
+
+  server.Run(true, 100, false);
+
+  double z4 = getPose().Pos().Z();
+  double v4 = getLinVel().Z();
+  double a4 = getLinAcc()->Z();
+
+  // It should still be falling (it has initial velocity)
+  EXPECT_LT(z4, z3);
+
+  // Check that velocity is constant now
+  EXPECT_NEAR(v3, v4, 1e-2);
+
+  // Acceleration should be near zero
+  EXPECT_NEAR(a3, 0.0, 1e-2);
+  EXPECT_NEAR(a4, 0.0, 1e-2);
+
+  // Check that it is not accelerating using positions.
+  // Distance fallen in first 100 steps after disabling gravity
+  double d1 = z2 - z3;
+  // Distance fallen in next 100 steps
+  double d2 = z3 - z4;
+
+  // With gravity disabled, it should fall at constant velocity.
+  // So distances should be nearly equal.
+  EXPECT_NEAR(d1, d2, 1e-3);
+
+  // Now re-enable gravity
+  ecm->CreateComponent(modelEntity, components::GravityEnabledCmd(true));
+
+  server.Run(true, 100, false);
+
+  double z5 = getPose().Pos().Z();
+  double v5 = getLinVel().Z();
+  double a5 = getLinAcc()->Z();
+
+  server.Run(true, 100, false);
+
+  double z6 = getPose().Pos().Z();
+  double v6 = getLinVel().Z();
+  double a6 = getLinAcc()->Z();
+
+  // Sphere should be falling again (relative to z4, v4)
+  EXPECT_LT(z5, z4);
+  EXPECT_LT(z6, z5);
+  // Velocity should be increasing in magnitude again (negative direction)
+  EXPECT_LT(v6, v5);
+  EXPECT_LT(v5, v4);
+
+  // Acceleration should be around -9.8 again
+  EXPECT_NEAR(a5, -9.8, 1e-2);
+  EXPECT_NEAR(a6, -9.8, 1e-2);
+}
+
+/////////////////////////////////////////////////
+// Test setting StaticCmd verify that the object stops moving when made static
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticCmd))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay relaySystem;
+  relaySystem.OnPreUpdate([&](const UpdateInfo &,
+                              EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(relaySystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  const std::string modelName = "revolute_demo";
+  const std::string linkName = "link2";
+
+  auto modelEntity = ecm->EntityByComponents(
+      components::Model(), components::Name(modelName));
+  auto linkEntity = ecm->EntityByComponents(
+      components::Link(), components::Name(linkName));
+
+  Link link(linkEntity);
+  link.EnableVelocityChecks(*ecm, true);
+
+  auto getLinkPose = [&]() {
+    return ecm->Component<components::Pose>(linkEntity)->Data();
+  };
+  auto getLinkAngVel = [&]() {
+    return ecm->Component<components::WorldAngularVelocity>(
+        linkEntity)->Data();
+  };
+
+  std::vector<math::Pose3d> linkPoses;
+
+  // Run to let it swing, and record poses
+  for (size_t i = 0; i < 100; ++i)
+  {
+    server.Run(true, 1, false);
+    linkPoses.push_back(getLinkPose());
+  }
+
+  ASSERT_EQ(linkPoses.size(), 100u);
+
+  // Check that it is moving (total displacement is significant)
+  bool moving = (linkPoses.back().Pos() -
+      linkPoses[0].Pos()).Length() > 1e-3;
+  EXPECT_TRUE(moving);
+
+  // Check that velocity is non-zero
+  EXPECT_GT(getLinkAngVel().Length(), 1e-3);
+
+  // Now make it static
+  ecm->CreateComponent(modelEntity, components::StaticCmd(true));
+
+  size_t staticStartIdx = linkPoses.size();
+
+  for (size_t i = 0; i < 100; ++i)
+  {
+    server.Run(true, 1, false);
+    linkPoses.push_back(getLinkPose());
+  }
+
+  ASSERT_EQ(linkPoses.size(), 200u);
+
+  // Check that it stopped moving
+  bool stopped = true;
+  for (size_t i = staticStartIdx + 1; i < 200; ++i)
+  {
+    if ((linkPoses[i].Pos() - linkPoses[i-1].Pos()).Length() > 1e-6)
+    {
+      stopped = false;
+      break;
+    }
+  }
+  EXPECT_TRUE(stopped);
+
+  // Check that velocity is zero
+  EXPECT_NEAR(getLinkAngVel().Length(), 0.0, 1e-6);
+
+  // Now make it dynamic again
+  ecm->CreateComponent(modelEntity, components::StaticCmd(false));
+
+  size_t dynamicStartIdx = linkPoses.size();
+
+  for (size_t i = 0; i < 100; ++i)
+  {
+    server.Run(true, 1, false);
+    linkPoses.push_back(getLinkPose());
+  }
+
+  ASSERT_EQ(linkPoses.size(), 300u);
+
+  // Check that it resumed moving (displacement since dynamic transition)
+  bool movingAgain = (linkPoses.back().Pos() -
+      linkPoses[dynamicStartIdx].Pos()).Length() > 1e-3;
+  EXPECT_TRUE(movingAgain);
+
+  // Check that velocity is non-zero again
+  EXPECT_GT(getLinkAngVel().Length(), 1e-3);
 }
