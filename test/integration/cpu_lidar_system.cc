@@ -17,10 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <condition_variable>
-#include <mutex>
 #include <thread>
-#include <vector>
 
 #include <gz/msgs/laserscan.pb.h>
 #include <gz/msgs/pointcloud_packed.pb.h>
@@ -41,8 +38,9 @@
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -245,55 +243,29 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Synchronization primitives for thread-safe message waiting
-  std::mutex mutex;
-  std::condition_variable cv;
-  std::vector<msgs::LaserScan> received;
-  bool messageReceived = false;
-
+  Subscription<msgs::LaserScan> sub;
   transport::Node node;
-  std::function<void(const msgs::LaserScan &)> cb =
-    [&](const msgs::LaserScan &_msg)
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      received.push_back(_msg);
-      messageReceived = true;
-      cv.notify_one();
-    };
-  node.Subscribe("/test/cpu_lidar", cb);
+  sub.Subscribe(node, "/test/cpu_lidar");
 
-  // Run server in background and wait for message with timeout
   std::thread serverThread([&]()
   {
     server.Run(true, kIterations::kLaserScanIterations, false);
   });
 
-  // Wait for message with timeout using condition_variable
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
-    if (!cv.wait_for(lock, timeout, [&]{ return messageReceived; }))
-    {
-      // Timeout reached without receiving message
-    }
-  }
-
-  // Ensure server thread completes
+  auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
+  sub.WaitForMessages(1, timeout);
   serverThread.join();
 
-  std::lock_guard<std::mutex> lock(mutex);
-  ASSERT_GT(received.size(), 0u);
-
-  auto &scan = received.back();
+  ASSERT_GT(sub.Count(), 0u);
+  auto scan = sub.Last();
   EXPECT_EQ(640, scan.count());
   EXPECT_DOUBLE_EQ(0.08, scan.range_min());
   EXPECT_DOUBLE_EQ(10.0, scan.range_max());
 
-  // Verify all range values are valid (not inf or nan and within bounds)
   bool anyHit = false;
   for (int i = 0; i < scan.ranges_size(); ++i)
   {
-    if (!std::isinf(scan.ranges(i)) && !std::isnan(scan.ranges(i)))
+    if (std::isfinite(scan.ranges(i)))
     {
       anyHit = true;
       EXPECT_GT(scan.ranges(i), 0.08);
@@ -318,40 +290,21 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  std::mutex mutex;
-  std::condition_variable cv;
-  std::vector<msgs::PointCloudPacked> received;
-  bool messageReceived = false;
-
+  Subscription<msgs::PointCloudPacked> sub;
   transport::Node node;
-  std::function<void(const msgs::PointCloudPacked &)> cb =
-    [&](const msgs::PointCloudPacked &_msg)
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      received.push_back(_msg);
-      messageReceived = true;
-      cv.notify_one();
-    };
-  node.Subscribe("/test/cpu_lidar/points", cb);
+  sub.Subscribe(node, "/test/cpu_lidar/points");
 
   std::thread serverThread([&]()
   {
     server.Run(true, kIterations::kPointCloudIterations, false);
   });
 
-  {
-    std::unique_lock<std::mutex> lock(mutex);
-    auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
-    static_cast<void>(
-      cv.wait_for(lock, timeout, [&]{ return messageReceived; }));
-  }
-
+  auto timeout = std::chrono::milliseconds(kIterations::kMessageTimeoutMs);
+  sub.WaitForMessages(1, timeout);
   serverThread.join();
 
-  std::lock_guard<std::mutex> lock(mutex);
-  ASSERT_GT(received.size(), 0u);
-
-  auto &msg = received.back();
+  ASSERT_GT(sub.Count(), 0u);
+  auto msg = sub.Last();
   EXPECT_EQ(640u, msg.width());
   EXPECT_EQ(1u, msg.height());
   EXPECT_GT(msg.data().size(), 0u);
