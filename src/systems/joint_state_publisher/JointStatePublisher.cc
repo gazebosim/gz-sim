@@ -21,6 +21,7 @@
 
 #include <gz/msgs/model.pb.h>
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -103,6 +104,19 @@ void JointStatePublisher::Configure(
     this->topic = _sdf->Get<std::string>("topic");
   }
 
+  const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
+  if (updateRate < 0)
+  {
+    gzwarn << "JointStatePublisher: <update_rate> must be >= 0, got ["
+           << updateRate << "]. Publishing every simulation iteration.\n";
+  }
+  else if (updateRate > 0)
+  {
+    const std::chrono::duration<double> period{1.0 / updateRate};
+    this->updatePeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
+  }
+
 }
 
 //////////////////////////////////////////////////
@@ -143,6 +157,13 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("JointStatePublisher::PostUpdate");
+  const auto diff = _info.simTime - this->lastUpdateTime;
+  if ((diff > std::chrono::steady_clock::duration::zero()) &&
+      (diff < this->updatePeriod))
+  {
+    return;
+  }
+
   // Create the model state publisher. This can't be done in ::Configure
   // because the World is not guaranteed to be accessible.
   if (!this->modelPub)
@@ -185,6 +206,8 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   // Skip if we couldn't create the publisher.
   if (!this->modelPub)
     return;
+
+  this->lastUpdateTime = _info.simTime;
 
   // Create the message on an arena so all sub-messages (joints, axes,
   // poses) are allocated from a single block instead of individual mallocs.
