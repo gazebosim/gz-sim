@@ -162,11 +162,17 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // if `signalReceived` is true
   if (this->signalReceived)
     return false;
-  this->runMutex.lock();
-  this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
+
+  {
+    std::lock_guard<std::mutex> lock(this->runMutex);
+    this->running = true;
+    if (_cond)
+      _cond.value()->notify_all();
+  }
+
+  // Use a unique_lock on ecmMutex to prevent PeekEcm and PokeEcm from
+  // accessing the ECM while the simulation is running.
+  std::unique_lock<std::shared_mutex> ecmLock(this->ecmMutex);
 
   bool result = true;
 
@@ -222,6 +228,11 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     // Wait for the runner to complete.
     result = this->workerPool->WaitForResults();
   }
+
+  // Unlock ecmMutex before we acquire runMutex to allow Peek/Poke to
+  // proceed as soon as simulation finishes, and to avoid potential
+  // deadlock with Stop().
+  ecmLock.unlock();
 
   // See comments ServerPrivate::Stop() for why we lock this mutex here.
   std::lock_guard<std::mutex> lock(this->runMutex);
