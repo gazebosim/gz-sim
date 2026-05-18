@@ -85,7 +85,10 @@ class ignition::gazebo::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateSensors(EntityComponentManager &_ecm);
+  /// \param[in] _includeExisting True to scan existing contact sensor
+  /// components as well as newly-created ones.
+  public: void CreateSensors(EntityComponentManager &_ecm,
+              bool _includeExisting = false);
 
   /// \brief Update and publish sensor data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -154,61 +157,86 @@ void ContactSensor::Publish()
 }
 
 //////////////////////////////////////////////////
-void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
+void ContactPrivate::CreateSensors(EntityComponentManager &_ecm,
+    bool _includeExisting)
 {
+<<<<<<< HEAD
   IGN_PROFILE("ContactPrivate::CreateSensors");
   _ecm.EachNew<components::ContactSensor>(
       [&](const Entity &_entity,
           const components::ContactSensor *_contact) -> bool
+=======
+  GZ_PROFILE("ContactPrivate::CreateSensors");
+
+  auto createSensor =
+    [&](const Entity &_entity,
+        const components::ContactSensor *_contact) -> bool
+    {
+      if (this->entitySensorMap.find(_entity) != this->entitySensorMap.end())
+        return true;
+
+      // Check if the parent entity is a link
+      auto *parentEntity = _ecm.Component<components::ParentEntity>(_entity);
+      if (nullptr == parentEntity)
+        return true;
+
+      auto *linkComp = _ecm.Component<components::Link>(parentEntity->Data());
+      if (nullptr == linkComp)
+>>>>>>> 420e498d (Fix Contact state contamination on world reset (#3541))
       {
-        // Check if the parent entity is a link
-        auto *parentEntity = _ecm.Component<components::ParentEntity>(_entity);
-        if (nullptr == parentEntity)
-          return true;
+        // Contact sensors should only be attached to links
+        return true;
+      }
 
-        auto *linkComp = _ecm.Component<components::Link>(parentEntity->Data());
-        if (nullptr == linkComp)
+      auto collisionElem =
+          _contact->Data()->GetElement("contact")->GetElement("collision");
+
+      std::vector<Entity> collisionEntities;
+      // Get all the collision elements
+      for (; collisionElem;
+           collisionElem = collisionElem->GetNextElement("collision"))
+      {
+        auto collisionName = collisionElem->Get<std::string>();
+        // Get collision entity that matches the name given by the sensor's
+        // configuration.
+        auto childEntities = _ecm.ChildrenByComponents(
+            parentEntity->Data(), components::Collision(),
+            components::Name(collisionName));
+
+        if (!childEntities.empty())
         {
-          // Contact sensors should only be attached to links
-          return true;
-        }
+          // We assume that if childEntities is not empty, it only has one
+          // element.
+          collisionEntities.push_back(childEntities.front());
 
-        auto collisionElem =
-            _contact->Data()->GetElement("contact")->GetElement("collision");
-
-        std::vector<Entity> collisionEntities;
-        // Get all the collision elements
-        for (; collisionElem;
-             collisionElem = collisionElem->GetNextElement("collision"))
-        {
-          auto collisionName = collisionElem->Get<std::string>();
-          // Get collision entity that matches the name given by the sensor's
-          // configuration.
-          auto childEntities = _ecm.ChildrenByComponents(
-              parentEntity->Data(), components::Collision(),
-              components::Name(collisionName));
-
-          if (!childEntities.empty())
+          // Create component to be filled by physics.
+          if (nullptr == _ecm.Component<components::ContactSensorData>(
+              childEntities.front()))
           {
-            // We assume that if childEntities is not empty, it only has one
-            // element.
-            collisionEntities.push_back(childEntities.front());
-
-            // Create component to be filled by physics.
             _ecm.CreateComponent(childEntities.front(),
                                  components::ContactSensorData());
           }
         }
+      }
 
-        std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/contact";
+      std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/contact";
 
-        auto sensor = std::make_unique<ContactSensor>();
-        sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
+      auto sensor = std::make_unique<ContactSensor>();
+      sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
+      this->entitySensorMap.insert(
+          std::make_pair(_entity, std::move(sensor)));
 
-        return true;
-      });
+      return true;
+    };
+
+  if (_includeExisting)
+  {
+    _ecm.Each<components::ContactSensor>(createSensor);
+  }
+  else
+  {
+    _ecm.EachNew<components::ContactSensor>(createSensor);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -294,9 +322,23 @@ void Contact::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->RemoveSensors(_ecm);
 }
 
+<<<<<<< HEAD
 IGNITION_ADD_PLUGIN(Contact, System,
+=======
+//////////////////////////////////////////////////
+void Contact::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
+{
+  this->dataPtr->entitySensorMap.clear();
+  // After reset, existing sensor entities are not reported as new entities.
+  // Re-scan them so contact sensors keep publishing in the next episode.
+  this->dataPtr->CreateSensors(_ecm, true);
+}
+
+GZ_ADD_PLUGIN(Contact, System,
+>>>>>>> 420e498d (Fix Contact state contamination on world reset (#3541))
   Contact::ISystemPreUpdate,
-  Contact::ISystemPostUpdate
+  Contact::ISystemPostUpdate,
+  Contact::ISystemReset
 )
 
 IGNITION_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")

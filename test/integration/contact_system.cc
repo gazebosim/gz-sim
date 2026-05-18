@@ -19,6 +19,7 @@
 
 #include <gz/msgs/contacts.pb.h>
 
+#include <cmath>
 #include <thread>
 
 #include <gz/common/Console.hh>
@@ -28,10 +29,19 @@
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
+<<<<<<< HEAD
 #include "gz/sim/test_config.hh"
+=======
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensorData.hh"
+#include "gz/sim/components/Name.hh"
+#include "test_config.hh"
+>>>>>>> 420e498d (Fix Contact state contamination on world reset (#3541))
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace gz::sim;
@@ -39,6 +49,62 @@ using namespace gz::sim;
 class ContactSystemTest : public InternalFixture<::testing::Test>
 {
 };
+
+/////////////////////////////////////////////////
+bool validMultipleCollisionContacts(const msgs::Contacts &_contacts)
+{
+  if (_contacts.contact_size() != 4)
+    return false;
+
+  for (const auto &contact : _contacts.contact())
+  {
+    if (contact.position_size() != 1)
+      return false;
+
+    if (std::abs(std::abs(contact.position(0).x()) - 0.25) > 5e-2 ||
+        std::abs(std::abs(contact.position(0).y()) - 1.0) > 5e-2 ||
+        std::abs(contact.position(0).z() - 1.0) > 5e-2)
+    {
+      return false;
+    }
+
+    const bool entityNameFound =
+      contact.collision1().name() ==
+      "contact_model::link::collision_sphere1" ||
+      contact.collision1().name() ==
+      "contact_model::link::collision_sphere2";
+    if (!entityNameFound)
+      return false;
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool contactsFromEcm(const EntityComponentManager &_ecm,
+    msgs::Contacts &_contacts)
+{
+  _contacts.Clear();
+
+  for (const auto &collisionName :
+       {"collision_sphere1", "collision_sphere2"})
+  {
+    const auto collision = _ecm.EntityByComponents(
+        components::Collision(), components::Name(collisionName));
+    if (kNullEntity == collision)
+      return false;
+
+    const auto contactData =
+        _ecm.Component<components::ContactSensorData>(collision);
+    if (nullptr == contactData)
+      return false;
+
+    for (const auto &contact : contactData->Data().contact())
+      *_contacts.add_contact() = contact;
+  }
+
+  return true;
+}
 
 /////////////////////////////////////////////////
 // This test verifies that colliding entity names are populated in
@@ -272,6 +338,55 @@ TEST_F(ContactSystemTest,
   }
 }
 
+<<<<<<< HEAD
+=======
+/////////////////////////////////////////////////
+TEST_F(ContactSystemTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyContacts))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  msgs::Contacts contacts;
+  test::Relay contactDataRecorder;
+  contactDataRecorder.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        contactsFromEcm(_ecm, contacts);
+      });
+  server.AddSystem(contactDataRecorder.systemPtr);
+
+  auto waitForContacts =
+      [&server, &contacts]()
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return validMultipleCollisionContacts(contacts);
+        });
+      };
+
+  ASSERT_TRUE(waitForContacts());
+
+  server.ResetAll();
+
+  contacts.Clear();
+  ASSERT_TRUE(waitForContacts());
+}
+
+/////////////////////////////////////////////////
+// The test checks that contacts are published with
+// the correct extraContactData
+>>>>>>> 420e498d (Fix Contact state contamination on world reset (#3541))
 TEST_F(ContactSystemTest,
        IGN_UTILS_TEST_DISABLED_ON_WIN32(RemoveContactSensor))
 {
