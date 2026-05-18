@@ -367,6 +367,67 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
 
   public: std::unordered_set<std::string> fields;
 
+  public: bool resetEnvironmentDataPending{false};
+
+  public: void AddSensorEntity(
+    const Entity &_entity,
+    const components::CustomSensor *_custom,
+    const components::ParentEntity *_parent,
+    const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+  {
+    // Get sensor's scoped name without the world
+    auto sensorScopedName =
+      removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+    sdf::Sensor data = _custom->Data();
+    data.SetName(sensorScopedName);
+
+    auto type = gz::sensors::customType(data);
+    if (!common::StartsWith(type, SENSOR_TYPE_PREFIX))
+    {
+      return;
+    }
+
+    // Default to scoped name as topic
+    if (data.Topic().empty())
+    {
+      std::string topic = scopedName(_entity, _ecm) + "/" + type;
+      data.SetTopic(topic);
+    }
+
+    gz::sensors::SensorFactory sensorFactory;
+    auto sensor = sensorFactory.CreateSensor<EnvironmentalSensor>(data);
+
+    // Set sensor parent
+    auto parentName = _ecm.Component<components::Name>(
+        _parent->Data())->Data();
+    sensor->SetParent(parentName);
+
+    // Set topic on Gazebo
+    _ecm.CreateComponent(_entity,
+        components::SensorTopic(sensor->Topic()));
+
+    // Get current EnvironmentalData component
+    auto environData =
+      _ecm.Component<components::Environment>(
+        gz::sim::worldEntity(_ecm));
+
+    if (environData != nullptr)
+    {
+      sensor->SetDataTable(environData, _info.simTime);
+    }
+    else
+    {
+      gzerr << "No sensor data loaded\n";
+    }
+
+    enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
+
+    // Keep track of this sensor
+    this->entitySensorMap.insert(std::make_pair(_entity,
+        std::move(sensor)));
+  }
+
   public: void RemoveSensorEntities(
     const gz::sim::EntityComponentManager &_ecm)
   {
@@ -407,6 +468,22 @@ void EnvironmentalSensorSystem::Configure(
 }
 
 ////////////////////////////////////////////////////////////////
+void EnvironmentalSensorSystem::Reset(const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm)
+{
+  this->dataPtr->entitySensorMap.clear();
+  this->dataPtr->resetEnvironmentDataPending = true;
+  _ecm.Each<components::CustomSensor, components::ParentEntity>(
+    [&](const Entity &_entity,
+        const components::CustomSensor *_custom,
+        const components::ParentEntity *_parent)->bool
+      {
+        this->dataPtr->AddSensorEntity(_entity, _custom, _parent, _info, _ecm);
+        return true;
+      });
+}
+
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
@@ -415,56 +492,7 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         const components::CustomSensor *_custom,
         const components::ParentEntity *_parent)->bool
       {
-        // Get sensor's scoped name without the world
-        auto sensorScopedName =
-          removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
-        sdf::Sensor data = _custom->Data();
-        data.SetName(sensorScopedName);
-
-        auto type = gz::sensors::customType(data);
-        if (!common::StartsWith(type, SENSOR_TYPE_PREFIX))
-        {
-          return true;
-        }
-
-        // Default to scoped name as topic
-        if (data.Topic().empty())
-        {
-          std::string topic = scopedName(_entity, _ecm) + "/" + type;
-          data.SetTopic(topic);
-        }
-
-        gz::sensors::SensorFactory sensorFactory;
-        auto sensor = sensorFactory.CreateSensor<EnvironmentalSensor>(data);
-
-        // Set sensor parent
-        auto parentName = _ecm.Component<components::Name>(
-            _parent->Data())->Data();
-        sensor->SetParent(parentName);
-
-        // Set topic on Gazebo
-        _ecm.CreateComponent(_entity,
-            components::SensorTopic(sensor->Topic()));
-
-        // Get current EnvironmentalData component
-        auto environData =
-          _ecm.Component<components::Environment>(
-            worldEntity(_ecm));
-
-        if (environData != nullptr)
-        {
-          sensor->SetDataTable(environData, _info.simTime);
-        }
-        else
-        {
-          gzerr << "No sensor data loaded\n";
-        }
-
-        enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
-
-        // Keep track of this sensor
-        this->dataPtr->entitySensorMap.insert(std::make_pair(_entity,
-            std::move(sensor)));
+        this->dataPtr->AddSensorEntity(_entity, _custom, _parent, _info, _ecm);
         return true;
       });
 }
@@ -473,15 +501,36 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
 void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
-    const components::Environment *_environmental_data)->bool
+  auto updateEnvironmentData =
+    [&](const components::Environment *_environmentalData)
     {
       for (auto &[entity, sensor] : this->dataPtr->entitySensorMap)
       {
-        sensor->SetDataTable(_environmental_data, _info.simTime);
+        sensor->SetDataTable(_environmentalData, _info.simTime);
       }
+    };
+
+  _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
+    const components::Environment *_environmental_data)->bool
+    {
+      updateEnvironmentData(_environmental_data);
+      this->dataPtr->resetEnvironmentDataPending = false;
       return true;
     });
+
+  if (this->dataPtr->resetEnvironmentDataPending)
+  {
+    bool dataUpdated = false;
+    _ecm.Each<components::Environment>([&](const Entity &/*_entity*/,
+      const components::Environment *_environmentalData)->bool
+      {
+        updateEnvironmentData(_environmentalData);
+        dataUpdated = true;
+        return true;
+      });
+    this->dataPtr->resetEnvironmentDataPending = !dataUpdated;
+  }
+
   // Only update and publish if not paused.
   if (!_info.paused)
   {
@@ -499,6 +548,7 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
 GZ_ADD_PLUGIN(
   EnvironmentalSensorSystem, System,
   EnvironmentalSensorSystem::ISystemConfigure,
+  EnvironmentalSensorSystem::ISystemReset,
   EnvironmentalSensorSystem::ISystemPreUpdate,
   EnvironmentalSensorSystem::ISystemPostUpdate
 )
