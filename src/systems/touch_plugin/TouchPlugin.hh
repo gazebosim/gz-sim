@@ -48,6 +48,7 @@ namespace systems
   ///              collision. For example, using the name of a model will match
   ///              all its collisions.
   ///
+<<<<<<< HEAD
   /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<namespace>` Namespace for transport topics/services:
@@ -55,6 +56,21 @@ namespace systems
   ///                                       the plugin.
   ///             + `/<namespace>/touched` : Topic where a message is published
   ///                                        once the touch event occurs.
+=======
+  /// - `<namespace>` Optional parameter. Namespace for transport topics and
+  ///                 services. Defaults to `<scoped_name>/touch`.
+  ///                 Note that if multiple touch plugins without a namespace
+  ///                 are added to a model their topic / service will conflict.
+  ///                 In this case, it is recommended to either specify the
+  ///                 namespace or use nested models to have only one touch
+  ///                 plugin per model.
+  ///   - `/<namespace>/enable` : Service used to enable and disable
+  ///                             the plugin.
+  ///   - `/<namespace>/touched` : Topic where a message is published
+  ///                              once the touch event occurs.
+>>>>>>> d696e146 (Add a default for touch plugin namespace (#3513))
+  ///
+  /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<enabled>` Set this to true so the plugin works from the start and
   ///               doesn't need to be enabled.
