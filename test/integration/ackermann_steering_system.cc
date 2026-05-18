@@ -46,6 +46,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 #define tol 10e-4
 
@@ -213,6 +214,88 @@ class AckermannSteeringTest
     EXPECT_LT(a, 1);
   }
 };
+
+/////////////////////////////////////////////////
+TEST_P(AckermannSteeringTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "ackermann_steering.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+
+  bool publishCommand{false};
+  msgs::Twist cmd;
+  msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(cmd.mutable_angular(), math::Vector3d(0, 0, 0.1));
+
+  test::Relay poseRecorder;
+  std::vector<math::Pose3d> modelPoses;
+  poseRecorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+  {
+    auto model = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle"));
+    ASSERT_NE(kNullEntity, model);
+
+    auto poseComp = _ecm.Component<components::Pose>(model);
+    ASSERT_NE(nullptr, poseComp);
+    modelPoses.push_back(poseComp->Data());
+  });
+  server.AddSystem(poseRecorder.systemPtr);
+
+  test::Relay commandRelay;
+  commandRelay.OnPreUpdate([&](const UpdateInfo &,
+      EntityComponentManager &)
+  {
+    if (publishCommand)
+      pub.Publish(cmd);
+  });
+  server.AddSystem(commandRelay.systemPtr);
+
+  server.Run(true, 1, false);
+  ASSERT_FALSE(modelPoses.empty());
+  const auto initialModelPose = modelPoses.back();
+
+  publishCommand = true;
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&]
+      {
+        return !modelPoses.empty() &&
+            modelPoses.back().Pos().Distance(initialModelPose.Pos()) > 0.05;
+      }));
+
+  publishCommand = false;
+  server.ResetAll();
+  // Let reset-created systems finish one update before observing state.
+  server.Run(true, 2, false);
+
+  const auto postResetPoseBegin = modelPoses.size();
+  server.Run(true, 200, false);
+  ASSERT_GT(modelPoses.size(), postResetPoseBegin);
+
+  // The real model pose should also stay at the reset pose without old input.
+  EXPECT_NEAR(modelPoses.back().Pos().X(), initialModelPose.Pos().X(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Pos().Y(), initialModelPose.Pos().Y(), 0.05);
+  EXPECT_NEAR(modelPoses.back().Rot().Yaw(), initialModelPose.Rot().Yaw(),
+      0.05);
+
+  // A fresh command after reset should still produce odometry motion.
+  const auto postResetCommandPose = modelPoses.back();
+  publishCommand = true;
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&]
+      {
+        return !modelPoses.empty() &&
+            modelPoses.back().Pos().Distance(postResetCommandPose.Pos()) > 0.05;
+      }));
+}
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
