@@ -61,9 +61,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   class VisualizeContactsPrivate
   {
     /// \brief Creates ContactSensorData for Collision components without a
-    /// Contact Sensor by requesting the /enable_contact service
+    /// Contact Sensor by requesting the /enable_collision service
     /// \param[in] Reference to the GUI Entity Component Manager
     public: void CreateCollisionData(EntityComponentManager &_ecm);
+
+    /// \brief Creates ContactSensorData for new Collision components without
+    /// a Contact Sensor by requesting the /enable_collision service
+    /// \param[in] Reference to the GUI Entity Component Manager
+    public: void CreateNewCollisionData(EntityComponentManager &_ecm);
+
+    /// \brief Request ContactSensorData creation for one collision entity.
+    /// \param[in] _entity Collision entity.
+    /// \param[in] Reference to the GUI Entity Component Manager.
+    /// \return True to continue entity iteration.
+    public: bool RequestCollisionData(
+                const Entity &_entity, EntityComponentManager &_ecm);
 
     /// \brief Transport node
     public: transport::Node node;
@@ -186,6 +198,10 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
     this->dataPtr->CreateCollisionData(_ecm);
     this->dataPtr->initialized = true;
   }
+  else
+  {
+    this->dataPtr->CreateNewCollisionData(_ecm);
+  }
 
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -260,32 +276,51 @@ void VisualizeContactsPrivate::CreateCollisionData(
     [&](const Entity &_entity,
         const components::Collision *) -> bool
     {
-      // Check if ContactSensorData has already been created
-      bool collisionHasContactSensor =
-        _ecm.EntityHasComponentType(_entity,
-          components::ContactSensorData::typeId);
-
-      if (collisionHasContactSensor)
-      {
-        gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
-          << std::endl;
-        return true;
-      }
-
-      // Request service for enabling collision
-      msgs::Entity req;
-      req.set_id(_entity);
-      req.set_type(msgs::Entity::COLLISION);
-
-      msgs::Boolean res;
-      bool result;
-      unsigned int timeout = 50;
-      std::string service = "/world/" + this->worldName + "/enable_collision";
-
-      this->node.Request(service, req, timeout, res, result);
-
-      return true;
+      return this->RequestCollisionData(_entity, _ecm);
     });
+}
+
+//////////////////////////////////////////////////
+void VisualizeContactsPrivate::CreateNewCollisionData(
+                              EntityComponentManager &_ecm)
+{
+  _ecm.EachNew<components::Collision>(
+    [&](const Entity &_entity,
+        const components::Collision *) -> bool
+    {
+      return this->RequestCollisionData(_entity, _ecm);
+    });
+}
+
+//////////////////////////////////////////////////
+bool VisualizeContactsPrivate::RequestCollisionData(const Entity &_entity,
+                              EntityComponentManager &_ecm)
+{
+  // Check if ContactSensorData has already been created
+  bool collisionHasContactSensor =
+    _ecm.EntityHasComponentType(_entity,
+      components::ContactSensorData::typeId);
+
+  if (collisionHasContactSensor)
+  {
+    gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
+      << std::endl;
+    return true;
+  }
+
+  // Request service for enabling collision
+  msgs::Entity req;
+  req.set_id(_entity);
+  req.set_type(msgs::Entity::COLLISION);
+
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 50;
+  std::string service = "/world/" + this->worldName + "/enable_collision";
+
+  this->node.Request(service, req, timeout, res, result);
+
+  return true;
 }
 
 //////////////////////////////////////////////////
