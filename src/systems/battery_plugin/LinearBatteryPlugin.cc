@@ -157,7 +157,7 @@ class gz::sim::systems::LinearBatteryPluginPrivate
 
   /// \brief Battery consumer identifier.
   /// Current implementation limits one consumer (Model) per battery.
-  public: int32_t consumerId;
+  public: int32_t consumerId{-1};
 
   /// \brief The start time when battery starts draining in seconds
   public: int drainStartTime{-1};
@@ -171,6 +171,9 @@ class gz::sim::systems::LinearBatteryPluginPrivate
 
   /// \brief Flag on whether the battery should start draining
   public: std::atomic_bool startDraining{false};
+
+  /// \brief Configured initial draining state restored on reset.
+  public: bool initialStartDraining{false};
 
   /// \brief Whether warning that battery has drained has been printed once.
   public: bool drainPrinted{false};
@@ -285,11 +288,19 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
     this->dataPtr->batteryName = _sdf->Get<std::string>("battery_name");
     auto initVoltage = _sdf->Get<double>("voltage");
 
-    // Create battery entity and some components
-    this->dataPtr->batteryEntity = _ecm.CreateEntity();
-    _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
-      this->dataPtr->batteryName));
-    _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
+    // Reuse the existing battery entity on reset instead of creating
+    // a duplicate entity with the same name under the model.
+    this->dataPtr->batteryEntity = _ecm.EntityByComponents(
+      components::Name(this->dataPtr->batteryName),
+      components::ParentEntity(_entity));
+
+    if (this->dataPtr->batteryEntity == kNullEntity)
+    {
+      this->dataPtr->batteryEntity = _ecm.CreateEntity();
+      _ecm.CreateComponent(this->dataPtr->batteryEntity, components::Name(
+        this->dataPtr->batteryName));
+      _ecm.SetParentEntity(this->dataPtr->batteryEntity, _entity);
+    }
 
     // Create actual battery and assign update function
     this->dataPtr->battery = std::make_shared<common::Battery>(
@@ -370,7 +381,11 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
   }
 
   if (_sdf->HasElement("start_draining"))
-    this->dataPtr->startDraining = _sdf->Get<bool>("start_draining");
+  {
+    this->dataPtr->initialStartDraining =
+      _sdf->Get<bool>("start_draining");
+    this->dataPtr->startDraining = this->dataPtr->initialStartDraining;
+  }
 
   // Subscribe to power draining topics, if any.
   if (_sdf->HasElement("power_draining_topic"))
@@ -414,8 +429,17 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
 
   this->dataPtr->soc = this->dataPtr->q / this->dataPtr->c;
   // Initialize battery with initial calculated state of charge
-  _ecm.CreateComponent(this->dataPtr->batteryEntity,
-      components::BatterySoC(this->dataPtr->soc));
+  auto *batterySoCComp =
+    _ecm.Component<components::BatterySoC>(this->dataPtr->batteryEntity);
+  if (batterySoCComp)
+  {
+    batterySoCComp->Data() = this->dataPtr->soc;
+  }
+  else
+  {
+    _ecm.CreateComponent(this->dataPtr->batteryEntity,
+        components::BatterySoC(this->dataPtr->soc));
+  }
 
   // Setup battery state topic
   std::string stateTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
@@ -441,7 +465,24 @@ void LinearBatteryPluginPrivate::Reset()
   this->iraw = 0.0;
   this->ismooth = 0.0;
   this->q = this->q0;
-  this->startDraining = false;
+  this->soc = this->c > 0.0 ? this->q0 / this->c : 1.0;
+  this->stepSize = std::chrono::steady_clock::duration::zero();
+  this->startCharging = false;
+  this->startDraining = this->initialStartDraining;
+  this->drainStartTime = -1;
+  this->lastPrintTime = -1;
+  this->drainPrinted = false;
+  this->iList.clear();
+  this->dtList.clear();
+
+  if (this->battery)
+  {
+    this->battery->ResetVoltage();
+    if (this->consumerId != -1)
+    {
+      this->battery->SetPowerLoad(this->consumerId, this->initialPowerLoad);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -505,10 +546,13 @@ void LinearBatteryPlugin::PreUpdate(
       return true;
     });
 
-  bool success = this->dataPtr->battery->SetPowerLoad(
-      this->dataPtr->consumerId, total_power_load);
-  if (!success)
+  if (this->dataPtr->consumerId != -1)
+  {
+    bool success = this->dataPtr->battery->SetPowerLoad(
+        this->dataPtr->consumerId, total_power_load);
+    if (!success)
       gzerr << "Failed to set consumer power load." << std::endl;
+  }
 
   // Start draining the battery if the robot has started moving
   if (!this->dataPtr->startDraining)
@@ -654,6 +698,35 @@ void LinearBatteryPlugin::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->statePub.Publish(msg);
 }
 
+//////////////////////////////////////////////////
+void LinearBatteryPlugin::Reset(const UpdateInfo &/*_info*/,
+    EntityComponentManager &_ecm)
+{
+  if (!this->dataPtr->battery)
+    return;
+
+  this->dataPtr->Reset();
+
+  auto batteryEntity = this->dataPtr->batteryEntity;
+  if (batteryEntity == kNullEntity || !_ecm.HasEntity(batteryEntity))
+  {
+    batteryEntity = _ecm.EntityByComponents(
+      components::Name(this->dataPtr->batteryName),
+      components::ParentEntity(this->dataPtr->model.Entity()));
+  }
+
+  if (batteryEntity == kNullEntity)
+    return;
+
+  this->dataPtr->batteryEntity = batteryEntity;
+
+  auto *batteryComp = _ecm.Component<components::BatterySoC>(batteryEntity);
+  if (batteryComp)
+  {
+    batteryComp->Data() = this->dataPtr->StateOfCharge();
+  }
+}
+
 /////////////////////////////////////////////////
 double LinearBatteryPlugin::OnUpdateVoltage(
   const common::Battery *_battery)
@@ -750,7 +823,8 @@ GZ_ADD_PLUGIN(LinearBatteryPlugin,
                     LinearBatteryPlugin::ISystemConfigure,
                     LinearBatteryPlugin::ISystemPreUpdate,
                     LinearBatteryPlugin::ISystemUpdate,
-                    LinearBatteryPlugin::ISystemPostUpdate)
+                    LinearBatteryPlugin::ISystemPostUpdate,
+                    LinearBatteryPlugin::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(LinearBatteryPlugin,
   "gz::sim::systems::LinearBatteryPlugin")
