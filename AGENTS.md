@@ -36,7 +36,7 @@ All commits must follow these rules:
 
 ### Pull Requests
 When creating a Pull Request:
-- **Template:** Always fill out the PR template: https://github.com/gazebosim/.github/blob/main/PULL_REQUEST_TEMPLATE.md 
+- **Template:** Always fill out the PR template: https://github.com/gazebosim/.github/blob/main/PULL_REQUEST_TEMPLATE.md
 - **Description:** Provide a clear and concise description of the changes, the rationale behind them, and how they were tested.
 
 ## 🔍 Additional Resources
