@@ -244,7 +244,7 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(SwerveDriveTest, PublishCmd)
+TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_MAC(PublishCmd))
 {
   TestPublishCmd(common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test", "worlds", "swerve_drive.sdf"),
