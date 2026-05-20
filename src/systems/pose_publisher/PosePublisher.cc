@@ -162,11 +162,6 @@ class gz::sim::systems::PosePublisherPrivate
   /// performance.
   public: msgs::Pose poseMsg;
 
-  /// \brief A variable that gets populated with poses. This also here as a
-  /// member variable to avoid repeated memory allocations and improve
-  /// performance.
-  public: msgs::Pose_V poseVMsg;
-
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
   public: bool usePoseV = false;
