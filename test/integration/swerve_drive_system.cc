@@ -42,6 +42,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -81,7 +82,7 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
         {
           auto id = _ecm.EntityByComponents(
             components::Model(),
-            components::Name("vehicle_blue"));;
+            components::Name("vehicle_blue"));
           EXPECT_NE(kNullEntity, id);
 
           auto poseComp = _ecm.Component<components::Pose>(id);
@@ -101,30 +102,12 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
         EXPECT_EQ(poses[0], pose);
       }
 
-      // Get odometry messages
-      double period{1.0 / 50.0};
-      double lastMsgTime{1.0};
-      std::vector<math::Pose3d> odomPoses;
-      std::function<void(const msgs::Odometry &)> odomCb =
-        [&](const msgs::Odometry &_msg)
-        {
-          ASSERT_TRUE(_msg.has_header());
-          ASSERT_TRUE(_msg.header().has_stamp());
-
-          double msgTime =
-              static_cast<double>(_msg.header().stamp().sec()) +
-              static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
-
-          EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
-          lastMsgTime = msgTime;
-
-          odomPoses.push_back(msgs::Convert(_msg.pose()));
-        };
-
-        //  Publish command and check that vehicle moved
-        transport::Node node;
+      //  Publish command and check that vehicle moved
+      transport::Node node;
       auto pub = node.Advertise<msgs::Twist>(_cmdVelTopic);
-      node.Subscribe(_odomTopic, odomCb);
+
+      Subscription<msgs::Odometry> odomSub;
+      odomSub.Subscribe(node, _odomTopic);
 
       msgs::Twist msg;
 
@@ -153,13 +136,32 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
       // Poses for 4s
       ASSERT_EQ(4000u, poses.size());
 
-      int sleep = 0;
-      int maxSleep = 30;
-      for (; odomPoses.size() < 150 && sleep < maxSleep; ++sleep)
+      // Odom for 3s
+      ASSERT_TRUE(odomSub.WaitForMessages(150u, 3s));
+
+      const auto odomMsgs = odomSub.ReadMessages();
+      EXPECT_EQ(150u, odomMsgs.size());
+
+      std::vector<math::Pose3d> odomPoses;
+      odomPoses.reserve(odomMsgs.size());
+
+      double period{1.0 / 50.0};
+      double lastMsgTime{1.0};
+
+      for (const auto &odomMsg : odomMsgs)
       {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        ASSERT_TRUE(odomMsg.has_header());
+        ASSERT_TRUE(odomMsg.header().has_stamp());
+
+        double msgTime =
+            static_cast<double>(odomMsg.header().stamp().sec()) +
+            static_cast<double>(odomMsg.header().stamp().nsec()) * 1e-9;
+
+        EXPECT_DOUBLE_EQ(msgTime, lastMsgTime + period);
+        lastMsgTime = msgTime;
+
+        odomPoses.push_back(msgs::Convert(odomMsg.pose()));
       }
-      ASSERT_NE(maxSleep, sleep);
 
       // Odometry calculates the pose of a point that is located half way
       // between the two wheels, not the origin of the model. For example,
@@ -173,12 +175,8 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
       auto finalModelFramePose =
           tOdomModel * odomPoses.back() * tOdomModel.Inverse();
 
-      // Odom for 3s
-      ASSERT_FALSE(odomPoses.empty());
-      EXPECT_EQ(150u, odomPoses.size());
-
-       auto relativeMotionPos = poses[3999].Pos() - poses[0].Pos();
-       auto relativeMotionRot = poses[3999].Rot().Yaw() - poses[0].Rot().Yaw();
+      auto relativeMotionPos = poses[3999].Pos() - poses[0].Pos();
+      auto relativeMotionRot = poses[3999].Rot().Yaw() - poses[0].Rot().Yaw();
 
       // If the linear motion is non-zero
       // the vehicle should move in the commanded direction
@@ -275,29 +273,10 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
   server.SetUpdatePeriod(0ns);
 
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Odometry &)> odomCb =
-    [&odomPosesCount](const msgs::Odometry &_msg)
-    {
-      ASSERT_TRUE(_msg.has_header());
-      ASSERT_TRUE(_msg.header().has_stamp());
-
-      ASSERT_GT(_msg.header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(
-        _msg.header().data(0).value().Get(0).c_str(), "vehicle_blue/odom");
-
-      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-        _msg.header().data(1).value().Get(0).c_str(), "vehicle_blue/chassis");
-
-      odomPosesCount++;
-    };
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
-  node.Subscribe("/model/vehicle_blue/odometry", odomCb);
+  Subscription<msgs::Odometry> odomSub;
+  odomSub.Subscribe(node, "/model/vehicle_blue/odometry");
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -307,16 +286,26 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 
   server.Run(true, 100, false);
 
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
+  ASSERT_TRUE(odomSub.WaitForMessages(5u, 3s));
 
-  EXPECT_EQ(5u, odomPosesCount);
+  const auto odomMsgs = odomSub.ReadMessages();
+  EXPECT_EQ(odomMsgs.size(), 5u);
+
+  for (const auto &odomMsg : odomMsgs)
+  {
+    ASSERT_TRUE(odomMsg.has_header());
+    ASSERT_TRUE(odomMsg.header().has_stamp());
+
+    ASSERT_GT(odomMsg.header().data_size(), 1);
+
+    EXPECT_STREQ(odomMsg.header().data(0).key().c_str(), "frame_id");
+    EXPECT_STREQ(odomMsg.header().data(0).value(0).c_str(),
+                 "vehicle_blue/odom");
+
+    EXPECT_STREQ(odomMsg.header().data(1).key().c_str(), "child_frame_id");
+    EXPECT_STREQ(odomMsg.header().data(1).value(0).c_str(),
+                 "vehicle_blue/chassis");
+  }
 }
 
 /////////////////////////////////////////////////
@@ -333,28 +322,10 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 
   server.SetUpdatePeriod(0ns);
 
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Odometry &)> odomCb =
-    [&odomPosesCount](const msgs::Odometry &_msg)
-    {
-      ASSERT_TRUE(_msg.has_header());
-      ASSERT_TRUE(_msg.header().has_stamp());
-
-      ASSERT_GT(_msg.header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "odom");
-
-      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-            _msg.header().data(1).value().Get(0).c_str(), "base_footprint");
-
-      odomPosesCount++;
-    };
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
-  node.Subscribe("/model/vehicle_blue/odometry", odomCb);
+  Subscription<msgs::Odometry> odomSub;
+  odomSub.Subscribe(node, "/model/vehicle_blue/odometry");
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -364,16 +335,25 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 
   server.Run(true, 100, false);
 
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
+  ASSERT_TRUE(odomSub.WaitForMessages(5u, 3s));
 
-  EXPECT_EQ(5u, odomPosesCount);
+  const auto odomMsgs = odomSub.ReadMessages();
+  EXPECT_EQ(odomMsgs.size(), 5u);
+
+  for (const auto &odomMsg : odomMsgs)
+  {
+    ASSERT_TRUE(odomMsg.has_header());
+    ASSERT_TRUE(odomMsg.header().has_stamp());
+
+    ASSERT_GT(odomMsg.header().data_size(), 1);
+
+    EXPECT_STREQ(odomMsg.header().data(0).key().c_str(), "frame_id");
+    EXPECT_STREQ(odomMsg.header().data(0).value(0).c_str(), "odom");
+
+    EXPECT_STREQ(odomMsg.header().data(1).key().c_str(), "child_frame_id");
+    EXPECT_STREQ(odomMsg.header().data(1).value(0).c_str(),
+                 "base_footprint");
+  }
 }
 
 /////////////////////////////////////////////////
@@ -390,31 +370,10 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 
   server.SetUpdatePeriod(0ns);
 
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Pose_V &)> Pose_VCb =
-    [&odomPosesCount](const msgs::Pose_V &_msg)
-    {
-      ASSERT_TRUE(_msg.pose(0).has_header());
-      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
-                   "frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
-                   "odom");
-
-      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
-                   "child_frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
-            "base_footprint");
-
-      odomPosesCount++;
-    };
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
-  node.Subscribe("/model/vehicle_blue/tf", Pose_VCb);
+  Subscription<msgs::Pose_V> tfSub;
+  tfSub.Subscribe(node, "/model/vehicle_blue/tf");
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -424,16 +383,28 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 
   server.Run(true, 100, false);
 
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
+  ASSERT_TRUE(tfSub.WaitForMessages(5u, 3s));
 
-  EXPECT_EQ(5u, odomPosesCount);
+  const auto tfMsgs = tfSub.ReadMessages();
+  EXPECT_EQ(tfMsgs.size(), 5u);
+
+  for (const auto &tfMsg : tfMsgs)
+  {
+    ASSERT_TRUE(tfMsg.pose(0).has_header());
+    ASSERT_TRUE(tfMsg.pose(0).header().has_stamp());
+
+    ASSERT_GT(tfMsg.pose(0).header().data_size(), 1);
+
+    EXPECT_STREQ(tfMsg.pose(0).header().data(0).key().c_str(),
+                 "frame_id");
+    EXPECT_STREQ(tfMsg.pose(0).header().data(0).value().Get(0).c_str(),
+                 "odom");
+
+    EXPECT_STREQ(tfMsg.pose(0).header().data(1).key().c_str(),
+                 "child_frame_id");
+    EXPECT_STREQ(tfMsg.pose(0).header().data(1).value().Get(0).c_str(),
+                 "base_footprint");
+  }
 }
 
 /////////////////////////////////////////////////
@@ -450,32 +421,10 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 
   server.SetUpdatePeriod(0ns);
 
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Pose_V &)> pose_VCb =
-    [&odomPosesCount](const msgs::Pose_V &_msg)
-    {
-      ASSERT_TRUE(_msg.pose(0).has_header());
-      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(0).value().Get(0).c_str(),
-            "vehicle_blue/odom");
-
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(1).value().Get(0).c_str(),
-            "vehicle_blue/chassis");
-
-      odomPosesCount++;
-    };
-
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
-  node.Subscribe("/tf_foo", pose_VCb);
+  Subscription<msgs::Pose_V> tfSub;
+  tfSub.Subscribe(node, "/tf_foo");
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -485,14 +434,25 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 
   server.Run(true, 100, false);
 
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
+  ASSERT_TRUE(tfSub.WaitForMessages(5u, 3s));
 
-  EXPECT_EQ(5u, odomPosesCount);
+  const auto tfMsgs = tfSub.ReadMessages();
+  EXPECT_EQ(tfMsgs.size(), 5u);
+
+  for (const auto &tfMsg : tfMsgs)
+  {
+    ASSERT_TRUE(tfMsg.pose(0).has_header());
+    ASSERT_TRUE(tfMsg.pose(0).header().has_stamp());
+
+    ASSERT_GT(tfMsg.pose(0).header().data_size(), 1);
+
+    EXPECT_STREQ(tfMsg.pose(0).header().data(0).key().c_str(),
+                 "frame_id");
+    EXPECT_STREQ(tfMsg.pose(0).header().data(0).value().Get(0).c_str(),
+                 "vehicle_blue/odom");
+
+    EXPECT_STREQ(tfMsg.pose(0).header().data(1).key().c_str(),
+                 "child_frame_id");
+    EXPECT_STREQ(tfMsg.pose(0).header().data(1).value().Get(0).c_str(),
+                 "vehicle_blue/chassis");  }
 }
