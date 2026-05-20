@@ -68,7 +68,6 @@ set(material_sources
 
 set (sources
   Actor.cc
-  Barrier.cc
   BaseView.cc
   Conversions.cc
   ComponentFactory.cc
@@ -105,7 +104,6 @@ set (gtest_sources
   ${gtest_sources}
   Actor_TEST.cc
   AddedMass_TEST.cc
-  Barrier_TEST.cc
   BaseView_TEST.cc
   ComponentFactory_TEST.cc
   Component_TEST.cc
