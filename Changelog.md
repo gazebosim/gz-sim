@@ -1,5 +1,75 @@
 ## Gazebo Sim 9.x
 
+### Gazebo Sim 9.5.0 (2025-10-23)
+
+1. Clean up temporary home directory to make tests more robust
+    * [Pull request #3146](https://github.com/gazebosim/gz-sim/pull/3146)
+
+1. Fix UserCommands services so that they return the actual status the executed command
+    * [Pull request #2999](https://github.com/gazebosim/gz-sim/pull/2999)
+
+1. Add EntitySemantics system that enables setting categories and tags
+    * [Pull request #3005](https://github.com/gazebosim/gz-sim/pull/3005)
+
+1. Disable failing test on macOS in EntityComponentManager_TEST
+    * [Pull request #3113](https://github.com/gazebosim/gz-sim/pull/3113)
+
+1. Refactor Transport service handlers `UserCommands`
+    * [Pull request #2996](https://github.com/gazebosim/gz-sim/pull/2996)
+
+1. Expose APIs for clearing the ECMs internal state tracking addition and removal
+    * [Pull request #3002](https://github.com/gazebosim/gz-sim/pull/3002)
+
+1. Fix xml syntax in shadow texture size tutorial
+    * [Pull request #3111](https://github.com/gazebosim/gz-sim/pull/3111)
+
+### Gazebo Sim 9.4.0 (2025-09-08)
+
+1. Fix crash when setting debug visualization mode while gi is disabled (backport #3059)
+    * [Pull request #3072](https://github.com/gazebosim/gz-sim/pull/3072)
+
+1. Fix crash and synchronize gui when disabling gi with active debug visualization mode (backport #3062)
+    * [Pull request #3067](https://github.com/gazebosim/gz-sim/pull/3067)
+
+1. Add Null Check for Scene Initialization in onRefreshCamerasImpl to Prevent Crash (backport #3051)
+    * [Pull request #3063](https://github.com/gazebosim/gz-sim/pull/3063)
+
+1. Update GUI Runner initial state request timing
+    * [Pull request #3046](https://github.com/gazebosim/gz-sim/pull/3046)
+
+1. Add param in physics system to enforce fixed constraint
+    * [Pull request #2984](https://github.com/gazebosim/gz-sim/pull/2984)
+
+1. Revert "Fix crash when calling setPose service on static and nolink entity (#2988)"
+    * [Pull request #3032](https://github.com/gazebosim/gz-sim/pull/3032)
+
+1. Fix crash when calling setPose service on static and nolink entity
+    * [Pull request #2988](https://github.com/gazebosim/gz-sim/pull/2988)
+
+1. JointController: supported nested joints
+    * [Pull request #2979](https://github.com/gazebosim/gz-sim/pull/2979)
+
+1. Update our usage of workerpools
+    * [Pull request #2995](https://github.com/gazebosim/gz-sim/pull/2995)
+
+1. Assign new gz-sim maintainer
+    * [Pull request #3014](https://github.com/gazebosim/gz-sim/pull/3014)
+
+1. Add support for loading physics engine plugins from static plugin registry
+    * [Pull request #2991](https://github.com/gazebosim/gz-sim/pull/2991)
+
+1. reset_sensors.cc: fix syntax in Stop
+    * [Pull request #3000](https://github.com/gazebosim/gz-sim/pull/3000)
+
+1. Prevent crash in ApplyForceTorque plugin
+    * [Pull request #2987](https://github.com/gazebosim/gz-sim/pull/2987)
+
+1. Fix crash caused by moving ground_plane
+    * [Pull request #2980](https://github.com/gazebosim/gz-sim/pull/2980)
+
+1. Prevent crash in OpticalTactilePlugin by checking contact data validity after world reset
+    * [Pull request #2978](https://github.com/gazebosim/gz-sim/pull/2978)
+
 ### Gazebo Sim 9.3.0 (2025-07-11)
 
 1. JointController: allow braking to be disabled in force mode

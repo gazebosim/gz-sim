@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim9 VERSION 9.3.0)
+project(gz-sim9 VERSION 9.5.0)
 set (GZ_DISTRIBUTION "Ionic")
 
 #============================================================================
@@ -118,6 +118,7 @@ set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
 # Find gz-gui
 gz_find_package(gz-gui9 REQUIRED)
 set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
+gz_find_package(TINYXML2 REQUIRED)
 gz_find_package (Qt5
   COMPONENTS
     Core
@@ -268,20 +269,28 @@ configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_D
 # there is an unreleased fix; revert this when 1.9.1 is released
 # https://github.com/gazebosim/gz-sim/issues/520
 if (NOT APPLE)
+  set(gz_sim_doxygen_tagfiles
+    "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+    "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+    "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+    "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+    "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+    "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+    "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+  )
+
+  if(EXISTS "${GZ-GUI_DOXYGEN_TAGFILE}")
+    list(APPEND gz_sim_doxygen_tagfiles
+      "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}")
+  endif()
+
   gz_create_docs(
     API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
     TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
     ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
     IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
     TAGFILES
-     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
+    ${gz_sim_doxygen_tagfiles}
   )
 endif()
 

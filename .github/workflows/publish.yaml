@@ -1,0 +1,58 @@
+# Publish new releases to Bazel Central Registry.
+name: Publish to BCR
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: git tag being released
+        required: true
+        type: string
+
+  # Automated trigger on git tag push
+  push:
+    tags:
+      # Glob pattern: branch_semver-postfix
+      - 'gz-sim[1-9]?[0-9]_[0-9]+.[0-9]+.[0-9]+*'
+jobs:
+  # The publish-to-bcr reusable workflow expects the version name to be in
+  # semver-(optional build metadata postfix) format, but the repo tags are in
+  # branch_semver-postfix format. This job extracts the branch name as a prefix
+  # to pass to publish-to-bcr.
+  extract_tag_prefix:
+    runs-on: ubuntu-latest
+    outputs:
+      prefix: ${{ steps.extract.outputs.prefix }}
+      tag_name: ${{ steps.extract.outputs.tag_name }}
+    steps:
+      - name: Determine tag name and prefix
+        id: extract
+        run: |
+          # Use input if manual, otherwise use the ref_name from the push event
+          TAG_NAME="${{ inputs.tag_name || github.ref_name }}"
+
+          # Extract prefix (everything before the underscore)
+          branch=$(echo "$TAG_NAME" | cut -d'_' -f1)
+          prefix="${branch}_"
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: extract_tag_prefix
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.0.0
+    with:
+      tag_name: ${{ needs.extract_tag_prefix.outputs.tag_name }}
+      # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
+      registry_fork: gazebo-forks/bazel-central-registry
+      attest: false
+      tag_prefix: ${{ needs.extract_tag_prefix.outputs.prefix }}
+      draft: false
+
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    secrets:
+      # Necessary to push to the BCR fork, and to open a pull request against a registry
+      publish_token: ${{ secrets.publish_token || secrets.BCR_PUBLISH_TOKEN }}

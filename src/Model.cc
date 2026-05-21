@@ -161,24 +161,24 @@ Entity Model::ModelByName(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Joints(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Joint());
 }
 
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Links(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Link());
 }
 
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Models(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Model());
 }
 

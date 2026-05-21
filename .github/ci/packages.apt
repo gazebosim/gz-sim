@@ -1,5 +1,8 @@
+binutils-dev
 freeglut3-dev
 libbenchmark-dev
+libdwarf-dev
+libdw-dev
 libfreeimage-dev
 libglew-dev
 libgz-cmake4-dev
