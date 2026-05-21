@@ -56,6 +56,11 @@ namespace systems
     ///
     /// * `<port>` : An integer that is websocket port.
     ///
+    /// * `<address>` or `<iface>` : A string that specifies the network
+    /// address or interface to bind the websocket server to. The default is
+    /// "127.0.0.1". Set to "0.0.0.0", "all", or "*" to listen on all
+    /// network interfaces.
+    ///
     /// * `<authorization_key>` : A key used for authentication. If this is
     /// set, then a connection must provide the matching key using an "auth"
     /// call on the websocket. If the `<admin_authorization_key>` is set, then
