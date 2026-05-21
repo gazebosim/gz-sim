@@ -3072,14 +3072,20 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         // Create RaycastData component for testEntity1
         testEntity1 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity1, components::RaycastData());
+        _ecm.CreateComponent(testEntity1, components::NeedsRaycast(true));
         _ecm.CreateComponent(
           testEntity1, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+        _ecm.CreateComponent(
+          testEntity1, components::WorldPose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Create RaycastData component for testEntity2
         testEntity2 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity2, components::RaycastData());
+        _ecm.CreateComponent(testEntity2, components::NeedsRaycast(true));
         _ecm.CreateComponent(
           testEntity2, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+        _ecm.CreateComponent(
+          testEntity2, components::WorldPose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Add 5 rays to testEntity1 that intersect with the ground plane
         auto &rays1 =
