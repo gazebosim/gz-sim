@@ -424,8 +424,7 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
     enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
 
     // Keep track of this sensor
-    this->entitySensorMap.insert(std::make_pair(_entity,
-        std::move(sensor)));
+    this->entitySensorMap.insert_or_assign(_entity, std::move(sensor));
   }
 
   public: void RemoveSensorEntities(
