@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -1169,13 +1170,17 @@ void WebsocketServer::OnAsset(int _socketId,
   if (!resolvedPath.empty())
   {
     // Verify the path is inside allowed resource paths
-    std::string canonicalResolved = common::absPath(resolvedPath);
+    std::string canonicalResolved =
+        std::filesystem::weakly_canonical(resolvedPath).string();
     bool allowed = false;
     for (const std::string &resPath : sim::resourcePaths())
     {
-      std::string canonicalRes = common::absPath(resPath);
+      std::string canonicalRes =
+          std::filesystem::weakly_canonical(resPath).string();
       if (canonicalRes.empty())
         continue;
+
+      std::string canonicalResNoSep = canonicalRes;
 
       // Ensure trailing separator
       if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
@@ -1183,7 +1188,7 @@ void WebsocketServer::OnAsset(int _socketId,
         canonicalRes = common::separator(canonicalRes);
       }
 
-      if (canonicalResolved == common::absPath(resPath) ||
+      if (canonicalResolved == canonicalResNoSep ||
           canonicalResolved.rfind(canonicalRes, 0) == 0)
       {
         allowed = true;
