@@ -1193,7 +1193,8 @@ void WebsocketServer::OnAsset(int _socketId,
 
     if (!allowed)
     {
-      gzerr << "Asset path [" << resolvedPath << "] is not within the allowed resource paths. Access denied.\n";
+      gzerr << "Asset path [" << resolvedPath
+        << "] is not within the allowed resource paths. Access denied.\n";
       gz::msgs::StringMsg msg;
       msg.set_data("asset_access_denied");
       std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
