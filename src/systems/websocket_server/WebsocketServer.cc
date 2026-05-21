@@ -515,6 +515,31 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
     address = ifaceElem->Get<std::string>();
   }
 
+  // Sanitize the address to prevent potential security/injection issues
+  bool validAddress = true;
+  if (address.length() > 255)
+  {
+    validAddress = false;
+  }
+  else if (address != "*")
+  {
+    for (char c : address)
+    {
+      if (!std::isalnum(c) && c != '.' && c != ':' && c != '-' && c != '_')
+      {
+        validAddress = false;
+        break;
+      }
+    }
+  }
+
+  if (!validAddress)
+  {
+    gzwarn << "Invalid characters or excessive length in address/iface ["
+           << address << "]. Falling back to 127.0.0.1.\n";
+    address = "127.0.0.1";
+  }
+
   struct lws_context_creation_info info;
   memset(&info, 0, sizeof info);
   info.port = port;
