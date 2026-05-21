@@ -295,6 +295,11 @@ class gz::sim::systems::SceneBroadcasterPrivate
   ///  frequently enough)
   public: std::unordered_map<ComponentTypeId,
     std::unordered_set<Entity>> changedComponents;
+
+  /// \brief Arena used to allocate the per-step pose messages. Reset() is
+  /// called after each publish so the bump-allocator block is reused
+  /// without freeing back to the system allocator.
+  public: google::protobuf::Arena arena;
 };
 
 
@@ -502,15 +507,14 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("SceneBroadcast::PoseUpdate");
 
-  google::protobuf::Arena arena;
 #if GOOGLE_PROTOBUF_VERSION >= 4022000
-  auto *poseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&arena);
-  auto *dyPoseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&arena);
+  auto *poseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&this->arena);
+  auto *dyPoseMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&this->arena);
 #else
   auto *poseMsg =
-    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
+    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&this->arena);
   auto *dyPoseMsg =
-    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena);
+    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&this->arena);
 #endif
   bool dyPoseConnections = this->dyPosePub.HasConnections();
   bool poseConnections = this->posePub.HasConnections();
@@ -619,6 +623,11 @@ void SceneBroadcasterPrivate::PoseUpdate(const UpdateInfo &_info,
 
     this->posePub.Publish(*poseMsg);
   }
+
+  // Reset() drops the messages but keeps the arena's initial block mapped,
+  // so subsequent allocations bump-allocate without going through the
+  // system allocator.
+  this->arena.Reset();
 }
 
 //////////////////////////////////////////////////

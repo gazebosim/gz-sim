@@ -162,6 +162,11 @@ class gz::sim::systems::PosePublisherPrivate
   /// performance.
   public: msgs::Pose poseMsg;
 
+  /// \brief Arena used to allocate the Pose_V message when usePoseV is true.
+  /// Reset() is called after each publish so the bump-allocator block is
+  /// reused without freeing back to the system allocator.
+  public: google::protobuf::Arena arena;
+
   /// \brief True to publish a vector of poses. False to publish individual pose
   /// msgs.
   public: bool usePoseV = false;
@@ -544,15 +549,17 @@ void PosePublisherPrivate::PublishPoses(
     return;
 
   // publish poses
-  google::protobuf::Arena arena;
   msgs::Pose *msg = nullptr;
+  msgs::Pose_V *arenaPoseVMsg = nullptr;
+  if (this->usePoseV)
+  {
 #if GOOGLE_PROTOBUF_VERSION >= 4022000
-  auto *arenaPoseVMsg = this->usePoseV ?
-    google::protobuf::Arena::Create<msgs::Pose_V>(&arena) : nullptr;
+    arenaPoseVMsg = google::protobuf::Arena::Create<msgs::Pose_V>(&this->arena);
 #else
-  auto *arenaPoseVMsg = this->usePoseV ?
-    google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&arena) : nullptr;
+    arenaPoseVMsg =
+      google::protobuf::Arena::CreateMessage<msgs::Pose_V>(&this->arena);
 #endif
+  }
 
   for (const auto &[entity, pose] : _poses)
   {
@@ -599,7 +606,13 @@ void PosePublisherPrivate::PublishPoses(
 
   // publish pose vector msg
   if (this->usePoseV)
+  {
     _publisher.Publish(*arenaPoseVMsg);
+    // Reset() drops the message but keeps the arena's initial block mapped,
+    // so subsequent allocations bump-allocate without going through the
+    // system allocator.
+    this->arena.Reset();
+  }
 }
 
 GZ_ADD_PLUGIN(PosePublisher,

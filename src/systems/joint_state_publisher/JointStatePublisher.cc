@@ -211,11 +211,10 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 
   // Create the message on an arena so all sub-messages (joints, axes,
   // poses) are allocated from a single block instead of individual mallocs.
-  google::protobuf::Arena arena;
 #if GOOGLE_PROTOBUF_VERSION >= 4022000
-  auto *msg = google::protobuf::Arena::Create<msgs::Model>(&arena);
+  auto *msg = google::protobuf::Arena::Create<msgs::Model>(&this->arena);
 #else
-  auto *msg = google::protobuf::Arena::CreateMessage<msgs::Model>(&arena);
+  auto *msg = google::protobuf::Arena::CreateMessage<msgs::Model>(&this->arena);
 #endif
   msg->mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
@@ -342,6 +341,11 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 
   // Publish the message.
   this->modelPub->Publish(*msg);
+
+  // Reset() drops the message but keeps the arena's initial block mapped,
+  // so subsequent allocations bump-allocate without going through the
+  // system allocator.
+  this->arena.Reset();
 }
 
 GZ_ADD_PLUGIN(JointStatePublisher,
