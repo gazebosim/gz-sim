@@ -47,10 +47,12 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Image.hh>
 #include <gz/common/Util.hh>
 #include <gz/msgs/Factory.hh>
 #include <gz/plugin/Register.hh>
+#include <gz/sim/Util.hh>
 #include <gz/transport/Publisher.hh>
 #include <gz/transport/TopicUtils.hh>
 
@@ -502,10 +504,27 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   // We will handle logging
   lws_set_log_level( 0, lwsl_emit_syslog);
 
+  std::string address = "127.0.0.1";
+  if (sdf::ElementConstPtr addressElem = _sdf->FindElement("address"))
+  {
+    address = addressElem->Get<std::string>();
+  }
+  else if (sdf::ElementConstPtr ifaceElem = _sdf->FindElement("iface"))
+  {
+    address = ifaceElem->Get<std::string>();
+  }
+
   struct lws_context_creation_info info;
   memset(&info, 0, sizeof info);
   info.port = port;
-  info.iface = nullptr;
+  if (address == "0.0.0.0" || address == "all" || address == "*")
+  {
+    info.iface = nullptr;
+  }
+  else
+  {
+    info.iface = address.c_str();
+  }
   info.protocols = &this->protocols[0];
 
   if (!sslCertFile.empty() && !sslPrivateKeyFile.empty())
@@ -1149,6 +1168,42 @@ void WebsocketServer::OnAsset(int _socketId,
 
   if (!resolvedPath.empty())
   {
+    // Verify the path is inside allowed resource paths
+    std::string canonicalResolved = common::absPath(resolvedPath);
+    bool allowed = false;
+    for (const std::string &resPath : sim::resourcePaths())
+    {
+      std::string canonicalRes = common::absPath(resPath);
+      if (canonicalRes.empty())
+        continue;
+
+      // Ensure trailing separator
+      if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
+      {
+        canonicalRes = common::separator(canonicalRes);
+      }
+
+      if (canonicalResolved == common::absPath(resPath) ||
+          canonicalResolved.rfind(canonicalRes, 0) == 0)
+      {
+        allowed = true;
+        break;
+      }
+    }
+
+    if (!allowed)
+    {
+      gzerr << "Asset path [" << resolvedPath << "] is not within the allowed resource paths. Access denied.\n";
+      gz::msgs::StringMsg msg;
+      msg.set_data("asset_access_denied");
+      std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
+          msg.GetTypeName(), msg.SerializeAsString());
+
+      this->QueueMessage(this->connections[_socketId].get(),
+          data.c_str(), data.length());
+      return;
+    }
+
     // Read the file
     std::ifstream infile(resolvedPath, std::ios_base::binary);
     std::string fileBuffer = std::string(
