@@ -33,6 +33,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -1195,40 +1196,49 @@ void WebsocketServer::OnAsset(int _socketId,
 
   if (!resolvedPath.empty())
   {
-    // Verify the path is inside allowed resource paths
+    std::error_code ec;
     std::string canonicalResolved =
-        std::filesystem::weakly_canonical(resolvedPath).string();
+        std::filesystem::weakly_canonical(resolvedPath, ec).string();
     bool allowed = false;
 
-    std::vector<std::string> allowedPaths = sim::resourcePaths();
-    fuel_tools::ClientConfig fuelConfig;
-    std::string fuelCachePath = fuelConfig.CacheLocation();
-    if (!fuelCachePath.empty())
+    if (!ec)
     {
-      allowedPaths.push_back(fuelCachePath);
+      std::vector<std::string> allowedPaths = sim::resourcePaths();
+      fuel_tools::ClientConfig fuelConfig;
+      std::string fuelCachePath = fuelConfig.CacheLocation();
+      if (!fuelCachePath.empty())
+      {
+        allowedPaths.push_back(fuelCachePath);
+      }
+
+      for (const std::string &resPath : allowedPaths)
+      {
+        std::error_code pathEc;
+        std::string canonicalRes =
+            std::filesystem::weakly_canonical(resPath, pathEc).string();
+        if (pathEc || canonicalRes.empty())
+          continue;
+
+        std::string canonicalResNoSep = canonicalRes;
+
+        // Ensure trailing separator
+        if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
+        {
+          canonicalRes = common::separator(canonicalRes);
+        }
+
+        if (canonicalResolved == canonicalResNoSep ||
+            canonicalResolved.rfind(canonicalRes, 0) == 0)
+        {
+          allowed = true;
+          break;
+        }
+      }
     }
-
-    for (const std::string &resPath : allowedPaths)
+    else
     {
-      std::string canonicalRes =
-          std::filesystem::weakly_canonical(resPath).string();
-      if (canonicalRes.empty())
-        continue;
-
-      std::string canonicalResNoSep = canonicalRes;
-
-      // Ensure trailing separator
-      if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
-      {
-        canonicalRes = common::separator(canonicalRes);
-      }
-
-      if (canonicalResolved == canonicalResNoSep ||
-          canonicalResolved.rfind(canonicalRes, 0) == 0)
-      {
-        allowed = true;
-        break;
-      }
+      gzerr << "Failed to resolve canonical path for [" << resolvedPath
+            << "]: " << ec.message() << "\n";
     }
 
     if (!allowed)
