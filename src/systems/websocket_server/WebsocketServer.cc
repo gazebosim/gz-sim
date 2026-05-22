@@ -519,7 +519,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
 
   // Sanitize the address to prevent potential security/injection issues
   bool validAddress = true;
-  if (this->address.length() > 255)
+  if (address.empty() || address.length() > 255) validAddress = false;
   {
     validAddress = false;
   }
