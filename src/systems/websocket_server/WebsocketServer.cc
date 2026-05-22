@@ -527,7 +527,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   {
     for (char c : address)
     {
-      if (!std::isalnum(c) && c != '.' && c != ':' && c != '-' && c != '_')
+      if (!std::isalnum(static_cast<unsigned char>(c)) && c != '.' && c != ':' && c != '-' && c != '_')
       {
         validAddress = false;
         break;
