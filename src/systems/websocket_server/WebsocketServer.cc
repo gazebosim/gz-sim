@@ -519,7 +519,7 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
 
   // Sanitize the address to prevent potential security/injection issues
   bool validAddress = true;
-  if (address.empty() || address.length() > 255) validAddress = false;
+  if (this->address.empty() || this->address.length() > 255)
   {
     validAddress = false;
   }
@@ -1196,49 +1196,58 @@ void WebsocketServer::OnAsset(int _socketId,
 
   if (!resolvedPath.empty())
   {
-    std::error_code ec;
-    std::string canonicalResolved =
-        std::filesystem::weakly_canonical(resolvedPath, ec).string();
     bool allowed = false;
-
-    if (!ec)
+    try
     {
-      std::vector<std::string> allowedPaths = sim::resourcePaths();
-      fuel_tools::ClientConfig fuelConfig;
-      std::string fuelCachePath = fuelConfig.CacheLocation();
-      if (!fuelCachePath.empty())
+      std::error_code ec;
+      std::string canonicalResolved =
+          std::filesystem::weakly_canonical(resolvedPath, ec).string();
+
+      if (!ec)
       {
-        allowedPaths.push_back(fuelCachePath);
+        std::vector<std::string> allowedPaths = sim::resourcePaths();
+        fuel_tools::ClientConfig fuelConfig;
+        std::string fuelCachePath = fuelConfig.CacheLocation();
+        if (!fuelCachePath.empty())
+        {
+          allowedPaths.push_back(fuelCachePath);
+        }
+
+        for (const std::string &resPath : allowedPaths)
+        {
+          std::error_code pathEc;
+          std::string canonicalRes =
+              std::filesystem::weakly_canonical(resPath, pathEc).string();
+          if (pathEc || canonicalRes.empty())
+            continue;
+
+          std::string canonicalResNoSep = canonicalRes;
+
+          // Ensure trailing separator
+          if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
+          {
+            canonicalRes = common::separator(canonicalRes);
+          }
+
+          if (canonicalResolved == canonicalResNoSep ||
+              canonicalResolved.rfind(canonicalRes, 0) == 0)
+          {
+            allowed = true;
+            break;
+          }
+        }
       }
-
-      for (const std::string &resPath : allowedPaths)
+      else
       {
-        std::error_code pathEc;
-        std::string canonicalRes =
-            std::filesystem::weakly_canonical(resPath, pathEc).string();
-        if (pathEc || canonicalRes.empty())
-          continue;
-
-        std::string canonicalResNoSep = canonicalRes;
-
-        // Ensure trailing separator
-        if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
-        {
-          canonicalRes = common::separator(canonicalRes);
-        }
-
-        if (canonicalResolved == canonicalResNoSep ||
-            canonicalResolved.rfind(canonicalRes, 0) == 0)
-        {
-          allowed = true;
-          break;
-        }
+        gzerr << "Failed to resolve canonical path for [" << resolvedPath
+              << "]: " << ec.message() << "\n";
       }
     }
-    else
+    catch (const std::exception &_e)
     {
-      gzerr << "Failed to resolve canonical path for [" << resolvedPath
-            << "]: " << ec.message() << "\n";
+      gzerr << "Exception thrown while resolving canonical path for [" << resolvedPath
+            << "]: " << _e.what() << "\n";
+      allowed = false;
     }
 
     if (!allowed)
