@@ -1216,11 +1216,24 @@ void WebsocketServer::OnAsset(int _socketId,
         for (const std::string &resPath : allowedPaths)
         {
           std::error_code pathEc;
-          std::string canonicalRes =
-              std::filesystem::weakly_canonical(resPath, pathEc).string();
-          if (pathEc || canonicalRes.empty())
+          std::string canonicalRes = "";
+          try
+          {
+            canonicalRes =
+                std::filesystem::weakly_canonical(resPath, pathEc).string();
+            if (pathEc || canonicalRes.empty())
+            {
+              gzwarn << "Failed to resolve canonical path for resource path["
+                    << resPath << "]: " << pathEc.message() << "\n";
+              continue;
+            }
+          }
+          catch (std::exception &e)
+          {
+            gzwarn << "Failed to resolve canonical path for resource path["
+                  << resPath << "]: " << e.what() << "\n";
             continue;
-
+          }
           std::string canonicalResNoSep = canonicalRes;
 
           // Ensure trailing separator
