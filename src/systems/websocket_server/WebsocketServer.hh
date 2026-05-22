@@ -368,6 +368,15 @@ namespace systems
       /// \brief Administrator authorization key used to validate a web-socket
       /// connection.
       private: std::string adminAuthorizationKey;
+
+      /// \brief Network address or interface to bind the websocket server to.
+      private: std::string address;
+
+      /// \brief SSL certificate file path.
+      private: std::string sslCertFile;
+
+      /// \brief SSL private key file path.
+      private: std::string sslPrivateKeyFile;
     };
 }
 }
