@@ -54,6 +54,7 @@
 #include <gz/msgs/Factory.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Util.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/transport/Publisher.hh>
 #include <gz/transport/TopicUtils.hh>
 
@@ -1198,7 +1199,16 @@ void WebsocketServer::OnAsset(int _socketId,
     std::string canonicalResolved =
         std::filesystem::weakly_canonical(resolvedPath).string();
     bool allowed = false;
-    for (const std::string &resPath : sim::resourcePaths())
+
+    std::vector<std::string> allowedPaths = sim::resourcePaths();
+    fuel_tools::ClientConfig fuelConfig;
+    std::string fuelCachePath = fuelConfig.CacheLocation();
+    if (!fuelCachePath.empty())
+    {
+      allowedPaths.push_back(fuelCachePath);
+    }
+
+    for (const std::string &resPath : allowedPaths)
     {
       std::string canonicalRes =
           std::filesystem::weakly_canonical(resPath).string();
