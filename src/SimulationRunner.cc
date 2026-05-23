@@ -379,6 +379,12 @@ void SimulationRunner::UpdateCurrentInfo()
 {
   GZ_PROFILE("SimulationRunner::UpdateCurrentInfo");
 
+  // Distributed
+  if (this->networkMgr != nullptr)
+  {
+    this->currentInfo.isDistributed = true;
+  }
+
   // Rewind
   if (this->requestedRewind)
   {
@@ -777,6 +783,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr->IsSecondary())
     {
       gzdbg << "Secondary running." << std::endl;
+
+      // Create entities if set. This needs to be called before updating
+      // the systems (so cannot be called in Step).
+      if (this->createEntities)
+      {
+        this->CreateEntities();
+      }
+
       while (!this->stopReceived)
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -788,7 +802,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Keep track of wall clock time. Only start the realTimeWatch if this
   // runner is not paused.
   if (!this->currentInfo.paused)
+  {
     this->realTimeWatch.Start();
+  }
 
   this->running = true;
 
@@ -838,7 +854,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Create the clock publisher.
   if (!this->clockPub.Valid())
+  {
     this->clockPub = this->node->Advertise<msgs::Clock>("clock");
+  }
 
   // Create the global clock publisher.
   if (!this->rootClockPub.Valid())
@@ -1042,17 +1060,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 {
   GZ_PROFILE("SimulationRunner::Step");
   this->currentInfo = _info;
-
-  // The Run method does not check for entity creation each iteration
-  // on network secondaries, so check here to ensure that performers
-  // have parents assigned.
-  if (this->networkMgr && this->networkMgr->IsSecondary())
-  {
-    if (this->createEntities)
-    {
-      this->CreateEntities();
-    }
-  }
 
   // Process new ECM state information, typically sent from the GUI after
   // a change was made to the GUI's ECM.
