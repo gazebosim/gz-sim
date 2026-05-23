@@ -388,7 +388,35 @@ bool Breadcrumbs::MakeStatic(Entity _entity, EntityComponentManager &_ecm)
       components::CanonicalLink(), components::ParentEntity(_entity));
 
   if (childLinkEntity == kNullEntity)
+<<<<<<< HEAD
     return false;
+=======
+  {
+    // Find canonical link within nested model
+    auto findCanonicalLink = [&_ecm](Entity _parent, auto &&_findCanonicalLink)
+    {
+      auto nestedEntities = _ecm.ChildrenByComponents(_parent,
+          components::Model());
+      for (const auto ent : nestedEntities)
+      {
+        auto comp = _ecm.Component<components::ModelCanonicalLink>(ent);
+        if (comp)
+        {
+          return comp->Data();
+        }
+        else
+        {
+          // recursively search for canonical link
+          return _findCanonicalLink(ent, _findCanonicalLink);
+        }
+      }
+      return kNullEntity;
+    };
+    childLinkEntity = findCanonicalLink(_entity, findCanonicalLink);
+    if (childLinkEntity == kNullEntity)
+      return false;
+  }
+>>>>>>> 225333f9 ([Performance] - Remove / Optimize EntitiesByComponents calls (#3362))
 
   Entity detachableJointEntity = _ecm.CreateEntity();
   _ecm.CreateComponent(detachableJointEntity,
