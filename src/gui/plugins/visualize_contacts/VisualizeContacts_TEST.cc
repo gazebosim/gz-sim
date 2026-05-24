@@ -25,6 +25,7 @@
 #pragma warning(pop)
 #endif
 
+#include <functional>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -61,7 +62,7 @@ TEST_F(VisualizeContactsTest, RequestsContactDataForNewCollisions)
 
   std::mutex mutex;
   std::vector<sim::Entity> requestedCollisions;
-  auto enableCollisionCb =
+  std::function<bool(const msgs::Entity &, msgs::Boolean &)> enableCollisionCb =
     [&mutex, &requestedCollisions](const msgs::Entity &_req,
                                    msgs::Boolean &_res) -> bool
     {
