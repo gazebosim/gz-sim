@@ -24,6 +24,17 @@
 
 #include "gz/gui/qt.h"
 
+#ifndef _WIN32
+#  define VisualizeContacts_EXPORTS_API \
+      __attribute__ ((visibility ("default")))
+#else
+#  if (defined(VisualizeContacts_EXPORTS))
+#    define VisualizeContacts_EXPORTS_API __declspec(dllexport)
+#  else
+#    define VisualizeContacts_EXPORTS_API __declspec(dllimport)
+#  endif
+#endif
+
 namespace gz
 {
 namespace sim
@@ -36,7 +47,8 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   /// \brief Visualize the contacts returned by the Physics plugin. Use the
   /// checkbox to turn visualization on or off and spin boxes to change
   /// the size of the markers.
-  class VisualizeContacts : public gz::sim::GuiSystem
+  class VisualizeContacts_EXPORTS_API VisualizeContacts :
+    public gz::sim::GuiSystem
   {
     Q_OBJECT
 
