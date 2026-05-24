@@ -303,9 +303,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
   const auto pressureCountBeforeSecondRun = pressureReceiver.Count();
   const auto imageCountBeforeSecondRun = imageReceiver.Count();
 
-<<<<<<< HEAD
-  server.Run(true, 2000 - server.IterationCount().value(), false);
-=======
   server.Run(true, remainingSteps(postResetTarget), false);
   ASSERT_TRUE(gz::sim::test::WaitUntil(5s,
       [&pressureReceiver, &imageReceiver, pressureCountBeforeSecondRun,
@@ -314,7 +311,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
         return pressureReceiver.Count() > pressureCountBeforeSecondRun &&
             imageReceiver.Count() > imageCountBeforeSecondRun;
       }));
->>>>>>> e515ce19 (Add reset test helpers and migrate reset integration tests (#3503))
 
   // Check iterator state
   EXPECT_EQ(postResetTarget, server.IterationCount().value());
