@@ -24,6 +24,7 @@
 #include <gz/msgs/marker.pb.h>
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <sdf/Link.hh>
@@ -96,6 +97,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief Collision entities that have already had ContactSensorData
+    /// requested through the user commands service.
+    public: std::unordered_set<Entity> requestedCollisions;
   };
 }
 }
@@ -182,9 +187,13 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
         });
     }
 
+    this->dataPtr->initialized = !this->dataPtr->worldName.empty();
+  }
+
+  if (this->dataPtr->initialized)
+  {
     // Enable collisions
     this->dataPtr->CreateCollisionData(_ecm);
-    this->dataPtr->initialized = true;
   }
 
   {
@@ -269,6 +278,13 @@ void VisualizeContactsPrivate::CreateCollisionData(
       {
         gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
           << std::endl;
+        this->requestedCollisions.erase(_entity);
+        return true;
+      }
+
+      if (this->requestedCollisions.find(_entity) !=
+          this->requestedCollisions.end())
+      {
         return true;
       }
 
@@ -282,7 +298,12 @@ void VisualizeContactsPrivate::CreateCollisionData(
       unsigned int timeout = 50;
       std::string service = "/world/" + this->worldName + "/enable_collision";
 
-      this->node.Request(service, req, timeout, res, result);
+      const bool executed = this->node.Request(service, req, timeout, res,
+        result);
+      if (executed && result && res.data())
+      {
+        this->requestedCollisions.insert(_entity);
+      }
 
       return true;
     });
