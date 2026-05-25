@@ -44,7 +44,7 @@ using IntComponent = components::Component<int, class IntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.IntComponent",
     IntComponent)
 
-using UIntComponent = components::Component<int, class IntComponentTag>;
+using UIntComponent = components::Component<uint32_t, class UIntComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.UIntComponent",
     UIntComponent)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
-#ifndef GZ_SIM_COMPONENTS_STATIC_HH_
-#define GZ_SIM_COMPONENTS_STATIC_HH_
+*/
+#ifndef GZ_SIM_COMPONENTS_CPU_LIDAR_HH_
+#define GZ_SIM_COMPONENTS_CPU_LIDAR_HH_
 
+#include <sdf/Sensor.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
 namespace gz
@@ -29,19 +31,13 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component used to indicate that a model is static (i.e. not
-  /// moveable).
-  using Static = Component<bool, class StaticTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
-
-  /// \brief A component that contains a bool command to change the static state
-  /// of an entity.
-  using StaticCmd = Component<bool, class StaticCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT(
-      "gz_sim_components.StaticCmd", StaticCmd)
+  /// \brief A component type that contains a CPU lidar sensor,
+  /// sdf::Sensor, information.
+  using CpuLidar = Component<sdf::Sensor, class CpuLidarTag,
+      serializers::SensorSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CpuLidar", CpuLidar)
 }
 }
 }
 }
-
 #endif

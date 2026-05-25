@@ -67,6 +67,16 @@
 #include "LevelManager.hh"
 #include "SdfGenerator.hh"
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 using namespace gz;
 using namespace sim;
 
@@ -104,6 +114,34 @@ struct MaybeGilScopedRelease
 
 }
 
+#ifdef _WIN32
+namespace gz
+{
+namespace sim
+{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
+// Utility class to store the windows HANDLE variable and close
+// the handle using RAII. This class also hides the HANDLE
+// type from the global header files.
+class SimulationRunnerWinHandleStorage
+{
+  private: HANDLE handleStorage{NULL};
+
+  public: HANDLE handle() { return handleStorage; }
+
+  public: SimulationRunnerWinHandleStorage(HANDLE h) : handleStorage(h) {}
+
+  public: ~SimulationRunnerWinHandleStorage() {
+    if (handleStorage != NULL)
+    {
+      CloseHandle(handleStorage);
+    }
+  }
+};
+}
+}
+}
+#endif
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
@@ -182,6 +220,16 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
   this->currentInfo.simTime = this->simTimeEpoch;
+
+#ifdef _WIN32
+  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  if (winPrecisionTimerHandle != NULL)
+  {
+    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(
+      winPrecisionTimerHandle);
+  }
+#endif
 
   // World control
   transport::NodeOptions opts;
@@ -318,12 +366,6 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   gzmsg << "Serving world SDF generation service on [" << opts.NameSpace()
          << "/" << genWorldSdfService << "]" << std::endl;
-}
-
-//////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner()
-{
-  this->StopWorkerThreads();
 }
 
 /////////////////////////////////////////////////
@@ -564,52 +606,10 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending && !this->threadsNeedCleanUp)
+  if (0 == pending)
     return;
 
-  // If additional systems are to be added or have been removed,
-  // stop the existing threads.
-  this->StopWorkerThreads();
-
-  this->threadsNeedCleanUp = false;
-
   this->systemMgr->ActivatePendingSystems();
-
-  unsigned int threadCount =
-    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
-
-  gzdbg << "Creating PostUpdate worker threads: "
-    << threadCount << std::endl;
-
-  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
-  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
-
-  this->postUpdateThreadsRunning = true;
-  int id = 0;
-
-  for (auto &system : this->systemMgr->SystemsPostUpdate())
-  {
-    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
-
-    this->postUpdateThreads.push_back(std::thread([&, id]()
-    {
-      std::stringstream ss;
-      ss << "PostUpdateThread: " << id;
-      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
-      while (this->postUpdateThreadsRunning)
-      {
-        this->postUpdateStartBarrier->Wait();
-        if (this->postUpdateThreadsRunning)
-        {
-          system->PostUpdate(this->currentInfo, this->entityCompMgr);
-        }
-        this->postUpdateStopBarrier->Wait();
-      }
-      gzdbg << "Exiting postupdate worker thread ("
-        << id << ")" << std::endl;
-    }));
-    id++;
-  }
 }
 
 /////////////////////////////////////////////////
@@ -653,19 +653,10 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    for (auto &system : this->systemMgr->SystemsPostUpdate())
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      system->PostUpdate(this->currentInfo, this->entityCompMgr);
     }
-    this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
 }
 
@@ -680,25 +671,6 @@ void SimulationRunner::OnStop()
 {
   this->stopReceived = true;
   this->running = false;
-}
-
-/////////////////////////////////////////////////
-void SimulationRunner::StopWorkerThreads()
-{
-  this->postUpdateThreadsRunning = false;
-  if (this->postUpdateStartBarrier)
-  {
-    this->postUpdateStartBarrier->Cancel();
-  }
-  if (this->postUpdateStopBarrier)
-  {
-    this->postUpdateStopBarrier->Cancel();
-  }
-  for (auto &thread : this->postUpdateThreads)
-  {
-    thread.join();
-  }
-  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
@@ -914,14 +886,45 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       // larger than the typical OS + CPU C-state latency.
       constexpr auto kSpinThreshold = 200us;
 
+      auto now = std::chrono::steady_clock::now();
+
       // If the scheduled update time is in the future...
-      if (nextUpdateTime > std::chrono::steady_clock::now())
+      if (nextUpdateTime > now)
       {
         // ...sleep until we are close to the target time.
         auto sleepTarget = nextUpdateTime - kSpinThreshold;
-        if (sleepTarget > std::chrono::steady_clock::now())
+        if (sleepTarget > now)
         {
+#ifndef _WIN32
           std::this_thread::sleep_until(sleepTarget);
+#else
+          if (winPrecisionTimer)
+          {
+            auto sleepTargetDuration =
+              std::chrono::duration_cast<std::chrono::microseconds>(
+              sleepTarget - now);
+            LARGE_INTEGER due_time;
+            memset(&due_time, 0, sizeof(due_time));
+            // Positive durations are absolute, while negative durations
+            // are relative in 10 us intervals.
+            // The absolute time uses the non-precision system clock so we
+            // need to use relative time.
+            due_time.QuadPart = -sleepTargetDuration.count() * 10;
+            if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0,
+              NULL, NULL, FALSE) != TRUE)
+            {
+              gzerr << "Could not SetWaitableTimer" << std::endl;
+            }
+            else
+            {
+              WaitForSingleObject(winPrecisionTimer->handle(), INFINITE);
+            }
+          }
+          else
+          {
+            std::this_thread::sleep_until(sleepTarget);
+          }
+#endif
         }
 
         // ...then busy-wait for the final moments for precision.
@@ -932,7 +935,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       }
 
       // Schedule the next update time.
-      auto now = std::chrono::steady_clock::now();
+      now = std::chrono::steady_clock::now();
       nextUpdateTime += this->updatePeriod;
       if (nextUpdateTime < now)
       {
@@ -1032,8 +1035,7 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
-  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
-    this->threadsNeedCleanUp);
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
