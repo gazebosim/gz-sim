@@ -87,7 +87,7 @@ namespace gz
                                 bool _createEntities = true);
 
       /// \brief Destructor.
-      public: virtual ~SimulationRunner();
+      public: virtual ~SimulationRunner() = default;
 
       /// \brief Stop running
       public: void Stop();
