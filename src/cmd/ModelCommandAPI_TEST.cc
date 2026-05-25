@@ -15,6 +15,7 @@
  *
 */
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <sstream>
@@ -30,9 +31,9 @@
 static const std::string kGzModelCommand(std::string(GZ_PATH) + " model ");
 
 /////////////////////////////////////////////////
-/// \brief Used to avoid the cases where the zero is
-/// represented as a negative number.
-/// \param _text Output string that may have negative zero values.
+/// \brief Used to avoid the cases where zero is represented as a negative
+/// number or near-zero scientific notation.
+/// \param _text Output string that may have negative or near-zero values.
 void ReplaceNegativeZeroValues(std::string &_text)
 {
   std::string neg_zero{"-0.000000"};
@@ -42,6 +43,34 @@ void ReplaceNegativeZeroValues(std::string &_text)
   {
     _text.replace(pos, neg_zero.length(), zero);
     pos += zero.length();
+  }
+
+  pos = 0;
+  while (pos < _text.size())
+  {
+    auto start = _text.find_first_of("+-0123456789.", pos);
+    if (std::string::npos == start)
+      break;
+
+    auto end = _text.find_first_not_of("+-0123456789.eE", start);
+    const auto tokenSize = (std::string::npos == end) ?
+      _text.size() - start : end - start;
+    const auto token = _text.substr(start, tokenSize);
+
+    if (std::string::npos != token.find_first_of("eE"))
+    {
+      char *parseEnd = nullptr;
+      const auto value = std::strtod(token.c_str(), &parseEnd);
+      if (parseEnd == token.c_str() + token.size() &&
+          std::abs(value) < 1e-12)
+      {
+        _text.replace(start, tokenSize, "0");
+        pos = start + 1;
+        continue;
+      }
+    }
+
+    pos = (std::string::npos == end) ? _text.size() : end;
   }
 }
 
