@@ -20,15 +20,15 @@
 #pragma warning(push, 0)
 #endif
 #include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/empty.pb.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
+#include <cstddef>
 #include <functional>
 #include <mutex>
 #include <string>
-#include <vector>
 
 #include <gz/transport/Node.hh>
 
@@ -49,7 +49,7 @@ class VisualizeContactsTest : public ::testing::Test
 };
 
 /////////////////////////////////////////////////
-TEST_F(VisualizeContactsTest, RequestsContactDataForNewCollisions)
+TEST_F(VisualizeContactsTest, RequestsContactDataOnce)
 {
   sim::EntityComponentManager ecm;
 
@@ -61,20 +61,20 @@ TEST_F(VisualizeContactsTest, RequestsContactDataForNewCollisions)
   ecm.CreateComponent(firstCollision, sim::components::Collision());
 
   std::mutex mutex;
-  std::vector<sim::Entity> requestedCollisions;
-  std::function<bool(const msgs::Entity &, msgs::Boolean &)> enableCollisionCb =
-    [&mutex, &requestedCollisions](const msgs::Entity &_req,
-                                   msgs::Boolean &_res) -> bool
+  std::size_t requestCount{0};
+  std::function<bool(const msgs::Empty &, msgs::Boolean &)> enableCollisionsCb =
+    [&mutex, &requestCount](const msgs::Empty &,
+                            msgs::Boolean &_res) -> bool
     {
       std::lock_guard<std::mutex> lock(mutex);
-      requestedCollisions.push_back(_req.id());
+      ++requestCount;
       _res.set_data(true);
       return true;
     };
 
   transport::Node node;
-  const std::string service = "/world/test/enable_collision";
-  ASSERT_TRUE(node.Advertise(service, enableCollisionCb));
+  const std::string service = "/world/test/enable_collisions";
+  ASSERT_TRUE(node.Advertise(service, enableCollisionsCb));
   ASSERT_TRUE(sim::test::waitForService(node, service, 1));
 
   sim::VisualizeContacts plugin;
@@ -83,8 +83,7 @@ TEST_F(VisualizeContactsTest, RequestsContactDataForNewCollisions)
 
   {
     std::lock_guard<std::mutex> lock(mutex);
-    ASSERT_EQ(1u, requestedCollisions.size());
-    EXPECT_EQ(firstCollision, requestedCollisions[0]);
+    EXPECT_EQ(1u, requestCount);
   }
 
   auto secondCollision = ecm.CreateEntity();
@@ -94,8 +93,6 @@ TEST_F(VisualizeContactsTest, RequestsContactDataForNewCollisions)
 
   {
     std::lock_guard<std::mutex> lock(mutex);
-    ASSERT_EQ(2u, requestedCollisions.size());
-    EXPECT_EQ(firstCollision, requestedCollisions[0]);
-    EXPECT_EQ(secondCollision, requestedCollisions[1]);
+    EXPECT_EQ(1u, requestCount);
   }
 }
