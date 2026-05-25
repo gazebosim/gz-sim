@@ -17,6 +17,8 @@
 
 #include "ModelCommandAPI.hh"
 
+#include <cmath>
+
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
@@ -61,6 +63,22 @@
 
 using namespace gz;
 using namespace sim;
+
+//////////////////////////////////////////////////
+static math::Vector3d printableAxisVector(const sdf::JointAxis &_axis)
+{
+  auto axis = _axis.Xyz();
+  auto clampNearZero = [](double &_value)
+  {
+    if (std::abs(_value) < 1e-12)
+      _value = 0.0;
+  };
+
+  clampNearZero(axis.X());
+  clampNearZero(axis.Y());
+  clampNearZero(axis.Z());
+  return axis;
+}
 
 //////////////////////////////////////////////////
 /// \brief Get the name of the world being used by calling
@@ -771,8 +789,9 @@ void printJoints(const uint64_t _modelEntity,
     const auto axisComp = _ecm.Component<components::JointAxis>(entity);
     if (axisComp)
     {
+      const auto axis = printableAxisVector(axisComp->Data());
       std::cout << std::string(spaces, ' ') << "- Axis unit vector [ XYZ ]:\n"
-        << std::string(spaces + 2, ' ') << "[" << axisComp->Data().Xyz()
+        << std::string(spaces + 2, ' ') << "[" << axis
         << "]\n";
     }
   }

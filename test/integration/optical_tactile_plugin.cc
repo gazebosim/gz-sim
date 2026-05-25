@@ -52,6 +52,12 @@ class OpticalTactilePluginTest : public InternalFixture<::testing::Test>
     EXPECT_FALSE(*server->Running(0));
   }
 
+  protected: void TearDown() override
+  {
+    this->server.reset();
+    InternalFixture<::testing::Test>::TearDown();
+  }
+
   public: gz::math::Vector3f MapPointCloudData(
     const uint64_t &_i,
     const uint64_t &_j)
