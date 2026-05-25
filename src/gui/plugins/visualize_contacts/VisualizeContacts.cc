@@ -21,11 +21,10 @@
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 #include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/marker.pb.h>
 
-#include <algorithm>
 #include <string>
-#include <vector>
 
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -98,6 +97,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief True once ContactSensorData has been requested through the user
     /// commands service.
     public: bool contactsEnabled{false};
+
+    /// \brief True once the user commands system has been requested through
+    /// the entity/system/add service.
+    public: bool userCommandsLoadRequested{false};
   };
 }
 }
@@ -270,17 +273,32 @@ void VisualizeContactsPrivate::CreateCollisionData()
   unsigned int timeout = 50;
   std::string service = "/world/" + this->worldName + "/enable_collisions";
 
-  std::vector<std::string> services;
-  this->node.ServiceList(services);
-  if (std::find(services.begin(), services.end(), service) == services.end())
-  {
-    return;
-  }
-
   const bool executed = this->node.Request(service, req, timeout, res, result);
   if (executed && result && res.data())
   {
     this->contactsEnabled = true;
+    return;
+  }
+
+  if (this->userCommandsLoadRequested)
+    return;
+
+  // Custom worlds may omit UserCommands. Ask the server to load it, then retry
+  // the enable_collisions service on a later update.
+  msgs::EntityPlugin_V loadReq;
+  auto plugin = loadReq.add_plugins();
+  plugin->set_name("gz::sim::systems::UserCommands");
+  plugin->set_filename("gz-sim-user-commands-system");
+
+  msgs::Boolean loadRes;
+  bool loadResult{false};
+  const std::string loadService =
+    "/world/" + this->worldName + "/entity/system/add";
+  const bool loadExecuted =
+    this->node.Request(loadService, loadReq, timeout, loadRes, loadResult);
+  if (loadExecuted && loadResult && loadRes.data())
+  {
+    this->userCommandsLoadRequested = true;
   }
 }
 
