@@ -144,9 +144,6 @@ class SimulationRunnerWinHandleStorage
 #endif
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() = default;
-
-//////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
                                    const SystemLoaderPtr &_systemLoader,
                                    const ServerConfig &_config,

@@ -346,12 +346,12 @@ class EnableCollisionCommand : public UserCommandBase
 };
 
 /// \brief Command to enable all collision components.
-class EnableCollisionsCommand : public UserCommandBase
+class EnableAllCollisionsCommand : public UserCommandBase
 {
   /// \brief Constructor
   /// \param[in] _msg Empty request message.
   /// \param[in] _iface Pointer to user commands interface.
-  public: EnableCollisionsCommand(msgs::Empty *_msg,
+  public: EnableAllCollisionsCommand(msgs::Empty *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -760,7 +760,7 @@ void UserCommands::Configure(const Entity &_entity,
       "/world/" + validWorldName + "/enable_collision", "Enable collision");
 
   // Enable all collisions service
-  this->dataPtr->AdvertiseService<EnableCollisionsCommand, msgs::Empty>(
+  this->dataPtr->AdvertiseService<EnableAllCollisionsCommand, msgs::Empty>(
       "/world/" + validWorldName + "/enable_collisions",
       "Enable collisions");
 
@@ -1697,14 +1697,14 @@ bool EnableCollisionCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-EnableCollisionsCommand::EnableCollisionsCommand(msgs::Empty *_msg,
+EnableAllCollisionsCommand::EnableAllCollisionsCommand(msgs::Empty *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
 }
 
 //////////////////////////////////////////////////
-bool EnableCollisionsCommand::Execute()
+bool EnableAllCollisionsCommand::Execute()
 {
   auto emptyMsg = dynamic_cast<const msgs::Empty *>(this->msg);
   if (nullptr == emptyMsg)

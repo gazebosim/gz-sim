@@ -23,7 +23,9 @@
 #include <gz/msgs/empty.pb.h>
 #include <gz/msgs/marker.pb.h>
 
+#include <algorithm>
 #include <string>
+#include <vector>
 
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -267,6 +269,13 @@ void VisualizeContactsPrivate::CreateCollisionData()
   bool result;
   unsigned int timeout = 50;
   std::string service = "/world/" + this->worldName + "/enable_collisions";
+
+  std::vector<std::string> services;
+  this->node.ServiceList(services);
+  if (std::find(services.begin(), services.end(), service) == services.end())
+  {
+    return;
+  }
 
   const bool executed = this->node.Request(service, req, timeout, res, result);
   if (executed && result && res.data())
