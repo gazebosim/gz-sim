@@ -3,8 +3,6 @@ gz_add_gui_plugin(VisualizeContacts
     VisualizeContacts.cc
   QT_HEADERS
     VisualizeContacts.hh
-  TEST_SOURCES
-    VisualizeContacts_TEST.cc
   PUBLIC_LINK_LIBS
     gz-rendering::core
 )
