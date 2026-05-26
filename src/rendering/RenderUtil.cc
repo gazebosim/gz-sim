@@ -15,6 +15,7 @@
  *
  */
 
+#include <algorithm>
 #include <map>
 #include <stack>
 #include <string>
@@ -1165,6 +1166,19 @@ void RenderUtil::Update()
     this->dataPtr->newSensors.clear();
   }
   this->dataPtr->updateMutex.unlock();
+
+  auto sortById = [](const auto &_a, const auto &_b)
+  {
+    return std::get<0>(_a) < std::get<0>(_b);
+  };
+  std::sort(newModels.begin(), newModels.end(), sortById);
+  std::sort(newActors.begin(), newActors.end(), sortById);
+  std::sort(newLinks.begin(), newLinks.end(), sortById);
+  std::sort(newVisuals.begin(), newVisuals.end(), sortById);
+  std::sort(newLights.begin(), newLights.end(), sortById);
+  std::sort(newParticleEmitters.begin(), newParticleEmitters.end(), sortById);
+  std::sort(newProjectors.begin(), newProjectors.end(), sortById);
+  std::sort(newSensors.begin(), newSensors.end(), sortById);
 
   // scene - only one scene is supported for now
   // extend the sensor system to support multiple scenes in the future
