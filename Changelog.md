@@ -5,7 +5,7 @@
 1. **Baseline:** this includes all changes from 8.11.0 and earlier.
 
 1. Add components for setting gravity and static state of entities (#3532)
-    * [Pull request #3532) (#3558](https://github.com/gazebosim/gz-sim/pull/3532) (#3558)
+    * [Pull request #3532](https://github.com/gazebosim/gz-sim/pull/3532)
 
 1. Add support for simulation reset via a publicly callable API
     * [Pull request #2648](https://github.com/gazebosim/gz-sim/pull/2648)
@@ -20,16 +20,16 @@
     * [Pull request #3513](https://github.com/gazebosim/gz-sim/pull/3513)
 
 1. Support for user-defined topic in PosePublisher (#3331)
-    * [Pull request #3331) (#3339](https://github.com/gazebosim/gz-sim/pull/3331) (#3339)
+    * [Pull request #3331](https://github.com/gazebosim/gz-sim/pull/3331)
 
 1. Fix crash when adding a `Light` via `Component Inspector Editor` (#3137)
-    * [Pull request #3137) (#3506](https://github.com/gazebosim/gz-sim/pull/3137) (#3506)
+    * [Pull request #3137](https://github.com/gazebosim/gz-sim/pull/3137)
 
 1. Add getters for joint velocity, effort, and position limits (#3272)
-    * [Pull request #3272) (#3535](https://github.com/gazebosim/gz-sim/pull/3272) (#3535)
+    * [Pull request #3272](https://github.com/gazebosim/gz-sim/pull/3272)
 
 1. Fix potential iterator invalidation in EntityTree (#3514)
-    * [Pull request #3514) (#3516](https://github.com/gazebosim/gz-sim/pull/3514) (#3516)
+    * [Pull request #3514](https://github.com/gazebosim/gz-sim/pull/3514)
 
 1. reset_sensors.cc: fix syntax in Stop
     * [Pull request #3000](https://github.com/gazebosim/gz-sim/pull/3000)
@@ -38,7 +38,7 @@
     * [Pull request #3478](https://github.com/gazebosim/gz-sim/pull/3478)
 
 1. Create RenderEngineServerApiBackend component in SimulationRunner (#3461)
-    * [Pull request #3461) (#3472](https://github.com/gazebosim/gz-sim/pull/3461) (#3472)
+    * [Pull request #3461](https://github.com/gazebosim/gz-sim/pull/3461)
 
 1. Add cylinder, capsule, ellipsoid and cone support to graded buoyancy
     * [Pull request #3423](https://github.com/gazebosim/gz-sim/pull/3423)
@@ -47,10 +47,10 @@
     * [Pull request #3456](https://github.com/gazebosim/gz-sim/pull/3456)
 
 1. docs: fix selected Doxygen warnings in docs build (backport #3445)
-    * [Pull request #3445) (#3450](https://github.com/gazebosim/gz-sim/pull/3445) (#3450)
+    * [Pull request #3445](https://github.com/gazebosim/gz-sim/pull/3445)
 
 1. Fix crash when calling reset in model_photo_shoot (backport #3416)
-    * [Pull request #3416) (#3438](https://github.com/gazebosim/gz-sim/pull/3416) (#3438)
+    * [Pull request #3416](https://github.com/gazebosim/gz-sim/pull/3416)
 
 1. Fix graded buoyancy SDF parsing and division by zero
     * [Pull request #3422](https://github.com/gazebosim/gz-sim/pull/3422)
@@ -59,10 +59,10 @@
     * [Pull request #3403](https://github.com/gazebosim/gz-sim/pull/3403)
 
 1. Added explicit find package for TINYXML to CMakelist at root (#3360)
-    * [Pull request #3360) (#3379](https://github.com/gazebosim/gz-sim/pull/3360) (#3379)
+    * [Pull request #3360](https://github.com/gazebosim/gz-sim/pull/3360)
 
 1. Extend visualize frustum plugin to support rgb camera (#3374)
-    * [Pull request #3374) (#3393](https://github.com/gazebosim/gz-sim/pull/3374) (#3393)
+    * [Pull request #3374](https://github.com/gazebosim/gz-sim/pull/3374)
 
 1. Fix unused-result warnings
     * [Pull request #3382](https://github.com/gazebosim/gz-sim/pull/3382)
