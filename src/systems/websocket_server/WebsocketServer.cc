@@ -1278,7 +1278,7 @@ void WebsocketServer::OnAsset(int _socketId,
     }
 
     // Read the file
-    std::ifstream infile(resolvedPath, std::ios_base::binary);
+    std::ifstream infile(canonicalResolved, std::ios_base::binary);
     std::string fileBuffer = std::string(
         std::istreambuf_iterator<char>(infile),
         std::istreambuf_iterator<char>());
