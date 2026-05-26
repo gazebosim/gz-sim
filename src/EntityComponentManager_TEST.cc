@@ -711,6 +711,52 @@ TEST_P(EntityComponentManagerFixture,
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsRecreateRemovedComponentBeforeQuery))
+{
+  // Create an entity and initialize it with one component of a two-component view
+  Entity entity = manager.CreateEntity();
+  auto comp1 = manager.CreateComponent<IntComponent>(entity, IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+
+  // Initialize the view by calling Each with both components.
+  // It shouldn't match yet because the entity only has IntComponent.
+  int count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &, const IntComponent *, const DoubleComponent *) -> bool
+      {
+        count++;
+        return true;
+      });
+  EXPECT_EQ(0, count);
+
+  // Add the second component. This matches the view and marks the entity to add.
+  auto comp2 = manager.CreateComponent<DoubleComponent>(entity, DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp2);
+
+  // Remove, then re-add the second component.
+  EXPECT_TRUE(manager.RemoveComponent(entity, DoubleComponent::typeId));
+
+  auto comp3 = manager.CreateComponent<DoubleComponent>(entity, DoubleComponent(0.789));
+  ASSERT_NE(nullptr, comp3);
+
+  // Query the view. The entity should match and be found.
+  count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, const IntComponent *_intComp,
+          const DoubleComponent *_doubleComp) -> bool
+      {
+        EXPECT_EQ(entity, _entity);
+        EXPECT_EQ(123, _intComp->Data());
+        EXPECT_DOUBLE_EQ(0.789, _doubleComp->Data());
+        count++;
+        return true;
+      });
+  EXPECT_EQ(1, count);
+}
+
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddEntity))
 {
   // Create some entities
