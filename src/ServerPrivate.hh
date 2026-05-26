@@ -28,6 +28,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -182,6 +183,9 @@ namespace gz
 
       /// \brief Mutex to protect the Run operation.
       public: std::mutex runMutex;
+
+      /// \brief Mutex to protect ECM access during Peek and Poke.
+      public: mutable std::shared_mutex ecmMutex;
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
