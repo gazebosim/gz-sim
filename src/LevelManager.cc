@@ -643,7 +643,14 @@ void LevelManager::UpdateLevelsState()
       const components::Name *lvlName =
       this->runner->entityCompMgr.Component<components::Name>(level);
 
-      gzmsg << "Loaded level [" << lvlName->Data() << "]" << std::endl;
+      if (lvlName)
+      {
+        gzmsg << "Loaded level [" << lvlName->Data() << "]" << std::endl;
+      }
+      else
+      {
+        gzmsg << "Loaded level [" << level << "]" << std::endl;
+      }
       this->activeLevels.insert(level);
     }
   }
