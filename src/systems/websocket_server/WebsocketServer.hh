@@ -39,6 +39,11 @@
 
 #include "gz/sim/System.hh"
 
+// Befriended integration-test fixture for security-regression access.
+#ifdef BUILD_TESTING
+class WebsocketServerTest;
+#endif  // BUILD_TESTING
+
 namespace gz
 {
 namespace sim
@@ -181,6 +186,12 @@ namespace systems
         : public System,
           public ISystemConfigure
     {
+      // Grant the integration-test fixture access to private members.
+      // See test/integration/websocket_server.cc.
+#ifdef BUILD_TESTING
+      friend class ::WebsocketServerTest;
+#endif  // BUILD_TESTING
+
       /// \brief Constructor
       public: WebsocketServer() = default;
 
