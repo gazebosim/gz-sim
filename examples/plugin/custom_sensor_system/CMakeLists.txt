@@ -18,9 +18,9 @@ FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
   GIT_TAG main
+  SOURCE_SUBDIR examples/custom_sensor
 )
-FetchContent_Populate(sensors_clone)
-add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})
+FetchContent_MakeAvailable(sensors_clone)
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_NAME}.cc)
 target_link_libraries(${PROJECT_NAME}
