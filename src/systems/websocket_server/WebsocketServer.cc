@@ -462,20 +462,20 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
     }
   }
 
-  this->sslCertFile = "";
-  this->sslPrivateKeyFile = "";
+  std::string sslCertFile = "";
+  std::string sslPrivateKeyFile = "";
   sdf::ElementConstPtr sslElem = _sdf->FindElement("ssl");
   if (sslElem != nullptr)
   {
     // Get the ssl cert file, if present.
     sdf::ElementConstPtr certElem = sslElem->FindElement("cert_file");
     if (certElem)
-      this->sslCertFile = certElem->Get<std::string>();
+      sslCertFile = certElem->Get<std::string>();
 
     // Get the ssl private key file, if present.
     sdf::ElementConstPtr keyElem = sslElem->FindElement("private_key_file");
     if (keyElem)
-      this->sslPrivateKeyFile = keyElem->Get<std::string>();
+      sslPrivateKeyFile = keyElem->Get<std::string>();
   }
 
   // All of the protocols handled by this server.
@@ -507,70 +507,26 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
   // We will handle logging
   lws_set_log_level( 0, lwsl_emit_syslog);
 
-  this->address = "127.0.0.1";
-  if (sdf::ElementConstPtr addressElem = _sdf->FindElement("address"))
-  {
-    this->address = addressElem->Get<std::string>();
-  }
-  else if (sdf::ElementConstPtr ifaceElem = _sdf->FindElement("iface"))
-  {
-    this->address = ifaceElem->Get<std::string>();
-  }
-
-  // Sanitize the address to prevent potential security/injection issues
-  bool validAddress = true;
-  if (this->address.empty() || this->address.length() > 255)
-  {
-    validAddress = false;
-  }
-  else if (this->address != "*")
-  {
-    for (char c : this->address)
-    {
-      if (!std::isalnum(static_cast<unsigned char>(c)) &&
-          c != '.' && c != ':' && c != '-' && c != '_')
-      {
-        validAddress = false;
-        break;
-      }
-    }
-  }
-
-  if (!validAddress)
-  {
-    gzwarn << "Invalid characters or excessive length in address/iface ["
-           << this->address << "]. Falling back to 127.0.0.1.\n";
-    this->address = "127.0.0.1";
-  }
-
   struct lws_context_creation_info info;
   memset(&info, 0, sizeof info);
   info.port = port;
-  if (this->address == "0.0.0.0" || this->address == "all" ||
-      this->address == "*")
-  {
-    info.iface = nullptr;
-  }
-  else
-  {
-    info.iface = this->address.c_str();
-  }
+  info.iface = nullptr;
   info.protocols = &this->protocols[0];
 
-  if (!this->sslCertFile.empty() && !this->sslPrivateKeyFile.empty())
+  if (!sslCertFile.empty() && !sslPrivateKeyFile.empty())
   {
     // Fail if the certificate file cannot be opened.
-    if (!gz::common::exists(this->sslCertFile))
+    if (!gz::common::exists(sslCertFile))
     {
-      gzerr << "SSL certificate file[" << this->sslCertFile
+      gzerr << "SSL certificate file[" << sslCertFile
         << "] does not exist. Quitting.\n";
       return;
     }
 
     // Fail if the private key file cannot be opened.
-    if (!gz::common::exists(this->sslPrivateKeyFile))
+    if (!gz::common::exists(sslPrivateKeyFile))
     {
-      gzerr << "SSL private key file[" << this->sslPrivateKeyFile
+      gzerr << "SSL private key file[" << sslPrivateKeyFile
         << "] does not exist. Quitting.\n";
       return;
     }
@@ -578,10 +534,10 @@ void WebsocketServer::Configure(const Entity & /*_entity*/,
     // Store SSL configuration.
     info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
-    info.ssl_cert_filepath = this->sslCertFile.c_str();
-    info.ssl_private_key_filepath = this->sslPrivateKeyFile.c_str();
+    info.ssl_cert_filepath = sslCertFile.c_str();
+    info.ssl_private_key_filepath = sslPrivateKeyFile.c_str();
   }
-  else if (this->sslCertFile.empty() || this->sslPrivateKeyFile.empty())
+  else if (sslCertFile.empty() || sslPrivateKeyFile.empty())
   {
     gzwarn << "Partial SSL configuration specified. Please specify:\n"
     << "\t<ssl>\n"
