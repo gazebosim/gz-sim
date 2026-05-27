@@ -17,7 +17,7 @@ include(FetchContent)
 FetchContent_Declare(
   sensors_clone
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
-  GIT_TAG main
+  GIT_TAG gz-sensors${gz-sensors_VERSION_MAJOR}
   SOURCE_SUBDIR examples/custom_sensor
 )
 FetchContent_MakeAvailable(sensors_clone)
