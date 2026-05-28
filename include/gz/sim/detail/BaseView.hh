@@ -19,6 +19,7 @@
 
 #include <cstddef>
 #include <set>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 
@@ -157,7 +158,7 @@ class GZ_SIM_VISIBLE BaseView
 
   /// \brief Get all of the entities in the view
   /// \return The entities in the view
-  public: const std::set<Entity> &Entities() const;
+  public: const std::unordered_set<Entity> &Entities() const;
 
   /// \brief Get all of the entities in the view that are considered "newly
   /// created". While an entity may be new to the view, it may not be a newly
@@ -166,11 +167,11 @@ class GZ_SIM_VISIBLE BaseView
   /// view). An entity's "newness" is determined by the entity component
   /// manager.
   /// \return The newly created entities that are a part of the view
-  public: const std::set<Entity> &NewEntities() const;
+  public: const std::unordered_set<Entity> &NewEntities() const;
 
   /// \brief Get all of the entities to be removed from the view
   /// \return The entities to be removed from the view
-  public: const std::set<Entity> &ToRemoveEntities() const;
+  public: const std::unordered_set<Entity> &ToRemoveEntities() const;
 
   /// \brief Get all of the entities that should be added to the view. This is
   /// useful for adding entities to the view before the view is used to ensure
@@ -187,23 +188,14 @@ class GZ_SIM_VISIBLE BaseView
   /// \sa ToAddEntities
   public: void ClearToAddEntities();
 
-  // TODO(adlarkin) make this a std::unordered_set for better performance.
-  // We need to make sure nothing else depends on the ordered preserved by
-  // std::set first
   /// \brief All the entities that belong to this view.
-  protected: std::set<Entity> entities;
+  protected: std::unordered_set<Entity> entities;
 
-  // TODO(adlarkin) make this a std::unordered_set for better performance.
-  // We need to make sure nothing else depends on the ordered preserved by
-  // std::set first
   /// \brief List of newly created entities
-  protected: std::set<Entity> newEntities;
+  protected: std::unordered_set<Entity> newEntities;
 
-  // TODO(adlarkin) make this a std::unordered_set for better performance.
-  // We need to make sure nothing else depends on the ordered preserved by
-  // std::set first
   /// \brief List of entities about to be removed
-  protected: std::set<Entity> toRemoveEntities;
+  protected: std::unordered_set<Entity> toRemoveEntities;
 
   /// \brief List of entities to be added to the view. The value of the map
   /// indicates whether the entity is new to the entity component manager or not
