@@ -368,6 +368,9 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
          << "/" << genWorldSdfService << "]" << std::endl;
 }
 
+//////////////////////////////////////////////////
+SimulationRunner::~SimulationRunner() = default;
+
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
 {
