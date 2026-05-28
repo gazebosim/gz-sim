@@ -22,6 +22,7 @@
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/Utility.hh>
 
+#include <algorithm>
 #include <deque>
 #include <map>
 #include <set>

@@ -21,6 +21,7 @@
 #include <gz/msgs/serialized_map.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <map>
