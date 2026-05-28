@@ -157,18 +157,42 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     }
   }
 
-  // Namespace
-  if (!_sdf->HasElement("namespace"))
+<<<<<<< HEAD
+=======
+  if (this->collisionEntities.empty())
   {
-    ignerr << "Missing required parameter <namespace>" << std::endl;
+    gzerr << "No contact sensor collisions found in parent model: "
+          << this->model.Name(_ecm) << std::endl;
     return;
   }
-  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
-      "namespace"));
+
+  std::string nsParam;
+>>>>>>> d696e146 (Add a default for touch plugin namespace (#3513))
+  // Namespace
+  if (_sdf->HasElement("namespace"))
+  {
+<<<<<<< HEAD
+    ignerr << "Missing required parameter <namespace>" << std::endl;
+    return;
+=======
+    nsParam = "/" + _sdf->Get<std::string>("namespace");
+>>>>>>> d696e146 (Add a default for touch plugin namespace (#3513))
+  }
+  else
+  {
+    nsParam = topicFromScopedName(this->model.Entity(), _ecm, true) + "/touch";
+    gzmsg << "No namespace specified for TouchPlugin, defaulting to " <<
+      nsParam << std::endl;
+  }
+  this->ns = transport::TopicUtils::AsValidTopic(nsParam);
   if (this->ns.empty())
   {
+<<<<<<< HEAD
     ignerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
            << "] is invalid." << std::endl;
+=======
+    gzerr << "<namespace> [" << nsParam << "] is invalid." << std::endl;
+>>>>>>> d696e146 (Add a default for touch plugin namespace (#3513))
     return;
   }
 
@@ -182,7 +206,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   this->targetTime = DurationType(_sdf->Get<double>("time"));
 
   // Start/stop "service"
-  std::string enableService{"/" + this->ns + "/enable"};
+  std::string enableService{this->ns + "/enable"};
   std::function<void(const msgs::Boolean &)> enableCb =
       [this](const msgs::Boolean &_req)
       {
@@ -206,9 +230,16 @@ void TouchPluginPrivate::Enable(const bool _value)
 
   if (_value)
   {
+<<<<<<< HEAD
     this->touchedPub.reset();
     this->touchedPub = this->node.Advertise<msgs::Boolean>(
         "/" + this->ns + "/touched");
+=======
+    if (!this->touchedPub.has_value()){
+      this->touchedPub = this->node.Advertise<msgs::Boolean>(
+          this->ns + "/touched");
+    }
+>>>>>>> d696e146 (Add a default for touch plugin namespace (#3513))
 
     this->touchStart = DurationType::zero();
     this->enabled = true;
