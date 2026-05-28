@@ -257,18 +257,22 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
     return;
   }
 
+  std::string nsParam;
   // Namespace
-  if (!_sdf->HasElement("namespace"))
+  if (_sdf->HasElement("namespace"))
   {
-    gzerr << "Missing required parameter <namespace>" << std::endl;
-    return;
+    nsParam = "/" + _sdf->Get<std::string>("namespace");
   }
-  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
-      "namespace"));
+  else
+  {
+    nsParam = topicFromScopedName(this->model.Entity(), _ecm, true) + "/touch";
+    gzmsg << "No namespace specified for TouchPlugin, defaulting to " <<
+      nsParam << std::endl;
+  }
+  this->ns = transport::TopicUtils::AsValidTopic(nsParam);
   if (this->ns.empty())
   {
-    gzerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
-           << "] is invalid." << std::endl;
+    gzerr << "<namespace> [" << nsParam << "] is invalid." << std::endl;
     return;
   }
 
@@ -282,7 +286,7 @@ void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
   this->targetTime = DurationType(_sdf->Get<double>("time"));
 
   // Start/stop "service"
-  std::string enableService{"/" + this->ns + "/enable"};
+  std::string enableService{this->ns + "/enable"};
   std::function<void(const msgs::Boolean &)> enableCb =
       [this](const msgs::Boolean &_req)
       {
@@ -309,7 +313,7 @@ void TouchPluginPrivate::Enable(const bool _value)
   {
     if (!this->touchedPub.has_value()){
       this->touchedPub = this->node.Advertise<msgs::Boolean>(
-          "/" + this->ns + "/touched");
+          this->ns + "/touched");
     }
 
     this->touchStart = DurationType::zero();
