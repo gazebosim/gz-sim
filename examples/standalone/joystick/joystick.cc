@@ -174,10 +174,17 @@ int main(int argc, char **argv)
             // Update number of buttons
             if (event.number >= joyMsg.buttons_size())
             {
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+              joyMsg.mutable_buttons()->resize(event.number+1, 0.0f);
+              lastJoyMsg.mutable_buttons()->resize(event.number+1, 0.0f);
+              stickyButtonsJoyMsg.mutable_buttons()->resize(
+                  event.number+1, 0.0f);
+#else
               joyMsg.mutable_buttons()->Resize(event.number+1, 0.0f);
               lastJoyMsg.mutable_buttons()->Resize(event.number+1, 0.0f);
               stickyButtonsJoyMsg.mutable_buttons()->Resize(
                   event.number+1, 0.0f);
+#endif
             }
 
             // Update the button
@@ -194,10 +201,17 @@ int main(int argc, char **argv)
           {
             if (event.number >= joyMsg.axes_size())
             {
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+              joyMsg.mutable_axes()->resize(event.number+1, 0.0f);
+              lastJoyMsg.mutable_axes()->resize(event.number+1, 0.0f);
+              stickyButtonsJoyMsg.mutable_axes()->resize(
+                  event.number+1, 0.0f);
+#else
               joyMsg.mutable_axes()->Resize(event.number+1, 0.0f);
               lastJoyMsg.mutable_axes()->Resize(event.number+1, 0.0f);
               stickyButtonsJoyMsg.mutable_axes()->Resize(
                   event.number+1, 0.0f);
+#endif
             }
 
             // Smooth the deadzone
