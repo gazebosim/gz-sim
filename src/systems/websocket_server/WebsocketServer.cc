@@ -52,6 +52,7 @@
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Image.hh>
 #include <gz/common/Util.hh>
+#include <gz/common/SystemPaths.hh>
 #include <gz/msgs/Factory.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Util.hh>
@@ -1144,6 +1145,24 @@ void WebsocketServer::OnAsset(int _socketId,
         data.c_str(), data.length());
   };
 
+  // Helper function to extract paths from an environment
+  auto extractPathsFromEnv = [](const std::string &_envVar) -> std::vector<std::string>
+  {
+    std::vector<std::string> paths;
+    const char *envVal = std::getenv(_envVar.c_str());
+    if (envVal)
+    {
+      std::string envStr(envVal);
+      std::stringstream ss(envStr);
+      std::string path;
+      while (std::getline(ss, path, ':'))
+      {
+        paths.push_back(path);
+      }
+    }
+    return paths;
+  };
+
   // Short circuit the case where the assetURI is already a valid path.
   if (common::exists(assetUri))
   {
@@ -1170,6 +1189,7 @@ void WebsocketServer::OnAsset(int _socketId,
     return;
   }
 
+  // This logic protects against arbitrary read access.
   bool allowed = false;
   std::string canonicalResolved;
   try
@@ -1183,6 +1203,18 @@ void WebsocketServer::OnAsset(int _socketId,
       std::vector<std::string> allowedPaths = sim::resourcePaths();
       fuel_tools::ClientConfig fuelConfig;
       std::string fuelCachePath = fuelConfig.CacheLocation();
+
+      auto extraSdfPaths = extractPathsFromEnv(kSdfPathEnv);
+      allowedPaths.reserve(allowedPaths.size() + extraSdfPaths.size());
+      allowedPaths.insert(allowedPaths.end(), extraSdfPaths.begin(),
+          extraSdfPaths.end());
+
+      common::SystemPaths systemPaths;
+      auto extraFilePaths = systemPaths.FilePaths();
+      allowedPaths.reserve(allowedPaths.size() + extraFilePaths.size());
+      allowedPaths.insert(allowedPaths.end(), extraFilePaths.begin(),
+          extraFilePaths.end());
+
       if (!fuelCachePath.empty())
       {
         allowedPaths.push_back(fuelCachePath);
