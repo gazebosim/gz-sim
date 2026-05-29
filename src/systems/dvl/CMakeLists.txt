@@ -8,3 +8,8 @@ gz_add_system(dvl
     gz-sensors::dvl
     gz-sensors::rendering
 )
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  target_compile_options(gz-sim-dvl-system PRIVATE
+      -Wno-maybe-uninitialized)
+endif()
