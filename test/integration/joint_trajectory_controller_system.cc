@@ -38,6 +38,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -121,6 +122,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
   transport::Node node;
   auto pub = node.Advertise<msgs::JointTrajectory>(
       "/model/RR_position_control/joint_trajectory");
+  ASSERT_TRUE(test::WaitUntil(std::chrono::seconds(3),
+      [&] { return pub.HasConnections(); }));
 
   auto msg = makePositionTrajectory(jointNames, {1.0, -1.0});
   pub.Publish(msg);
@@ -133,6 +136,8 @@ TEST_F(JointTrajectoryControllerTestFixture,
   EXPECT_NEAR(currentPositions[0], 0.0, 1e-2);
   EXPECT_NEAR(currentPositions[1], 0.0, 1e-2);
 
+  ASSERT_TRUE(test::WaitUntil(std::chrono::seconds(3),
+      [&] { return pub.HasConnections(); }));
   pub.Publish(msg);
   server.Run(true, 1000, false);
   EXPECT_NEAR(currentPositions[0], 1.0, 1e-2);
