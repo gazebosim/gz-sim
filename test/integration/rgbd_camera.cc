@@ -64,7 +64,7 @@ void depthCb(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 float rgbdDepthAt(const msgs::Image &_image, unsigned int _x, unsigned int _y)
 {
-  const auto index = (_y * _image.width() + _x) * sizeof(float);
+  const auto index = _y * _image.step() + _x * sizeof(float);
   float depth{0.0f};
   memcpy(&depth, _image.data().data() + index, sizeof(float));
   return depth;
