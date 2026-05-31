@@ -58,7 +58,8 @@ bool bottomTrackingAtRest(const DVLVelocityTracking &_message,
     double _expectedBeamRange)
 {
   if (!_message.has_target() ||
-      _message.target().type() != DVLTrackingTarget::DVL_TARGET_BOTTOM)
+      _message.target().type() != DVLTrackingTarget::DVL_TARGET_BOTTOM ||
+      _message.beams_size() != 4)
   {
     return false;
   }
@@ -99,6 +100,7 @@ void expectBottomTrackingAtRest(const DVLVelocityTracking &_message,
   const DVLTrackingTarget &target = _message.target();
   EXPECT_EQ(target.type(), DVLTrackingTarget::DVL_TARGET_BOTTOM);
   EXPECT_NEAR(target.range().mean(), _expectedBeamRange, kRangeTolerance);
+  ASSERT_EQ(4, _message.beams_size());
   for (int i = 0; i < _message.beams_size(); ++i)
   {
     const DVLBeamState &beam = _message.beams(i);
@@ -252,8 +254,8 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresBottomTracking))
       (seaBedDepth + sensorPositionInSFMFrame.Z()) /
       std::cos(beamInclination);
 
-  transport::Node node;
   Subscription<DVLVelocityTracking> velocitySubscription;
+  transport::Node node;
   velocitySubscription.Subscribe(node, "/dvl/velocity", 1);
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
@@ -279,15 +281,22 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresBottomTracking))
         velocitySubscription.Last().velocity().mean()).Length() > 0.1;
   }));
 
+  // Stop injecting velocity commands so the reset episode can settle at rest.
   fixture.Manipulator().SetLinearVelocity(math::Vector3d::Zero);
   fixture.Manipulator().SetAngularVelocity(math::Vector3d::Zero);
-  velocitySubscription.Clear();
   fixture.Simulator()->ResetAll();
+
+  // Ignore delayed messages from the previous episode.
+  Subscription<DVLVelocityTracking> postResetVelocitySubscription;
+  transport::Node postResetNode;
+  postResetVelocitySubscription.Subscribe(postResetNode, "/dvl/velocity", 1);
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
   {
-    return velocitySubscription.Count() > 0u &&
-        bottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
+    return postResetVelocitySubscription.Count() > 0u &&
+        bottomTrackingAtRest(
+            postResetVelocitySubscription.Last(), expectedBeamRange);
   }));
-  expectBottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
+  expectBottomTrackingAtRest(
+      postResetVelocitySubscription.Last(), expectedBeamRange);
 }
