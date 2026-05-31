@@ -134,8 +134,9 @@ TEST_F(JointStatePublisherTest,
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(0ns);
 
-  transport::Node node;
+  // Keep the receiver alive until after the node unsubscribes on destruction.
   Subscription<msgs::Model> jointStates;
+  transport::Node node;
   jointStates.Subscribe(node, "/world/diff_drive/model/vehicle/joint_state",
       1);
   auto waitForJointState =
@@ -170,8 +171,8 @@ TEST_F(JointStatePublisherTest,
 
   // Use a fresh subscription so delayed pre-reset messages cannot satisfy the
   // post-reset assertions.
-  transport::Node postResetNode;
   Subscription<msgs::Model> postResetJointStates;
+  transport::Node postResetNode;
   postResetJointStates.Subscribe(postResetNode,
       "/world/diff_drive/model/vehicle/joint_state", 1);
 
