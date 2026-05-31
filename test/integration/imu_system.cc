@@ -39,6 +39,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -104,6 +106,28 @@ void imuCb(const msgs::IMU &_msg)
   mutex.lock();
   imuMsgs.push_back(_msg);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+void expectSameImuReading(const msgs::IMU &_expected,
+    const msgs::IMU &_actual)
+{
+  EXPECT_NEAR(_expected.linear_acceleration().x(),
+      _actual.linear_acceleration().x(), TOL);
+  EXPECT_NEAR(_expected.linear_acceleration().y(),
+      _actual.linear_acceleration().y(), TOL);
+  EXPECT_NEAR(_expected.linear_acceleration().z(),
+      _actual.linear_acceleration().z(), TOL);
+  EXPECT_NEAR(_expected.angular_velocity().x(),
+      _actual.angular_velocity().x(), TOL);
+  EXPECT_NEAR(_expected.angular_velocity().y(),
+      _actual.angular_velocity().y(), TOL);
+  EXPECT_NEAR(_expected.angular_velocity().z(),
+      _actual.angular_velocity().z(), TOL);
+  EXPECT_NEAR(_expected.orientation().w(), _actual.orientation().w(), TOL);
+  EXPECT_NEAR(_expected.orientation().x(), _actual.orientation().x(), TOL);
+  EXPECT_NEAR(_expected.orientation().y(), _actual.orientation().y(), TOL);
+  EXPECT_NEAR(_expected.orientation().z(), _actual.orientation().z(), TOL);
 }
 
 /////////////////////////////////////////////////
@@ -256,6 +280,49 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   mutex.lock();
   EXPECT_EQ(imuMsgs.back().entity_name(), scopedName);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyReadings))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/imu.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic =
+      "world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu";
+
+  transport::Node node;
+  Subscription<msgs::IMU> initialImu;
+  initialImu.Subscribe(node, topic, 1);
+  auto waitForImu =
+      [&server](Subscription<msgs::IMU> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForImu(initialImu));
+  const auto baseline = initialImu.Last();
+
+  // Move the model far enough that stale pre-reset readings would differ.
+  server.Run(true, 1500, false);
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::IMU> postResetImu;
+  postResetImu.Subscribe(postResetNode, topic, 1);
+
+  ASSERT_TRUE(waitForImu(postResetImu));
+  const auto postReset = postResetImu.Last();
+  expectSameImuReading(baseline, postReset);
 }
 
 /////////////////////////////////////////////////
