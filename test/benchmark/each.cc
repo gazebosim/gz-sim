@@ -412,7 +412,7 @@ class EntityByComponentsFixture: public benchmark::Fixture
       mgr->CreateComponent(e, Inertial());
       mgr->CreateComponent(e, components::Name("target"));
     }
-    
+
     // Now make one of the matching entities parent of all the non matching to have
     // a parametrizably large parent entity
     for (const auto& e : nonMatchingEntities)
@@ -456,7 +456,7 @@ BENCHMARK_DEFINE_F(EntityByComponentsFixture, EntitiesByComponents)
 
       if (e.size() != EntityByComponentsFixture::matchingEntityCount)
       {
-        _st.SkipWithError("Entity not found");
+        _st.SkipWithError("Wrong name of entities found");
       }
     }
   }
@@ -471,9 +471,9 @@ BENCHMARK_DEFINE_F(EntityByComponentsFixture, ChildrenByComponents)
     {
       const auto e = mgr->ChildrenByComponents(parentEntity, components::Name("child"));
       this->mgr->CreatePendingGroups();
-      if (e.size() != _st.range(0))
+      if (static_cast<int64_t>(e.size()) != _st.range(0))
       {
-        _st.SkipWithError("Entity not found");
+        _st.SkipWithError("Wrong name of children found");
       }
     }
   }

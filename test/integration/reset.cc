@@ -17,9 +17,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gz/msgs/boolean.pb.h>
-#include <gz/msgs/world_control.pb.h>
-
 #include <string>
 #include <vector>
 
@@ -27,7 +24,6 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
-#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Entity.hh"
@@ -46,11 +42,13 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "helpers/ResetUtils.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
 namespace components = gz::sim::components;
+namespace reset = gz::sim::test::reset;
 
 //////////////////////////////////////////////////
 class ResetFixture: public InternalFixture<::testing::Test>
@@ -74,24 +72,6 @@ class ResetFixture: public InternalFixture<::testing::Test>
 
   private: sim::SystemLoader sm;
 };
-
-/////////////////////////////////////////////////
-void worldReset()
-{
-  gz::msgs::WorldControl req;
-  gz::msgs::Boolean rep;
-  req.mutable_reset()->set_all(true);
-  transport::Node node;
-
-  unsigned int timeout = 1000;
-  bool result;
-  bool executed =
-    node.Request("/world/default/control", req, timeout, rep, result);
-
-  ASSERT_TRUE(executed);
-  ASSERT_TRUE(result);
-  ASSERT_TRUE(rep.data());
-}
 
 /////////////////////////////////////////////////
 /// This test checks that that the physics system handles cases where entities
@@ -165,11 +145,11 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
     };
 
   // Send command to reset to initial state
-  worldReset();
+  reset::RequestWorldReset("default");
 
   // It takes two iterations for this to propagate,
   // the first is for the message to be received and internal state setup
-  server.Run(true, 1, false);
+  reset::ConsumeResetRequest(server);
   EXPECT_EQ(1u, this->mockSystem->configureCallCount);
   EXPECT_EQ(0u, this->mockSystem->resetCallCount);
   EXPECT_EQ(101u, this->mockSystem->preUpdateCallCount);
@@ -177,7 +157,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
   EXPECT_EQ(101u, this->mockSystem->postUpdateCallCount);
 
   // The second iteration is where the reset actually occurs.
-  server.Run(true, 1, false);
+  reset::ApplyWorldReset(server);
   {
     ASSERT_NE(nullptr, ecm);
     auto entity = ecm->EntityByComponents(components::Name("box"));
