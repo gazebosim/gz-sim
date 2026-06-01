@@ -1146,7 +1146,8 @@ void WebsocketServer::OnAsset(int _socketId,
   };
 
   // Helper function to extract paths from an environment
-  auto extractPathsFromEnv = [](const std::string &_envVar) -> std::vector<std::string>
+  auto extractPathsFromEnv = [](const std::string &_envVar)
+    -> std::vector<std::string>
   {
     std::vector<std::string> paths;
     const char *envVal = std::getenv(_envVar.c_str());
