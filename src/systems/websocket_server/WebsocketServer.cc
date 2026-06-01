@@ -1156,7 +1156,7 @@ void WebsocketServer::OnAsset(int _socketId,
       std::string envStr(envVal);
       std::stringstream ss(envStr);
       std::string path;
-      while (std::getline(ss, path, ':'))
+      while (std::getline(ss, path, common::SystemPaths::Delimiter()))
       {
         paths.push_back(path);
       }
