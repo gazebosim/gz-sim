@@ -99,10 +99,11 @@ namespace components
 
   /// \brief A component that overrides the global enforce_fixed_constraint policy
   /// for a specific detachable joint.
-  using DetachableJointWeldChildToParent =
-      Component<bool, class DetachableJointWeldChildToParentTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DetachableJointWeldChildToParent",
-                                DetachableJointWeldChildToParent)
+  using DetachableJointEnforceFixedConstraint =
+      Component<bool, class DetachableJointEnforceFixedConstraintTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.DetachableJointEnforceFixedConstraint",
+      DetachableJointEnforceFixedConstraint)
 }
 }
 }
