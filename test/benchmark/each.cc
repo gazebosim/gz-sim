@@ -72,7 +72,6 @@ class EntityComponentManagerFixture: public benchmark::Fixture
   std::unique_ptr<EntityComponentManager> mgr;
 };
 
-
 BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)
 (benchmark::State &_st)
 {

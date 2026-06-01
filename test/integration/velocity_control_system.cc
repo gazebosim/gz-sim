@@ -161,11 +161,9 @@ class VelocityControlTest
 
         modelPoses.push_back(modelPoseComp->Data());
 
-        auto links = _ecm.ChildrenByComponents(modelId,
+        auto linkId = _ecm.EntityByComponents(
           components::Link(),
           components::Name("caster"));
-        ASSERT_FALSE(links.empty());
-        auto linkId = links.front();
         EXPECT_NE(kNullEntity, linkId);
 
         auto linkPoseComp = _ecm.Component<components::Pose>(linkId);
@@ -246,15 +244,12 @@ TEST_P(VelocityControlTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmd))
 }
 
 /////////////////////////////////////////////////
-// TODO(luca) This test currently fails, unclear why but it's using TPE
-/*
 TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
 {
   TestPublishLinkCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
       "/model/vehicle_blue/link/caster/cmd_vel");
 }
-*/
 
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, VelocityControlTest,
