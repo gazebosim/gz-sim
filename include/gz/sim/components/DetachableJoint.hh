@@ -96,6 +96,13 @@ namespace components
                 serializers::DetachableJointInfoSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DetachableJoint",
                                 DetachableJoint)
+
+  /// \brief A component that overrides the global enforce_fixed_constraint policy
+  /// for a specific detachable joint.
+  using DetachableJointWeldChildToParent =
+      Component<bool, class DetachableJointWeldChildToParentTag>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DetachableJointWeldChildToParent",
+                                DetachableJointWeldChildToParent)
 }
 }
 }

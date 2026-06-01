@@ -38,6 +38,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/DetachableJoint.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
