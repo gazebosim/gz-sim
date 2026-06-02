@@ -445,13 +445,14 @@ TEST_F(DetachableJointTest,
   this->StartServer(common::joinPaths("/test", "worlds",
        "detachable_joint_enforce.sdf"));
 
+  Entity modelM1 = kNullEntity;
+  Entity modelM3 = kNullEntity;
+  bool initialized = false;
+
   test::Relay testSystem;
   testSystem.OnPreUpdate([&](const UpdateInfo &,
                              EntityComponentManager &_ecm)
   {
-    static Entity modelM1 = kNullEntity;
-    static Entity modelM3 = kNullEntity;
-    static bool initialized = false;
     if (!initialized)
     {
       modelM1 = _ecm.EntityByComponents(
@@ -544,7 +545,7 @@ TEST_F(DetachableJointTest,
   ASSERT_EQ(nIters, m4LinkPoses.size());
 
   // M1/M2 has enforce fixed constraint set to true:
-  // the distance should remain at ~4.0m because the child is moved
+  // the distance should remain at ~2.0m because the child is moved
   // to maintain the rigid child-to-parent pose offset.
   double M1M2Dist =
       (m2LinkPoses.back().Pos() - m1LinkPoses.back().Pos()).Length();
