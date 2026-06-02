@@ -2063,8 +2063,8 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
               topLevelModel(_entity, _ecm)));
 
           bool enforce = _ecm.ComponentData<
-              components::DetachableJointEnforceFixedConstraint>(_entity).value_or(
-              this->enforceFixedConstraint);
+              components::DetachableJointEnforceFixedConstraint>(
+              _entity).value_or(this->enforceFixedConstraint);
           if (enforce)
           {
             auto jointPtrWeld = this->entityJointMap

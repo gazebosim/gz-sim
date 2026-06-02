@@ -442,8 +442,6 @@ TEST_F(DetachableJointTest,
 TEST_F(DetachableJointTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(EnforceFixedConstraint))
 {
-  using namespace std::chrono_literals;
-
   this->StartServer(common::joinPaths("/test", "worlds",
        "detachable_joint_enforce.sdf"));
 
@@ -484,12 +482,12 @@ TEST_F(DetachableJointTest,
       ASSERT_NE(kNullEntity, jointM1M2);
       ASSERT_NE(kNullEntity, jointM3M4);
 
-      // Enable the enforced fixed constraint policy for the M1/M2 joint.
+      // Enable enforced fixed constraint for the M1/M2 joint.
       _ecm.CreateComponent(
           jointM1M2,
           components::DetachableJointEnforceFixedConstraint(true));
 
-      // Disable the enforced fixed constraint policy for the M3/M4 joint.
+      // Disable enforced fixed constraint for the M3/M4 joint.
       _ecm.CreateComponent(
           jointM3M4,
           components::DetachableJointEnforceFixedConstraint(false));
@@ -554,7 +552,7 @@ TEST_F(DetachableJointTest,
 
   // M3/M4 has enforce fixed constraint set to false:
   // The parent-child pose offset is not strictly enforced. Their relative
-  // distance is determined by the constraints solver.
+  // distance is determined by the constraint solver.
   double M3M4Dist =
       (m4LinkPoses.back().Pos() - m3LinkPoses.back().Pos()).Length();
 

@@ -97,8 +97,8 @@ namespace components
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DetachableJoint",
                                 DetachableJoint)
 
-  /// \brief A component that overrides the global enforce_fixed_constraint policy
-  /// for a specific detachable joint.
+  /// \brief A component that overrides the global enforce_fixed_constraint
+  /// policy for a specific detachable joint.
   using DetachableJointEnforceFixedConstraint =
       Component<bool, class DetachableJointEnforceFixedConstraintTag>;
   GZ_SIM_REGISTER_COMPONENT(
