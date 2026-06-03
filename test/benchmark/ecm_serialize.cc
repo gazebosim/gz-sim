@@ -19,6 +19,8 @@
 
 #include <memory>
 
+#include <gz/msgs/serialized_map.pb.h>
+
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
@@ -129,6 +131,68 @@ void BM_Serialize5Component(benchmark::State &_st)
   _st.counters["num_entities"] = static_cast<double>(entityCount);
   _st.counters["num_components"] = 5;
 }
+// NOLINTNEXTLINE
+void BM_Serialize1ComponentMap(benchmark::State &_st)
+{
+  msgs::SerializedStateMap stateMsg;
+  size_t serializedSize = 0;
+  auto entityCount = _st.range(0);
+  for (auto _: _st)
+  {
+    _st.PauseTiming();
+    auto mgr = std::make_unique<EntityComponentManager>();
+    for (int ii = 0; ii < entityCount; ++ii)
+    {
+      auto e = mgr->CreateEntity();
+      mgr->CreateComponent(e, IntComponent(ii));
+    }
+    _st.ResumeTiming();
+
+    mgr->State(stateMsg);
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+    serializedSize = stateMsg.ByteSizeLong();
+#else
+    serializedSize = stateMsg.ByteSize();
+#endif
+  }
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
+  _st.counters["num_components"] = 1;
+}
+
+// NOLINTNEXTLINE
+void BM_Serialize5ComponentMap(benchmark::State &_st)
+{
+  msgs::SerializedStateMap stateMsg;
+  size_t serializedSize = 0;
+  auto entityCount = _st.range(0);
+  for (auto _: _st)
+  {
+    _st.PauseTiming();
+    auto mgr = std::make_unique<EntityComponentManager>();
+    for (int ii = 0; ii < entityCount; ++ii)
+    {
+      auto e = mgr->CreateEntity();
+      mgr->CreateComponent(e, IntComponent(ii));
+      mgr->CreateComponent(e, UIntComponent(ii));
+      mgr->CreateComponent(e, DoubleComponent(ii));
+      mgr->CreateComponent(e, StringComponent("foobar"));
+      mgr->CreateComponent(e, BoolComponent(ii%2));
+    }
+    _st.ResumeTiming();
+
+    mgr->State(stateMsg);
+#if GOOGLE_PROTOBUF_VERSION >= 3004000
+    serializedSize = stateMsg.ByteSizeLong();
+#else
+    serializedSize = stateMsg.ByteSize();
+#endif
+  }
+  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
+  _st.counters["num_entities"] = static_cast<double>(entityCount);
+  _st.counters["num_components"] = 5;
+}
+
 
 // NOLINTNEXTLINE
 BENCHMARK(BM_Serialize1Component)
@@ -141,6 +205,24 @@ BENCHMARK(BM_Serialize1Component)
 
 // NOLINTNEXTLINE
 BENCHMARK(BM_Serialize5Component)
+  ->Arg(10)
+  ->Arg(50)
+  ->Arg(100)
+  ->Arg(500)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK(BM_Serialize1ComponentMap)
+  ->Arg(10)
+  ->Arg(50)
+  ->Arg(100)
+  ->Arg(500)
+  ->Arg(1000)
+  ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK(BM_Serialize5ComponentMap)
   ->Arg(10)
   ->Arg(50)
   ->Arg(100)
