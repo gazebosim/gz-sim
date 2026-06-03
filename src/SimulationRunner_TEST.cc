@@ -1653,7 +1653,7 @@ TEST_P(SimulationRunnerTest, GeneratedSdfHasNoSpuriousPlugins)
 }
 
 /////////////////////////////////////////////////
-TEST_P(SimulationRunnerTest, DisableParallelPostUpdatesPolicy)
+TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
 {
   // Test default behavior
   {
@@ -1671,29 +1671,7 @@ TEST_P(SimulationRunnerTest, DisableParallelPostUpdatesPolicy)
     auto systemLoader = std::make_shared<SystemLoader>();
     SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
-    EXPECT_FALSE(runner.DisableParallelPostUpdate());
-  }
-
-  // Test when disabled
-  {
-    std::string sdfStr = "<?xml version='1.0' ?>"
-      "<sdf version='1.6'>"
-      "  <world name='default'>"
-      "    <gz:policies>"
-      "      <disable_parallel_postupdate>false</disable_parallel_postupdate>"
-      "    </gz:policies>"
-      "  </world>"
-      "</sdf>";
-
-    sdf::Root root;
-    sdf::Errors errors = root.LoadSdfString(sdfStr);
-    ASSERT_TRUE(errors.empty());
-    ASSERT_EQ(1u, root.WorldCount());
-
-    auto systemLoader = std::make_shared<SystemLoader>();
-    SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
-
-    EXPECT_FALSE(runner.DisableParallelPostUpdate());
+    EXPECT_TRUE(runner.ParallelPostUpdates());
   }
 
   // Test when enabled
@@ -1702,7 +1680,7 @@ TEST_P(SimulationRunnerTest, DisableParallelPostUpdatesPolicy)
       "<sdf version='1.6'>"
       "  <world name='default'>"
       "    <gz:policies>"
-      "      <disable_parallel_postupdate>true</disable_parallel_postupdate>"
+      "      <parallel_postupdates>true</parallel_postupdates>"
       "    </gz:policies>"
       "  </world>"
       "</sdf>";
@@ -1715,7 +1693,29 @@ TEST_P(SimulationRunnerTest, DisableParallelPostUpdatesPolicy)
     auto systemLoader = std::make_shared<SystemLoader>();
     SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
-    EXPECT_TRUE(runner.DisableParallelPostUpdate());
+    EXPECT_TRUE(runner.ParallelPostUpdates());
+  }
+
+  // Test when disabled
+  {
+    std::string sdfStr = "<?xml version='1.0' ?>"
+      "<sdf version='1.6'>"
+      "  <world name='default'>"
+      "    <gz:policies>"
+      "      <parallel_postupdates>false</parallel_postupdates>"
+      "    </gz:policies>"
+      "  </world>"
+      "</sdf>";
+
+    sdf::Root root;
+    sdf::Errors errors = root.LoadSdfString(sdfStr);
+    ASSERT_TRUE(errors.empty());
+    ASSERT_EQ(1u, root.WorldCount());
+
+    auto systemLoader = std::make_shared<SystemLoader>();
+    SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+    EXPECT_FALSE(runner.ParallelPostUpdates());
   }
 }
 

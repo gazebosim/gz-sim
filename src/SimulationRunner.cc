@@ -229,9 +229,9 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
       auto policies = worldElem->FindElement(std::string(kPoliciesTag));
       if (policies)
       {
-        this->disableParallelPostUpdate =
-          policies->Get<bool>("disable_parallel_postupdate",
-          this->disableParallelPostUpdate).first;
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
       }
     }
   }
@@ -631,7 +631,7 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
-  if (this->disableParallelPostUpdate)
+  if (!this->parallelPostUpdates)
   {
     this->threadsNeedCleanUp = false;
     this->systemMgr->ActivatePendingSystems();
@@ -725,7 +725,7 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    if (this->disableParallelPostUpdate)
+    if (!this->parallelPostUpdates)
     {
       for (auto &system : this->systemMgr->SystemsPostUpdate())
       {
@@ -1294,9 +1294,9 @@ bool SimulationRunner::Running() const
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::DisableParallelPostUpdate() const
+bool SimulationRunner::ParallelPostUpdates() const
 {
-  return this->disableParallelPostUpdate;
+  return this->parallelPostUpdates;
 }
 
 /////////////////////////////////////////////////

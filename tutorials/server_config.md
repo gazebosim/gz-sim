@@ -411,14 +411,14 @@ performance.
 
 To address this, you can configure `PostUpdate` functions to run sequentially
 instead of in parallel and see if it helps increase the Real Time Factor (RTF).
-This is done by setting the `<disable_parallel_postupdate>` policy to `true`:
+This is done by setting the `<parallel_postupdates>` policy to `false`:
 
 ```xml
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
     <gz:policies>
-      <disable_parallel_postupdate>true</disable_parallel_postupdate>
+      <parallel_postupdates>false</parallel_postupdates>
     </gz:policies>
 
     <!-- plugins and models... -->
@@ -426,4 +426,4 @@ This is done by setting the `<disable_parallel_postupdate>` policy to `true`:
 </sdf>
 ```
 
-By default, this policy is set to `false`.
+By default, this policy is set to `true`.

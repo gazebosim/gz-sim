@@ -171,9 +171,9 @@ namespace gz
       /// \return True if the server is running.
       public: bool Running() const;
 
-      /// \brief Get whether parallel PostUpdate is disabled.
-      /// \return True if parallel PostUpdate is disabled, false otherwise.
-      public: bool DisableParallelPostUpdate() const;
+      /// \brief Get whether parallel PostUpdate is enabled.
+      /// \return True if parallel PostUpdate is enabled, false otherwise.
+      public: bool ParallelPostUpdates() const;
 
       /// \brief Get whether the runner has received a stop event
       /// \return True if the event has been received.
@@ -597,8 +597,8 @@ namespace gz
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
 
-      /// \brief Whether parallel PostUpdate are disabled.
-      private: bool disableParallelPostUpdate{false};
+      /// \brief Whether parallel PostUpdate is enabled.
+      private: bool parallelPostUpdates{true};
 #ifdef _WIN32
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;
