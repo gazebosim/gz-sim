@@ -77,11 +77,12 @@ namespace gz
       /// it can have additional parameters if the need arises in the future.
       /// Additionally, not every data member is copied making its behavior
       /// different from what would be expected from a copy constructor.
-      /// \warning This rebuilds the underlying component storage: every existing
-      /// component is destroyed and replaced by a freshly allocated clone. Any
-      /// raw component pointer previously obtained from this ECM (e.g. via
-      /// Component()) is therefore left dangling and must be re-fetched after
-      /// this call. Dereferencing a stale pointer is undefined behavior.
+      /// \warning This rebuilds the underlying component storage: every
+      /// existing component is destroyed and replaced by a freshly allocated
+      /// clone. Any raw component pointer previously obtained from this ECM
+      /// (e.g. via Component()) is therefore left dangling and must be
+      /// re-fetched after this call. Dereferencing a stale pointer is
+      /// undefined behavior.
       /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
@@ -672,11 +673,11 @@ namespace gz
       /// \brief Reset this ECM back to the state captured in `_other`,
       /// reconciling any entities that were added or removed since `_other` was
       /// taken. This is the operation used to implement world reset/rewind.
-      /// \warning This rebuilds the underlying component storage via CopyFrom().
-      /// Any raw component pointer obtained from this ECM before the reset
-      /// (e.g. via Component()) is invalidated and must be re-fetched
-      /// afterwards. Holding such a pointer across a reset and dereferencing it
-      /// is undefined behavior (see issue
+      /// \warning This rebuilds the underlying component storage via
+      /// CopyFrom(). Any raw component pointer obtained from this ECM before
+      /// the reset (e.g. via Component()) is invalidated and must be
+      /// re-fetched afterwards. Holding such a pointer across a reset and
+      /// dereferencing it is undefined behavior (see issue
       /// https://github.com/gazebosim/gz-sim/issues/3635).
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
