@@ -70,10 +70,6 @@ class gz::sim::EntityComponentManagerPrivate
   public: void EraseEntityRecursive(Entity _entity,
       std::unordered_set<Entity> &_set);
 
-  /// \brief Allots the work for multiple threads prior to running
-  /// `AddEntityToMessage`.
-  public: void CalculateStateThreadLoad();
-
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
   /// it can have additional parameters if the need arises in the future.
@@ -227,26 +223,9 @@ class gz::sim::EntityComponentManagerPrivate
   /// componentStorage vector (a component of a particular type is
   /// only a key for the value map if a component of this type exists in
   /// the componentStorage vector)
-  ///
-  /// NOTE: Any modification of this data structure must be followed
-  /// by setting `componentTypeIndexDirty` to true.
   public: std::unordered_map<Entity,
            std::unordered_map<ComponentTypeId, std::size_t>>
                                 componentTypeIndex;
-
-  /// \brief A vector of iterators to evenly distributed spots in the
-  /// `componentTypeIndex` map.  Threads in the `State` function use this
-  /// vector for easy access of their pre-allocated work.  This vector
-  /// is recalculated if `componentTypeIndex` is changed (when
-  /// `componentTypeIndexDirty` == true).
-  public: std::vector<std::unordered_map<Entity,
-          std::unordered_map<ComponentTypeId, std::size_t>>::iterator>
-            componentTypeIndexIterators;
-
-  /// \brief True if the componentTypeIndex map was changed.  Primarily used
-  /// by the multithreading functionality in `State()` to allocate work to
-  /// each thread.
-  public: bool componentTypeIndexDirty{true};
 
   /// \brief During cloning, we populate two maps:
   ///  - map of cloned model entities to the non-cloned model's canonical link
@@ -326,8 +305,6 @@ void EntityComponentManagerPrivate::CopyFrom(
     }
   }
   this->componentTypeIndex = _from.componentTypeIndex;
-  this->componentTypeIndexIterators.clear();
-  this->componentTypeIndexDirty = true;
 
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
@@ -829,7 +806,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     // reset the entity component storage
     this->dataPtr->componentStorage.clear();
     this->dataPtr->componentTypeIndex.clear();
-    this->dataPtr->componentTypeIndexDirty = true;
 
     // All views are now invalid.
     this->dataPtr->views.clear();
@@ -850,7 +826,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       this->dataPtr->componentsMarkedAsRemoved.erase(entity);
       this->dataPtr->componentStorage.erase(entity);
       this->dataPtr->componentTypeIndex.erase(entity);
-      this->dataPtr->componentTypeIndexDirty = true;
 
       // Remove the entity from views.
       for (auto &view : this->dataPtr->views)
@@ -1157,7 +1132,6 @@ bool EntityComponentManager::CreateComponentImplementation(
     const auto vectorIdx = entityCompIter->second.size();
     entityCompIter->second.push_back(std::move(newComp));
     this->dataPtr->componentTypeIndex[_entity][_componentTypeId] = vectorIdx;
-    this->dataPtr->componentTypeIndexDirty = true;
 
     updateData = false;
     for (auto &viewPair : this->dataPtr->views)
@@ -1668,52 +1642,6 @@ void EntityComponentManager::ChangedState(
 }
 
 //////////////////////////////////////////////////
-void EntityComponentManagerPrivate::CalculateStateThreadLoad()
-{
-  // If the entity component vector is dirty, we need to recalculate the
-  // threads and each thread's work load
-  if (!this->componentTypeIndexDirty)
-    return;
-
-  this->componentTypeIndexDirty = false;
-  this->componentTypeIndexIterators.clear();
-  auto startIt = this->componentTypeIndex.begin();
-  int numEntities = this->componentTypeIndex.size();
-
-  // Set the number of threads to spawn to the min of the calculated thread
-  // count or max threads that the hardware supports
-  int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numEntities, maxThreads);
-
-  int entitiesPerThread = static_cast<int>(std::ceil(
-    static_cast<double>(numEntities) / numThreads));
-
-  gzdbg << "Updated state thread iterators: " << numThreads
-         << " threads processing around " << entitiesPerThread
-         << " entities each." << std::endl;
-
-  // Push back the starting iterator
-  this->componentTypeIndexIterators.push_back(startIt);
-  for (uint64_t i = 0; i < numThreads; ++i)
-  {
-    // If we have added all of the entities to the iterator vector, we are
-    // done so push back the end iterator
-    numEntities -= entitiesPerThread;
-    if (numEntities <= 0)
-    {
-      this->componentTypeIndexIterators.push_back(
-          this->componentTypeIndex.end());
-      break;
-    }
-
-    // Get the iterator to the next starting group of entities
-    auto nextIt = std::next(startIt, entitiesPerThread);
-    this->componentTypeIndexIterators.push_back(nextIt);
-    startIt = nextIt;
-  }
-}
-
-//////////////////////////////////////////////////
 msgs::SerializedState EntityComponentManager::State(
     const std::unordered_set<Entity> &_entities,
     const std::unordered_set<ComponentTypeId> &_types) const
@@ -1740,46 +1668,15 @@ void EntityComponentManager::State(
     const std::unordered_set<ComponentTypeId> &_types,
     bool _full) const
 {
-  std::mutex stateMapMutex;
-  std::vector<std::thread> workers;
-
-  this->dataPtr->CalculateStateThreadLoad();
-
-  auto functor = [&](auto itStart, auto itEnd)
+  for (const auto& it : this->dataPtr->componentTypeIndex)
   {
-    msgs::SerializedStateMap threadMap;
-    while (itStart != itEnd)
+    const auto& entity = it.first;
+    if (!_entities.empty() && _entities.find(entity) == _entities.end())
     {
-      auto entity = (*itStart).first;
-      if (_entities.empty() || _entities.find(entity) != _entities.end())
-      {
-        this->AddEntityToMessage(threadMap, entity, _types, _full);
-      }
-      itStart++;
+      continue;
     }
-    std::lock_guard<std::mutex> lock(stateMapMutex);
-
-    for (const auto &entity : threadMap.entities())
-    {
-      (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
-          entity.second;
-    }
-  };
-
-  // Spawn workers
-  uint64_t numThreads = this->dataPtr->componentTypeIndexIterators.size() - 1;
-  for (uint64_t i = 0; i < numThreads; i++)
-  {
-    workers.push_back(std::thread(functor,
-        this->dataPtr->componentTypeIndexIterators[i],
-        this->dataPtr->componentTypeIndexIterators[i+1]));
+    this->AddEntityToMessage(_state, entity, _types, _full);
   }
-
-  // Wait for each thread to finish processing its components
-  std::for_each(workers.begin(), workers.end(), [](std::thread &_t)
-  {
-    _t.join();
-  });
 }
 
 //////////////////////////////////////////////////
