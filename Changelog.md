@@ -1,5 +1,50 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.3.1 (2026-06-03)
+1. **Baseline:** this includes all changes from 10.3.0 and earlier.
+
+1. Update some tests to be independent of entity ordering
+    * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
+
+1. Mitigate #3589: Restrict reading of resources to paths that live only within approved resource list
+    * [Pull request #3589: Restrict reading of resources to paths that live only within approved resource list (#3590](https://github.com/gazebosim/gz-sim/pull/3589: Restrict reading of resources to paths that live only within approved resource list (#3590)
+
+1. Fix crash for invalid index in force torque GUI plugin
+    * [Pull request #3601](https://github.com/gazebosim/gz-sim/pull/3601)
+
+1. Fix ECM view update when component is added, then removed before the view is queried
+    * [Pull request #3607](https://github.com/gazebosim/gz-sim/pull/3607)
+
+1. Fix branch in custom_sensor_system example
+    * [Pull request #3614](https://github.com/gazebosim/gz-sim/pull/3614)
+
+1. Fix cmake warning with FetchContent_MakeAvailable
+    * [Pull request #3613](https://github.com/gazebosim/gz-sim/pull/3613)
+
+1. Fix compiler warnings with protobuf 35.0
+    * [Pull request #3604](https://github.com/gazebosim/gz-sim/pull/3604)
+
+1. ModelCommandAPI_TEST: skip failing check on arm64
+    * [Pull request #3603](https://github.com/gazebosim/gz-sim/pull/3603)
+
+1. [bazel] Fixes build on macos
+    * [Pull request #3609](https://github.com/gazebosim/gz-sim/pull/3609)
+
+1. Fix LinearBatteryPlugin state contamination on world reset
+    * [Pull request #3533](https://github.com/gazebosim/gz-sim/pull/3533)
+
+1. Fix Contact state contamination on world reset
+    * [Pull request #3541](https://github.com/gazebosim/gz-sim/pull/3541)
+
+1. Add extensive benchmarking for ECM
+    * [Pull request #3476](https://github.com/gazebosim/gz-sim/pull/3476)
+
+1. Add reset test helpers and migrate reset integration tests
+    * [Pull request #3503](https://github.com/gazebosim/gz-sim/pull/3503)
+
+1. Add a default for touch plugin namespace
+    * [Pull request #3513](https://github.com/gazebosim/gz-sim/pull/3513)
+
 ### Gazebo Sim 10.3.0 (2026-05-14)
 
 1. Add components for setting gravity and static state of entities (backport #3532)
