@@ -395,3 +395,35 @@ GUI `GzScene` plugin.
 ### Order of Execution of Plugins
 The order of execution of plugins can be controlled by setting
 the `<gz:system_priority>` tag inside `<plugin>`. See example in examples/plugin/priority_printer_plugin and the associated README.md file to learn more.
+
+
+## Parallel PostUpdates
+
+By default, the `PostUpdate` phase of system plugins is executed in parallel
+using worker threads. This parallel execution is beneficial for worlds with a
+large number of plugins that perform heavy computational tasks during
+`PostUpdate`.
+
+However, in many typical simulations, most plugins perform trivial tasks on
+`PostUpdate`. In these scenarios, the overhead introduced by thread
+synchronization primitives can become a bottleneck and degrade simulation
+performance.
+
+To address this, you can configure `PostUpdate` functions to run sequentially
+instead of in parallel and see if it helps increase the Real Time Factor (RTF).
+This is done by setting the `<disable_parallel_postupdate>` policy to `true`:
+
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <gz:policies>
+      <disable_parallel_postupdate>true</disable_parallel_postupdate>
+    </gz:policies>
+
+    <!-- plugins and models... -->
+  </world>
+</sdf>
+```
+
+By default, this policy is set to `false`.
