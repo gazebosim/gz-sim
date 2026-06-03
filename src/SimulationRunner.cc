@@ -221,6 +221,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   );
   this->currentInfo.simTime = this->simTimeEpoch;
 
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
+
 #ifdef _WIN32
   HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
@@ -630,6 +646,13 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
+
   // If additional systems are to be added or have been removed,
   // stop the existing threads.
   this->StopWorkerThreads();
@@ -717,16 +740,26 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    if (!this->parallelPostUpdates)
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
@@ -1273,6 +1306,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
 }
 
 /////////////////////////////////////////////////
