@@ -2,6 +2,9 @@
 
 ### Gazebo Sim 10.4.0 (2026-06-03)
 
+1. Add parallel_postupdates gz policy
+    * [Pull request #3648](https://github.com/gazebosim/gz-sim/pull/3648)
+
 1. Update some tests to be independent of entity ordering
     * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
 
