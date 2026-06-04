@@ -299,14 +299,6 @@ the background color is the default grey, instead of the blue color set on the
 GUI `GzScene` plugin.
 
 @image html files/server_config/camera_env.gif
-<<<<<<< HEAD
-=======
-
-
-### Order of Execution of Plugins
-The order of execution of plugins can be controlled by setting
-the `<gz:system_priority>` tag inside `<plugin>`. See example in examples/plugin/priority_printer_plugin and the associated README.md file to learn more.
-
 
 ## Parallel PostUpdates
 
@@ -338,4 +330,3 @@ This is done by setting the `<parallel_postupdates>` policy to `false`:
 ```
 
 By default, this policy is set to `true`.
->>>>>>> e7639f5b (Add parallel_postupdates gz policy (#3648))
