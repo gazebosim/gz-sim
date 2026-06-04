@@ -23,6 +23,7 @@
 #include <gz/msgs/Utility.hh>
 
 #include <algorithm>
+#include <chrono>
 #include <deque>
 #include <map>
 #include <set>
@@ -866,6 +867,10 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Cache of scoped names for collision entities, to avoid resolving
+  /// them every time we process contacts.
+  public: std::unordered_map<Entity, std::string> collisionScopedNames;
 };
 
 //////////////////////////////////////////////////
@@ -2218,6 +2223,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
             {
               this->entityCollisionMap.Remove(childCollision);
               this->topLevelModelMap.erase(childCollision);
+              this->collisionScopedNames.erase(childCollision);
               if (this->customContactSurfaceEntities[world].erase(
                 childCollision))
               {
@@ -3308,6 +3314,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->staticCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
   this->collisionEnabledCmdsToRemove.clear();
+  this->collisionScopedNames.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -4497,11 +4504,16 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   // create msgs::Contact objects conveniently later on.
   std::unordered_map<Entity, EntityContactMap> entityContactMap;
 
+  auto startTotal = std::chrono::high_resolution_clock::now();
+
   // Note that we are temporarily storing pointers to elements in this
   // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
   // until the end of this function.
+  auto startGetContacts = std::chrono::high_resolution_clock::now();
   auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
+  auto endGetContacts = std::chrono::high_resolution_clock::now();
 
+  auto startProcessContacts = std::chrono::high_resolution_clock::now();
   for (const auto &contactComposite : allContacts)
   {
     const auto &contactPoint =
@@ -4519,10 +4531,12 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }
   }
+  auto endProcessContacts = std::chrono::high_resolution_clock::now();
 
   // Go through each collision entity that has a ContactData component and
   // set the component value to the list of contacts that correspond to
   // the collision entity
+  auto startEcmUpdate = std::chrono::high_resolution_clock::now();
   _ecm.Each<components::Collision, components::ContactSensorData>(
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
@@ -4549,10 +4563,33 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
           {
-            contactMsg->mutable_collision1()->set_name(
-              removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
-            contactMsg->mutable_collision2()->set_name(
-              removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
+            std::string name1;
+            auto it1 = this->collisionScopedNames.find(_collEntity1);
+            if (it1 != this->collisionScopedNames.end())
+            {
+              name1 = it1->second;
+            }
+            else
+            {
+              name1 = removeParentScope(
+                  scopedName(_collEntity1, _ecm, "::", 0), "::");
+              this->collisionScopedNames[_collEntity1] = name1;
+            }
+            contactMsg->mutable_collision1()->set_name(name1);
+
+            std::string name2;
+            auto it2 = this->collisionScopedNames.find(collEntity2);
+            if (it2 != this->collisionScopedNames.end())
+            {
+              name2 = it2->second;
+            }
+            else
+            {
+              name2 = removeParentScope(
+                  scopedName(collEntity2, _ecm, "::", 0), "::");
+              this->collisionScopedNames[collEntity2] = name2;
+            }
+            contactMsg->mutable_collision2()->set_name(name2);
           }
           for (const auto &contact : contactData)
           {
@@ -4599,6 +4636,25 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         return true;
       });
+  auto endEcmUpdate = std::chrono::high_resolution_clock::now();
+  auto endTotal = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double, std::milli> durTotal = endTotal - startTotal;
+  std::chrono::duration<double, std::milli> durGetContacts = endGetContacts - startGetContacts;
+  std::chrono::duration<double, std::milli> durProcessContacts = endProcessContacts - startProcessContacts;
+  std::chrono::duration<double, std::milli> durEcmUpdate = endEcmUpdate - startEcmUpdate;
+
+  size_t numContacts = allContacts.size();
+  if (numContacts > 0)
+  {
+    gzdbg << "UpdateCollisions timing: "
+          << "Total: " << durTotal.count() << "ms, "
+          << "GetContacts: " << durGetContacts.count() << "ms, "
+          << "ProcessContacts: " << durProcessContacts.count() << "ms, "
+          << "EcmUpdate: " << durEcmUpdate.count() << "ms. "
+          << "Num contacts: " << numContacts
+          << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
