@@ -7,7 +7,8 @@
     * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
 
 1. Mitigate #3589: Restrict reading of resources to paths that live only within approved resource list
-    * [Pull request #3589: Restrict reading of resources to paths that live only within approved resource list (#3590](https://github.com/gazebosim/gz-sim/pull/3589: Restrict reading of resources to paths that live only within approved resource list (#3590)
+    * [Pull request #3590](https://github.com/gazebosim/gz-sim/pull/3590)
+    * [Issue #3589](https://github.com/gazebosim/gz-sim/issues/3589)
 
 1. Fix crash for invalid index in force torque GUI plugin
     * [Pull request #3601](https://github.com/gazebosim/gz-sim/pull/3601)
