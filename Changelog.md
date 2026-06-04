@@ -1,7 +1,6 @@
 ## Gazebo Sim 10.x
 
-### Gazebo Sim 10.3.1 (2026-06-03)
-1. **Baseline:** this includes all changes from 10.3.0 and earlier.
+### Gazebo Sim 10.4.0 (2026-06-03)
 
 1. Update some tests to be independent of entity ordering
     * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
