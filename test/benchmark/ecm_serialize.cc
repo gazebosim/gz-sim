@@ -19,8 +19,12 @@
 
 #include <memory>
 
+#include <gz/common/Util.hh>
+
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/SystemLoader.hh"
 
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Inertial.hh"
@@ -31,6 +35,8 @@
 #include "gz/sim/components/World.hh"
 
 #include "gz/sim/components/Factory.hh"
+
+#include "test_config.hh"
 
 
 namespace gz
@@ -69,6 +75,45 @@ GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BoolComponent",
 using namespace gz;
 using namespace sim;
 using namespace components;
+
+void BM_RuntimeWorldBullet(benchmark::State &_st)
+{
+  size_t serializedSize = 0;
+
+  std::string worldPath =
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds");
+  common::setenv("GZ_SIM_RESOURCE_PATH",
+      (worldPath + ":" +
+       common::joinPaths(worldPath, "models")).c_str());
+
+  ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+
+  serverConfig.SetSdfFile(common::joinPaths(worldPath, "shapes.sdf"));
+  sim::Server server(serverConfig);  // Add system from plugin
+  sim::SystemLoader systemLoader;
+  systemLoader.AddSystemPluginPath(common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "lib"));
+  sdf::Plugin sdfPlugin;
+  sdfPlugin.SetName("gz::sim::MockSystem");
+  sdfPlugin.SetFilename("MockSystem");
+  auto mockSystemPlugin = systemLoader.LoadPlugin(sdfPlugin);
+  if (mockSystemPlugin.has_value())
+  {
+    server.AddSystem(mockSystemPlugin.value());
+  }
+
+  // todo: wait for it to stabilize before timing?
+
+  for (auto _: _st)
+  {
+    _st.PauseTiming();
+    server.Run(true, 1000, false);
+    _st.ResumeTiming();
+    server.Run(true, 1000, false);
+  }
+
+}
 
 // NOLINTNEXTLINE
 void BM_Serialize1Component(benchmark::State &_st)
@@ -130,22 +175,25 @@ void BM_Serialize5Component(benchmark::State &_st)
   _st.counters["num_components"] = 5;
 }
 
-// NOLINTNEXTLINE
-BENCHMARK(BM_Serialize1Component)
-  ->Arg(10)
-  ->Arg(50)
-  ->Arg(100)
-  ->Arg(500)
-  ->Arg(1000)
-  ->Unit(benchmark::kMillisecond);
+// // NOLINTNEXTLINE
+// BENCHMARK(BM_Serialize1Component)
+//   ->Arg(10)
+//   ->Arg(50)
+//   ->Arg(100)
+//   ->Arg(500)
+//   ->Arg(1000)
+//   ->Unit(benchmark::kMillisecond);
 
-// NOLINTNEXTLINE
-BENCHMARK(BM_Serialize5Component)
-  ->Arg(10)
-  ->Arg(50)
-  ->Arg(100)
-  ->Arg(500)
-  ->Arg(1000)
+// // NOLINTNEXTLINE
+// BENCHMARK(BM_Serialize5Component)
+//   ->Arg(10)
+//   ->Arg(50)
+//   ->Arg(100)
+//   ->Arg(500)
+//   ->Arg(1000)
+//   ->Unit(benchmark::kMillisecond);
+
+BENCHMARK(BM_RuntimeWorldBullet)
   ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
