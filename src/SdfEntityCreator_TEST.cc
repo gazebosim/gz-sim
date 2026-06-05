@@ -43,6 +43,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Physics.hh"
@@ -100,6 +101,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   EXPECT_TRUE(this->ecm.HasComponentType(components::Visual::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Light::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Namespace::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Geometry::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Material::typeId));
@@ -149,17 +151,20 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
-           components::Name>(
+           components::Name,
+           components::Namespace>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Namespace *_ns)->bool
     {
       EXPECT_NE(nullptr, _model);
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _ns);
 
       modelCount++;
 
@@ -171,6 +176,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("box", _name->Data());
+        EXPECT_EQ("", _ns->Data());
         boxModelEntity = _entity;
       }
       else if (modelCount == 2)
@@ -178,6 +184,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("cylinder", _name->Data());
+        EXPECT_EQ("cylinder", _ns->Data());
         cylModelEntity = _entity;
       }
       else if (modelCount == 3)
@@ -185,6 +192,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("sphere", _name->Data());
+        EXPECT_EQ("sphere_ns", _ns->Data());
         sphModelEntity = _entity;
       }
       else if (modelCount == 4)
@@ -192,6 +200,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("capsule", _name->Data());
+        EXPECT_EQ("", _ns->Data());
         capModelEntity = _entity;
       }
       else if (modelCount == 5)
@@ -199,6 +208,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
         EXPECT_EQ("ellipsoid", _name->Data());
+        EXPECT_EQ("", _ns->Data());
         ellipModelEntity = _entity;
       }
       return true;
@@ -693,7 +703,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
   this->ecm.Each<components::World,
-                            components::Name>(
+           components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
         const components::Name *_name)->bool
@@ -718,17 +728,20 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
-           components::Name>(
+           components::Name,
+           components::Namespace>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Namespace *_ns)->bool
     {
       EXPECT_NE(nullptr, _model);
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
+      EXPECT_NE(nullptr, _ns);
 
       modelCount++;
 
@@ -738,6 +751,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
+      EXPECT_EQ("sphere", _ns->Data());
       sphModelEntity = _entity;
 
       return true;
@@ -986,6 +1000,7 @@ TEST_F(SdfEntityCreatorTest, CreateJointEntities)
   EXPECT_TRUE(this->ecm.HasComponentType(components::ParentEntity::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Pose::typeId));
   EXPECT_TRUE(this->ecm.HasComponentType(components::Name::typeId));
+  EXPECT_TRUE(this->ecm.HasComponentType(components::Namespace::typeId));
 
   const sdf::Model *model = root.WorldByIndex(0)->ModelByIndex(1);
 

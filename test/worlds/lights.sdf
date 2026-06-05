@@ -59,7 +59,7 @@
       <cast_shadows>false</cast_shadows>
     </light>
 
-    <model name="sphere">
+    <model name="sphere" namespace="__name__">
       <pose>0 0.0 0.0 0 0 0</pose>
       <link name="sphere_link">
         <visual name="sphere_visual">
