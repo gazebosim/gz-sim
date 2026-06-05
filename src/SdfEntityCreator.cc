@@ -265,9 +265,6 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
   this->dataPtr->ecm->CreateComponent(_worldEntity,
       components::Name(_world->Name()));
 
-  this->dataPtr->ecm->CreateComponent(_worldEntity,
-      components::Namespace(_world->Namespace()));
-
   // Gravity
   this->dataPtr->ecm->CreateComponent(_worldEntity,
       components::Gravity(_world->Gravity()));
@@ -1063,8 +1060,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::ParticleEmitter *_emitter)
       components::Pose(ResolveSdfPose(_emitter->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(emitterEntity,
       components::Name(_emitter->Name()));
-  this->dataPtr->ecm->CreateComponent(emitterEntity,
-      components::Namespace(_emitter->Namespace()));
 
   return emitterEntity;
 }
@@ -1131,8 +1126,6 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
       components::Pose(ResolveSdfPose(_sensor->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(sensorEntity,
       components::Name(_sensor->Name()));
-  this->dataPtr->ecm->CreateComponent(sensorEntity,
-      components::Namespace(_sensor->Namespace()));
 
   if (_sensor->Type() == sdf::SensorType::CAMERA)
   {
