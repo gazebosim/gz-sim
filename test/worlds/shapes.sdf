@@ -80,7 +80,7 @@
       </link>
     </model>
 
-    <model name="cylinder">
+    <model name="cylinder" namespace="__name__">
       <pose>-1 -2 -3 0 0 1</pose>
       <link name="cylinder_link">
         <pose>0.2 0.2 0.2 0 0 0</pose>
@@ -123,7 +123,7 @@
       </link>
     </model>
 
-    <model name="sphere">
+    <model name="sphere" namespace="sphere_ns">
       <pose>0 0 0 0 0 1</pose>
       <link name="sphere_link">
         <pose>0.3 0.3 0.3 0 0 0</pose>
