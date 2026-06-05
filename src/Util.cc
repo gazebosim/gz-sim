@@ -204,7 +204,7 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
     const Entity &_entity, const std::string &_delim)
 {
   std::vector<std::string> namespaces;
-  
+
   auto entity = _entity;
   while (entity != kNullEntity)
   {
@@ -217,7 +217,7 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
       {
         const auto end = nsStr.find_last_not_of('/');
         nsStr = nsStr.substr(begin, end - begin + 1);
-        
+
         namespaces.push_back(nsStr);
       }
     }

@@ -283,7 +283,7 @@ TEST_F(UtilTest, ScopedNamespace)
       components::Namespace("///"));
   ecm.CreateComponent(entityWithSlashesNamespace,
       components::ParentEntity(linkEntity));
-  
+
   EXPECT_EQ("/world_ns", scopedNamespace(ecm, worldEntity));
   EXPECT_EQ("/world_ns/model_ns", scopedNamespace(ecm, modelEntity));
   EXPECT_EQ("/world_ns/model_ns", scopedNamespace(ecm, nestedModelEntity));
