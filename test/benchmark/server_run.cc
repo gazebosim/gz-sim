@@ -19,7 +19,7 @@
 
 #include <gz/common/Util.hh>
 #include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
+#include "gz/sim/ServerConfig.hh"
 
 #include "test_config.hh"
 
@@ -27,21 +27,11 @@ using namespace gz;
 using namespace sim;
 using namespace components;
 
-void BM_RuntimeWorld(benchmark::State &_st, std::string physics_engine,
-                     std::string world_sdf) {
-  // world_sdf file should be in test/worlds/
+void BM_RuntimeWorld(benchmark::State &_st, const std::string &physics_engine,
+                     const std::string &world_sdf) {
+  auto stabilizingSteps = 100;
 
-  // const std::vector<std::string> kPhysicsPlugins = {
-  //     "gz-physics-dartsim-plugin", "gz-physics-bullet-featherstone-plugin"};
-
-  // const std::vector<std::string> worldFiles = {"shapes.sdf",
-  //                                              "gpu_lidar_sensor.sdf"};
-
-  // std::string world_file = worldFiles[_st.range(1)];
-  // std::string physics_engine = kPhysicsPlugins[_st.range(0)];
-  auto stabilizingSteps = _st.range(0);
-
-  std::string path = std::string(PROJECT_SOURCE_PATH) + "/test/worlds/models";
+  std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
   common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   ServerConfig serverConfig;
   serverConfig.SetWaitForAssets(true);
@@ -49,56 +39,34 @@ void BM_RuntimeWorld(benchmark::State &_st, std::string physics_engine,
                                             "test/worlds/", world_sdf));
   serverConfig.SetPhysicsEngine(physics_engine);
 
-  sim::Server server(serverConfig); // Add system from plugin
-
   for (auto _ : _st) {
     _st.PauseTiming();
+    sim::Server server(serverConfig); // Add system from plugin
     // wait for it to stabilize before timing?
     server.Run(true, stabilizingSteps, false);
     _st.ResumeTiming();
+
     server.Run(true, 1000, false);
   }
 }
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_shapes_sdf,
-                  std::string("gz-physics-bullet-featherstone-plugin"),
-                  std::string("shapes.sdf"))
-    ->Arg(1)
-    ->Arg(10)
-    ->Arg(100)
-    ->Arg(1000)
+                  "gz-physics-bullet-featherstone-plugin",
+                  "shapes.sdf")
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_gpu_lidar_sensor_sdf,
-                  std::string("gz-physics-bullet-featherstone-plugin"),
-                  std::string("gpu_lidar_sensor.sdf"))
-    ->Arg(1)
-    ->Arg(10)
-    ->Arg(100)
-    ->Arg(1000)
+                  "gz-physics-bullet-featherstone-plugin",
+                  "gpu_lidar_sensor.sdf")
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
-                  std::string("gz-physics-bullet-featherstone-plugin"),
-                  std::string("breadcrumbs.sdf"))
-    ->Arg(1)
-    ->Arg(10)
-    ->Arg(100)
-    ->Arg(1000)
+                  "gz-physics-bullet-featherstone-plugin",
+                  "breadcrumbs.sdf")
     ->Unit(benchmark::kMillisecond);
-
-// // NOLINTNEXTLINE
-// BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_3k_shapes_sdf,
-//                   std::string("gz-physics-bullet-featherstone-plugin"),
-//                   std::string("3k_shapes.sdf"))
-//     ->Arg(1)
-//     ->Arg(10)
-//     ->Arg(100)
-//     ->Arg(1000)
-//     ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
 #if !defined(_MSC_VER)
