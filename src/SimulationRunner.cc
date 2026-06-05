@@ -519,9 +519,16 @@ void SimulationRunner::PublishStats()
 {
   GZ_PROFILE("SimulationRunner::PublishStats");
 
-  // Create the world statistics message.
-  msgs::WorldStatistics msg;
-  msg.set_real_time_factor(this->realTimeFactor);
+  const bool publishStats = this->statsPub.HasConnections() ||
+                            (this->rootStatsPub.Valid() &&
+                             this->rootStatsPub.HasConnections());
+
+  const bool publishClock = this->clockPub.HasConnections() ||
+                            (this->rootClockPub.Valid() &&
+                             this->rootClockPub.HasConnections());
+
+  if (!publishStats && !publishClock)
+    return;
 
   auto realTimeSecNsec =
     math::durationToSecNsec(this->currentInfo.realTime);
@@ -529,48 +536,58 @@ void SimulationRunner::PublishStats()
   auto simTimeSecNsec =
     math::durationToSecNsec(this->currentInfo.simTime);
 
-  msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
-  msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
-
-  msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
-  msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
-
-  msg.set_iterations(this->currentInfo.iterations);
-
-  msg.set_paused(this->currentInfo.paused);
-
-  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
-
-  if (this->Stepping())
+  if (publishStats)
   {
-    // (deprecated) Remove this header in Gazebo H
-    auto headerData = msg.mutable_header()->add_data();
-    headerData->set_key("step");
+    // Create the world statistics message.
+    msgs::WorldStatistics msg;
+    msg.set_real_time_factor(this->realTimeFactor);
 
-    msg.set_stepping(true);
+    msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+    msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+    msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+    msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+    msg.set_iterations(this->currentInfo.iterations);
+
+    msg.set_paused(this->currentInfo.paused);
+
+    msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
+
+    if (this->Stepping())
+    {
+      // (deprecated) Remove this header in Gazebo H
+      auto headerData = msg.mutable_header()->add_data();
+      headerData->set_key("step");
+
+      msg.set_stepping(true);
+    }
+
+    // Publish the stats message. The stats message is throttled.
+    this->statsPub.Publish(msg);
+
+    if (this->rootStatsPub.Valid())
+      this->rootStatsPub.Publish(msg);
   }
 
-  // Publish the stats message. The stats message is throttled.
-  this->statsPub.Publish(msg);
+  if (publishClock)
+  {
+    // Create and publish the clock message. The clock message is not
+    // throttled.
+    msgs::Clock clockMsg;
+    clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
+    clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
+    clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
+    clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
+    clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+    clockMsg.mutable_system()->set_nsec(
+        GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+    this->clockPub.Publish(clockMsg);
 
-  if (this->rootStatsPub.Valid())
-    this->rootStatsPub.Publish(msg);
-
-  // Create and publish the clock message. The clock message is not
-  // throttled.
-  msgs::Clock clockMsg;
-  clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
-  clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
-  clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
-  clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
-  clockMsg.mutable_system()->set_nsec(
-      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
-  this->clockPub.Publish(clockMsg);
-
-  // Only publish to root topic if no others are.
-  if (this->rootClockPub.Valid())
-    this->rootClockPub.Publish(clockMsg);
+    // Only publish to root topic if no others are.
+    if (this->rootClockPub.Valid())
+      this->rootClockPub.Publish(clockMsg);
+  }
 }
 
 namespace {
