@@ -35,6 +35,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Projector.hh"
@@ -237,6 +238,62 @@ TEST_F(UtilTest, ScopedName)
   EXPECT_EQ(worldEntity, sim::worldEntity(linkCCEntity, ecm));
   EXPECT_EQ(worldEntity, sim::worldEntity(actorDEntity, ecm));
   EXPECT_EQ(kNullEntity, sim::worldEntity(kNullEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, HasNamespace)
+{
+  EntityComponentManager ecm;
+
+  EXPECT_FALSE(hasNamespace(ecm));
+
+  ecm.CreateEntity();
+  EXPECT_FALSE(hasNamespace(ecm));
+
+  auto entityWithEmptyNamespace = ecm.CreateEntity();
+  ecm.CreateComponent(entityWithEmptyNamespace, components::Namespace(""));
+  EXPECT_FALSE(hasNamespace(ecm));
+
+  auto entityWithNamespace = ecm.CreateEntity();
+  ecm.CreateComponent(entityWithNamespace, components::Namespace("robot"));
+  EXPECT_TRUE(hasNamespace(ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ScopedNamespace)
+{
+  EntityComponentManager ecm;
+
+  auto worldEntity = ecm.CreateEntity();
+  ecm.CreateComponent(worldEntity, components::Namespace("world_ns/"));
+
+  auto modelEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelEntity, components::Namespace("model_ns"));
+  ecm.CreateComponent(modelEntity, components::ParentEntity(worldEntity));
+
+  auto nestedModelEntity = ecm.CreateEntity();
+  ecm.CreateComponent(nestedModelEntity, components::ParentEntity(modelEntity));
+
+  auto linkEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkEntity, components::Namespace("//link_ns//"));
+  ecm.CreateComponent(linkEntity, components::ParentEntity(nestedModelEntity));
+
+  auto entityWithSlashesNamespace = ecm.CreateEntity();
+  ecm.CreateComponent(entityWithSlashesNamespace,
+      components::Namespace("///"));
+  ecm.CreateComponent(entityWithSlashesNamespace,
+      components::ParentEntity(linkEntity));
+  
+  EXPECT_EQ("/world_ns", scopedNamespace(ecm, worldEntity));
+  EXPECT_EQ("/world_ns/model_ns", scopedNamespace(ecm, modelEntity));
+  EXPECT_EQ("/world_ns/model_ns", scopedNamespace(ecm, nestedModelEntity));
+  EXPECT_EQ("/world_ns/model_ns/link_ns", scopedNamespace(ecm, linkEntity));
+  EXPECT_EQ("::world_ns::model_ns::link_ns",
+      scopedNamespace(ecm, linkEntity, "::"));
+  EXPECT_EQ("/world_ns/model_ns/link_ns",
+      scopedNamespace(ecm, entityWithSlashesNamespace));
+
+  EXPECT_TRUE(scopedNamespace(ecm, kNullEntity).empty());
 }
 
 /////////////////////////////////////////////////
