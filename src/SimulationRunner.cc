@@ -520,12 +520,10 @@ void SimulationRunner::PublishStats()
   GZ_PROFILE("SimulationRunner::PublishStats");
 
   const bool publishStats = this->statsPub.HasConnections() ||
-                            (this->rootStatsPub.Valid() &&
-                             this->rootStatsPub.HasConnections());
+                            this->rootStatsPub.HasConnections();
 
   const bool publishClock = this->clockPub.HasConnections() ||
-                            (this->rootClockPub.Valid() &&
-                             this->rootClockPub.HasConnections());
+                            this->rootClockPub.HasConnections();
 
   if (!publishStats && !publishClock)
     return;
