@@ -845,9 +845,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamespaceTopic))
     };
 
   transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/vehicle/nested_ns/cmd_vel");
+  auto pub = node.Advertise<msgs::Twist>("/cmd_vel");
   node.Subscribe("/vehicle/nested_ns/odom", odomCb);
-  node.Subscribe("/vehicle/nested_ns/model/vehicle_nested/tf", tfCb);
+  node.Subscribe("/vehicle/nested_ns/tf", tfCb);
 
   msgs::Twist msg;
   msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
@@ -862,7 +862,7 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamespaceTopic))
 
   // Disable controller
   auto pub_enable = node.Advertise<msgs::Boolean>(
-    "/vehicle/nested_ns/model/vehicle_nested/enable");
+    "/vehicle/nested_ns/enable");
 
   msgs::Boolean msg_enable;
   msg_enable.set_data(false);
