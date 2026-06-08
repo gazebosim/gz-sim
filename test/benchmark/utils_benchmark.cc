@@ -21,6 +21,7 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/Link.hh"
@@ -31,17 +32,16 @@
 using namespace gz;
 using namespace sim;
 
-void BM_ScopedName(benchmark::State &_st) {
+void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) {
 
   // world
   // - modelA
   //   - modelB
   //     - linkC
   //       - sensorD
+  //       - projectorE
+  //       - modelF
 
-  // todo:
-  // call on different entity types
-  // call on different depth levels
   EntityComponentManager ecm;
 
   auto worldEntity = ecm.CreateEntity();
@@ -66,23 +66,42 @@ void BM_ScopedName(benchmark::State &_st) {
   ecm.CreateComponent(linkCEntity, components::Name("linkC_name"));
   ecm.CreateComponent(linkCEntity, components::ParentEntity(modelBEntity));
 
-  // Sensor D
-  auto sensorDEntity = ecm.CreateEntity();
-  ecm.CreateComponent(sensorDEntity, components::Sensor());
-  ecm.CreateComponent(sensorDEntity, components::Name("sensorD_name"));
-  ecm.CreateComponent(sensorDEntity, components::ParentEntity(linkCEntity));
-
   auto iterations = _st.range(0);
+
+  auto entity = ecm.CreateEntity();
+  ecm.CreateComponent(entity, components::Name("entity_name"));
+  ecm.CreateComponent(entity, components::ParentEntity(linkCEntity));
+
+  if (_entityType == "sensor")
+  {
+    ecm.CreateComponent(entity, components::Sensor());
+  }
+  else if (_entityType == "projector")
+  {
+    ecm.CreateComponent(entity, components::Projector());
+  }
+  else if (_entityType == "model")
+  {
+    ecm.CreateComponent(entity, components::Model());
+  }
   for (auto _ : _st) {
     for (int ii = 0; ii < iterations; ++ii)
     {
-      scopedName(sensorDEntity, ecm);
+      scopedName(entity, ecm);
     }
   }
 }
 
 // NOLINTNEXTLINE
-BENCHMARK(BM_ScopedName)
+BENCHMARK_CAPTURE(BM_ScopedName, bullet_sensor, "sensor")
+    ->Arg(1000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_ScopedName, bullet_projector, "projector")
+    ->Arg(1000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_ScopedName, bullet_model, "model")
     ->Arg(1000)
     ->Unit(benchmark::kMillisecond);
 
