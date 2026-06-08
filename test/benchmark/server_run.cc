@@ -47,7 +47,6 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
     // Wait for simulation to stabilize before timing
     server.Run(true, stabilizingSteps, false);
     _st.ResumeTiming();
-
     server.Run(true, 1000, false);
   }
 }
@@ -73,6 +72,12 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
     ->Arg(10000)
     ->Unit(benchmark::kMillisecond);
 
+/*
+This benchmark (for 3k_shapes.sdf) can take a while to run. Use the 
+'--benchmark_filter="bullet_([^3]|3[^k])"' argument when you run 
+build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this 
+benchmark.
+*/
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
