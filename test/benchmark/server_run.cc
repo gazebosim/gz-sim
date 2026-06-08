@@ -16,6 +16,8 @@
  */
 
 #include <benchmark/benchmark.h>
+#include <cstring>
+#include <vector>
 
 #include <gz/common/Util.hh>
 #include "gz/sim/Server.hh"
@@ -27,22 +29,22 @@ using namespace gz;
 using namespace sim;
 using namespace components;
 
-void BM_RuntimeWorld(benchmark::State &_st, const std::string &physics_engine,
-                     const std::string &world_sdf) {
-  auto stabilizingSteps = 100;
+void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
+                     const std::string &_world_sdf) {
+  auto stabilizingSteps = _st.range(0);
 
   std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
   common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   ServerConfig serverConfig;
   serverConfig.SetWaitForAssets(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                            "test/worlds/", world_sdf));
-  serverConfig.SetPhysicsEngine(physics_engine);
+                                            "test/worlds/", _world_sdf));
+  serverConfig.SetPhysicsEngine(_physics_engine);
 
   for (auto _ : _st) {
     _st.PauseTiming();
     sim::Server server(serverConfig); // Add system from plugin
-    // wait for it to stabilize before timing?
+    // Wait for simulation to stabilize before timing
     server.Run(true, stabilizingSteps, false);
     _st.ResumeTiming();
 
@@ -54,18 +56,28 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &physics_engine,
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
+    ->Arg(10000)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
+    ->Arg(10000)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "breadcrumbs.sdf")
+    ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_3k_shapes_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "3k_shapes.sdf")
+    ->Arg(10000)
     ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
