@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
 #include <benchmark/benchmark.h>
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -24,23 +25,19 @@
 #include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
-#include "gz/sim/components/Link.hh"
-#include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
 
-void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) {
-
+void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) 
+{
   // world
   // - modelA
   //   - modelB
   //     - linkC
-  //       - sensorD
-  //       - projectorE
-  //       - modelF
+  //       - entity
 
   EntityComponentManager ecm;
 
@@ -84,8 +81,9 @@ void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) {
   {
     ecm.CreateComponent(entity, components::Model());
   }
-  for (auto _ : _st) {
-    for (int ii = 0; ii < iterations; ++ii)
+  for (auto _ : _st) 
+  {
+    for (int64_t ii = 0; ii < iterations; ++ii)
     {
       scopedName(entity, ecm);
     }
@@ -93,15 +91,15 @@ void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) {
 }
 
 // NOLINTNEXTLINE
-BENCHMARK_CAPTURE(BM_ScopedName, bullet_sensor, "sensor")
+BENCHMARK_CAPTURE(BM_ScopedName, sensor, "sensor")
     ->Arg(1000)
     ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_CAPTURE(BM_ScopedName, bullet_projector, "projector")
+BENCHMARK_CAPTURE(BM_ScopedName, projector, "projector")
     ->Arg(1000)
     ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_CAPTURE(BM_ScopedName, bullet_model, "model")
+BENCHMARK_CAPTURE(BM_ScopedName, model, "model")
     ->Arg(1000)
     ->Unit(benchmark::kMillisecond);
 
