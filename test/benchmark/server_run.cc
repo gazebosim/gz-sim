@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,8 @@ using namespace sim;
 using namespace components;
 
 void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
-                     const std::string &_world_sdf) {
+                     const std::string &_world_sdf) 
+{
   auto stabilizingSteps = _st.range(0);
 
   std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
@@ -41,7 +42,8 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
                                             "test/worlds/", _world_sdf));
   serverConfig.SetPhysicsEngine(_physics_engine);
 
-  for (auto _ : _st) {
+  for (auto _ : _st) 
+  {
     _st.PauseTiming();
     sim::Server server(serverConfig); // Add system from plugin
     // Wait for simulation to stabilize before timing
@@ -74,12 +76,12 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
 
 /*
 This benchmark (for 3k_shapes.sdf) can take a while to run. Use the 
-'--benchmark_filter="bullet_([^3]|3[^k])"' argument when you run 
+'--benchmark_filter="(/bullet_)"' argument when you run 
 build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this 
 benchmark.
 */
 // NOLINTNEXTLINE
-BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_3k_shapes_sdf,
+BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(10000)
