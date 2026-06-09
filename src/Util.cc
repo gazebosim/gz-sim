@@ -317,7 +317,8 @@ ComponentTypeId entityTypeComponentTypeId(const EntityType _type)
     case EntityType::Joint:           return components::Joint::typeId;
     case EntityType::Sensor:          return components::Sensor::typeId;
     case EntityType::Actor:           return components::Actor::typeId;
-    case EntityType::ParticleEmitter: return components::ParticleEmitter::typeId;
+    case EntityType::ParticleEmitter:
+      return components::ParticleEmitter::typeId;
     case EntityType::Projector:       return components::Projector::typeId;
     default:                          return kComponentTypeIdInvalid;
   }

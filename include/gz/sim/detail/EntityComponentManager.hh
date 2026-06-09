@@ -167,7 +167,8 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
 
   if (comp)
   {
-    if constexpr (traits::EntityTypeForComponent<ComponentTypeT>::kHasEntityType)
+    if constexpr (
+        traits::EntityTypeForComponent<ComponentTypeT>::kHasEntityType)
     {
       this->CreateComponent(_entity, components::EntityTypeTag(
           traits::EntityTypeForComponent<ComponentTypeT>::kEntityType));
