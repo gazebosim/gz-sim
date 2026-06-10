@@ -32,6 +32,14 @@
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
 #include "gz/sim/components/Recreate.hh"
+<<<<<<< HEAD
+=======
+#include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
+#include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerPlugin.hh"
+#include "gz/sim/Conversions.hh"
+>>>>>>> 72776245 (Create RenderEngineServerApiBackend component in SimulationRunner (#3461))
 #include "gz/sim/Events.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
@@ -1497,3 +1505,180 @@ void SimulationRunner::SetNextStepAsBlockingPaused(const bool value)
 {
   this->blockingPausedStepPending = value;
 }
+<<<<<<< HEAD
+=======
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetWorldSdf(const sdf::World &_world)
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  this->sdfWorld = _world;
+}
+
+//////////////////////////////////////////////////
+const sdf::World &SimulationRunner::WorldSdf() const
+{
+  return this->sdfWorld;
+}
+
+//////////////////////////////////////////////////
+void SimulationRunner::SetCreateEntities()
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  this->createEntities = true;
+}
+
+void SimulationRunner::CreateEntities()
+{
+  std::scoped_lock<std::mutex> createLock(this->assetCreationMutex);
+  if (!this->createEntities)
+  {
+    gzerr << "Need to call SetCreateEntites before CreateEntities\n";
+    return;
+  }
+
+  // Instantiate the SDF creator
+  auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+      this->eventMgr);
+
+  // We create the world entity so that the simulation runner can inject
+  // some components
+  Entity worldEntity = this->entityCompMgr.CreateEntity();
+  this->entityCompMgr.CreateComponent(worldEntity, components::World());
+
+  // 1. Level manager read performers and levels. Add components to the
+  // performers and levels so that the SdfEntityCreator knows whether to
+  // create them or not. Make sure to set parents properly
+  // 2. Create entities.
+
+  // Read the level information. This will create components containing
+  // information about which entities should be created for the current
+  // level.
+  this->levelMgr->ReadLevelPerformerInfo(this->sdfWorld);
+
+  // Configure the default level
+  this->levelMgr->ConfigureDefaultLevel();
+
+  // Create components based on the contents of the server configuration.
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::PhysicsEnginePlugin(this->serverConfig.PhysicsEngine()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerPlugin(
+        this->serverConfig.RenderEngineServer()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerHeadless(
+      this->serverConfig.HeadlessRendering()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineGuiPlugin(
+      this->serverConfig.RenderEngineGui()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerApiBackend(
+      this->serverConfig.RenderEngineServerApiBackend()));
+
+  // Load the world entities from SDF
+  creator->CreateEntities(&this->sdfWorld, worldEntity);
+
+  // Load the active levels
+  this->levelMgr->UpdateLevelsState();
+
+  // Some entities and component should be removed based on the levels.
+  this->entityCompMgr.ProcessRemoveEntityRequests();
+  this->entityCompMgr.ClearRemovedComponents();
+
+  // Load any additional plugins from the Server Configuration
+  this->LoadServerPlugins(this->serverConfig.Plugins());
+
+  auto loadedWorldPlugins = this->systemMgr->TotalByEntity(worldEntity);
+  // If we have reached this point and no world systems have been loaded, then
+  // load a default set of systems.
+
+  auto worldElem = this->sdfWorld.Element();
+  bool includeServerConfigPlugins = true;
+  if (worldElem)
+  {
+    auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+    if (policies)
+    {
+      includeServerConfigPlugins =
+        policies
+        ->Get<bool>("include_server_config_plugins", includeServerConfigPlugins)
+        .first;
+    }
+  }
+
+  if (includeServerConfigPlugins || loadedWorldPlugins.empty())
+  {
+    bool isPlayback = !this->serverConfig.LogPlaybackPath().empty();
+    auto defaultPlugins = gz::sim::loadPluginInfo(isPlayback);
+    if (loadedWorldPlugins.empty())
+    {
+      gzmsg << "No systems loaded from SDF, loading defaults" << std::endl;
+    }
+    else
+    {
+      StringSet loadedWorldPluginFileNames;
+      for (const auto &pl : loadedWorldPlugins)
+      {
+        auto filename = gz::sim::normalizePluginFilename(pl.fname);
+        if (!filename.empty())
+          loadedWorldPluginFileNames.insert(filename);
+      }
+      auto isPluginLoaded =
+          [&loadedWorldPluginFileNames](
+              const ServerConfig::PluginInfo &_pl)
+      {
+          auto filename =
+              gz::sim::normalizePluginFilename(_pl.Plugin().Filename());
+          if (!filename.empty() &&
+              loadedWorldPluginFileNames.count(filename) > 0)
+            return true;
+
+          return false;
+      };
+
+      // Remove plugin if it's already loaded so as to not duplicate world
+      // plugins.
+      defaultPlugins.remove_if(isPluginLoaded);
+
+      gzdbg << "Additional plugins to load:\n";
+      for (const auto &plugin : defaultPlugins)
+      {
+        gzdbg << plugin.Plugin().Name() << " " << plugin.Plugin().Filename()
+              << "\n";
+      }
+    }
+
+    this->LoadServerPlugins(defaultPlugins);
+    // Load logging plugins after all server plugins so that necessary
+    // plugins such as SceneBroadcaster are loaded first. This might be
+    // a bug or an assumption made in the logging plugins.
+    this->LoadLoggingPlugins(this->serverConfig);
+
+  };
+
+  // Store the initial state of the ECM;
+  this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
+
+  this->createEntities = false;
+  this->entitiesCreated = true;
+  this->creationCv.notify_all();
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = _all || _time;
+  if (_model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
+}
+>>>>>>> 72776245 (Create RenderEngineServerApiBackend component in SimulationRunner (#3461))
