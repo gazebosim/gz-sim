@@ -205,6 +205,19 @@ namespace gz
       public: void SetGravityEnabled(EntityComponentManager &_ecm,
           bool _enabled);
 
+      /// \brief Get whether this model has collisions enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if collisions are enabled, nullopt if component is
+      /// missing.
+      public: std::optional<bool> CollisionEnabled(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Set a new command to enable or disable the model's collisions.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _enabled True to enable collisions, false otherwise.
+      public: void SetCollisionEnabled(EntityComponentManager &_ecm,
+          bool _enabled);
+
       /// \brief Get the model's canonical link entity.
       /// \param[in] _ecm Entity-component manager.
       /// \return Link entity.
