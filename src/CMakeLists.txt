@@ -68,7 +68,6 @@ set(material_sources
 
 set (sources
   Actor.cc
-  BaseView.cc
   Conversions.cc
   ComponentFactory.cc
   EntityComponentManager.cc
@@ -92,7 +91,6 @@ set (sources
   SystemManager.cc
   TestFixture.cc
   Util.cc
-  View.cc
   World.cc
   ${network_sources}
   ${comms_sources}
@@ -104,7 +102,6 @@ set (gtest_sources
   ${gtest_sources}
   Actor_TEST.cc
   AddedMass_TEST.cc
-  BaseView_TEST.cc
   ComponentFactory_TEST.cc
   Component_TEST.cc
   Conversions_TEST.cc

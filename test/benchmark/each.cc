@@ -150,6 +150,16 @@ class ManyComponentFixture: public benchmark::Fixture
   }
 
   std::unique_ptr<EntityComponentManager> mgr;
+
+  protected: EntityComponentManager* Mgr()
+  {
+    return mgr.get();
+  }
+
+  protected: const EntityComponentManager* MgrConst()
+  {
+    return mgr.get();
+  }
 };
 
 BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentCache)
@@ -284,7 +294,7 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)
+BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentConst)
 (benchmark::State &_st)
 {
   for (auto _ : _st)
@@ -295,7 +305,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)
     {
       int entitiesMatched = 0;
 
-      mgr->EachNoCache<components::Name,
+      const auto manager = this->MgrConst();
+      manager->Each<components::Name,
                 AngularVelocity,
                 Inertial,
                 LinearAcceleration,
@@ -310,6 +321,8 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentNoCache)
             entitiesMatched++;
             return true;
           });
+      // Flush the enqueued groups so following iterations are much faster
+      this->mgr->CreatePendingGroups();
 
       if (entitiesMatched != entityCount)
       {
@@ -383,6 +396,7 @@ class EntityByComponentsFixture: public benchmark::Fixture
     {
       Entity worldEntity = mgr->CreateEntity();
       mgr->CreateComponent(worldEntity, World());
+      mgr->CreateComponent(worldEntity, Inertial());
       mgr->CreateComponent(worldEntity, components::Name("child"));
       nonMatchingEntities.push_back(worldEntity);
     }
@@ -394,6 +408,7 @@ class EntityByComponentsFixture: public benchmark::Fixture
       {
         parentEntity = e;
       }
+      mgr->CreateComponent(e, Inertial());
       mgr->CreateComponent(e, components::Name("target"));
     }
 
@@ -418,6 +433,7 @@ BENCHMARK_DEFINE_F(EntityByComponentsFixture, EntityByComponents)
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
       const auto e = mgr->EntityByComponents(components::Name("target"));
+      this->mgr->CreatePendingGroups();
       if (e == kNullEntity)
       {
         _st.SkipWithError("Entity not found");
@@ -434,6 +450,9 @@ BENCHMARK_DEFINE_F(EntityByComponentsFixture, EntitiesByComponents)
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
       const auto e = mgr->EntitiesByComponents(components::Name("target"));
+      // Flush the enqueued groups so following iterations are much faster
+      this->mgr->CreatePendingGroups();
+
       if (e.size() != EntityByComponentsFixture::matchingEntityCount)
       {
         _st.SkipWithError("Wrong name of entities found");
@@ -450,6 +469,7 @@ BENCHMARK_DEFINE_F(EntityByComponentsFixture, ChildrenByComponents)
     for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
     {
       const auto e = mgr->ChildrenByComponents(parentEntity, components::Name("child"));
+      this->mgr->CreatePendingGroups();
       if (static_cast<int64_t>(e.size()) != _st.range(0))
       {
         _st.SkipWithError("Wrong name of children found");
@@ -579,7 +599,7 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentCache)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
 
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentNoCache)
+BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentConst)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)

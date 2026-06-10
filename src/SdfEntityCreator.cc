@@ -464,6 +464,7 @@ void SdfEntityCreator::CreateEntities(const sdf::World *_world,
 
   // Load model plugins after the world plugin.
   this->LoadModelPlugins();
+  this->dataPtr->ecm->SortComponentStorages();
 }
 
 //////////////////////////////////////////////////

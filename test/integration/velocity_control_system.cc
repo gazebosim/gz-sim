@@ -161,11 +161,9 @@ class VelocityControlTest
 
         modelPoses.push_back(modelPoseComp->Data());
 
-        auto links = _ecm.ChildrenByComponents(modelId,
+        auto linkId = _ecm.EntityByComponents(
           components::Link(),
           components::Name("caster"));
-        ASSERT_FALSE(links.empty());
-        auto linkId = links.front();
         EXPECT_NE(kNullEntity, linkId);
 
         auto linkPoseComp = _ecm.Component<components::Pose>(linkId);

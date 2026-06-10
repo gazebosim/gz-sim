@@ -675,6 +675,7 @@ void SimulationRunner::UpdateSystems()
     {
       system->PostUpdate(this->currentInfo, this->entityCompMgr);
     }
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 
