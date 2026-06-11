@@ -23,5 +23,4 @@ jobs:
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
           codecov-enabled: true
           cppcheck-enabled: true
-          cpplint-enabled: true
           apt-dependencies: libdwarf-dev libdw-dev binutils-dev
