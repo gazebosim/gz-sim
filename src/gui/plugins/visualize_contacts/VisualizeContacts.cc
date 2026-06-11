@@ -20,11 +20,11 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
-#include <gz/msgs/entity.pb.h>
+#include <gz/msgs/empty.pb.h>
+#include <gz/msgs/entity_plugin_v.pb.h>
 #include <gz/msgs/marker.pb.h>
 
 #include <string>
-#include <vector>
 
 #include <sdf/Link.hh>
 #include <sdf/Model.hh>
@@ -42,8 +42,6 @@
 #include <gz/gui/Conversions.hh>
 #include <gz/gui/MainWindow.hh>
 
-#include "gz/sim/components/Collision.hh"
-#include "gz/sim/components/ContactSensor.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/World.hh"
@@ -60,10 +58,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   /// \brief Private data class for VisualizeContacts
   class VisualizeContactsPrivate
   {
-    /// \brief Creates ContactSensorData for Collision components without a
-    /// Contact Sensor by requesting the /enable_contact service
-    /// \param[in] Reference to the GUI Entity Component Manager
-    public: void CreateCollisionData(EntityComponentManager &_ecm);
+    /// \brief Request ContactSensorData for all Collision components without a
+    /// Contact Sensor through the /enable_collisions service.
+    public: void CreateCollisionData();
 
     /// \brief Transport node
     public: transport::Node node;
@@ -96,6 +93,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Name of the world
     public: std::string worldName;
+
+    /// \brief True once ContactSensorData has been requested through the user
+    /// commands service.
+    public: bool contactsEnabled{false};
+
+    /// \brief True once the user commands system has been requested through
+    /// the entity/system/add service.
+    public: bool userCommandsLoadRequested{false};
   };
 }
 }
@@ -182,9 +187,13 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
         });
     }
 
+    this->dataPtr->initialized = !this->dataPtr->worldName.empty();
+  }
+
+  if (this->dataPtr->initialized)
+  {
     // Enable collisions
-    this->dataPtr->CreateCollisionData(_ecm);
-    this->dataPtr->initialized = true;
+    this->dataPtr->CreateCollisionData();
   }
 
   {
@@ -250,42 +259,47 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-void VisualizeContactsPrivate::CreateCollisionData(
-                              EntityComponentManager &_ecm)
+void VisualizeContactsPrivate::CreateCollisionData()
 {
+  if (this->contactsEnabled)
+    return;
+
   // Collisions can't be enabled with _ecm given that this is a GUI plugin and
   // it doesn't run in the same process as the physics.
-  // We use the world/<name>/enable_collision service instead.
-  _ecm.Each<components::Collision>(
-    [&](const Entity &_entity,
-        const components::Collision *) -> bool
-    {
-      // Check if ContactSensorData has already been created
-      bool collisionHasContactSensor =
-        _ecm.EntityHasComponentType(_entity,
-          components::ContactSensorData::typeId);
+  // We use the world/<name>/enable_collisions service instead.
+  msgs::Empty req;
+  msgs::Boolean res;
+  bool result;
+  unsigned int timeout = 50;
+  std::string service = "/world/" + this->worldName + "/enable_collisions";
 
-      if (collisionHasContactSensor)
-      {
-        gzdbg << "ContactSensorData detected in collision [" << _entity << "]"
-          << std::endl;
-        return true;
-      }
+  const bool executed = this->node.Request(service, req, timeout, res, result);
+  if (executed && result && res.data())
+  {
+    this->contactsEnabled = true;
+    return;
+  }
 
-      // Request service for enabling collision
-      msgs::Entity req;
-      req.set_id(_entity);
-      req.set_type(msgs::Entity::COLLISION);
+  if (this->userCommandsLoadRequested)
+    return;
 
-      msgs::Boolean res;
-      bool result;
-      unsigned int timeout = 50;
-      std::string service = "/world/" + this->worldName + "/enable_collision";
+  // Custom worlds may omit UserCommands. Ask the server to load it, then retry
+  // the enable_collisions service on a later update.
+  msgs::EntityPlugin_V loadReq;
+  auto plugin = loadReq.add_plugins();
+  plugin->set_name("gz::sim::systems::UserCommands");
+  plugin->set_filename("gz-sim-user-commands-system");
 
-      this->node.Request(service, req, timeout, res, result);
-
-      return true;
-    });
+  msgs::Boolean loadRes;
+  bool loadResult{false};
+  const std::string loadService =
+    "/world/" + this->worldName + "/entity/system/add";
+  const bool loadExecuted =
+    this->node.Request(loadService, loadReq, timeout, loadRes, loadResult);
+  if (loadExecuted && loadResult && loadRes.data())
+  {
+    this->userCommandsLoadRequested = true;
+  }
 }
 
 //////////////////////////////////////////////////

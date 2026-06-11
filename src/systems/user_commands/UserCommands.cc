@@ -33,6 +33,7 @@
 #endif
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/entity_factory_v.pb.h>
@@ -122,6 +123,23 @@ class UserCommandsInterface
   /// \return True if a contact sensor is connected to the collision entity,
   /// false otherwise
   public: bool HasContactSensor(const Entity _collision);
+
+  /// \brief Enable contact data on a collision entity if it doesn't already
+  /// have contact data or a contact sensor.
+  public: void EnableCollisionContactData(const Entity _collision);
+
+  /// \brief Enable contact data on all collision entities that don't already
+  /// have contact data or a contact sensor.
+  /// \return True when the scan completed.
+  public: bool EnableAllCollisionContactData();
+
+  /// \brief True when all current and future collision entities should have
+  /// contact data enabled.
+  public: bool enableAllCollisions{false};
+
+  /// \brief Collision entities already handled by the global contact data
+  /// enable service.
+  public: std::unordered_set<Entity> globalContactDataCollisions;
 
   /// \brief Bool to set all matching light entities.
   public: bool setAllLightEntities = false;
@@ -321,6 +339,19 @@ class EnableCollisionCommand : public UserCommandBase
   /// \param[in] _msg Message identifying the collision to be enabled.
   /// \param[in] _iface Pointer to user commands interface.
   public: EnableCollisionCommand(msgs::Entity *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  // Documentation inherited
+  public: bool Execute() final;
+};
+
+/// \brief Command to enable all collision components.
+class EnableAllCollisionsCommand : public UserCommandBase
+{
+  /// \brief Constructor
+  /// \param[in] _msg Empty request message.
+  /// \param[in] _iface Pointer to user commands interface.
+  public: EnableAllCollisionsCommand(msgs::Empty *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -538,12 +569,24 @@ UserCommands::~UserCommands() = default;
 //////////////////////////////////////////////////
 bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 {
+  if (this->ecm == nullptr)
+  {
+    return false;
+  }
+
   auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
 
   if (linkEntity == nullptr)
   {
     return false;
   }
+
+  auto componentName = ecm->Component<components::Name>(_collision);
+  if (componentName == nullptr)
+  {
+    return false;
+  }
+  std::string collisionName = componentName->Data();
 
   auto allLinkSensors =
     ecm->ChildrenByComponents(linkEntity->Data(), components::Sensor());
@@ -557,11 +600,21 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
       continue;
 
     // Check if sensor is connected to _collision
-    auto componentName = ecm->Component<components::Name>(_collision);
-    std::string collisionName = componentName->Data();
-    auto sensorSDF = ecm->Component<components::ContactSensor>(sensor)->Data();
+    auto contactSensor =
+      ecm->Component<components::ContactSensor>(sensor);
+    if (contactSensor == nullptr || contactSensor->Data() == nullptr)
+      continue;
+
+    auto sensorSDF = contactSensor->Data();
+    if (!sensorSDF->HasElement("contact"))
+      continue;
+
+    auto contactElem = sensorSDF->GetElement("contact");
+    if (contactElem == nullptr || !contactElem->HasElement("collision"))
+      continue;
+
     auto sensorCollisionName =
-      sensorSDF->GetElement("contact")->Get<std::string>("collision");
+      contactElem->Get<std::string>("collision");
 
     if (collisionName == sensorCollisionName)
     {
@@ -570,6 +623,54 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
   }
 
   return false;
+}
+
+//////////////////////////////////////////////////
+void UserCommandsInterface::EnableCollisionContactData(const Entity _collision)
+{
+  if (this->ecm == nullptr)
+    return;
+
+  if (this->globalContactDataCollisions.find(_collision) !=
+      this->globalContactDataCollisions.end())
+  {
+    return;
+  }
+
+  if (this->HasContactSensor(_collision))
+  {
+    this->globalContactDataCollisions.insert(_collision);
+    return;
+  }
+
+  auto *contactDataComp =
+    this->ecm->Component<components::ContactSensorData>(_collision);
+  if (contactDataComp)
+  {
+    this->globalContactDataCollisions.insert(_collision);
+    return;
+  }
+
+  this->ecm->CreateComponent(_collision, components::ContactSensorData());
+  this->globalContactDataCollisions.insert(_collision);
+  gzdbg << "Enabled collision [" << _collision << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+bool UserCommandsInterface::EnableAllCollisionContactData()
+{
+  if (this->ecm == nullptr)
+    return false;
+
+  this->ecm->Each<components::Collision>(
+    [&](const Entity &_entity,
+        const components::Collision *) -> bool
+    {
+      this->EnableCollisionContactData(_entity);
+      return true;
+    });
+
+  return true;
 }
 
 //////////////////////////////////////////////////
@@ -658,6 +759,11 @@ void UserCommands::Configure(const Entity &_entity,
   this->dataPtr->AdvertiseService<EnableCollisionCommand, msgs::Entity>(
       "/world/" + validWorldName + "/enable_collision", "Enable collision");
 
+  // Enable all collisions service
+  this->dataPtr->AdvertiseService<EnableAllCollisionsCommand, msgs::Empty>(
+      "/world/" + validWorldName + "/enable_collisions",
+      "Enable collisions");
+
   // Disable collision service
   this->dataPtr->AdvertiseService<DisableCollisionCommand, msgs::Entity>(
       "/world/" + validWorldName + "/disable_collision", "Disable collision");
@@ -677,13 +783,26 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &)
 {
   GZ_PROFILE("UserCommands::PreUpdate");
+
+  auto enableAllCollisions = [this]()
+  {
+    if (this->dataPtr->iface &&
+      this->dataPtr->iface->enableAllCollisions)
+    {
+      this->dataPtr->iface->EnableAllCollisionContactData();
+    }
+  };
+
   // make a copy the cmds so execution does not block receiving other
   // incoming cmds
   std::vector<std::unique_ptr<UserCommandBase>> cmds;
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->pendingMutex);
     if (this->dataPtr->pendingCmds.empty())
+    {
+      enableAllCollisions();
       return;
+    }
     cmds = std::move(this->dataPtr->pendingCmds);
     this->dataPtr->pendingCmds.clear();
   }
@@ -705,6 +824,7 @@ void UserCommands::PreUpdate(const UpdateInfo &/*_info*/,
   }
 
   // TODO(louise) Clear redo list
+  enableAllCollisions();
 }
 
 //////////////////////////////////////////////////
@@ -1574,6 +1694,28 @@ bool EnableCollisionCommand::Execute()
   gzdbg << "Enabled collision [" << entityMsg->id() << "]" << std::endl;
 
   return true;
+}
+
+//////////////////////////////////////////////////
+EnableAllCollisionsCommand::EnableAllCollisionsCommand(msgs::Empty *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
+bool EnableAllCollisionsCommand::Execute()
+{
+  auto emptyMsg = dynamic_cast<const msgs::Empty *>(this->msg);
+  if (nullptr == emptyMsg)
+  {
+    gzerr << "Internal error, null enable collisions message" << std::endl;
+    return false;
+  }
+
+  this->iface->globalContactDataCollisions.clear();
+  this->iface->enableAllCollisions = true;
+  return this->iface->EnableAllCollisionContactData();
 }
 
 //////////////////////////////////////////////////
