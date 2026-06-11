@@ -367,4 +367,7 @@ IGNITION_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemPostUpdate
 )
 
+IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")
+
+// TODO(CH3): Deprecated, remove on version 8
 IGNITION_ADD_PLUGIN_ALIAS(ForceTorque, "ignition::gazebo::systems::ForceTorque")

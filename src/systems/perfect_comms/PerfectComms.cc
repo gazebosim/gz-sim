@@ -112,4 +112,8 @@ IGNITION_ADD_PLUGIN(PerfectComms,
                     comms::ICommsModel::ISystemPreUpdate)
 
 IGNITION_ADD_PLUGIN_ALIAS(PerfectComms,
+                          "gz::sim::systems::PerfectComms")
+
+// TODO(CH3): Deprecated, remove on version 8
+IGNITION_ADD_PLUGIN_ALIAS(PerfectComms,
                           "ignition::gazebo::systems::PerfectComms")

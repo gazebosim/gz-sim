@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<!--
+  Test world for graded buoyancy with capsule, ellipsoid, and cylinder.
+  All objects are neutrally buoyant (density = default_density = 1000 kg/m^3)
+  and fully submerged at z=-3, so they should stay at their initial positions.
+  This exercises the GradedFluidDensity template for each new shape type.
+-->
+<sdf version="1.6">
+  <world name="buoyancy">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <!-- Cylinder: radius=0.2, length=2.0
+         Volume = pi*r^2*l = pi*0.04*2 = 0.25133 m^3
+         mass = 1000 * 0.25133 = 251.33 kg -->
+    <model name='cylinder_neutral'>
+      <pose>0 0 -3 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>251.33</mass>
+          <inertia>
+            <ixx>86.29</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>86.29</iyy>
+            <iyz>0</iyz>
+            <izz>5.03</izz>
+          </inertia>
+        </inertial>
+        <collision name='body_collision'>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Capsule: radius=0.5, length=1.0
+         Volume = pi*r^2*l + (4/3)*pi*r^3 = 1.30900 m^3
+         mass = 1000 * 1.30900 = 1309.00 kg -->
+    <model name='capsule_neutral'>
+      <pose>3 0 -3 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>1309.00</mass>
+          <inertia>
+            <ixx>200</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>200</iyy>
+            <iyz>0</iyz>
+            <izz>200</izz>
+          </inertia>
+        </inertial>
+        <collision name='body_collision'>
+          <geometry>
+            <capsule>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </capsule>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <capsule>
+              <radius>0.5</radius>
+              <length>1.0</length>
+            </capsule>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Ellipsoid: radii=(0.5, 0.4, 0.3)
+         Volume = (4/3)*pi*0.5*0.4*0.3 = 0.25133 m^3
+         mass = 1000 * 0.25133 = 251.33 kg -->
+    <model name='ellipsoid_neutral'>
+      <pose>-3 0 -3 0 0 0</pose>
+      <link name='body'>
+        <inertial>
+          <mass>251.33</mass>
+          <inertia>
+            <ixx>50</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>50</iyy>
+            <iyz>0</iyz>
+            <izz>50</izz>
+          </inertia>
+        </inertial>
+        <collision name='body_collision'>
+          <geometry>
+            <ellipsoid>
+              <radii>0.5 0.4 0.3</radii>
+            </ellipsoid>
+          </geometry>
+        </collision>
+        <visual name='body_visual'>
+          <geometry>
+            <ellipsoid>
+              <radii>0.5 0.4 0.3</radii>
+            </ellipsoid>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>

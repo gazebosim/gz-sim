@@ -92,7 +92,7 @@ namespace gazebo
     public slots: void OnAngleMode(int _x, int _y, int _z);
 
     /// \brief Callback in Qt thread when camera view controller changes.
-    /// \param[in] _mode New camera view controller
+    /// \param[in] _controller New camera view controller
     public slots: void OnViewControl(const QString &_controller);
 
     /// \brief Callback in Qt thread when camera view reference visual state

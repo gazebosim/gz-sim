@@ -1,5 +1,111 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.18.0 (2026-06-09)
+
+1. Suppress cmake warning about FetchContent_Populate
+    * [Pull request #3625](https://github.com/gazebosim/gz-sim/pull/3625)
+
+1. Fix ECM view update when component is added, then removed before the view is queried
+    * [Pull request #3607](https://github.com/gazebosim/gz-sim/pull/3607)
+
+1. Fix compiler warnings with protobuf 35.0
+    * [Pull request #3604](https://github.com/gazebosim/gz-sim/pull/3604)
+
+1. ModelCommandAPI_TEST: skip failing check on arm64
+    * [Pull request #3603](https://github.com/gazebosim/gz-sim/pull/3603)
+
+1. Add extensive benchmarking for ECM
+    * [Pull request #3476](https://github.com/gazebosim/gz-sim/pull/3476)
+
+1. Delete python/src/gz/sim/Joint.cc
+    * [Pull request #3539](https://github.com/gazebosim/gz-sim/pull/3539)
+
+1. Add getters for joint velocity, effort, and position limits
+    * [Pull request #3537](https://github.com/gazebosim/gz-sim/pull/3537)
+
+1. Fix potential iterator invalidation in EntityTree
+    * [Pull request #3518](https://github.com/gazebosim/gz-sim/pull/3518)
+
+1. Add cylinder, capsule and ellipsoid support to graded buoyancy
+    * [Pull request #3423](https://github.com/gazebosim/gz-sim/pull/3423)
+
+1. Hydrodynamic updates
+    * [Pull request #3456](https://github.com/gazebosim/gz-sim/pull/3456)
+
+1. docs: fix selected Doxygen warnings in docs build
+    * [Pull request #3451](https://github.com/gazebosim/gz-sim/pull/3451)
+
+1. Fix graded buoyancy SDF parsing and division by zero
+    * [Pull request #3422](https://github.com/gazebosim/gz-sim/pull/3422)
+
+1. Added explicit find package for TINYXML to CMakelist at root
+    * [Pull request #3379](https://github.com/gazebosim/gz-sim/pull/3379)
+
+1. Fix unused-result warnings
+    * [Pull request #3382](https://github.com/gazebosim/gz-sim/pull/3382)
+
+1. Added missing gz::sim system aliases.
+    * [Pull request #3369](https://github.com/gazebosim/gz-sim/pull/3369)
+
+### Gazebo Sim 6.17.1 (2026-02-12)
+
+1. Improve RTF Stability and Precision
+    * [Pull request #3269](https://github.com/gazebosim/gz-sim/pull/3269)
+
+1. Fix deprecation warning in `benchmark`
+    * [Pull request #3296](https://github.com/gazebosim/gz-sim/pull/3296)
+
+1. Fortress: disable Ubuntu Focal CI
+    * [Pull request #3294](https://github.com/gazebosim/gz-sim/pull/3294)
+
+1. Fix illegal anchor warnings
+    * [Pull request #2741](https://github.com/gazebosim/gz-sim/pull/2741)
+
+1. Add benchmark to list packages to be installed
+    * [Pull request #1733](https://github.com/gazebosim/gz-sim/pull/1733)
+
+1. Fix CMake warning in example
+    * [Pull request #2145](https://github.com/gazebosim/gz-sim/pull/2145)
+
+1. Update our usage of workerpools
+    * [Pull request #2995](https://github.com/gazebosim/gz-sim/pull/2995)
+
+1. Suppress child link warning in DetachableJoint
+    * [Pull request #3231](https://github.com/gazebosim/gz-sim/pull/3231)
+
+1. Suppress particle emitter deprecation warnings on homebrew-arm64
+    * [Pull request #3183](https://github.com/gazebosim/gz-sim/pull/3183)
+
+1. Use latest 1.14 google-test in gtest_setup
+    * [Pull request #3205](https://github.com/gazebosim/gz-sim/pull/3205)
+
+1. Clean up temporary home directory to make tests more robust
+    * [Pull request #3146](https://github.com/gazebosim/gz-sim/pull/3146)
+
+1. Disable failing test on macOS in EntityComponentManager_TEST
+    * [Pull request #3113](https://github.com/gazebosim/gz-sim/pull/3113)
+
+1. Fix compatibility with protobuf v30
+    * [Pull request #3034](https://github.com/gazebosim/gz-sim/pull/3034)
+
+1. Add missing algorithm include
+    * [Pull request #3022](https://github.com/gazebosim/gz-sim/pull/3022)
+
+1. Assign new gz-sim maintainer
+    * [Pull request #3008](https://github.com/gazebosim/gz-sim/pull/3008)
+
+1. Set IGN_IP=127.0.0.1 in cmd tests
+    * [Pull request #2959](https://github.com/gazebosim/gz-sim/pull/2959)
+
+1. Also handle SIGTERM gracefully
+    * [Pull request #2747](https://github.com/gazebosim/gz-sim/pull/2747)
+
+1. Reduce/Eliminate `sdf::Model` and `sdf::World` serialization warnings
+    * [Pull request #2742](https://github.com/gazebosim/gz-sim/pull/2742)
+
+1. Fix mesh import filters not displaying correctly on KDE
+    * [Pull request #2732](https://github.com/gazebosim/gz-sim/pull/2732)
+
 ### Gazebo Sim 6.17.0 (2025-01-10)
 
 1. Add parameter for adjust current sign in battery plugin

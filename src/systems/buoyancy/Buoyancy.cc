@@ -78,8 +78,7 @@ class ignition::gazebo::systems::BuoyancyPrivate
 
   /// \brief Get the resultant buoyant force on a shape.
   /// \param[in] _pose World pose of the shape's origin.
-  /// \param[in] _shape The collision mesh of a shape. Currently must
-  /// be box or sphere.
+  /// \param[in] _shape The collision shape.
   /// \param[in] _gravity Gravity acceleration in the world frame.
   /// Updates this->buoyancyForces containing {force, center_of_volume} to be
   /// applied on the link.
@@ -172,6 +171,14 @@ void BuoyancyPrivate::GradedFluidDensity(
     if (!cov.has_value())
     {
       prevLayerFluidDensity = currFluidDensity;
+      continue;
+    }
+
+    // Skip layer if no additional volume
+    if (std::abs(vol - prevLayerVol) < 1e-10)
+    {
+      prevLayerFluidDensity = currFluidDensity;
+      prevLayerVol = vol;
       continue;
     }
 
@@ -279,7 +286,7 @@ void Buoyancy::Configure(const Entity &_entity,
     this->dataPtr->buoyancyType =
       BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
 
-    auto gradedElement = _sdf->GetFirstElement();
+    auto gradedElement = _sdf->FindElement("graded_buoyancy");
     if (gradedElement == nullptr)
     {
       ignerr << "Unable to get element description" << std::endl;
@@ -314,6 +321,13 @@ void Buoyancy::Configure(const Entity &_entity,
           <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
+    }
+
+    if (this->dataPtr->layers.empty())
+    {
+      ignwarn << "No <density_change> elements in <graded_buoyancy>. "
+         << "Behaves as uniform buoyancy with density "
+         << this->dataPtr->fluidDensity << std::endl;
     }
   }
   else
@@ -403,6 +417,12 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
           break;
         case sdf::GeometryType::CYLINDER:
           volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::CAPSULE:
+          volume = coll->Data().Geom()->CapsuleShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::ELLIPSOID:
+          volume = coll->Data().Geom()->EllipsoidShape()->Shape().Volume();
           break;
         case sdf::GeometryType::PLANE:
           // Ignore plane shapes. They have no volume and are not expected
@@ -525,13 +545,32 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
                 coll->Data().Geom()->SphereShape()->Shape(),
                 gravity->Data());
               break;
+            case sdf::GeometryType::CYLINDER:
+              this->dataPtr->GradedFluidDensity<math::Cylinderd>(
+                pose,
+                coll->Data().Geom()->CylinderShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::CAPSULE:
+              this->dataPtr->GradedFluidDensity<math::Capsuled>(
+                pose,
+                coll->Data().Geom()->CapsuleShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::ELLIPSOID:
+              this->dataPtr->GradedFluidDensity<math::Ellipsoidd>(
+                pose,
+                coll->Data().Geom()->EllipsoidShape()->Shape(),
+                gravity->Data());
+              break;
             default:
             {
               static bool warned{false};
               if (!warned)
               {
-                ignwarn << "Only <box> and <sphere> collisions are supported "
-                  << "by the graded buoyancy option." << std::endl;
+                ignwarn << "Unsupported collision geometry for graded buoyancy["
+                  << static_cast<int>(coll->Data().Geom()->Type())
+                  << "]" << std::endl;
                 warned = true;
               }
               break;

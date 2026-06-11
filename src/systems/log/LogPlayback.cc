@@ -240,14 +240,20 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     if (msgType == "ignition.msgs.SerializedState")
     {
       msgs::SerializedState msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
       this->Parse(_ecm, msg);
       break;
     }
     else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
       this->Parse(_ecm, msg);
       break;
     }
@@ -496,7 +502,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     if (msgType == "ignition.msgs.SerializedState")
     {
       msgs::SerializedState msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
 
       // For seeking back in time only:
       // While stepping, update the list of entities to be removed
@@ -522,7 +531,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     else if (msgType == "ignition.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
 
       // For seeking back in time only:
       // While stepping, update the list of entities to be removed

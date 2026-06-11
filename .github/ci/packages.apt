@@ -1,4 +1,5 @@
 freeglut3-dev
+libbenchmark-dev
 libfreeimage-dev
 libglew-dev
 libignition-cmake2-dev
