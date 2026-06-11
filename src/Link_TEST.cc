@@ -21,6 +21,7 @@
 #include "gz/sim/Link.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
@@ -207,4 +208,35 @@ TEST(LinkTest, EnableVelocityChecksCreatesAdequateWorldComponents)
       link.WorldLinearVelocity(ecm).value());
   EXPECT_EQ(linkWorldAngvel,
       link.WorldAngularVelocity(ecm).value());
+}
+
+/////////////////////////////////////////////////
+TEST(LinkTest, Gravity)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto linkEntity = ecm.CreateEntity();
+  ecm.CreateComponent(linkEntity, gz::sim::components::Link());
+
+  gz::sim::Link link(linkEntity);
+
+  // Verify no gravity component
+  EXPECT_FALSE(link.GravityEnabled(ecm).has_value());
+
+  // Populate component
+  ecm.CreateComponent(linkEntity, gz::sim::components::GravityEnabled(true));
+  EXPECT_TRUE(link.GravityEnabled(ecm).has_value());
+  EXPECT_TRUE(link.GravityEnabled(ecm).value());
+
+  // Set command (creates component)
+  EXPECT_EQ(nullptr,
+      ecm.Component<gz::sim::components::GravityEnabledCmd>(linkEntity));
+  link.SetGravityEnabled(ecm, false);
+  auto cmd = ecm.Component<gz::sim::components::GravityEnabledCmd>(linkEntity);
+  ASSERT_NE(nullptr, cmd);
+  EXPECT_FALSE(cmd->Data());
+
+  // Set command (updates component)
+  link.SetGravityEnabled(ecm, true);
+  EXPECT_TRUE(cmd->Data());
 }

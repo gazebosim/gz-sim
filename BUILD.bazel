@@ -601,6 +601,27 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/cpu_lidar/**/*.cc",
+            "src/systems/cpu_lidar/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-cpu-lidar-system.so",
+    static_lib_name = "gz-sim-cpu-lidar-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-physics",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:cpu_lidar",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/detachable_joint/**/*.cc",
             "src/systems/detachable_joint/**/*.hh",
         ],

@@ -23,7 +23,7 @@
   <depend>gz-plugin</depend>
   <depend>gz-rendering</depend>
   <depend>gz-sensors</depend>
-  <depend>gz-tools2</depend>
+  <depend>gz-tools</depend>
   <depend>gz-transport</depend>
   <depend>gz-utils</depend>
   <depend>libdw-dev</depend>

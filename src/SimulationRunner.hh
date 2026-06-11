@@ -56,7 +56,6 @@
 #include "network/NetworkManager.hh"
 #include "LevelManager.hh"
 #include "SystemManager.hh"
-#include "Barrier.hh"
 #include "WorldControl.hh"
 
 using namespace std::chrono_literals;
@@ -95,9 +94,6 @@ namespace gz
 
       /// \brief Internal method for handling stop event (to prevent recursion)
       private: void OnStop();
-
-      /// \brief Stop and join all post update worker threads
-      private: void StopWorkerThreads();
 
       /// \brief Run the simulationrunner.
       /// \param[in] _iterations Number of iterations.
@@ -545,18 +541,6 @@ namespace gz
       /// \brief Copy of the server configuration.
       public: ServerConfig serverConfig;
 
-      /// \brief Collection of threads running system PostUpdates
-      private: std::vector<std::thread> postUpdateThreads;
-
-      /// \brief Flag to indicate running status of PostUpdate threads
-      private: std::atomic<bool> postUpdateThreadsRunning{false};
-
-      /// \brief Barrier to signal beginning of PostUpdate thread execution
-      private: std::unique_ptr<Barrier> postUpdateStartBarrier;
-
-      /// \brief Barrier to signal end of PostUpdate thread execution
-      private: std::unique_ptr<Barrier> postUpdateStopBarrier;
-
       /// \brief Map from file paths to Fuel URIs.
       private: std::unordered_map<std::string, std::string> fuelUriMap;
 
@@ -573,9 +557,6 @@ namespace gz
       /// \brief Holds new world state information so that it can be processed
       /// at the appropriate time.
       private: std::unique_ptr<msgs::WorldControlState> newWorldControlState;
-
-      /// \brief Set if we need to remove systems due to entity removal
-      private: bool threadsNeedCleanUp{false};
 
       /// \brief During a forced pause, the user may request that simulation
       /// should run. This flag will capture that request, and then be used
