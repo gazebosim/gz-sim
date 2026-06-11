@@ -1687,7 +1687,7 @@ TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
     auto systemLoader = std::make_shared<SystemLoader>();
     SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
 
-    EXPECT_TRUE(runner.ParallelPostUpdates());
+    EXPECT_FALSE(runner.ParallelPostUpdates());
   }
 
   // Test when enabled

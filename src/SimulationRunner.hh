@@ -598,7 +598,7 @@ namespace gz
       private: bool exitedWithErrors{false};
 
       /// \brief Whether parallel PostUpdate is enabled.
-      private: bool parallelPostUpdates{true};
+      private: bool parallelPostUpdates{false};
 #ifdef _WIN32
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;

@@ -399,26 +399,24 @@ the `<gz:system_priority>` tag inside `<plugin>`. See example in examples/plugin
 
 ## Parallel PostUpdates
 
-By default, the `PostUpdate` phase of system plugins is executed in parallel
-using worker threads. This parallel execution is beneficial for worlds with a
-large number of plugins that perform heavy computational tasks during
-`PostUpdate`.
+By default, the `PostUpdate` phase of system plugins is executed sequentially.
+In many typical simulations, most plugins perform trivial tasks on `PostUpdate`,
+so the overhead introduced by thread synchronization primitives for parallel
+execution can degrade simulation performance.
 
-However, in many typical simulations, most plugins perform trivial tasks on
-`PostUpdate`. In these scenarios, the overhead introduced by thread
-synchronization primitives can become a bottleneck and degrade simulation
-performance.
+However, if you have a large number of plugins that perform heavy computational
+tasks during `PostUpdate`, running them in parallel might be beneficial.
 
-To address this, you can configure `PostUpdate` functions to run sequentially
-instead of in parallel and see if it helps increase the Real Time Factor (RTF).
-This is done by setting the `<parallel_postupdates>` policy to `false`:
+To address this, you can configure `PostUpdate` functions to run in parallel
+instead of sequentially. This is done by setting the `<parallel_postupdates>`
+policy to `true`:
 
 ```xml
 <?xml version="1.0" ?>
 <sdf version="1.6">
   <world name="default">
     <gz:policies>
-      <parallel_postupdates>false</parallel_postupdates>
+      <parallel_postupdates>true</parallel_postupdates>
     </gz:policies>
 
     <!-- plugins and models... -->
@@ -426,4 +424,4 @@ This is done by setting the `<parallel_postupdates>` policy to `false`:
 </sdf>
 ```
 
-By default, this policy is set to `true`.
+By default, this policy is set to `false`.
