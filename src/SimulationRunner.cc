@@ -369,7 +369,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() = default;
+SimulationRunner::~SimulationRunner()
+{
+  this->StopWorkerThreads();
+}
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
@@ -624,10 +627,52 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending)
+  if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
+  this->StopWorkerThreads();
+
+  this->threadsNeedCleanUp = false;
+
   this->systemMgr->ActivatePendingSystems();
+
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
+
+  gzdbg << "Creating PostUpdate worker threads: "
+    << threadCount << std::endl;
+
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+
+  this->postUpdateThreadsRunning = true;
+  int id = 0;
+
+  for (auto &system : this->systemMgr->SystemsPostUpdate())
+  {
+    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+
+    this->postUpdateThreads.push_back(std::thread([&, id]()
+    {
+      std::stringstream ss;
+      ss << "PostUpdateThread: " << id;
+      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
+      while (this->postUpdateThreadsRunning)
+      {
+        this->postUpdateStartBarrier->Wait();
+        if (this->postUpdateThreadsRunning)
+        {
+          system->PostUpdate(this->currentInfo, this->entityCompMgr);
+        }
+        this->postUpdateStopBarrier->Wait();
+      }
+      gzdbg << "Exiting postupdate worker thread ("
+        << id << ")" << std::endl;
+    }));
+    id++;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -671,10 +716,19 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    for (auto &system : this->systemMgr->SystemsPostUpdate())
+    this->entityCompMgr.LockAddingEntitiesToViews(true);
+    // If no systems implementing PostUpdate have been added, then
+    // the barriers will be uninitialized, so guard against that condition.
+    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
     {
-      system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      // Release the GIL from the main thread to run PostUpdate threads which
+      // might be calling into python. The system that does call into python
+      // needs to lock the GIL from its thread.
+      MaybeGilScopedRelease release;
+      this->postUpdateStartBarrier->Wait();
+      this->postUpdateStopBarrier->Wait();
     }
+    this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
 }
 
@@ -689,6 +743,25 @@ void SimulationRunner::OnStop()
 {
   this->stopReceived = true;
   this->running = false;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::StopWorkerThreads()
+{
+  this->postUpdateThreadsRunning = false;
+  if (this->postUpdateStartBarrier)
+  {
+    this->postUpdateStartBarrier->Cancel();
+  }
+  if (this->postUpdateStopBarrier)
+  {
+    this->postUpdateStopBarrier->Cancel();
+  }
+  for (auto &thread : this->postUpdateThreads)
+  {
+    thread.join();
+  }
+  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
@@ -1053,7 +1126,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
-  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr);
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
