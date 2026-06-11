@@ -5,6 +5,12 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Ignition Gazebo 6.x
+
+* **Removals**
+  * **Hydrodynamics**: The `<water_density>` and `<waterDensity>` SDF
+    parameters have been removed. They were loaded but never used.
+
 ## Ignition Gazebo 6.11.X to 6.12.X
 
  * **Modified**:

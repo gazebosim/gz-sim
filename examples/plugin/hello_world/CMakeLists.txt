@@ -10,7 +10,7 @@ set(IGN_PLUGIN_VER ${ignition-plugin1_VERSION_MAJOR})
 ign_find_package(ignition-gazebo6 REQUIRED)
 set(IGN_GAZEBO_VER ${ignition-gazebo6_VERSION_MAJOR})
 
-add_library(HelloWorld SHARED HelloWorld)
+add_library(HelloWorld SHARED HelloWorld.cc)
 set_property(TARGET HelloWorld PROPERTY CXX_STANDARD 17)
 target_link_libraries(HelloWorld
   PRIVATE ignition-plugin${IGN_PLUGIN_VER}::ignition-plugin${IGN_PLUGIN_VER}

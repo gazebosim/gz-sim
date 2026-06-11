@@ -30,82 +30,137 @@ namespace systems
 {
   class HydrodynamicsPrivateData;
 
-  /// \brief This class provides hydrodynamic behaviour for underwater vehicles
-  /// It is shamelessly based off Brian Bingham's
+  /// \brief Hydrodynamic damping and current forces for underwater
+  /// vehicles.
+  ///
+  /// Computes linear and quadratic damping (drag) forces in the body
+  /// frame per Fossen's 6-DOF marine craft model [1][2]. Should be
+  /// used together with the Buoyancy plugin. The relevant terms from
+  /// Fossen's equation of motion are:
+  ///
+  ///     D(v_r) * v_r
+  ///
+  /// where v_r = v - v_current is the velocity relative to the fluid
+  /// in the body frame.
+  ///
+  /// Based on Brian Bingham's
   /// [plugin for VRX](https://github.com/osrf/vrx).
-  /// which in turn is based of Fossen's equations described in "Guidance and
-  /// Control of Ocean Vehicles" [1]. The class should be used together with the
-  /// buoyancy plugin to help simulate behaviour of maritime vehicles.
-  /// Hydrodynamics refers to the behaviour of bodies in water. It includes
-  /// forces like linear and quadratic drag, buoyancy (not provided by this
-  /// plugin), etc.
   ///
-  /// # System Parameters
-  /// The exact description of these parameters can be found on p. 37 and
-  /// p. 43 of Fossen's book. They are used to calculate added mass, linear and
-  /// quadratic drag and coriolis force.
-  /// ### Diagonal terms:
-  ///   * <xDotU> - Added mass in x direction [kg]
-  ///   * <yDotV> - Added mass in y direction [kg]
-  ///   * <zDotW> - Added mass in z direction [kg]
-  ///   * <kDotP> - Added mass in roll direction [kgm^2]
-  ///   * <mDotQ> - Added mass in pitch direction [kgm^2]
-  ///   * <nDotR> - Added mass in yaw direction [kgm^2]
-  ///   * <xUabsU>   - Quadratic damping, 2nd order, x component [kg/m]
-  ///   * <xU>    - Linear damping, 1st order, x component [kg]
-  ///   * <yVabsV>   - Quadratic damping, 2nd order, y component [kg/m]
-  ///   * <yV>    - Linear damping, 1st order, y component [kg]
-  ///   * <zWabsW>   - Quadratic damping, 2nd order, z component [kg/m]
-  ///   * <zW>    - Linear damping, 1st order, z component [kg]
-  ///   * <kPabsP>   - Quadratic damping, 2nd order, roll component [kg/m^2]
-  ///   * <kP>    - Linear damping, 1st order, roll component [kg/m]
-  ///   * <mQabsQ>   - Quadratic damping, 2nd order, pitch component [kg/m^2]
-  ///   * <mQ>    - Linear damping, 1st order, pitch component [kg/m]
-  ///   * <nRabsR>   - Quadratic damping, 2nd order, yaw component [kg/m^2]
-  ///   * <nR>    - Linear damping, 1st order, yaw component [kg/m]
-  /// ### Cross terms
-  /// In general we support cross terms as well. These are terms which act on
-  /// non-diagonal sides. We use the SNAMe convention of naming search terms.
-  /// (x, y, z) correspond to the respective axis. (k, m, n) correspond to
-  /// roll, pitch and yaw. Similarly U, V, W represent velocity vectors in
-  /// X, Y and Z axis while P, Q, R representangular velocity in roll, pitch
-  /// and yaw axis respectively.
-  ///   * Added Mass: <{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}> e.g. <xDotR>
-  ///       Units are either kg or kgm^2 depending on the choice of terms.
-  ///   * Quadratic Damping With abs term (this is probably what you want):
-  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>
-  ///       e.g. <xRabsQ>
-  ///       Units are either kg/m or kg/m^2.
-  ///   * Quadratic Damping (could lead to unwanted oscillations):
-  ///       <{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>
-  ///       e.g. <xRQ>
-  ///       Units are either kg/m or kg/m^2.
-  ///   * Linear Damping: <{x|y|z|k|m|n}{U|V|W|P|Q|R}>. e.g. <xR>
-  ///       Units are either kg or kg or kg/m.
-  /// Additionally the system also supports the following parameters:
-  ///   * <waterDensity> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-3. [kgm^-3, deprecated]
-  ///   * <water_density> - The density of the fluid its moving in.
-  ///     Defaults to 998kgm^-3. [kgm^-3]
-  ///   * <link_name> - The link of the model that is being subject to
-  ///     hydrodynamic forces. [Required]
-  ///   * <namespace> - This allows the robot to have an individual namespace
-  ///     for current. This is useful when you have multiple vehicles in
-  ///     different locations and you wish to set the currents of each vehicle
-  ///     separately. If no namespace is given then the plugin listens on
-  ///     the `/ocean_current` topic for a `Vector3d` message. Otherwise it
-  ///     listens on `/model/{namespace name}/ocean_current`.[String, Optional]
-  ///   * <default_current> - A generic current.
-  ///      [vector3d m/s, optional, default = [0,0,0]m/s]
-  ///   * <disable_coriolis> - Disable Coriolis force [Boolean, Default: false]
-  ///   * <disable_added_mass> - Disable Added Mass [Boolean, Default: false].
-  ///     To be deprecated in Garden.
+  /// ## Added Mass and Coriolis
   ///
-  /// # Example
-  /// An example configuration is provided in the examples folder. The example
-  /// uses the LiftDrag plugin to apply steering controls. It also uses the
-  /// thruster plugin to propel the craft and the buoyancy plugin for buoyant
-  /// force. To run the example run.
+  /// Added mass and Coriolis forces are also computed by this plugin
+  /// via the `<xDotU>`, `<yDotV>`, etc. parameters using explicit
+  /// integration. Note that this formulation is only conditionally
+  /// stable.
+  ///
+  /// ## SNAME Naming Convention
+  ///
+  /// Damping parameters follow the SNAME (Society of Naval Architects
+  /// and Marine Engineers) 1950 convention. The first lowercase letter
+  /// denotes the force/moment axis, and the remaining uppercase
+  /// letters denote the velocity components:
+  ///
+  /// | Axis | x (surge) | y (sway) | z (heave) | k (roll) | m (pitch)
+  /// | n (yaw) |
+  /// |------|-----------|----------|-----------|----------|-----------|
+  /// |---------|
+  /// | Velocity | U | V | W | P | Q | R |
+  ///
+  /// For example, `<yVabsV>` is the quadratic drag on the sway axis
+  /// due to |V|*V, and `<nR>` is the linear yaw damping due to yaw
+  /// rate R.
+  ///
+  /// ## System Parameters
+  ///
+  /// ### Required
+  ///   * `<link_name>` - Link to apply hydrodynamic forces to.
+  ///     [string]
+  ///
+  /// ### Damping (Drag)
+  ///
+  /// Diagonal terms:
+  ///   * `<xU>` - Linear damping, surge [kg/s]
+  ///   * `<yV>` - Linear damping, sway [kg/s]
+  ///   * `<zW>` - Linear damping, heave [kg/s]
+  ///   * `<kP>` - Linear damping, roll [kgm^2/s]
+  ///   * `<mQ>` - Linear damping, pitch [kgm^2/s]
+  ///   * `<nR>` - Linear damping, yaw [kgm^2/s]
+  ///   * `<xUabsU>` - Quadratic abs damping, surge [kg/m]
+  ///   * `<yVabsV>` - Quadratic abs damping, sway [kg/m]
+  ///   * `<zWabsW>` - Quadratic abs damping, heave [kg/m]
+  ///   * `<kPabsP>` - Quadratic abs damping, roll [kgm^2/rad^2]
+  ///   * `<mQabsQ>` - Quadratic abs damping, pitch [kgm^2/rad^2]
+  ///   * `<nRabsR>` - Quadratic abs damping, yaw [kgm^2/rad^2]
+  ///
+  /// Cross terms and off-diagonal entries follow the same pattern:
+  ///   * Linear: `<{x|y|z|k|m|n}{U|V|W|P|Q|R}>` e.g. `<xR>`
+  ///   * Quadratic abs (recommended):
+  ///       `<{x|y|z|k|m|n}{U|V|W|P|Q|R}abs{U|V|W|P|Q|R}>`
+  ///       e.g. `<xRabsQ>`
+  ///   * Quadratic (may cause oscillations):
+  ///       `<{x|y|z|k|m|n}{U|V|W|P|Q|R}{U|V|W|P|Q|R}>`
+  ///       e.g. `<xRQ>`
+  ///
+  /// All damping coefficients default to 0.
+  ///
+  /// ### Added Mass
+  ///
+  /// Fossen sign convention (values should be negative):
+  ///   * `<xDotU>` - Added mass, surge [kg]
+  ///   * `<yDotV>` - Added mass, sway [kg]
+  ///   * `<zDotW>` - Added mass, heave [kg]
+  ///   * `<kDotP>` - Added mass, roll [kgm^2]
+  ///   * `<mDotQ>` - Added mass, pitch [kgm^2]
+  ///   * `<nDotR>` - Added mass, yaw [kgm^2]
+  ///   * Cross terms:
+  ///     `<{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}>` e.g. `<xDotR>`
+  ///
+  /// ### Ocean Current
+  ///   * `<default_current>` - Constant current velocity in world
+  ///     frame. [gz::math::Vector3d, default: 0 0 0, m/s]
+  ///   * `<namespace>` - If set, the plugin subscribes to
+  ///     `/model/<namespace>/ocean_current` instead of
+  ///     `/ocean_current`. Useful for per-vehicle currents in
+  ///     multi-robot scenarios. [string, optional]
+  ///
+  /// Currents can also be loaded from data files via the
+  /// EnvironmentPreload system. If any `lookup_current_*` tag is
+  /// present, topic-based currents are ignored:
+  ///   * `<lookup_current_x>` - CSV column for x current [string]
+  ///   * `<lookup_current_y>` - CSV column for y current [string]
+  ///   * `<lookup_current_z>` - CSV column for z current [string]
+  ///
+  /// ### Feature Flags
+  ///   * `<disable_coriolis>` - Disable Coriolis force.
+  ///     [bool, default: false]
+  ///   * `<disable_added_mass>` - Disable added mass.
+  ///     [bool, default: false]
+  ///
+  /// ## Example
+  ///
+  /// Typical configuration for an AUV (MBARI Tethys LRAUV):
+  ///
+  /// \code{.xml}
+  ///   <plugin filename="ignition-gazebo-hydrodynamics-system"
+  ///           name="ignition::gazebo::systems::Hydrodynamics">
+  ///     <link_name>base_link</link_name>
+  ///     <xDotU>-4.876161</xDotU>
+  ///     <yDotV>-126.324739</yDotV>
+  ///     <zDotW>-126.324739</zDotW>
+  ///     <kDotP>0</kDotP>
+  ///     <mDotQ>-33.46</mDotQ>
+  ///     <nDotR>-33.46</nDotR>
+  ///     <xUabsU>-6.2282</xUabsU>
+  ///     <yVabsV>-601.27</yVabsV>
+  ///     <zWabsW>-601.27</zWabsW>
+  ///     <kPabsP>-0.1916</kPabsP>
+  ///     <mQabsQ>-632.698957</mQabsQ>
+  ///     <nRabsR>-632.698957</nRabsR>
+  ///   </plugin>
+  /// \endcode
+  ///
+  /// A complete working example is available in
+  /// `examples/worlds/auv_controls.sdf`. Run it with:
   /// ```
   /// ign gazebo auv_controls.sdf
   /// ```
@@ -130,9 +185,11 @@ namespace systems
   /// ```
   /// You should observe your vehicle slowly drift to the side.
   ///
-  /// # Citations
-  /// [1] Fossen, Thor I. _Guidance and Control of Ocean Vehicles_.
-  ///    United Kingdom: Wiley, 1994.
+  /// ## References
+  /// [1] Fossen, T. I. "Guidance and Control of Ocean Vehicles."
+  ///     Wiley, 1994.
+  /// [2] Fossen, T. I. "Handbook of Marine Craft Hydrodynamics and
+  ///     Motion Control." Wiley, 2011.
   class Hydrodynamics:
     public ignition::gazebo::System,
     public ignition::gazebo::ISystemConfigure,

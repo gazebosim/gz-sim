@@ -13,7 +13,7 @@ For example, Let's move the camera to the `box` model looking down from 5 meters
 ign service  -s /gui/move_to/model --reqtype ignition.msgs.GUICamera  --reptype ignition.msgs.Boolean -r 'name: "box", pose: {position: {z:5}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
 ```
 
-@image html files/move_camera_to_model/box_5.gif
+@image html files/move_camera_to_model/box_5.png
 
 The camera can also be placed far away, for example 20 meters:
 
@@ -21,7 +21,7 @@ The camera can also be placed far away, for example 20 meters:
 ign service  -s /gui/move_to/model --reqtype ignition.msgs.GUICamera  --reptype ignition.msgs.Boolean -r 'name: "box", pose: {position: {z:20}, orientation: {x:0, y:0, z: -1, w:0}}, projection_type: "orbit"' --timeout 5000
 ```
 
-@image html files/move_camera_to_model/box_20.gif
+@image html files/move_camera_to_model/box_20.png
 
 In the following gif you can see the workflow of this service:
 

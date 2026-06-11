@@ -63,7 +63,7 @@ TEST_F(RFCommsTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RFComms))
     std::lock_guard<std::mutex> lock(mutex);
 
     ignition::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
+    EXPECT_TRUE(receivedMsg.ParseFromString(_msg.data()));
 
     EXPECT_NE(std::string::npos, receivedMsg.data().find("hello world"));
     ASSERT_GT(_msg.header().data_size(), 0);
