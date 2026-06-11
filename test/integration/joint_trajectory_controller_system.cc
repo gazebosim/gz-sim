@@ -38,6 +38,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -49,6 +50,99 @@ class JointTrajectoryControllerTestFixture
   : public InternalFixture<::testing::Test>
 {
 };
+
+/////////////////////////////////////////////////
+msgs::JointTrajectory makePositionTrajectory(
+    const std::array<std::string, 2> &_jointNames,
+    const std::array<double, 2> &_positions)
+{
+  msgs::JointTrajectory msg;
+  for (const auto &jointName : _jointNames)
+    msg.add_joint_names(jointName);
+
+  auto point = msg.add_points();
+  auto time = point->mutable_time_from_start();
+  time->set_sec(1);
+  time->set_nsec(0);
+  for (const auto position : _positions)
+    point->add_positions(position);
+
+  return msg;
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointTrajectoryControllerTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+                       "/test/worlds/joint_trajectory_controller.sdf";
+  const std::array<std::string, 2> jointNames = {
+      "RR_position_control_joint1", "RR_position_control_joint2"};
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(std::chrono::nanoseconds(0));
+
+  test::Relay testSystem;
+  std::array<double, 2> currentPositions{0.0, 0.0};
+  testSystem.OnPreUpdate(
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      {
+        for (const auto &jointName : jointNames)
+        {
+          const auto joint = _ecm.EntityByComponents(components::Joint(),
+              components::Name(jointName));
+          if (nullptr == _ecm.Component<components::JointPosition>(joint))
+            _ecm.CreateComponent(joint, components::JointPosition());
+        }
+      });
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
+      {
+        for (std::size_t i = 0; i < jointNames.size(); ++i)
+        {
+          const auto joint = _ecm.EntityByComponents(components::Joint(),
+              components::Name(jointNames[i]));
+          const auto jointPosition =
+              _ecm.Component<components::JointPosition>(joint);
+          if (nullptr != jointPosition)
+            currentPositions[i] = jointPosition->Data()[0];
+        }
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 10, false);
+  EXPECT_NEAR(currentPositions[0], 0.0, TOL);
+  EXPECT_NEAR(currentPositions[1], 0.0, TOL);
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::JointTrajectory>(
+      "/model/RR_position_control/joint_trajectory");
+  ASSERT_TRUE(test::WaitUntil(std::chrono::seconds(3),
+      [&] { return pub.HasConnections(); }));
+
+  auto msg = makePositionTrajectory(jointNames, {1.0, -1.0});
+  pub.Publish(msg);
+  server.Run(true, 1000, false);
+  EXPECT_NEAR(currentPositions[0], 1.0, 1e-2);
+  EXPECT_NEAR(currentPositions[1], -1.0, 1e-2);
+
+  server.ResetAll();
+  server.Run(true, 100, false);
+  EXPECT_NEAR(currentPositions[0], 0.0, 1e-2);
+  EXPECT_NEAR(currentPositions[1], 0.0, 1e-2);
+
+  ASSERT_TRUE(test::WaitUntil(std::chrono::seconds(3),
+      [&] { return pub.HasConnections(); }));
+  pub.Publish(msg);
+  server.Run(true, 1000, false);
+  EXPECT_NEAR(currentPositions[0], 1.0, 1e-2);
+  EXPECT_NEAR(currentPositions[1], -1.0, 1e-2);
+}
 
 /////////////////////////////////////////////////
 // Tests that JointTrajectoryController accepts position-controlled joint
