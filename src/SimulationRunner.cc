@@ -44,6 +44,7 @@
 #include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
@@ -1465,7 +1466,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     {
       // set allowRenaming to false so the entities keep their original name
       Entity clonedEntity = this->entityCompMgr.Clone(ent,
-         parentComp->Data(), nameComp->Data(), false);
+         parentComp->Data(), nameComp->Data(), std::nullopt, false);
 
       // remove the Recreate component so they do not get recreated again in the
       // next iteration
