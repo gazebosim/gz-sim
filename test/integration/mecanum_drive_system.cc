@@ -255,7 +255,7 @@ class MecanumDriveTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(MecanumDriveTest, PublishCmd)
+TEST_F(MecanumDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
 {
   TestPublishCmd(common::joinPaths(
       std::string(PROJECT_SOURCE_PATH), "test", "worlds", "mecanum_drive.sdf"),

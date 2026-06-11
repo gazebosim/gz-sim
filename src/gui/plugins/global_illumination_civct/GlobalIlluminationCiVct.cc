@@ -172,13 +172,13 @@ GlobalIlluminationCiVct::~GlobalIlluminationCiVct()
 }
 
 /////////////////////////////////////////////////
-void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
+bool GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   REQUIRES(this->dataPtr->serviceMutex)
 {
   auto loadedEngNames = rendering::loadedEngines();
   if (loadedEngNames.empty())
   {
-    return;
+    return false;
   }
 
   // assume there is only one engine loaded
@@ -194,11 +194,11 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   {
     gzerr << "Internal error: failed to load engine [" << engineName
           << "]. GlobalIlluminationCiVct plugin won't work." << std::endl;
-    return;
+    return false;
   }
 
   if (engine->SceneCount() == 0)
-    return;
+    return false;
 
   // assume there is only one scene
   // load scene
@@ -206,12 +206,13 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
   if (!scene)
   {
     gzerr << "Internal error: scene is null." << std::endl;
-    return;
+    return false;
   }
 
-  if (!scene->IsInitialized() || scene->VisualCount() == 0)
+  if (!scene->IsInitialized() || scene->VisualCount() == 0 ||
+      scene->LightCount() ==  0)
   {
-    return;
+    return false;
   }
 
   // Create visual
@@ -225,6 +226,7 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
           << std::endl;
 
     gz::gui::App()->findChild<gz::gui::MainWindow *>()->removeEventFilter(this);
+    return false;
   }
   else
   {
@@ -254,6 +256,7 @@ void GlobalIlluminationCiVct::LoadGlobalIlluminationCiVct()
 
     this->OnRefreshCamerasImpl();
   }
+  return true;
 }
 
 /// \brief XML helper to retrieve values and handle errors
@@ -358,9 +361,7 @@ void GlobalIlluminationCiVct::LoadConfig(
   const tinyxml2::XMLElement *_pluginElem)
 {
   if (this->title.empty())
-    this->title = "Global Illumination (VCT)";
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+    this->title = "Global Illumination (CI VCT)";
 
   if (auto elem = _pluginElem->FirstChildElement("enabled"))
   {
@@ -447,15 +448,25 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
 {
   if (_event->type() == gz::gui::events::Render::kType)
   {
-    // This event is called in Scene3d's RenderThread, so it's safe to make
+    // This event is called in the render thread, so it's safe to make
     // rendering calls here
 
-    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
     if (!this->dataPtr->initialized)
     {
-      this->LoadGlobalIlluminationCiVct();
+      if (this->LoadGlobalIlluminationCiVct())
+      {
+        this->SetEnabled(this->dataPtr->enabled);
+        this->SetBounceCount(this->dataPtr->bounceCount);
+        this->SetHighQuality(this->dataPtr->highQuality);
+        this->SetAnisotropic(this->dataPtr->anisotropic);
+        this->SetDebugVisualizationMode(this->dataPtr->debugVisMode);
+        this->EnabledChanged();
+        this->LightingChanged();
+        this->DebugVisualizationModeChanged();
+      }
     }
 
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
     if (this->dataPtr->gi)
     {
       if (!this->dataPtr->visualDirty && !this->dataPtr->gi->Enabled() &&
@@ -562,10 +573,6 @@ bool GlobalIlluminationCiVct::eventFilter(QObject *_obj, QEvent *_event)
 
         this->dataPtr->resetRequested = false;
       }
-    }
-    else
-    {
-      gzerr << "GI pointer is not set" << std::endl;
     }
   }
 

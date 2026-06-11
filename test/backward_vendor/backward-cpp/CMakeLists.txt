@@ -83,7 +83,7 @@ endif()
 add_library(backward_interface INTERFACE)
 set_target_properties(backward_interface PROPERTIES EXPORT_NAME Interface)
 target_compile_definitions(backward_interface INTERFACE ${BACKWARD_DEFINITIONS})
-target_include_directories(backward_interface INTERFACE ${BACKWARD_INCLUDE_DIRS})
+target_include_directories(backward_interface INTERFACE SYSTEM ${BACKWARD_INCLUDE_DIRS})
 if(BACKWARD_HAS_EXTERNAL_LIBRARIES)
     target_link_libraries(backward_interface INTERFACE ${BACKWARD_LIBRARIES})
 endif()
@@ -100,6 +100,12 @@ set_target_properties(backward_object PROPERTIES EXPORT_NAME Object)
 target_link_libraries(backward_object PUBLIC Backward::Interface)
 add_library(Backward::Object ALIAS backward_object)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(backward_object PRIVATE -Wno-switch-default)
+else()
+
+endif()
+
 ###############################################################################
 # BACKWARD LIBRARY (Includes backward.cpp)
 # (Note that the linker will not include unused objects from a static library,
@@ -114,6 +120,10 @@ add_library(backward ${libtype} backward.cpp)
 set_target_properties(backward PROPERTIES EXPORT_NAME Backward)
 target_link_libraries(backward PUBLIC Backward::Interface)
 add_library(Backward::Backward ALIAS backward)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  target_compile_options(backward PRIVATE -Wno-switch-default)
+endif()
 
 install(
     FILES "backward.hpp"

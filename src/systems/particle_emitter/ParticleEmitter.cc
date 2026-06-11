@@ -152,11 +152,11 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
           const components::ParentEntity *_parent,
           const components::Pose *_pose)->bool
         {
-          std::string topic;
+          std::string topic = _emitter->Data().topic().data();
 
           // Get the topic information from the header, which is currently a
           // hack to avoid breaking the particle_emitter.proto message.
-          if (_emitter->Data().has_header())
+          if (topic.empty() && _emitter->Data().has_header())
           {
             for (const auto & data : _emitter->Data().header().data())
             {
@@ -169,8 +169,10 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
 
           // If a topic has not been specified, then generate topic based
           // on the scoped name.
-          topic = !topic.empty() ? topic :
-            topicFromScopedName(_entity, _ecm) + "/cmd";
+          if (topic.empty())
+          {
+            topic = topicFromScopedName(_entity, _ecm) + "/cmd";
+          }
 
           // Subscribe to the topic that receives particle emitter commands.
           if (!this->dataPtr->node.Subscribe(

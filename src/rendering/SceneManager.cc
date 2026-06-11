@@ -397,10 +397,10 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           // unlike setting transparency above, the parent submesh are not
           // notified about the the cast shadows changes. So we need to set
           // the material back to the submesh.
-          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // \todo(anyone) find way to propagate cast shadows changes to submesh
           // in gz-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
-          submesh->SetMaterial(submeshMat);
+          submesh->SetMaterial(submeshMat, false);
         }
       }
     }

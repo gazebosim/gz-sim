@@ -6,6 +6,11 @@ notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
 ## Gazebo Sim 7.x to 8.0
+
+* **Deprecations**
+  * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
+    `<yDotV>`, etc.) is deprecated when using DART. Use `<fluid_added_mass>`
+    instead. See http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
 * **Deprecated**
     + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and
       `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)`

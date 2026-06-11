@@ -92,7 +92,7 @@ struct MsgReceiver
   }
 
   void Stop() {
-    this->node.Unsubscribe(this->_topic);
+    this->node.Unsubscribe(this->topic);
   }
 
   void Callback(const T &_msg) {

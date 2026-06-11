@@ -69,6 +69,9 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+#ifdef _WIN32
+    class SimulationRunnerWinHandleStorage;
+#endif
 
     class GZ_SIM_VISIBLE SimulationRunner
     {
@@ -368,6 +371,12 @@ namespace gz
       /// \brief Set the next step to be blocking and paused.
       public: void SetNextStepAsBlockingPaused(const bool value);
 
+      /// \brief Reset the current simulation runner
+      /// \param[in] _all Reset all parameters
+      /// \param[in] _time Reset the time
+      /// \param[in] _model Reset the model only [currently unsupported]
+      public: void Reset(const bool _all, const bool _time, const bool _model);
+
       /// \brief Updates the physics parameters of the simulation based on the
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
@@ -425,13 +434,6 @@ namespace gz
 
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
-
-      /// \brief Wall time of the previous update.
-      private: std::chrono::steady_clock::time_point prevUpdateRealTime;
-
-      /// \brief A duration used to account for inaccuracies associated with
-      /// sleep durations.
-      private: std::chrono::steady_clock::duration sleepOffset{0};
 
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
@@ -548,6 +550,16 @@ namespace gz
       private: bool threadsNeedCleanUp{false};
 
       private: bool resetInitiated{false};
+
+      /// \brief Flag indicating if the server encountered errors during
+      /// initialization and should exit immediately. See
+      /// `SetExitedWithErrors()`.
+      private: bool exitedWithErrors{false};
+#ifdef _WIN32
+      private: std::unique_ptr<SimulationRunnerWinHandleStorage>
+        winPrecisionTimer;
+#endif
+
       friend class LevelManager;
     };
     }
