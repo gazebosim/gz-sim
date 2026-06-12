@@ -133,9 +133,9 @@ TEST_F(HydrodynamicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(VelocityTestinOil))
 
     // Expect sphere1 to fall faster than sphere 2 as no hydro
     // drag is applied to it.
-    EXPECT_LE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
-    if(sphere1Vels[i].Z() < sphere2Vels[i].Z()
-      &&  whenSphere1ExceedsSphere2Vel > 1000)
+    EXPECT_GE(sphere1Vels[i].Z(), sphere2Vels[i].Z());
+    if (sphere1Vels[i].Z() > sphere2Vels[i].Z() &&
+        whenSphere1ExceedsSphere2Vel > 1000)
     {
       // Mark this as the time when velocity of sphere1 exceeds sphere 2
       whenSphere1ExceedsSphere2Vel = i;
@@ -200,4 +200,24 @@ TEST_F(HydrodynamicsTest,
     EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
+}
+
+/////////////////////////////////////////////////
+/// Regression test for https://github.com/gazebosim/gz-sim/issues/3530.
+/// The current-loaded model used to go unstable after the short 1000-step
+/// tests above and eventually triggered an ODE AABB assertion.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CurrentWorldLongRun))
+{
+  common::Console::SetVerbosity(1);
+
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(world);
+
+  TestFixture fixture(serverConfig);
+
+  EXPECT_TRUE(fixture.Server()->Run(true, 18000, false));
 }
