@@ -1270,6 +1270,10 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
   IGN_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
+  if (!this->entityCompMgr.HasComponentType(components::Recreate::typeId))
+  {
+    return;
+  }
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
