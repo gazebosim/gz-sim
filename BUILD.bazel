@@ -642,6 +642,26 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/dynamic_detachable_joint/**/*.cc",
+            "src/systems/dynamic_detachable_joint/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-dynamic-detachable-joint-system.so",
+    static_lib_name = "gz-sim-dynamic-detachable-joint-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/diff_drive/**/*.cc",
             "src/systems/diff_drive/**/*.hh",
         ],
