@@ -46,6 +46,7 @@
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/ForceTorque.hh"
 #include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/CpuLidar.hh"
 #include "gz/sim/components/GpuLidar.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Imu.hh"
@@ -1135,11 +1136,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   }
   else if (_sensor->Type() == sdf::SensorType::LIDAR)
   {
-    // \todo(anyone) Implement CPU-based lidar
-    // this->dataPtr->ecm->CreateComponent(sensorEntity,
-    //     components::Lidar(*_sensor));
-    gzwarn << "Sensor type LIDAR not supported yet. Try using"
-      << "a GPU LIDAR instead." << std::endl;
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::CpuLidar(*_sensor));
+
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldPose(math::Pose3d::Zero));
   }
   else if (_sensor->Type() == sdf::SensorType::DEPTH_CAMERA)
   {

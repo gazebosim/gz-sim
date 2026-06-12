@@ -60,6 +60,7 @@
 #include <gz/physics/FixedJoint.hh>
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/GetBatchRayIntersection.hh>
 #include <gz/physics/GetEntities.hh>
 #include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
@@ -397,6 +398,10 @@ class gz::sim::systems::PhysicsPrivate
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
 
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
+
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -567,6 +572,21 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetRayIntersectionFromLastStepFeature>{};
 
+  /// \brief Feature list for batched ray intersection queries.
+  public: struct BatchRayIntersectionFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetBatchRayIntersectionFromLastStepFeature>{};
+
+  /// \brief Per-entity cached batch ray query buffers to avoid per-step
+  /// heap allocation. Input is cleared and refilled each step; output retains
+  /// its allocated capacity so the physics engine can reuse it.
+  public: struct BatchRayCacheEntry {
+    using BatchWorld = physics::World3d<BatchRayIntersectionFeatureList>;
+    std::vector<BatchWorld::RayQuery> input;
+    BatchWorld::BatchedRayIntersectionData output;
+  };
+  public: std::unordered_map<Entity, BatchRayCacheEntry> batchRayCache;
+
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
             physics::FeatureList<
@@ -616,6 +636,13 @@ class gz::sim::systems::PhysicsPrivate
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Collision Enabled
+  /// \brief Feature list for enabling and disabling model collisions.
+  public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelCollisionEnabled>{};
 
   //////////////////////////////////////////////////
   // Link Bounding box
@@ -726,6 +753,7 @@ class gz::sim::systems::PhysicsPrivate
           ContactFeatureList,
           GravityFeatureList,
           RayIntersectionFeatureList,
+          BatchRayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
@@ -748,7 +776,8 @@ class gz::sim::systems::PhysicsPrivate
             ConstructSdfLinkFeatureList,
             ConstructSdfJointFeatureList,
             StaticStateFeatureList,
-            GravityEnabledFeatureList>;
+            GravityEnabledFeatureList,
+            ModelCollisionEnabledFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -2752,6 +2781,73 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
   }
 
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+    std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelCollisionEnabledFeature =
+          this->entityModelMap.EntityCast<ModelCollisionEnabledFeatureList>(
+            _entity);
+
+        if (!modelCollisionEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collision enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelCollisionEnabled]. Collision state won't be "
+                   << "populated. " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelCollisionEnabledFeature->SetCollisionEnabled(
+            _collisionEnabledCmd->Data());
+
+        // Reflect the applied state in the CollisionEnabled component so
+        // queries via Model::CollisionEnabled() return the latest value.
+        auto stateComp =
+            _ecm.Component<components::CollisionEnabled>(_entity);
+        if (stateComp == nullptr)
+        {
+          _ecm.CreateComponent(_entity,
+              components::CollisionEnabled(_collisionEnabledCmd->Data()));
+        }
+        else
+        {
+          stateComp->SetData(_collisionEnabledCmd->Data(),
+              [](const bool &, const bool &){return false;});
+          _ecm.SetChanged(_entity,
+              components::CollisionEnabled::typeId,
+              ComponentState::OneTimeChange);
+        }
+        return true;
+      });
+
+  // Remove collision enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
+
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
   this->worldPoseCmdsToRemove.clear();
@@ -3211,6 +3307,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->worldPoseCmdsToRemove.clear();
   this->staticCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -4522,6 +4619,77 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
+  // Prefer the batched ray intersection API when available.
+  auto worldBatchRayFeature =
+      this->entityWorldMap
+        .EntityCast<BatchRayIntersectionFeatureList>(worldEntity);
+
+  if (worldBatchRayFeature)
+  {
+    using BatchWorld = physics::World3d<BatchRayIntersectionFeatureList>;
+    using RayQuery = BatchWorld::RayQuery;
+    using RayIntersection = BatchWorld::RayIntersection;
+
+    _ecm.Each<components::RaycastData,
+              components::NeedsRaycast,
+              components::WorldPose>(
+        [&](const Entity &_entity,
+            components::RaycastData *_raycastData,
+            components::NeedsRaycast *_needsRaycast,
+            const components::WorldPose *_worldPose) -> bool
+        {
+          if (!_needsRaycast->Data())
+            return true;
+          _needsRaycast->Data() = false;
+
+          const auto &rays = _raycastData->Data().rays;
+          auto &results = _raycastData->Data().results;
+          results.clear();
+          results.reserve(rays.size());
+
+          const auto &entityWorldPose = _worldPose->Data();
+
+          auto &cache = this->batchRayCache[_entity];
+          auto &batchInput = cache.input;
+          auto &batchOutput = cache.output;
+          batchInput.clear();
+          batchInput.reserve(rays.size());
+          for (const auto &ray : rays)
+          {
+            RayQuery q;
+            q.origin = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.start));
+            q.target = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.end));
+            batchInput.push_back(q);
+          }
+
+          worldBatchRayFeature->GetBatchRayIntersectionFromLastStep(
+            batchInput, batchOutput);
+
+          for (const auto &hit :
+              batchOutput.Get<std::vector<RayIntersection>>())
+          {
+            auto &result = results.emplace_back();
+
+            const math::Vector3d intersectionPoint =
+              math::eigen3::convert(hit.point);
+            result.point = entityWorldPose.Rot().RotateVectorReverse(
+              intersectionPoint - entityWorldPose.Pos());
+
+            result.fraction = hit.fraction;
+
+            const math::Vector3d normal = math::eigen3::convert(hit.normal);
+            result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+          }
+          return true;
+        });
+    return;
+  }
+
+  // Fallback: single-ray intersection
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
@@ -4539,34 +4707,35 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Go through each entity that has a RaycastData components, trace the
+  // Go through each entity that has a RaycastData component, trace the
   // rays and store the results
   _ecm.Each<components::RaycastData,
-            components::Pose>(
-      [&](const Entity &_entity,
+            components::NeedsRaycast,
+            components::WorldPose>(
+      [&](const Entity & /*_entity*/,
           components::RaycastData *_raycastData,
-          components::Pose */*_pose*/) -> bool
+          components::NeedsRaycast *_needsRaycast,
+          const components::WorldPose *_worldPose) -> bool
       {
-        // Retrieve the rays from the RaycastData component
+        if (!_needsRaycast->Data())
+          return true;
+        _needsRaycast->Data() = false;
+
         const auto &rays = _raycastData->Data().rays;
 
-        // Clear the previous results
         auto &results = _raycastData->Data().results;
         results.clear();
         results.reserve(rays.size());
 
-        // Get the entity's world pose
-        const auto &entityWorldPose = worldPose(_entity, _ecm);
+        const auto &entityWorldPose = _worldPose->Data();
 
         for (const auto &ray : rays)
         {
-          // Convert ray to world frame
           const math::Vector3d rayStart = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.start);
           const math::Vector3d rayEnd = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.end);
 
-          // Perform ray intersection
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
               math::eigen3::convert(rayStart),
@@ -4576,10 +4745,8 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             rayIntersection.Get<
               physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
-          results.emplace_back();
-          auto &result = results.back();
+          auto &result = results.emplace_back();
 
-          // Convert result to entity frame and store
           const math::Vector3d intersectionPoint =
             math::eigen3::convert(rayIntersectionResult.point);
           result.point = entityWorldPose.Rot().RotateVectorReverse(
@@ -4591,6 +4758,14 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             math::eigen3::convert(rayIntersectionResult.normal);
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
         }
+        return true;
+      });
+
+  _ecm.EachRemoved<components::RaycastData>(
+      [&](const Entity &_entity,
+          const components::RaycastData *) -> bool
+      {
+        this->batchRayCache.erase(_entity);
         return true;
       });
 }

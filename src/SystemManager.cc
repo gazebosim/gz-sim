@@ -481,9 +481,7 @@ void RemoveFromVectorIf(std::vector<Tp>& vec,
 }
 
 //////////////////////////////////////////////////
-void SystemManager::ProcessRemovedEntities(
-  const EntityComponentManager &_ecm,
-  bool &_needsCleanUp)
+void SystemManager::ProcessRemovedEntities(const EntityComponentManager &_ecm)
 {
   // Note: This function has  O(n) time when an entity is removed
   // where n is number of systems. Ideally we would only iterate
@@ -520,9 +518,6 @@ void SystemManager::ProcessRemovedEntities(
       if (system.postupdate)
       {
         postupdateSystemsToBeRemoved.insert(system.postupdate);
-        // If system with a PostUpdate is marked for removal
-        // mark all worker threads for removal.
-        _needsCleanUp = true;
       }
       if (system.configure)
       {
