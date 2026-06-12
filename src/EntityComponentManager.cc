@@ -1683,7 +1683,10 @@ void EntityComponentManagerPrivate::CalculateStateThreadLoad()
   // Set the number of threads to spawn to the min of the calculated thread
   // count or max threads that the hardware supports
   int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numEntities, maxThreads);
+  // Assign at least 100 entities per thread to reduce the overhead
+  // of multithreaading for low entity numbers
+  uint64_t numThreads = std::min(static_cast<int>(std::ceil(
+          static_cast<double>(numEntities) / 100.0)), maxThreads);
 
   int entitiesPerThread = static_cast<int>(std::ceil(
     static_cast<double>(numEntities) / numThreads));
@@ -1766,8 +1769,15 @@ void EntityComponentManager::State(
     }
   };
 
-  // Spawn workers
+  // Bypass thread spawning if only one thread is necessary
   uint64_t numThreads = this->dataPtr->componentTypeIndexIterators.size() - 1;
+  if (numThreads == 1)
+  {
+    functor(this->dataPtr->componentTypeIndexIterators[0],
+            this->dataPtr->componentTypeIndexIterators[1]);
+    return;
+  }
+  // Spawn workers
   for (uint64_t i = 0; i < numThreads; i++)
   {
     workers.push_back(std::thread(functor,
