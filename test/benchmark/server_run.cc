@@ -30,7 +30,7 @@ using namespace sim;
 using namespace components;
 
 void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
-                     const std::string &_world_sdf) 
+                     const std::string &_world_sdf)
 {
   auto stabilizingSteps = _st.range(0);
 
@@ -42,7 +42,7 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
                                             "test/worlds/", _world_sdf));
   serverConfig.SetPhysicsEngine(_physics_engine);
 
-  for (auto _ : _st) 
+  for (auto _ : _st)
   {
     _st.PauseTiming();
     sim::Server server(serverConfig); // Add system from plugin
@@ -75,9 +75,9 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
     ->Unit(benchmark::kMillisecond);
 
 /*
-This benchmark (for 3k_shapes.sdf) can take a while to run. Use the 
-'--benchmark_filter="(/bullet_)"' argument when you run 
-build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this 
+This benchmark (for 3k_shapes.sdf) can take a while to run. Use the
+'--benchmark_filter="(/bullet_)"' argument when you run
+build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this
 benchmark.
 */
 // NOLINTNEXTLINE
