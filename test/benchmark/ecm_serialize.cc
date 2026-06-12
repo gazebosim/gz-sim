@@ -100,15 +100,7 @@ BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize1Component)
   for (auto _: _st)
   {
     auto stateMsg = mgr->State({}, {IntComponent::typeId});
-#if GOOGLE_PROTOBUF_VERSION >= 3004000
-    serializedSize = stateMsg.ByteSizeLong();
-#else
-    serializedSize = stateMsg.ByteSize();
-#endif
   }
-  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
-  _st.counters["num_entities"] = static_cast<double>(entityCount);
-  _st.counters["num_components"] = 1;
 }
 
 BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize5Component)
@@ -119,15 +111,7 @@ BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize5Component)
   for (auto _: _st)
   {
     auto stateMsg = mgr->State({}, {});
-#if GOOGLE_PROTOBUF_VERSION >= 3004000
-    serializedSize = stateMsg.ByteSizeLong();
-#else
-    serializedSize = stateMsg.ByteSize();
-#endif
   }
-  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
-  _st.counters["num_entities"] = static_cast<double>(entityCount);
-  _st.counters["num_components"] = 5;
 }
 
 BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize1ComponentMap)
@@ -139,15 +123,7 @@ BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize1ComponentMap)
   for (auto _: _st)
   {
     mgr->State(stateMsg, {}, {IntComponent::typeId});
-#if GOOGLE_PROTOBUF_VERSION >= 3004000
-    serializedSize = stateMsg.ByteSizeLong();
-#else
-    serializedSize = stateMsg.ByteSize();
-#endif
   }
-  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
-  _st.counters["num_entities"] = static_cast<double>(entityCount);
-  _st.counters["num_components"] = 1;
 }
 
 BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize5ComponentMap)
@@ -159,15 +135,7 @@ BENCHMARK_DEFINE_F(SerializeStateFixture, Serialize5ComponentMap)
   for (auto _: _st)
   {
     mgr->State(stateMsg, {}, {});
-#if GOOGLE_PROTOBUF_VERSION >= 3004000
-    serializedSize = stateMsg.ByteSizeLong();
-#else
-    serializedSize = stateMsg.ByteSize();
-#endif
   }
-  _st.counters["serialized_size"] = static_cast<double>(serializedSize);
-  _st.counters["num_entities"] = static_cast<double>(entityCount);
-  _st.counters["num_components"] = 5;
 }
 
 BENCHMARK_REGISTER_F(SerializeStateFixture, Serialize1Component)
