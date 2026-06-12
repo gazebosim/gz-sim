@@ -198,13 +198,6 @@ class CreateCommand : public UserCommandBase
   /// \brief Actual implementation that creates entities from message.
   /// \param[in] Factory message that specifies the entity to create.
   private: bool CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg);
-
-  /// \brief Helper function to copy data from EntityFactoryWithNs message to
-  /// EntityFactory message.
-  /// \param[in] _sourceMsg EntityFactoryWithNs message to copy data from.
-  /// \param[in] _targetMsg EntityFactory message to copy data to.
-  private: void CopyData(const msgs::EntityFactoryWithNs &_sourceMsg,
-      msgs::EntityFactory &_targetMsg);
 };
 
 /// \brief Command to remove an entity from simulation.
@@ -1085,7 +1078,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
     model.SetName(desiredName);
     if (_ns.has_value())
     {
-      model.SetNamespace(_ns.value());
+      model.SetRawNamespace(_ns.value());
     }
     entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
@@ -1182,69 +1175,15 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
 bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
 {
   msgs::EntityFactory baseMsg;
-  this->CopyData(_createMsg, baseMsg);
+  baseMsg.ParseFromString(_createMsg.SerializeAsString());
 
   std::optional<std::string> ns = std::nullopt;
-  if(_createMsg.has_ns())
+  if(_createMsg.has_namespace_())
   {
-    ns = _createMsg.ns().data();
+    ns = _createMsg.namespace_().data();
   }
 
   return this->CreateFromMsg(baseMsg, ns);
-}
-
-//////////////////////////////////////////////////
-void CreateCommand::CopyData(const msgs::EntityFactoryWithNs &_sourceMsg,
-    msgs::EntityFactory &_targetMsg)
-{
-  _targetMsg.Clear();
-
-  if (_sourceMsg.has_header())
-  {
-    _targetMsg.mutable_header()->CopyFrom(_sourceMsg.header());
-  }
-
-  switch (_sourceMsg.from_case())
-  {
-    case msgs::EntityFactoryWithNs::kSdf:
-      _targetMsg.set_sdf(_sourceMsg.sdf());
-      break;
-
-    case msgs::EntityFactoryWithNs::kSdfFilename:
-      _targetMsg.set_sdf_filename(_sourceMsg.sdf_filename());
-      break;
-
-    case msgs::EntityFactoryWithNs::kModel:
-      _targetMsg.mutable_model()->CopyFrom(_sourceMsg.model());
-      break;
-
-    case msgs::EntityFactoryWithNs::kLight:
-      _targetMsg.mutable_light()->CopyFrom(_sourceMsg.light());
-      break;
-
-    case msgs::EntityFactoryWithNs::kCloneName:
-      _targetMsg.set_clone_name(_sourceMsg.clone_name());
-      break;
-
-    case msgs::EntityFactoryWithNs::FROM_NOT_SET:
-    default:
-      break;
-  }
-
-  if (_sourceMsg.has_pose())
-  {
-    _targetMsg.mutable_pose()->CopyFrom(_sourceMsg.pose());
-  }
-
-  _targetMsg.set_name(_sourceMsg.name());
-  _targetMsg.set_allow_renaming(_sourceMsg.allow_renaming());
-  _targetMsg.set_relative_to(_sourceMsg.relative_to());
-
-  if (_sourceMsg.has_spherical_coordinates())
-  {
-    _targetMsg.mutable_spherical_coordinates()->CopyFrom(
-        _sourceMsg.spherical_coordinates());
-  }
 }
 
 //////////////////////////////////////////////////
