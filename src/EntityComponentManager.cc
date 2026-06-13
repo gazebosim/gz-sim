@@ -28,6 +28,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <optional>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/graph/GraphAlgorithms.hh>
@@ -39,7 +40,9 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Recreate.hh"
@@ -401,7 +404,8 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename)
+    const std::string &_name, const std::optional<std::string> &_ns,
+    bool _allowRename)
 {
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
@@ -409,7 +413,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   this->dataPtr->originalToClonedLink.clear();
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
-  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
+  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _ns, _allowRename);
 
   if (kNullEntity != clonedEntity)
   {
@@ -462,7 +466,8 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename)
+    const std::string &_name, const std::optional<std::string> &_ns,
+    bool _allowRename)
 {
   auto uniqueNameGenerated = false;
 
@@ -536,13 +541,32 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
+  if (nullptr != this->Component<components::Namespace>(_entity))
+  {
+    std::string ns;
+    if (_ns.has_value())
+    {
+      ns = _ns.value();
+    }
+    else
+    {
+      // If the namespace is not provided, use the original entity's namespace
+      // if it exists. Otherwise, use an empty string as the namespace for the
+      // cloned entity.
+      auto originalNsComp = this->Component<components::Namespace>(_entity);
+      ns = originalNsComp ? originalNsComp->Data() : "";
+    }
+    this->CreateComponent(clonedEntity, components::Namespace(ns));
+  }
+
   // copy all components from _entity to clonedEntity
   for (const auto &type : this->ComponentTypes(_entity))
   {
-    // skip the Name and ParentEntity components since those were already
+    // skip the Name, Namespace and ParentEntity components since those were already
     // handled above
     if ((type == components::Name::typeId) ||
-        (type == components::ParentEntity::typeId))
+        (type == components::ParentEntity::typeId) ||
+        (type == components::Namespace::typeId))
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
@@ -648,8 +672,9 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
         name = nameComp->Data();
       }
     }
+
     auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
-        _allowRename);
+        std::nullopt, _allowRename);
     if (kNullEntity == clonedChild)
     {
       gzerr << "Cloning child entity [" << childEntity << "] failed.\n";

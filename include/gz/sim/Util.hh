@@ -68,6 +68,23 @@ namespace gz
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
 
+    /// \brief Helper function to check whether any entity has a non-empty
+    /// namespace component.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return True if any entity has a non-empty namespace.
+    bool GZ_SIM_VISIBLE hasNamespace(
+        const EntityComponentManager &_ecm);
+
+  /// \brief Helper function to generate the full scoped namespace of an entity,
+  /// including namespaces inherited from all parent entities.
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity to get the scoped namespace for.
+  /// \param[in] _delim Delimiter to put between namespaces, defaults to "/".
+  /// \return Scoped namespace, or empty string if no namespace is found.
+  std::string GZ_SIM_VISIBLE scopedNamespace(
+      const EntityComponentManager &_ecm, const Entity &_entity,
+      const std::string &_delim = "/");
+
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this
     /// hierarchy:

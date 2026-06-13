@@ -758,6 +758,158 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
   EXPECT_EQ(5u, odomPosesCount);
 }
 
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NamespaceTopic))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_ns.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system that records the vehicle poses
+  test::Relay testSystem;
+
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(),
+        components::Name("vehicle_nested"));
+      EXPECT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check that vehicle didn't move
+  server.Run(true, 1000, false);
+
+  EXPECT_EQ(1000u, poses.size());
+
+  for (const auto &pose : poses)
+  {
+    EXPECT_EQ(poses[0], pose);
+  }
+
+  // Publish command and check that vehicle moved
+  double odomPeriod{1.0};
+  double odomLastMsgTime{1.0};
+  std::vector<math::Pose3d> odomPoses;
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&](const msgs::Odometry &_msg)
+    {
+      ASSERT_TRUE(_msg.has_header());
+      ASSERT_TRUE(_msg.header().has_stamp());
+
+      double msgTime =
+          static_cast<double>(_msg.header().stamp().sec()) +
+          static_cast<double>(_msg.header().stamp().nsec()) * 1e-9;
+
+      EXPECT_DOUBLE_EQ(msgTime, odomLastMsgTime + odomPeriod);
+      odomLastMsgTime = msgTime;
+
+      odomPoses.push_back(msgs::Convert(_msg.pose()));
+    };
+
+  std::vector<math::Pose3d> tfPoses;
+  std::function<void(const msgs::Pose_V &)> tfCb =
+    [&](const msgs::Pose_V &_msg)
+    {
+      ASSERT_TRUE(_msg.pose(0).has_header());
+      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(0).value().Get(0).c_str(),
+            "vehicle_nested/odom");
+
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.pose(0).header().data(1).value().Get(0).c_str(),
+            "vehicle_nested/chassis");
+
+      tfPoses.push_back(msgs::Convert(_msg.pose(0)));
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/cmd_vel");
+  node.Subscribe("/vehicle/nested_ns/odom", odomCb);
+  node.Subscribe("/vehicle/nested_ns/tf", tfCb);
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.0));
+
+  pub.Publish(msg);
+
+  server.Run(true, 3000, false);
+
+  // Poses for 4s
+  EXPECT_EQ(4000u, poses.size());
+
+  // Disable controller
+  auto pub_enable = node.Advertise<msgs::Boolean>(
+    "/vehicle/nested_ns/enable");
+
+  msgs::Boolean msg_enable;
+  msg_enable.set_data(false);
+
+  pub_enable.Publish(msg_enable);
+
+  // Run for 2s and expect no movement
+  server.Run(true, 2000, false);
+
+  EXPECT_EQ(6000u, poses.size());
+
+  // Re-enable controller
+  msg_enable.set_data(true);
+
+  pub_enable.Publish(msg_enable);
+
+  pub.Publish(msg);
+
+  // Run for 2s and expect movement again
+  server.Run(true, 2000, false);
+
+  EXPECT_EQ(8000u, poses.size());
+
+  int sleep = 0;
+  int maxSleep = 70;
+  for (; (odomPoses.size() < 7 || tfPoses.size() < 7) && sleep < maxSleep;
+    ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
+
+  // Odom and TF for 7s
+  ASSERT_FALSE(odomPoses.empty());
+  EXPECT_EQ(7u, odomPoses.size());
+  ASSERT_FALSE(tfPoses.empty());
+  EXPECT_EQ(7u, tfPoses.size());
+
+  EXPECT_LT(poses[0].Pos().X(), poses[3999].Pos().X());
+
+  // Should no be moving from 5s to 6s (stopped at 3s and time to slow down)
+  EXPECT_NEAR(poses[4999].Pos().X(), poses[5999].Pos().X(), tol);
+
+  // Should be moving from 6s to 8s
+  EXPECT_LT(poses[5999].Pos().X(), poses[7999].Pos().X());
+}
+
 // Run multiple times
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, DiffDriveTest,
     ::testing::Range(1, 2));
