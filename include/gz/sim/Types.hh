@@ -77,6 +77,23 @@ namespace gz
       OneTimeChange = 2
     };
 
+    /// \brief A high-level entity classification for fast type lookup.
+    enum class EntityType
+    {
+      Invalid = 0,
+      World = 1,
+      Model = 2,
+      Light = 3,
+      Link = 4,
+      Collision = 5,
+      Visual = 6,
+      Joint = 7,
+      Sensor = 8,
+      Actor = 9,
+      ParticleEmitter = 10,
+      Projector = 11,
+    };
+
     /// \brief A unique identifier for a component type. A component type
     /// must be derived from `components::BaseComponent` and can contain plain
     /// data or something more complex like `gz::math::Pose3d`.

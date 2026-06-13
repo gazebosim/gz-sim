@@ -32,6 +32,19 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/EntityTypeTag.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Light.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/Projector.hh"
+#include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
+
 namespace gz
 {
 namespace sim
@@ -64,6 +77,49 @@ namespace traits
 #if !defined(_MSC_VER)
 #pragma GCC diagnostic pop
 #endif
+  };
+
+  /// \brief Maps type-defining components to EntityType values.
+  template<typename ComponentTypeT>
+  struct EntityTypeForComponent
+  {
+    static constexpr bool kHasEntityType =
+        std::is_same_v<ComponentTypeT, components::World> ||
+        std::is_same_v<ComponentTypeT, components::Model> ||
+        std::is_same_v<ComponentTypeT, components::Light> ||
+        std::is_same_v<ComponentTypeT, components::Link> ||
+        std::is_same_v<ComponentTypeT, components::Collision> ||
+        std::is_same_v<ComponentTypeT, components::Visual> ||
+        std::is_same_v<ComponentTypeT, components::Joint> ||
+        std::is_same_v<ComponentTypeT, components::Sensor> ||
+        std::is_same_v<ComponentTypeT, components::Actor> ||
+        std::is_same_v<ComponentTypeT, components::ParticleEmitter> ||
+        std::is_same_v<ComponentTypeT, components::Projector>;
+
+    static constexpr EntityType kEntityType =
+        std::is_same_v<ComponentTypeT, components::World> ?
+            EntityType::World :
+        std::is_same_v<ComponentTypeT, components::Model> ?
+            EntityType::Model :
+        std::is_same_v<ComponentTypeT, components::Light> ?
+            EntityType::Light :
+        std::is_same_v<ComponentTypeT, components::Link> ?
+            EntityType::Link :
+        std::is_same_v<ComponentTypeT, components::Collision> ?
+            EntityType::Collision :
+        std::is_same_v<ComponentTypeT, components::Visual> ?
+            EntityType::Visual :
+        std::is_same_v<ComponentTypeT, components::Joint> ?
+            EntityType::Joint :
+        std::is_same_v<ComponentTypeT, components::Sensor> ?
+            EntityType::Sensor :
+        std::is_same_v<ComponentTypeT, components::Actor> ?
+            EntityType::Actor :
+        std::is_same_v<ComponentTypeT, components::ParticleEmitter> ?
+            EntityType::ParticleEmitter :
+        std::is_same_v<ComponentTypeT, components::Projector> ?
+            EntityType::Projector :
+            EntityType::Invalid;
   };
 }
 
@@ -108,6 +164,16 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
     }
     *comp = _data;
   }
+
+  if (comp)
+  {
+    if constexpr (traits::EntityTypeForComponent<ComponentTypeT>::kHasEntityType)
+    {
+      this->CreateComponent(_entity, components::EntityTypeTag(
+          traits::EntityTypeForComponent<ComponentTypeT>::kEntityType));
+    }
+  }
+
   return comp;
 }
 
