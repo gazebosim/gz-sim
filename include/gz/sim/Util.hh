@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
@@ -136,7 +137,7 @@ namespace gz
     /// \param[in] _entity Entity to get the type for.
     /// \param[in] _ecm Immutable reference to ECM.
     /// \return ID of entity's type-defining components.
-    std::string GZ_SIM_VISIBLE entityTypeStr(const Entity &_entity,
+    std::string_view GZ_SIM_VISIBLE entityTypeStr(const Entity &_entity,
         const EntityComponentManager &_ecm);
 
     /// \brief Get the world to which the given entity belongs.
