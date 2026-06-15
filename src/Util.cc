@@ -145,6 +145,7 @@ std::string scopedName(const Entity &_entity,
   // withou occupying significant memory (string view is just a pointer + size)
   parts.reserve(10);
   auto entity = _entity;
+  size_t totalSize = 0;
 
   while (true)
   {
@@ -167,9 +168,11 @@ std::string scopedName(const Entity &_entity,
     if (!prefix.empty())
     {
       parts.push_back(name);
+      totalSize += name.size();
       if (_includePrefix)
       {
         parts.push_back(prefix);
+        totalSize += prefix.size();
       }
     }
 
@@ -183,11 +186,6 @@ std::string scopedName(const Entity &_entity,
     return "";
 
   std::string result;
-  size_t totalSize = 0;
-  for (const auto &part : parts)
-  {
-    totalSize += part.size();
-  }
   totalSize += (parts.size() - 1) * _delim.size();
   result.reserve(totalSize);
 
