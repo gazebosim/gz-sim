@@ -142,7 +142,7 @@ std::string scopedName(const Entity &_entity,
 {
   std::vector<std::string_view> parts;
   // Pre-allocate 10 entries, a sensible default that will prevent reallocation
-  // withou occupying significant memory (string view is just a pointer + size)
+  // without occupying significant memory (string view is just a pointer + size)
   parts.reserve(10);
   auto entity = _entity;
   size_t totalSize = 0;
