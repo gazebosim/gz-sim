@@ -155,7 +155,7 @@ std::string scopedName(const Entity &_entity,
     const auto &name = nameComp->Data();
 
     // Get entity type
-    std::string_view prefix = entityTypeStr(entity, _ecm);
+    std::string_view prefix = entityTypeStrView(entity, _ecm);
     if (prefix.empty())
     {
       gzwarn << "Skipping entity [" << name
@@ -349,8 +349,7 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   return type;
 }
 
-//////////////////////////////////////////////////
-std::string_view entityTypeStr(const Entity &_entity,
+std::string_view entityTypeStrView(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
   std::string_view type;
@@ -401,6 +400,13 @@ std::string_view entityTypeStr(const Entity &_entity,
   }
 
   return type;
+}
+
+//////////////////////////////////////////////////
+std::string entityTypeStr(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  return std::string(entityTypeStrView(_entity, _ecm));
 }
 
 //////////////////////////////////////////////////
