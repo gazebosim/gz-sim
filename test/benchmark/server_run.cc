@@ -53,6 +53,33 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
   }
 }
 
+void BM_LoadWorld(benchmark::State &_st, const std::string &_physics_engine,
+                     const std::string &_world_sdf) {
+  std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
+  common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+                                            "test/worlds/", _world_sdf));
+  serverConfig.SetPhysicsEngine(_physics_engine);
+
+  for (auto _ : _st)
+  {
+    // Add system from plugin
+    sim::Server server(serverConfig);
+    // Run one step
+    server.Run(true, 1, false);
+  }
+}
+
+/*
+The benchmark for 3k_shapes.sdf can take a while to run. Use the
+'--benchmark_filter="(/bullet_)"' argument when you run
+build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this
+benchmark.
+*/
+
+/* Benchmark runtime performance on bullet-featherstone physics engine */
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
@@ -74,17 +101,32 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
     ->Arg(10000)
     ->Unit(benchmark::kMillisecond);
 
-/*
-This benchmark (for 3k_shapes.sdf) can take a while to run. Use the
-'--benchmark_filter="(/bullet_)"' argument when you run
-build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this
-benchmark.
-*/
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+/* Benchmark load time on bullet-featherstone physics engine */
+BENCHMARK_CAPTURE(BM_LoadWorld, bullet_shapes_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "shapes.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_LoadWorld, bullet_gpu_lidar_sensor_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "gpu_lidar_sensor.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_LoadWorld, bullet_breadcrumbs_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "breadcrumbs.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_bullet_3k_shapes_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "3k_shapes.sdf")
     ->Unit(benchmark::kMillisecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
