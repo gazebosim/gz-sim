@@ -31,7 +31,7 @@
 using namespace gz;
 using namespace sim;
 
-void BM_ScopedName(benchmark::State &_st, const std::string &_entityType) 
+void BM_ScopedName(benchmark::State &_st, const std::string &_entityType)
 {
   // world
   // - modelA
@@ -81,7 +81,7 @@ void BM_ScopedName(benchmark::State &_st, const std::string &_entityType)
   {
     ecm.CreateComponent(entity, components::Model());
   }
-  for (auto _ : _st) 
+  for (auto _ : _st)
   {
     for (int64_t ii = 0; ii < iterations; ++ii)
     {
