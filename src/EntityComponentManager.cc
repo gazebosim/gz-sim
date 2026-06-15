@@ -317,6 +317,13 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
+  // Rebuild component storage by cloning every component from `_from`.
+  // \warning This destroys the existing component objects and replaces them
+  // with freshly allocated clones at new addresses. Any raw component pointer
+  // handed out earlier (Component(), ComponentImplementation(), ...) is left
+  // dangling by this loop and must be re-fetched by callers afterwards.
+  // Holding such a pointer across CopyFrom()/ResetTo() and dereferencing it is
+  // undefined behavior (see gazebosim/gz-sim#3635).
   for (const auto &[entity, comps] : _from.componentStorage)
   {
     this->componentStorage[entity].clear();
@@ -2344,6 +2351,9 @@ void EntityComponentManager::ApplyEntityDiff(
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
+  // \warning The final CopyFrom() below rebuilds the component storage, so any
+  // raw component pointer obtained before this call is invalidated. Callers
+  // must re-fetch components after a reset (see gazebosim/gz-sim#3635).
   auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
   tmpCopy.CopyFrom(_other);
