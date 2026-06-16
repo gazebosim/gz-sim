@@ -270,12 +270,12 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
         if (mjBodyId > 0 && mjBodyId < this->dataPtr->model->nbody)
         {
           auto wrench = _wrenchComp->Data();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 0] = wrench.force().x();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 1] = wrench.force().y();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 2] = wrench.force().z();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 3] = wrench.torque().x();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 4] = wrench.torque().y();
-          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 5] = wrench.torque().z();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 0] = wrench.torque().x();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 1] = wrench.torque().y();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 2] = wrench.torque().z();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 3] = wrench.force().x();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 4] = wrench.force().y();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 5] = wrench.force().z();
         }
         return true;
       });
@@ -316,16 +316,16 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
 
           auto linVelComp = _ecm.Component<components::LinearVelocity>(entity);
           if (linVelComp) {
-            linVelComp->Data() = parentWorldPose.Rot().Inverse() * worldLinearVel;
+            linVelComp->Data() = worldPose.Rot().Inverse() * worldLinearVel;
           } else {
-            _ecm.CreateComponent(entity, components::LinearVelocity(parentWorldPose.Rot().Inverse() * worldLinearVel));
+            _ecm.CreateComponent(entity, components::LinearVelocity(worldPose.Rot().Inverse() * worldLinearVel));
           }
 
           auto angVelComp = _ecm.Component<components::AngularVelocity>(entity);
           if (angVelComp) {
-            angVelComp->Data() = parentWorldPose.Rot().Inverse() * worldAngularVel;
+            angVelComp->Data() = worldPose.Rot().Inverse() * worldAngularVel;
           } else {
-            _ecm.CreateComponent(entity, components::AngularVelocity(parentWorldPose.Rot().Inverse() * worldAngularVel));
+            _ecm.CreateComponent(entity, components::AngularVelocity(worldPose.Rot().Inverse() * worldAngularVel));
           }
         }
         return true;
