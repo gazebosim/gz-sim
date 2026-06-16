@@ -30,6 +30,17 @@
 #include <algorithm>
 #include <gz/sim/Util.hh>
 #include <gz/plugin/Register.hh>
+#include <gz/msgs/contacts.pb.h>
+#include <gz/sim/components/LinearAcceleration.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/WrenchMeasured.hh>
+#include <gz/sim/components/Imu.hh>
+#include <gz/sim/components/ForceTorque.hh>
+#include <gz/sim/components/ContactSensorData.hh>
+#include <gz/sim/components/ChildLinkName.hh>
+
+#include <unordered_map>
+#include <vector>
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>
 
@@ -406,6 +417,68 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     }
   }
 
+  _ecm.EachNew<components::Imu>(
+    [&](const Entity &_entity, const components::Imu *) -> bool
+    {
+      Entity parentLink = _ecm.ParentEntity(_entity);
+      if (parentLink != kNullEntity) {
+          std::string linkName = "link_" + std::to_string(parentLink);
+          auto *muBody = mjs_findBody(this->dataPtr->spec, linkName.c_str());
+          if (muBody) {
+              auto *muSite = mjs_addSite(muBody, nullptr);
+              std::string siteName = "site_imu_" + std::to_string(_entity);
+              mjs_setName(muSite->element, siteName.c_str());
+              
+              auto *accelSensor = mjs_addSensor(this->dataPtr->spec);
+              accelSensor->type = mjSENS_ACCELEROMETER;
+              accelSensor->objtype = mjOBJ_SITE;
+              mjs_setString(accelSensor->objname, siteName.c_str());
+              
+              auto *gyroSensor = mjs_addSensor(this->dataPtr->spec);
+              gyroSensor->type = mjSENS_GYRO;
+              gyroSensor->objtype = mjOBJ_SITE;
+              mjs_setString(gyroSensor->objname, siteName.c_str());
+              specChanged = true;
+          }
+      }
+      return true;
+    });
+
+  _ecm.EachNew<components::ForceTorque>(
+    [&](const Entity &_entity, const components::ForceTorque *) -> bool
+    {
+      Entity parentJoint = _ecm.ParentEntity(_entity);
+      if (parentJoint != kNullEntity) {
+          auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
+          if (childLinkComp) {
+              std::string childName = childLinkComp->Data();
+              Entity modelEntity = _ecm.ParentEntity(parentJoint);
+              Entity childLinkEntity = _ecm.EntityByComponents(components::ParentEntity(modelEntity), components::Name(childName), components::Link());
+              if (childLinkEntity != kNullEntity) {
+                  std::string linkName = "link_" + std::to_string(childLinkEntity);
+                  auto *muBody = mjs_findBody(this->dataPtr->spec, linkName.c_str());
+                  if (muBody) {
+                      auto *muSite = mjs_addSite(muBody, nullptr);
+                      std::string siteName = "site_ft_" + std::to_string(_entity);
+                      mjs_setName(muSite->element, siteName.c_str());
+                      
+                      auto *forceSensor = mjs_addSensor(this->dataPtr->spec);
+                      forceSensor->type = mjSENS_FORCE;
+                      forceSensor->objtype = mjOBJ_SITE;
+                      mjs_setString(forceSensor->objname, siteName.c_str());
+                      
+                      auto *torqueSensor = mjs_addSensor(this->dataPtr->spec);
+                      torqueSensor->type = mjSENS_TORQUE;
+                      torqueSensor->objtype = mjOBJ_SITE;
+                      mjs_setString(torqueSensor->objname, siteName.c_str());
+                      specChanged = true;
+                  }
+              }
+          }
+      }
+      return true;
+    });
+
   if (specChanged)
   {
     if (this->dataPtr->data)
@@ -564,6 +637,180 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
         }
         return true;
       });
+
+    // Process contacts
+    if (_ecm.HasComponentType(components::ContactSensorData::typeId)) {
+      std::unordered_map<int, Entity> geomToEntity;
+      _ecm.Each<MujocoGeomId>([&](const Entity &_entity, const MujocoGeomId *_idComp) -> bool {
+          geomToEntity[_idComp->Data()] = _entity;
+          return true;
+      });
+
+      std::unordered_map<Entity, std::unordered_map<Entity, std::vector<msgs::Contact>>> entityContactMap;
+      
+      for (int i = 0; i < this->dataPtr->data->ncon; ++i) {
+          const mjContact *con = this->dataPtr->data->contact + i;
+          
+          auto it1 = geomToEntity.find(con->geom[0]);
+          auto it2 = geomToEntity.find(con->geom[1]);
+          
+          if (it1 != geomToEntity.end() && it2 != geomToEntity.end()) {
+              Entity e1 = it1->second;
+              Entity e2 = it2->second;
+              
+              mjtNum contactForce[6];
+              mj_contactForce(this->dataPtr->model, this->dataPtr->data, i, contactForce);
+              
+              math::Vector3d force(
+                  (con->frame[0] * contactForce[0] + con->frame[3] * contactForce[1] + con->frame[6] * contactForce[2]),
+                  (con->frame[1] * contactForce[0] + con->frame[4] * contactForce[1] + con->frame[7] * contactForce[2]),
+                  (con->frame[2] * contactForce[0] + con->frame[5] * contactForce[1] + con->frame[8] * contactForce[2])
+              );
+              math::Vector3d normal(con->frame[0], con->frame[1], con->frame[2]);
+              math::Vector3d position(con->pos[0], con->pos[1], con->pos[2]);
+              double depth = -con->dist;
+              
+              msgs::Contact contactMsg;
+              contactMsg.mutable_collision1()->set_id(e1);
+              contactMsg.mutable_collision2()->set_id(e2);
+              
+              auto *posMsg = contactMsg.add_position();
+              posMsg->set_x(position.X()); posMsg->set_y(position.Y()); posMsg->set_z(position.Z());
+              
+              auto *normalMsg = contactMsg.add_normal();
+              normalMsg->set_x(normal.X()); normalMsg->set_y(normal.Y()); normalMsg->set_z(normal.Z());
+              
+              contactMsg.add_depth(depth);
+              
+              auto *wrenchMsg = contactMsg.add_wrench();
+              wrenchMsg->set_body_1_name(std::to_string(e1));
+              wrenchMsg->set_body_2_name(std::to_string(e2));
+              auto *forceMsg = wrenchMsg->mutable_body_1_wrench()->mutable_force();
+              forceMsg->set_x(force.X()); forceMsg->set_y(force.Y()); forceMsg->set_z(force.Z());
+              
+              entityContactMap[e1][e2].push_back(contactMsg);
+              entityContactMap[e2][e1].push_back(contactMsg);
+          }
+      }
+
+      _ecm.Each<components::Collision, components::ContactSensorData>(
+          [&](const Entity &_collEntity1, components::Collision *,
+              components::ContactSensorData *_contacts) -> bool
+          {
+              msgs::Contacts contactsComp;
+              if (entityContactMap.find(_collEntity1) == entityContactMap.end()) {
+                  _contacts->SetData(contactsComp, [](const msgs::Contacts &, const msgs::Contacts &) { return false; });
+                  _ecm.SetChanged(_collEntity1, components::ContactSensorData::typeId, ComponentState::PeriodicChange);
+                  return true;
+              }
+              
+              const auto &contactMap = entityContactMap[_collEntity1];
+              for (const auto &[collEntity2, contactList] : contactMap) {
+                  for (const auto &contactMsg : contactList) {
+                      *contactsComp.add_contact() = contactMsg;
+                  }
+              }
+              
+              _contacts->SetData(contactsComp, [](const msgs::Contacts &, const msgs::Contacts &) { return false; });
+              _ecm.SetChanged(_collEntity1, components::ContactSensorData::typeId, ComponentState::PeriodicChange);
+              return true;
+          });
+    }
+
+    // Process Sensors
+    _ecm.Each<components::Imu>(
+      [&](const Entity &_entity, const components::Imu *) -> bool
+      {
+        std::string siteName = "site_imu_" + std::to_string(_entity);
+        int siteId = mj_name2id(this->dataPtr->model, mjOBJ_SITE, siteName.c_str());
+        if (siteId >= 0) {
+            int accelId = -1;
+            int gyroId = -1;
+            for (int i = 0; i < this->dataPtr->model->nsensor; ++i) {
+                if (this->dataPtr->model->sensor_objtype[i] == mjOBJ_SITE &&
+                    this->dataPtr->model->sensor_objid[i] == siteId) {
+                    if (this->dataPtr->model->sensor_type[i] == mjSENS_ACCELEROMETER) {
+                        accelId = i;
+                    } else if (this->dataPtr->model->sensor_type[i] == mjSENS_GYRO) {
+                        gyroId = i;
+                    }
+                }
+            }
+            if (accelId >= 0 && gyroId >= 0) {
+                int accelAdr = this->dataPtr->model->sensor_adr[accelId];
+                int gyroAdr = this->dataPtr->model->sensor_adr[gyroId];
+                
+                math::Vector3d linAcc(
+                    this->dataPtr->data->sensordata[accelAdr],
+                    this->dataPtr->data->sensordata[accelAdr+1],
+                    this->dataPtr->data->sensordata[accelAdr+2]
+                );
+                
+                math::Vector3d angVel(
+                    this->dataPtr->data->sensordata[gyroAdr],
+                    this->dataPtr->data->sensordata[gyroAdr+1],
+                    this->dataPtr->data->sensordata[gyroAdr+2]
+                );
+                
+                auto accComp = _ecm.Component<components::LinearAcceleration>(_entity);
+                if (accComp) accComp->Data() = linAcc;
+                else _ecm.CreateComponent(_entity, components::LinearAcceleration(linAcc));
+                
+                auto angComp = _ecm.Component<components::AngularVelocity>(_entity);
+                if (angComp) angComp->Data() = angVel;
+                // Note: The previous logic might have already created components::AngularVelocity for the entity if it is a Link, but IMU is usually a separate entity.
+                else _ecm.CreateComponent(_entity, components::AngularVelocity(angVel));
+                
+                _ecm.SetChanged(_entity, components::LinearAcceleration::typeId, ComponentState::PeriodicChange);
+                _ecm.SetChanged(_entity, components::AngularVelocity::typeId, ComponentState::PeriodicChange);
+            }
+        }
+        return true;
+      });
+
+    _ecm.Each<components::ForceTorque>(
+      [&](const Entity &_entity, const components::ForceTorque *) -> bool
+      {
+        std::string siteName = "site_ft_" + std::to_string(_entity);
+        int siteId = mj_name2id(this->dataPtr->model, mjOBJ_SITE, siteName.c_str());
+        if (siteId >= 0) {
+            int forceId = -1;
+            int torqueId = -1;
+            for (int i = 0; i < this->dataPtr->model->nsensor; ++i) {
+                if (this->dataPtr->model->sensor_objtype[i] == mjOBJ_SITE &&
+                    this->dataPtr->model->sensor_objid[i] == siteId) {
+                    if (this->dataPtr->model->sensor_type[i] == mjSENS_FORCE) {
+                        forceId = i;
+                    } else if (this->dataPtr->model->sensor_type[i] == mjSENS_TORQUE) {
+                        torqueId = i;
+                    }
+                }
+            }
+            if (forceId >= 0 && torqueId >= 0) {
+                int forceAdr = this->dataPtr->model->sensor_adr[forceId];
+                int torqueAdr = this->dataPtr->model->sensor_adr[torqueId];
+                
+                msgs::Wrench wrenchMsg;
+                auto *forceMsg = wrenchMsg.mutable_force();
+                forceMsg->set_x(this->dataPtr->data->sensordata[forceAdr]);
+                forceMsg->set_y(this->dataPtr->data->sensordata[forceAdr+1]);
+                forceMsg->set_z(this->dataPtr->data->sensordata[forceAdr+2]);
+                
+                auto *torqueMsg = wrenchMsg.mutable_torque();
+                torqueMsg->set_x(this->dataPtr->data->sensordata[torqueAdr]);
+                torqueMsg->set_y(this->dataPtr->data->sensordata[torqueAdr+1]);
+                torqueMsg->set_z(this->dataPtr->data->sensordata[torqueAdr+2]);
+                
+                auto wrenchComp = _ecm.Component<components::WrenchMeasured>(_entity);
+                if (wrenchComp) wrenchComp->Data() = wrenchMsg;
+                else _ecm.CreateComponent(_entity, components::WrenchMeasured(wrenchMsg));
+                
+                _ecm.SetChanged(_entity, components::WrenchMeasured::typeId, ComponentState::PeriodicChange);
+            }
+        }
+        return true;
+      });
+
   }
 }
 
