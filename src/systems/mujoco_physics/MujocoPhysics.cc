@@ -4,6 +4,9 @@
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/components/Gravity.hh>
 #include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/AngularVelocity.hh>
+#include <gz/sim/components/ExternalWorldWrenchCmd.hh>
 #include <gz/sim/components/World.hh>
 #include <gz/sim/components/Link.hh>
 #include <gz/sim/components/Collision.hh>
@@ -147,6 +150,8 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
       std::string geomName = "geom_" + std::to_string(entity);
       mjs_setName(newGeom->element, geomName.c_str());
       
+      newGeom->condim = 3;
+      
       auto poseComp = _ecm.Component<components::Pose>(entity);
       if (poseComp) {
         auto pose = poseComp->Data();
@@ -249,6 +254,32 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
 
   if (this->dataPtr->model && this->dataPtr->data)
   {
+    // Clear applied forces
+    std::fill(this->dataPtr->data->xfrc_applied,
+              this->dataPtr->data->xfrc_applied + 6 * this->dataPtr->model->nbody,
+              0.0);
+
+    // Apply ExternalWorldWrenchCmd
+    _ecm.Each<components::Link, MujocoBodyId, components::ExternalWorldWrenchCmd>(
+      [&](const Entity &,
+          const components::Link *,
+          const MujocoBodyId *_bodyIdComp,
+          const components::ExternalWorldWrenchCmd *_wrenchComp) -> bool
+      {
+        int mjBodyId = _bodyIdComp->Data();
+        if (mjBodyId > 0 && mjBodyId < this->dataPtr->model->nbody)
+        {
+          auto wrench = _wrenchComp->Data();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 0] = wrench.force().x();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 1] = wrench.force().y();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 2] = wrench.force().z();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 3] = wrench.torque().x();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 4] = wrench.torque().y();
+          this->dataPtr->data->xfrc_applied[6 * mjBodyId + 5] = wrench.torque().z();
+        }
+        return true;
+      });
+
     // Step the simulation
     mj_step(this->dataPtr->model, this->dataPtr->data);
 
@@ -257,7 +288,7 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     // PostUpdate provides a const EntityComponentManager, so mutating components
     // there is impossible and thread-unsafe. It must be done in Update.
     _ecm.Each<components::Link, MujocoBodyId, components::Pose, components::ParentEntity>(
-      [&](const Entity &,
+      [&](const Entity &entity,
           const components::Link *,
           const MujocoBodyId *_bodyIdComp,
           components::Pose *_poseComp,
@@ -277,6 +308,25 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
           
           math::Pose3d parentWorldPose = gz::sim::worldPose(_parentComp->Data(), _ecm);
           _poseComp->Data() = parentWorldPose.Inverse() * worldPose;
+
+          mjtNum velocity[6];
+          mj_objectVelocity(this->dataPtr->model, this->dataPtr->data, mjOBJ_BODY, mjBodyId, velocity, 0);
+          math::Vector3d worldAngularVel(velocity[0], velocity[1], velocity[2]);
+          math::Vector3d worldLinearVel(velocity[3], velocity[4], velocity[5]);
+
+          auto linVelComp = _ecm.Component<components::LinearVelocity>(entity);
+          if (linVelComp) {
+            linVelComp->Data() = parentWorldPose.Rot().Inverse() * worldLinearVel;
+          } else {
+            _ecm.CreateComponent(entity, components::LinearVelocity(parentWorldPose.Rot().Inverse() * worldLinearVel));
+          }
+
+          auto angVelComp = _ecm.Component<components::AngularVelocity>(entity);
+          if (angVelComp) {
+            angVelComp->Data() = parentWorldPose.Rot().Inverse() * worldAngularVel;
+          } else {
+            _ecm.CreateComponent(entity, components::AngularVelocity(parentWorldPose.Rot().Inverse() * worldAngularVel));
+          }
         }
         return true;
       });
