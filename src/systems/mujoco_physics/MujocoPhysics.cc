@@ -372,6 +372,11 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
         int id = mj_name2id(this->dataPtr->model, mjOBJ_JOINT, jointName.c_str());
         if (id >= 0)
           _ecm.CreateComponent(entity, MujocoJointId(id));
+
+        std::string actName = "actuator_" + std::to_string(entity);
+        int actId = mj_name2id(this->dataPtr->model, mjOBJ_ACTUATOR, actName.c_str());
+        if (actId >= 0)
+          _ecm.CreateComponent(entity, MujocoActuatorId(actId));
       }
     }
     else
@@ -391,18 +396,17 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     }
 
     // Apply JointForceCmd and JointVelocityCmd
-    _ecm.Each<components::Joint, MujocoJointId>(
+    _ecm.Each<components::Joint, MujocoActuatorId>(
       [&](const Entity &entity,
           const components::Joint *,
-          const MujocoJointId *) -> bool
+          const MujocoActuatorId *_actuatorIdComp) -> bool
       {
         auto velCmd = _ecm.Component<components::JointVelocityCmd>(entity);
         auto forceCmd = _ecm.Component<components::JointForceCmd>(entity);
 
         if (forceCmd || velCmd)
         {
-          std::string actName = "actuator_" + std::to_string(entity);
-          int actId = mj_name2id(this->dataPtr->model, mjOBJ_ACTUATOR, actName.c_str());
+          int actId = _actuatorIdComp->Data();
           if (actId >= 0 && actId < this->dataPtr->model->nu)
           {
             if (forceCmd && !forceCmd->Data().empty())
