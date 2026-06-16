@@ -479,56 +479,60 @@ void SimulationRunner::UpdatePhysicsParams()
   }
   const auto& physicsParams = physicsCmdComp->Data();
 
-  auto gravityComp =
-    this->entityCompMgr.Component<components::Gravity>(worldEntity);
-  if (gravityComp)
+  if(physicsParams.has_gravity())
   {
-    const  gz::math::Vector3<double>  newGravity =
+    auto gravityComp =
+      this->entityCompMgr.Component<components::Gravity>(worldEntity);
+    if (gravityComp)
     {
-        physicsParams.gravity().x(),
-        physicsParams.gravity().y(),
-        physicsParams.gravity().z()
-    };
-    gravityComp->Data() = newGravity;
-    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
-          ComponentState::OneTimeChange);
+      const  gz::math::Vector3<double>  newGravity =
+      {
+          physicsParams.gravity().x(),
+          physicsParams.gravity().y(),
+          physicsParams.gravity().z()
+      };
+      gravityComp->Data() = newGravity;
+      this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+            ComponentState::OneTimeChange);
   }
 
   auto physicsComp =
     this->entityCompMgr.Component<components::Physics>(worldEntity);
+  bool pyhsicsUpdated = false;
 
-  const auto newStepSize =
-    std::chrono::duration<double>(physicsParams.max_step_size());
-  const double newRTF = physicsParams.real_time_factor();
-
-  const double eps = 0.00001;
-  if (newStepSize != this->stepSize ||
-      std::abs(newRTF - this->desiredRtf) > eps)
+  if (physicsParams.has_max_step_size())
   {
-    bool updated = false;
+    const auto newStepSize =
+      std::chrono::duration<double>(physicsParams.max_step_size());
     // Make sure the values are valid before setting them
-    if (newStepSize.count() > 0.0)
+    if (newStepSize.count() > 0.0 && newStepSize != this->stepSize)
     {
       this->SetStepSize(
         std::chrono::duration_cast<std::chrono::steady_clock::duration>(
           newStepSize));
       physicsComp->Data().SetMaxStepSize(physicsParams.max_step_size());
-      updated = true;
+      pyhsicsUpdated = true;
     }
-    if (newRTF > 0.0)
+  }
+
+  if (physicsParams.has_real_time_factor())
+  {
+    const double eps = 0.00001;
+    const double newRTF = physicsParams.real_time_factor();
+    if(newRTF > 0.0 && std::abs(newRTF - this->desiredRtf) > eps)
     {
       this->desiredRtf = newRTF;
       this->updatePeriod = std::chrono::nanoseconds(
           static_cast<int>(this->stepSize.count() / this->desiredRtf));
       physicsComp->Data().SetRealTimeFactor(newRTF);
-      updated = true;
+      pyhsicsUpdated = true;
     }
-    if (updated)
-    {
-      // Set as OneTimeChange to make sure the update is not missed
-      this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
-          ComponentState::OneTimeChange);
-    }
+  }
+  if (pyhsicsUpdated)
+  {
+    // Set as OneTimeChange to make sure the update is not missed
+    this->entityCompMgr.SetChanged(worldEntity, components::Physics::typeId,
+        ComponentState::OneTimeChange);
   }
   this->entityCompMgr.RemoveComponent<components::PhysicsCmd>(worldEntity);
 }
