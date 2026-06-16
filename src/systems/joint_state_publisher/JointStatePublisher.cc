@@ -105,7 +105,7 @@ void JointStatePublisher::Configure(
   const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
   if (updateRate < 0)
   {
-    gzwarn << "JointStatePublisher: <update_rate> must be >= 0, got ["
+    ignwarn << "JointStatePublisher: <update_rate> must be >= 0, got ["
            << updateRate << "]. Publishing every simulation iteration.\n";
   }
   else if (updateRate > 0)
