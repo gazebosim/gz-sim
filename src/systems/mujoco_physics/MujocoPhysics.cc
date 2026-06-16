@@ -6,6 +6,8 @@
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/World.hh>
 #include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/ParentEntity.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>
@@ -76,6 +78,104 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
 {
   if (_info.paused)
     return;
+
+  bool specChanged = false;
+  mjsBody* worldBody = mjs_findBody(this->dataPtr->spec, "world");
+
+  std::vector<Entity> newLinks;
+  _ecm.EachNew<components::Link>(
+    [&](const Entity &_entity, const components::Link *) -> bool
+    {
+      if (!_ecm.Component<MujocoBodyId>(_entity))
+      {
+        newLinks.push_back(_entity);
+      }
+      return true;
+    });
+
+  for (auto entity : newLinks)
+  {
+    std::string bodyName = "link_" + std::to_string(entity);
+    mjsBody* newBody = mjs_addBody(worldBody, nullptr);
+    if (newBody)
+    {
+      mjs_setName(newBody->element, bodyName.c_str());
+      auto poseComp = _ecm.Component<components::Pose>(entity);
+      if (poseComp) {
+        auto pose = poseComp->Data();
+        newBody->pos[0] = pose.Pos().X();
+        newBody->pos[1] = pose.Pos().Y();
+        newBody->pos[2] = pose.Pos().Z();
+        newBody->quat[0] = pose.Rot().W();
+        newBody->quat[1] = pose.Rot().X();
+        newBody->quat[2] = pose.Rot().Y();
+        newBody->quat[3] = pose.Rot().Z();
+      }
+      specChanged = true;
+    }
+  }
+
+  std::vector<Entity> newCollisions;
+  _ecm.EachNew<components::Collision>(
+    [&](const Entity &_entity, const components::Collision *) -> bool
+    {
+      if (!_ecm.Component<MujocoGeomId>(_entity))
+      {
+        newCollisions.push_back(_entity);
+      }
+      return true;
+    });
+
+  for (auto entity : newCollisions)
+  {
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    mjsBody* parentBody = worldBody;
+    if (parentComp) {
+      std::string parentName = "link_" + std::to_string(parentComp->Data());
+      mjsBody* foundBody = mjs_findBody(this->dataPtr->spec, parentName.c_str());
+      if (foundBody) parentBody = foundBody;
+    }
+    mjsGeom* newGeom = mjs_addGeom(parentBody, nullptr);
+    if (newGeom)
+    {
+      std::string geomName = "geom_" + std::to_string(entity);
+      mjs_setName(newGeom->element, geomName.c_str());
+      specChanged = true;
+    }
+  }
+
+  if (specChanged)
+  {
+    if (this->dataPtr->data)
+      mj_deleteData(this->dataPtr->data);
+    if (this->dataPtr->model)
+      mj_deleteModel(this->dataPtr->model);
+
+    this->dataPtr->model = mj_compile(this->dataPtr->spec, nullptr);
+    if (this->dataPtr->model)
+    {
+      this->dataPtr->data = mj_makeData(this->dataPtr->model);
+
+      for (auto entity : newLinks)
+      {
+        std::string bodyName = "link_" + std::to_string(entity);
+        int id = mj_name2id(this->dataPtr->model, mjOBJ_BODY, bodyName.c_str());
+        if (id >= 0)
+          _ecm.CreateComponent(entity, MujocoBodyId(id));
+      }
+      for (auto entity : newCollisions)
+      {
+        std::string geomName = "geom_" + std::to_string(entity);
+        int id = mj_name2id(this->dataPtr->model, mjOBJ_GEOM, geomName.c_str());
+        if (id >= 0)
+          _ecm.CreateComponent(entity, MujocoGeomId(id));
+      }
+    }
+    else
+    {
+      gzerr << "Failed to recompile MuJoCo model after adding entities.\n";
+    }
+  }
 
   if (this->dataPtr->model && this->dataPtr->data)
   {
