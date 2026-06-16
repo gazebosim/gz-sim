@@ -241,44 +241,11 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
             auto *muMesh = mjs_addMesh(this->dataPtr->spec, nullptr);
             mjs_setName(muMesh->element, meshName.c_str());
             mjs_setString(newGeom->meshname, meshName.c_str());
-            
-            double radius = shape.ConeShape()->Radius();
-            double length = shape.ConeShape()->Length();
-            int segments = 36;
-            int nverts = segments + 2;
-            int nfaces = 2 * segments;
-            
-            float *uservert = new float[3 * nverts];
-            int *userface = new int[3 * nfaces];
-            
-            uservert[0] = 0.0f; uservert[1] = 0.0f; uservert[2] = length / 2.0f;
-            uservert[3] = 0.0f; uservert[4] = 0.0f; uservert[5] = -length / 2.0f;
-            
-            for (int i = 0; i < segments; ++i) {
-                double theta = 2.0 * M_PI * i / segments;
-                uservert[6 + 3 * i + 0] = radius * std::cos(theta);
-                uservert[6 + 3 * i + 1] = radius * std::sin(theta);
-                uservert[6 + 3 * i + 2] = -length / 2.0f;
-            }
-            
-            for (int i = 0; i < segments; ++i) {
-                int v1 = 2 + i;
-                int v2 = 2 + ((i + 1) % segments);
-                
-                userface[6 * i + 0] = 0;
-                userface[6 * i + 1] = v1;
-                userface[6 * i + 2] = v2;
-                
-                userface[6 * i + 3] = 1;
-                userface[6 * i + 4] = v2;
-                userface[6 * i + 5] = v1;
-            }
-            
-            muMesh->uservert->assign(uservert, uservert + 3 * nverts);
-            muMesh->userface->assign(userface, userface + 3 * nfaces);
-            
-            delete[] uservert;
-            delete[] userface;
+            muMesh->scale[0] = shape.ConeShape()->Radius();
+            muMesh->scale[1] = shape.ConeShape()->Radius();
+            muMesh->scale[2] = shape.ConeShape()->Length() / 2.0;
+            double params[3] = {36, 0};
+            mjs_makeMesh(muMesh, mjMESH_BUILTIN_CONE, params, 2);
             break;
           }
           case ::sdf::GeometryType::MESH:
