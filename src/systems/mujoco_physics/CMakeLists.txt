@@ -1,6 +1,6 @@
 find_package(mujoco REQUIRED)
 
-gz_add_system(mujoco_physics
+gz_add_system(mujoco-physics
   SOURCES
     MujocoComponents.cc
     MujocoPhysics.cc

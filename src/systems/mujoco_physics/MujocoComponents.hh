@@ -42,6 +42,9 @@ namespace mujoco_physics
 
   using MujocoActuatorId = components::Component<int, class MujocoActuatorIdTag, NoSerializeSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoActuatorId", MujocoActuatorId)
+
+  using MujocoModelSiteId = components::Component<int, class MujocoModelSiteIdTag, NoSerializeSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoModelSiteId", MujocoModelSiteId)
 }
 }
 }

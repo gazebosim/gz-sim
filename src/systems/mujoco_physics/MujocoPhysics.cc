@@ -11,6 +11,7 @@
 #include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Static.hh>
 #include <gz/sim/components/ParentLinkName.hh>
+#include <gz/sim/components/CanonicalLink.hh>
 #include <queue>
 #include <set>
 #include <map>
@@ -25,6 +26,9 @@
 #include <gz/sim/components/JointVelocityCmd.hh>
 #include <gz/sim/components/JointForceCmd.hh>
 #include <gz/sim/components/Name.hh>
+#include <gz/sim/components/PoseCmd.hh>
+#include <gz/sim/components/LinearVelocityCmd.hh>
+#include <gz/sim/components/AngularVelocityCmd.hh>
 #include <gz/sim/components/Inertial.hh>
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
@@ -139,8 +143,10 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
       return true;
     });
 
-  for (auto const& [modelEntity, modelName] : newModels)
+  for (auto const& pair : newModels)
   {
+    Entity modelEntity = pair.first;
+    std::string modelName = pair.second;
     gzdbg << "Processing new model entity: " << modelEntity << "\n";
     bool isStatic = false;
     auto staticComp = _ecm.Component<components::Static>(modelEntity);
@@ -329,6 +335,43 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           
           q.push(childLink);
         }
+      }
+    }
+
+    auto canonicalLinkComp = _ecm.Component<components::ModelCanonicalLink>(modelEntity);
+    if (canonicalLinkComp)
+    {
+      Entity canonicalLink = canonicalLinkComp->Data();
+      mjsBody* canonBody = nullptr;
+      if (entityToMujocoBody.find(canonicalLink) != entityToMujocoBody.end())
+      {
+        canonBody = entityToMujocoBody[canonicalLink];
+      }
+      else
+      {
+        auto linkNameComp = _ecm.Component<components::Name>(canonicalLink);
+        std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(canonicalLink);
+        std::string fullLinkName = modelName + "::" + linkName;
+        canonBody = mjs_findBody(this->spec, fullLinkName.c_str());
+      }
+      
+      if (canonBody)
+      {
+        mjsSite* modelSite = mjs_addSite(canonBody, nullptr);
+        std::string siteName = modelName + "::model_frame";
+        mjs_setName(modelSite->element, siteName.c_str());
+        
+        auto linkPoseComp = _ecm.Component<components::Pose>(canonicalLink);
+        math::Pose3d modelFromLink = linkPoseComp ? linkPoseComp->Data().Inverse() : math::Pose3d::Zero;
+        
+        modelSite->pos[0] = modelFromLink.Pos().X();
+        modelSite->pos[1] = modelFromLink.Pos().Y();
+        modelSite->pos[2] = modelFromLink.Pos().Z();
+        modelSite->quat[0] = modelFromLink.Rot().W();
+        modelSite->quat[1] = modelFromLink.Rot().X();
+        modelSite->quat[2] = modelFromLink.Rot().Y();
+        modelSite->quat[3] = modelFromLink.Rot().Z();
+        specChanged = true;
       }
     }
   }
@@ -756,6 +799,19 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         }
         return true;
       });
+
+    _ecm.EachNew<components::Model, components::Name, components::ModelCanonicalLink>(
+      [&](const Entity &_entity, const components::Model *, const components::Name *nameComp, const components::ModelCanonicalLink *) -> bool
+      {
+        std::string modelName = nameComp ? nameComp->Data() : std::to_string(_entity);
+        std::string siteName = modelName + "::model_frame";
+        int id = mj_name2id(this->model, mjOBJ_SITE, siteName.c_str());
+        if (id >= 0)
+        {
+          _ecm.SetComponentData<MujocoModelSiteId>(_entity, id);
+        }
+        return true;
+      });
   }
 }
 
@@ -763,6 +819,127 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
 {
   if (!this->model || !this->data)
     return;
+
+  // Process WorldPoseCmd
+  auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
+  this->worldPoseCmdsToRemove.clear();
+
+  _ecm.Each<components::Model, components::WorldPoseCmd, components::ModelCanonicalLink>(
+    [&](const Entity &_entity, const components::Model *, const components::WorldPoseCmd *_poseCmd, const components::ModelCanonicalLink *_canonLink) -> bool
+    {
+      this->worldPoseCmdsToRemove.insert(_entity);
+      math::Pose3d worldPoseCmd = _poseCmd->Data();
+      if (!worldPoseCmd.Pos().IsFinite() || !worldPoseCmd.Rot().IsFinite() || worldPoseCmd.Rot() == math::Quaterniond::Zero)
+        return true;
+
+      Entity canonicalLinkEntity = _canonLink->Data();
+      auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
+      if (bodyIdComp)
+      {
+        int bodyId = bodyIdComp->Data();
+        if (bodyId > 0 && bodyId < this->model->nbody)
+        {
+          int jntAdr = this->model->body_jntadr[bodyId];
+          int jntNum = this->model->body_jntnum[bodyId];
+          int freeJntId = -1;
+          for (int i = 0; i < jntNum; ++i)
+          {
+            if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
+            {
+              freeJntId = jntAdr + i;
+              break;
+            }
+          }
+          if (freeJntId >= 0)
+          {
+            int qposAdr = this->model->jnt_qposadr[freeJntId];
+            this->data->qpos[qposAdr + 0] = worldPoseCmd.Pos().X();
+            this->data->qpos[qposAdr + 1] = worldPoseCmd.Pos().Y();
+            this->data->qpos[qposAdr + 2] = worldPoseCmd.Pos().Z();
+            this->data->qpos[qposAdr + 3] = worldPoseCmd.Rot().W();
+            this->data->qpos[qposAdr + 4] = worldPoseCmd.Rot().X();
+            this->data->qpos[qposAdr + 5] = worldPoseCmd.Rot().Y();
+            this->data->qpos[qposAdr + 6] = worldPoseCmd.Rot().Z();
+          }
+        }
+      }
+      return true;
+    });
+
+  for (const Entity &entity : olderWorldPoseCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::WorldPoseCmd>(entity);
+  }
+
+  // Process LinearVelocityCmd
+  _ecm.Each<components::Model, components::LinearVelocityCmd, components::ModelCanonicalLink>(
+    [&](const Entity &, const components::Model *, const components::LinearVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
+    {
+      math::Vector3d velCmd = _velCmd->Data();
+      Entity canonicalLinkEntity = _canonLink->Data();
+      auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
+      if (bodyIdComp)
+      {
+        int bodyId = bodyIdComp->Data();
+        if (bodyId > 0 && bodyId < this->model->nbody)
+        {
+          int jntAdr = this->model->body_jntadr[bodyId];
+          int jntNum = this->model->body_jntnum[bodyId];
+          int freeJntId = -1;
+          for (int i = 0; i < jntNum; ++i)
+          {
+            if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
+            {
+              freeJntId = jntAdr + i;
+              break;
+            }
+          }
+          if (freeJntId >= 0)
+          {
+            int dofAdr = this->model->jnt_dofadr[freeJntId];
+            this->data->qvel[dofAdr + 0] = velCmd.X();
+            this->data->qvel[dofAdr + 1] = velCmd.Y();
+            this->data->qvel[dofAdr + 2] = velCmd.Z();
+          }
+        }
+      }
+      return true;
+    });
+
+  // Process AngularVelocityCmd
+  _ecm.Each<components::Model, components::AngularVelocityCmd, components::ModelCanonicalLink>(
+    [&](const Entity &, const components::Model *, const components::AngularVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
+    {
+      math::Vector3d velCmd = _velCmd->Data();
+      Entity canonicalLinkEntity = _canonLink->Data();
+      auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
+      if (bodyIdComp)
+      {
+        int bodyId = bodyIdComp->Data();
+        if (bodyId > 0 && bodyId < this->model->nbody)
+        {
+          int jntAdr = this->model->body_jntadr[bodyId];
+          int jntNum = this->model->body_jntnum[bodyId];
+          int freeJntId = -1;
+          for (int i = 0; i < jntNum; ++i)
+          {
+            if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
+            {
+              freeJntId = jntAdr + i;
+              break;
+            }
+          }
+          if (freeJntId >= 0)
+          {
+            int dofAdr = this->model->jnt_dofadr[freeJntId];
+            this->data->qvel[dofAdr + 3] = velCmd.X();
+            this->data->qvel[dofAdr + 4] = velCmd.Y();
+            this->data->qvel[dofAdr + 5] = velCmd.Z();
+          }
+        }
+      }
+      return true;
+    });
 
   // Clear actuator controls
   if (this->model->nu > 0)
@@ -839,6 +1016,55 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
   if (_info.paused || !this->model || !this->data)
     return;
 
+  // Synchronize the ECM components::Pose of all models
+  _ecm.Each<components::Model, MujocoModelSiteId, components::ParentEntity>(
+    [&](const Entity &entity,
+        const components::Model *,
+        const MujocoModelSiteId *_siteIdComp,
+        const components::ParentEntity *_parentComp) -> bool
+    {
+      int mjSiteId = _siteIdComp->Data();
+      if (mjSiteId >= 0 && mjSiteId < this->model->nsite)
+      {
+        mjtNum* pos = this->data->site_xpos + 3 * mjSiteId;
+        mjtNum* mat = this->data->site_xmat + 9 * mjSiteId;
+        mjtNum quat[4];
+        mju_mat2Quat(quat, mat);
+        math::Pose3d worldPose(pos[0], pos[1], pos[2], quat[0], quat[1], quat[2], quat[3]);
+
+        math::Pose3d parentWorldPose = math::Pose3d::Zero;
+        Entity parent = _parentComp->Data();
+        auto parentSiteComp = _ecm.Component<MujocoModelSiteId>(parent);
+        if (parentSiteComp)
+        {
+          int parentSiteId = parentSiteComp->Data();
+          if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
+          {
+             mjtNum* pPos = this->data->site_xpos + 3 * parentSiteId;
+             mjtNum* pMat = this->data->site_xmat + 9 * parentSiteId;
+             mjtNum pQuat[4];
+             mju_mat2Quat(pQuat, pMat);
+             parentWorldPose = math::Pose3d(pPos[0], pPos[1], pPos[2], pQuat[0], pQuat[1], pQuat[2], pQuat[3]);
+          }
+        }
+        else if (_ecm.Component<components::Pose>(parent))
+        {
+          parentWorldPose = gz::sim::worldPose(parent, _ecm);
+        }
+
+        auto poseComp = _ecm.Component<components::Pose>(entity);
+        if (poseComp)
+        {
+          poseComp->Data() = parentWorldPose.Inverse() * worldPose;
+        }
+        else
+        {
+          _ecm.CreateComponent(entity, components::Pose(parentWorldPose.Inverse() * worldPose));
+        }
+        _ecm.SetChanged(entity, components::Pose::typeId, ComponentState::PeriodicChange);
+      }
+      return true;
+    });
 
   // Synchronize the ECM components::Pose of all links
   _ecm.Each<components::Link, MujocoBodyId, components::Pose, components::ParentEntity>(
@@ -859,7 +1085,26 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
           quat[0], quat[1], quat[2], quat[3]
         );
 
-        math::Pose3d parentWorldPose = gz::sim::worldPose(_parentComp->Data(), _ecm);
+        math::Pose3d parentWorldPose = math::Pose3d::Zero;
+        Entity parent = _parentComp->Data();
+        auto parentSiteComp = _ecm.Component<MujocoModelSiteId>(parent);
+        if (parentSiteComp)
+        {
+          int parentSiteId = parentSiteComp->Data();
+          if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
+          {
+             mjtNum* pPos = this->data->site_xpos + 3 * parentSiteId;
+             mjtNum* pMat = this->data->site_xmat + 9 * parentSiteId;
+             mjtNum pQuat[4];
+             mju_mat2Quat(pQuat, pMat);
+             parentWorldPose = math::Pose3d(pPos[0], pPos[1], pPos[2], pQuat[0], pQuat[1], pQuat[2], pQuat[3]);
+          }
+        }
+        else if (_ecm.Component<components::Pose>(parent))
+        {
+          parentWorldPose = gz::sim::worldPose(parent, _ecm);
+        }
+
         _poseComp->Data() = parentWorldPose.Inverse() * worldPose;
 
         _ecm.SetChanged(entity, components::Pose::typeId,
@@ -1204,6 +1449,36 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     for (const auto entity : entitiesJointVelocityCmd)
     {
       _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
+    }
+  }
+
+  {
+    std::vector<Entity> entitiesAngularVelocityCmd;
+    _ecm.Each<components::AngularVelocityCmd>(
+        [&](const Entity &_entity, components::AngularVelocityCmd *) -> bool
+        {
+          entitiesAngularVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesAngularVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::AngularVelocityCmd>(entity);
+    }
+  }
+
+  {
+    std::vector<Entity> entitiesLinearVelocityCmd;
+    _ecm.Each<components::LinearVelocityCmd>(
+        [&](const Entity &_entity, components::LinearVelocityCmd *) -> bool
+        {
+          entitiesLinearVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesLinearVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::LinearVelocityCmd>(entity);
     }
   }
 }

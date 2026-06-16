@@ -1,6 +1,7 @@
 #ifndef GZ_SIM_SYSTEMS_MUJOCO_PHYSICS_MUJOCOPHYSICS_HH_
 #define GZ_SIM_SYSTEMS_MUJOCO_PHYSICS_MUJOCOPHYSICS_HH_
 
+#include <unordered_set>
 #include <memory>
 
 #include <gz/sim/System.hh>
@@ -42,6 +43,8 @@ namespace mujoco_physics
     private: mjSpec* spec{nullptr};
     private: mjModel* model{nullptr};
     private: mjData* data{nullptr};
+
+    private: std::unordered_set<Entity> worldPoseCmdsToRemove;
   };
 }
 }
