@@ -950,31 +950,31 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
   }
 
   // Apply JointForceCmd and JointVelocityCmd
-  _ecm.Each<components::Joint, MujocoActuatorId>(
-    [&](const Entity &entity,
-        const components::Joint *,
-        const MujocoActuatorId *_actuatorIdComp) -> bool
-    {
-      auto velCmd = _ecm.Component<components::JointVelocityCmd>(entity);
-      auto forceCmd = _ecm.Component<components::JointForceCmd>(entity);
-
-      if (forceCmd || velCmd)
-      {
-        int actId = _actuatorIdComp->Data();
-        if (actId >= 0 && actId < this->model->nu)
-        {
-          if (forceCmd && !forceCmd->Data().empty())
-          {
-            this->data->ctrl[actId] = forceCmd->Data()[0];
-          }
-          else if (velCmd && !velCmd->Data().empty())
-          {
-            this->data->ctrl[actId] = velCmd->Data()[0];
-          }
-        }
-      }
-      return true;
-    });
+  // _ecm.Each<components::Joint, MujocoActuatorId>(
+  //   [&](const Entity &entity,
+  //       const components::Joint *,
+  //       const MujocoActuatorId *_actuatorIdComp) -> bool
+  //   {
+  //     auto velCmd = _ecm.Component<components::JointVelocityCmd>(entity);
+  //     auto forceCmd = _ecm.Component<components::JointForceCmd>(entity);
+  //
+  //     if (forceCmd || velCmd)
+  //     {
+  //       int actId = _actuatorIdComp->Data();
+  //       if (actId >= 0 && actId < this->model->nu)
+  //       {
+  //         if (forceCmd && !forceCmd->Data().empty())
+  //         {
+  //           this->data->ctrl[actId] = forceCmd->Data()[0];
+  //         }
+  //         else if (velCmd && !velCmd->Data().empty())
+  //         {
+  //           this->data->ctrl[actId] = velCmd->Data()[0];
+  //         }
+  //       }
+  //     }
+  //     return true;
+  //   });
 
   // Clear applied forces
   std::fill(this->data->xfrc_applied,
@@ -1017,9 +1017,10 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     return;
 
   // Synchronize the ECM components::Pose of all models
-  _ecm.Each<components::Model, MujocoModelSiteId, components::ParentEntity>(
+  _ecm.Each<components::Model, components::Pose, MujocoModelSiteId, components::ParentEntity>(
     [&](const Entity &entity,
         const components::Model *,
+        components::Pose *poseComp,
         const MujocoModelSiteId *_siteIdComp,
         const components::ParentEntity *_parentComp) -> bool
     {
@@ -1052,16 +1053,12 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
           parentWorldPose = gz::sim::worldPose(parent, _ecm);
         }
 
-        auto poseComp = _ecm.Component<components::Pose>(entity);
-        if (poseComp)
-        {
-          poseComp->Data() = parentWorldPose.Inverse() * worldPose;
-        }
-        else
-        {
-          _ecm.CreateComponent(entity, components::Pose(parentWorldPose.Inverse() * worldPose));
-        }
-        _ecm.SetChanged(entity, components::Pose::typeId, ComponentState::PeriodicChange);
+        auto state = poseComp->SetData(parentWorldPose.Inverse() * worldPose,
+                                       [](const auto &_a, const auto &_b)
+                                       { return _a.Equal(_b, 1e-6); })
+                         ? ComponentState::PeriodicChange
+                         : ComponentState::NoChange;
+        _ecm.SetChanged(entity, components::Pose::typeId, state);
       }
       return true;
     });
@@ -1105,10 +1102,12 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
           parentWorldPose = gz::sim::worldPose(parent, _ecm);
         }
 
-        _poseComp->Data() = parentWorldPose.Inverse() * worldPose;
-
-        _ecm.SetChanged(entity, components::Pose::typeId,
-                        ComponentState::PeriodicChange);
+        auto state = _poseComp->SetData(parentWorldPose.Inverse() * worldPose,
+                                       [](const auto &_a, const auto &_b)
+                                       { return _a.Equal(_b, 1e-6); })
+                         ? ComponentState::PeriodicChange
+                         : ComponentState::NoChange;
+        _ecm.SetChanged(entity, components::Pose::typeId, state);
 
         mjtNum velocity[6];
         mj_objectVelocity(this->model, this->data, mjOBJ_BODY, mjBodyId, velocity, 0);
@@ -1131,7 +1130,6 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
       }
       return true;
     });
-
 
   // Process contacts
   if (_ecm.HasComponentType(components::ContactSensorData::typeId)) {
