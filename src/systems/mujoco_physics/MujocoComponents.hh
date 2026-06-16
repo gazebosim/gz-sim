@@ -32,8 +32,13 @@ namespace mujoco_physics
   };
 
   using MujocoBodyId = components::Component<int, class MujocoBodyIdTag, NoSerializeSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoBodyId", MujocoBodyId)
+
   using MujocoGeomId = components::Component<int, class MujocoGeomIdTag, NoSerializeSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoGeomId", MujocoGeomId)
+
   using MujocoJointId = components::Component<int, class MujocoJointIdTag, NoSerializeSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoJointId", MujocoJointId)
 }
 }
 }
