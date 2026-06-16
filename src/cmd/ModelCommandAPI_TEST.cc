@@ -22,12 +22,31 @@
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kGzModelCommand(std::string(GZ_PATH) + " model ");
+
+class UniquePartitionEnvironment : public ::testing::Environment {
+ public:
+  ~UniquePartitionEnvironment() override {}
+
+  void SetUp() override {
+    // Generate unique partition
+    std::string partition = gz::common::uuid();
+    gz::common::setenv("GZ_PARTITION", partition);
+  }
+
+  void TearDown() override {
+    gz::common::unsetenv("GZ_PARTITION");
+  }
+};
+
+testing::Environment* const foo_env =
+    testing::AddGlobalTestEnvironment(new UniquePartitionEnvironment);
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
