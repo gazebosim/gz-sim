@@ -46,6 +46,14 @@
 #include <gz/sim/components/ContactSensorData.hh>
 #include <gz/sim/components/ChildLinkName.hh>
 
+#include <gz/sim/components/AngularVelocityReset.hh>
+#include <gz/sim/components/JointEffortLimitsCmd.hh>
+#include <gz/sim/components/JointPositionLimitsCmd.hh>
+#include <gz/sim/components/JointPositionReset.hh>
+#include <gz/sim/components/JointVelocityLimitsCmd.hh>
+#include <gz/sim/components/JointVelocityReset.hh>
+#include <gz/sim/components/LinearVelocityReset.hh>
+
 #include <unordered_map>
 #include <vector>
 #include <gz/common/Console.hh>
@@ -807,12 +815,12 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
       if (mjBodyId > 0 && mjBodyId < this->model->nbody)
       {
         auto wrench = _wrenchComp->Data();
-        this->data->xfrc_applied[6 * mjBodyId + 0] = wrench.torque().x();
-        this->data->xfrc_applied[6 * mjBodyId + 1] = wrench.torque().y();
-        this->data->xfrc_applied[6 * mjBodyId + 2] = wrench.torque().z();
-        this->data->xfrc_applied[6 * mjBodyId + 3] = wrench.force().x();
-        this->data->xfrc_applied[6 * mjBodyId + 4] = wrench.force().y();
-        this->data->xfrc_applied[6 * mjBodyId + 5] = wrench.force().z();
+        this->data->xfrc_applied[6 * mjBodyId + 0] += wrench.force().x();
+        this->data->xfrc_applied[6 * mjBodyId + 1] += wrench.force().y();
+        this->data->xfrc_applied[6 * mjBodyId + 2] += wrench.force().z();
+        this->data->xfrc_applied[6 * mjBodyId + 3] += wrench.torque().x();
+        this->data->xfrc_applied[6 * mjBodyId + 4] += wrench.torque().y();
+        this->data->xfrc_applied[6 * mjBodyId + 5] += wrench.torque().z();
       }
       return true;
     });
@@ -1078,6 +1086,126 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
       }
       return true;
     });
+
+  // Clear / reset components
+  std::vector<Entity> entitiesPositionReset;
+  _ecm.Each<components::JointPositionReset>(
+      [&](const Entity &_entity, components::JointPositionReset *) -> bool
+      {
+        entitiesPositionReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesPositionReset)
+  {
+    _ecm.RemoveComponent<components::JointPositionReset>(entity);
+  }
+
+  std::vector<Entity> entitiesVelocityReset;
+  _ecm.Each<components::JointVelocityReset>(
+      [&](const Entity &_entity, components::JointVelocityReset *) -> bool
+      {
+        entitiesVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesVelocityReset)
+  {
+    _ecm.RemoveComponent<components::JointVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesLinearVelocityReset;
+  _ecm.Each<components::WorldLinearVelocityReset>(
+      [&](const Entity &_entity,
+      components::WorldLinearVelocityReset *) -> bool
+      {
+        entitiesLinearVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesLinearVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesAngularVelocityReset;
+  _ecm.Each<components::WorldAngularVelocityReset>(
+      [&](const Entity &_entity,
+      components::WorldAngularVelocityReset *) -> bool
+      {
+        entitiesAngularVelocityReset.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesAngularVelocityReset)
+  {
+    _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
+  }
+
+  std::vector<Entity> entitiesCustomContactSurface;
+  _ecm.Each<components::EnableContactSurfaceCustomization>(
+      [&](const Entity &_entity,
+      components::EnableContactSurfaceCustomization *) -> bool
+      {
+        entitiesCustomContactSurface.push_back(_entity);
+        return true;
+      });
+
+  for (const auto entity : entitiesCustomContactSurface)
+  {
+    _ecm.RemoveComponent<components::EnableContactSurfaceCustomization>(entity);
+  }
+
+  // Clear pending commands
+  _ecm.Each<components::JointForceCmd>(
+      [&](const Entity &, components::JointForceCmd *_force) -> bool
+      {
+        std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
+        return true;
+      });
+
+  _ecm.Each<components::ExternalWorldWrenchCmd >(
+      [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
+      {
+        _wrench->Data().Clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointPositionLimitsCmd>(
+      [&](const Entity &, components::JointPositionLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointVelocityLimitsCmd>(
+      [&](const Entity &, components::JointVelocityLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
+        return true;
+      });
+
+  _ecm.Each<components::JointEffortLimitsCmd>(
+      [&](const Entity &, components::JointEffortLimitsCmd *_limits) -> bool
+      {
+        _limits->Data().clear();
+        return true;
+      });
+
+  {
+    std::vector<Entity> entitiesJointVelocityCmd;
+    _ecm.Each<components::JointVelocityCmd>(
+        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
+        {
+          entitiesJointVelocityCmd.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesJointVelocityCmd)
+    {
+      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
+    }
+  }
 }
 
 void MujocoPhysics::Update(const UpdateInfo &_info,
