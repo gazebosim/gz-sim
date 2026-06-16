@@ -19,6 +19,14 @@
 #include <gz/sim/components/JointVelocityCmd.hh>
 #include <gz/sim/components/JointForceCmd.hh>
 #include <gz/sim/components/Name.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/common/SubMesh.hh>
+#include <sdf/Mesh.hh>
+#include <sdf/Cone.hh>
+#include <sdf/Surface.hh>
+
+#include <algorithm>
 #include <gz/sim/Util.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/common/Console.hh>
@@ -158,6 +166,13 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
       mjs_setName(newGeom->element, geomName.c_str());
       
       newGeom->condim = 3;
+      auto _collisionComp = _ecm.Component<components::CollisionElement>(entity);
+      if (_collisionComp && _collisionComp->Data().Surface() && _collisionComp->Data().Surface()->Friction() && _collisionComp->Data().Surface()->Friction()->ODE())
+      {
+        auto friction = _collisionComp->Data().Surface()->Friction()->ODE();
+        newGeom->friction[0] = friction->Mu();
+        newGeom->friction[1] = friction->Mu2();
+      }
       
       auto poseComp = _ecm.Component<components::Pose>(entity);
       if (poseComp) {
@@ -216,6 +231,56 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
             newGeom->type = mjGEOM_ELLIPSOID;
             for (int j = 0; j < 3; ++j)
               newGeom->size[j] = shape.EllipsoidShape()->Radii()[j];
+            break;
+          }
+          case ::sdf::GeometryType::CONE:
+          {
+            newGeom->type = mjGEOM_MESH;
+            std::string meshName = "geom_" + std::to_string(entity) + "_cone";
+            auto *muMesh = mjs_addMesh(this->dataPtr->spec, nullptr);
+            mjs_setName(muMesh->element, meshName.c_str());
+            mjs_setString(newGeom->meshname, meshName.c_str());
+            muMesh->scale[0] = shape.ConeShape()->Radius();
+            muMesh->scale[1] = shape.ConeShape()->Radius();
+            muMesh->scale[2] = shape.ConeShape()->Length() / 2.0;
+            double params[3] = {36, 0};
+            mjs_makeMesh(muMesh, mjMESH_BUILTIN_CONE, params, 2);
+            break;
+          }
+          case ::sdf::GeometryType::MESH:
+          {
+            newGeom->type = mjGEOM_MESH;
+            auto *meshSdf = shape.MeshShape();
+            std::string meshName = "geom_" + std::to_string(entity) + "_mesh";
+            auto &meshManager = *gz::common::MeshManager::Instance();
+            auto *mesh = meshManager.Load(meshSdf->Uri());
+            if (mesh) {
+                auto *muMesh = mjs_addMesh(this->dataPtr->spec, nullptr);
+                mjs_setName(muMesh->element, meshName.c_str());
+                mjs_setString(newGeom->meshname, meshName.c_str());
+                muMesh->scale[0] = meshSdf->Scale().X();
+                muMesh->scale[1] = meshSdf->Scale().Y();
+                muMesh->scale[2] = meshSdf->Scale().Z();
+                
+                double *verts{nullptr};
+                int *indices{nullptr};
+                mesh->FillArrays(&verts, &indices);
+                auto nverts = mesh->VertexCount();
+                
+                if (nverts > 0 && verts) {
+                    muMesh->uservert->assign(3 * nverts, 0.0);
+                    std::transform(verts, verts + 3 * nverts, muMesh->uservert->begin(),
+                        [](double val) {return static_cast<float>(val);});
+                }
+                if (mesh->IndexCount() > 0 && indices) {
+                    mjs_setInt(muMesh->userface, indices, mesh->IndexCount());
+                }
+                
+                delete[] verts;
+                delete[] indices;
+            } else {
+                gzwarn << "Failed to load mesh: " << meshSdf->Uri() << "\n";
+            }
             break;
           }
           default:
