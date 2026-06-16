@@ -135,15 +135,15 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
 
   std::unordered_map<Entity, mjsBody*> entityToMujocoBody;
   
-  std::vector<Entity> newModels;
-  _ecm.EachNew<components::Model>(
-    [&](const Entity &_entity, const components::Model *) -> bool
+  std::vector<std::pair<Entity, std::string>> newModels;
+  _ecm.EachNew<components::Model, components::Name>(
+    [&](const Entity &_entity, const components::Model *, const components::Name *_nameComp) -> bool
     {
-      newModels.push_back(_entity);
+      newModels.push_back({_entity, _nameComp->Data()});
       return true;
     });
 
-  for (auto modelEntity : newModels)
+  for (auto const& [modelEntity, modelName] : newModels)
   {
     gzdbg << "Processing new model entity: " << modelEntity << "\n";
     bool isStatic = false;
@@ -211,7 +211,9 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
 
     for (auto rootLink : rootLinks)
     {
-      std::string bodyName = "link_" + std::to_string(rootLink);
+      auto nameComp = _ecm.Component<components::Name>(rootLink);
+      std::string linkName = nameComp ? nameComp->Data() : std::to_string(rootLink);
+      std::string bodyName = modelName + "::" + linkName;
       gzdbg << "  mjs_addBody for root link: " << bodyName << "\n";
       mjsBody* newBody = mjs_addBody(worldBody, nullptr);
       if (newBody)
@@ -276,12 +278,16 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
       Entity parentLink = q.front();
       q.pop();
 
-      std::string parentBodyName = "link_" + std::to_string(parentLink);
+      auto parentNameComp = _ecm.Component<components::Name>(parentLink);
+      std::string parentLinkName = parentNameComp ? parentNameComp->Data() : std::to_string(parentLink);
+      std::string parentBodyName = modelName + "::" + parentLinkName;
       mjsBody* parentBody = mjs_findBody(this->dataPtr->spec, parentBodyName.c_str());
 
       for (auto childLink : childrenMap[parentLink])
       {
-        std::string childBodyName = "link_" + std::to_string(childLink);
+        auto childNameComp = _ecm.Component<components::Name>(childLink);
+        std::string childLinkName = childNameComp ? childNameComp->Data() : std::to_string(childLink);
+        std::string childBodyName = modelName + "::" + childLinkName;
         gzdbg << "  mjs_addBody for child link: " << childBodyName << "\n";
         mjsBody* childBody = mjs_addBody(parentBody, nullptr);
         if (childBody)
@@ -331,11 +337,16 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     }
   }
 
-  _ecm.EachNew<components::Collision, components::ParentEntity>(
-    [&](const Entity &entity, const components::Collision *, const components::ParentEntity *parentComp) -> bool
+  _ecm.EachNew<components::Collision, components::Name, components::ParentEntity>(
+    [&](const Entity &entity, const components::Collision *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
     {
     mjsBody* parentBody = worldBody;
-    std::string parentName = "link_" + std::to_string(parentComp->Data());
+    auto linkNameComp = _ecm.Component<components::Name>(parentComp->Data());
+    std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentComp->Data());
+    Entity modelEntity = _ecm.ParentEntity(parentComp->Data());
+    auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+    std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+    std::string parentName = modelName + "::" + linkName;
     mjsBody *foundBody = nullptr;
     if (entityToMujocoBody.find(parentComp->Data()) != entityToMujocoBody.end())
       foundBody = entityToMujocoBody[parentComp->Data()];
@@ -351,7 +362,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     mjsGeom* newGeom = mjs_addGeom(parentBody, nullptr);
     if (newGeom)
     {
-      std::string geomName = "geom_" + std::to_string(entity);
+      std::string geomName = modelName + "::" + linkName + "::" + nameComp->Data();
       mjs_setName(newGeom->element, geomName.c_str());
       
       newGeom->condim = 3;
@@ -435,7 +446,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           case ::sdf::GeometryType::CONE:
           {
             newGeom->type = mjGEOM_MESH;
-            std::string meshName = "geom_" + std::to_string(entity) + "_cone";
+            std::string meshName = geomName + "_cone";
             auto *muMesh = mjs_addMesh(this->dataPtr->spec, nullptr);
             mjs_setName(muMesh->element, meshName.c_str());
             mjs_setString(newGeom->meshname, meshName.c_str());
@@ -450,7 +461,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           {
             newGeom->type = mjGEOM_MESH;
             auto *meshSdf = shape.MeshShape();
-            std::string meshName = "geom_" + std::to_string(entity) + "_mesh";
+            std::string meshName = geomName + "_mesh";
             auto &meshManager = *gz::common::MeshManager::Instance();
             auto *mesh = meshManager.Load(meshSdf->Uri());
             if (mesh) {
@@ -495,16 +506,11 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
                components::ParentEntity, components::ChildLinkName>(
       [&](const Entity &entity,
           const components::Joint *,
-          const components::Name *,
-          const components::JointType *,
-          const components::ParentEntity *,
-          const components::ChildLinkName *) -> bool
+          const components::Name *nameComp,
+          const components::JointType *jointTypeComp,
+          const components::ParentEntity *parentModelComp,
+          const components::ChildLinkName *childLinkNameComp) -> bool
       {
-        auto nameComp = _ecm.Component<components::Name>(entity);
-    auto jointTypeComp = _ecm.Component<components::JointType>(entity);
-    auto parentModelComp = _ecm.Component<components::ParentEntity>(entity);
-    auto childLinkNameComp = _ecm.Component<components::ChildLinkName>(entity);
-
     Entity childLinkEntity = _ecm.EntityByComponents(
       components::Link(),
       components::ParentEntity(parentModelComp->Data()),
@@ -512,7 +518,10 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
 
     if (childLinkEntity != kNullEntity)
     {
-      std::string childName = "link_" + std::to_string(childLinkEntity);
+    Entity modelEntity = parentModelComp->Data();
+    auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+    std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+    std::string childName = modelName + "::" + childLinkNameComp->Data();
       mjsBody* childBody = nullptr;
       if (entityToMujocoBody.find(childLinkEntity) != entityToMujocoBody.end())
         childBody = entityToMujocoBody[childLinkEntity];
@@ -555,7 +564,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
 
         if (joint)
         {
-          std::string mjJointName = "joint_" + std::to_string(entity);
+          std::string mjJointName = modelName + "::" + nameComp->Data();
           mjs_setName(joint->element, mjJointName.c_str());
 
           auto jointPoseComp = _ecm.Component<components::Pose>(entity);
@@ -605,8 +614,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           {
             actuator->trntype = mjTRN_JOINT;
             mjs_setString(actuator->target, mjJointName.c_str());
-            std::string actName = "actuator_" + std::to_string(entity);
-            mjs_setName(actuator->element, actName.c_str());
           }
 
           specChanged = true;
@@ -621,27 +628,28 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     {
       Entity parentLink = _ecm.ParentEntity(_entity);
       if (parentLink != kNullEntity) {
-          std::string linkName = "link_" + std::to_string(parentLink);
+          auto linkNameComp = _ecm.Component<components::Name>(parentLink);
+          std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentLink);
+          Entity modelEntity = _ecm.ParentEntity(parentLink);
+          auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+          std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+          std::string fullLinkName = modelName + "::" + linkName;
           mjsBody* muBody = nullptr;
           if (entityToMujocoBody.find(parentLink) != entityToMujocoBody.end())
             muBody = entityToMujocoBody[parentLink];
           else
-            muBody = mjs_findBody(this->dataPtr->spec, linkName.c_str());
+            muBody = mjs_findBody(this->dataPtr->spec, fullLinkName.c_str());
 
           if (muBody) {
               auto *muSite = mjs_addSite(muBody, nullptr);
-              std::string siteName = "site_imu_" + std::to_string(_entity);
-              mjs_setName(muSite->element, siteName.c_str());
               
               auto *accelSensor = mjs_addSensor(this->dataPtr->spec);
               accelSensor->type = mjSENS_ACCELEROMETER;
               accelSensor->objtype = mjOBJ_SITE;
-              mjs_setString(accelSensor->objname, siteName.c_str());
               
               auto *gyroSensor = mjs_addSensor(this->dataPtr->spec);
               gyroSensor->type = mjSENS_GYRO;
               gyroSensor->objtype = mjOBJ_SITE;
-              mjs_setString(gyroSensor->objname, siteName.c_str());
               specChanged = true;
           }
       }
@@ -659,27 +667,27 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
               Entity modelEntity = _ecm.ParentEntity(parentJoint);
               Entity childLinkEntity = _ecm.EntityByComponents(components::ParentEntity(modelEntity), components::Name(childName), components::Link());
               if (childLinkEntity != kNullEntity) {
-                  std::string linkName = "link_" + std::to_string(childLinkEntity);
+                  auto linkNameComp = _ecm.Component<components::Name>(childLinkEntity);
+                  std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(childLinkEntity);
+                  auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+                  std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+                  std::string fullLinkName = modelName + "::" + linkName;
                   mjsBody* muBody = nullptr;
                   if (entityToMujocoBody.find(childLinkEntity) != entityToMujocoBody.end())
                     muBody = entityToMujocoBody[childLinkEntity];
                   else
-                    muBody = mjs_findBody(this->dataPtr->spec, linkName.c_str());
+                    muBody = mjs_findBody(this->dataPtr->spec, fullLinkName.c_str());
 
                   if (muBody) {
                       auto *muSite = mjs_addSite(muBody, nullptr);
-                      std::string siteName = "site_ft_" + std::to_string(_entity);
-                      mjs_setName(muSite->element, siteName.c_str());
                       
                       auto *forceSensor = mjs_addSensor(this->dataPtr->spec);
                       forceSensor->type = mjSENS_FORCE;
                       forceSensor->objtype = mjOBJ_SITE;
-                      mjs_setString(forceSensor->objname, siteName.c_str());
                       
                       auto *torqueSensor = mjs_addSensor(this->dataPtr->spec);
                       torqueSensor->type = mjSENS_TORQUE;
                       torqueSensor->objtype = mjOBJ_SITE;
-                      mjs_setString(torqueSensor->objname, siteName.c_str());
                       specChanged = true;
                   }
               }
@@ -694,10 +702,12 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     gzdbg << "Recompiled:\n";
     mj_saveXML(this->dataPtr->spec, "/tmp/mujoco_model.xml", nullptr, 0);
 
-    _ecm.Each<components::Link>(
-      [&](const Entity &_entity, const components::Link *) -> bool
+    _ecm.Each<components::Link, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Link *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
       {
-        std::string bodyName = "link_" + std::to_string(_entity);
+        auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
+        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
+        std::string bodyName = modelName + "::" + nameComp->Data();
         int id = mj_name2id(this->dataPtr->model, mjOBJ_BODY, bodyName.c_str());
         if (id >= 0)
         {
@@ -707,10 +717,15 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         return true;
       });
 
-    _ecm.Each<components::Collision>(
-      [&](const Entity &_entity, const components::Collision *) -> bool
+    _ecm.Each<components::Collision, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Collision *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
       {
-        std::string geomName = "geom_" + std::to_string(_entity);
+        auto linkNameComp = _ecm.Component<components::Name>(parentComp->Data());
+        std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentComp->Data());
+        Entity modelEntity = _ecm.ParentEntity(parentComp->Data());
+        auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+        std::string geomName = modelName + "::" + linkName + "::" + nameComp->Data();
         int id = mj_name2id(this->dataPtr->model, mjOBJ_GEOM, geomName.c_str());
         if (id >= 0)
         {
@@ -719,18 +734,26 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         return true;
       });
 
-    _ecm.Each<components::Joint>(
-      [&](const Entity &_entity, const components::Joint *) -> bool
+    _ecm.Each<components::Joint, components::Name, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Joint *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
       {
-        std::string jointName = "joint_" + std::to_string(_entity);
+        auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
+        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
+        std::string jointName = modelName + "::" + nameComp->Data();
         int id = mj_name2id(this->dataPtr->model, mjOBJ_JOINT, jointName.c_str());
         if (id >= 0)
         {
           _ecm.SetComponentData<MujocoJointId>(_entity, id);
         }
 
-        std::string actName = "actuator_" + std::to_string(_entity);
-        int actId = mj_name2id(this->dataPtr->model, mjOBJ_ACTUATOR, actName.c_str());
+        int actId = -1;
+        for (int i = 0; i < this->dataPtr->model->nu; ++i) {
+            if (this->dataPtr->model->actuator_trntype[i] == mjTRN_JOINT &&
+                this->dataPtr->model->actuator_trnid[i * 2] == id) {
+                actId = i;
+                break;
+            }
+        }
         if (actId >= 0)
         {
           _ecm.SetComponentData<MujocoActuatorId>(_entity, actId);
@@ -952,8 +975,18 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
   _ecm.Each<components::Imu>(
     [&](const Entity &_entity, const components::Imu *) -> bool
     {
-      std::string siteName = "site_imu_" + std::to_string(_entity);
-      int siteId = mj_name2id(this->dataPtr->model, mjOBJ_SITE, siteName.c_str());
+      Entity parentLink = _ecm.ParentEntity(_entity);
+      auto bodyIdComp = _ecm.Component<MujocoBodyId>(parentLink);
+      if (!bodyIdComp) return true;
+      int mjBodyId = bodyIdComp->Data();
+      
+      int siteId = -1;
+      for (int i = 0; i < this->dataPtr->model->nsite; ++i) {
+          if (this->dataPtr->model->site_bodyid[i] == mjBodyId) {
+              siteId = i;
+              break;
+          }
+      }
       if (siteId >= 0) {
           int accelId = -1;
           int gyroId = -1;
@@ -1001,8 +1034,25 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
   _ecm.Each<components::ForceTorque>(
     [&](const Entity &_entity, const components::ForceTorque *) -> bool
     {
-      std::string siteName = "site_ft_" + std::to_string(_entity);
-      int siteId = mj_name2id(this->dataPtr->model, mjOBJ_SITE, siteName.c_str());
+      Entity parentJoint = _ecm.ParentEntity(_entity);
+      Entity childLink = kNullEntity;
+      auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
+      if (childLinkComp) {
+          Entity modelEntity = _ecm.ParentEntity(parentJoint);
+          childLink = _ecm.EntityByComponents(components::ParentEntity(modelEntity), components::Name(childLinkComp->Data()), components::Link());
+      }
+      if (childLink == kNullEntity) return true;
+      auto bodyIdComp = _ecm.Component<MujocoBodyId>(childLink);
+      if (!bodyIdComp) return true;
+      int mjBodyId = bodyIdComp->Data();
+
+      int siteId = -1;
+      for (int i = 0; i < this->dataPtr->model->nsite; ++i) {
+          if (this->dataPtr->model->site_bodyid[i] == mjBodyId) {
+              siteId = i;
+              break;
+          }
+      }
       if (siteId >= 0) {
           int forceId = -1;
           int torqueId = -1;
