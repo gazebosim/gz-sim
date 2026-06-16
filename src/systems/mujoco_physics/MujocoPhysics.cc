@@ -8,9 +8,18 @@
 #include <gz/sim/components/Link.hh>
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Geometry.hh>
+#include <gz/sim/Util.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>
+
+#include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
+#include <sdf/Cylinder.hh>
+#include <sdf/Ellipsoid.hh>
+#include <sdf/Plane.hh>
+#include <sdf/Sphere.hh>
 
 #include <mujoco/mujoco.h>
 
@@ -100,17 +109,14 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     if (newBody)
     {
       mjs_setName(newBody->element, bodyName.c_str());
-      auto poseComp = _ecm.Component<components::Pose>(entity);
-      if (poseComp) {
-        auto pose = poseComp->Data();
-        newBody->pos[0] = pose.Pos().X();
-        newBody->pos[1] = pose.Pos().Y();
-        newBody->pos[2] = pose.Pos().Z();
-        newBody->quat[0] = pose.Rot().W();
-        newBody->quat[1] = pose.Rot().X();
-        newBody->quat[2] = pose.Rot().Y();
-        newBody->quat[3] = pose.Rot().Z();
-      }
+      math::Pose3d wPose = gz::sim::worldPose(entity, _ecm);
+      newBody->pos[0] = wPose.Pos().X();
+      newBody->pos[1] = wPose.Pos().Y();
+      newBody->pos[2] = wPose.Pos().Z();
+      newBody->quat[0] = wPose.Rot().W();
+      newBody->quat[1] = wPose.Rot().X();
+      newBody->quat[2] = wPose.Rot().Y();
+      newBody->quat[3] = wPose.Rot().Z();
       specChanged = true;
     }
   }
@@ -140,6 +146,70 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     {
       std::string geomName = "geom_" + std::to_string(entity);
       mjs_setName(newGeom->element, geomName.c_str());
+      
+      auto poseComp = _ecm.Component<components::Pose>(entity);
+      if (poseComp) {
+        auto pose = poseComp->Data();
+        newGeom->pos[0] = pose.Pos().X();
+        newGeom->pos[1] = pose.Pos().Y();
+        newGeom->pos[2] = pose.Pos().Z();
+        newGeom->quat[0] = pose.Rot().W();
+        newGeom->quat[1] = pose.Rot().X();
+        newGeom->quat[2] = pose.Rot().Y();
+        newGeom->quat[3] = pose.Rot().Z();
+      }
+      
+      auto geomComp = _ecm.Component<components::Geometry>(entity);
+      if (geomComp) {
+        const sdf::Geometry& shape = geomComp->Data();
+        switch (shape.Type())
+        {
+          case ::sdf::GeometryType::BOX:
+          {
+            newGeom->type = mjGEOM_BOX;
+            for (int j = 0; j < 3; ++j)
+              newGeom->size[j] = shape.BoxShape()->Size()[j] / 2.0;
+            break;
+          }
+          case ::sdf::GeometryType::CYLINDER:
+          {
+            newGeom->type = mjGEOM_CYLINDER;
+            newGeom->size[0] = shape.CylinderShape()->Radius();
+            newGeom->size[1] = shape.CylinderShape()->Length() / 2.0;
+            break;
+          }
+          case ::sdf::GeometryType::PLANE:
+          {
+            newGeom->type = mjGEOM_PLANE;
+            for (int j = 0; j < 2; ++j)
+              newGeom->size[j] = shape.PlaneShape()->Size()[j] / 2.0;
+            newGeom->size[2] = 1.0;
+            break;
+          }
+          case ::sdf::GeometryType::SPHERE:
+          {
+            newGeom->type = mjGEOM_SPHERE;
+            newGeom->size[0] = shape.SphereShape()->Radius();
+            break;
+          }
+          case ::sdf::GeometryType::CAPSULE:
+          {
+            newGeom->type = mjGEOM_CAPSULE;
+            newGeom->size[0] = shape.CapsuleShape()->Radius();
+            newGeom->size[1] = shape.CapsuleShape()->Length() / 2.0;
+            break;
+          }
+          case ::sdf::GeometryType::ELLIPSOID:
+          {
+            newGeom->type = mjGEOM_ELLIPSOID;
+            for (int j = 0; j < 3; ++j)
+              newGeom->size[j] = shape.EllipsoidShape()->Radii()[j];
+            break;
+          }
+          default:
+            break;
+        }
+      }
       specChanged = true;
     }
   }
@@ -186,11 +256,12 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     // NOTE: The implementation plan suggested doing this in PostUpdate, but 
     // PostUpdate provides a const EntityComponentManager, so mutating components
     // there is impossible and thread-unsafe. It must be done in Update.
-    _ecm.Each<components::Link, MujocoBodyId, components::Pose>(
+    _ecm.Each<components::Link, MujocoBodyId, components::Pose, components::ParentEntity>(
       [&](const Entity &,
           const components::Link *,
           const MujocoBodyId *_bodyIdComp,
-          components::Pose *_poseComp) -> bool
+          components::Pose *_poseComp,
+          const components::ParentEntity *_parentComp) -> bool
       {
         int mjBodyId = _bodyIdComp->Data();
         if (mjBodyId > 0 && mjBodyId < this->dataPtr->model->nbody)
@@ -199,10 +270,13 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
           mjtNum* pos = this->dataPtr->data->xpos + 3 * mjBodyId;
           mjtNum* quat = this->dataPtr->data->xquat + 4 * mjBodyId;
 
-          _poseComp->Data() = math::Pose3d(
+          math::Pose3d worldPose(
             pos[0], pos[1], pos[2],
             quat[0], quat[1], quat[2], quat[3] // math::Quaternion(w, x, y, z)
           );
+          
+          math::Pose3d parentWorldPose = gz::sim::worldPose(_parentComp->Data(), _ecm);
+          _poseComp->Data() = parentWorldPose.Inverse() * worldPose;
         }
         return true;
       });
