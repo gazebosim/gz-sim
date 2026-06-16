@@ -12,6 +12,13 @@
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Geometry.hh>
+#include <gz/sim/components/Joint.hh>
+#include <gz/sim/components/JointType.hh>
+#include <gz/sim/components/JointAxis.hh>
+#include <gz/sim/components/ChildLinkName.hh>
+#include <gz/sim/components/JointVelocityCmd.hh>
+#include <gz/sim/components/JointForceCmd.hh>
+#include <gz/sim/components/Name.hh>
 #include <gz/sim/Util.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/common/Console.hh>
@@ -219,6 +226,120 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
     }
   }
 
+  std::vector<Entity> newJoints;
+  _ecm.EachNew<components::Joint, components::Name, components::JointType,
+               components::ParentEntity, components::ChildLinkName>(
+      [&](const Entity &_entity,
+          const components::Joint *,
+          const components::Name *,
+          const components::JointType *,
+          const components::ParentEntity *,
+          const components::ChildLinkName *) -> bool
+      {
+        if (!_ecm.Component<MujocoJointId>(_entity))
+        {
+          newJoints.push_back(_entity);
+        }
+        return true;
+      });
+
+  for (auto entity : newJoints)
+  {
+    auto nameComp = _ecm.Component<components::Name>(entity);
+    auto jointTypeComp = _ecm.Component<components::JointType>(entity);
+    auto parentModelComp = _ecm.Component<components::ParentEntity>(entity);
+    auto childLinkNameComp = _ecm.Component<components::ChildLinkName>(entity);
+
+    Entity childLinkEntity = _ecm.EntityByComponents(
+      components::Link(),
+      components::ParentEntity(parentModelComp->Data()),
+      components::Name(childLinkNameComp->Data()));
+
+    if (childLinkEntity != kNullEntity)
+    {
+      std::string childName = "link_" + std::to_string(childLinkEntity);
+      mjsBody* childBody = mjs_findBody(this->dataPtr->spec, childName.c_str());
+      if (childBody)
+      {
+        mjsJoint *joint{nullptr};
+        mjsActuator *actuator{nullptr};
+        auto type = jointTypeComp->Data();
+
+        if (type == sdf::JointType::PRISMATIC)
+        {
+          joint = mjs_addJoint(childBody, nullptr);
+          joint->type = mjJNT_SLIDE;
+        }
+        else if (type == sdf::JointType::REVOLUTE)
+        {
+          joint = mjs_addJoint(childBody, nullptr);
+          joint->type = mjJNT_HINGE;
+        }
+        else if (type == sdf::JointType::BALL)
+        {
+          joint = mjs_addJoint(childBody, nullptr);
+          joint->type = mjJNT_BALL;
+        }
+        else if (type == sdf::JointType::FIXED)
+        {
+          // Handled implicitly
+        }
+        else if (type == sdf::JointType::UNIVERSAL)
+        {
+          gzwarn << "Universal joint unsupported.\n";
+        }
+        else
+        {
+          gzwarn << "Unsupported joint type for joint [" << nameComp->Data() << "]\n";
+        }
+
+        if (joint)
+        {
+          std::string mjJointName = "joint_" + std::to_string(entity);
+          mjs_setName(joint->element, mjJointName.c_str());
+
+          auto jointPoseComp = _ecm.Component<components::Pose>(entity);
+          if (jointPoseComp)
+          {
+            auto jointPose = jointPoseComp->Data();
+            joint->pos[0] = jointPose.Pos().X();
+            joint->pos[1] = jointPose.Pos().Y();
+            joint->pos[2] = jointPose.Pos().Z();
+          }
+
+          auto axisComp = _ecm.Component<components::JointAxis>(entity);
+          if (axisComp && type != sdf::JointType::BALL)
+          {
+            auto axis = axisComp->Data();
+            joint->axis[0] = axis.Xyz().X();
+            joint->axis[1] = axis.Xyz().Y();
+            joint->axis[2] = axis.Xyz().Z();
+            
+            joint->limited = !std::isinf(axis.Lower()) && !std::isinf(axis.Upper());
+            if (joint->limited)
+            {
+              joint->range[0] = axis.Lower();
+              joint->range[1] = axis.Upper();
+            }
+            joint->frictionloss = axis.Friction();
+            joint->damping = axis.Damping();
+          }
+
+          actuator = mjs_addActuator(this->dataPtr->spec, nullptr);
+          if (actuator)
+          {
+            actuator->trntype = mjTRN_JOINT;
+            mjs_setString(actuator->target, mjJointName.c_str());
+            std::string actName = "actuator_" + std::to_string(entity);
+            mjs_setName(actuator->element, actName.c_str());
+          }
+
+          specChanged = true;
+        }
+      }
+    }
+  }
+
   if (specChanged)
   {
     if (this->dataPtr->data)
@@ -245,6 +366,13 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
         if (id >= 0)
           _ecm.CreateComponent(entity, MujocoGeomId(id));
       }
+      for (auto entity : newJoints)
+      {
+        std::string jointName = "joint_" + std::to_string(entity);
+        int id = mj_name2id(this->dataPtr->model, mjOBJ_JOINT, jointName.c_str());
+        if (id >= 0)
+          _ecm.CreateComponent(entity, MujocoJointId(id));
+      }
     }
     else
     {
@@ -254,6 +382,42 @@ void MujocoPhysics::Update(const UpdateInfo &_info,
 
   if (this->dataPtr->model && this->dataPtr->data)
   {
+    // Clear actuator controls
+    if (this->dataPtr->model->nu > 0)
+    {
+      std::fill(this->dataPtr->data->ctrl,
+                this->dataPtr->data->ctrl + this->dataPtr->model->nu,
+                0.0);
+    }
+
+    // Apply JointForceCmd and JointVelocityCmd
+    _ecm.Each<components::Joint, MujocoJointId>(
+      [&](const Entity &entity,
+          const components::Joint *,
+          const MujocoJointId *) -> bool
+      {
+        auto velCmd = _ecm.Component<components::JointVelocityCmd>(entity);
+        auto forceCmd = _ecm.Component<components::JointForceCmd>(entity);
+
+        if (forceCmd || velCmd)
+        {
+          std::string actName = "actuator_" + std::to_string(entity);
+          int actId = mj_name2id(this->dataPtr->model, mjOBJ_ACTUATOR, actName.c_str());
+          if (actId >= 0 && actId < this->dataPtr->model->nu)
+          {
+            if (forceCmd && !forceCmd->Data().empty())
+            {
+              this->dataPtr->data->ctrl[actId] = forceCmd->Data()[0];
+            }
+            else if (velCmd && !velCmd->Data().empty())
+            {
+              this->dataPtr->data->ctrl[actId] = velCmd->Data()[0];
+            }
+          }
+        }
+        return true;
+      });
+
     // Clear applied forces
     std::fill(this->dataPtr->data->xfrc_applied,
               this->dataPtr->data->xfrc_applied + 6 * this->dataPtr->model->nbody,
