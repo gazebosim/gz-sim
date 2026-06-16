@@ -5,6 +5,8 @@
 
 #include <gz/sim/System.hh>
 
+#include <mujoco/mujoco.h>
+
 namespace gz
 {
 namespace sim
@@ -15,13 +17,10 @@ namespace systems
 {
 namespace mujoco_physics
 {
-  class MujocoPhysicsPrivate;
-
   class MujocoPhysics
       : public System,
         public ISystemConfigure,
-        public ISystemUpdate,
-        public ISystemPostUpdate
+        public ISystemUpdate
   {
     public: MujocoPhysics();
 
@@ -35,10 +34,14 @@ namespace mujoco_physics
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) override;
 
-    public: void PostUpdate(const UpdateInfo &_info,
-                            const EntityComponentManager &_ecm) override;
+    private: void CreatePhysicsEntities(EntityComponentManager &_ecm);
+    private: void UpdatePhysics(EntityComponentManager &_ecm);
+    private: void Step(const UpdateInfo &_info);
+    private: void UpdateSim(const UpdateInfo &_info, EntityComponentManager &_ecm);
 
-    private: std::unique_ptr<MujocoPhysicsPrivate> dataPtr;
+    private: mjSpec* spec{nullptr};
+    private: mjModel* model{nullptr};
+    private: mjData* data{nullptr};
   };
 }
 }
