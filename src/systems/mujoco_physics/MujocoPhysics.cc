@@ -623,10 +623,10 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     return true;
   });
 
-  _ecm.EachNew<components::Imu>(
-    [&](const Entity &_entity, const components::Imu *) -> bool
+  _ecm.EachNew<components::Imu, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Imu *, const components::ParentEntity *parentComp) -> bool
     {
-      Entity parentLink = _ecm.ParentEntity(_entity);
+      Entity parentLink = parentComp->Data();
       if (parentLink != kNullEntity) {
           auto linkNameComp = _ecm.Component<components::Name>(parentLink);
           std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentLink);
@@ -656,10 +656,10 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
       return true;
     });
 
-  _ecm.EachNew<components::ForceTorque>(
-    [&](const Entity &_entity, const components::ForceTorque *) -> bool
+  _ecm.EachNew<components::ForceTorque, components::ParentEntity>(
+    [&](const Entity &_entity, const components::ForceTorque *, const components::ParentEntity *parentComp) -> bool
     {
-      Entity parentJoint = _ecm.ParentEntity(_entity);
+      Entity parentJoint = parentComp->Data();
       if (parentJoint != kNullEntity) {
           auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
           if (childLinkComp) {
@@ -972,10 +972,10 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
   }
 
   // Process Sensors
-  _ecm.Each<components::Imu>(
-    [&](const Entity &_entity, const components::Imu *) -> bool
+  _ecm.Each<components::Imu, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Imu *, const components::ParentEntity *parentComp) -> bool
     {
-      Entity parentLink = _ecm.ParentEntity(_entity);
+      Entity parentLink = parentComp->Data();
       auto bodyIdComp = _ecm.Component<MujocoBodyId>(parentLink);
       if (!bodyIdComp) return true;
       int mjBodyId = bodyIdComp->Data();
@@ -1031,10 +1031,10 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
       return true;
     });
 
-  _ecm.Each<components::ForceTorque>(
-    [&](const Entity &_entity, const components::ForceTorque *) -> bool
+  _ecm.Each<components::ForceTorque, components::ParentEntity>(
+    [&](const Entity &_entity, const components::ForceTorque *, const components::ParentEntity *parentComp) -> bool
     {
-      Entity parentJoint = _ecm.ParentEntity(_entity);
+      Entity parentJoint = parentComp->Data();
       Entity childLink = kNullEntity;
       auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
       if (childLinkComp) {
