@@ -200,7 +200,7 @@ void MujocoPhysics::Configure(const Entity &_entity,
 
   this->spec->option.timestep = 0.001;
   this->spec->option.integrator = mjtIntegrator::mjINT_IMPLICITFAST;
-  this->spec->option.enableflags |= mjtEnableBit::mjENBL_SLEEP;
+  // this->spec->option.enableflags |= mjtEnableBit::mjENBL_SLEEP;
 
   // Extract gravity from ECM
   auto gravityComp = _ecm.Component<components::Gravity>(_entity);
@@ -874,6 +874,12 @@ void MujocoPhysics::CreateSensors(
 
 void MujocoPhysics::PostRecompileSetup(EntityComponentManager &_ecm)
 {
+  if (this->model)
+  {
+    this->geomIdToEntity.assign(static_cast<size_t>(this->model->ngeom),
+                                kNullEntity);
+  }
+
   _ecm.Each<components::Link, components::Name, components::ParentEntity>(
       [&](const Entity &_entity, const components::Link *,
           const components::Name *nameComp,
@@ -913,6 +919,10 @@ void MujocoPhysics::PostRecompileSetup(EntityComponentManager &_ecm)
         if (id >= 0)
         {
           _ecm.SetComponentData<MujocoGeomId>(_entity, id);
+          if (id < static_cast<int>(this->geomIdToEntity.size()))
+          {
+            this->geomIdToEntity[static_cast<size_t>(id)] = _entity;
+          }
         }
         return true;
       });
@@ -1408,56 +1418,83 @@ void MujocoPhysics::UpdateVelocities(EntityComponentManager &_ecm)
 void MujocoPhysics::UpdateSensors(EntityComponentManager &_ecm)
 {
   // Process contacts
-  if (_ecm.HasComponentType(components::ContactSensorData::typeId))
+  if (_ecm.HasComponentType(components::ContactSensorData::typeId) &&
+      this->model)
   {
-    std::unordered_map<int, Entity> geomToEntity;
-    _ecm.Each<MujocoGeomId>(
-        [&](const Entity &_entity, const MujocoGeomId *_idComp) -> bool
+    std::vector<bool> geomIdHasSensor(static_cast<size_t>(this->model->ngeom),
+                                      false);
+    _ecm.Each<components::Collision, components::ContactSensorData>(
+        [&](const Entity &_entity, const components::Collision *,
+            const components::ContactSensorData *) -> bool
         {
-          geomToEntity[_idComp->Data()] = _entity;
+          auto idComp = _ecm.Component<MujocoGeomId>(_entity);
+          if (idComp)
+          {
+            int id = idComp->Data();
+            if (id >= 0 && id < static_cast<int>(geomIdHasSensor.size()))
+            {
+              geomIdHasSensor[static_cast<size_t>(id)] = true;
+            }
+          }
           return true;
         });
 
-    std::unordered_map<Entity,
-                       std::unordered_map<Entity, std::vector<msgs::Contact>>>
-        entityContactMap;
+    std::unordered_map<Entity, msgs::Contacts> entityContactMap;
 
     for (int i = 0; i < this->data->ncon; ++i)
     {
       const mjContact *con = this->data->contact + i;
 
-      auto it1 = geomToEntity.find(con->geom[0]);
-      auto it2 = geomToEntity.find(con->geom[1]);
-
-      if (it1 != geomToEntity.end() && it2 != geomToEntity.end())
+      if (con->geom[0] >= 0 &&
+          con->geom[0] < static_cast<int>(this->geomIdToEntity.size()) &&
+          con->geom[1] >= 0 &&
+          con->geom[1] < static_cast<int>(this->geomIdToEntity.size()))
       {
-        Entity e1 = it1->second;
-        Entity e2 = it2->second;
+        bool e1HasSensor = geomIdHasSensor[static_cast<size_t>(con->geom[0])];
+        bool e2HasSensor = geomIdHasSensor[static_cast<size_t>(con->geom[1])];
 
-        std::array<mjtNum, 6> contactForce;
-        mj_contactForce(this->model, this->data, i, contactForce.data());
+        if (!e1HasSensor && !e2HasSensor)
+        {
+          continue;
+        }
 
-        math::Vector3d force = GetContactForce(con->frame, contactForce.data());
-        math::Vector3d normal = GetVector(con->frame);
-        math::Vector3d position = GetVector(con->pos);
-        double depth = -con->dist;
+        Entity e1 = this->geomIdToEntity[static_cast<size_t>(con->geom[0])];
+        Entity e2 = this->geomIdToEntity[static_cast<size_t>(con->geom[1])];
 
-        msgs::Contact contactMsg;
-        contactMsg.mutable_collision1()->set_id(e1);
-        contactMsg.mutable_collision2()->set_id(e2);
+        if (e1 != kNullEntity && e2 != kNullEntity)
+        {
+          std::array<mjtNum, 6> contactForce;
+          mj_contactForce(this->model, this->data, i, contactForce.data());
 
-        SetVectorProto(contactMsg.add_position(), position);
-        SetVectorProto(contactMsg.add_normal(), normal);
-        contactMsg.add_depth(depth);
+          math::Vector3d force =
+              GetContactForce(con->frame, contactForce.data());
+          math::Vector3d normal = GetVector(con->frame);
+          math::Vector3d position = GetVector(con->pos);
+          double depth = -con->dist;
 
-        auto *wrenchMsg = contactMsg.add_wrench();
-        wrenchMsg->set_body_1_name(std::to_string(e1));
-        wrenchMsg->set_body_2_name(std::to_string(e2));
-        SetVectorProto(wrenchMsg->mutable_body_1_wrench()->mutable_force(),
-                       force);
+          msgs::Contact contactMsg;
+          contactMsg.mutable_collision1()->set_id(e1);
+          contactMsg.mutable_collision2()->set_id(e2);
 
-        entityContactMap[e1][e2].push_back(contactMsg);
-        entityContactMap[e2][e1].push_back(contactMsg);
+          SetVectorProto(contactMsg.add_position(), position);
+          SetVectorProto(contactMsg.add_normal(), normal);
+          contactMsg.add_depth(depth);
+
+          auto *wrenchMsg = contactMsg.add_wrench();
+          wrenchMsg->set_body_1_name(std::to_string(e1));
+          wrenchMsg->set_body_2_name(std::to_string(e2));
+          SetVectorProto(wrenchMsg->mutable_body_1_wrench()->mutable_force(),
+                         force);
+
+          if (e1HasSensor)
+          {
+            *entityContactMap[e1].add_contact() = contactMsg;
+          }
+          if (e2HasSensor)
+          {
+            *entityContactMap[e2].add_contact() = contactMsg;
+          }
+        }
       }
     }
 
@@ -1465,27 +1502,23 @@ void MujocoPhysics::UpdateSensors(EntityComponentManager &_ecm)
         [&](const Entity &_collEntity1, components::Collision *,
             components::ContactSensorData *_contacts) -> bool
         {
-          msgs::Contacts contactsComp;
-          if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+          auto it = entityContactMap.find(_collEntity1);
+          if (it == entityContactMap.end())
           {
-            _contacts->SetData(
-                contactsComp, [](const msgs::Contacts &, const msgs::Contacts &)
-                { return false; });
+            if (_contacts->Data().contact_size() == 0)
+            {
+              return true;
+            }
+            msgs::Contacts emptyContacts;
+            _contacts->SetData(emptyContacts,
+                               [](const msgs::Contacts &,
+                                  const msgs::Contacts &) { return false; });
             _ecm.SetChanged(_collEntity1, components::ContactSensorData::typeId,
                             ComponentState::PeriodicChange);
             return true;
           }
 
-          const auto &contactMap = entityContactMap[_collEntity1];
-          for (const auto &[collEntity2, contactList] : contactMap)
-          {
-            for (const auto &contactMsg : contactList)
-            {
-              *contactsComp.add_contact() = contactMsg;
-            }
-          }
-
-          _contacts->SetData(contactsComp,
+          _contacts->SetData(it->second,
                              [](const msgs::Contacts &, const msgs::Contacts &)
                              { return false; });
           _ecm.SetChanged(_collEntity1, components::ContactSensorData::typeId,

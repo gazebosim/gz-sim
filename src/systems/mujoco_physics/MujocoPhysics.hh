@@ -23,6 +23,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <gz/sim/System.hh>
 
@@ -123,6 +124,9 @@ class MujocoPhysics : public System,
 
   private:
   std::unordered_set<Entity> worldPoseCmdsToRemove;
+
+  private:
+  std::vector<Entity> geomIdToEntity;
 };
 }  // namespace mujoco_physics
 }  // namespace systems
