@@ -60,9 +60,7 @@ struct OneTimeChangedComponents {
 struct PeriodicChangedComponents {
   std::unordered_set<ComponentTypeId> data;
 };
-struct ComponentsMarkedAsRemoved {
-  std::unordered_set<ComponentTypeId> data;
-};
+
 struct RemovedComponents {
   std::unordered_set<ComponentTypeId> data;
 };
@@ -114,14 +112,7 @@ class gz::sim::EntityComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
-  /// \brief Check whether a component is marked as a component that is
-  /// currently removed or not.
-  /// \param[in] _entity The entity
-  /// \param[in] _typeId The type ID for the component that belongs to _entity
-  /// \return True if _entity has a component of type _typeId that is currently
-  /// removed. False otherwise
-  public: bool ComponentMarkedAsRemoved(const Entity _entity,
-              const ComponentTypeId _typeId) const;
+
 
   /// \brief Set a cloned joint's parent or child link name.
   /// \param[in] _joint The cloned joint.
@@ -252,7 +243,7 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<Children>();
   this->Registry().storage<OneTimeChangedComponents>();
   this->Registry().storage<PeriodicChangedComponents>();
-  this->Registry().storage<ComponentsMarkedAsRemoved>();
+
   this->Registry().storage<RemovedComponents>();
 
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
@@ -725,7 +716,7 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity, const Com
     removedComp.data.insert(_typeId);
   }
 
-  this->MarkComponentAsRemoved(_entity, _typeId, true);
+
 }
 
 /////////////////////////////////////////////////
@@ -756,7 +747,8 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   if (!this->HasEntity(_entity))
     return ComponentState::NoChange;
 
-  if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _typeId))
+  const auto* storage = this->Registry().storage(_typeId);
+  if (storage == nullptr || !storage->contains(_entity))
     return ComponentState::NoChange;
 
   const auto* oneTimeChangeComp = this->Registry().try_get<OneTimeChangedComponents>(_entity);
@@ -827,7 +819,7 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
     }
   });
 
-  this->Registry().view<ComponentsMarkedAsRemoved>().each([&_changes](const Entity& e, const ComponentsMarkedAsRemoved& removed) {
+  this->Registry().view<RemovedComponents>().each([&_changes](const Entity& e, const RemovedComponents& removed) {
     for (const auto& typeId : removed.data)
     {
       _changes[typeId].erase(e);
@@ -936,6 +928,19 @@ bool EntityComponentManager::CreateComponentImplementation(
   // If entity has never had a component of this type
   if (!storage || !storage->contains(_entity))
   {
+    {
+      std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+      auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
+      if (removedComp)
+      {
+        removedComp->data.erase(_componentTypeId);
+        if (removedComp->data.empty())
+        {
+          this->Registry().erase<RemovedComponents>(_entity);
+        }
+      }
+    }
+
     if (storage->push(_entity, newComp.get()) == storage->end())
     {
       gzwarn << "Failed syncing component. This should not happen." << std::endl;
@@ -943,19 +948,7 @@ bool EntityComponentManager::CreateComponentImplementation(
       updateData = false;
     }
   }
-  else
-  {
-    // if the pre-existing component is marked as removed, this means that the
-    // component was added to the entity previously, but later removed. In this
-    // case, a re-addition of the component is occurring. If the pre-existing
-    // component is not marked as removed, this means that the component was
-    // added to the entity previously and never removed. In this case, we are
-    // simply modifying the data of the pre-existing component (the modification
-    // of the data is done externally in a templated ECM method call, because we
-    // need the derived component class in order to update the derived component
-    // data)
-    this->MarkComponentAsRemoved(_entity, _componentTypeId, false);
-  }
+
 
   // If the component is a components::ParentEntity, then make sure to
   // update the entities graph.
@@ -988,8 +981,7 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   for (const ComponentTypeId &type : _types)
   {
     auto typeIter = entityTypes.find(type);
-    if (typeIter == entityTypes.end() ||
-        this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
+    if (typeIter == entityTypes.end())
       return false;
   }
 
@@ -1128,11 +1120,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
     {
       continue;
     }
-    // Check for removal here
-    if (this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
-    {
-      continue;
-    }
+
 
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, type);
@@ -1186,11 +1174,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
     {
       continue;
     }
-    // Check for removal here
-    if (this->dataPtr->ComponentMarkedAsRemoved(_entity, type))
-    {
-      continue;
-    }
+
 
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, type);
@@ -1657,8 +1641,23 @@ void EntityComponentManager::SetChanged(
     return;
 
   // make sure the entity has a component of type _type
-  if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _type))
+  const auto* storage = this->Registry().storage(_type);
+  if (storage == nullptr || !storage->contains(_entity))
     return;
+
+  // If it was removed in this iteration, un-remove it
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+    auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
+    if (removedComp)
+    {
+      removedComp->data.erase(_type);
+      if (removedComp->data.empty())
+      {
+        this->Registry().erase<RemovedComponents>(_entity);
+      }
+    }
+  }
 
   if (_c == ComponentState::PeriodicChange)
   {
@@ -1775,17 +1774,7 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
   this->registry.emplace<ModifiedComponent>(_entity);
 }
 
-/////////////////////////////////////////////////
-bool EntityComponentManagerPrivate::ComponentMarkedAsRemoved(
-    const Entity _entity, const ComponentTypeId _typeId) const
-{
-  const auto* markedAsRemovedComp = this->registry.try_get<ComponentsMarkedAsRemoved>(_entity);
-  if (markedAsRemovedComp && markedAsRemovedComp->data.find(_typeId) != markedAsRemovedComp->data.end())
-  {
-    return true;
-  }
-  return false;
-}
+
 
 /////////////////////////////////////////////////
 template<typename ComponentTypeT>
@@ -1998,23 +1987,7 @@ std::optional<Entity> EntityComponentManager::EntityByName(
   return entity;
 }
 
-/////////////////////////////////////////////////
-void EntityComponentManager::MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed)
-{
-  if (_removed)
-  {
-    auto& markedAsRemovedComp = this->Registry().get_or_emplace<ComponentsMarkedAsRemoved>(_entity);
-    markedAsRemovedComp.data.insert(_id);
-  }
-  else
-  {
-    auto* markedAsRemovedComp = this->Registry().try_get<ComponentsMarkedAsRemoved>(_entity);
-    if (markedAsRemovedComp)
-    {
-      markedAsRemovedComp->data.erase(_id);
-    }
-  }
-}
+
 
 /////////////////////////////////////////////////
 void EntityComponentManager::SortComponentStorages()

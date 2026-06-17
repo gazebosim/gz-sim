@@ -98,7 +98,6 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
     return nullptr;
   auto* comp = &this->Registry().emplace_or_replace<ComponentTypeT>(_entity, _data);
   this->SetChanged(_entity, ComponentTypeT::typeId, ComponentState::OneTimeChange);
-  this->MarkComponentAsRemoved(_entity, ComponentTypeT::typeId, false);
   return comp;
 }
 

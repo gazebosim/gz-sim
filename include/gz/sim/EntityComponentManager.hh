@@ -258,8 +258,6 @@ namespace gz
       /// \param[in] _typeId The type Id of the removed component.
       private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
 
-      private: void MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed);
-
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
       /// \param[in] _entity The entity that will be associated with
