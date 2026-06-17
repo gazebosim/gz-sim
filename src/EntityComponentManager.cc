@@ -266,7 +266,6 @@ void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
   this->entityCount = _from.entityCount;
-
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
 }
@@ -1977,6 +1976,9 @@ void EntityComponentManager::ApplyEntityDiff(
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
+  // \warning The final CopyFrom() below rebuilds the component storage, so any
+  // raw component pointer obtained before this call is invalidated. Callers
+  // must re-fetch components after a reset (see gazebosim/gz-sim#3635).
   auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
   tmpCopy.CopyFrom(_other);

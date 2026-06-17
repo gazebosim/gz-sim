@@ -92,7 +92,7 @@ common::Image toImage(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 /// This test checks that that air-pressure and camera sensor systems
 /// handle Reset events
-TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
+TEST_F(ResetFixture, HandleReset)
 {
   // This test fails on Github Actions. Skip it for now.
   // Note: The GITHUB_ACTIONS environment variable is automatically set when
@@ -255,6 +255,14 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   // The second iteration is where the reset actually occurs.
   reset::ApplyWorldReset(server);
+
+  // The reset rebuilds the ECM component storage (ResetTo -> CopyFrom clones
+  // every component into freshly allocated objects), which invalidates any
+  // component pointer cached before the reset. Re-fetch the pose component
+  // see issue #3635).
+  poseComp = ecm->Component<components::Pose>(entity);
+  ASSERT_NE(nullptr, poseComp);
+
   {
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(1u, this->mockSystem->resetCallCount);
@@ -264,8 +272,6 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
     EXPECT_EQ(target + 1, this->mockSystem->updateCallCount);
     EXPECT_EQ(target + 1, this->mockSystem->postUpdateCallCount);
 
-    poseComp = ecm->Component<components::Pose>(entity);
-    ASSERT_NE(nullptr, poseComp);
     EXPECT_FLOAT_EQ(kStartingAltitude, poseComp->Data().Z());
 
     // Reset does not cause messages to be sent

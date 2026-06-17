@@ -1676,6 +1676,73 @@ TEST_P(SimulationRunnerTest, GeneratedSdfHasNoSpuriousPlugins)
   EXPECT_TRUE(checkForSpuriousPlugins(newRoot.Element()));
 }
 
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
+{
+  // Test default behavior
+  {
+    std::string sdfStr = "<?xml version='1.0' ?>"
+      "<sdf version='1.6'>"
+      "  <world name='default'>"
+      "  </world>"
+      "</sdf>";
+
+    sdf::Root root;
+    sdf::Errors errors = root.LoadSdfString(sdfStr);
+    ASSERT_TRUE(errors.empty());
+    ASSERT_EQ(1u, root.WorldCount());
+
+    auto systemLoader = std::make_shared<SystemLoader>();
+    SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+    EXPECT_FALSE(runner.ParallelPostUpdates());
+  }
+
+  // Test when enabled
+  {
+    std::string sdfStr = "<?xml version='1.0' ?>"
+      "<sdf version='1.6'>"
+      "  <world name='default'>"
+      "    <gz:policies>"
+      "      <parallel_postupdates>true</parallel_postupdates>"
+      "    </gz:policies>"
+      "  </world>"
+      "</sdf>";
+
+    sdf::Root root;
+    sdf::Errors errors = root.LoadSdfString(sdfStr);
+    ASSERT_TRUE(errors.empty());
+    ASSERT_EQ(1u, root.WorldCount());
+
+    auto systemLoader = std::make_shared<SystemLoader>();
+    SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+    EXPECT_TRUE(runner.ParallelPostUpdates());
+  }
+
+  // Test when disabled
+  {
+    std::string sdfStr = "<?xml version='1.0' ?>"
+      "<sdf version='1.6'>"
+      "  <world name='default'>"
+      "    <gz:policies>"
+      "      <parallel_postupdates>false</parallel_postupdates>"
+      "    </gz:policies>"
+      "  </world>"
+      "</sdf>";
+
+    sdf::Root root;
+    sdf::Errors errors = root.LoadSdfString(sdfStr);
+    ASSERT_TRUE(errors.empty());
+    ASSERT_EQ(1u, root.WorldCount());
+
+    auto systemLoader = std::make_shared<SystemLoader>();
+    SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+    EXPECT_FALSE(runner.ParallelPostUpdates());
+  }
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SimulationRunnerTest,

@@ -221,6 +221,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   );
   this->currentInfo.simTime = this->simTimeEpoch;
 
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
+
 #ifdef _WIN32
   HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
@@ -369,7 +385,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 }
 
 //////////////////////////////////////////////////
-SimulationRunner::~SimulationRunner() = default;
+SimulationRunner::~SimulationRunner()
+{
+  this->StopWorkerThreads();
+}
 
 /////////////////////////////////////////////////
 void SimulationRunner::UpdateCurrentInfo()
@@ -519,9 +538,14 @@ void SimulationRunner::PublishStats()
 {
   GZ_PROFILE("SimulationRunner::PublishStats");
 
-  // Create the world statistics message.
-  msgs::WorldStatistics msg;
-  msg.set_real_time_factor(this->realTimeFactor);
+  const bool publishStats = this->statsPub.HasConnections() ||
+                            this->rootStatsPub.HasConnections();
+
+  const bool publishClock = this->clockPub.HasConnections() ||
+                            this->rootClockPub.HasConnections();
+
+  if (!publishStats && !publishClock)
+    return;
 
   auto realTimeSecNsec =
     math::durationToSecNsec(this->currentInfo.realTime);
@@ -529,48 +553,58 @@ void SimulationRunner::PublishStats()
   auto simTimeSecNsec =
     math::durationToSecNsec(this->currentInfo.simTime);
 
-  msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
-  msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
-
-  msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
-  msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
-
-  msg.set_iterations(this->currentInfo.iterations);
-
-  msg.set_paused(this->currentInfo.paused);
-
-  msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
-
-  if (this->Stepping())
+  if (publishStats)
   {
-    // (deprecated) Remove this header in Gazebo H
-    auto headerData = msg.mutable_header()->add_data();
-    headerData->set_key("step");
+    // Create the world statistics message.
+    msgs::WorldStatistics msg;
+    msg.set_real_time_factor(this->realTimeFactor);
 
-    msg.set_stepping(true);
+    msg.mutable_real_time()->set_sec(realTimeSecNsec.first);
+    msg.mutable_real_time()->set_nsec(realTimeSecNsec.second);
+
+    msg.mutable_sim_time()->set_sec(simTimeSecNsec.first);
+    msg.mutable_sim_time()->set_nsec(simTimeSecNsec.second);
+
+    msg.set_iterations(this->currentInfo.iterations);
+
+    msg.set_paused(this->currentInfo.paused);
+
+    msgs::Set(msg.mutable_step_size(), this->currentInfo.dt);
+
+    if (this->Stepping())
+    {
+      // (deprecated) Remove this header in Gazebo H
+      auto headerData = msg.mutable_header()->add_data();
+      headerData->set_key("step");
+
+      msg.set_stepping(true);
+    }
+
+    // Publish the stats message. The stats message is throttled.
+    this->statsPub.Publish(msg);
+
+    if (this->rootStatsPub.Valid())
+      this->rootStatsPub.Publish(msg);
   }
 
-  // Publish the stats message. The stats message is throttled.
-  this->statsPub.Publish(msg);
+  if (publishClock)
+  {
+    // Create and publish the clock message. The clock message is not
+    // throttled.
+    msgs::Clock clockMsg;
+    clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
+    clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
+    clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
+    clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
+    clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+    clockMsg.mutable_system()->set_nsec(
+        GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+    this->clockPub.Publish(clockMsg);
 
-  if (this->rootStatsPub.Valid())
-    this->rootStatsPub.Publish(msg);
-
-  // Create and publish the clock message. The clock message is not
-  // throttled.
-  msgs::Clock clockMsg;
-  clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
-  clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
-  clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
-  clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
-  clockMsg.mutable_system()->set_nsec(
-      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
-  this->clockPub.Publish(clockMsg);
-
-  // Only publish to root topic if no others are.
-  if (this->rootClockPub.Valid())
-    this->rootClockPub.Publish(clockMsg);
+    // Only publish to root topic if no others are.
+    if (this->rootClockPub.Valid())
+      this->rootClockPub.Publish(clockMsg);
+  }
 }
 
 namespace {
@@ -609,10 +643,59 @@ void SimulationRunner::ProcessSystemQueue()
 {
   auto pending = this->systemMgr->PendingCount();
 
-  if (0 == pending)
+  if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
+
+  // If additional systems are to be added or have been removed,
+  // stop the existing threads.
+  this->StopWorkerThreads();
+
+  this->threadsNeedCleanUp = false;
+
   this->systemMgr->ActivatePendingSystems();
+
+  unsigned int threadCount =
+    static_cast<unsigned int>(this->systemMgr->SystemsPostUpdate().size() + 1u);
+
+  gzdbg << "Creating PostUpdate worker threads: "
+    << threadCount << std::endl;
+
+  this->postUpdateStartBarrier = std::make_unique<Barrier>(threadCount);
+  this->postUpdateStopBarrier = std::make_unique<Barrier>(threadCount);
+
+  this->postUpdateThreadsRunning = true;
+  int id = 0;
+
+  for (auto &system : this->systemMgr->SystemsPostUpdate())
+  {
+    gzdbg << "Creating postupdate worker thread (" << id << ")" << std::endl;
+
+    this->postUpdateThreads.push_back(std::thread([&, id]()
+    {
+      std::stringstream ss;
+      ss << "PostUpdateThread: " << id;
+      GZ_PROFILE_THREAD_NAME(ss.str().c_str());
+      while (this->postUpdateThreadsRunning)
+      {
+        this->postUpdateStartBarrier->Wait();
+        if (this->postUpdateThreadsRunning)
+        {
+          system->PostUpdate(this->currentInfo, this->entityCompMgr);
+        }
+        this->postUpdateStopBarrier->Wait();
+      }
+      gzdbg << "Exiting postupdate worker thread ("
+        << id << ")" << std::endl;
+    }));
+    id++;
+  }
 }
 
 /////////////////////////////////////////////////
@@ -656,9 +739,26 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    for (auto &system : this->systemMgr->SystemsPostUpdate())
+    if (!this->parallelPostUpdates)
     {
-      system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.CreatePendingGroups();
   }
@@ -675,6 +775,25 @@ void SimulationRunner::OnStop()
 {
   this->stopReceived = true;
   this->running = false;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::StopWorkerThreads()
+{
+  this->postUpdateThreadsRunning = false;
+  if (this->postUpdateStartBarrier)
+  {
+    this->postUpdateStartBarrier->Cancel();
+  }
+  if (this->postUpdateStopBarrier)
+  {
+    this->postUpdateStopBarrier->Cancel();
+  }
+  for (auto &thread : this->postUpdateThreads)
+  {
+    thread.join();
+  }
+  this->postUpdateThreads.clear();
 }
 
 /////////////////////////////////////////////////
@@ -1039,7 +1158,8 @@ void SimulationRunner::Step(const UpdateInfo &_info)
   this->ProcessRecreateEntitiesCreate();
 
   // Process entity removals.
-  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr);
+  this->systemMgr->ProcessRemovedEntities(this->entityCompMgr,
+    this->threadsNeedCleanUp);
   this->entityCompMgr.ProcessRemoveEntityRequests();
 
   // Process components removals
@@ -1185,6 +1305,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
 }
 
 /////////////////////////////////////////////////
@@ -1438,6 +1564,10 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
   GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
+  if (!this->entityCompMgr.HasComponentType(components::Recreate::typeId))
+  {
+    return;
+  }
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
