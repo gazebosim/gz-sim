@@ -3597,7 +3597,14 @@ TEST_F(PhysicsSystemFixture,
 
 /////////////////////////////////////////////////
 // Test setting CategoryBitmaskCmd and verify that the object falls
-// through other objects when category bitmask is 0.
+// through other objects. Collision occurs when the following evaluates
+// to non-zero:
+//   (category_bitmask1 & collide_bitmask2) |
+//   (category_bitmask2 & collide_bitmask1)
+// In this test, all objects will have a category bitmask of 0x0002
+// and a collide bitmask of 0x0001 so
+//   (0x0002 & 0x0001) | (0x0002 & 0x0001)
+// evaluates to zero, hence the objects do not collide
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(CategoryBitmaskCmd))
 {
