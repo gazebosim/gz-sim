@@ -812,6 +812,34 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         }
         return true;
       });
+
+    _ecm.Each<components::Model, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Model *, const components::ParentEntity *parentComp) -> bool
+      {
+         Entity parent = parentComp->Data();
+         auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
+         if (siteComp) {
+             _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
+         } else {
+             _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
+         }
+         _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
+         return true;
+      });
+
+    _ecm.Each<components::Link, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Link *, const components::ParentEntity *parentComp) -> bool
+      {
+         Entity parent = parentComp->Data();
+         auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
+         if (siteComp) {
+             _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
+         } else {
+             _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
+         }
+         _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
+         return true;
+      });
   }
 }
 
@@ -1017,12 +1045,14 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     return;
 
   // Synchronize the ECM components::Pose of all models
-  _ecm.Each<components::Model, components::Pose, MujocoModelSiteId, components::ParentEntity>(
+  _ecm.Each<components::Model, components::Pose, MujocoModelSiteId, components::ParentEntity, MujocoParentSiteId, MujocoParentHasPose>(
     [&](const Entity &entity,
         const components::Model *,
         components::Pose *poseComp,
         const MujocoModelSiteId *_siteIdComp,
-        const components::ParentEntity *_parentComp) -> bool
+        const components::ParentEntity *_parentComp,
+        const MujocoParentSiteId *_parentSiteIdComp,
+        const MujocoParentHasPose *_parentHasPoseComp) -> bool
     {
       int mjSiteId = _siteIdComp->Data();
       if (mjSiteId >= 0 && mjSiteId < this->model->nsite)
@@ -1035,20 +1065,16 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
 
         math::Pose3d parentWorldPose = math::Pose3d::Zero;
         Entity parent = _parentComp->Data();
-        auto parentSiteComp = _ecm.Component<MujocoModelSiteId>(parent);
-        if (parentSiteComp)
+        int parentSiteId = _parentSiteIdComp->Data();
+        if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
         {
-          int parentSiteId = parentSiteComp->Data();
-          if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
-          {
              mjtNum* pPos = this->data->site_xpos + 3 * parentSiteId;
              mjtNum* pMat = this->data->site_xmat + 9 * parentSiteId;
              mjtNum pQuat[4];
              mju_mat2Quat(pQuat, pMat);
              parentWorldPose = math::Pose3d(pPos[0], pPos[1], pPos[2], pQuat[0], pQuat[1], pQuat[2], pQuat[3]);
-          }
         }
-        else if (_ecm.Component<components::Pose>(parent))
+        else if (_parentHasPoseComp->Data())
         {
           parentWorldPose = gz::sim::worldPose(parent, _ecm);
         }
@@ -1064,12 +1090,14 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     });
 
   // Synchronize the ECM components::Pose of all links
-  _ecm.Each<components::Link, MujocoBodyId, components::Pose, components::ParentEntity>(
+  _ecm.Each<components::Link, MujocoBodyId, components::Pose, components::ParentEntity, MujocoParentSiteId, MujocoParentHasPose>(
     [&](const Entity &entity,
         const components::Link *,
         const MujocoBodyId *_bodyIdComp,
         components::Pose *_poseComp,
-        const components::ParentEntity *_parentComp) -> bool
+        const components::ParentEntity *_parentComp,
+        const MujocoParentSiteId *_parentSiteIdComp,
+        const MujocoParentHasPose *_parentHasPoseComp) -> bool
     {
       int mjBodyId = _bodyIdComp->Data();
       if (mjBodyId > 0 && mjBodyId < this->model->nbody)
@@ -1084,20 +1112,16 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
 
         math::Pose3d parentWorldPose = math::Pose3d::Zero;
         Entity parent = _parentComp->Data();
-        auto parentSiteComp = _ecm.Component<MujocoModelSiteId>(parent);
-        if (parentSiteComp)
+        int parentSiteId = _parentSiteIdComp->Data();
+        if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
         {
-          int parentSiteId = parentSiteComp->Data();
-          if (parentSiteId >= 0 && parentSiteId < this->model->nsite)
-          {
              mjtNum* pPos = this->data->site_xpos + 3 * parentSiteId;
              mjtNum* pMat = this->data->site_xmat + 9 * parentSiteId;
              mjtNum pQuat[4];
              mju_mat2Quat(pQuat, pMat);
              parentWorldPose = math::Pose3d(pPos[0], pPos[1], pPos[2], pQuat[0], pQuat[1], pQuat[2], pQuat[3]);
-          }
         }
-        else if (_ecm.Component<components::Pose>(parent))
+        else if (_parentHasPoseComp->Data())
         {
           parentWorldPose = gz::sim::worldPose(parent, _ecm);
         }

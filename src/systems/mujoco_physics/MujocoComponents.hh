@@ -43,6 +43,26 @@ namespace mujoco_physics
   using MujocoActuatorId = components::Component<int, class MujocoActuatorIdTag, NoSerializeSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoActuatorId", MujocoActuatorId)
 
+  class NoSerializeSerializerBool
+  {
+    public: static std::ostream &Serialize(std::ostream &_out, const bool &_data)
+    {
+      (void)_data;
+      return _out;
+    }
+    public: static std::istream &Deserialize(std::istream &_in, bool &_data)
+    {
+      (void)_data;
+      return _in;
+    }
+  };
+
+  using MujocoParentSiteId = components::Component<int, class MujocoParentSiteIdTag, NoSerializeSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoParentSiteId", MujocoParentSiteId)
+
+  using MujocoParentHasPose = components::Component<bool, class MujocoParentHasPoseTag, NoSerializeSerializerBool>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoParentHasPose", MujocoParentHasPose)
+
   using MujocoModelSiteId = components::Component<int, class MujocoModelSiteIdTag, NoSerializeSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoModelSiteId", MujocoModelSiteId)
 }
