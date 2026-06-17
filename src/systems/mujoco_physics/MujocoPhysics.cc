@@ -150,7 +150,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
   {
     Entity modelEntity = pair.first;
     std::string modelName = pair.second;
-    gzdbg << "Processing new model entity: " << modelEntity << "\n";
     bool isStatic = false;
     auto staticComp = _ecm.Component<components::Static>(modelEntity);
     if (staticComp && staticComp->Data())
@@ -166,8 +165,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           modelLinks.push_back(_linkEntity);
         return true;
       });
-
-    gzdbg << "  Model " << modelEntity << " found " << modelLinks.size() << " links.\n";
 
     std::vector<Entity> modelJoints;
     _ecm.Each<components::Joint, components::ParentEntity>(
@@ -219,11 +216,9 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
       auto nameComp = _ecm.Component<components::Name>(rootLink);
       std::string linkName = nameComp ? nameComp->Data() : std::to_string(rootLink);
       std::string bodyName = modelName + "::" + linkName;
-      gzdbg << "  mjs_addBody for root link: " << bodyName << "\n";
       mjsBody* newBody = mjs_addBody(worldBody, nullptr);
       if (newBody)
       {
-        gzdbg << "  Successfully added newBody for " << bodyName << "\n";
         mjs_setName(newBody->element, bodyName.c_str());
         entityToMujocoBody[rootLink] = newBody;
         math::Pose3d wPose = gz::sim::worldPose(rootLink, _ecm);
@@ -293,7 +288,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         auto childNameComp = _ecm.Component<components::Name>(childLink);
         std::string childLinkName = childNameComp ? childNameComp->Data() : std::to_string(childLink);
         std::string childBodyName = modelName + "::" + childLinkName;
-        gzdbg << "  mjs_addBody for child link: " << childBodyName << "\n";
         mjsBody* childBody = mjs_addBody(parentBody, nullptr);
         if (childBody)
         {
@@ -400,7 +394,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     else
       gzerr << "Could not find parent body " << parentName << " for collision entity " << entity << "\n";
 
-    gzdbg << "Collision entity: " << entity << " searching for parent bodyName: " << parentName << ", found: " << foundBody << "\n";
     mjsGeom* newGeom = mjs_addGeom(parentBody, nullptr);
     if (newGeom)
     {
@@ -741,8 +734,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
   if (specChanged)
   {
     mj_recompile(this->spec, nullptr, this->model, this->data);
-    gzdbg << "Recompiled:\n";
-    mj_saveXML(this->spec, "/tmp/mujoco_model.xml", nullptr, 0);
+    // mj_saveXML(this->spec, "/tmp/mujoco_model.xml", nullptr, 0);
 
     _ecm.Each<components::Link, components::Name, components::ParentEntity>(
       [&](const Entity &_entity, const components::Link *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
@@ -753,7 +745,6 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         int id = mj_name2id(this->model, mjOBJ_BODY, bodyName.c_str());
         if (id >= 0)
         {
-          gzdbg << "New id for:" << _entity << " " << bodyName << " " << id << "\n";
           _ecm.SetComponentData<MujocoBodyId>(_entity, id);
         }
         return true;
@@ -1299,230 +1290,267 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
   }
 
   // Process Sensors
-  _ecm.Each<components::Imu, components::ParentEntity>(
-    [&](const Entity &_entity, const components::Imu *, const components::ParentEntity *parentComp) -> bool
-    {
-      Entity parentLink = parentComp->Data();
-      auto bodyIdComp = _ecm.Component<MujocoBodyId>(parentLink);
-      if (!bodyIdComp) return true;
-      int mjBodyId = bodyIdComp->Data();
-      
-      int siteId = -1;
-      for (int i = 0; i < this->model->nsite; ++i) {
-          if (this->model->site_bodyid[i] == mjBodyId) {
-              siteId = i;
-              break;
-          }
-      }
-      if (siteId >= 0) {
-          int accelId = -1;
-          int gyroId = -1;
-          for (int i = 0; i < this->model->nsensor; ++i) {
-              if (this->model->sensor_objtype[i] == mjOBJ_SITE &&
-                  this->model->sensor_objid[i] == siteId) {
-                  if (this->model->sensor_type[i] == mjSENS_ACCELEROMETER) {
-                      accelId = i;
-                  } else if (this->model->sensor_type[i] == mjSENS_GYRO) {
-                      gyroId = i;
-                  }
-              }
-          }
-          if (accelId >= 0 && gyroId >= 0) {
-              int accelAdr = this->model->sensor_adr[accelId];
-              int gyroAdr = this->model->sensor_adr[gyroId];
-              
-              math::Vector3d linAcc(
-                  this->data->sensordata[accelAdr],
-                  this->data->sensordata[accelAdr+1],
-                  this->data->sensordata[accelAdr+2]
-              );
-              
-              math::Vector3d angVel(
-                  this->data->sensordata[gyroAdr],
-                  this->data->sensordata[gyroAdr+1],
-                  this->data->sensordata[gyroAdr+2]
-              );
-              
-              auto accComp = _ecm.Component<components::LinearAcceleration>(_entity);
-              if (accComp) accComp->Data() = linAcc;
-              else _ecm.CreateComponent(_entity, components::LinearAcceleration(linAcc));
-              
-              auto angComp = _ecm.Component<components::AngularVelocity>(_entity);
-              if (angComp) angComp->Data() = angVel;
-              else _ecm.CreateComponent(_entity, components::AngularVelocity(angVel));
-              
-              _ecm.SetChanged(_entity, components::LinearAcceleration::typeId, ComponentState::PeriodicChange);
-              _ecm.SetChanged(_entity, components::AngularVelocity::typeId, ComponentState::PeriodicChange);
-          }
-      }
-      return true;
-    });
+  if (_ecm.HasComponentType(components::Imu::typeId))
+  {
+    _ecm.Each<components::Imu, components::ParentEntity>(
+      [&](const Entity &_entity, const components::Imu *, const components::ParentEntity *parentComp) -> bool
+      {
+        Entity parentLink = parentComp->Data();
+        auto bodyIdComp = _ecm.Component<MujocoBodyId>(parentLink);
+        if (!bodyIdComp) return true;
+        int mjBodyId = bodyIdComp->Data();
+        
+        int siteId = -1;
+        for (int i = 0; i < this->model->nsite; ++i) {
+            if (this->model->site_bodyid[i] == mjBodyId) {
+                siteId = i;
+                break;
+            }
+        }
+        if (siteId >= 0) {
+            int accelId = -1;
+            int gyroId = -1;
+            for (int i = 0; i < this->model->nsensor; ++i) {
+                if (this->model->sensor_objtype[i] == mjOBJ_SITE &&
+                    this->model->sensor_objid[i] == siteId) {
+                    if (this->model->sensor_type[i] == mjSENS_ACCELEROMETER) {
+                        accelId = i;
+                    } else if (this->model->sensor_type[i] == mjSENS_GYRO) {
+                        gyroId = i;
+                    }
+                }
+            }
+            if (accelId >= 0 && gyroId >= 0) {
+                int accelAdr = this->model->sensor_adr[accelId];
+                int gyroAdr = this->model->sensor_adr[gyroId];
+                
+                math::Vector3d linAcc(
+                    this->data->sensordata[accelAdr],
+                    this->data->sensordata[accelAdr+1],
+                    this->data->sensordata[accelAdr+2]
+                );
+                
+                math::Vector3d angVel(
+                    this->data->sensordata[gyroAdr],
+                    this->data->sensordata[gyroAdr+1],
+                    this->data->sensordata[gyroAdr+2]
+                );
+                
+                auto accComp = _ecm.Component<components::LinearAcceleration>(_entity);
+                if (accComp) accComp->Data() = linAcc;
+                else _ecm.CreateComponent(_entity, components::LinearAcceleration(linAcc));
+                
+                auto angComp = _ecm.Component<components::AngularVelocity>(_entity);
+                if (angComp) angComp->Data() = angVel;
+                else _ecm.CreateComponent(_entity, components::AngularVelocity(angVel));
+                
+                _ecm.SetChanged(_entity, components::LinearAcceleration::typeId, ComponentState::PeriodicChange);
+                _ecm.SetChanged(_entity, components::AngularVelocity::typeId, ComponentState::PeriodicChange);
+            }
+        }
+        return true;
+      });
+  }
 
-  _ecm.Each<components::ForceTorque, components::ParentEntity>(
-    [&](const Entity &_entity, const components::ForceTorque *, const components::ParentEntity *parentComp) -> bool
-    {
-      Entity parentJoint = parentComp->Data();
-      Entity childLink = kNullEntity;
-      auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
-      if (childLinkComp) {
-          Entity modelEntity = _ecm.ParentEntity(parentJoint);
-          childLink = _ecm.EntityByComponents(components::ParentEntity(modelEntity), components::Name(childLinkComp->Data()), components::Link());
-      }
-      if (childLink == kNullEntity) return true;
-      auto bodyIdComp = _ecm.Component<MujocoBodyId>(childLink);
-      if (!bodyIdComp) return true;
-      int mjBodyId = bodyIdComp->Data();
+  if (_ecm.HasComponentType(components::ForceTorque::typeId))
+  {
+    _ecm.Each<components::ForceTorque, components::ParentEntity>(
+      [&](const Entity &_entity, const components::ForceTorque *, const components::ParentEntity *parentComp) -> bool
+      {
+        Entity parentJoint = parentComp->Data();
+        Entity childLink = kNullEntity;
+        auto childLinkComp = _ecm.Component<components::ChildLinkName>(parentJoint);
+        if (childLinkComp) {
+            Entity modelEntity = _ecm.ParentEntity(parentJoint);
+            childLink = _ecm.EntityByComponents(components::ParentEntity(modelEntity), components::Name(childLinkComp->Data()), components::Link());
+        }
+        if (childLink == kNullEntity) return true;
+        auto bodyIdComp = _ecm.Component<MujocoBodyId>(childLink);
+        if (!bodyIdComp) return true;
+        int mjBodyId = bodyIdComp->Data();
 
-      int siteId = -1;
-      for (int i = 0; i < this->model->nsite; ++i) {
-          if (this->model->site_bodyid[i] == mjBodyId) {
-              siteId = i;
-              break;
-          }
-      }
-      if (siteId >= 0) {
-          int forceId = -1;
-          int torqueId = -1;
-          for (int i = 0; i < this->model->nsensor; ++i) {
-              if (this->model->sensor_objtype[i] == mjOBJ_SITE &&
-                  this->model->sensor_objid[i] == siteId) {
-                  if (this->model->sensor_type[i] == mjSENS_FORCE) {
-                      forceId = i;
-                  } else if (this->model->sensor_type[i] == mjSENS_TORQUE) {
-                      torqueId = i;
-                  }
-              }
-          }
-          if (forceId >= 0 && torqueId >= 0) {
-              int forceAdr = this->model->sensor_adr[forceId];
-              int torqueAdr = this->model->sensor_adr[torqueId];
-              
-              msgs::Wrench wrenchMsg;
-              auto *forceMsg = wrenchMsg.mutable_force();
-              forceMsg->set_x(this->data->sensordata[forceAdr]);
-              forceMsg->set_y(this->data->sensordata[forceAdr+1]);
-              forceMsg->set_z(this->data->sensordata[forceAdr+2]);
-              
-              auto *torqueMsg = wrenchMsg.mutable_torque();
-              torqueMsg->set_x(this->data->sensordata[torqueAdr]);
-              torqueMsg->set_y(this->data->sensordata[torqueAdr+1]);
-              torqueMsg->set_z(this->data->sensordata[torqueAdr+2]);
-              
-              auto wrenchComp = _ecm.Component<components::WrenchMeasured>(_entity);
-              if (wrenchComp) wrenchComp->Data() = wrenchMsg;
-              else _ecm.CreateComponent(_entity, components::WrenchMeasured(wrenchMsg));
-              
-              _ecm.SetChanged(_entity, components::WrenchMeasured::typeId, ComponentState::PeriodicChange);
-          }
-      }
-      return true;
-    });
+        int siteId = -1;
+        for (int i = 0; i < this->model->nsite; ++i) {
+            if (this->model->site_bodyid[i] == mjBodyId) {
+                siteId = i;
+                break;
+            }
+        }
+        if (siteId >= 0) {
+            int forceId = -1;
+            int torqueId = -1;
+            for (int i = 0; i < this->model->nsensor; ++i) {
+                if (this->model->sensor_objtype[i] == mjOBJ_SITE &&
+                    this->model->sensor_objid[i] == siteId) {
+                    if (this->model->sensor_type[i] == mjSENS_FORCE) {
+                        forceId = i;
+                    } else if (this->model->sensor_type[i] == mjSENS_TORQUE) {
+                        torqueId = i;
+                    }
+                }
+            }
+            if (forceId >= 0 && torqueId >= 0) {
+                int forceAdr = this->model->sensor_adr[forceId];
+                int torqueAdr = this->model->sensor_adr[torqueId];
+                
+                msgs::Wrench wrenchMsg;
+                auto *forceMsg = wrenchMsg.mutable_force();
+                forceMsg->set_x(this->data->sensordata[forceAdr]);
+                forceMsg->set_y(this->data->sensordata[forceAdr+1]);
+                forceMsg->set_z(this->data->sensordata[forceAdr+2]);
+                
+                auto *torqueMsg = wrenchMsg.mutable_torque();
+                torqueMsg->set_x(this->data->sensordata[torqueAdr]);
+                torqueMsg->set_y(this->data->sensordata[torqueAdr+1]);
+                torqueMsg->set_z(this->data->sensordata[torqueAdr+2]);
+                
+                auto wrenchComp = _ecm.Component<components::WrenchMeasured>(_entity);
+                if (wrenchComp) wrenchComp->Data() = wrenchMsg;
+                else _ecm.CreateComponent(_entity, components::WrenchMeasured(wrenchMsg));
+                
+                _ecm.SetChanged(_entity, components::WrenchMeasured::typeId, ComponentState::PeriodicChange);
+            }
+        }
+        return true;
+      });
+  }
 
   // Clear / reset components
-  std::vector<Entity> entitiesPositionReset;
-  _ecm.Each<components::JointPositionReset>(
-      [&](const Entity &_entity, components::JointPositionReset *) -> bool
-      {
-        entitiesPositionReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesPositionReset)
+  if (_ecm.HasComponentType(components::JointPositionReset::typeId))
   {
-    _ecm.RemoveComponent<components::JointPositionReset>(entity);
+    std::vector<Entity> entitiesPositionReset;
+    _ecm.Each<components::JointPositionReset>(
+        [&](const Entity &_entity, components::JointPositionReset *) -> bool
+        {
+          entitiesPositionReset.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesPositionReset)
+    {
+      _ecm.RemoveComponent<components::JointPositionReset>(entity);
+    }
   }
 
-  std::vector<Entity> entitiesVelocityReset;
-  _ecm.Each<components::JointVelocityReset>(
-      [&](const Entity &_entity, components::JointVelocityReset *) -> bool
-      {
-        entitiesVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesVelocityReset)
+  if (_ecm.HasComponentType(components::JointVelocityReset::typeId))
   {
-    _ecm.RemoveComponent<components::JointVelocityReset>(entity);
+    std::vector<Entity> entitiesVelocityReset;
+    _ecm.Each<components::JointVelocityReset>(
+        [&](const Entity &_entity, components::JointVelocityReset *) -> bool
+        {
+          entitiesVelocityReset.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesVelocityReset)
+    {
+      _ecm.RemoveComponent<components::JointVelocityReset>(entity);
+    }
   }
 
-  std::vector<Entity> entitiesLinearVelocityReset;
-  _ecm.Each<components::WorldLinearVelocityReset>(
-      [&](const Entity &_entity,
-      components::WorldLinearVelocityReset *) -> bool
-      {
-        entitiesLinearVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesLinearVelocityReset)
+  if (_ecm.HasComponentType(components::WorldLinearVelocityReset::typeId))
   {
-    _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
+    std::vector<Entity> entitiesLinearVelocityReset;
+    _ecm.Each<components::WorldLinearVelocityReset>(
+        [&](const Entity &_entity,
+        components::WorldLinearVelocityReset *) -> bool
+        {
+          entitiesLinearVelocityReset.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesLinearVelocityReset)
+    {
+      _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
+    }
   }
 
-  std::vector<Entity> entitiesAngularVelocityReset;
-  _ecm.Each<components::WorldAngularVelocityReset>(
-      [&](const Entity &_entity,
-      components::WorldAngularVelocityReset *) -> bool
-      {
-        entitiesAngularVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesAngularVelocityReset)
+  if (_ecm.HasComponentType(components::WorldAngularVelocityReset::typeId))
   {
-    _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
+    std::vector<Entity> entitiesAngularVelocityReset;
+    _ecm.Each<components::WorldAngularVelocityReset>(
+        [&](const Entity &_entity,
+        components::WorldAngularVelocityReset *) -> bool
+        {
+          entitiesAngularVelocityReset.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesAngularVelocityReset)
+    {
+      _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
+    }
   }
 
-  std::vector<Entity> entitiesCustomContactSurface;
-  _ecm.Each<components::EnableContactSurfaceCustomization>(
-      [&](const Entity &_entity,
-      components::EnableContactSurfaceCustomization *) -> bool
-      {
-        entitiesCustomContactSurface.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesCustomContactSurface)
+  if (_ecm.HasComponentType(components::EnableContactSurfaceCustomization::typeId))
   {
-    _ecm.RemoveComponent<components::EnableContactSurfaceCustomization>(entity);
+    std::vector<Entity> entitiesCustomContactSurface;
+    _ecm.Each<components::EnableContactSurfaceCustomization>(
+        [&](const Entity &_entity,
+        components::EnableContactSurfaceCustomization *) -> bool
+        {
+          entitiesCustomContactSurface.push_back(_entity);
+          return true;
+        });
+
+    for (const auto entity : entitiesCustomContactSurface)
+    {
+      _ecm.RemoveComponent<components::EnableContactSurfaceCustomization>(entity);
+    }
   }
 
   // Clear pending commands
-  _ecm.Each<components::JointForceCmd>(
-      [&](const Entity &, components::JointForceCmd *_force) -> bool
-      {
-        std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
-        return true;
-      });
+  if (_ecm.HasComponentType(components::JointForceCmd::typeId))
+  {
+    _ecm.Each<components::JointForceCmd>(
+        [&](const Entity &, components::JointForceCmd *_force) -> bool
+        {
+          std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
+          return true;
+        });
+  }
 
-  _ecm.Each<components::ExternalWorldWrenchCmd >(
-      [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
-      {
-        _wrench->Data().Clear();
-        return true;
-      });
+  if (_ecm.HasComponentType(components::ExternalWorldWrenchCmd::typeId))
+  {
+    _ecm.Each<components::ExternalWorldWrenchCmd >(
+        [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
+        {
+          _wrench->Data().Clear();
+          return true;
+        });
+  }
 
-  _ecm.Each<components::JointPositionLimitsCmd>(
-      [&](const Entity &, components::JointPositionLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
+  if (_ecm.HasComponentType(components::JointPositionLimitsCmd::typeId))
+  {
+    _ecm.Each<components::JointPositionLimitsCmd>(
+        [&](const Entity &, components::JointPositionLimitsCmd *_limits) -> bool
+        {
+          _limits->Data().clear();
+          return true;
+        });
+  }
 
-  _ecm.Each<components::JointVelocityLimitsCmd>(
-      [&](const Entity &, components::JointVelocityLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
+  if (_ecm.HasComponentType(components::JointVelocityLimitsCmd::typeId))
+  {
+    _ecm.Each<components::JointVelocityLimitsCmd>(
+        [&](const Entity &, components::JointVelocityLimitsCmd *_limits) -> bool
+        {
+          _limits->Data().clear();
+          return true;
+        });
+  }
 
-  _ecm.Each<components::JointEffortLimitsCmd>(
-      [&](const Entity &, components::JointEffortLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
+  if (_ecm.HasComponentType(components::JointEffortLimitsCmd::typeId))
+  {
+    _ecm.Each<components::JointEffortLimitsCmd>(
+        [&](const Entity &, components::JointEffortLimitsCmd *_limits) -> bool
+        {
+          _limits->Data().clear();
+          return true;
+        });
+  }
 
+  if (_ecm.HasComponentType(components::JointVelocityCmd::typeId))
   {
     std::vector<Entity> entitiesJointVelocityCmd;
     _ecm.Each<components::JointVelocityCmd>(
@@ -1538,6 +1566,7 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     }
   }
 
+  if (_ecm.HasComponentType(components::AngularVelocityCmd::typeId))
   {
     std::vector<Entity> entitiesAngularVelocityCmd;
     _ecm.Each<components::AngularVelocityCmd>(
@@ -1553,6 +1582,7 @@ void MujocoPhysics::UpdateSim(const UpdateInfo &_info, EntityComponentManager &_
     }
   }
 
+  if (_ecm.HasComponentType(components::LinearVelocityCmd::typeId))
   {
     std::vector<Entity> entitiesLinearVelocityCmd;
     _ecm.Each<components::LinearVelocityCmd>(
