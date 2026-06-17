@@ -40,7 +40,7 @@ jobs:
 
   publish:
     needs: extract_tag_prefix
-    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.0.0
+    uses: bazel-contrib/publish-to-bcr/.github/workflows/publish.yaml@v1.4.1
     with:
       tag_name: ${{ needs.extract_tag_prefix.outputs.tag_name }}
       # GitHub repository which is a fork of the upstream where the Pull Request will be opened.
