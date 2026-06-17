@@ -451,19 +451,22 @@ void SimulationRunner::UpdatePhysicsParams()
   }
   const auto& physicsParams = physicsCmdComp->Data();
 
-  auto gravityComp =
-    this->entityCompMgr.Component<components::Gravity>(worldEntity);
-  if (gravityComp)
+  if(physicsParams.has_gravity())
   {
-    const  gz::math::Vector3<double>  newGravity =
+    auto gravityComp =
+      this->entityCompMgr.Component<components::Gravity>(worldEntity);
+    if (gravityComp)
     {
-        physicsParams.gravity().x(),
-        physicsParams.gravity().y(),
-        physicsParams.gravity().z()
-    };
-    gravityComp->Data() = newGravity;
-    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
-          ComponentState::OneTimeChange);
+      const  gz::math::Vector3<double>  newGravity =
+      {
+          physicsParams.gravity().x(),
+          physicsParams.gravity().y(),
+          physicsParams.gravity().z()
+      };
+      gravityComp->Data() = newGravity;
+      this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+            ComponentState::OneTimeChange);
+    }
   }
 
   auto physicsComp =
