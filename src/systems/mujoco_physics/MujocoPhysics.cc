@@ -130,14 +130,29 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     return;
 
   bool specChanged = false;
+  std::unordered_map<Entity, mjsBody*> entityToMujocoBody;
+
+  this->CreateModels(_ecm, specChanged, entityToMujocoBody);
+  this->CreateCollisions(_ecm, specChanged, entityToMujocoBody);
+  this->CreateJoints(_ecm, specChanged, entityToMujocoBody);
+  this->CreateSensors(_ecm, specChanged, entityToMujocoBody);
+
+  if (specChanged)
+  {
+    mj_recompile(this->spec, nullptr, this->model, this->data);
+    this->PostRecompileSetup(_ecm);
+  }
+}
+
+void MujocoPhysics::CreateModels(EntityComponentManager &_ecm,
+                                 bool &_specChanged,
+                                 std::unordered_map<Entity, mjsBody*> &_entityToMujocoBody)
+{
   mjsBody* worldBody = mjs_findBody(this->spec, "world");
   if (!worldBody) {
     gzerr << "worldBody is null! Try looking for worldbody or default\n";
-    // We will just pass nullptr as parent if it's null, which might attach to root
   }
 
-  std::unordered_map<Entity, mjsBody*> entityToMujocoBody;
-  
   std::vector<std::pair<Entity, std::string>> newModels;
   _ecm.EachNew<components::Model, components::Name>(
     [&](const Entity &_entity, const components::Model *, const components::Name *_nameComp) -> bool
@@ -220,7 +235,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
       if (newBody)
       {
         mjs_setName(newBody->element, bodyName.c_str());
-        entityToMujocoBody[rootLink] = newBody;
+        _entityToMujocoBody[rootLink] = newBody;
         math::Pose3d wPose = gz::sim::worldPose(rootLink, _ecm);
         newBody->pos[0] = wPose.Pos().X();
         newBody->pos[1] = wPose.Pos().Y();
@@ -229,7 +244,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         newBody->quat[1] = wPose.Rot().X();
         newBody->quat[2] = wPose.Rot().Y();
         newBody->quat[3] = wPose.Rot().Z();
-        specChanged = true;
+        _specChanged = true;
 
         auto inertialComp = _ecm.Component<components::Inertial>(rootLink);
         if (inertialComp)
@@ -292,7 +307,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         if (childBody)
         {
           mjs_setName(childBody->element, childBodyName.c_str());
-          entityToMujocoBody[childLink] = childBody;
+          _entityToMujocoBody[childLink] = childBody;
           
           math::Pose3d parentWorldPose = gz::sim::worldPose(parentLink, _ecm);
           math::Pose3d childWorldPose = gz::sim::worldPose(childLink, _ecm);
@@ -305,7 +320,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           childBody->quat[1] = relativePose.Rot().X();
           childBody->quat[2] = relativePose.Rot().Y();
           childBody->quat[3] = relativePose.Rot().Z();
-          specChanged = true;
+          _specChanged = true;
           
           auto inertialComp = _ecm.Component<components::Inertial>(childLink);
           if (inertialComp)
@@ -340,9 +355,9 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     {
       Entity canonicalLink = canonicalLinkComp->Data();
       mjsBody* canonBody = nullptr;
-      if (entityToMujocoBody.find(canonicalLink) != entityToMujocoBody.end())
+      if (_entityToMujocoBody.find(canonicalLink) != _entityToMujocoBody.end())
       {
-        canonBody = entityToMujocoBody[canonicalLink];
+        canonBody = _entityToMujocoBody[canonicalLink];
       }
       else
       {
@@ -368,10 +383,17 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
         modelSite->quat[1] = modelFromLink.Rot().X();
         modelSite->quat[2] = modelFromLink.Rot().Y();
         modelSite->quat[3] = modelFromLink.Rot().Z();
-        specChanged = true;
+        _specChanged = true;
       }
     }
   }
+}
+
+void MujocoPhysics::CreateCollisions(EntityComponentManager &_ecm,
+                                     bool &_specChanged,
+                                     const std::unordered_map<Entity, mjsBody*> &_entityToMujocoBody)
+{
+  mjsBody* worldBody = mjs_findBody(this->spec, "world");
 
   _ecm.EachNew<components::Collision, components::Name, components::ParentEntity>(
     [&](const Entity &entity, const components::Collision *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
@@ -384,8 +406,8 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
     std::string parentName = modelName + "::" + linkName;
     mjsBody *foundBody = nullptr;
-    if (entityToMujocoBody.find(parentComp->Data()) != entityToMujocoBody.end())
-      foundBody = entityToMujocoBody[parentComp->Data()];
+    if (_entityToMujocoBody.find(parentComp->Data()) != _entityToMujocoBody.end())
+      foundBody = _entityToMujocoBody.at(parentComp->Data());
     else
       foundBody = mjs_findBody(this->spec, parentName.c_str());
 
@@ -532,11 +554,16 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
             break;
         }
       }
-      specChanged = true;
+      _specChanged = true;
     }
     return true;
   });
+}
 
+void MujocoPhysics::CreateJoints(EntityComponentManager &_ecm,
+                                 bool &_specChanged,
+                                 const std::unordered_map<Entity, mjsBody*> &_entityToMujocoBody)
+{
   _ecm.EachNew<components::Joint, components::Name, components::JointType,
                components::ParentEntity, components::ChildLinkName>(
       [&](const Entity &entity,
@@ -558,8 +585,8 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
     std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
     std::string childName = modelName + "::" + childLinkNameComp->Data();
       mjsBody* childBody = nullptr;
-      if (entityToMujocoBody.find(childLinkEntity) != entityToMujocoBody.end())
-        childBody = entityToMujocoBody[childLinkEntity];
+      if (_entityToMujocoBody.find(childLinkEntity) != _entityToMujocoBody.end())
+        childBody = _entityToMujocoBody.at(childLinkEntity);
       else
         childBody = mjs_findBody(this->spec, childName.c_str());
 
@@ -651,13 +678,18 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
             mjs_setString(actuator->target, mjJointName.c_str());
           }
 
-          specChanged = true;
+          _specChanged = true;
         }
       }
     }
     return true;
   });
+}
 
+void MujocoPhysics::CreateSensors(EntityComponentManager &_ecm,
+                                 bool &_specChanged,
+                                 const std::unordered_map<Entity, mjsBody*> &_entityToMujocoBody)
+{
   _ecm.EachNew<components::Imu, components::ParentEntity>(
     [&](const Entity &_entity, const components::Imu *, const components::ParentEntity *parentComp) -> bool
     {
@@ -670,8 +702,8 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
           std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
           std::string fullLinkName = modelName + "::" + linkName;
           mjsBody* muBody = nullptr;
-          if (entityToMujocoBody.find(parentLink) != entityToMujocoBody.end())
-            muBody = entityToMujocoBody[parentLink];
+          if (_entityToMujocoBody.find(parentLink) != _entityToMujocoBody.end())
+            muBody = _entityToMujocoBody.at(parentLink);
           else
             muBody = mjs_findBody(this->spec, fullLinkName.c_str());
 
@@ -685,7 +717,7 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
               auto *gyroSensor = mjs_addSensor(this->spec);
               gyroSensor->type = mjSENS_GYRO;
               gyroSensor->objtype = mjOBJ_SITE;
-              specChanged = true;
+              _specChanged = true;
           }
       }
       return true;
@@ -708,8 +740,8 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
                   std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
                   std::string fullLinkName = modelName + "::" + linkName;
                   mjsBody* muBody = nullptr;
-                  if (entityToMujocoBody.find(childLinkEntity) != entityToMujocoBody.end())
-                    muBody = entityToMujocoBody[childLinkEntity];
+                  if (_entityToMujocoBody.find(childLinkEntity) != _entityToMujocoBody.end())
+                    muBody = _entityToMujocoBody.at(childLinkEntity);
                   else
                     muBody = mjs_findBody(this->spec, fullLinkName.c_str());
 
@@ -723,118 +755,115 @@ void MujocoPhysics::CreatePhysicsEntities(EntityComponentManager &_ecm)
                       auto *torqueSensor = mjs_addSensor(this->spec);
                       torqueSensor->type = mjSENS_TORQUE;
                       torqueSensor->objtype = mjOBJ_SITE;
-                      specChanged = true;
+                      _specChanged = true;
                   }
               }
           }
       }
       return true;
     });
+}
 
-  if (specChanged)
-  {
-    mj_recompile(this->spec, nullptr, this->model, this->data);
-    // mj_saveXML(this->spec, "/tmp/mujoco_model.xml", nullptr, 0);
-
-    _ecm.Each<components::Link, components::Name, components::ParentEntity>(
-      [&](const Entity &_entity, const components::Link *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+void MujocoPhysics::PostRecompileSetup(EntityComponentManager &_ecm)
+{
+  _ecm.Each<components::Link, components::Name, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Link *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+    {
+      auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
+      std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
+      std::string bodyName = modelName + "::" + nameComp->Data();
+      int id = mj_name2id(this->model, mjOBJ_BODY, bodyName.c_str());
+      if (id >= 0)
       {
-        auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
-        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
-        std::string bodyName = modelName + "::" + nameComp->Data();
-        int id = mj_name2id(this->model, mjOBJ_BODY, bodyName.c_str());
-        if (id >= 0)
-        {
-          _ecm.SetComponentData<MujocoBodyId>(_entity, id);
-        }
-        return true;
-      });
+        _ecm.SetComponentData<MujocoBodyId>(_entity, id);
+      }
+      return true;
+    });
 
-    _ecm.Each<components::Collision, components::Name, components::ParentEntity>(
-      [&](const Entity &_entity, const components::Collision *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+  _ecm.Each<components::Collision, components::Name, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Collision *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+    {
+      auto linkNameComp = _ecm.Component<components::Name>(parentComp->Data());
+      std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentComp->Data());
+      Entity modelEntity = _ecm.ParentEntity(parentComp->Data());
+      auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
+      std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
+      std::string geomName = modelName + "::" + linkName + "::" + nameComp->Data();
+      int id = mj_name2id(this->model, mjOBJ_GEOM, geomName.c_str());
+      if (id >= 0)
       {
-        auto linkNameComp = _ecm.Component<components::Name>(parentComp->Data());
-        std::string linkName = linkNameComp ? linkNameComp->Data() : std::to_string(parentComp->Data());
-        Entity modelEntity = _ecm.ParentEntity(parentComp->Data());
-        auto modelNameComp = _ecm.Component<components::Name>(modelEntity);
-        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(modelEntity);
-        std::string geomName = modelName + "::" + linkName + "::" + nameComp->Data();
-        int id = mj_name2id(this->model, mjOBJ_GEOM, geomName.c_str());
-        if (id >= 0)
-        {
-          _ecm.SetComponentData<MujocoGeomId>(_entity, id);
-        }
-        return true;
-      });
+        _ecm.SetComponentData<MujocoGeomId>(_entity, id);
+      }
+      return true;
+    });
 
-    _ecm.Each<components::Joint, components::Name, components::ParentEntity>(
-      [&](const Entity &_entity, const components::Joint *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+  _ecm.Each<components::Joint, components::Name, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Joint *, const components::Name *nameComp, const components::ParentEntity *parentComp) -> bool
+    {
+      auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
+      std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
+      std::string jointName = modelName + "::" + nameComp->Data();
+      int id = mj_name2id(this->model, mjOBJ_JOINT, jointName.c_str());
+      if (id >= 0)
       {
-        auto modelNameComp = _ecm.Component<components::Name>(parentComp->Data());
-        std::string modelName = modelNameComp ? modelNameComp->Data() : std::to_string(parentComp->Data());
-        std::string jointName = modelName + "::" + nameComp->Data();
-        int id = mj_name2id(this->model, mjOBJ_JOINT, jointName.c_str());
-        if (id >= 0)
-        {
-          _ecm.SetComponentData<MujocoJointId>(_entity, id);
-        }
+        _ecm.SetComponentData<MujocoJointId>(_entity, id);
+      }
 
-        int actId = -1;
-        for (int i = 0; i < this->model->nu; ++i) {
-            if (this->model->actuator_trntype[i] == mjTRN_JOINT &&
-                this->model->actuator_trnid[i * 2] == id) {
-                actId = i;
-                break;
-            }
-        }
-        if (actId >= 0)
-        {
-          _ecm.SetComponentData<MujocoActuatorId>(_entity, actId);
-        }
-        return true;
-      });
-
-    _ecm.EachNew<components::Model, components::Name, components::ModelCanonicalLink>(
-      [&](const Entity &_entity, const components::Model *, const components::Name *nameComp, const components::ModelCanonicalLink *) -> bool
+      int actId = -1;
+      for (int i = 0; i < this->model->nu; ++i) {
+          if (this->model->actuator_trntype[i] == mjTRN_JOINT &&
+              this->model->actuator_trnid[i * 2] == id) {
+              actId = i;
+              break;
+          }
+      }
+      if (actId >= 0)
       {
-        std::string modelName = nameComp ? nameComp->Data() : std::to_string(_entity);
-        std::string siteName = modelName + "::model_frame";
-        int id = mj_name2id(this->model, mjOBJ_SITE, siteName.c_str());
-        if (id >= 0)
-        {
-          _ecm.SetComponentData<MujocoModelSiteId>(_entity, id);
-        }
-        return true;
-      });
+        _ecm.SetComponentData<MujocoActuatorId>(_entity, actId);
+      }
+      return true;
+    });
 
-    _ecm.Each<components::Model, components::ParentEntity>(
-      [&](const Entity &_entity, const components::Model *, const components::ParentEntity *parentComp) -> bool
+  _ecm.EachNew<components::Model, components::Name, components::ModelCanonicalLink>(
+    [&](const Entity &_entity, const components::Model *, const components::Name *nameComp, const components::ModelCanonicalLink *) -> bool
+    {
+      std::string modelName = nameComp ? nameComp->Data() : std::to_string(_entity);
+      std::string siteName = modelName + "::model_frame";
+      int id = mj_name2id(this->model, mjOBJ_SITE, siteName.c_str());
+      if (id >= 0)
       {
-         Entity parent = parentComp->Data();
-         auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
-         if (siteComp) {
-             _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
-         } else {
-             _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
-         }
-         _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
-         return true;
-      });
+        _ecm.SetComponentData<MujocoModelSiteId>(_entity, id);
+      }
+      return true;
+    });
 
-    _ecm.Each<components::Link, components::ParentEntity>(
-      [&](const Entity &_entity, const components::Link *, const components::ParentEntity *parentComp) -> bool
-      {
-         Entity parent = parentComp->Data();
-         auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
-         if (siteComp) {
-             _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
-         } else {
-             _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
-         }
-         _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
-         return true;
-      });
-  }
+  _ecm.Each<components::Model, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Model *, const components::ParentEntity *parentComp) -> bool
+    {
+       Entity parent = parentComp->Data();
+       auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
+       if (siteComp) {
+           _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
+       } else {
+           _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
+       }
+       _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
+       return true;
+    });
+
+  _ecm.Each<components::Link, components::ParentEntity>(
+    [&](const Entity &_entity, const components::Link *, const components::ParentEntity *parentComp) -> bool
+    {
+       Entity parent = parentComp->Data();
+       auto siteComp = _ecm.Component<MujocoModelSiteId>(parent);
+       if (siteComp) {
+           _ecm.SetComponentData<MujocoParentSiteId>(_entity, siteComp->Data());
+       } else {
+           _ecm.SetComponentData<MujocoParentSiteId>(_entity, -1);
+       }
+       _ecm.SetComponentData<MujocoParentHasPose>(_entity, _ecm.Component<components::Pose>(parent) != nullptr);
+       return true;
+    });
 }
 
 void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
@@ -842,6 +871,34 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
   if (!this->model || !this->data)
     return;
 
+  this->ApplyPoseAndVelocityCmds(_ecm);
+  this->ApplyJointAndLinkCmds(_ecm);
+}
+
+int MujocoPhysics::FindFreeJoint(Entity _canonicalLinkEntity, const EntityComponentManager &_ecm) const
+{
+  auto bodyIdComp = _ecm.Component<MujocoBodyId>(_canonicalLinkEntity);
+  if (!bodyIdComp || !this->model)
+    return -1;
+
+  int bodyId = bodyIdComp->Data();
+  if (bodyId > 0 && bodyId < this->model->nbody)
+  {
+    int jntAdr = this->model->body_jntadr[bodyId];
+    int jntNum = this->model->body_jntnum[bodyId];
+    for (int i = 0; i < jntNum; ++i)
+    {
+      if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
+      {
+        return jntAdr + i;
+      }
+    }
+  }
+  return -1;
+}
+
+void MujocoPhysics::ApplyPoseAndVelocityCmds(EntityComponentManager &_ecm)
+{
   if (_ecm.HasComponentType(components::WorldPoseCmd::typeId))
   {
     // Process WorldPoseCmd
@@ -862,35 +919,17 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
             return true;
 
           Entity canonicalLinkEntity = _canonLink->Data();
-          auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
-          if (bodyIdComp)
+          int freeJntId = this->FindFreeJoint(canonicalLinkEntity, _ecm);
+          if (freeJntId >= 0)
           {
-            int bodyId = bodyIdComp->Data();
-            if (bodyId > 0 && bodyId < this->model->nbody)
-            {
-              int jntAdr = this->model->body_jntadr[bodyId];
-              int jntNum = this->model->body_jntnum[bodyId];
-              int freeJntId = -1;
-              for (int i = 0; i < jntNum; ++i)
-              {
-                if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
-                {
-                  freeJntId = jntAdr + i;
-                  break;
-                }
-              }
-              if (freeJntId >= 0)
-              {
-                int qposAdr = this->model->jnt_qposadr[freeJntId];
-                this->data->qpos[qposAdr + 0] = worldPoseCmd.Pos().X();
-                this->data->qpos[qposAdr + 1] = worldPoseCmd.Pos().Y();
-                this->data->qpos[qposAdr + 2] = worldPoseCmd.Pos().Z();
-                this->data->qpos[qposAdr + 3] = worldPoseCmd.Rot().W();
-                this->data->qpos[qposAdr + 4] = worldPoseCmd.Rot().X();
-                this->data->qpos[qposAdr + 5] = worldPoseCmd.Rot().Y();
-                this->data->qpos[qposAdr + 6] = worldPoseCmd.Rot().Z();
-              }
-            }
+            int qposAdr = this->model->jnt_qposadr[freeJntId];
+            this->data->qpos[qposAdr + 0] = worldPoseCmd.Pos().X();
+            this->data->qpos[qposAdr + 1] = worldPoseCmd.Pos().Y();
+            this->data->qpos[qposAdr + 2] = worldPoseCmd.Pos().Z();
+            this->data->qpos[qposAdr + 3] = worldPoseCmd.Rot().W();
+            this->data->qpos[qposAdr + 4] = worldPoseCmd.Rot().X();
+            this->data->qpos[qposAdr + 5] = worldPoseCmd.Rot().Y();
+            this->data->qpos[qposAdr + 6] = worldPoseCmd.Rot().Z();
           }
           return true;
         });
@@ -903,80 +942,47 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
 
   if (_ecm.HasComponentType(components::LinearVelocityCmd::typeId))
   {
-  // Process LinearVelocityCmd
-  _ecm.Each<components::Model, components::LinearVelocityCmd, components::ModelCanonicalLink>(
-    [&](const Entity &, const components::Model *, const components::LinearVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
-    {
-      math::Vector3d velCmd = _velCmd->Data();
-      Entity canonicalLinkEntity = _canonLink->Data();
-      auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
-      if (bodyIdComp)
+    // Process LinearVelocityCmd
+    _ecm.Each<components::Model, components::LinearVelocityCmd, components::ModelCanonicalLink>(
+      [&](const Entity &, const components::Model *, const components::LinearVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
       {
-        int bodyId = bodyIdComp->Data();
-        if (bodyId > 0 && bodyId < this->model->nbody)
+        math::Vector3d velCmd = _velCmd->Data();
+        Entity canonicalLinkEntity = _canonLink->Data();
+        int freeJntId = this->FindFreeJoint(canonicalLinkEntity, _ecm);
+        if (freeJntId >= 0)
         {
-          int jntAdr = this->model->body_jntadr[bodyId];
-          int jntNum = this->model->body_jntnum[bodyId];
-          int freeJntId = -1;
-          for (int i = 0; i < jntNum; ++i)
-          {
-            if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
-            {
-              freeJntId = jntAdr + i;
-              break;
-            }
-          }
-          if (freeJntId >= 0)
-          {
-            int dofAdr = this->model->jnt_dofadr[freeJntId];
-            this->data->qvel[dofAdr + 0] = velCmd.X();
-            this->data->qvel[dofAdr + 1] = velCmd.Y();
-            this->data->qvel[dofAdr + 2] = velCmd.Z();
-          }
+          int dofAdr = this->model->jnt_dofadr[freeJntId];
+          this->data->qvel[dofAdr + 0] = velCmd.X();
+          this->data->qvel[dofAdr + 1] = velCmd.Y();
+          this->data->qvel[dofAdr + 2] = velCmd.Z();
         }
-      }
-      return true;
-    });
+        return true;
+      });
   }
 
   // Process AngularVelocityCmd
   if (_ecm.HasComponentType(components::AngularVelocityCmd::typeId))
   {
-  _ecm.Each<components::Model, components::AngularVelocityCmd, components::ModelCanonicalLink>(
-    [&](const Entity &, const components::Model *, const components::AngularVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
-    {
-      math::Vector3d velCmd = _velCmd->Data();
-      Entity canonicalLinkEntity = _canonLink->Data();
-      auto bodyIdComp = _ecm.Component<MujocoBodyId>(canonicalLinkEntity);
-      if (bodyIdComp)
+    _ecm.Each<components::Model, components::AngularVelocityCmd, components::ModelCanonicalLink>(
+      [&](const Entity &, const components::Model *, const components::AngularVelocityCmd *_velCmd, const components::ModelCanonicalLink *_canonLink) -> bool
       {
-        int bodyId = bodyIdComp->Data();
-        if (bodyId > 0 && bodyId < this->model->nbody)
+        math::Vector3d velCmd = _velCmd->Data();
+        Entity canonicalLinkEntity = _canonLink->Data();
+        int freeJntId = this->FindFreeJoint(canonicalLinkEntity, _ecm);
+        if (freeJntId >= 0)
         {
-          int jntAdr = this->model->body_jntadr[bodyId];
-          int jntNum = this->model->body_jntnum[bodyId];
-          int freeJntId = -1;
-          for (int i = 0; i < jntNum; ++i)
-          {
-            if (this->model->jnt_type[jntAdr + i] == mjJNT_FREE)
-            {
-              freeJntId = jntAdr + i;
-              break;
-            }
-          }
-          if (freeJntId >= 0)
-          {
-            int dofAdr = this->model->jnt_dofadr[freeJntId];
-            this->data->qvel[dofAdr + 3] = velCmd.X();
-            this->data->qvel[dofAdr + 4] = velCmd.Y();
-            this->data->qvel[dofAdr + 5] = velCmd.Z();
-          }
+          int dofAdr = this->model->jnt_dofadr[freeJntId];
+          this->data->qvel[dofAdr + 3] = velCmd.X();
+          this->data->qvel[dofAdr + 4] = velCmd.Y();
+          this->data->qvel[dofAdr + 5] = velCmd.Z();
         }
-      }
-      return true;
-    });
+        return true;
+      });
   }
+}
 
+void MujocoPhysics::ApplyJointAndLinkCmds(EntityComponentManager &_ecm)
+{
   // Clear actuator controls
   if (this->model->nu > 0)
   {
@@ -987,23 +993,23 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
 
   if (_ecm.HasComponentType(components::JointVelocityCmd::typeId))
   {
-  // Apply JointForceCmd and JointVelocityCmd
-  _ecm.Each<components::Joint, MujocoActuatorId, components::JointVelocityCmd>(
-      [&](const Entity &entity, const components::Joint *,
-          const MujocoActuatorId *_actuatorIdComp,
-          const components::JointVelocityCmd *_velCmd) -> bool
-      {
-        int actId = _actuatorIdComp->Data();
-        if (actId >= 0 && actId < this->model->nu)
+    // Apply JointForceCmd and JointVelocityCmd
+    _ecm.Each<components::Joint, MujocoActuatorId, components::JointVelocityCmd>(
+        [&](const Entity &entity, const components::Joint *,
+            const MujocoActuatorId *_actuatorIdComp,
+            const components::JointVelocityCmd *_velCmd) -> bool
         {
-          if (!_velCmd->Data().empty())
+          int actId = _actuatorIdComp->Data();
+          if (actId >= 0 && actId < this->model->nu)
           {
-            this->data->ctrl[actId] = _velCmd->Data()[0];
+            if (!_velCmd->Data().empty())
+            {
+              this->data->ctrl[actId] = _velCmd->Data()[0];
+            }
           }
-        }
 
-        return true;
-      });
+          return true;
+        });
   }
 
   if (_ecm.HasComponentType(components::JointForceCmd::typeId))
@@ -1025,6 +1031,7 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         });
   }
+
   // Clear applied forces
   std::fill(this->data->xfrc_applied,
             this->data->xfrc_applied + 6 * this->model->nbody,
@@ -1032,26 +1039,26 @@ void MujocoPhysics::UpdatePhysics(EntityComponentManager &_ecm)
 
   if (_ecm.HasComponentType(components::ExternalWorldWrenchCmd::typeId))
   {
-  // Apply ExternalWorldWrenchCmd
-  _ecm.Each<components::Link, MujocoBodyId, components::ExternalWorldWrenchCmd>(
-    [&](const Entity &,
-        const components::Link *,
-        const MujocoBodyId *_bodyIdComp,
-        const components::ExternalWorldWrenchCmd *_wrenchComp) -> bool
-    {
-      int mjBodyId = _bodyIdComp->Data();
-      if (mjBodyId > 0 && mjBodyId < this->model->nbody)
+    // Apply ExternalWorldWrenchCmd
+    _ecm.Each<components::Link, MujocoBodyId, components::ExternalWorldWrenchCmd>(
+      [&](const Entity &,
+          const components::Link *,
+          const MujocoBodyId *_bodyIdComp,
+          const components::ExternalWorldWrenchCmd *_wrenchComp) -> bool
       {
-        auto wrench = _wrenchComp->Data();
-        this->data->xfrc_applied[6 * mjBodyId + 0] += wrench.force().x();
-        this->data->xfrc_applied[6 * mjBodyId + 1] += wrench.force().y();
-        this->data->xfrc_applied[6 * mjBodyId + 2] += wrench.force().z();
-        this->data->xfrc_applied[6 * mjBodyId + 3] += wrench.torque().x();
-        this->data->xfrc_applied[6 * mjBodyId + 4] += wrench.torque().y();
-        this->data->xfrc_applied[6 * mjBodyId + 5] += wrench.torque().z();
-      }
-      return true;
-    });
+        int mjBodyId = _bodyIdComp->Data();
+        if (mjBodyId > 0 && mjBodyId < this->model->nbody)
+        {
+          auto wrench = _wrenchComp->Data();
+          this->data->xfrc_applied[6 * mjBodyId + 0] += wrench.force().x();
+          this->data->xfrc_applied[6 * mjBodyId + 1] += wrench.force().y();
+          this->data->xfrc_applied[6 * mjBodyId + 2] += wrench.force().z();
+          this->data->xfrc_applied[6 * mjBodyId + 3] += wrench.torque().x();
+          this->data->xfrc_applied[6 * mjBodyId + 4] += wrench.torque().y();
+          this->data->xfrc_applied[6 * mjBodyId + 5] += wrench.torque().z();
+        }
+        return true;
+      });
   }
 }
 
