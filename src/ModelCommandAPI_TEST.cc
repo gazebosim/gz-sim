@@ -20,6 +20,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
+#include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
@@ -28,6 +29,32 @@
 static const std::string kIgnModelCommand(
     std::string(BREW_RUBY) + std::string(IGN_PATH) + "/ign model ");
 
+
+class ModelCommandAPI : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    // Save previous partition to restore it later
+    char *prevPartition = std::getenv("GZ_PARTITION");
+    if (prevPartition) {
+      this->oldPartition = prevPartition;
+    }
+
+    // Generate unique partition for this test
+    this->partition = gz::common::uuid();
+    gz::common::setenv("GZ_PARTITION", this->partition);
+  }
+
+  void TearDown() override {
+    if (this->oldPartition.empty()) {
+      gz::common::unsetenv("GZ_PARTITION");
+    } else {
+      gz::common::setenv("GZ_PARTITION", this->oldPartition);
+    }
+  }
+
+  std::string oldPartition;
+  std::string partition;
+};
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
@@ -74,7 +101,7 @@ std::string customExecStr(std::string _cmd)
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -87,7 +114,7 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 
 /////////////////////////////////////////////////
 // Tests `ign model` command.
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
+TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -393,7 +420,7 @@ TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an airpressure sensor.
-TEST(ModelCommandAPI, AirPressureSensor)
+TEST_F(ModelCommandAPI, AirPressureSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -436,7 +463,7 @@ TEST(ModelCommandAPI, AirPressureSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an altimeter.
-TEST(ModelCommandAPI, AltimeterSensor)
+TEST_F(ModelCommandAPI, AltimeterSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -486,7 +513,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with a gpu lidar sensor.
-TEST(ModelCommandAPI, GpuLidarSensor)
+TEST_F(ModelCommandAPI, GpuLidarSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -542,7 +569,7 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with a magnetometer.
-TEST(ModelCommandAPI, MagnetometerSensor)
+TEST_F(ModelCommandAPI, MagnetometerSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -601,7 +628,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
 /////////////////////////////////////////////////
 // Tests `ign model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
