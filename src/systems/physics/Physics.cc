@@ -876,6 +876,9 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Cached physics output, to reduce allocations / deallocations
+  physics::ForwardStep::Output stepOutput;
 };
 
 //////////////////////////////////////////////////
@@ -3513,16 +3516,15 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
   GZ_PROFILE("PhysicsPrivate::Step");
   physics::ForwardStep::Input input;
   physics::ForwardStep::State state;
-  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(output, state, input);
+    world.second->Step(this->stepOutput, state, input);
   }
 
-  return output;
+  return this->stepOutput;
 }
 
 //////////////////////////////////////////////////
