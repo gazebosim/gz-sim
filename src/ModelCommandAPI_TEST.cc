@@ -56,6 +56,32 @@ class ModelCommandAPI : public ::testing::Test {
   std::string partition;
 };
 
+class ModelCommandAPI : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    // Save previous partition to restore it later
+    char *prevPartition = std::getenv("GZ_PARTITION");
+    if (prevPartition) {
+      this->oldPartition = prevPartition;
+    }
+
+    // Generate unique partition for this test
+    this->partition = gz::common::uuid();
+    gz::common::setenv("GZ_PARTITION", this->partition);
+  }
+
+  void TearDown() override {
+    if (this->oldPartition.empty()) {
+      gz::common::unsetenv("GZ_PARTITION");
+    } else {
+      gz::common::setenv("GZ_PARTITION", this->oldPartition);
+    }
+  }
+
+  std::string oldPartition;
+  std::string partition;
+};
+
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
 /// represented as a negative number.
@@ -99,9 +125,15 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Test `ign model` command when no Gazebo server is running.
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+=======
+// Test `gz model` command when no Gazebo server is running.
+// See https://github.com/gazebosim/gz-sim/issues/1175
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 {
   const std::string cmd = kIgnModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -113,8 +145,13 @@ TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model` command.
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
+=======
+// Tests `gz model` command.
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -419,7 +456,11 @@ TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model -s` command with an airpressure sensor.
+=======
+// Tests `gz model -s` command with an airpressure sensor.
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 TEST_F(ModelCommandAPI, AirPressureSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -462,7 +503,11 @@ TEST_F(ModelCommandAPI, AirPressureSensor)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model -s` command with an altimeter.
+=======
+// Tests `gz model -s` command with an altimeter.
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 TEST_F(ModelCommandAPI, AltimeterSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -512,7 +557,11 @@ TEST_F(ModelCommandAPI, AltimeterSensor)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model -s` command with a gpu lidar sensor.
+=======
+// Tests `gz model -s` command with a gpu lidar sensor.
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 TEST_F(ModelCommandAPI, GpuLidarSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -568,7 +617,11 @@ TEST_F(ModelCommandAPI, GpuLidarSensor)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model -s` command with a magnetometer.
+=======
+// Tests `gz model -s` command with a magnetometer.
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 TEST_F(ModelCommandAPI, MagnetometerSensor)
 {
   ignition::gazebo::ServerConfig serverConfig;
@@ -627,8 +680,13 @@ TEST_F(ModelCommandAPI, MagnetometerSensor)
 }
 
 /////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 // Tests `ign model -s` command with an rgbd camera.
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+=======
+// Tests `gz model -s` command with an rgbd camera.
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 {
   ignition::gazebo::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -698,7 +756,13 @@ TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD:src/ModelCommandAPI_TEST.cc
 int main(int argc, char **argv)
+=======
+/// \brief Check --help message and bash completion script for consistent flags
+TEST_F(ModelCommandAPI,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
+>>>>>>> 3ae82bab (Implement an isolation layer for `ModelCommand_API` tests (#3683)):src/cmd/ModelCommandAPI_TEST.cc
 {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
