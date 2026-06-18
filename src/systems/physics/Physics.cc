@@ -17,6 +17,8 @@
 
 #include "Physics.hh"
 
+#include <google/protobuf/arena.h>
+
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 #include <gz/msgs/entity.pb.h>
@@ -4613,11 +4615,20 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        msgs::Contacts contactsComp;
+        google::protobuf::Arena arena;
+
+        msgs::Contacts *contactsComp{
+        #if GOOGLE_PROTOBUF_VERSION >= 4022000
+            google::protobuf::Arena::Create<msgs::Contacts>(&arena)
+        #else
+            google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)
+        #endif
+        };
+
         if (entityContactMap.find(_collEntity1) == entityContactMap.end())
         {
           // Clear the last contact data
-          auto state = _contacts->SetData(contactsComp,
+          auto state = _contacts->SetData(*contactsComp,
             this->contactsEql) ?
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
@@ -4630,7 +4641,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = contactsComp.add_contact();
+          msgs::Contact *contactMsg = contactsComp->add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -4676,7 +4687,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           }
         }
 
-        auto state = _contacts->SetData(contactsComp,
+        auto state = _contacts->SetData(*contactsComp,
           this->contactsEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
