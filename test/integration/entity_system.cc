@@ -149,7 +149,7 @@ class EntitySystemTest : public InternalFixture<::testing::TestWithParam<int>>
     server.Run(true, 1000, false);
     for (unsigned int i = 1; i < poses.size(); ++i)
     {
-      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X());
+      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X()) << "i=" << i;
     }
   }
 };
