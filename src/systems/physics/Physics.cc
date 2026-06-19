@@ -109,6 +109,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
@@ -393,6 +394,14 @@ class gz::sim::systems::PhysicsPrivate
   /// be deleted the following iteration.
   public: std::unordered_set<Entity> staticCmdsToRemove;
 
+  /// \brief Entities whose collide bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> collideBitmaskCmdsToRemove;
+
+  /// \brief Entities whose category bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> categoryBitmaskCmdsToRemove;
+
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
@@ -587,7 +596,8 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list to filter collisions with bitmasks.
   public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature,
+          physics::CategoryFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
@@ -2266,6 +2276,78 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Update Collision Bitmasks
+  auto olderCollideBitmaskCmdsToRemove =
+      std::move(this->collideBitmaskCmdsToRemove);
+  this->collideBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CollideBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->collideBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collide bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCollideBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollideBitmaskCmd>(entity);
+  }
+
+  // Update Category Bitmasks
+  auto olderCategoryBitmaskCmdsToRemove =
+      std::move(this->categoryBitmaskCmdsToRemove);
+  this->categoryBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CategoryBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->categoryBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCategoryFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set category bitmasks, but the physics "
+                   << "engine doesn't support feature [CategoryFilterMask]. "
+                   << "Category bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCategoryBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
+  }
+
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
       [&](const Entity &_entity, const components::Joint *,
@@ -3210,6 +3292,8 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
   this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
