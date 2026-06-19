@@ -881,6 +881,9 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   physics::ForwardStep::Output stepOutput;
+
+  /// \brief Arena for contact message allocation
+  public: google::protobuf::Arena contactsArena;
 };
 
 //////////////////////////////////////////////////
@@ -4615,13 +4618,11 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        google::protobuf::Arena arena;
-
         msgs::Contacts *contactsComp{
         #if GOOGLE_PROTOBUF_VERSION >= 4022000
-            google::protobuf::Arena::Create<msgs::Contacts>(&arena)
+            google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
         #else
-            google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)
+            google::protobuf::Arena::CreateMessage<msgs::Contacts>(&this->contactsArena)
         #endif
         };
 
@@ -4696,6 +4697,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         return true;
       });
+  this->contactsArena.Reset();
 }
 
 //////////////////////////////////////////////////
