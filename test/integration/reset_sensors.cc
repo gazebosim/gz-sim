@@ -92,7 +92,7 @@ common::Image toImage(const msgs::Image &_msg)
 /////////////////////////////////////////////////
 /// This test checks that that air-pressure and camera sensor systems
 /// handle Reset events
-TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
+TEST_F(ResetFixture, HandleReset)
 {
   // This test fails on Github Actions. Skip it for now.
   // Note: The GITHUB_ACTIONS environment variable is automatically set when
