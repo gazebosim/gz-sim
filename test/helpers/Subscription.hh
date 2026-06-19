@@ -41,6 +41,20 @@ class Subscription
   /// \brief Default constructor.
   public: Subscription() = default;
 
+  /// \brief Destructor. Unsubscribes from the topic before this object is
+  /// destroyed so that the transport's asynchronous delivery thread cannot
+  /// invoke OnMessage() on an already-destroyed instance. Node::Unsubscribe
+  /// removes the handler and drains any in-flight callback, which prevents a
+  /// use-after-free on the members below (e.g. messageHistory) when messages
+  /// are still being delivered at teardown.
+  public: ~Subscription()
+  {
+    if (this->subscribed)
+    {
+      this->node->Unsubscribe(this->topicName);
+    }
+  }
+
   /// \brief Subscribe to a topic.
   /// \param[in] _node Node to use to subscribe.
   /// \param[in] _topicName Name of the topic to subscribe.
@@ -62,6 +76,8 @@ class Subscription
     {
       throw std::runtime_error("Cannot subscribe to " + _topicName);
     }
+    this->node = &_node;
+    this->topicName = _topicName;
     this->messageHistoryDepth = _messageHistoryDepth;
     this->subscribed = true;
   }
@@ -176,6 +192,13 @@ class Subscription
     }
     this->messageArrival.notify_all();
   }
+
+  /// \brief Node used to subscribe, needed to unsubscribe on destruction.
+  /// Not owned; must outlive this object (the standard transport contract).
+  private: transport::Node *node{nullptr};
+
+  /// \brief Name of the subscribed topic, needed to unsubscribe.
+  private: std::string topicName;
 
   /// \brief Flag to indicate if topic is subscribed or not
   private: bool subscribed{false};
