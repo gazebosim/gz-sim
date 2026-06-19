@@ -56,7 +56,11 @@ class Subscription
   }
 
   /// \brief Subscribe to a topic.
-  /// \param[in] _node Node to use to subscribe.
+  /// \param[in] _node Node to use to subscribe. It must outlive this
+  /// Subscription: the destructor unsubscribes through this node, so the
+  /// node has to still be alive when the Subscription is destroyed.
+  /// Declare the node before the Subscription so the latter is destroyed
+  /// first.
   /// \param[in] _topicName Name of the topic to subscribe.
   /// \param[in] _messageHistoryDepth Maximum size for
   /// message history buffer. Buffer grows indefinitely
