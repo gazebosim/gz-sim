@@ -20,10 +20,13 @@
 #include <vector>
 
 #include <gz/common/Util.hh>
+#include <gz/sim/components/Collision.hh>
+#include <gz/sim/components/ContactSensorData.hh>
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
 
 #include "test_config.hh"
+#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -46,6 +49,54 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
   {
     _st.PauseTiming();
     sim::Server server(serverConfig); // Add system from plugin
+    // Wait for simulation to stabilize before timing
+    server.Run(true, stabilizingSteps, false);
+    _st.ResumeTiming();
+    server.Run(true, 1000, false);
+  }
+}
+
+void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_engine,
+                             const std::string &_world_sdf)
+{
+  auto stabilizingSteps = _st.range(0);
+
+  std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
+  common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
+  ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+                                            "test/worlds/", _world_sdf));
+  serverConfig.SetPhysicsEngine(_physics_engine);
+
+  // Instantiate the relay helper
+  test::Relay relaySystem;
+  // Register a callback to access the ECM in PreUpdate
+  relaySystem.OnPreUpdate([&](const sim::UpdateInfo &/*_info*/,
+                              sim::EntityComponentManager &_ecm)
+  {
+    // Iterate over all Collision entities
+    _ecm.Each<components::Collision>(
+      [&](const Entity &_entity, const components::Collision *) -> bool
+      {
+        // Check if ContactSensorData has already been created
+        if (_ecm.EntityHasComponentType(_entity,
+              components::ContactSensorData::typeId))
+        {
+          return true;
+        }
+        // Enable collision by creating the ContactSensorData component.
+        _ecm.CreateComponent(_entity, components::ContactSensorData());
+        return true;
+      });
+  });
+
+  for (auto _ : _st)
+  {
+    _st.PauseTiming();
+    sim::Server server(serverConfig);
+    // Add the relay system to the server before running
+    server.AddSystem(relaySystem.systemPtr);
     // Wait for simulation to stabilize before timing
     server.Run(true, stabilizingSteps, false);
     _st.ResumeTiming();
@@ -103,6 +154,35 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "3k_shapes.sdf")
+    ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+/* Benchmark runtime with contacts performance on bullet-featherstone physics engine */
+// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_shapes_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "shapes.sdf")
+    ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_gpu_lidar_sensor_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "gpu_lidar_sensor.sdf")
+    ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_breadcrumbs_sdf,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "breadcrumbs.sdf")
+    ->Arg(10000)
+    ->Unit(benchmark::kMillisecond);
+
+// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(10000)
