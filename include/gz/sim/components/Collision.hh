@@ -60,6 +60,17 @@ namespace components
   GZ_SIM_REGISTER_COMPONENT(
     "gz_sim_components.EnableContactSurfaceCustomization",
     EnableContactSurfaceCustomization)
+
+  /// \brief Store the collision enabled flag.
+  using CollisionEnabled = Component<bool, class CollisionEnabledTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.CollisionEnabled", CollisionEnabled)
+
+  /// \brief A component that contains a bool command to change the collision
+  /// state of an entity.
+  using CollisionEnabledCmd = Component<bool, class CollisionEnabledCmdTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.CollisionEnabledCmd", CollisionEnabledCmd)
 }
 }
 }
