@@ -21,6 +21,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
@@ -285,4 +286,37 @@ TEST(ModelTest, Static)
   // Set command (updates component)
   model.SetStatic(ecm, false);
   EXPECT_FALSE(cmd->Data());
+}
+
+/////////////////////////////////////////////////
+TEST(ModelTest, CollisionEnabled)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto modelEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelEntity, gz::sim::components::Model());
+
+  gz::sim::Model model(modelEntity);
+
+  // Verify no collision enabled component
+  EXPECT_FALSE(model.CollisionEnabled(ecm).has_value());
+
+  // Populate component
+  ecm.CreateComponent(modelEntity,
+      gz::sim::components::CollisionEnabled(true));
+  EXPECT_TRUE(model.CollisionEnabled(ecm).has_value());
+  EXPECT_TRUE(model.CollisionEnabled(ecm).value());
+
+  // Set command (creates component)
+  EXPECT_EQ(nullptr,
+      ecm.Component<gz::sim::components::CollisionEnabledCmd>(modelEntity));
+  model.SetCollisionEnabled(ecm, false);
+  auto cmd =
+      ecm.Component<gz::sim::components::CollisionEnabledCmd>(modelEntity);
+  ASSERT_NE(nullptr, cmd);
+  EXPECT_FALSE(cmd->Data());
+
+  // Set command (updates component)
+  model.SetCollisionEnabled(ecm, true);
+  EXPECT_TRUE(cmd->Data());
 }
