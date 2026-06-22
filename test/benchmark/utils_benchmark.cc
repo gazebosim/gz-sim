@@ -92,15 +92,15 @@ void BM_ScopedName(benchmark::State &_st, const std::string &_entityType)
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_ScopedName, sensor, "sensor")
-    ->Arg(1000)
-    ->Unit(benchmark::kMillisecond);
+    ->Arg(1)
+    ->Unit(benchmark::kNanosecond);
 
 BENCHMARK_CAPTURE(BM_ScopedName, projector, "projector")
-    ->Arg(1000)
-    ->Unit(benchmark::kMillisecond);
+    ->Arg(1)
+    ->Unit(benchmark::kNanosecond);
 
 BENCHMARK_CAPTURE(BM_ScopedName, model, "model")
-    ->Arg(1000)
-    ->Unit(benchmark::kMillisecond);
+    ->Arg(1)
+    ->Unit(benchmark::kNanosecond);
 
 BENCHMARK_MAIN();
