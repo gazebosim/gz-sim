@@ -1306,6 +1306,4 @@ void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
   // TODO(louise) Figure out a way to avoid duplication while keeping all
   // state in components and also keeping a convenient graph in the ECM
   this->dataPtr->ecm->SetParentEntity(_child, _parent);
-  this->dataPtr->ecm->CreateComponent(_child,
-      components::ParentEntity(_parent));
 }
