@@ -2877,7 +2877,7 @@ TEST_P(EntityComponentManagerFixture,
 
   // clone the topLevelEntity
   auto clonedTopLevelEntity =
-    manager.Clone(topLevelEntity, kNullEntity, "", std::nullopt, allowRename);
+    manager.Clone(topLevelEntity, kNullEntity, "", "", allowRename);
   EXPECT_EQ(8u, manager.EntityCount());
   clonedEntities.insert(clonedTopLevelEntity);
   validateTopLevelClone(clonedTopLevelEntity);
@@ -2980,7 +2980,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_NE(kNullEntity,
       manager.EntityByComponents(components::Name(existingName)));
   auto renamedClonedEntity = manager.Clone(grandChildEntity1,
-      grandChildParentComp->Data(), existingName, std::nullopt, allowRename);
+      grandChildParentComp->Data(), existingName, "", allowRename);
   EXPECT_EQ(10u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
   validateGrandChildClone(renamedClonedEntity, true, true);
@@ -2988,7 +2988,7 @@ TEST_P(EntityComponentManagerFixture,
   // Try cloning an entity with a name that already exists, without allowing
   // renaming. This should fail since entities should have unique names.
   auto failedClonedEntity = manager.Clone(grandChildEntity1,
-      grandChildParentComp->Data(), existingName, std::nullopt, noAllowRename);
+      grandChildParentComp->Data(), existingName, "", noAllowRename);
   EXPECT_EQ(10u, manager.EntityCount());
   EXPECT_EQ(kNullEntity, failedClonedEntity);
 
@@ -3024,7 +3024,7 @@ TEST_P(EntityComponentManagerFixture,
 
   // clone a joint that has a parent and child link.
   auto clonedParentModelEntity = manager.Clone(parentModelEntity, kNullEntity,
-      "", std::nullopt, true);
+      "", "", true);
   ASSERT_NE(kNullEntity, clonedParentModelEntity);
   // We just cloned a model with two links and a joint, a total of 4 new
   // entities.
@@ -3076,7 +3076,7 @@ TEST_P(EntityComponentManagerFixture,
 
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
-        std::nullopt, allowRename));
+        "", allowRename));
   EXPECT_EQ(18u, manager.EntityCount());
 }
 

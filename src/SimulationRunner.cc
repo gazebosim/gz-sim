@@ -1466,7 +1466,7 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
     {
       // set allowRenaming to false so the entities keep their original name
       Entity clonedEntity = this->entityCompMgr.Clone(ent,
-         parentComp->Data(), nameComp->Data(), std::nullopt, false);
+         parentComp->Data(), nameComp->Data(), "", false);
 
       // remove the Recreate component so they do not get recreated again in the
       // next iteration

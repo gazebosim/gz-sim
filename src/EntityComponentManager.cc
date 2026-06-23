@@ -28,7 +28,6 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <optional>
 
 #include <gz/common/Profiler.hh>
 #include <gz/math/graph/GraphAlgorithms.hh>
@@ -397,7 +396,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
-    const std::string &_name, const std::optional<std::string> &_ns,
+    const std::string &_name, const std::string &_ns,
     bool _allowRename)
 {
   // Clear maps so they're populated for the entity being cloned
@@ -459,7 +458,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, const std::optional<std::string> &_ns,
+    const std::string &_name, const std::string &_ns,
     bool _allowRename)
 {
   auto uniqueNameGenerated = false;
@@ -534,20 +533,18 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
-  if (nullptr != this->Component<components::Namespace>(_entity))
+  auto originalNsComp = this->Component<components::Namespace>(_entity);
+  if (nullptr != originalNsComp)
   {
     std::string ns;
-    if (_ns.has_value())
+    if (!_ns.empty())
     {
-      ns = _ns.value();
+      ns = _ns;
     }
     else
     {
-      // If the namespace is not provided, use the original entity's namespace
-      // if it exists. Otherwise, use an empty string as the namespace for the
-      // cloned entity.
-      auto originalNsComp = this->Component<components::Namespace>(_entity);
-      ns = originalNsComp ? originalNsComp->Data() : "";
+      // If the namespace is not provided, use the original entity's namespace.
+      ns = originalNsComp->Data();
     }
     this->CreateComponent(clonedEntity, components::Namespace(ns));
   }
@@ -667,7 +664,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     }
 
     auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
-        std::nullopt, _allowRename);
+        "", _allowRename);
     if (kNullEntity == clonedChild)
     {
       gzerr << "Cloning child entity [" << childEntity << "] failed.\n";

@@ -192,7 +192,8 @@ bool hasNamespace(const EntityComponentManager &_ecm)
 
   for ( const auto &entity : entities)
   {
-    if (_ecm.Component<components::Namespace>(entity.first))
+    const auto ns = _ecm.Component<components::Namespace>(entity.first);
+    if (ns && !ns->Data().empty())
       return true;
   }
   return false;

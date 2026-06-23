@@ -20,7 +20,6 @@
 #include "UserCommands.hh"
 #include <chrono>
 #include <future>
-#include <optional>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -191,9 +190,9 @@ class CreateCommand : public UserCommandBase
 
   /// \brief Actual implementation that creates entities from message.
   /// \param[in] Factory message that specifies the entity to create.
-  /// \param[in] _ns Optional namespace to apply to the created entity.
+  /// \param[in] _ns Namespace to apply to the created entity.
   private: bool CreateFromMsg(const msgs::EntityFactory &_createMsg,
-      const std::optional<std::string> &_ns = std::nullopt);
+      const std::string &_ns);
 
   /// \brief Actual implementation that creates entities from message.
   /// \param[in] Factory message that specifies the entity to create.
@@ -871,7 +870,7 @@ bool CreateCommand::Execute()
 {
   if (auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg))
   {
-    return this->CreateFromMsg(*createMsg);
+    return this->CreateFromMsg(*createMsg, "");
   }
   else if (auto createMsgV = dynamic_cast<const msgs::EntityFactory_V *>(this->msg))
   {
@@ -879,7 +878,7 @@ bool CreateCommand::Execute()
     bool result = true;
     for (const auto &msgItem : createMsgV->data())
     {
-      result = result && this->CreateFromMsg(msgItem);
+      result = result && this->CreateFromMsg(msgItem, "");
     }
     return result;
   }
@@ -905,7 +904,7 @@ bool CreateCommand::Execute()
 
 //////////////////////////////////////////////////
 bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
-  const std::optional<std::string> &_ns)
+  const std::string &_ns)
 {
   // Load SDF
   sdf::Root root;
@@ -1076,9 +1075,9 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
   {
     auto model = *root.Model();
     model.SetName(desiredName);
-    if (_ns.has_value())
+    if (!_ns.empty())
     {
-      model.SetRawNamespace(_ns.value());
+      model.SetRawNamespace(_ns);
     }
     entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
@@ -1177,13 +1176,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
   msgs::EntityFactory baseMsg;
   baseMsg.ParseFromString(_createMsg.SerializeAsString());
 
-  std::optional<std::string> ns = std::nullopt;
-  if(_createMsg.has_namespace_())
-  {
-    ns = _createMsg.namespace_().data();
-  }
-
-  return this->CreateFromMsg(baseMsg, ns);
+  return this->CreateFromMsg(baseMsg, _createMsg.namespace_());
 }
 
 //////////////////////////////////////////////////

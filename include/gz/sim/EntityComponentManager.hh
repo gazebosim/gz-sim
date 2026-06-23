@@ -31,7 +31,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <optional>
 
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
@@ -119,8 +118,7 @@ namespace gz
       /// cloned.
       /// \sa Clone
       public: Entity Clone(Entity _entity, Entity _parent,
-                  const std::string &_name,
-                  const std::optional<std::string> &_ns,
+                  const std::string &_name, const std::string &_ns,
                   bool _allowRename);
 
       /// \brief Get the number of entities on the server.
@@ -382,8 +380,7 @@ namespace gz
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
       private: Entity CloneImpl(Entity _entity, Entity _parent,
-                  const std::string &_name,
-                  const std::optional<std::string> &_ns,
+                  const std::string &_name, const std::string &_ns,
                   bool _allowRename);
 
       /// \brief A version of Each() that doesn't use a cache. The cached
