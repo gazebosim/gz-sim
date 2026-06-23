@@ -110,6 +110,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
@@ -394,9 +395,21 @@ class gz::sim::systems::PhysicsPrivate
   /// be deleted the following iteration.
   public: std::unordered_set<Entity> staticCmdsToRemove;
 
+  /// \brief Entities whose collide bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> collideBitmaskCmdsToRemove;
+
+  /// \brief Entities whose category bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> categoryBitmaskCmdsToRemove;
+
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
 
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
@@ -603,7 +616,8 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list to filter collisions with bitmasks.
   public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature,
+          physics::CategoryFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
@@ -632,6 +646,13 @@ class gz::sim::systems::PhysicsPrivate
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Collision Enabled
+  /// \brief Feature list for enabling and disabling model collisions.
+  public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelCollisionEnabled>{};
 
   //////////////////////////////////////////////////
   // Link Bounding box
@@ -765,7 +786,8 @@ class gz::sim::systems::PhysicsPrivate
             ConstructSdfLinkFeatureList,
             ConstructSdfJointFeatureList,
             StaticStateFeatureList,
-            GravityEnabledFeatureList>;
+            GravityEnabledFeatureList,
+            ModelCollisionEnabledFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -854,6 +876,9 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Cached physics output, to reduce allocations / deallocations
+  physics::ForwardStep::Output stepOutput;
 };
 
 //////////////////////////////////////////////////
@@ -2293,6 +2318,78 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+  // Update Collision Bitmasks
+  auto olderCollideBitmaskCmdsToRemove =
+      std::move(this->collideBitmaskCmdsToRemove);
+  this->collideBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CollideBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->collideBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collide bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCollideBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollideBitmaskCmd>(entity);
+  }
+
+  // Update Category Bitmasks
+  auto olderCategoryBitmaskCmdsToRemove =
+      std::move(this->categoryBitmaskCmdsToRemove);
+  this->categoryBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CategoryBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->categoryBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCategoryFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set category bitmasks, but the physics "
+                   << "engine doesn't support feature [CategoryFilterMask]. "
+                   << "Category bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCategoryBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
+  }
+
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
       [&](const Entity &_entity, const components::Joint *,
@@ -2779,6 +2876,73 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
   }
 
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+    std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelCollisionEnabledFeature =
+          this->entityModelMap.EntityCast<ModelCollisionEnabledFeatureList>(
+            _entity);
+
+        if (!modelCollisionEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collision enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelCollisionEnabled]. Collision state won't be "
+                   << "populated. " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelCollisionEnabledFeature->SetCollisionEnabled(
+            _collisionEnabledCmd->Data());
+
+        // Reflect the applied state in the CollisionEnabled component so
+        // queries via Model::CollisionEnabled() return the latest value.
+        auto stateComp =
+            _ecm.Component<components::CollisionEnabled>(_entity);
+        if (stateComp == nullptr)
+        {
+          _ecm.CreateComponent(_entity,
+              components::CollisionEnabled(_collisionEnabledCmd->Data()));
+        }
+        else
+        {
+          stateComp->SetData(_collisionEnabledCmd->Data(),
+              [](const bool &, const bool &){return false;});
+          _ecm.SetChanged(_entity,
+              components::CollisionEnabled::typeId,
+              ComponentState::OneTimeChange);
+        }
+        return true;
+      });
+
+  // Remove collision enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
+
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
   this->worldPoseCmdsToRemove.clear();
@@ -3237,7 +3401,10 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
   this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -3359,16 +3526,15 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
   GZ_PROFILE("PhysicsPrivate::Step");
   physics::ForwardStep::Input input;
   physics::ForwardStep::State state;
-  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(output, state, input);
+    world.second->Step(this->stepOutput, state, input);
   }
 
-  return output;
+  return this->stepOutput;
 }
 
 //////////////////////////////////////////////////
