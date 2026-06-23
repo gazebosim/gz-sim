@@ -28,7 +28,9 @@
 using namespace gz::sim;
 
 namespace {
-  void WaitForNumPeers(const PeerTracker& tracker, size_t expected, int timeoutMs = 2000) {
+  void WaitForNumPeers(const PeerTracker& tracker,
+                size_t expected, int timeoutMs = 2000) {
+
     int elapsed = 0;
     while (tracker.NumPeers() != expected && elapsed < timeoutMs) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -37,7 +39,9 @@ namespace {
     EXPECT_EQ(expected, tracker.NumPeers());
   }
 
-  void WaitForPeersCount(const std::atomic<int>& peers, int expected, int timeoutMs = 2000) {
+  void WaitForPeersCount(const std::atomic<int>& peers,
+                  int expected, int timeoutMs = 2000) {
+
     int elapsed = 0;
     while (peers != expected && elapsed < timeoutMs) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
