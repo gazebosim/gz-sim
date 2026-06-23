@@ -317,6 +317,13 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
+  // Rebuild component storage by cloning every component from `_from`.
+  // \warning This destroys the existing component objects and replaces them
+  // with freshly allocated clones at new addresses. Any raw component pointer
+  // handed out earlier (Component(), ComponentImplementation(), ...) is left
+  // dangling by this loop and must be re-fetched by callers afterwards.
+  // Holding such a pointer across CopyFrom()/ResetTo() and dereferencing it is
+  // undefined behavior (see gazebosim/gz-sim#3635).
   for (const auto &[entity, comps] : _from.componentStorage)
   {
     this->componentStorage[entity].clear();
@@ -636,7 +643,10 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     if (!_allowRename)
     {
       auto nameComp = this->Component<components::Name>(childEntity);
-      name = nameComp->Data();
+      if (nameComp)
+      {
+        name = nameComp->Data();
+      }
     }
     auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
         _allowRename);
@@ -1190,8 +1200,20 @@ bool EntityComponentManager::CreateComponentImplementation(
 
       for (auto &viewPair : this->dataPtr->views)
       {
-        viewPair.second.first->NotifyComponentAddition(_entity,
-            this->IsNewEntity(_entity), _componentTypeId);
+        auto &view = viewPair.second.first;
+        // There are two cases to handle here:
+        // 1. Entity is associated with this view. Call
+        //    `NotifyComponentAddition` to update the cached component data.
+        // 2. Entity is not associated with this view yet. This can happen
+        //    if the entity was in `toAddEntities`, but removed before
+        //    processing because `NotifyComponentRemoval` was called.
+        //    Call `MarkEntityToAdd` to add the entity again to the view.
+        if (this->EntityMatches(_entity, view->ComponentTypes()) &&
+            !view->NotifyComponentAddition(_entity,
+                this->IsNewEntity(_entity), _componentTypeId))
+        {
+          view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
+        }
       }
     }
   }
@@ -2329,6 +2351,9 @@ void EntityComponentManager::ApplyEntityDiff(
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
+  // \warning The final CopyFrom() below rebuilds the component storage, so any
+  // raw component pointer obtained before this call is invalidated. Callers
+  // must re-fetch components after a reset (see gazebosim/gz-sim#3635).
   auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
   tmpCopy.CopyFrom(_other);

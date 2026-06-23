@@ -47,7 +47,7 @@ using namespace systems;
 class gz::sim::systems::TouchPluginPrivate
 {
   // Initialize the plugin
-  public: void Load(const EntityComponentManager &_ecm,
+  public: void Load(EntityComponentManager &_ecm,
                     const sdf::ElementPtr &_sdf);
 
   /// \brief Actual function that enables the plugin.
@@ -117,6 +117,12 @@ class gz::sim::systems::TouchPluginPrivate
   /// \brief Mutex for variables mutated by the service callback.
   /// The variables are: touchPub, touchStart, enabled
   public: std::mutex serviceMutex;
+
+  /// \brief Automatically create contact sensor for a collision
+  /// if the sensor is not available. A collision has a contact sensor
+  /// if it has the ContactSensorData component, so auto create the
+  /// component for the collision if the parameter is true.
+  public: bool createContactSensorForCollision{false};
 };
 
 //////////////////////////////////////////////////
@@ -127,7 +133,7 @@ void TouchPlugin::Reset(const gz::sim::UpdateInfo &/*_info*/,
 }
 
 //////////////////////////////////////////////////
-void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
+void TouchPluginPrivate::Load(EntityComponentManager &_ecm,
                          const sdf::ElementPtr &_sdf)
 {
   // Get target substring
@@ -162,6 +168,31 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
     }
   }
 
+  this->createContactSensorForCollision =
+    _sdf->Get<bool>("create_contact_sensor_for_collision",
+                    this->createContactSensorForCollision).first;
+
+  auto addContactSensorCollision =
+      [this, &_ecm] (Entity _colEntity)
+      {
+        // If the collision has ContactSensorData component, i.e.
+        // it already has a contact sensor, add the collision
+        if (_ecm.EntityHasComponentType(_colEntity,
+            components::ContactSensorData::typeId))
+        {
+          this->collisionEntities.push_back(_colEntity);
+          return true;
+        }
+        // Otherwise auto create a contact sensor for it if the
+        // create_contact_sensor_for_collision parameter is set to true
+        else if (this->createContactSensorForCollision)
+        {
+          _ecm.CreateComponent(_colEntity, components::ContactSensorData());
+          this->collisionEntities.push_back(_colEntity);
+          return true;
+        }
+        return false;
+      };
 
   std::vector<Entity> colEntities;
   // Create a list of collision entities that have been marked as contact
@@ -175,77 +206,73 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
         _ecm.ChildrenByComponents(linkEntity, components::Collision());
     for (const Entity colEntity : linkCollisions)
     {
-      if (_ecm.EntityHasComponentType(colEntity,
-                                      components::ContactSensorData::typeId))
+      // if no <collision> elements specified, add all collisions that
+      // have a ContactSensorData component
+      if (collisionNames.empty())
       {
-        colEntities.push_back(colEntity);
+        addContactSensorCollision(colEntity);
       }
-    }
-  }
-
-  // if no <collision> elements specified, add all collisions that
-  // have a ContactSensorData component
-  if (collisionNames.empty())
-  {
-    this->collisionEntities = std::move(colEntities);
-  }
-  // Otherwise add only collisions that have a ContactSensorData component
-  // and match the specified name
-  else
-  {
-    for (const auto& colName : collisionNames)
-    {
-      bool colFound = false;
-      for (const auto& colEntity : colEntities)
+      else
       {
-        // Try scoped name first
-        std::string colNameScoped = scopedName(colEntity, _ecm);
-        if (colName == colNameScoped)
+        // Otherwise add only collisions that match the specified name
+        bool colFound = false;
+        for (const auto& colName : collisionNames)
         {
-          this->collisionEntities.push_back(colEntity);
-          colFound = true;
-          break;
-        }
-        else
-        {
-          // Try unscoped name
-          std::string colNameUnscoped =
-              _ecm.Component<components::Name>(colEntity)->Data();
-          if (colName == colNameUnscoped)
+          // Try scoped name first
+          std::string colNameScoped = scopedName(colEntity, _ecm);
+          if (colName == colNameScoped)
           {
-            this->collisionEntities.push_back(colEntity);
             colFound = true;
+          }
+          else
+          {
+            // Try unscoped name
+            std::string colNameUnscoped =
+                _ecm.Component<components::Name>(colEntity)->Data();
+            if (colName == colNameUnscoped)
+            {
+              colFound = true;
+            }
+          }
+          if (colFound)
+          {
+            if (!addContactSensorCollision(colEntity))
+            {
+              gzerr << "Collision: " << colName << " found in model: "
+                    << this->model.Name(_ecm) << " but contact sensor "
+                    << "for this collisions is not available."
+                    << std::endl;
+            }
             break;
           }
         }
-      }
-      if (!colFound)
-      {
-        gzerr << "Unable to find the specified contact sensor collision: "
-              << colName << " in model: " << this->model.Name(_ecm)
-              << std::endl;
       }
     }
   }
 
   if (this->collisionEntities.empty())
   {
-    gzerr << "No contact sensor collisions found in parent model." << std::endl;
+    gzerr << "No contact sensor collisions found in parent model: "
+          << this->model.Name(_ecm) << std::endl;
     return;
   }
 
+  std::string nsParam;
   // Namespace
-  if (!_sdf->HasElement("namespace"))
+  if (_sdf->HasElement("namespace"))
   {
-    gzerr << "Missing required parameter <namespace>" << std::endl;
-    return;
+    nsParam = "/" + _sdf->Get<std::string>("namespace");
   }
-  this->ns = transport::TopicUtils::AsValidTopic(_sdf->Get<std::string>(
-      "namespace"));
+  else
+  {
+    nsParam = topicFromScopedName(this->model.Entity(), _ecm, true) + "/touch";
+    gzmsg << "No namespace specified for TouchPlugin, defaulting to " <<
+      nsParam << std::endl;
+  }
+  this->ns = transport::TopicUtils::AsValidTopic(nsParam);
   if (this->ns.empty())
   {
-    gzerr << "<namespace> [" << _sdf->Get<std::string>("namespace")
-           << "] is invalid." << std::endl;
+    gzerr << "<namespace> [" << nsParam << "] is invalid." << std::endl;
     return;
   }
 
@@ -259,7 +286,7 @@ void TouchPluginPrivate::Load(const EntityComponentManager &_ecm,
   this->targetTime = DurationType(_sdf->Get<double>("time"));
 
   // Start/stop "service"
-  std::string enableService{"/" + this->ns + "/enable"};
+  std::string enableService{this->ns + "/enable"};
   std::function<void(const msgs::Boolean &)> enableCb =
       [this](const msgs::Boolean &_req)
       {
@@ -286,7 +313,7 @@ void TouchPluginPrivate::Enable(const bool _value)
   {
     if (!this->touchedPub.has_value()){
       this->touchedPub = this->node.Advertise<msgs::Boolean>(
-          "/" + this->ns + "/touched");
+          this->ns + "/touched");
     }
 
     this->touchStart = DurationType::zero();

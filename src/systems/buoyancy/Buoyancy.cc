@@ -79,8 +79,7 @@ class gz::sim::systems::BuoyancyPrivate
 
   /// \brief Get the resultant buoyant force on a shape.
   /// \param[in] _pose World pose of the shape's origin.
-  /// \param[in] _shape The collision mesh of a shape. Currently must
-  /// be box or sphere.
+  /// \param[in] _shape The collision shape.
   /// \param[in] _gravity Gravity acceleration in the world frame.
   /// Updates this->buoyancyForces containing {force, center_of_volume} to be
   /// applied on the link.
@@ -160,6 +159,10 @@ class gz::sim::systems::BuoyancyPrivate
 
   /// \brief Volumes to be added on the next.
   public: std::unordered_map<Entity, double> volumes;
+
+  /// \brief Force a one-time full rescan after reset because reset does not
+  /// mark restored entities as "new".
+  public: bool rescanEntities {false};
 };
 
 //////////////////////////////////////////////////
@@ -196,6 +199,14 @@ void BuoyancyPrivate::GradedFluidDensity(
     if (!cov.has_value())
     {
       prevLayerFluidDensity = currFluidDensity;
+      continue;
+    }
+
+    // Skip layer if no additional volume
+    if (std::abs(vol - prevLayerVol) < 1e-10)
+    {
+      prevLayerFluidDensity = currFluidDensity;
+      prevLayerVol = vol;
       continue;
     }
 
@@ -272,8 +283,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
 //////////////////////////////////////////////////
 void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 {
-  // Compute the volume and center of volume for each new link
-  _ecm.EachNew<components::Link, components::Inertial>(
+  auto checkEntity =
       [&](const Entity &_entity,
           const components::Link *,
           const components::Inertial *) -> bool
@@ -326,6 +336,15 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
         case sdf::GeometryType::CYLINDER:
           volume = coll->Data().Geom()->CylinderShape()->Shape().Volume();
           break;
+        case sdf::GeometryType::CAPSULE:
+          volume = coll->Data().Geom()->CapsuleShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::ELLIPSOID:
+          volume = coll->Data().Geom()->EllipsoidShape()->Shape().Volume();
+          break;
+        case sdf::GeometryType::CONE:
+          volume = coll->Data().Geom()->ConeShape()->Shape().Volume();
+          break;
         case sdf::GeometryType::PLANE:
           // Ignore plane shapes. They have no volume and are not expected
           // to be buoyant.
@@ -370,7 +389,19 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
     }
 
     return true;
-  });
+  };
+
+  // Reset restores existing entities without making them "new", so buoyancy
+  // needs one full pass to restore Volume / CenterOfVolume components.
+  if (this->rescanEntities)
+  {
+    _ecm.Each<components::Link, components::Inertial>(checkEntity);
+    this->rescanEntities = false;
+  }
+  else
+  {
+    _ecm.EachNew<components::Link, components::Inertial>(checkEntity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -462,7 +493,7 @@ void Buoyancy::Configure(const Entity &_entity,
     this->dataPtr->buoyancyType =
       BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY;
 
-    auto gradedElement = _sdf->GetFirstElement();
+    auto gradedElement = _sdf->FindElement("graded_buoyancy");
     if (gradedElement == nullptr)
     {
       gzerr << "Unable to get element description" << std::endl;
@@ -497,6 +528,13 @@ void Buoyancy::Configure(const Entity &_entity,
           <<  density.first << std::endl;
       }
       argument = argument->GetNextElement();
+    }
+
+    if (this->dataPtr->layers.empty())
+    {
+      gzwarn << "No <density_change> elements in <graded_buoyancy>. "
+         << "Behaves as uniform buoyancy with density "
+         << this->dataPtr->fluidDensity << std::endl;
     }
   }
   else
@@ -608,13 +646,38 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
                 coll->Data().Geom()->SphereShape()->Shape(),
                 gravity->Data());
               break;
+            case sdf::GeometryType::CYLINDER:
+              this->dataPtr->GradedFluidDensity<math::Cylinderd>(
+                pose,
+                coll->Data().Geom()->CylinderShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::CAPSULE:
+              this->dataPtr->GradedFluidDensity<math::Capsuled>(
+                pose,
+                coll->Data().Geom()->CapsuleShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::ELLIPSOID:
+              this->dataPtr->GradedFluidDensity<math::Ellipsoidd>(
+                pose,
+                coll->Data().Geom()->EllipsoidShape()->Shape(),
+                gravity->Data());
+              break;
+            case sdf::GeometryType::CONE:
+              this->dataPtr->GradedFluidDensity<math::Coned>(
+                pose,
+                coll->Data().Geom()->ConeShape()->Shape(),
+                gravity->Data());
+              break;
             default:
             {
               static bool warned{false};
               if (!warned)
               {
-                gzwarn << "Only <box> and <sphere> collisions are supported "
-                  << "by the graded buoyancy option." << std::endl;
+                gzwarn << "Unsupported collision geometry for graded buoyancy["
+                  << static_cast<int>(coll->Data().Geom()->Type())
+                  << "]" << std::endl;
                 warned = true;
               }
               break;
@@ -640,6 +703,16 @@ void Buoyancy::PostUpdate(
 }
 
 //////////////////////////////////////////////////
+void Buoyancy::Reset(const UpdateInfo &,
+    EntityComponentManager &)
+{
+  this->dataPtr->centerOfVolumes.clear();
+  this->dataPtr->volumes.clear();
+  this->dataPtr->buoyancyForces.clear();
+  this->dataPtr->rescanEntities = true;
+}
+
+//////////////////////////////////////////////////
 bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
@@ -650,7 +723,8 @@ GZ_ADD_PLUGIN(Buoyancy,
                     System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate,
-                    Buoyancy::ISystemPostUpdate)
+                    Buoyancy::ISystemPostUpdate,
+                    Buoyancy::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")

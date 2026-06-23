@@ -59,7 +59,7 @@ std::string meshModelStr(bool _static = false)
   // is a mesh that comes pre-registered with MeshManager so
   // it should be able to load this as a mesh.
   // Similarly the user can create a common::Mesh object and add that
-  // to the MeshManager by calling MeshManager::Instance()->AddMesh;
+  // to the MeshManager by calling MeshManager::Instance()->CreateMesh;
   return std::string("<?xml version=\"1.0\" ?>") +
       "<sdf version='1.6'>" +
       "<model name='spawned_model'>" +

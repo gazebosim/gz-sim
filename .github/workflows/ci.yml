@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'ign-gazebo[0-9]'
-      - 'gz-sim[0-9]?'
+      - 'gz-sim[1-9]?[0-9]'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,
@@ -20,15 +20,16 @@ jobs:
     name: Ubuntu Noble CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
       - name: Compile and test
         id: ci
         uses: gazebo-tooling/action-gz-ci@noble
         with:
+          gzdev-project-name: rotary
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo'
 
   noble-ci-disable-gui:
@@ -36,12 +37,47 @@ jobs:
     name: Ubuntu Noble CI (GUI disabled)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
       - name: Compile and test
         id: ci
         uses: gazebo-tooling/action-gz-ci@noble
         with:
+          gzdev-project-name: rotary
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
+          cppcheck-enabled: true
+          cpplint-enabled: true
+          doxygen-enabled: true
+
+  resolute-ci:
+    runs-on: ubuntu-latest
+    name: Ubuntu Resolute CI
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@resolute
+        with:
+          gzdev-project-name: rotary
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+
+  resolute-ci-disable-gui:
+    runs-on: ubuntu-latest
+    name: Ubuntu Resolute CI (GUI disabled)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - uses: actions/setup-python@v3
+      - name: Compile and test
+        id: ci
+        uses: gazebo-tooling/action-gz-ci@resolute
+        with:
+          gzdev-project-name: rotary
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true

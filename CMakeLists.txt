@@ -156,6 +156,7 @@ gz_find_package(gz-sensors REQUIRED
     air_pressure
     air_speed
     altimeter
+    cpu_lidar
     imu
     force_torque
     logical_camera
@@ -281,20 +282,31 @@ configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim.desktop)
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo.svg)
 
+set(gz_sim_doxygen_tagfiles)
+
+foreach(_gz_dep
+  GZ-MATH
+  GZ-MSGS
+  GZ-PHYSICS
+  GZ-PLUGIN
+  GZ-TRANSPORT
+  GZ-SENSORS
+  GZ-COMMON
+  GZ-GUI
+)
+  if(EXISTS "${${_gz_dep}_DOXYGEN_TAGFILE}")
+    list(APPEND gz_sim_doxygen_tagfiles
+      "${${_gz_dep}_DOXYGEN_TAGFILE} = ${${_gz_dep}_API_URL}")
+  endif()
+endforeach()
+
 gz_create_docs(
   API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
   TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
   ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
   IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
   TAGFILES
-   "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-   "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-   "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-   "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-   "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-   "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-   "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-   "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
+   ${gz_sim_doxygen_tagfiles}
 )
 
 if(TARGET doc)
