@@ -457,8 +457,10 @@ TEST_F(DetachableJointTest,
     {
       modelM1 = _ecm.EntityByComponents(
           components::Model(), components::Name("M1"));
+      ASSERT_NE(kNullEntity, modelM1);
       modelM3 = _ecm.EntityByComponents(
           components::Model(), components::Name("M3"));
+      ASSERT_NE(kNullEntity, modelM3);
 
       // Locate the detachable joints for M1/M2 and M3/M4.
       Entity jointM1M2 = kNullEntity;
