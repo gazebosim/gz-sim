@@ -17,11 +17,15 @@
 
 #include "JointStatePublisher.hh"
 
+#include <google/protobuf/arena.h>
+
 #include <gz/msgs/model.pb.h>
 
+#include <chrono>
 #include <string>
 #include <vector>
 
+#include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/ChildLinkName.hh"
@@ -100,6 +104,19 @@ void JointStatePublisher::Configure(
     this->topic = _sdf->Get<std::string>("topic");
   }
 
+  const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
+  if (updateRate < 0)
+  {
+    gzwarn << "JointStatePublisher: <update_rate> must be >= 0, got ["
+           << updateRate << "]. Publishing every simulation iteration.\n";
+  }
+  else if (updateRate > 0)
+  {
+    const std::chrono::duration<double> period{1.0 / updateRate};
+    this->updatePeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
+  }
+
 }
 
 //////////////////////////////////////////////////
@@ -139,6 +156,14 @@ void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
 void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("JointStatePublisher::PostUpdate");
+  const auto diff = _info.simTime - this->lastUpdateTime;
+  if ((diff > std::chrono::steady_clock::duration::zero()) &&
+      (diff < this->updatePeriod))
+  {
+    return;
+  }
+
   // Create the model state publisher. This can't be done in ::Configure
   // because the World is not guaranteed to be accessible.
   if (!this->modelPub)
@@ -182,20 +207,27 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   if (!this->modelPub)
     return;
 
-  // Create the message
-  msgs::Model msg;
-  msg.mutable_header()->mutable_stamp()->CopyFrom(
+  this->lastUpdateTime = _info.simTime;
+
+  // Create the message on an arena so all sub-messages (joints, axes,
+  // poses) are allocated from a single block instead of individual mallocs.
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+  auto *msg = google::protobuf::Arena::Create<msgs::Model>(&this->arena);
+#else
+  auto *msg = google::protobuf::Arena::CreateMessage<msgs::Model>(&this->arena);
+#endif
+  msg->mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
   // Set the name and ID.
-  msg.set_name(this->model.Name(_ecm));
-  msg.set_id(this->model.Entity());
+  msg->set_name(this->model.Name(_ecm));
+  msg->set_id(this->model.Entity());
 
   // Set the model pose
   const auto *pose = _ecm.Component<components::Pose>(
       this->model.Entity());
   if (pose)
-    msgs::Set(msg.mutable_pose(), pose->Data());
+    msgs::Set(msg->mutable_pose(), pose->Data());
 
   static bool hasWarned {false};
 
@@ -203,7 +235,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   for (const Entity &joint : this->joints)
   {
     // Add a joint message.
-    msgs::Joint *jointMsg = msg.add_joint();
+    msgs::Joint *jointMsg = msg->add_joint();
     jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
     jointMsg->set_id(joint);
 
@@ -308,7 +340,12 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   }
 
   // Publish the message.
-  this->modelPub->Publish(msg);
+  this->modelPub->Publish(*msg);
+
+  // Reset() drops the message but keeps the arena's initial block mapped,
+  // so subsequent allocations bump-allocate without going through the
+  // system allocator.
+  this->arena.Reset();
 }
 
 GZ_ADD_PLUGIN(JointStatePublisher,

@@ -1,5 +1,39 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.14.0 (2026-06-18)
+
+1. Fix crash for invalid index in force torque GUI plugin
+    * [Pull request #3601](https://github.com/gazebosim/gz-sim/pull/3601)
+
+1. fix: Only update physics parameters that are present in the update msg
+    * [Pull request #3686](https://github.com/gazebosim/gz-sim/pull/3686)
+
+1. Added update rate param to Joint state publisher
+    * [Pull request #3498](https://github.com/gazebosim/gz-sim/pull/3498)
+
+1. Add parallel_postupdates gz policy (backport #3648)
+    * [Pull request #3659](https://github.com/gazebosim/gz-sim/pull/3659)
+
+1. Skip Recreate component query if no component exists
+    * [Pull request #3650](https://github.com/gazebosim/gz-sim/pull/3650)
+
+### Gazebo Sim 8.13.0 (2026-06-05)
+
+1. Enable/Disable collisions
+    * [Pull request #3618](https://github.com/gazebosim/gz-sim/pull/3618)
+
+1. Suppress cmake warning about FetchContent_Populate
+    * [Pull request #3625](https://github.com/gazebosim/gz-sim/pull/3625)
+
+1. Fix ECM view update when component is added, then removed before the view is queried
+    * [Pull request #3607](https://github.com/gazebosim/gz-sim/pull/3607)
+
+1. Fix compiler warnings with protobuf 35.0
+    * [Pull request #3604](https://github.com/gazebosim/gz-sim/pull/3604)
+
+1. ModelCommandAPI_TEST: skip failing check on arm64
+    * [Pull request #3603](https://github.com/gazebosim/gz-sim/pull/3603)
+
 ### Gazebo Sim 8.12.0 (2026-05-26)
 
 1. **Baseline:** this includes all changes from 8.11.0 and earlier.
