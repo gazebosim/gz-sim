@@ -7,6 +7,7 @@ if (GzBenchmark_FOUND)
     each.cc
     ecm_serialize.cc
     server_run.cc
+    utils_benchmark.cc
   )
 
   gz_add_benchmarks(SOURCES ${tests})
