@@ -4620,9 +4620,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       {
         msgs::Contacts *contactsComp{
         #if GOOGLE_PROTOBUF_VERSION >= 4022000
-            google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
+          google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
         #else
-            google::protobuf::Arena::CreateMessage<msgs::Contacts>(&this->contactsArena)
+          google::protobuf::Arena::CreateMessage<msgs::Contacts>(
+            &this->contactsArena)
         #endif
         };
 
