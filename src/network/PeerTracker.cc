@@ -128,12 +128,15 @@ void PeerTracker::HeartbeatLoop()
     this->heartbeatPub.Publish(toProto(this->info));
 
     std::vector<PeerInfo> toRemove;
-    for (auto peer : this->peers)
     {
-      auto age = Clock::now() - peer.second.lastSeen;
-      if (age > (this->staleMultiplier * this->heartbeatPeriod))
+      auto lock = PeerLock(this->peersMutex);
+      for (auto peer : this->peers)
       {
-        toRemove.push_back(peer.second.info);
+        auto age = Clock::now() - peer.second.lastSeen;
+        if (age > (this->staleMultiplier * this->heartbeatPeriod))
+        {
+          toRemove.push_back(peer.second.info);
+        }
       }
     }
 
