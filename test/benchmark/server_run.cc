@@ -90,17 +90,15 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
         return true;
       });
   });
+  sim::Server server(serverConfig);
+  // Wait for simulation to stabilize before adding contacts
+  server.Run(true, stabilizingSteps, false);
+  // Add the relay system to the server
+  server.AddSystem(relaySystem.systemPtr);
 
   for (auto _ : _st)
   {
-    _st.PauseTiming();
-    sim::Server server(serverConfig);
-    // Add the relay system to the server before running
-    server.AddSystem(relaySystem.systemPtr);
-    // Wait for simulation to stabilize before timing
-    server.Run(true, stabilizingSteps, false);
-    _st.ResumeTiming();
-    server.Run(true, 1000, false);
+    server.Run(true, 1, false);
   }
 }
 
@@ -164,28 +162,28 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
-    ->Arg(10000)
+    ->Arg(2000)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
-    ->Arg(10000)
+    ->Arg(2000)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_breadcrumbs_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "breadcrumbs.sdf")
-    ->Arg(10000)
+    ->Arg(2000)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
-    ->Arg(10000)
+    ->Arg(2000)
     ->Unit(benchmark::kMillisecond);
 
 /* Benchmark load time on bullet-featherstone physics engine */
