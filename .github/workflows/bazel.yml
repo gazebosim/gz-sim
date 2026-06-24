@@ -22,3 +22,7 @@ jobs:
           {"folder": ".", "bzlmodEnabled": false},
         ]
       exclude_windows: true
+<<<<<<< HEAD
+=======
+      bazel_test_command: "bazel test --repo_env=CC=clang --repo_env=CXX=clang++ --test_output=errors //..."
+>>>>>>> 19be12c1 (Add CI for Bazel - Clang, Fix layering failure (#3712))
