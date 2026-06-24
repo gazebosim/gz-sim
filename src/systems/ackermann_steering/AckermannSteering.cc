@@ -346,37 +346,61 @@ void AckermannSteering::Configure(const Entity &_entity,
   {
     const double minVel = _sdf->Get<double>("min_velocity");
     this->dataPtr->limiterLin->SetMinVelocity(minVel);
-    this->dataPtr->limiterAng->SetMinVelocity(minVel);
+  }
+  if (_sdf->HasElement("min_angular_velocity"))
+  {
+    const double minAngVel = _sdf->Get<double>("min_angular_velocity");
+    this->dataPtr->limiterAng->SetMinVelocity(minAngVel);
   }
   if (_sdf->HasElement("max_velocity"))
   {
     const double maxVel = _sdf->Get<double>("max_velocity");
     this->dataPtr->limiterLin->SetMaxVelocity(maxVel);
-    this->dataPtr->limiterAng->SetMaxVelocity(maxVel);
+  }
+  if (_sdf->HasElement("max_angular_velocity"))
+  {
+    const double maxAngVel = _sdf->Get<double>("max_angular_velocity");
+    this->dataPtr->limiterAng->SetMaxVelocity(maxAngVel);
   }
   if (_sdf->HasElement("min_acceleration"))
   {
     const double minAccel = _sdf->Get<double>("min_acceleration");
     this->dataPtr->limiterLin->SetMinAcceleration(minAccel);
-    this->dataPtr->limiterAng->SetMinAcceleration(minAccel);
+  }
+  if (_sdf->HasElement("min_angular_acceleration"))
+  {
+    const double minAngAccel = _sdf->Get<double>("min_angular_acceleration");
+    this->dataPtr->limiterAng->SetMinAcceleration(minAngAccel);
   }
   if (_sdf->HasElement("max_acceleration"))
   {
     const double maxAccel = _sdf->Get<double>("max_acceleration");
     this->dataPtr->limiterLin->SetMaxAcceleration(maxAccel);
-    this->dataPtr->limiterAng->SetMaxAcceleration(maxAccel);
+  }
+  if (_sdf->HasElement("max_angular_acceleration"))
+  {
+    const double maxAngAccel = _sdf->Get<double>("max_angular_acceleration");
+    this->dataPtr->limiterAng->SetMaxAcceleration(maxAngAccel);
   }
   if (_sdf->HasElement("min_jerk"))
   {
     const double minJerk = _sdf->Get<double>("min_jerk");
     this->dataPtr->limiterLin->SetMinJerk(minJerk);
-    this->dataPtr->limiterAng->SetMinJerk(minJerk);
+  }
+  if (_sdf->HasElement("min_angular_jerk"))
+  {
+    const double minAngJerk = _sdf->Get<double>("min_angular_jerk");
+    this->dataPtr->limiterAng->SetMinJerk(minAngJerk);
   }
   if (_sdf->HasElement("max_jerk"))
   {
     const double maxJerk = _sdf->Get<double>("max_jerk");
     this->dataPtr->limiterLin->SetMaxJerk(maxJerk);
-    this->dataPtr->limiterAng->SetMaxJerk(maxJerk);
+  }
+  if (_sdf->HasElement("max_angular_jerk"))
+  {
+    const double maxAngJerk = _sdf->Get<double>("max_angular_jerk");
+    this->dataPtr->limiterAng->SetMaxJerk(maxAngJerk);
   }
 
   if (!this->dataPtr->steeringOnly)
