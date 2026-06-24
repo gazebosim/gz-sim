@@ -29,11 +29,9 @@ using namespace gz;
 using namespace sim;
 using namespace components;
 
-void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
-                     const std::string &_world_sdf)
+ServerConfig getServerConfig(const std::string &_physics_engine,
+                             const std::string &_world_sdf)
 {
-  auto stabilizingSteps = _st.range(0);
-
   std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
   common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   ServerConfig serverConfig;
@@ -42,6 +40,14 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
                                             "test/worlds/", _world_sdf));
   serverConfig.SetPhysicsEngine(_physics_engine);
 
+  return serverConfig;
+}
+
+void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
+                     const std::string &_world_sdf)
+{
+  auto stabilizingSteps = _st.range(0);
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
   sim::Server server(serverConfig); // Add system from plugin
   // Wait for simulation to stabilize before timing
   server.Run(true, stabilizingSteps, false);
@@ -54,14 +60,7 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
 
 void BM_LoadWorld(benchmark::State &_st, const std::string &_physics_engine,
                      const std::string &_world_sdf) {
-  std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
-  common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
-  ServerConfig serverConfig;
-  serverConfig.SetWaitForAssets(true);
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                            "test/worlds/", _world_sdf));
-  serverConfig.SetPhysicsEngine(_physics_engine);
-
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
   for (auto _ : _st)
   {
     // Add system from plugin
