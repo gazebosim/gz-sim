@@ -924,6 +924,12 @@ bool EntityComponentManager::RemoveComponent(
     this->dataPtr->removedComponents[_entity].insert(_typeId);
   }
 
+  // If the component is a components::ParentEntity, leave the entity parentless
+  if (_typeId == components::ParentEntity::typeId)
+  {
+    this->dataPtr->SetParentEntityGraph(_entity, kNullEntity);
+  }
+
   return true;
 }
 
@@ -1090,17 +1096,21 @@ Entity EntityComponentManager::ParentEntity(const Entity _entity) const
 bool EntityComponentManager::SetParentEntity(const Entity _child,
     const Entity _parent)
 {
-  bool successful = this->dataPtr->SetParentEntityGraph(_child, _parent);
+  // Validate input, child must exist and parent must either be kNullEntity
+  // (in which case we remove the parent) or a valid entity to set.
+  if (!this->HasEntity(_child))
+    return false;
+  if (_parent != kNullEntity && !this->HasEntity(_parent))
+    return false;
+
+  // Component creation and deletion take care of updating the graph
+  this->RemoveComponent<components::ParentEntity>(_child);
   if (_parent == kNullEntity)
   {
-    this->RemoveComponent<components::ParentEntity>(_child);
     return true;
   }
-  else if (successful)
-  {
-    this->CreateComponent(_child, components::ParentEntity(_parent));
-  }
-  return successful;
+  this->CreateComponent(_child, components::ParentEntity(_parent));
+  return true;
 }
 
 /////////////////////////////////////////////////
