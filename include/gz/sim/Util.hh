@@ -152,7 +152,7 @@ namespace gz
     /// In case the entity has more than one type, only one of them will be
     /// returned. This is not standard usage.
     ///
-    /// Note that this is different from  component type names.
+    /// Note that this is different from component type names.
     ///
     /// \param[in] _entity Entity to get the type for.
     /// \param[in] _ecm Immutable reference to ECM.
