@@ -72,6 +72,7 @@ PeerTracker::~PeerTracker()
 /////////////////////////////////////////////////
 void PeerTracker::SetHeartbeatPeriod(const Duration &_period)
 {
+  auto lock = PeerLock(this->peersMutex);
   this->heartbeatPeriod = _period;
 }
 
@@ -90,6 +91,7 @@ void PeerTracker::SetStaleMultiplier(const size_t &_multiplier)
 /////////////////////////////////////////////////
 size_t PeerTracker::StaleMultiplier() const
 {
+  auto lock = PeerLock(this->peersMutex);
   return this->staleMultiplier;
 }
 
@@ -106,7 +108,7 @@ size_t PeerTracker::NumPeers(const NetworkRole &_role) const
   auto lock = PeerLock(this->peersMutex);
 
   size_t count = 0;
-  for (auto peer : peers)
+  for (const auto& peer : peers)
   {
     if (peer.second.info.role == _role)
     {
@@ -130,7 +132,7 @@ void PeerTracker::HeartbeatLoop()
     std::vector<PeerInfo> toRemove;
     {
       auto lock = PeerLock(this->peersMutex);
-      for (auto peer : this->peers)
+      for (const auto& peer : this->peers)
       {
         auto age = Clock::now() - peer.second.lastSeen;
         if (age > (this->staleMultiplier * this->heartbeatPeriod))
