@@ -135,17 +135,22 @@ Entity Link::VisualByName(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 std::vector<Entity> Link::Collisions(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
-      components::Collision());
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Collision());
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
+=======
+std::vector<Entity> Link::Sensors(const EntityComponentManager &_ecm) const
+{
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Sensor());
+}
+
+//////////////////////////////////////////////////
+>>>>>>> 225333f9 ([Performance] - Remove / Optimize EntitiesByComponents calls (#3362))
 std::vector<Entity> Link::Visuals(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
-      components::Visual());
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Visual());
 }
 
 //////////////////////////////////////////////////

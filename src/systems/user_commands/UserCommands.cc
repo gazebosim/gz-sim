@@ -605,8 +605,7 @@ bool UserCommandsInterface::HasContactSensor(const Entity _collision)
 {
   auto *linkEntity = ecm->Component<components::ParentEntity>(_collision);
   auto allLinkSensors =
-    ecm->EntitiesByComponents(components::Sensor(),
-      components::ParentEntity(*linkEntity));
+    ecm->ChildrenByComponents(linkEntity->Data(), components::Sensor());
 
   for (auto const &sensor : allLinkSensors)
   {
