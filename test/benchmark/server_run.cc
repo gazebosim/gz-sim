@@ -42,14 +42,13 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
                                             "test/worlds/", _world_sdf));
   serverConfig.SetPhysicsEngine(_physics_engine);
 
+  sim::Server server(serverConfig); // Add system from plugin
+  // Wait for simulation to stabilize before timing
+  server.Run(true, stabilizingSteps, false);
+
   for (auto _ : _st)
   {
-    _st.PauseTiming();
-    sim::Server server(serverConfig); // Add system from plugin
-    // Wait for simulation to stabilize before timing
-    server.Run(true, stabilizingSteps, false);
-    _st.ResumeTiming();
-    server.Run(true, 1000, false);
+    server.Run(true, 1, false);
   }
 }
 
