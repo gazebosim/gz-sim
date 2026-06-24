@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <ctype.h>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -328,25 +329,23 @@ namespace sdf_generator
     auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
 
     // models
-    std::vector<Entity> modelEntities;
+    std::map<Entity, const components::ModelSdf*> modelEntities;
     _ecm.Each<components::Model, components::ModelSdf>(
         [&](const Entity &_modelEntity, const components::Model *,
-            const components::ModelSdf *)
+            const components::ModelSdf *_modelSdf)
         {
           // skip nested models as they are not direct children of world
           auto parentComp = _ecm.Component<components::ParentEntity>(
               _modelEntity);
           if (parentComp && parentComp->Data() == _entity)
           {
-            modelEntities.push_back(_modelEntity);
+            modelEntities.insert({_modelEntity, _modelSdf});
           }
           return true;
         });
-    std::sort(modelEntities.begin(), modelEntities.end());
 
-    for (const auto &modelEntity : modelEntities)
+    for (const auto [modelEntity, modelSdf] : modelEntities)
     {
-      const auto *modelSdf = _ecm.Component<components::ModelSdf>(modelEntity);
       auto modelDir =
           common::parentPath(modelSdf->Data().Element()->FilePath());
 

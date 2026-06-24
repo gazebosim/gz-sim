@@ -1269,25 +1269,25 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
 void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
                                          bool _warnIfEntityExists)
 {
-  std::set<Entity> entities;
+  std::map<Entity, std::tuple<const components::Name*, const components::Pose*,
+    const components::ParentEntity*>> modelEntities;
+
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
           const components::Model *,
-          const components::Name *,
-          const components::Pose *,
-          const components::ParentEntity *)->bool
+          const components::Name *_name,
+          const components::Pose *_pose,
+          const components::ParentEntity *_parent)->bool
       {
         if (!_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
-          entities.insert(_entity);
+          modelEntities.insert({_entity, std::make_tuple(_name, _pose, _parent)});
         return true;
       });
 
-  for (const auto &_entity : entities)
+  for (const auto &[_entity, components] : modelEntities)
   {
-    const auto *_name = _ecm.Component<components::Name>(_entity);
-    const auto *_pose = _ecm.Component<components::Pose>(_entity);
-    const auto *_parent = _ecm.Component<components::ParentEntity>(_entity);
+    const auto [_name, _pose, _parent] = components;
 
     // Check if model already exists
     if (this->entityModelMap.HasEntity(_entity))
