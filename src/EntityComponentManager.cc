@@ -78,10 +78,10 @@ class gz::sim::EntityComponentManagerPrivate
   /// parent - child relation. This does not do any book-keeping on the
   /// components::ParentEntity component, for which the EntityComponentManager
   /// SetParentEntity function should be used.
+  /// \param[in] _child the entity to update the parent for.
   /// \param[in] _parent the new parent of the entity, or kNullEntity if the
   /// entity should be left parentless.
-  /// \param[in] _child the entity to update the parent for.
-  public: bool SetParentEntityGraph(const Entity _parent, const Entity _child);
+  public: bool SetParentEntityGraph(const Entity _child, const Entity _parent);
 
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
