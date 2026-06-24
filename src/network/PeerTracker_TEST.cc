@@ -28,26 +28,28 @@
 using namespace gz::sim;
 
 namespace {
-  void WaitForNumPeers(const PeerTracker& tracker,
-                size_t expected, int timeoutMs = 2000) {
+  void WaitForNumPeers(const PeerTracker& _tracker,
+                size_t _expected, int _timeoutMs = 2000)
+  {
 
     int elapsed = 0;
-    while (tracker.NumPeers() != expected && elapsed < timeoutMs) {
+    while (_tracker.NumPeers() != _expected && elapsed < _timeoutMs) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       elapsed += 10;
     }
-    EXPECT_EQ(expected, tracker.NumPeers());
+    EXPECT_EQ(_expected, _tracker.NumPeers());
   }
 
-  void WaitForPeersCount(const std::atomic<int>& peers,
-                  int expected, int timeoutMs = 2000) {
+  void WaitForPeersCount(const std::atomic<int>& _peers,
+                  int _expected, int _timeoutMs = 2000)
+  {
 
     int elapsed = 0;
-    while (peers != expected && elapsed < timeoutMs) {
+    while (_peers != _expected && elapsed < _timeoutMs) {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       elapsed += 10;
     }
-    EXPECT_EQ(expected, peers);
+    EXPECT_EQ(_expected, _peers);
   }
 }
 
