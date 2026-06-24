@@ -144,6 +144,63 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 }
 
 /////////////////////////////////////////////////
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetReattaches))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
+
+  auto poseRecorder =
+      [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
+  {
+    return [&, _modelName](const UpdateInfo &,
+                           const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name,
+              const components::Pose *_pose) -> bool
+          {
+            if (_name->Data() == _modelName)
+            {
+              _poses.push_back(_pose->Data());
+            }
+            return true;
+          });
+    };
+  };
+
+  std::vector<math::Pose3d> m2Poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(poseRecorder("M2", m2Poses));
+  this->server->AddSystem(testSystem.systemPtr);
+
+  this->server->Run(true, 20, false);
+  ASSERT_EQ(20u, m2Poses.size());
+  EXPECT_EQ(m2Poses.front(), m2Poses.back());
+  const math::Pose3d initialM2Pose = m2Poses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M1/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  m2Poses.clear();
+  this->server->Run(true, 100, false);
+  ASSERT_GE(m2Poses.size(), 2u);
+  EXPECT_GT(m2Poses.front().Pos().Z(), m2Poses.back().Pos().Z());
+
+  // Reset should restore the startup attached state, even after a detach.
+  this->server->ResetAll();
+  m2Poses.clear();
+  this->server->Run(true, 100, false);
+  ASSERT_GE(m2Poses.size(), 2u);
+  EXPECT_GE(m2Poses.back().Pos().Z(), m2Poses.front().Pos().Z());
+  EXPECT_NEAR(initialM2Pose.Pos().Z(), m2Poses.back().Pos().Z(), 1e-3);
+}
+
+/////////////////////////////////////////////////
 TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
