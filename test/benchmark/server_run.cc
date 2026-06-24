@@ -65,14 +65,7 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
                              const std::string &_world_sdf)
 {
   auto stabilizingSteps = _st.range(0);
-
-  std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
-  common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
-  ServerConfig serverConfig;
-  serverConfig.SetWaitForAssets(true);
-  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                            "test/worlds/", _world_sdf));
-  serverConfig.SetPhysicsEngine(_physics_engine);
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
 
   // Instantiate the relay helper
   test::Relay relaySystem;
@@ -160,28 +153,28 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
-    ->Arg(2000)
+    ->Arg(10)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
-    ->Arg(2000)
+    ->Arg(10)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, bullet_breadcrumbs_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "breadcrumbs.sdf")
-    ->Arg(2000)
+    ->Arg(10)
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
-    ->Arg(2000)
+    ->Arg(3000)
     ->Unit(benchmark::kMillisecond);
 
 /* Benchmark load time on bullet-featherstone physics engine */
