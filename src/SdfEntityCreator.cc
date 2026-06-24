@@ -1292,8 +1292,7 @@ void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
         components::ParentEntity(_entity));
     for (const auto childEntity : childEntities)
     {
-      this->dataPtr->ecm->RemoveComponent<components::ParentEntity>(
-          childEntity);
+      this->dataPtr->ecm->SetParentEntity(childEntity, kNullEntity);
     }
   }
 
