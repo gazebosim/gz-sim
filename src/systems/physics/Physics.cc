@@ -1289,9 +1289,6 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
     const auto *_pose = _ecm.Component<components::Pose>(_entity);
     const auto *_parent = _ecm.Component<components::ParentEntity>(_entity);
 
-    if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
-      continue;
-
     // Check if model already exists
     if (this->entityModelMap.HasEntity(_entity))
     {
