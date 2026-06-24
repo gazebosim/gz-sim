@@ -66,6 +66,7 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
 {
   auto stabilizingSteps = _st.range(0);
   ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
+  bool contactsEnabled = false;
 
   // Instantiate the relay helper
   test::Relay relaySystem;
@@ -73,6 +74,11 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
   relaySystem.OnPreUpdate([&](const sim::UpdateInfo &/*_info*/,
                               sim::EntityComponentManager &_ecm)
   {
+    // If contacts have been enabled, don't try enabling again
+    if (contactsEnabled)
+    {
+      return;
+    }
     // Iterate over all Collision entities
     _ecm.Each<components::Collision>(
       [&](const Entity &_entity, const components::Collision *) -> bool
@@ -87,6 +93,7 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
         _ecm.CreateComponent(_entity, components::ContactSensorData());
         return true;
       });
+    contactsEnabled = true;
   });
   sim::Server server(serverConfig);
   // Wait for simulation to stabilize before adding contacts
