@@ -43,8 +43,8 @@
 #include <chrono>
 #include <condition_variable>
 #include <map>
-#include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -822,26 +822,26 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       });
 
   // Models
-  // Sort them into a set to make sure parents are added before children for
+  // Sort them into a map to make sure parents are added before children for
   // nested models, assuming strictly increasing entity order.
-  std::set<Entity> modelEntities;
+  std::map<Entity, std::tuple<const components::Name*,
+    const components::ParentEntity*, const components::Pose*>> entities;
   _manager.EachNew<components::Model, components::Name,
                    components::ParentEntity, components::Pose>(
       [&](const Entity &_entity, const components::Model *,
-          const components::Name *,
-          const components::ParentEntity *,
-          const components::Pose *) -> bool
+          const components::Name *_nameComp,
+          const components::ParentEntity *_parentComp,
+          const components::Pose *_poseComp) -> bool
       {
-        modelEntities.insert(_entity);
+        entities.insert({_entity,
+            std::make_tuple(_nameComp, _parentComp, _poseComp)});
         newEntity = true;
         return true;
       });
 
-  for (const auto _entity : modelEntities)
+  for (const auto &[_entity, components] : entities)
   {
-    const auto* _nameComp = _manager.Component<components::Name>(_entity);
-    const auto* _parentComp = _manager.Component<components::ParentEntity>(_entity);
-    const auto* _poseComp = _manager.Component<components::Pose>(_entity);
+    const auto [_nameComp, _parentComp, _poseComp] = components;
 
     auto modelMsg = std::make_shared<msgs::Model>();
     modelMsg->set_id(_entity);

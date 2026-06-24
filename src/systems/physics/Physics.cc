@@ -27,6 +27,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -1281,7 +1282,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::ParentEntity *_parent)->bool
       {
         if (!_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
-          modelEntities.insert({_entity, std::make_tuple(_name, _pose, _parent)});
+          modelEntities.insert({_entity,
+              std::make_tuple(_name, _pose, _parent)});
         return true;
       });
 
