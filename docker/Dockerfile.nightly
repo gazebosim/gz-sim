@@ -14,7 +14,7 @@ RUN apt-get update \
     libgz-cmake-dev \
     libgz-common-dev \
     libgz-fuel-tools-dev \
-    libgz-math9-eigen-dev \
+    libgz-math-eigen3-dev \
     libgz-plugin-dev \
     libgz-physics-dev \
     libgz-rendering-dev \
