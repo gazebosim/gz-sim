@@ -1257,8 +1257,18 @@ bool EntityComponentManager::CreateComponentImplementation(
   // update the entities graph.
   if (_componentTypeId == components::ParentEntity::typeId)
   {
+    if (!_data)
+    {
+      gzerr << "Internal error: Invalid parent component detected, "
+            << "this should not happen." << std::endl;
+      return updateData;
+    }
     const auto *parent = static_cast<const components::ParentEntity *>(_data);
-    this->dataPtr->SetParentEntityGraph(_entity, parent->Data());
+    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
+    {
+      gzerr << "Failed setting parent for entity " << _entity << " to "
+            << parent->Data() << std::endl;
+    }
   }
 
   return updateData;
