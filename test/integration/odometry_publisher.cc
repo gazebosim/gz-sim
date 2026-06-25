@@ -691,7 +691,9 @@ TEST_P(OdometryPublisherTest,
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
+  const auto running = server.Running(0);
+  ASSERT_TRUE(running.has_value());
+  EXPECT_FALSE(*running);
 
   bool driveModel{true};
   const math::Vector3d linVelCmd(1.0, 0.5, 0.0);
@@ -740,20 +742,8 @@ TEST_P(OdometryPublisherTest,
   transport::Node node;
   Subscription<msgs::Odometry> odom;
   odom.Subscribe(node, "/model/vehicle/odometry", 1);
-  auto waitForOdom =
-      [&server](Subscription<msgs::Odometry> &_odom, auto _predicate)
-      {
-        return test::StepUntil(server, 3000, [&]
-        {
-          if (_odom.Count() == 0u)
-            return false;
 
-          const auto msg = _odom.Last();
-          return _predicate(msg);
-        });
-      };
-
-  ASSERT_TRUE(waitForOdom(odom,
+  ASSERT_TRUE(test::StepUntilMessage(server, odom, 3000,
       [](const msgs::Odometry &_msg)
       {
         return msgs::Convert(_msg.pose()).Pos().Length() > 0.05;
@@ -769,7 +759,7 @@ TEST_P(OdometryPublisherTest,
   Subscription<msgs::Odometry> postResetOdom;
   postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
 
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
       [](const msgs::Odometry &_msg)
       {
         const auto pose = msgs::Convert(_msg.pose());
@@ -802,7 +792,7 @@ TEST_P(OdometryPublisherTest,
 
   // Fresh velocity commands after reset should still be reflected in odom.
   driveModel = true;
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
       [](const msgs::Odometry &_msg)
       {
         return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.1;

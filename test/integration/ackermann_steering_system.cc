@@ -226,7 +226,9 @@ TEST_P(AckermannSteeringTest,
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
+  const auto running = server.Running(0);
+  ASSERT_TRUE(running.has_value());
+  EXPECT_FALSE(*running);
 
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
@@ -267,15 +269,12 @@ TEST_P(AckermannSteeringTest,
   ASSERT_FALSE(modelPoses.empty());
   const auto initialModelPose = modelPoses.back();
 
+  ASSERT_TRUE(test::StepUntilPublisherConnected(server, pub, 3000));
   publishCommand = true;
-  ASSERT_TRUE(test::StepUntil(server, 3000,
-      [&]
+  ASSERT_TRUE(test::StepUntilMessage(server, odom, 3000,
+      [](const msgs::Odometry &_msg)
       {
-        if (odom.Count() == 0u)
-          return false;
-
-        const auto msg = odom.Last();
-        return msgs::Convert(msg.pose()).Pos().Length() > 0.05;
+        return msgs::Convert(_msg.pose()).Pos().Length() > 0.05;
       }));
 
   publishCommand = false;
@@ -286,16 +285,12 @@ TEST_P(AckermannSteeringTest,
   postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
 
   const auto postResetPoseBegin = modelPoses.size();
-  ASSERT_TRUE(test::StepUntil(server, 3000,
-      [&]
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
+      [](const msgs::Odometry &_msg)
       {
-        if (postResetOdom.Count() == 0u)
-          return false;
-
-        const auto msg = postResetOdom.Last();
-        const auto pose = msgs::Convert(msg.pose());
-        const auto linVel = msgs::Convert(msg.twist().linear());
-        const auto angVel = msgs::Convert(msg.twist().angular());
+        const auto pose = msgs::Convert(_msg.pose());
+        const auto linVel = msgs::Convert(_msg.twist().linear());
+        const auto angVel = msgs::Convert(_msg.twist().angular());
         return std::abs(pose.Pos().X()) < 0.05 &&
             std::abs(pose.Pos().Y()) < 0.05 &&
             std::abs(pose.Rot().Yaw()) < 0.05 &&
@@ -322,16 +317,13 @@ TEST_P(AckermannSteeringTest,
   EXPECT_NEAR(modelPoses.back().Rot().Yaw(), initialModelPose.Rot().Yaw(),
       0.05);
 
-  // A fresh command after reset should still produce odometry motion.
+  // A fresh command after reset should still produce motion in odometry.
+  ASSERT_TRUE(test::StepUntilPublisherConnected(server, pub, 3000));
   publishCommand = true;
-  ASSERT_TRUE(test::StepUntil(server, 3000,
-      [&]
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
+      [](const msgs::Odometry &_msg)
       {
-        if (postResetOdom.Count() == 0u)
-          return false;
-
-        const auto msg = postResetOdom.Last();
-        return std::abs(msgs::Convert(msg.twist().linear()).X()) > 0.05;
+        return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.05;
       }));
 }
 

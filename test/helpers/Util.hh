@@ -29,6 +29,8 @@
 #include <gz/sim/Server.hh>
 #include <gz/transport/Node.hh>
 
+#include "Subscription.hh"
+
 namespace gz::sim::test
 {
 namespace detail
@@ -63,6 +65,44 @@ bool StepUntil(
   }
 
   return false;
+}
+
+/////////////////////////////////////////////////
+/// \brief Step the server until a subscription receives a message that matches
+/// a predicate.
+/// \param[in] _server Server to step.
+/// \param[in] _subscription Subscription to inspect.
+/// \param[in] _maxSteps Maximum number of single steps.
+/// \param[in] _predicate Predicate to evaluate on the last received message.
+/// \return True when the predicate becomes true.
+template <typename MessageT, typename Predicate>
+bool StepUntilMessage(gz::sim::Server &_server,
+    Subscription<MessageT> &_subscription,
+    uint64_t _maxSteps,
+    Predicate _predicate)
+{
+  return StepUntil(_server, _maxSteps, [&]
+  {
+    if (_subscription.Count() == 0u)
+      return false;
+
+    return _predicate(_subscription.Last());
+  });
+}
+
+/////////////////////////////////////////////////
+/// \brief Step the server until a transport publisher has a subscriber.
+/// \param[in] _server Server to step.
+/// \param[in] _publisher Publisher to inspect.
+/// \param[in] _maxSteps Maximum number of single steps.
+/// \return True when the publisher has at least one connection.
+template <typename PublisherT>
+bool StepUntilPublisherConnected(gz::sim::Server &_server,
+    const PublisherT &_publisher,
+    uint64_t _maxSteps)
+{
+  return StepUntil(_server, _maxSteps,
+      [&_publisher] { return _publisher.HasConnections(); });
 }
 
 /////////////////////////////////////////////////

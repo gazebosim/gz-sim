@@ -226,7 +226,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
 
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
+  const auto running = server.Running(0);
+  ASSERT_TRUE(running.has_value());
+  EXPECT_FALSE(*running);
 
   transport::Node node;
   auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
@@ -265,25 +267,15 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
 
   Subscription<msgs::Odometry> odom;
   odom.Subscribe(node, "/model/vehicle/odometry", 1);
-  auto waitForOdom =
-      [&server](Subscription<msgs::Odometry> &_odom, auto _predicate)
-      {
-        return test::StepUntil(server, 3000, [&]
-        {
-          if (_odom.Count() == 0u)
-            return false;
-
-          const auto msg = _odom.Last();
-          return _predicate(msg);
-        });
-      };
+  // Odom checks the plugin output; modelPoses cross-check the real ECM pose.
 
   server.Run(true, 1, false);
   ASSERT_FALSE(modelPoses.empty());
   const auto initialModelPose = modelPoses.back();
 
+  ASSERT_TRUE(test::StepUntilPublisherConnected(server, pub, 3000));
   publishCommand = true;
-  ASSERT_TRUE(waitForOdom(odom,
+  ASSERT_TRUE(test::StepUntilMessage(server, odom, 3000,
       [](const msgs::Odometry &_msg)
       {
         return msgs::Convert(_msg.pose()).Pos().Length() > 0.05;
@@ -298,7 +290,7 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
   postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
 
   const auto postResetPoseBegin = modelPoses.size();
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
       [](const msgs::Odometry &_msg)
       {
         const auto pose = msgs::Convert(_msg.pose());
@@ -331,8 +323,9 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
       0.05);
 
   // A fresh command after reset should still drive the system.
+  ASSERT_TRUE(test::StepUntilPublisherConnected(server, pub, 3000));
   publishCommand = true;
-  ASSERT_TRUE(waitForOdom(postResetOdom,
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
       [](const msgs::Odometry &_msg)
       {
         return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.05;
