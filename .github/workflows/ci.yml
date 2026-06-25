@@ -30,8 +30,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@noble
         with:
           gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo'
 
   noble-ci-disable-gui:
     runs-on: ubuntu-latest
@@ -45,10 +44,10 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@noble
         with:
           gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true
+          doxygen-enabled: true
 
   resolute-ci:
     runs-on: ubuntu-latest
@@ -65,8 +64,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@resolute
         with:
           gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo'
 
   resolute-ci-disable-gui:
     runs-on: ubuntu-latest
@@ -80,7 +78,7 @@ jobs:
         uses: gazebo-tooling/action-gz-ci@resolute
         with:
           gzdev-project-name: rotary
-          # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true
+          doxygen-enabled: true
