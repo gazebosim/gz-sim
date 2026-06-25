@@ -4853,10 +4853,16 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
           // Map physics shape ID to gz-sim Entity
           auto *extraData =
               rayIntersection.template Query<ExtraRayIntersectionData>();
-          if (extraData && extraData->collisionShapeId != 0)
+          if (extraData)
           {
+            gzerr << "shapeId=" << extraData->collisionShapeId << std::endl;
             result.entity = this->entityCollisionMap.GetByPhysicsId(
                 extraData->collisionShapeId);
+            gzerr << "mapped entity=" << result.entity << std::endl;
+          }
+          else
+          {
+            gzerr << "extraData is null" << std::endl;
           }
         }
         return true;
