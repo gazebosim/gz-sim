@@ -11,19 +11,20 @@ RUN scripts/enable_nightly.sh
 
 RUN apt-get update \
  && apt-get install -y \
-    libgz-cmake-dev \
-    libgz-common-dev \
-    libgz-fuel-tools-dev \
-    libgz-math-eigen3-dev \
-    libgz-plugin-dev \
-    libgz-physics-dev \
-    libgz-rendering-dev \
-    libgz-tools-dev \
-    libgz-transport-dev \
-    libgz-gui-dev \
-    libgz-msgs-dev \
-    libgz-sensors-dev \
-    libsdformat-dev \
+    libgz-rotary-cmake-dev \
+    libgz-rotary-common-dev \
+    libgz-rotary-fuel-tools-dev \
+    libgz-rotary-math-eigen3-dev \
+    libgz-rotary-plugin-dev \
+    libgz-rotary-physics-dev \
+    libgz-rotary-rendering-dev \
+    libgz-rotary-tools-dev \
+    libgz-rotary-transport-dev \
+    libgz-rotary-gui-dev \
+    libgz-rotary-msgs-dev \
+    libgz-rotary-sensors-dev \
+    libgz-rotary-utils-cli-dev \
+    libgz-rotary-sdformat-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
