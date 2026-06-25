@@ -1264,11 +1264,7 @@ bool EntityComponentManager::CreateComponentImplementation(
       return updateData;
     }
     const auto *parent = static_cast<const components::ParentEntity *>(_data);
-    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
-    {
-      gzerr << "Failed setting parent for entity " << _entity << " to "
-            << parent->Data() << std::endl;
-    }
+    this->dataPtr->SetParentEntityGraph(_entity, parent->Data());
   }
 
   return updateData;
