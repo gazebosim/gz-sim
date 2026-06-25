@@ -169,4 +169,6 @@ TEST_F(OpticalTactilePluginTest,
   EXPECT_EQ(math::Vector3f(-1, 0, 0), upperLeftNormalForce);
   EXPECT_EQ(math::Vector3f(-1, 0, 0), lowerLeftNormalForce);
   EXPECT_EQ(math::Vector3f(-1, 0, 0), lowerRightNormalForce);
+
+  this->server.reset();
 }
