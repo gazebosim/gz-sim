@@ -344,7 +344,7 @@ namespace sdf_generator
           return true;
         });
 
-    for (const auto [modelEntity, modelSdf] : modelEntities)
+    for (const auto &[modelEntity, modelSdf] : modelEntities)
     {
       auto modelDir =
           common::parentPath(modelSdf->Data().Element()->FilePath());

@@ -1167,7 +1167,6 @@ void RenderUtil::Update()
   }
   this->dataPtr->updateMutex.unlock();
 
-
   // scene - only one scene is supported for now
   // extend the sensor system to support multiple scenes in the future
   for (auto &scene : newScenes)
