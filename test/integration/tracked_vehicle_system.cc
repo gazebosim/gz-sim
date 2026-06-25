@@ -47,6 +47,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/ResetUtils.hh"
 #include "../helpers/Subscription.hh"
 #include "../helpers/Util.hh"
 
@@ -754,58 +755,8 @@ TEST_F(TrackedVehicleTest,
 
   msgs::Twist msg;
   msg.mutable_linear()->set_x(1.0);
-  pub.Publish(msg);
-  ASSERT_TRUE(test::StepUntil(server, 2000,
-      [&]
-      {
-        return odomSub.Count() > 0u &&
-            odomSub.Last().pose().position().x() > 0.05 &&
-            odomSub.Last().twist().linear().x() > 0.05;
-      }));
-
-  server.ResetAll();
-
-  // Use a fresh subscription so delayed pre-reset messages cannot satisfy the
-  // post-reset assertions.
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdomSub;
-  postResetOdomSub.Subscribe(
-      postResetNode, "/model/simple_tracked/odometry", 10u);
-
-  ASSERT_TRUE(test::StepUntil(server, 1000,
-      [&]
-      {
-        if (postResetOdomSub.Count() == 0u)
-          return false;
-
-        const auto &odom = postResetOdomSub.Last();
-        return std::abs(odom.pose().position().x()) < 1e-2 &&
-            std::abs(odom.pose().position().y()) < 1e-2 &&
-            std::abs(odom.twist().linear().x()) < 1e-2 &&
-            std::abs(odom.twist().angular().z()) < 1e-2;
-      }));
-
-  auto postResetOdom = postResetOdomSub.Last();
-  EXPECT_NEAR(0.0, postResetOdom.pose().position().x(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.pose().position().y(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.twist().linear().x(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.twist().angular().z(), 1e-2);
-
-  server.Run(true, 500, false);
-  auto settledOdom = postResetOdomSub.Last();
-  EXPECT_NEAR(0.0, settledOdom.pose().position().x(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.pose().position().y(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.twist().linear().x(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.twist().angular().z(), 0.05);
-
-  postResetOdomSub.Clear();
-  pub.Publish(msg);
-  ASSERT_TRUE(test::StepUntil(server, 2000,
-      [&]
-      {
-        return postResetOdomSub.Count() > 0u &&
-            postResetOdomSub.Last().twist().linear().x() > 0.05;
-      }));
+  test::reset::ExpectOdomResetClearsState(
+      server, pub, odomSub, "/model/simple_tracked/odometry", msg);
 }
 
 /////////////////////////////////////////////////
@@ -833,56 +784,6 @@ TEST_F(TrackedVehicleTest,
 
   msgs::Double msg;
   msg.set_data(1.0);
-  pub.Publish(msg);
-  ASSERT_TRUE(test::StepUntil(server, 2000,
-      [&]
-      {
-        return odomSub.Count() > 0u &&
-            odomSub.Last().pose().position().x() > 0.05 &&
-            odomSub.Last().twist().linear().x() > 0.05;
-      }));
-
-  server.ResetAll();
-
-  // Use a fresh subscription so delayed pre-reset messages cannot satisfy the
-  // post-reset assertions.
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdomSub;
-  postResetOdomSub.Subscribe(
-      postResetNode, "/model/conveyor/link/base_link/odometry", 10u);
-
-  ASSERT_TRUE(test::StepUntil(server, 1000,
-      [&]
-      {
-        if (postResetOdomSub.Count() == 0u)
-          return false;
-
-        const auto &odom = postResetOdomSub.Last();
-        return std::abs(odom.pose().position().x()) < 1e-2 &&
-            std::abs(odom.pose().position().y()) < 1e-2 &&
-            std::abs(odom.twist().linear().x()) < 1e-2 &&
-            std::abs(odom.twist().angular().z()) < 1e-2;
-      }));
-
-  auto postResetOdom = postResetOdomSub.Last();
-  EXPECT_NEAR(0.0, postResetOdom.pose().position().x(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.pose().position().y(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.twist().linear().x(), 1e-2);
-  EXPECT_NEAR(0.0, postResetOdom.twist().angular().z(), 1e-2);
-
-  server.Run(true, 500, false);
-  auto settledOdom = postResetOdomSub.Last();
-  EXPECT_NEAR(0.0, settledOdom.pose().position().x(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.pose().position().y(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.twist().linear().x(), 0.05);
-  EXPECT_NEAR(0.0, settledOdom.twist().angular().z(), 0.05);
-
-  postResetOdomSub.Clear();
-  pub.Publish(msg);
-  ASSERT_TRUE(test::StepUntil(server, 2000,
-      [&]
-      {
-        return postResetOdomSub.Count() > 0u &&
-            postResetOdomSub.Last().twist().linear().x() > 0.05;
-      }));
+  test::reset::ExpectOdomResetClearsState(
+      server, pub, odomSub, "/model/conveyor/link/base_link/odometry", msg);
 }

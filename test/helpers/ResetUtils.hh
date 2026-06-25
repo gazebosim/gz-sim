@@ -21,12 +21,17 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
+#include <cmath>
 #include <string>
 
 #include <gz/sim/Server.hh>
 #include <gz/transport/Node.hh>
+
+#include "Subscription.hh"
+#include "Util.hh"
 
 namespace gz::sim::test::reset
 {
@@ -87,6 +92,77 @@ inline void RequestAndApplyWorldReset(
   RequestWorldReset(_worldName);
   ConsumeResetRequest(_server);
   ApplyWorldReset(_server);
+}
+
+/////////////////////////////////////////////////
+/// \brief Drive a system into a dirty odometry state, reset it, and verify that
+/// the odometry state is cleared while fresh commands still work.
+/// \param[in] _server Server under test.
+/// \param[in] _publisher Command publisher.
+/// \param[in] _preResetOdom Pre-reset odometry subscription.
+/// \param[in] _odomTopic Odometry topic to subscribe to after reset.
+/// \param[in] _command Command message to publish before and after reset.
+inline void ExpectOdomResetClearsState(
+    gz::sim::Server &_server,
+    gz::transport::Node::Publisher &_publisher,
+    Subscription<gz::msgs::Odometry> &_preResetOdom,
+    const std::string &_odomTopic,
+    const gz::transport::ProtoMsg &_command)
+{
+  _server.Run(true, 1000, false);
+  _preResetOdom.Clear();
+
+  _publisher.Publish(_command);
+  ASSERT_TRUE(gz::sim::test::StepUntil(_server, 2000,
+      [&]
+      {
+        return _preResetOdom.Count() > 0u &&
+            _preResetOdom.Last().pose().position().x() > 0.05 &&
+            _preResetOdom.Last().twist().linear().x() > 0.05;
+      }));
+
+  _server.ResetAll();
+
+  // Use a fresh subscription so delayed pre-reset messages cannot satisfy the
+  // post-reset assertions.
+  gz::transport::Node postResetNode;
+  Subscription<gz::msgs::Odometry> postResetOdom;
+  postResetOdom.Subscribe(postResetNode, _odomTopic, 10u);
+
+  ASSERT_TRUE(gz::sim::test::StepUntil(_server, 1000,
+      [&]
+      {
+        if (postResetOdom.Count() == 0u)
+          return false;
+
+        const auto &odom = postResetOdom.Last();
+        return std::abs(odom.pose().position().x()) < 1e-2 &&
+            std::abs(odom.pose().position().y()) < 1e-2 &&
+            std::abs(odom.twist().linear().x()) < 1e-2 &&
+            std::abs(odom.twist().angular().z()) < 1e-2;
+      }));
+
+  const auto postReset = postResetOdom.Last();
+  EXPECT_NEAR(0.0, postReset.pose().position().x(), 1e-2);
+  EXPECT_NEAR(0.0, postReset.pose().position().y(), 1e-2);
+  EXPECT_NEAR(0.0, postReset.twist().linear().x(), 1e-2);
+  EXPECT_NEAR(0.0, postReset.twist().angular().z(), 1e-2);
+
+  _server.Run(true, 500, false);
+  const auto settled = postResetOdom.Last();
+  EXPECT_NEAR(0.0, settled.pose().position().x(), 0.05);
+  EXPECT_NEAR(0.0, settled.pose().position().y(), 0.05);
+  EXPECT_NEAR(0.0, settled.twist().linear().x(), 0.05);
+  EXPECT_NEAR(0.0, settled.twist().angular().z(), 0.05);
+
+  postResetOdom.Clear();
+  _publisher.Publish(_command);
+  ASSERT_TRUE(gz::sim::test::StepUntil(_server, 2000,
+      [&]
+      {
+        return postResetOdom.Count() > 0u &&
+            postResetOdom.Last().twist().linear().x() > 0.05;
+      }));
 }
 
 }
