@@ -224,22 +224,25 @@ TEST_P(AckermannSteeringTest,
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "ackermann_steering.sdf"));
 
+  bool publishCommand{false};
+  msgs::Twist cmd;
+  msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(cmd.mutable_angular(), math::Vector3d(0, 0, 0.1));
+
+  std::vector<math::Pose3d> modelPoses;
+  Subscription<msgs::Odometry> odom;
+  Subscription<msgs::Odometry> postResetOdom;
+  transport::Node node;
+  transport::Node postResetNode;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+
   Server server(serverConfig);
   EXPECT_FALSE(server.Running());
   const auto running = server.Running(0);
   ASSERT_TRUE(running.has_value());
   EXPECT_FALSE(*running);
 
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-
-  bool publishCommand{false};
-  msgs::Twist cmd;
-  msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(cmd.mutable_angular(), math::Vector3d(0, 0, 0.1));
-
   test::Relay poseRecorder;
-  std::vector<math::Pose3d> modelPoses;
   poseRecorder.OnPostUpdate([&](const UpdateInfo &,
       const EntityComponentManager &_ecm)
   {
@@ -262,7 +265,6 @@ TEST_P(AckermannSteeringTest,
   });
   server.AddSystem(commandRelay.systemPtr);
 
-  Subscription<msgs::Odometry> odom;
   odom.Subscribe(node, "/model/vehicle/odometry", 1);
 
   server.Run(true, 1, false);
@@ -280,8 +282,6 @@ TEST_P(AckermannSteeringTest,
   publishCommand = false;
   server.ResetAll();
 
-  transport::Node postResetNode;
-  Subscription<msgs::Odometry> postResetOdom;
   postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
 
   const auto postResetPoseBegin = modelPoses.size();
