@@ -3223,6 +3223,8 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
             (rays1[i].start - results1[i].point).Length() /
               (rays1[i].start - rays1[i].end).Length();
           ASSERT_NEAR(results1[i].fraction, expFraction, 1e-6);
+          std::cout << "entity=" << results1[i].entity
+          << " ground=" << groundCollision << std::endl;
           EXPECT_EQ(results1[i].entity, groundCollision);
         }
 
