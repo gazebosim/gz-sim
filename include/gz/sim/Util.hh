@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <vector>
 
@@ -136,7 +137,29 @@ namespace gz
     /// \param[in] _entity Entity to get the type for.
     /// \param[in] _ecm Immutable reference to ECM.
     /// \return ID of entity's type-defining components.
-    std::string GZ_SIM_VISIBLE entityTypeStr(const Entity &_entity,
+    std::string_view GZ_SIM_VISIBLE entityTypeStrView(const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Generally, each entity will be of some specific high-level type,
+    /// such as "world", "sensor", "collision", etc, and one type only.
+    ///
+    /// This function returns a lowercase string for each type. For example,
+    /// "light", "actor", etc.
+    ///
+    /// In case the entity isn't of any known type, this will return an empty
+    /// string.
+    ///
+    /// In case the entity has more than one type, only one of them will be
+    /// returned. This is not standard usage.
+    ///
+    /// Note that this is different from component type names.
+    ///
+    /// \param[in] _entity Entity to get the type for.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return Lowercase string of entity's type-defining components.
+    /// \deprecated Use entityTypeStrView instead to reduce memory allocations.
+    std::string GZ_SIM_VISIBLE GZ_DEPRECATED(11) entityTypeStr(
+        const Entity &_entity,
         const EntityComponentManager &_ecm);
 
     /// \brief Get the world to which the given entity belongs.
