@@ -78,25 +78,40 @@ benchmark.
 */
 
 /* Benchmark runtime performance on bullet-featherstone physics engine */
-// NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
     ->Arg(10)
     ->Unit(benchmark::kMillisecond);
 
-// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorld, dart_shapes_sdf,
+                  "gz-physics-dartsim-plugin",
+                  "shapes.sdf")
+    ->Arg(1) // dartsim does not need warmup (no island sleep function for now)
+    ->Unit(benchmark::kMillisecond);
+
 BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
     ->Arg(10)
     ->Unit(benchmark::kMillisecond);
 
-// NOLINTNEXTLINE
+BENCHMARK_CAPTURE(BM_RuntimeWorld, dart_gpu_lidar_sensor_sdf,
+                  "gz-physics-dartsim-plugin",
+                  "gpu_lidar_sensor.sdf")
+    ->Arg(1) // dartsim does not need warmup (no island sleep function for now)
+    ->Unit(benchmark::kMillisecond);
+
 BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(3000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_dart_3k_shapes_sdf,
+                  "gz-physics-dartsim-plugin",
+                  "3k_shapes.sdf")
+    ->Arg(1) // dartsim does not need warmup (no island sleep function for now)
     ->Unit(benchmark::kMillisecond);
 
 /* Benchmark load time on bullet-featherstone physics engine */
@@ -105,13 +120,28 @@ BENCHMARK_CAPTURE(BM_LoadWorld, bullet_shapes_sdf,
                   "shapes.sdf")
     ->Unit(benchmark::kMillisecond);
 
+BENCHMARK_CAPTURE(BM_LoadWorld, dart_shapes_sdf,
+                  "gz-physics-dartsim-plugin",
+                  "shapes.sdf")
+    ->Unit(benchmark::kMillisecond);
+
 BENCHMARK_CAPTURE(BM_LoadWorld, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
     ->Unit(benchmark::kMillisecond);
 
+BENCHMARK_CAPTURE(BM_LoadWorld, dart_gpu_lidar_sensor_sdf,
+                  "gz-physics-dartsim-plugin",
+                  "gpu_lidar_sensor.sdf")
+    ->Unit(benchmark::kMillisecond);
+
 BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
+                  "3k_shapes.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_dart_3k_shapes_sdf,
+                  "gz-physics-dartsim-plugin",
                   "3k_shapes.sdf")
     ->Unit(benchmark::kMillisecond);
 
