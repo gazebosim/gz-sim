@@ -81,6 +81,9 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
+  * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
+    which has the same behavior but returns a `std::string_view` and avoids
+    a memory allocation to improve performance.
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
