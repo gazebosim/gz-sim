@@ -79,12 +79,14 @@ void PeerTracker::SetHeartbeatPeriod(const Duration &_period)
 /////////////////////////////////////////////////
 PeerTracker::Duration PeerTracker::HeartbeatPeriod() const
 {
+  auto lock = PeerLock(this->peersMutex);
   return this->heartbeatPeriod;
 }
 
 /////////////////////////////////////////////////
 void PeerTracker::SetStaleMultiplier(const size_t &_multiplier)
 {
+  auto lock = PeerLock(this->peersMutex);
   this->staleMultiplier = _multiplier;
 }
 
