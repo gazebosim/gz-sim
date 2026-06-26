@@ -23,8 +23,11 @@
 #ifndef GZ_SIM_TEST_HELPERS_SUBSCRIPTION_HH
 #define GZ_SIM_TEST_HELPERS_SUBSCRIPTION_HH
 
+#include <chrono>
+#include <condition_variable>
 #include <deque>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 
 #include <gz/transport/Node.hh>
@@ -128,6 +131,35 @@ class Subscription
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     this->messageHistory.clear();
+  }
+
+  /// \brief Clear received messages and reset the message count.
+  public: void Clear()
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->messageHistory.clear();
+    this->messageCount = 0u;
+  }
+
+  /// \brief Return the number of messages received since subscription or clear.
+  /// \return Number of messages received.
+  public: size_t Count()
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    return this->messageCount;
+  }
+
+  /// \brief Read last message received without removing it.
+  /// \throws std::runtime_error if there is no message to be read.
+  /// \return Last message received.
+  public: MessageT Last()
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    if (this->messageHistory.empty())
+    {
+      throw std::runtime_error("No messages to read");
+    }
+    return this->messageHistory.back();
   }
 
   /// \brief Read last message received.
