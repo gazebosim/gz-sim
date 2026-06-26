@@ -93,13 +93,6 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_gpu_lidar_sensor_sdf,
     ->Unit(benchmark::kMillisecond);
 
 // NOLINTNEXTLINE
-BENCHMARK_CAPTURE(BM_RuntimeWorld, bullet_breadcrumbs_sdf,
-                  "gz-physics-bullet-featherstone-plugin",
-                  "breadcrumbs.sdf")
-    ->Arg(10)
-    ->Unit(benchmark::kMillisecond);
-
-// NOLINTNEXTLINE
 BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_bullet_3k_shapes_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
@@ -115,11 +108,6 @@ BENCHMARK_CAPTURE(BM_LoadWorld, bullet_shapes_sdf,
 BENCHMARK_CAPTURE(BM_LoadWorld, bullet_gpu_lidar_sensor_sdf,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
-    ->Unit(benchmark::kMillisecond);
-
-BENCHMARK_CAPTURE(BM_LoadWorld, bullet_breadcrumbs_sdf,
-                  "gz-physics-bullet-featherstone-plugin",
-                  "breadcrumbs.sdf")
     ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_bullet_3k_shapes_sdf,
