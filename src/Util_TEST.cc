@@ -26,11 +26,6 @@
 #include <sdf/Types.hh>
 
 #include <gz/fuel_tools/ClientConfig.hh>
-<<<<<<< HEAD
-=======
-#include <gz/utils/ExtraTestMacros.hh>
-#include <gz/utils/SuppressWarning.hh>
->>>>>>> 52576694 (Optimize scopedName function (#3667))
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
@@ -380,9 +375,6 @@ TEST_F(UtilTest, EntityTypeId)
 /////////////////////////////////////////////////
 TEST_F(UtilTest, EntityTypeStr)
 {
-  // EntityTypeStr is deprecated, suppress once for the whole test
-  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
-
   EntityComponentManager ecm;
 
   auto entity = ecm.CreateEntity();
@@ -443,8 +435,6 @@ TEST_F(UtilTest, EntityTypeStr)
   ecm.CreateComponent(entity, components::Projector());
   EXPECT_EQ("projector", entityTypeStrView(entity, ecm));
   EXPECT_EQ("projector", entityTypeStr(entity, ecm));
-
-  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 /////////////////////////////////////////////////
