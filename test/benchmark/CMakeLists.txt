@@ -6,6 +6,11 @@ if (GzBenchmark_FOUND)
   set(tests
     each.cc
     ecm_serialize.cc
+<<<<<<< HEAD
+=======
+    server_run.cc
+    utils_benchmark.cc
+>>>>>>> 13adaf7c (Add benchmark for Server.Run operation  (#3671))
   )
 
   gz_add_benchmarks(SOURCES ${tests})
