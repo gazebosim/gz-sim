@@ -231,6 +231,7 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
     if (ns && !ns->Data().empty())
     {
       std::string nsStr = ns->Data();
+      const bool isAbsolute = nsStr.front() == '/';
       const auto begin = nsStr.find_first_not_of('/');
       if (begin != std::string::npos)
       {
@@ -238,6 +239,10 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
         nsStr = nsStr.substr(begin, end - begin + 1);
 
         namespaces.push_back(nsStr);
+      }
+      if (isAbsolute)
+      {
+        break;
       }
     }
 
