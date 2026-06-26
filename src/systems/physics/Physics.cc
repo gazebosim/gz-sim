@@ -4618,6 +4618,23 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
+        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        {
+          // Clear the last contact data
+          bool changed = _contacts->Data().contact_size() > 0;
+          if (changed)
+          {
+            _contacts->Data().Clear();
+          }
+
+          auto state = changed ?
+            ComponentState::PeriodicChange :
+            ComponentState::NoChange;
+          _ecm.SetChanged(
+            _collEntity1, components::ContactSensorData::typeId, state);
+          return true;
+        }
+
         msgs::Contacts *contactsComp{
         #if GOOGLE_PROTOBUF_VERSION >= 4022000
           google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
@@ -4626,18 +4643,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             &this->contactsArena)
         #endif
         };
-
-        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
-        {
-          // Clear the last contact data
-          auto state = _contacts->SetData(*contactsComp,
-            this->contactsEql) ?
-            ComponentState::PeriodicChange :
-            ComponentState::NoChange;
-          _ecm.SetChanged(
-            _collEntity1, components::ContactSensorData::typeId, state);
-          return true;
-        }
 
         const auto &contactMap = entityContactMap[_collEntity1];
 
