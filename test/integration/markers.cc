@@ -16,7 +16,9 @@
  */
 
 #include <gtest/gtest.h>
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/marker.pb.h>
+#include <gz/msgs/marker_v.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -50,6 +52,11 @@ void markerCb(const msgs::Marker &_msg)
   mutex.lock();
   markerMsgs.push_back(_msg);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+void markerArrayCb(const gz::msgs::Boolean &, const bool)
+{
 }
 
 /////////////////////////////////////////////////
@@ -112,4 +119,75 @@ TEST_F(MarkersTest, MarkerPublisher)
   node.Request("/marker", markerMsg);
   markerManager.Update();
   wait(2, markerMsg);
+}
+
+/////////////////////////////////////////////////
+TEST_F(MarkersTest, MarkerArrayPublisher)
+{
+  std::map<std::string, std::string> params;
+  auto engine = gz::rendering::engine("ogre2", params);
+  auto scene = engine->CreateScene("testscene_marker_array");
+
+  // Clear messages received by previous tests.
+  mutex.lock();
+  markerMsgs.clear();
+  mutex.unlock();
+
+  MarkerManager markerManager;
+  markerManager.Init(scene);
+
+  // Function that Waits for messages to be received
+  auto wait = [&](std::size_t _size) {
+    for (int sleep = 0; sleep < 30; ++sleep)
+    {
+      // The service request is asynchronous, so keep processing messages.
+      markerManager.Update();
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+      mutex.lock();
+      bool received = markerMsgs.size() == _size;
+      mutex.unlock();
+
+      if (received)
+        break;
+    }
+
+    mutex.lock();
+    EXPECT_EQ(markerMsgs.size(), _size);
+    mutex.unlock();
+  };
+
+  // subscribe to marker topic
+  transport::Node node;
+  node.Subscribe("/marker", &markerCb);
+
+  gz::msgs::Marker_V markerArrayMsg;
+
+  auto markerMsg0 = markerArrayMsg.add_marker();
+  markerMsg0->set_ns("array");
+  markerMsg0->set_id(0);
+  markerMsg0->set_action(gz::msgs::Marker::ADD_MODIFY);
+  markerMsg0->set_type(gz::msgs::Marker::SPHERE);
+  markerMsg0->set_visibility(gz::msgs::Marker::GUI);
+
+  auto markerMsg1 = markerArrayMsg.add_marker();
+  markerMsg1->set_ns("array");
+  markerMsg1->set_id(1);
+  markerMsg1->set_action(gz::msgs::Marker::ADD_MODIFY);
+  markerMsg1->set_type(gz::msgs::Marker::BOX);
+  markerMsg1->set_visibility(gz::msgs::Marker::GUI);
+
+  // Send an asynchronous marker array request.
+  EXPECT_TRUE(node.Request(
+      "/marker_array", markerArrayMsg, &markerArrayCb));
+
+  wait(2);
+
+  mutex.lock();
+  auto receivedMsgs = markerMsgs;
+  mutex.unlock();
+
+  ASSERT_EQ(receivedMsgs.size(), 2u);
+  EXPECT_EQ(markerMsg0->DebugString(), receivedMsgs[0].DebugString());
+  EXPECT_EQ(markerMsg1->DebugString(), receivedMsgs[1].DebugString());
 }
