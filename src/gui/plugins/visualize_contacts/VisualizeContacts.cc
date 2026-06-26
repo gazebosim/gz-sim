@@ -22,6 +22,7 @@
 #include <gz/msgs/contacts.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/marker.pb.h>
+#include <gz/msgs/marker_v.pb.h>
 
 #include <string>
 #include <vector>
@@ -57,6 +58,14 @@ namespace sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE
 {
+namespace
+{
+//////////////////////////////////////////////////
+void OnMarkerArrayResponse(const gz::msgs::Boolean &, const bool)
+{
+}
+}  // namespace
+
   /// \brief Private data class for VisualizeContacts
   class VisualizeContactsPrivate
   {
@@ -223,6 +232,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
   // Get the contacts and publish them
   // Since we are setting a lifetime for the markers, we get all the
   // contacts instead of getting new and removed ones
+  gz::msgs::Marker_V markerMsgs;
 
   // Variable for setting the markers id through the iteration
   int markerID = 1;
@@ -234,19 +244,25 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
       {
         for (int i = 0; i < contact.position_size(); ++i)
         {
-          // Set marker id, poses and request service
-          this->dataPtr->positionMarkerMsg.set_id(markerID++);
-          gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_pose(),
+          // Add marker id and pose to the marker array
+          auto markerMsg = markerMsgs.add_marker();
+          markerMsg->CopyFrom(this->dataPtr->positionMarkerMsg);
+
+          markerMsg->set_id(markerID++);
+          gz::msgs::Set(markerMsg->mutable_pose(),
             gz::math::Pose3d(contact.position(i).x(),
               contact.position(i).y(), contact.position(i).z(),
               0, 0, 0));
-
-          this->dataPtr->node.Request(
-            "/marker", this->dataPtr->positionMarkerMsg);
         }
       }
       return true;
     });
+
+  if (markerMsgs.marker_size() > 0)
+  {
+    this->dataPtr->node.Request(
+        "/marker_array", markerMsgs, &OnMarkerArrayResponse);
+  }
 }
 
 //////////////////////////////////////////////////
