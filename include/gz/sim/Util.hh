@@ -158,7 +158,7 @@ namespace gz
     /// \param[in] _ecm Immutable reference to ECM.
     /// \return Lowercase string of entity's type-defining components.
     /// \deprecated Use entityTypeStrView instead to reduce memory allocations.
-    std::string GZ_SIM_VISIBLE GZ_DEPRECATED(11) entityTypeStr(
+    std::string GZ_SIM_VISIBLE entityTypeStr(
         const Entity &_entity,
         const EntityComponentManager &_ecm);
 
