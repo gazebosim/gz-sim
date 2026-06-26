@@ -81,9 +81,6 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
-  * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
-    which has the same behavior but returns a `std::string_view` and avoids
-    a memory allocation to improve performance.
 
 * Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
 have been migrated. This upgrade affects all users' custom Gazebo GUI plugins.
