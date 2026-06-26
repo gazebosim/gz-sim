@@ -390,33 +390,51 @@ void AckermannSteering::Configure(const Entity &_entity,
           odomPer);
     }
   }
+
+  // Generate namespace
+  std::string ns;
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  if (hasNamespace(_ecm))
+  {
+    ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+    defaultPrefix = ns;
+  }
+
   // Subscribe to commands
   std::vector<std::string> topics;
 
 
   if (_sdf->HasElement("topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    std::string topicName = _sdf->Get<std::string>("topic");
+    if (!topicName.empty())
+    {
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (topicName.front() != '/')
+      {
+        topicName = ns + "/" + topicName;
+      }
+    }
+    topics.push_back(topicName);
   }
   else if (_sdf->HasElement("sub_topic"))
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/" + _sdf->Get<std::string>("sub_topic"));
+    topics.push_back(defaultPrefix + "/" + _sdf->Get<std::string>("sub_topic"));
   }
   else if ((this->dataPtr->steeringOnly) &&
     (!this->dataPtr->useActuatorMsg))
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/steer_angle");
+    topics.push_back(defaultPrefix + "/steer_angle");
   }
   else if ((this->dataPtr->steeringOnly) &&
     (this->dataPtr->useActuatorMsg))
   {
-    topics.push_back("/actuators");
+    topics.push_back(defaultPrefix + "/actuators");
   }
   else if (!this->dataPtr->steeringOnly)
   {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
+    topics.push_back(defaultPrefix + "/cmd_vel");
   }
 
   auto topic = validTopic(topics);
@@ -457,14 +475,23 @@ void AckermannSteering::Configure(const Entity &_entity,
     std::vector<std::string> odomTopics;
     if (_sdf->HasElement("odom_topic"))
     {
-      odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+      std::string odomTopicName = _sdf->Get<std::string>("odom_topic");
+      if (!odomTopicName.empty())
+      {
+        // Only prepend namespace to relative topic names.
+        // Absolute topic names (starting with '/') are left unchanged.
+        if (odomTopicName.front() != '/')
+        {
+          odomTopicName = ns + "/" + odomTopicName;
+        }
+      }
+      odomTopics.push_back(odomTopicName);
     }
-    odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-        "/odometry");
+    odomTopics.push_back(defaultPrefix + "/odometry");
     auto odomTopic = validTopic(odomTopics);
-    if (topic.empty())
+    if (odomTopic.empty())
     {
-      gzerr << "AckermannSteering plugin received invalid model name "
+      gzerr << "AckermannSteering plugin received invalid odom topic name "
             << "Failed to initialize." << std::endl;
       return;
     }
@@ -475,10 +502,19 @@ void AckermannSteering::Configure(const Entity &_entity,
     std::vector<std::string> tfTopics;
     if (_sdf->HasElement("tf_topic"))
     {
-      tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+      std::string tfTopicName = _sdf->Get<std::string>("tf_topic");
+      if (!tfTopicName.empty())
+      {
+        // Only prepend namespace to relative topic names.
+        // Absolute topic names (starting with '/') are left unchanged.
+        if (tfTopicName.front() != '/')
+        {
+          tfTopicName = ns + "/" + tfTopicName;
+        }
+      }
+      tfTopics.push_back(tfTopicName);
     }
-    tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/tf");
+    tfTopics.push_back(defaultPrefix + "/tf");
     auto tfTopic = validTopic(tfTopics);
     if (tfTopic.empty())
     {
