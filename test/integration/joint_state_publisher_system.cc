@@ -169,21 +169,17 @@ TEST_F(JointStatePublisherTest,
 
   server.ResetAll();
 
-  // Use a fresh subscription so delayed pre-reset messages cannot satisfy the
-  // post-reset assertions.
-  Subscription<msgs::Model> postResetJointStates;
-  transport::Node postResetNode;
-  postResetJointStates.Subscribe(postResetNode,
-      "/world/diff_drive/model/vehicle/joint_state", 1);
+  // Ignore delayed messages from the previous episode.
+  jointStates.Clear();
 
-  ASSERT_TRUE(waitForJointState(postResetJointStates,
+  ASSERT_TRUE(waitForJointState(jointStates,
       [](const msgs::Model &_msg)
       {
         return _msg.joint_size() > 0 &&
             !hasWheelVelocity(_msg, 1e-3);
       }));
 
-  const auto postResetMsg = postResetJointStates.Last();
+  const auto postResetMsg = jointStates.Last();
   EXPECT_NEAR(0.0, jointVelocity(postResetMsg, "left_wheel_joint"), 1e-3);
   EXPECT_NEAR(0.0, jointVelocity(postResetMsg, "right_wheel_joint"), 1e-3);
 }

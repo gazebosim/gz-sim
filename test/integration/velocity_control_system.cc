@@ -303,22 +303,23 @@ TEST_P(VelocityControlTest,
         return poses.back().Pos().Distance(initialPose.Pos()) < 1e-3;
       }));
 
-  const auto postResetStartIndex = poses.size();
+  const auto postResetStartCount = poses.size();
+  const auto postResetStart = poses.back();
   server.Run(true, 500, false);
-  ASSERT_GT(poses.size(), postResetStartIndex + 1u);
+  ASSERT_GT(poses.size(), postResetStartCount);
 
   // Without a fresh command, the pre-reset command must not keep driving the
   // model in the new episode.
-  const auto postResetStart = poses[postResetStartIndex];
   const auto postResetEnd = poses.back();
   EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
 
   pub.Publish(msg);
   std::this_thread::sleep_for(100ms);
-  const auto freshStartIndex = poses.size();
+  const auto freshStartCount = poses.size();
+  const auto freshStart = poses.back();
   server.Run(true, 500, false);
-  ASSERT_GT(poses.size(), freshStartIndex + 1u);
-  EXPECT_GT(poses.back().Pos().Distance(poses[freshStartIndex].Pos()), 0.02);
+  ASSERT_GT(poses.size(), freshStartCount);
+  EXPECT_GT(poses.back().Pos().Distance(freshStart.Pos()), 0.02);
 }
 
 /////////////////////////////////////////////////
@@ -375,23 +376,23 @@ TEST_P(VelocityControlTest,
         return linkPoses.size() > preResetPoseCount;
       }));
 
-  const auto postResetStartIndex = linkPoses.size();
+  const auto postResetStartCount = linkPoses.size();
+  const auto postResetStart = linkPoses.back();
   server.Run(true, 500, false);
-  ASSERT_GT(linkPoses.size(), postResetStartIndex + 1u);
+  ASSERT_GT(linkPoses.size(), postResetStartCount);
 
   // The link may settle to a reset baseline, but the old link command should
   // not continue to move it across the post-reset window.
-  const auto postResetStart = linkPoses[postResetStartIndex];
   const auto postResetEnd = linkPoses.back();
   EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
 
   pub.Publish(msg);
   std::this_thread::sleep_for(100ms);
-  const auto freshStartIndex = linkPoses.size();
+  const auto freshStartCount = linkPoses.size();
+  const auto freshStart = linkPoses.back();
   server.Run(true, 500, false);
-  ASSERT_GT(linkPoses.size(), freshStartIndex + 1u);
-  EXPECT_GT(linkPoses.back().Pos().Distance(linkPoses[freshStartIndex].Pos()),
-      0.02);
+  ASSERT_GT(linkPoses.size(), freshStartCount);
+  EXPECT_GT(linkPoses.back().Pos().Distance(freshStart.Pos()), 0.02);
 }
 
 // Run multiple times

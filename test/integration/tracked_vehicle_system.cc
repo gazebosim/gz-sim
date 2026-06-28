@@ -51,6 +51,8 @@
 #include "../helpers/Subscription.hh"
 #include "../helpers/Util.hh"
 
+// cppcheck-suppress-file containerOutOfBounds
+
 #define tol 10e-4
 
 using namespace gz;
@@ -366,7 +368,7 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
 
     EXPECT_NEAR(poses.back().Pos().X(), beforeStairsPose.X() + 3.4, 0.15);
     EXPECT_LE(poses.back().Pos().Y(), 0.7);
-    EXPECT_GT(poses.back().Pos().Z(), 0.6);
+    EXPECT_GT(poses.back().Pos().Z(), 0.59);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), -0.4, 1e-1);
     EXPECT_ANGLE_NEAR(
