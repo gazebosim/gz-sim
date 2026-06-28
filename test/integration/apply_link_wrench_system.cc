@@ -36,6 +36,8 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 #define tol 10e-4
 
@@ -346,4 +348,113 @@ TEST_F(ApplyLinkWrenchTestFixture,
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
   EXPECT_EQ(1u, impulseIterations);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ApplyLinkWrenchTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  // Persistent wrench commands should not keep driving the next episode.
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "apply_link_wrench.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  Link sdfLink;
+  Link runtimeLink;
+  std::vector<double> sdfAccelX;
+  std::vector<double> runtimeAccelX;
+  test::Relay recorder;
+  recorder.OnPreUpdate([&](
+      const UpdateInfo &,
+      EntityComponentManager &_ecm)
+      {
+        Model model1(_ecm.EntityByComponents(
+            components::Model(), components::Name("model1")));
+        EXPECT_TRUE(model1.Valid(_ecm));
+        sdfLink = Link(model1.CanonicalLink(_ecm));
+        EXPECT_TRUE(sdfLink.Valid(_ecm));
+        sdfLink.EnableAccelerationChecks(_ecm);
+
+        Model model3(_ecm.EntityByComponents(
+            components::Model(), components::Name("model3")));
+        EXPECT_TRUE(model3.Valid(_ecm));
+        runtimeLink = Link(model3.CanonicalLink(_ecm));
+        EXPECT_TRUE(runtimeLink.Valid(_ecm));
+        runtimeLink.EnableAccelerationChecks(_ecm);
+      })
+  .OnPostUpdate([&](
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+      {
+        auto sdfAccel = sdfLink.WorldLinearAcceleration(_ecm);
+        auto runtimeAccel = runtimeLink.WorldLinearAcceleration(_ecm);
+        if (sdfAccel.has_value())
+          sdfAccelX.push_back(sdfAccel.value().X());
+        if (runtimeAccel.has_value())
+          runtimeAccelX.push_back(runtimeAccel.value().X());
+      });
+  server.AddSystem(recorder.systemPtr);
+
+  transport::Node node;
+  auto pubPersistent = node.Advertise<msgs::EntityWrench>(
+      "/world/apply_link_wrench/wrench/persistent");
+  ASSERT_TRUE(test::WaitUntil(3s, [&]
+      {
+        return pubPersistent.HasConnections();
+      }));
+
+  msgs::EntityWrench msg;
+  msg.mutable_entity()->set_name("model3");
+  msg.mutable_entity()->set_type(msgs::Entity::MODEL);
+  msg.mutable_wrench()->mutable_force()->set_x(50);
+  msg.mutable_wrench()->mutable_torque()->set_z(0.5);
+  pubPersistent.Publish(msg);
+
+  ASSERT_TRUE(test::StepUntil(server, 200,
+      [&]
+      {
+        return !runtimeAccelX.empty() &&
+            std::abs(runtimeAccelX.back() - 50.0) < tol;
+      }));
+
+  server.ResetAll();
+
+  sdfAccelX.clear();
+  runtimeAccelX.clear();
+  ASSERT_TRUE(test::StepUntil(server, 500,
+      [&]
+      {
+        return !sdfAccelX.empty() && !runtimeAccelX.empty() &&
+            std::abs(sdfAccelX.back() - 50.0) < tol &&
+            std::abs(runtimeAccelX.back()) < tol;
+      }));
+
+  // SDF-configured persistent wrenches are part of the reset world state.
+  EXPECT_NEAR(50.0, sdfAccelX.back(), tol);
+
+  // Runtime persistent wrenches must not leak into the next episode.
+  EXPECT_NEAR(0.0, runtimeAccelX.back(), tol);
+
+  transport::Node postResetNode;
+  auto postResetPub = postResetNode.Advertise<msgs::EntityWrench>(
+      "/world/apply_link_wrench/wrench/persistent");
+  ASSERT_TRUE(test::WaitUntil(3s, [&]
+      {
+        return postResetPub.HasConnections();
+      }));
+
+  msg.mutable_wrench()->mutable_force()->set_x(40);
+  msg.mutable_wrench()->mutable_torque()->set_z(0.4);
+  postResetPub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 200,
+      [&]
+      {
+        return !runtimeAccelX.empty() &&
+            std::abs(runtimeAccelX.back() - 40.0) < tol;
+      }));
 }
