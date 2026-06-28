@@ -134,9 +134,9 @@ TEST_F(JointStatePublisherTest,
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(0ns);
 
-  // Keep the receiver alive until after the node unsubscribes on destruction.
-  Subscription<msgs::Model> jointStates;
   transport::Node node;
+  // Destroy the subscription before the node so Unsubscribe sees a live node.
+  Subscription<msgs::Model> jointStates;
   jointStates.Subscribe(node, "/world/diff_drive/model/vehicle/joint_state",
       1);
   auto waitForJointState =
