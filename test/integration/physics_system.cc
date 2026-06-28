@@ -42,6 +42,7 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
@@ -83,6 +84,7 @@
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -194,6 +196,97 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
   const double zStopped =
       sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
+}
+
+/////////////////////////////////////////////////
+// Verify that disabling a model's collisions via Model::SetCollisionEnabled
+// (i.e. the CollisionEnabledCmd component) causes the model to no longer
+// collide. The sphere from falling.sdf would normally come to rest on the
+// ground plane, but with collisions disabled it should fall straight through.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DisableCollision))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/falling.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  const sdf::Model *model = world->ModelByIndex(0);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName = "sphere";
+  std::vector<math::Pose3d> spherePoses;
+  std::optional<bool> collisionState;
+
+  test::Relay testSystem;
+
+  // Disable the sphere model's collisions on the first iteration.
+  testSystem.OnPreUpdate(
+    [modelName](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name>(
+        [&](const Entity &_entity, const components::Model *,
+            const components::Name *_name)->bool
+        {
+          if (_name->Data() == modelName)
+          {
+            Model sphereModel(_entity);
+            // Send the command only once. Once it has been processed by the
+            // physics system, the CollisionEnabled state component will exist.
+            if (!sphereModel.CollisionEnabled(_ecm).has_value())
+            {
+              sphereModel.SetCollisionEnabled(_ecm, false);
+            }
+          }
+          return true;
+        });
+    });
+
+  // Record the sphere pose and its collision-enabled state.
+  testSystem.OnPostUpdate(
+    [modelName, &spherePoses, &collisionState](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == modelName)
+          {
+            spherePoses.push_back(_pose->Data());
+            collisionState = Model(_entity).CollisionEnabled(_ecm);
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run long enough for the sphere to fall past the ground plane.
+  server.Run(true, 3000, false);
+
+  // The CollisionEnabled state component should reflect the disabled command.
+  ASSERT_TRUE(collisionState.has_value());
+  EXPECT_FALSE(collisionState.value());
+
+  // With collisions enabled, the sphere (radius 1) would come to rest on the
+  // ground plane (at z = 0) with the model stopping at z = radius minus the
+  // link's z offset (see the FallingObject test above).
+  auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();
+  auto sphere = geometry->SphereShape();
+  ASSERT_NE(nullptr, sphere);
+  const double zStopped =
+      sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
+
+  // With collisions disabled the sphere should keep falling well below that
+  // resting position, confirming it passed through the ground plane.
+  EXPECT_LT(spherePoses.back().Pos().Z(), zStopped - 1.0);
 }
 
 /////////////////////////////////////////////////
@@ -3072,14 +3165,20 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
         // Create RaycastData component for testEntity1
         testEntity1 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity1, components::RaycastData());
+        _ecm.CreateComponent(testEntity1, components::NeedsRaycast(true));
         _ecm.CreateComponent(
           testEntity1, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+        _ecm.CreateComponent(
+          testEntity1, components::WorldPose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Create RaycastData component for testEntity2
         testEntity2 = _ecm.CreateEntity();
         _ecm.CreateComponent(testEntity2, components::RaycastData());
+        _ecm.CreateComponent(testEntity2, components::NeedsRaycast(true));
         _ecm.CreateComponent(
           testEntity2, components::Pose(math::Pose3d(0, 0, 10, 0, 0, 0)));
+        _ecm.CreateComponent(
+          testEntity2, components::WorldPose(math::Pose3d(0, 0, 10, 0, 0, 0)));
 
         // Add 5 rays to testEntity1 that intersect with the ground plane
         auto &rays1 =
@@ -3401,4 +3500,208 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticCmd))
 
   // Check that velocity is non-zero again
   EXPECT_GT(getLinkAngVel().Length(), 1e-3);
+}
+
+/////////////////////////////////////////////////
+// Test setting CollideBitmaskCmd and verify that the object falls
+// through other objects when the AND bitwise operation of the bitmasks
+// evaluates to zero
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CollideBitmaskCmd))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay relaySystem;
+  relaySystem.OnPreUpdate([&](const UpdateInfo &,
+                              EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(relaySystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  const std::string modelName = "contact_model";
+  const std::string collision1Name = "collision_sphere1";
+  const std::string collision2Name = "collision_sphere2";
+  const std::string box1CollisionName = "collision_box1_box";
+  const std::string box2CollisionName = "collision_box2_box";
+
+  auto modelEntity = ecm->EntityByComponents(
+      components::Model(), components::Name(modelName));
+  auto collision1Entity = ecm->EntityByComponents(
+      components::Collision(), components::Name(collision1Name));
+  auto collision2Entity = ecm->EntityByComponents(
+      components::Collision(), components::Name(collision2Name));
+
+  auto box1CollisionEntity = ecm->EntityByComponents(
+      components::Collision(), components::Name(box1CollisionName));
+  auto box2CollisionEntity = ecm->EntityByComponents(
+      components::Collision(), components::Name(box2CollisionName));
+
+  ASSERT_NE(modelEntity, kNullEntity);
+  ASSERT_NE(collision1Entity, kNullEntity);
+  ASSERT_NE(collision2Entity, kNullEntity);
+  ASSERT_NE(box1CollisionEntity, kNullEntity);
+  ASSERT_NE(box2CollisionEntity, kNullEntity);
+
+  // Set the collide bitmasks for spheres and boxes so they do not collide
+  // with each other
+  ecm->CreateComponent(collision1Entity,
+      components::CollideBitmaskCmd(0x0002));
+  ecm->CreateComponent(collision2Entity,
+      components::CollideBitmaskCmd(0x0002));
+  ecm->CreateComponent(box1CollisionEntity,
+      components::CollideBitmaskCmd(0x0004));
+  ecm->CreateComponent(box2CollisionEntity,
+      components::CollideBitmaskCmd(0x0004));
+
+  // Run for 2 iterations. On the first iteration, the commands will be
+  // processed. On the second iteration, the command components will be
+  // removed.
+  server.Run(true, 2, false);
+
+  // Verify that the command components are gone.
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CollideBitmaskCmd>(collision1Entity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CollideBitmaskCmd>(collision2Entity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CollideBitmaskCmd>(box1CollisionEntity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CollideBitmaskCmd>(box2CollisionEntity));
+
+  // Now run for a significant number of iterations (e.g. 1000) so it falls
+  // past the boxes.
+  server.Run(true, 1000, false);
+
+  // The top of the boxes is at z=1.0. If the sphere fell through, the
+  // model's z pose should be significantly below 1.0 (e.g. < 0.0).
+  auto modelPose = ecm->Component<components::Pose>(modelEntity)->Data();
+  double zFinal = modelPose.Pos().Z();
+  EXPECT_LT(zFinal, 0.0);
+}
+
+/////////////////////////////////////////////////
+// Test setting CategoryBitmaskCmd and verify that the object falls
+// through other objects. Collision occurs when the following evaluates
+// to non-zero:
+//   (category_bitmask1 & collide_bitmask2) |
+//   (category_bitmask2 & collide_bitmask1)
+// In this test, all objects will have a category bitmask of 0x0002
+// and a collide bitmask of 0x0001 so
+//   (0x0002 & 0x0001) | (0x0002 & 0x0001)
+// evaluates to zero, hence the objects do not collide
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CategoryBitmaskCmd))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(0ns);
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay relaySystem;
+  relaySystem.OnPreUpdate([&](const UpdateInfo &,
+                              EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+  server.AddSystem(relaySystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr, ecm);
+
+  const std::string modelName = "contact_model";
+  const std::string collision1Name = "collision_sphere1";
+  const std::string collision2Name = "collision_sphere2";
+  const std::string box1CollisionName = "collision_box1_box";
+  const std::string box2CollisionName = "collision_box2_box";
+
+  auto modelEntity = ecm->EntityByComponents(
+      components::Model(), components::Name(modelName));
+  auto collision1Entity = ecm->EntityByComponents(
+      components::Collision(), components::Name(collision1Name));
+  auto collision2Entity = ecm->EntityByComponents(
+      components::Collision(), components::Name(collision2Name));
+
+  auto box1CollisionEntity = ecm->EntityByComponents(
+      components::Collision(), components::Name(box1CollisionName));
+  auto box2CollisionEntity = ecm->EntityByComponents(
+      components::Collision(), components::Name(box2CollisionName));
+
+  ASSERT_NE(modelEntity, kNullEntity);
+  ASSERT_NE(collision1Entity, kNullEntity);
+  ASSERT_NE(collision2Entity, kNullEntity);
+  ASSERT_NE(box1CollisionEntity, kNullEntity);
+  ASSERT_NE(box2CollisionEntity, kNullEntity);
+
+  // Set collide bitmask to 0x0001 and category bitmask to 0x0002 for all
+  // shapes. Because the bitmasks do not overlap (0x0001 & 0x0002 == 0),
+  // they should not collide. If CategoryBitmaskCmd is not working, the
+  // category bitmasks will fallback to their collide bitmasks (0x0001),
+  // which do overlap (0x0001 & 0x0001 != 0), causing them to collide.
+  ecm->CreateComponent(collision1Entity,
+      components::CollideBitmaskCmd(0x0001));
+  ecm->CreateComponent(collision1Entity,
+      components::CategoryBitmaskCmd(0x0002));
+
+  ecm->CreateComponent(collision2Entity,
+      components::CollideBitmaskCmd(0x0001));
+  ecm->CreateComponent(collision2Entity,
+      components::CategoryBitmaskCmd(0x0002));
+
+  ecm->CreateComponent(box1CollisionEntity,
+      components::CollideBitmaskCmd(0x0001));
+  ecm->CreateComponent(box1CollisionEntity,
+      components::CategoryBitmaskCmd(0x0002));
+
+  ecm->CreateComponent(box2CollisionEntity,
+      components::CollideBitmaskCmd(0x0001));
+  ecm->CreateComponent(box2CollisionEntity,
+      components::CategoryBitmaskCmd(0x0002));
+
+  // Run for 2 iterations. On the first iteration, the commands will be
+  // processed. On the second iteration, the command components will be
+  // removed.
+  server.Run(true, 2, false);
+
+  // Verify that the command components are gone.
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CategoryBitmaskCmd>(collision1Entity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CategoryBitmaskCmd>(collision2Entity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CategoryBitmaskCmd>(box1CollisionEntity));
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::CategoryBitmaskCmd>(box2CollisionEntity));
+
+  // Now run for 1000 iterations.
+  server.Run(true, 1000, false);
+
+  // The sphere should fall through.
+  auto modelPose = ecm->Component<components::Pose>(modelEntity)->Data();
+  double zFinal = modelPose.Pos().Z();
+  EXPECT_LT(zFinal, 0.0);
 }
