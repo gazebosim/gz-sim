@@ -154,9 +154,6 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
       "world/air_pressure_sensor/model/air_pressure_model/link/link/"
       "sensor/air_pressure_sensor/air_pressure";
 
-  transport::Node node;
-  Subscription<msgs::FluidPressure> initialPressure;
-  initialPressure.Subscribe(node, topic, 1);
   auto waitForPressure =
       [&server](Subscription<msgs::FluidPressure> &_subscription)
       {
@@ -166,19 +163,17 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
         });
       };
 
-  ASSERT_TRUE(waitForPressure(initialPressure));
-  const auto baseline = initialPressure.Last();
-
+  // Let the sensor publish in the first episode, then reset without keeping
+  // transport subscriptions alive across sensor teardown / recreation.
   server.Run(true, 300, false);
   server.ResetAll();
 
-  // Re-subscribe after reset to avoid accepting late pre-reset transport data.
-  transport::Node postResetNode;
+  transport::Node node;
   Subscription<msgs::FluidPressure> postResetPressure;
-  postResetPressure.Subscribe(postResetNode, topic, 1);
+  postResetPressure.Subscribe(node, topic, 1);
 
   ASSERT_TRUE(waitForPressure(postResetPressure));
   const auto postReset = postResetPressure.Last();
-  EXPECT_DOUBLE_EQ(baseline.pressure(), postReset.pressure());
-  EXPECT_DOUBLE_EQ(baseline.variance(), postReset.variance());
+  EXPECT_DOUBLE_EQ(101325.0, postReset.pressure());
+  EXPECT_DOUBLE_EQ(0.0, postReset.variance());
 }

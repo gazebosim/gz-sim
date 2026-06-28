@@ -155,9 +155,6 @@ TEST_F(AirSpeedTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
       "world/air_speed_sensor/model/air_speed_model/link/link/"
       "sensor/air_speed_sensor/air_speed";
 
-  transport::Node node;
-  Subscription<msgs::AirSpeed> initialAirSpeed;
-  initialAirSpeed.Subscribe(node, topic, 1);
   auto waitForAirSpeed =
       [&server](Subscription<msgs::AirSpeed> &_subscription)
       {
@@ -167,19 +164,17 @@ TEST_F(AirSpeedTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
         });
       };
 
-  ASSERT_TRUE(waitForAirSpeed(initialAirSpeed));
-  const auto baseline = initialAirSpeed.Last();
-
+  // Let the sensor publish in the first episode, then reset without keeping
+  // transport subscriptions alive across sensor teardown / recreation.
   server.Run(true, 300, false);
   server.ResetAll();
 
-  // Re-subscribe after reset to avoid accepting late pre-reset transport data.
-  transport::Node postResetNode;
+  transport::Node node;
   Subscription<msgs::AirSpeed> postResetAirSpeed;
-  postResetAirSpeed.Subscribe(postResetNode, topic, 1);
+  postResetAirSpeed.Subscribe(node, topic, 1);
 
   ASSERT_TRUE(waitForAirSpeed(postResetAirSpeed));
   const auto postReset = postResetAirSpeed.Last();
-  EXPECT_DOUBLE_EQ(baseline.diff_pressure(), postReset.diff_pressure());
-  EXPECT_DOUBLE_EQ(baseline.temperature(), postReset.temperature());
+  EXPECT_DOUBLE_EQ(0.0, postReset.diff_pressure());
+  EXPECT_DOUBLE_EQ(288.14999389648438, postReset.temperature());
 }
