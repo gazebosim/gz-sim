@@ -476,15 +476,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
         kinematicState.linearVelocity = _linearVelocity->Data();
         kinematicState.angularVelocity = _angularVelocity->Data();
         return true;
-      });;
-
-    for (const auto &entity : this->knownSensorEntities)
-    {
-      if (!request.worldState.kinematics.count(entity))
-      {
-        return;
-      }
-    }
+      });
 
     {
       std::lock_guard<std::mutex> lock(this->requestsMutex);
@@ -788,8 +780,14 @@ void DopplerVelocityLogSystem::Implementation::OnRender()
 
     std::lock_guard<std::mutex> timeLock(this->timeMutex);
 
-    for (const auto & [_, sensorId] : this->sensorIdPerEntity)
+    for (const auto & [entity, sensorId] : this->sensorIdPerEntity)
     {
+      if (this->latestWorldState &&
+          !this->latestWorldState->kinematics.count(entity))
+      {
+        continue;
+      }
+
       gz::sensors::Sensor *sensor =
           this->sensorManager.Sensor(sensorId);
       if (!sensor)

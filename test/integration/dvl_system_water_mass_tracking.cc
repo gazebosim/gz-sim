@@ -225,8 +225,8 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresWaterMassTracking))
       "worlds", "underwater_currents.sdf");
   TestFixtureWithModel fixture(worldFile, "tethys");
 
-  Subscription<DVLVelocityTracking> velocitySubscription;
   transport::Node node;
+  Subscription<DVLVelocityTracking> velocitySubscription;
   velocitySubscription.Subscribe(node, "/dvl/velocity", 1);
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
@@ -255,21 +255,18 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresWaterMassTracking))
   fixture.Manipulator().SetLinearVelocity(math::Vector3d::Zero);
   fixture.Simulator()->ResetAll();
 
-  // Ignore delayed messages from the previous episode.
-  Subscription<DVLVelocityTracking> postResetVelocitySubscription;
-  transport::Node postResetNode;
-  postResetVelocitySubscription.Subscribe(postResetNode, "/dvl/velocity", 1);
+  velocitySubscription.Clear();
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
   {
-    if (postResetVelocitySubscription.Count() == 0u ||
-        !validWaterMassTracking(postResetVelocitySubscription.Last()))
+    if (velocitySubscription.Count() == 0u ||
+        !validWaterMassTracking(velocitySubscription.Last()))
     {
       return false;
     }
 
     const math::Vector3d velocity =
-        msgs::Convert(postResetVelocitySubscription.Last().velocity().mean());
+        msgs::Convert(velocitySubscription.Last().velocity().mean());
     return (velocity - initialVelocity).Length() < 0.2;
   }));
 }

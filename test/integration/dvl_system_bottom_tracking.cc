@@ -254,8 +254,8 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresBottomTracking))
       (seaBedDepth + sensorPositionInSFMFrame.Z()) /
       std::cos(beamInclination);
 
-  Subscription<DVLVelocityTracking> velocitySubscription;
   transport::Node node;
+  Subscription<DVLVelocityTracking> velocitySubscription;
   velocitySubscription.Subscribe(node, "/dvl/velocity", 1);
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
@@ -286,17 +286,12 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetRestoresBottomTracking))
   fixture.Manipulator().SetAngularVelocity(math::Vector3d::Zero);
   fixture.Simulator()->ResetAll();
 
-  // Ignore delayed messages from the previous episode.
-  Subscription<DVLVelocityTracking> postResetVelocitySubscription;
-  transport::Node postResetNode;
-  postResetVelocitySubscription.Subscribe(postResetNode, "/dvl/velocity", 1);
+  velocitySubscription.Clear();
 
   ASSERT_TRUE(fixture.StepUntil(2000, [&]
   {
-    return postResetVelocitySubscription.Count() > 0u &&
-        bottomTrackingAtRest(
-            postResetVelocitySubscription.Last(), expectedBeamRange);
+    return velocitySubscription.Count() > 0u &&
+        bottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
   }));
-  expectBottomTrackingAtRest(
-      postResetVelocitySubscription.Last(), expectedBeamRange);
+  expectBottomTrackingAtRest(velocitySubscription.Last(), expectedBeamRange);
 }
