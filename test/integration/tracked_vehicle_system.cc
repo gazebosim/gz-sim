@@ -750,9 +750,6 @@ TEST_F(TrackedVehicleTest,
   auto pub = node.Advertise<msgs::Twist>("/model/simple_tracked/cmd_vel");
   ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
 
-  server.Run(true, 1000, false);
-  odomSub.Clear();
-
   msgs::Twist msg;
   msg.mutable_linear()->set_x(1.0);
   test::reset::ExpectOdomResetClearsState(
@@ -778,9 +775,6 @@ TEST_F(TrackedVehicleTest,
   auto pub = node.Advertise<msgs::Double>(
       "/model/conveyor/link/base_link/track_cmd_vel");
   ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
-
-  server.Run(true, 1000, false);
-  odomSub.Clear();
 
   msgs::Double msg;
   msg.set_data(1.0);
