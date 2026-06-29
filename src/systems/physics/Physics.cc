@@ -4611,6 +4611,43 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     }
   }
 
+  auto contactsEql = [](const msgs::Contacts &_msg,
+                        const EntityContactMap &_map)
+  {
+    if (_msg.contact_size() != static_cast<int>(_map.size()))
+    {
+      return false;
+    }
+
+    int i = 0;
+    for (const auto &[collEntity2, contactData] : _map)
+    {
+      if (_msg.contact(i).position_size() !=
+          static_cast<int>(contactData.size()))
+      {
+        return false;
+      }
+
+      int j = 0;
+      for (const auto &contact : contactData)
+      {
+        auto pos1 = _msg.contact(i).position(j);
+        auto pos2 = contact.first->point;
+
+        if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
+            !math::equal(pos1.y(), pos2.y(), 1e-6) ||
+            !math::equal(pos1.z(), pos2.z(), 1e-6))
+        {
+          return false;
+        }
+        ++j;
+      }
+      ++i;
+    }
+    return true;
+  };
+
+
   // Go through each collision entity that has a ContactData component and
   // set the component value to the list of contacts that correspond to
   // the collision entity
