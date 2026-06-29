@@ -17,9 +17,12 @@
 
 #include "Contact.hh"
 
+#include <google/protobuf/arena.h>
+
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -68,8 +71,19 @@ class ContactSensor
   /// \brief Topic to publish data to
   public: std::string topic;
 
-  /// \brief Message to publish
-  public: msgs::Contacts contactsMsg;
+  /// \brief Arena for contact message allocation. Reset() is called after
+  /// each publish, retaining the arena's initial block for reuse.
+  public: google::protobuf::Arena arena;
+
+  /// \brief Message to publish (arena-owned). Reallocated on the arena
+  /// after every Reset().
+  public: msgs::Contacts *contactsMsg{
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    google::protobuf::Arena::Create<msgs::Contacts>(&arena)
+#else
+    google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)
+#endif
+  };
 
   /// \brief Gazebo transport node
   public: transport::Node node;
@@ -134,22 +148,31 @@ void ContactSensor::AddContacts(
   auto stamp = convert<msgs::Time>(_stamp);
   for (const auto &contact : _contacts.contact())
   {
-    auto *newContact = this->contactsMsg.add_contact();
+    auto *newContact = this->contactsMsg->add_contact();
     newContact->CopyFrom(contact);
     newContact->mutable_header()->mutable_stamp()->CopyFrom(stamp);
   }
 
-  this->contactsMsg.mutable_header()->mutable_stamp()->CopyFrom(stamp);
+  this->contactsMsg->mutable_header()->mutable_stamp()->CopyFrom(stamp);
 }
 
 //////////////////////////////////////////////////
 void ContactSensor::Publish()
 {
   // Only publish if there are contacts
-  if (this->contactsMsg.contact_size() > 0)
+  if (this->contactsMsg->contact_size() > 0)
   {
-    this->pub.Publish(this->contactsMsg);
-    this->contactsMsg.Clear();
+    this->pub.Publish(*this->contactsMsg);
+    // Reset (not Clear): Clear() walks the field tree, while arena.Reset()
+    // is O(1) and lets the next add_contact() bump-allocate fresh entries.
+    this->arena.Reset();
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    this->contactsMsg =
+      google::protobuf::Arena::Create<msgs::Contacts>(&this->arena);
+#else
+    this->contactsMsg =
+      google::protobuf::Arena::CreateMessage<msgs::Contacts>(&this->arena);
+#endif
   }
 }
 
