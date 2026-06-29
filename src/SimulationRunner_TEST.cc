@@ -432,12 +432,8 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (_name->Data() == "capsule_collision")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
-=======
         requiredCollisions.insert("capsule_collision");
-        EXPECT_EQ(math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
@@ -452,28 +448,19 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       }
       else if (_name->Data() == "ellipsoid_collision")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
-=======
         requiredCollisions.insert("ellipsoid_collision");
-        EXPECT_EQ(math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
-        _geometry->Data().EllipsoidShape()->Radii());
-=======
         if (_geometry->Data().EllipsoidShape())
         {
-          EXPECT_EQ(math::Vector3d(0.4, 0.6, 1.6),
+          EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
           _geometry->Data().EllipsoidShape()->Radii());
         }
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
       }
       return true;
     });

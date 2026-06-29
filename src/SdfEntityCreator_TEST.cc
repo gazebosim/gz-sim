@@ -403,12 +403,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (_name->Data() == "capsule_collision")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
-=======
         foundCollisions.insert("capsule_collision");
-        EXPECT_EQ(gz::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
@@ -421,12 +417,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
         }
       else if (_name->Data() == "ellipsoid_collision")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
-=======
         foundCollisions.insert("ellipsoid_collision");
-        EXPECT_EQ(gz::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
@@ -556,12 +548,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (_name->Data() == "capsule_visual")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
-=======
         foundVisuals.insert("capsule_visual");
-        EXPECT_EQ(gz::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
@@ -585,12 +573,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       }
       else if (_name->Data() == "ellipsoid_visual")
       {
-<<<<<<< HEAD
-        EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
-=======
         foundVisuals.insert("ellipsoid_visual");
-        EXPECT_EQ(gz::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
->>>>>>> 12219acb (Update some tests to be independent of entity ordering (#3592))
+        EXPECT_EQ(ignition::math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
