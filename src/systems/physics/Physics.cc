@@ -4635,12 +4635,20 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
+        msgs::Contacts *contactsComp{
+        #if GOOGLE_PROTOBUF_VERSION >= 4022000
+          google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
+        #else
+          google::protobuf::Arena::CreateMessage<msgs::Contacts>(
+            &this->contactsArena)
+        #endif
+        };
 
         const auto &contactMap = entityContactMap[_collEntity1];
 
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = _contacts->Data().add_contact();
+          msgs::Contact *contactMsg = contactsComp->add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -4686,8 +4694,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           }
         }
 
-        bool changed = _contacts->Data().contact_size() > 0;
-        auto state = changed ?
+        auto state = _contacts->SetData(*contactsComp,
+          this->contactsEql) ?
           ComponentState::PeriodicChange :
           ComponentState::NoChange;
         _ecm.SetChanged(
