@@ -356,7 +356,6 @@ void DopplerVelocityLogSystem::Implementation::DoReset(
 {
   this->perStepRequests.clear();
   this->knownSensorEntities.clear();
-  this->needsUpdate = true;
   this->resetSensorRebindPending = true;
 
   {
