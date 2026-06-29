@@ -254,9 +254,7 @@ namespace gz
       // \brief Download asset condition variable.
       private: std::condition_variable downloadAssetCv;
 
-      /// \brief Predicate for downloadAssetCv: set to true (under
-      /// downloadAssetMutex) by the download thread once it has finished, so the
-      /// waiter is robust to spurious wakeups. Guarded by downloadAssetMutex.
+      /// \brief Predicate for downloadAssetCv.
       private: bool downloadAssetsComplete = false;
     };
     }
