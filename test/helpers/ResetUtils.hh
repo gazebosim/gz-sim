@@ -35,6 +35,21 @@
 
 namespace gz::sim::test::reset
 {
+/////////////////////////////////////////////////
+/// \brief Thresholds used by odometry reset checks.
+struct OdomResetExpectations
+{
+  /// \brief Minimum pre-reset pose X and linear X values used to prove that
+  /// the system entered a dirty state.
+  public: double dirtyStateMin{0.05};
+
+  /// \brief Tolerance for the first post-reset odometry sample.
+  public: double resetTolerance{1e-2};
+
+  /// \brief Tolerance for the settled post-reset odometry window.
+  public: double settledTolerance{0.05};
+};
+
 namespace detail
 {
 /////////////////////////////////////////////////
@@ -107,7 +122,8 @@ inline void ExpectOdomResetClearsState(
     gz::transport::Node::Publisher &_publisher,
     Subscription<gz::msgs::Odometry> &_preResetOdom,
     const std::string &_odomTopic,
-    const gz::transport::ProtoMsg &_command)
+    const gz::transport::ProtoMsg &_command,
+    const OdomResetExpectations &_expectations = OdomResetExpectations())
 {
   _server.Run(true, 1000, false);
   _preResetOdom.Clear();
@@ -117,8 +133,10 @@ inline void ExpectOdomResetClearsState(
       [&]
       {
         return _preResetOdom.Count() > 0u &&
-            _preResetOdom.Last().pose().position().x() > 0.05 &&
-            _preResetOdom.Last().twist().linear().x() > 0.05;
+            _preResetOdom.Last().pose().position().x() >
+                _expectations.dirtyStateMin &&
+            _preResetOdom.Last().twist().linear().x() >
+                _expectations.dirtyStateMin;
       }));
 
   _server.ResetAll();
@@ -136,24 +154,36 @@ inline void ExpectOdomResetClearsState(
           return false;
 
         const auto &odom = postResetOdom.Last();
-        return std::abs(odom.pose().position().x()) < 1e-2 &&
-            std::abs(odom.pose().position().y()) < 1e-2 &&
-            std::abs(odom.twist().linear().x()) < 1e-2 &&
-            std::abs(odom.twist().angular().z()) < 1e-2;
+        return std::abs(odom.pose().position().x()) <
+                _expectations.resetTolerance &&
+            std::abs(odom.pose().position().y()) <
+                _expectations.resetTolerance &&
+            std::abs(odom.twist().linear().x()) <
+                _expectations.resetTolerance &&
+            std::abs(odom.twist().angular().z()) <
+                _expectations.resetTolerance;
       }));
 
   const auto postReset = postResetOdom.Last();
-  EXPECT_NEAR(0.0, postReset.pose().position().x(), 1e-2);
-  EXPECT_NEAR(0.0, postReset.pose().position().y(), 1e-2);
-  EXPECT_NEAR(0.0, postReset.twist().linear().x(), 1e-2);
-  EXPECT_NEAR(0.0, postReset.twist().angular().z(), 1e-2);
+  EXPECT_NEAR(0.0, postReset.pose().position().x(),
+      _expectations.resetTolerance);
+  EXPECT_NEAR(0.0, postReset.pose().position().y(),
+      _expectations.resetTolerance);
+  EXPECT_NEAR(0.0, postReset.twist().linear().x(),
+      _expectations.resetTolerance);
+  EXPECT_NEAR(0.0, postReset.twist().angular().z(),
+      _expectations.resetTolerance);
 
   _server.Run(true, 500, false);
   const auto settled = postResetOdom.Last();
-  EXPECT_NEAR(0.0, settled.pose().position().x(), 0.05);
-  EXPECT_NEAR(0.0, settled.pose().position().y(), 0.05);
-  EXPECT_NEAR(0.0, settled.twist().linear().x(), 0.05);
-  EXPECT_NEAR(0.0, settled.twist().angular().z(), 0.05);
+  EXPECT_NEAR(0.0, settled.pose().position().x(),
+      _expectations.settledTolerance);
+  EXPECT_NEAR(0.0, settled.pose().position().y(),
+      _expectations.settledTolerance);
+  EXPECT_NEAR(0.0, settled.twist().linear().x(),
+      _expectations.settledTolerance);
+  EXPECT_NEAR(0.0, settled.twist().angular().z(),
+      _expectations.settledTolerance);
 
   postResetOdom.Clear();
   _publisher.Publish(_command);
@@ -161,7 +191,8 @@ inline void ExpectOdomResetClearsState(
       [&]
       {
         return postResetOdom.Count() > 0u &&
-            postResetOdom.Last().twist().linear().x() > 0.05;
+            postResetOdom.Last().twist().linear().x() >
+                _expectations.dirtyStateMin;
       }));
 }
 

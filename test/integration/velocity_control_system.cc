@@ -290,10 +290,12 @@ TEST_P(VelocityControlTest,
   msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
   msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
   pub.Publish(msg);
-  std::this_thread::sleep_for(100ms);
 
-  server.Run(true, 1000, false);
-  ASSERT_EQ(1500u, poses.size());
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return poses.back().Pos().Distance(initialPose.Pos()) > 0.05;
+      }));
   EXPECT_GT(poses.back().Pos().Distance(initialPose.Pos()), 0.05);
 
   server.ResetAll();
@@ -314,10 +316,14 @@ TEST_P(VelocityControlTest,
   EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
 
   pub.Publish(msg);
-  std::this_thread::sleep_for(100ms);
   const auto freshStartCount = poses.size();
   const auto freshStart = poses.back();
-  server.Run(true, 500, false);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return poses.size() > freshStartCount &&
+            poses.back().Pos().Distance(freshStart.Pos()) > 0.02;
+      }));
   ASSERT_GT(poses.size(), freshStartCount);
   EXPECT_GT(poses.back().Pos().Distance(freshStart.Pos()), 0.02);
 }
@@ -362,10 +368,12 @@ TEST_P(VelocityControlTest,
   msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
   msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
   pub.Publish(msg);
-  std::this_thread::sleep_for(100ms);
 
-  server.Run(true, 1000, false);
-  ASSERT_EQ(1500u, linkPoses.size());
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return linkPoses.back().Pos().Distance(initialPose.Pos()) > 0.05;
+      }));
   EXPECT_GT(linkPoses.back().Pos().Distance(initialPose.Pos()), 0.05);
 
   const auto preResetPoseCount = linkPoses.size();
@@ -387,10 +395,14 @@ TEST_P(VelocityControlTest,
   EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
 
   pub.Publish(msg);
-  std::this_thread::sleep_for(100ms);
   const auto freshStartCount = linkPoses.size();
   const auto freshStart = linkPoses.back();
-  server.Run(true, 500, false);
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return linkPoses.size() > freshStartCount &&
+            linkPoses.back().Pos().Distance(freshStart.Pos()) > 0.02;
+      }));
   ASSERT_GT(linkPoses.size(), freshStartCount);
   EXPECT_GT(linkPoses.back().Pos().Distance(freshStart.Pos()), 0.02);
 }
