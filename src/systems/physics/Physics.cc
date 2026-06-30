@@ -387,6 +387,21 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
+<<<<<<< HEAD
+=======
+  /// \brief Entities whose static commands have been processed and should
+  /// be deleted the following iteration.
+  public: std::unordered_set<Entity> staticCmdsToRemove;
+
+  /// \brief Entities whose gravity enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
+
+>>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -594,6 +609,30 @@ class gz::sim::systems::PhysicsPrivate
             physics::GetModelBoundingBox>{};
 
   //////////////////////////////////////////////////
+<<<<<<< HEAD
+=======
+  // Static State
+  /// \brief Feature list for model static state.
+  public: struct StaticStateFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelStaticState>{};
+
+  //////////////////////////////////////////////////
+  // Gravity Enabled
+  /// \brief Feature list for gravity enabled.
+  public: struct GravityEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Collision Enabled
+  /// \brief Feature list for enabling and disabling model collisions.
+  public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelCollisionEnabled>{};
+
+  //////////////////////////////////////////////////
+>>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   // Link Bounding box
   /// \brief Feature list for model bounding box.
   public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
@@ -722,7 +761,14 @@ class gz::sim::systems::PhysicsPrivate
             ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
+<<<<<<< HEAD
             ConstructSdfJointFeatureList>;
+=======
+            ConstructSdfJointFeatureList,
+            StaticStateFeatureList,
+            GravityEnabledFeatureList,
+            ModelCollisionEnabledFeatureList>;
+>>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -2539,6 +2585,263 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
+<<<<<<< HEAD
+=======
+  // update Static State
+  auto olderStaticStatesToRemove = std::move(this->staticCmdsToRemove);
+  this->staticCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::StaticCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::StaticCmd *_staticCmd,
+          const components::Name *_name)->bool
+      {
+        this->staticCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelStaticStateFeature =
+          this->entityModelMap.EntityCast<StaticStateFeatureList>(_entity);
+
+        if (!modelStaticStateFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set static state, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelStaticState]. Static state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+
+        // Make sure to update the set of staticEntities
+        bool isStatic = this->staticEntities.find(_entity) !=
+            this->staticEntities.end();
+        if (isStatic != _staticCmd->Data())
+        {
+          sim::Model model(_entity);
+          auto links = model.Links(_ecm);
+
+          if (isStatic)
+          {
+            this->staticEntities.erase(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.erase(linkEntity);
+            }
+          }
+          else
+          {
+            this->staticEntities.insert(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.insert(linkEntity);
+
+              // Zero out velocities in ECM when making static.
+              // This is needed because the physics engine (e.g., DART)
+              // freezes the model but may keep stale velocities in its
+              // body node cache. By zeroing them here and adding links to
+              // staticEntities, we ensure they stay zero.
+              auto linVelComp =
+                  _ecm.Component<components::WorldLinearVelocity>(
+                      linkEntity);
+              if (linVelComp)
+              {
+                linVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldLinearVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+              auto angVelComp =
+                  _ecm.Component<components::WorldAngularVelocity>(
+                      linkEntity);
+              if (angVelComp)
+              {
+                angVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldAngularVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+            }
+          }
+        }
+
+        modelStaticStateFeature->SetStatic(_staticCmd->Data());
+        return true;
+      });
+
+  // Remove static commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderStaticStatesToRemove)
+  {
+    _ecm.RemoveComponent<components::StaticCmd>(entity);
+  }
+
+  // update Gravity enabled
+  auto olderGravityEnabledCmdsToRemove =
+    std::move(this->gravityEnabledCmdsToRemove);
+  this->gravityEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelGravityEnabledFeature =
+          this->entityModelMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
+
+        if (!modelGravityEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set gravity enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GravityEnabled]. Gravity state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // update Link Gravity enabled
+  _ecm.Each<components::Link,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto linkGravityEnabledFeature =
+          this->entityLinkMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
+
+        if (!linkGravityEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link gravity enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GravityEnabled]. Gravity state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
+        }
+        linkGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // Remove gravity enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderGravityEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
+  }
+
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+    std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelCollisionEnabledFeature =
+          this->entityModelMap.EntityCast<ModelCollisionEnabledFeatureList>(
+            _entity);
+
+        if (!modelCollisionEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collision enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelCollisionEnabled]. Collision state won't be "
+                   << "populated. " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelCollisionEnabledFeature->SetCollisionEnabled(
+            _collisionEnabledCmd->Data());
+
+        // Reflect the applied state in the CollisionEnabled component so
+        // queries via Model::CollisionEnabled() return the latest value.
+        auto stateComp =
+            _ecm.Component<components::CollisionEnabled>(_entity);
+        if (stateComp == nullptr)
+        {
+          _ecm.CreateComponent(_entity,
+              components::CollisionEnabled(_collisionEnabledCmd->Data()));
+        }
+        else
+        {
+          stateComp->SetData(_collisionEnabledCmd->Data(),
+              [](const bool &, const bool &){return false;});
+          _ecm.SetChanged(_entity,
+              components::CollisionEnabled::typeId,
+              ComponentState::OneTimeChange);
+        }
+        return true;
+      });
+
+  // Remove collision enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
+
+>>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
   this->worldPoseCmdsToRemove.clear();
@@ -2996,6 +3299,12 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
+<<<<<<< HEAD
+=======
+  this->staticCmdsToRemove.clear();
+  this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
+>>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
