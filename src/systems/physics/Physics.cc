@@ -575,22 +575,24 @@ class gz::sim::systems::PhysicsPrivate
   public: using WorldShapeType = physics::World<
             physics::FeaturePolicy3d, ContactFeatureList>;
 
-  /// \brief msgs::Contacts equality comparison function.
-  using Policy = physics::FeaturePolicy3d;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
+  /// \brief Using ExtraContactData to expose contact Norm, Force & Depth
+  public: using Policy = physics::FeaturePolicy3d;
+  public: using GCFeature = physics::GetContactsFromLastStepFeature;
+  public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
-  // A contact is described by a contactPoint and the corresponding
-  // extraContactData which we bundle in a pair data structure
-  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+  /// \brief A contact is described by a contactPoint and the corresponding
+  /// extraContactData which we bundle in a pair data structure
+  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
                                 const ExtraContactData *>;
-  // Each contact object we get from gz-physics contains the EntityPtrs of the
-  // two colliding entities and other data about the contact such as the
-  // position and extra contact date (wrench, normal and penetration depth).
-  // This map groups contacts so that it is easy to query all the
-  // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
+  /// \brief Each contact object we get from gz-physics contains the EntityPtrs
+  /// of the two colliding entities and other data about the contact such as the
+  /// position and extra contact date (wrench, normal and penetration depth).
+  /// This map groups contacts so that it is easy to query all the
+  /// contacts of one entity.
+  public: using EntityContactMap = std::unordered_map<
+            Entity, std::deque<ContactData>>;
 
+  /// \brief msgs::Contacts equality comparison function.
   public: bool contactsEql(const msgs::Contacts &_msg,
                            const EntityContactMap &_map)
   {
@@ -4612,22 +4614,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
-  // Using ExtraContactData to expose contact Norm, Force & Depth
-  using Policy = physics::FeaturePolicy3d;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
-
-  // A contact is described by a contactPoint and the corresponding
-  // extraContactData which we bundle in a pair data structure
-  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
-  // Each contact object we get from gz-physics contains the EntityPtrs of the
-  // two colliding entities and other data about the contact such as the
-  // position and extra contact date (wrench, normal and penetration depth).
-  // This map groups contacts so that it is easy to query all the
-  // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
-
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
   // create msgs::Contact objects conveniently later on.
@@ -4937,13 +4923,10 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   if (!setContactPropertiesCallbackFeature)
     return;
 
-  using Policy = physics::FeaturePolicy3d;
   using Feature = physics::SetContactPropertiesCallbackFeature;
   using FeatureList = SetContactPropertiesCallbackFeatureList;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
   using GCFeatureWorld = GCFeature::World<Policy, FeatureList>;
   using ContactPoint = GCFeatureWorld::ContactPoint;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
