@@ -4640,6 +4640,37 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
         {
           return false;
         }
+
+        if(contact.second != nullptr)
+        {
+          // Compare normals
+          auto normal1 = _msg.contact(i).normal(j);
+          auto normal2 = contact.second->normal;
+          if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
+              !math::equal(normal1.y(), normal2.y(), 1e-6) ||
+              !math::equal(normal1.z(), normal2.z(), 1e-6))
+          {
+            return false;
+          }
+          // Compare body1 and body2 forces
+          auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
+          auto body1force2 = contact.second->force;
+          if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
+              !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
+              !math::equal(body1force1.z(), body1force2.z(), 1e-6))
+          {
+            return false;
+          }
+
+          auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
+          auto body2force2 = -contact.second->force;
+          if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
+              !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
+              !math::equal(body2force1.z(), body2force2.z(), 1e-6))
+          {
+            return false;
+          }
+        }
         ++j;
       }
       ++i;
