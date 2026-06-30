@@ -17,8 +17,6 @@
 
 #include "Physics.hh"
 
-#include <google/protobuf/arena.h>
-
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 #include <gz/msgs/entity.pb.h>
@@ -881,9 +879,6 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   physics::ForwardStep::Output stepOutput;
-
-  /// \brief Arena for contact message allocation
-  public: google::protobuf::Arena contactsArena;
 };
 
 //////////////////////////////////////////////////
@@ -4703,15 +4698,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
-        msgs::Contacts *contactsComp{
-        #if GOOGLE_PROTOBUF_VERSION >= 4022000
-          google::protobuf::Arena::Create<msgs::Contacts>(&this->contactsArena)
-        #else
-          google::protobuf::Arena::CreateMessage<msgs::Contacts>(
-            &this->contactsArena)
-        #endif
-        };
-
         const auto &contactMap = entityContactMap[_collEntity1];
 
         bool changed = !contactsEql(_contacts->Data(), contactMap);
@@ -4778,7 +4764,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
         }
         return true;
       });
-  this->contactsArena.Reset();
 }
 
 //////////////////////////////////////////////////
