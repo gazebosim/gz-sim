@@ -30,6 +30,8 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/AxisAlignedBox.hh>
 
+#include <gz/utils/ImplPtr.hh>
+
 #include <gz/sim/config.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Export.hh>
@@ -42,8 +44,6 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
-    // Forward declarations.
-    class GZ_SIM_HIDDEN LinkPrivate;
     //
     /// \class Link Link.hh gz/sim/Link.hh
     /// \brief This class provides wrappers around entities and components
@@ -69,27 +69,6 @@ namespace gz
       /// \brief Constructor
       /// \param[in] _entity Link entity
       public: explicit Link(sim::Entity _entity = kNullEntity);
-
-      /// \brief Copy constructor
-      /// \param[in] _link Link to copy.
-      public: Link(const Link &_link);
-
-      /// \brief Move constructor
-      /// \param[in] _link Link to move.
-      public: Link(Link &&_link) noexcept;
-
-      /// \brief Move assignment operator.
-      /// \param[in] _link Link component to move.
-      /// \return Reference to this.
-      public: Link &operator=(Link &&_link) noexcept;
-
-      /// \brief Copy assignment operator.
-      /// \param[in] _link Link to copy.
-      /// \return Reference to this.
-      public: Link &operator=(const Link &_link);
-
-      /// \brief Destructor
-      public: ~Link();
 
       /// \brief Get the entity which this Link is related to.
       /// \return Link entity.
@@ -429,8 +408,8 @@ namespace gz
       public: std::optional<math::AxisAlignedBox> ComputeAxisAlignedBox(
         const EntityComponentManager &_ecm) const;
 
-      /// \brief Pointer to private data.
-      private: std::unique_ptr<LinkPrivate> dataPtr;
+      /// \brief Private data pointer.
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }
