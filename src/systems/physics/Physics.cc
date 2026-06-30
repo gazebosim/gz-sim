@@ -4683,9 +4683,24 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
         const auto &contactMap = entityContactMap[_collEntity1];
 
+        bool changed = !contactsEql(_contacts->Data(), contactMap);
+        auto state = changed ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+        _ecm.SetChanged(
+          _collEntity1, components::ContactSensorData::typeId, state);
+
+        // If contacts are unchanged, no need to update them again
+        if (!changed)
+        {
+          return true;
+        }
+
+        // If contacts have changed, first clear data then add contacts
+        _contacts->Data().Clear();
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = contactsComp->add_contact();
+          msgs::Contact *contactMsg = _contacts->Data().add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -4730,14 +4745,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             }
           }
         }
-
-        auto state = _contacts->SetData(*contactsComp,
-          this->contactsEql) ?
-          ComponentState::PeriodicChange :
-          ComponentState::NoChange;
-        _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
-
         return true;
       });
   this->contactsArena.Reset();
