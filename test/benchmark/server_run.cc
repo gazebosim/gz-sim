@@ -180,6 +180,7 @@ BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_sdf_3k_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(3000)
+    ->Iterations(1000)
     ->Unit(benchmark::kMillisecond);
 
 /* Benchmark load time on bullet-featherstone physics engine */
