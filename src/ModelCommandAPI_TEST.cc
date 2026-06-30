@@ -125,7 +125,7 @@ std::string customExecStr(std::string _cmd)
 }
 
 /////////////////////////////////////////////////
-// Test `gz model` command when no Gazebo server is running.
+// Test `ign model` command when no Gazebo server is running.
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
@@ -139,7 +139,7 @@ TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 }
 
 /////////////////////////////////////////////////
-// Tests `gz model` command.
+// Tests `ign model` command.
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   ignition::sim::ServerConfig serverConfig;
