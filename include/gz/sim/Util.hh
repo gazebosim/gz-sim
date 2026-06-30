@@ -139,6 +139,16 @@ namespace gz
     std::string GZ_SIM_VISIBLE entityTypeStr(const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Set cached entity type on an entity.
+    void GZ_SIM_VISIBLE setEntityTypeTag(EntityComponentManager &_ecm,
+        Entity _entity, EntityType _type);
+
+    /// \brief Get string label for a known EntityType (no ECM lookup)
+    std::string GZ_SIM_VISIBLE entityTypeStr(EntityType _type);
+
+    /// \brief Get component type ID for a known EntityType (no ECM lookup)
+    ComponentTypeId GZ_SIM_VISIBLE entityTypeComponentTypeId(EntityType _type);
+
     /// \brief Get the world to which the given entity belongs.
     /// \param[in] _entity Entity to get the world for.
     /// \param[in] _ecm Immutable reference to ECM.

@@ -61,6 +61,8 @@
 #include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
+#include "gz/sim/components/EntityTypeTag.hh"
+
 namespace gz
 {
 namespace sim
@@ -152,18 +154,23 @@ std::string scopedName(const Entity &_entity,
       break;
     auto name = nameComp->Data();
 
-    // Get entity type
-    std::string prefix = entityTypeStr(entity, _ecm);
-    if (prefix.empty())
-    {
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+
+    bool hasKnownType = false;
+    std::string prefix;
+    if (_includePrefix) {
+      prefix = entityTypeStr(entity, _ecm);
+      hasKnownType = !prefix.empty();
+    } else {
+      hasKnownType =
+          entityTypeId(entity, _ecm) != kComponentTypeIdInvalid;
+    }
+
+    if (!hasKnownType) {
       gzwarn << "Skipping entity [" << name
               << "] when generating scoped name, entity type not known."
               << std::endl;
-    }
-
-    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
-    if (!prefix.empty())
-    {
+    } else {
       result.insert(0, name);
       if (_includePrefix)
       {
@@ -175,7 +182,7 @@ std::string scopedName(const Entity &_entity,
     if (nullptr == parentComp)
       break;
 
-    if (!prefix.empty())
+    if (hasKnownType)
       result.insert(0, _delim);
 
     entity = parentComp->Data();
@@ -277,9 +284,62 @@ std::unordered_set<Entity> entitiesFromScopedName(
 }
 
 //////////////////////////////////////////////////
+std::string entityTypeStr(const EntityType _type)
+{
+  switch (_type)
+  {
+    case EntityType::World:           return "world";
+    case EntityType::Model:           return "model";
+    case EntityType::Light:           return "light";
+    case EntityType::Link:            return "link";
+    case EntityType::Collision:       return "collision";
+    case EntityType::Visual:          return "visual";
+    case EntityType::Joint:           return "joint";
+    case EntityType::Sensor:          return "sensor";
+    case EntityType::Actor:           return "actor";
+    case EntityType::ParticleEmitter: return "particle_emitter";
+    case EntityType::Projector:       return "projector";
+    default:                          return "";
+  }
+}
+
+//////////////////////////////////////////////////
+ComponentTypeId entityTypeComponentTypeId(const EntityType _type)
+{
+  switch (_type)
+  {
+    case EntityType::World:           return components::World::typeId;
+    case EntityType::Model:           return components::Model::typeId;
+    case EntityType::Light:           return components::Light::typeId;
+    case EntityType::Link:            return components::Link::typeId;
+    case EntityType::Collision:       return components::Collision::typeId;
+    case EntityType::Visual:          return components::Visual::typeId;
+    case EntityType::Joint:           return components::Joint::typeId;
+    case EntityType::Sensor:          return components::Sensor::typeId;
+    case EntityType::Actor:           return components::Actor::typeId;
+    case EntityType::ParticleEmitter:
+      return components::ParticleEmitter::typeId;
+    case EntityType::Projector:       return components::Projector::typeId;
+    default:                          return kComponentTypeIdInvalid;
+  }
+}
+
+//////////////////////////////////////////////////
+void setEntityTypeTag(EntityComponentManager &_ecm, Entity _entity,
+    EntityType _type)
+{
+  _ecm.CreateComponent(_entity, components::EntityTypeTag(_type));
+}
+
+//////////////////////////////////////////////////
 ComponentTypeId entityTypeId(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
+  if (auto typeComp = _ecm.Component<components::EntityTypeTag>(_entity))
+  {
+    return entityTypeComponentTypeId(typeComp->Data());
+  }
+
   ComponentTypeId type{kComponentTypeIdInvalid};
 
   if (_ecm.Component<components::World>(_entity))
@@ -334,6 +394,11 @@ ComponentTypeId entityTypeId(const Entity &_entity,
 std::string entityTypeStr(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
+  if (auto typeComp = _ecm.Component<components::EntityTypeTag>(_entity))
+  {
+    return entityTypeStr(typeComp->Data());
+  }
+
   std::string type;
 
   if (_ecm.Component<components::World>(_entity))
