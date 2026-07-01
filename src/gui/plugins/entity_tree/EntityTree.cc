@@ -364,13 +364,14 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         parentEntity = kNullEntity;
       }
 
-      entities.insert({_entity, {QString::fromStdString(_name->Data()), parentEntity}});
+      entities.insert({_entity,
+          {QString::fromStdString(_name->Data()), parentEntity}});
       return true;
     });
 
     for (const auto& [_entity, data] : entities)
     {
-      auto& [name, parentEntity] = data;
+      const auto& [name, parentEntity] = data;
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(Entity, _entity),
