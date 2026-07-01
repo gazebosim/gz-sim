@@ -44,6 +44,7 @@
 #include <condition_variable>
 #include <map>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -821,6 +822,10 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       });
 
   // Models
+  // Sort them into a map to make sure parents are added before children for
+  // nested models, assuming strictly increasing entity order.
+  std::map<Entity, std::tuple<const components::Name*,
+    const components::ParentEntity*, const components::Pose*>> entities;
   _manager.EachNew<components::Model, components::Name,
                    components::ParentEntity, components::Pose>(
       [&](const Entity &_entity, const components::Model *,
@@ -828,18 +833,25 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto modelMsg = std::make_shared<msgs::Model>();
-        modelMsg->set_id(_entity);
-        modelMsg->set_name(_nameComp->Data());
-        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
-
-        // Add to graph
-        newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
-        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
+        entities.insert({_entity,
+            std::make_tuple(_nameComp, _parentComp, _poseComp)});
         newEntity = true;
         return true;
       });
+
+  for (const auto &[_entity, components] : entities)
+  {
+    const auto [_nameComp, _parentComp, _poseComp] = components;
+
+    auto modelMsg = std::make_shared<msgs::Model>();
+    modelMsg->set_id(_entity);
+    modelMsg->set_name(_nameComp->Data());
+    modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+    // Add to graph
+    newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+    newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+  }
 
   // Links
   _manager.EachNew<components::Link, components::Name, components::ParentEntity,
