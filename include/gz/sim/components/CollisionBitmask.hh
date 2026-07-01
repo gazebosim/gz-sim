@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  *
  */
-#ifndef GZ_SIM_COMPONENTS_STATIC_HH_
-#define GZ_SIM_COMPONENTS_STATIC_HH_
+#ifndef GZ_SIM_COMPONENTS_COLLISIONBITMASKCMD_HH_
+#define GZ_SIM_COMPONENTS_COLLISIONBITMASKCMD_HH_
 
+#include <cstdint>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/config.hh>
@@ -29,16 +30,17 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief A component used to indicate that a model is static (i.e. not
-  /// moveable).
-  using Static = Component<bool, class StaticTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
-
-  /// \brief A component that contains a bool command to change the static state
-  /// of an entity.
-  using StaticCmd = Component<bool, class StaticCmdTag>;
+  /// \brief A component that contains a uint16_t command to change the collide
+  /// bitmask of an entity.
+  using CollideBitmaskCmd = Component<uint16_t, class CollideBitmaskCmdTag>;
   GZ_SIM_REGISTER_COMPONENT(
-      "gz_sim_components.StaticCmd", StaticCmd)
+      "gz_sim_components.CollideBitmaskCmd", CollideBitmaskCmd)
+
+  /// \brief A component that contains a uint16_t command to change the category
+  /// bitmask of an entity.
+  using CategoryBitmaskCmd = Component<uint16_t, class CategoryBitmaskCmdTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.CategoryBitmaskCmd", CategoryBitmaskCmd)
 }
 }
 }

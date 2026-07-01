@@ -22,6 +22,12 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/gazebosim/gz-sensors
   GIT_TAG gz-sensors8
 )
+if(POLICY CMP0169)
+  # FetchContent_Populate with a single argument is deprecated in cmake 3.30, but
+  # the recommended replacement was added in 3.14. Since this uses an older cmake
+  # version, set the policy to old to suppress the warning.
+  cmake_policy(SET CMP0169 OLD)
+endif()
 FetchContent_Populate(sensors_clone)
 add_subdirectory(${sensors_clone_SOURCE_DIR}/examples/custom_sensor ${sensors_clone_BINARY_DIR})
 
