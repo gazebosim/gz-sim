@@ -2096,7 +2096,10 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
 
-          if (this->enforceFixedConstraint)
+          bool enforce = _ecm.ComponentData<
+              components::DetachableJointEnforceFixedConstraint>(
+              _entity).value_or(this->enforceFixedConstraint);
+          if (enforce)
           {
             auto jointPtrWeld = this->entityJointMap
                 .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
