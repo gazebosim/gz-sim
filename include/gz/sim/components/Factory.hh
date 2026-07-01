@@ -24,6 +24,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -216,7 +217,8 @@ namespace components
 
       template <typename T>
       void RegisterType() {
-        this->registerMap[T::typeId] = [this](entt::basic_registry<Entity>& _registry) {
+        this->registerMap[T::typeId] =
+          [this](entt::basic_registry<Entity>& _registry) {
           this->SyncTypeIdMap<T>(_registry);
         };
       }

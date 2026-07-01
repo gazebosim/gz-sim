@@ -332,7 +332,6 @@ template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNoCache(Func &&_f) const
 {
   // Caching doesn't exist anymore so this is functionally equivalent
-  // TODO(luca) deprecate
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
 }
 
@@ -341,7 +340,6 @@ template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNoCache(Func &&_f)
 {
   // Caching doesn't exist anymore so this is functionally equivalent
-  // TODO(luca) deprecate
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
 }
 
@@ -420,7 +418,6 @@ void EntityComponentManager::ForEach(Function _f,
     const ComponentTypeTs &... _components)
 {
   // This function is not used anymore.
-  // TODO(luca) consider deprecating
   (_f(_components), ...);
 }
 

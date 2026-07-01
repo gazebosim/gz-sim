@@ -72,31 +72,6 @@ class EntityComponentManagerFixture: public benchmark::Fixture
   std::unique_ptr<EntityComponentManager> mgr;
 };
 
-BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachNoCache)
-(benchmark::State &_st)
-{
-  for (auto _ : _st)
-  {
-    auto matchingEntityCount = _st.range(0);
-    for (int eachIter = 0; eachIter < kEachIterations; ++eachIter)
-    {
-      int entitiesMatched = 0;
-
-      mgr->EachNoCache<World, components::Name>(
-          [&](const Entity &, const World *, const components::Name *)->bool
-          {
-            entitiesMatched++;
-            return true;
-          });
-
-      if (entitiesMatched != matchingEntityCount)
-      {
-        _st.SkipWithError("Failed to match correct number of entities");
-      }
-    }
-  }
-}
-
 BENCHMARK_DEFINE_F(EntityComponentManagerFixture, EachCache)
 (benchmark::State &_st)
 {
@@ -268,32 +243,6 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentCache)
   }
 }
 
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each1ComponentNoCache)
-(benchmark::State &_st)
-{
-  for (auto _ : _st)
-  {
-    auto entityCount = _st.range(0);
-
-    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
-    {
-      int entitiesMatched = 0;
-
-      mgr->EachNoCache<components::Name>(
-          [&](const Entity &, const components::Name *)->bool
-          {
-            entitiesMatched++;
-            return true;
-          });
-
-      if (entitiesMatched != entityCount)
-      {
-        _st.SkipWithError("Failed to match correct number of entities");
-      }
-    }
-  }
-}
-
 BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentConst)
 (benchmark::State &_st)
 {
@@ -323,51 +272,6 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentConst)
           });
       // Flush the enqueued groups so following iterations are much faster
       this->mgr->CreatePendingGroups();
-
-      if (entitiesMatched != entityCount)
-      {
-        _st.SkipWithError("Failed to match correct number of entities");
-      }
-    }
-  }
-}
-
-BENCHMARK_DEFINE_F(ManyComponentFixture, Each10ComponentNoCache)
-(benchmark::State &_st)
-{
-  for (auto _ : _st)
-  {
-    auto entityCount = _st.range(0);
-
-    for (int eachIter = 0; eachIter < kEachIterations; eachIter++)
-    {
-      int entitiesMatched = 0;
-
-      mgr->EachNoCache<components::Name,
-                AngularVelocity,
-                WorldAngularVelocity,
-                Inertial,
-                LinearAcceleration,
-                WorldLinearAcceleration,
-                LinearVelocity,
-                WorldLinearVelocity,
-                Pose,
-                WorldPose>(
-          [&](const Entity &,
-              const components::Name *,
-              const AngularVelocity *,
-              const WorldAngularVelocity *,
-              const Inertial *,
-              const LinearAcceleration *,
-              const WorldLinearAcceleration *,
-              const LinearVelocity *,
-              const WorldLinearVelocity *,
-              const Pose *,
-              const WorldPose *)->bool
-          {
-            entitiesMatched++;
-            return true;
-          });
 
       if (entitiesMatched != entityCount)
       {
@@ -579,19 +483,9 @@ static void EachTestArgs(Benchmark *_b)
   }
 }
 
-BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachNoCache)
-  ->Unit(benchmark::kMillisecond)
-  ->Apply(EachTestArgs);
-
 BENCHMARK_REGISTER_F(EntityComponentManagerFixture, EachCache)
   ->Unit(benchmark::kMillisecond)
   ->Apply(EachTestArgs);
-
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentNoCache)
-  ->Arg(10)
-  ->Arg(100)
-  ->Arg(1000)
-  ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each1ComponentCache)
   ->Arg(10)
@@ -606,12 +500,6 @@ BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentConst)
   ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_REGISTER_F(ManyComponentFixture, Each5ComponentCache)
-  ->Arg(10)
-  ->Arg(100)
-  ->Arg(1000)
-  ->Unit(benchmark::kMillisecond);
-
-BENCHMARK_REGISTER_F(ManyComponentFixture, Each10ComponentNoCache)
   ->Arg(10)
   ->Arg(100)
   ->Arg(1000)

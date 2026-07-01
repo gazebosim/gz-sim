@@ -256,7 +256,8 @@ namespace gz
       /// removed.
       /// \param[in] _entity The entity that the component was removed for.
       /// \param[in] _typeId The type Id of the removed component.
-      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
+      private: void PostRemoveComponent(const Entity _entity,
+         const ComponentTypeId &_typeId);
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
@@ -409,8 +410,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
+      /// \deprecated Use Each instead.
       public: template<typename ...ComponentTypeTs, typename Func>
-              void EachNoCache(Func &&_f) const;
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f) const;
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -424,8 +426,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired mutable component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
+      /// \deprecated Use Each instead.
       public: template<typename ...ComponentTypeTs, typename Func>
-              void EachNoCache(Func &&_f);
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f);
 
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for removal (but not
@@ -462,7 +465,7 @@ namespace gz
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void ForEach(Function _f, const ComponentTypeTs &... _components);
+      static void GZ_DEPRECATED(11) ForEach(Function _f, const ComponentTypeTs &... _components);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -712,7 +715,7 @@ namespace gz
       public: void SetAllComponentsUnchanged();
 
 
-      /// \brief Sorts component storages to allow iteration in order of entities.
+      /// \brief Sorts component storages to allow iteration in order.
       /// Note this is very expensive and should be done only if necessary.
       public: void SortComponentStorages();
 
