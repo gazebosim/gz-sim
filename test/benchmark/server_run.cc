@@ -20,6 +20,8 @@
 #include <vector>
 
 #include <gz/common/Util.hh>
+#include <gz/msgs/twist.pb.h>
+#include <gz/transport/Node.hh>
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ContactSensorData.hh>
 #include "gz/sim/Server.hh"
@@ -116,6 +118,41 @@ void BM_LoadWorld(benchmark::State &_st, const std::string &_physics_engine,
     // Add system from plugin
     sim::Server server(serverConfig);
     // Run one step
+    server.Run(true, 1, false);
+  }
+}
+
+void BM_MobileRobot(benchmark::State &_st, const std::string &_physics_engine,
+                    const std::string &_world_sdf)
+{
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
+
+  // Publish command
+  transport::Node node;
+  auto pub_vehicle_1 = node.Advertise<gz::msgs::Twist>("/model/vehicle_1/cmd_vel");
+  auto pub_vehicle_2 = node.Advertise<gz::msgs::Twist>("/model/vehicle_2/cmd_vel");
+
+  test::Relay velocityRamp;
+  double desiredLinVel = 1.0;
+  double desiredAngVel = 0.2;
+  gz::msgs::Twist msg;
+  velocityRamp.OnPreUpdate(
+      [&](const UpdateInfo &/*_info*/,
+          const EntityComponentManager &)
+      {
+        gz::msgs::Set(msg.mutable_linear(),
+                  math::Vector3d(desiredLinVel, 0, 0));
+        gz::msgs::Set(msg.mutable_angular(),
+                  math::Vector3d(0.0, 0, desiredAngVel));
+        pub_vehicle_1.Publish(msg);
+        pub_vehicle_2.Publish(msg);
+      });
+
+  sim::Server server(serverConfig);
+  server.AddSystem(velocityRamp.systemPtr);
+
+  for (auto _ : _st)
+  {
     server.Run(true, 1, false);
   }
 }
@@ -233,6 +270,13 @@ BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_sdf_3k_shapes_bullet,
 BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_sdf_3k_shapes_dart,
                   "gz-physics-dartsim-plugin",
                   "3k_shapes.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+/* Benchmark runtime for world with moving robots */
+BENCHMARK_CAPTURE(BM_MobileRobot, sdf_diff_drive,
+                  "gz-physics-dartsim-plugin",
+                  "multi_diff_drive.sdf")
+    ->Iterations(100000)
     ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN();
