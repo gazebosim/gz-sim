@@ -52,6 +52,31 @@
 using namespace gz;
 using namespace sim;
 
+namespace
+{
+  void OnParentEntityConstruct(entt::basic_registry<Entity> &_registry, Entity _entity)
+  {
+    const auto &parentComp = _registry.get<components::ParentEntity>(_entity);
+    const Entity parentEntity = parentComp.Data();
+    auto *children = _registry.try_get<Children>(parentEntity);
+    if (children)
+    {
+      children->data.insert(_entity);
+    }
+  }
+
+  void OnParentEntityDestroy(entt::basic_registry<Entity> &_registry, Entity _entity)
+  {
+    const auto &parentComp = _registry.get<components::ParentEntity>(_entity);
+    const Entity parentEntity = parentComp.Data();
+    auto *children = _registry.try_get<Children>(parentEntity);
+    if (children)
+    {
+      children->data.erase(_entity);
+    }
+  }
+}
+
 struct PinnedEntity { };
 struct ModifiedComponent { };
 struct OneTimeChangedComponents {
@@ -247,6 +272,12 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<RemovedComponents>();
 
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
+
+  // No replace hooks since we have no public API to replace components
+  this->Registry().on_construct<components::ParentEntity>()
+    .connect<&OnParentEntityConstruct>();
+  this->Registry().on_destroy<components::ParentEntity>()
+    .connect<&OnParentEntityDestroy>();
 }
 
 //////////////////////////////////////////////////
@@ -400,7 +431,6 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   if (_parent != kNullEntity)
   {
     this->SetParentEntity(clonedEntity, _parent);
-    this->CreateComponent(clonedEntity, components::ParentEntity(_parent));
   }
 
   // make sure that the cloned entity has a unique name
@@ -716,7 +746,6 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity, const Com
     removedComp.data.insert(_typeId);
   }
 
-
 }
 
 /////////////////////////////////////////////////
@@ -848,7 +877,7 @@ bool EntityComponentManager::HasEntity(const Entity _entity) const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::ParentEntity(const Entity _entity) const
 {
-  const auto* parent = this->Registry().try_get<components::ParentEntity>(_entity);
+  const auto* parent = this->Component<components::ParentEntity>(_entity);
   if (!parent)
     return kNullEntity;
   return parent->Data();
@@ -858,34 +887,23 @@ Entity EntityComponentManager::ParentEntity(const Entity _entity) const
 bool EntityComponentManager::SetParentEntity(const Entity _child,
     const Entity _parent)
 {
+  // Validate input, child must exist and parent must either be kNullEntity
+  // (in which case we remove the parent) or a valid entity to set.
   if (!this->HasEntity(_child))
     return false;
   if (_parent != kNullEntity && !this->HasEntity(_parent))
     return false;
-  auto* currentParent = this->Registry().try_get<components::ParentEntity>(_child);
-  // Remove current parent(s)
-  if (currentParent)
-  {
-    auto* children = this->Registry().try_get<Children>(currentParent->Data());
-    if (children)
-    {
-      children->data.erase(_child);
-    }
-  }
 
-  // Leave parent-less
+  // Component creation and deletion take care of updating the graph
+  this->RemoveComponent<components::ParentEntity>(_child);
   if (_parent == kNullEntity)
   {
-    this->Registry().remove<components::ParentEntity>(_child);
     return true;
   }
-
-  // Update parent entity and parent's children
-  this->Registry().emplace_or_replace<components::ParentEntity>(_child, _parent);
-  auto& newChildren = this->Registry().get<Children>(_parent);
-  newChildren.data.insert(_child);
+  this->CreateComponent(_child, components::ParentEntity(_parent));
   return true;
 }
+
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::CreateComponentImplementation(
@@ -950,13 +968,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   }
 
 
-  // If the component is a components::ParentEntity, then make sure to
-  // update the entities graph.
-  if (_componentTypeId == components::ParentEntity::typeId)
-  {
-    auto parentComp = this->Component<components::ParentEntity>(_entity);
-    this->SetParentEntity(_entity, parentComp->Data());
-  }
+
 
   return updateData;
 }
@@ -1938,7 +1950,6 @@ void EntityComponentManager::ApplyEntityDiff(
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
-      this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
   }
 
@@ -1955,7 +1966,6 @@ void EntityComponentManager::ApplyEntityDiff(
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
-      this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 
     this->RequestRemoveEntity(entity, false);

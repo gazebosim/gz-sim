@@ -30,10 +30,10 @@
 #include "gz/sim/components/WindMode.hh"
 #include "gz/sim/Model.hh"
 
-class gz::sim::ModelPrivate
+class gz::sim::Model::Implementation
 {
   /// \brief Id of model entity.
-  public: Entity id{kNullEntity};
+  public: sim::Entity id{kNullEntity};
 };
 
 using namespace gz;
@@ -41,32 +41,10 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 Model::Model(sim::Entity _entity)
-  : dataPtr(std::make_unique<ModelPrivate>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
-
-/////////////////////////////////////////////////
-Model::Model(const Model &_model)
-  : dataPtr(std::make_unique<ModelPrivate>(*_model.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-Model::Model(Model &&_model) noexcept = default;
-
-//////////////////////////////////////////////////
-Model::~Model() = default;
-
-/////////////////////////////////////////////////
-Model &Model::operator=(const Model &_model)
-{
-  *this->dataPtr = (*_model.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Model &Model::operator=(Model &&_model) noexcept = default;
 
 //////////////////////////////////////////////////
 Entity Model::Entity() const
