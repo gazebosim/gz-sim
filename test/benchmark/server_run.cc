@@ -108,7 +108,8 @@ void BM_RuntimeWorldContacts(benchmark::State &_st, const std::string &_physics_
 }
 
 void BM_LoadWorld(benchmark::State &_st, const std::string &_physics_engine,
-                     const std::string &_world_sdf) {
+                     const std::string &_world_sdf)
+{
   ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
   for (auto _ : _st)
   {
@@ -126,7 +127,7 @@ build/gz-sim/bin/BENCHMARK_server_run if you want to exclude this
 benchmark.
 */
 
-/* Benchmark runtime performance on bullet-featherstone physics engine */
+/* Benchmark runtime performance */
 BENCHMARK_CAPTURE(BM_RuntimeWorld, sdf_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
@@ -183,7 +184,7 @@ BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_sdf_3k_shapes_bullet,
     ->Iterations(1000)
     ->Unit(benchmark::kMillisecond);
 
-/* Benchmark load time on bullet-featherstone physics engine */
+/* Benchmark load time */
 BENCHMARK_CAPTURE(BM_LoadWorld, sdf_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
