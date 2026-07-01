@@ -171,16 +171,36 @@ BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, sdf_shapes_bullet,
     ->Arg(10)
     ->Unit(benchmark::kNanosecond);
 
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, sdf_shapes_dart,
+                  "gz-physics-dartsim-plugin",
+                  "shapes.sdf")
+    ->Arg(1)
+    ->Unit(benchmark::kNanosecond);
+
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, sdf_gpu_lidar_sensor_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "gpu_lidar_sensor.sdf")
     ->Arg(10)
     ->Unit(benchmark::kNanosecond);
 
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, sdf_gpu_lidar_sensor_dart,
+                  "gz-physics-dartsim-plugin",
+                  "gpu_lidar_sensor.sdf")
+    ->Arg(1)
+    ->Unit(benchmark::kNanosecond);
+
+
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_sdf_3k_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(3000)
+    ->Iterations(1000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, lengthy_sdf_3k_shapes_dart,
+                  "gz-physics-dartsim-plugin",
+                  "3k_shapes.sdf")
+    ->Arg(1)
     ->Iterations(1000)
     ->Unit(benchmark::kMillisecond);
 
