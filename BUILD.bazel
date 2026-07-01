@@ -1500,7 +1500,6 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
-        "@com_google_protobuf//:protobuf_lite",
         "@gz-common",
         "@gz-common//geospatial",
         "@gz-common//graphics",
