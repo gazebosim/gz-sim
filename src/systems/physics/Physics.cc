@@ -4649,7 +4649,8 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        const auto contactMapIt = entityContactMap.find(_collEntity1);
+        if (contactMapIt == entityContactMap.end())
         {
           // Clear the last contact data
           bool changed = _contacts->Data().contact_size() > 0;
@@ -4666,7 +4667,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
-        const auto &contactMap = entityContactMap[_collEntity1];
+        const auto &contactMap = contactMapIt->second;
 
         bool changed = !this->contactsEql(_contacts->Data(), contactMap);
         auto state = changed ?
