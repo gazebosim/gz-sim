@@ -35,6 +35,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -251,6 +252,161 @@ TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
   TestPublishLinkCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
       "/model/vehicle_blue/link/caster/cmd_vel");
+}
+
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsModelCommand))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/velocity_control.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  test::Relay testSystem;
+  std::vector<math::Pose3d> poses;
+  testSystem.OnPostUpdate([&poses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      auto id = _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle_blue"));
+      ASSERT_NE(kNullEntity, id);
+
+      auto poseComp = _ecm.Component<components::Pose>(id);
+      ASSERT_NE(nullptr, poseComp);
+
+      poses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 500, false);
+  ASSERT_EQ(500u, poses.size());
+  const auto initialPose = poses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
+  pub.Publish(msg);
+
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return poses.back().Pos().Distance(initialPose.Pos()) > 0.05;
+      }));
+  EXPECT_GT(poses.back().Pos().Distance(initialPose.Pos()), 0.05);
+
+  server.ResetAll();
+  ASSERT_TRUE(test::StepUntil(server, 100,
+      [&]
+      {
+        return poses.back().Pos().Distance(initialPose.Pos()) < 1e-3;
+      }));
+
+  const auto postResetStartCount = poses.size();
+  const auto postResetStart = poses.back();
+  server.Run(true, 500, false);
+  ASSERT_GT(poses.size(), postResetStartCount);
+
+  // Without a fresh command, the pre-reset command must not keep driving the
+  // model in the new episode.
+  const auto postResetEnd = poses.back();
+  EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
+
+  pub.Publish(msg);
+  const auto freshStartCount = poses.size();
+  const auto freshStart = poses.back();
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return poses.size() > freshStartCount &&
+            poses.back().Pos().Distance(freshStart.Pos()) > 0.02;
+      }));
+  ASSERT_GT(poses.size(), freshStartCount);
+  EXPECT_GT(poses.back().Pos().Distance(freshStart.Pos()), 0.02);
+}
+
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsLinkCommand))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/velocity_control.sdf");
+  serverConfig.SetPhysicsEngine("gz-physics-tpe-plugin");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  test::Relay testSystem;
+  std::vector<math::Pose3d> linkPoses;
+  testSystem.OnPostUpdate([&linkPoses](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      auto linkId = _ecm.EntityByComponents(
+        components::Link(), components::Name("caster"));
+      ASSERT_NE(kNullEntity, linkId);
+
+      auto poseComp = _ecm.Component<components::Pose>(linkId);
+      ASSERT_NE(nullptr, poseComp);
+
+      linkPoses.push_back(poseComp->Data());
+    });
+  server.AddSystem(testSystem.systemPtr);
+
+  server.Run(true, 500, false);
+  ASSERT_EQ(500u, linkPoses.size());
+  const auto initialPose = linkPoses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>(
+      "/model/vehicle_blue/link/caster/cmd_vel");
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(10.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0, 0, 0.2));
+  pub.Publish(msg);
+
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return linkPoses.back().Pos().Distance(initialPose.Pos()) > 0.05;
+      }));
+  EXPECT_GT(linkPoses.back().Pos().Distance(initialPose.Pos()), 0.05);
+
+  const auto preResetPoseCount = linkPoses.size();
+  server.ResetAll();
+  ASSERT_TRUE(test::StepUntil(server, 100,
+      [&]
+      {
+        return linkPoses.size() > preResetPoseCount;
+      }));
+
+  const auto postResetStartCount = linkPoses.size();
+  const auto postResetStart = linkPoses.back();
+  server.Run(true, 500, false);
+  ASSERT_GT(linkPoses.size(), postResetStartCount);
+
+  // The link may settle to a reset baseline, but the old link command should
+  // not continue to move it across the post-reset window.
+  const auto postResetEnd = linkPoses.back();
+  EXPECT_LT(postResetEnd.Pos().Distance(postResetStart.Pos()), 0.03);
+
+  pub.Publish(msg);
+  const auto freshStartCount = linkPoses.size();
+  const auto freshStart = linkPoses.back();
+  ASSERT_TRUE(test::StepUntil(server, 2000,
+      [&]
+      {
+        return linkPoses.size() > freshStartCount &&
+            linkPoses.back().Pos().Distance(freshStart.Pos()) > 0.02;
+      }));
+  ASSERT_GT(linkPoses.size(), freshStartCount);
+  EXPECT_GT(linkPoses.back().Pos().Distance(freshStart.Pos()), 0.02);
 }
 
 // Run multiple times
