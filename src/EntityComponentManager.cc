@@ -1161,8 +1161,23 @@ bool EntityComponentManager::CreateComponentImplementation(
   // update the entities graph.
   if (_componentTypeId == components::ParentEntity::typeId)
   {
+<<<<<<< HEAD
     auto parentComp = this->Component<components::ParentEntity>(_entity);
     this->SetParentEntity(_entity, parentComp->Data());
+=======
+    if (!_data)
+    {
+      gzerr << "Internal error: Invalid parent component detected, "
+            << "this should not happen." << std::endl;
+      return updateData;
+    }
+    const auto *parent = static_cast<const components::ParentEntity *>(_data);
+    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
+    {
+      gzerr << "Failed setting parent for entity " << _entity << " to "
+            << parent->Data() << std::endl;
+    }
+>>>>>>> 93bbf3ed (Fix hierarchy inconsistency when serializing + deserializing state (#3750))
   }
 
   return updateData;
@@ -1792,8 +1807,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  {
+    const auto &entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (int c = 0; c < entityMsg.components_size(); ++c)
     {
       const auto &compMsg = entityMsg.components(c);
@@ -1890,8 +1917,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (const auto &iter : _stateMsg.entities())
+  {
+    const auto &entityMsg = iter.second;
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (const auto &compIter : iter.second.components())
     {
       const auto &compMsg = compIter.second;
