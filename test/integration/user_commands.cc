@@ -24,6 +24,7 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/entity_factory_with_ns.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
@@ -44,6 +45,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/VisualCmd.hh"
@@ -130,6 +132,20 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // SDF strings
   auto modelStr = std::string("<?xml version=\"1.0\" ?>") +
       "<sdf version='1.6'>" +
+      "<model name='spawned_model' namespace='__name__/ns'>" +
+      "<link name='link'>" +
+      "<visual name='visual'>" +
+      "<geometry><sphere><radius>1.0</radius></sphere></geometry>" +
+      "</visual>" +
+      "<collision name='visual'>" +
+      "<geometry><sphere><radius>1.0</radius></sphere></geometry>" +
+      "</collision>" +
+      "</link>" +
+      "</model>" +
+      "</sdf>";
+
+  auto modelStrWithoutNs = std::string("<?xml version=\"1.0\" ?>") +
+      "<sdf version='1.6'>" +
       "<model name='spawned_model'>" +
       "<link name='link'>" +
       "<visual name='visual'>" +
@@ -172,7 +188,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   // Check entity has not been created yet
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model")));
+      components::Name("spawned_model"),
+      components::Namespace("spawned_model/ns")));
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
@@ -187,7 +204,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   auto model = ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model"));
+      components::Name("spawned_model"),
+      components::Namespace("spawned_model/ns"));
   EXPECT_NE(kNullEntity, model);
 
   auto poseComp = ecm->Component<components::Pose>(model);
@@ -232,7 +250,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model_0"));
+      components::Name("spawned_model_0"),
+      components::Namespace("spawned_model_0/ns"));
   EXPECT_NE(kNullEntity, model);
 
   // Spawn with a different name
@@ -255,7 +274,30 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("banana"));
+      components::Name("banana"), components::Namespace("banana/ns"));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that doesn't set the namespace
+  req.Clear();
+  req.set_sdf(modelStrWithoutNs);
+  req.set_name("orange");
+
+  requestDataFuture = asyncRequest(node, service, req);
+
+  // Run an iteration and check it was created with given name
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("orange"), components::Namespace(""));
   EXPECT_NE(kNullEntity, model);
 
   // Spawn a light
@@ -319,9 +361,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   // Check neither exists yet
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("acerola")));
+      components::Name("acerola"), components::Namespace("acerola/ns")));
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("coconut")));
+      components::Name("coconut"), components::Namespace("coconut/ns")));
   EXPECT_EQ(entityCount, ecm->EntityCount());
 
   // Run an iteration and check both models were created
@@ -343,9 +385,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("acerola")));
+      components::Name("acerola"), components::Namespace("acerola/ns")));
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("coconut")));
+      components::Name("coconut"), components::Namespace("coconut/ns")));
 
   // Try to spawn 2 entities at once
   req.Clear();
@@ -407,9 +449,137 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
     EXPECT_TRUE(requestData.response.data());
   }
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("test_model")));
+
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // with a namespace override.  
+  msgs::EntityFactoryWithNs reqWithNs;
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_with_ns");
+  reqWithNs.set_namespace_("test_ns");
+
+  std::string serviceWithNs{"/world/empty/create_with_ns/blocking"};
+  auto requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("spawned_model_with_ns"),
+      components::Namespace("test_ns"));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // with an empty namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_with_empty_ns");
+  reqWithNs.set_namespace_("");
+
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("spawned_model_with_empty_ns"),
+      components::Namespace("spawned_model_with_empty_ns/ns"));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // without a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_without_ns");
+
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("spawned_model_without_ns"),
+      components::Namespace("spawned_model_without_ns/ns"));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that doesn't define a namespace through
+  // EntityFactoryWithNs without a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStrWithoutNs);
+  reqWithNs.set_name("pineapple");
+
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("pineapple"), components::Namespace(""));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that doesn't define a namespace through
+  // EntityFactoryWithNs with a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStrWithoutNs );
+  reqWithNs.set_name("grape");
+  reqWithNs.set_namespace_("test_ns");
+
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("grape"),
+      components::Namespace("test_ns"));
+  EXPECT_NE(kNullEntity, model);
 }
 
 /////////////////////////////////////////////////

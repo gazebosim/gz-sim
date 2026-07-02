@@ -39,8 +39,10 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
+#include "gz/sim/Util.hh"
 
 #include "MulticopterVelocityControl.hh"
 
@@ -244,22 +246,39 @@ void MulticopterVelocityControl::Configure(const Entity &_entity,
       math::eigen3::convert(angularVelocityMean);
   this->noiseParameters.angularVelocityStdDev =
       math::eigen3::convert(angularVelocityStdDev);
-
-  if (sdfClone->HasElement("robotNamespace"))
+  
+  const auto nsComp =
+    _ecm.Component<components::Namespace>(this->model.Entity());
+  if (nsComp && !nsComp->Data().empty())
+  {
+    this->robotNamespace = transport::TopicUtils::AsValidTopic(
+      scopedNamespace(_ecm, this->model.Entity()));
+    if (this->robotNamespace.empty())
+    {
+      gzerr << "Robot namespace [" << nsComp->Data() 
+             << "] resolved from the model namespace component is invalid."
+             << std::endl;
+      return;
+    }
+  }
+  else if (sdfClone->HasElement("robotNamespace"))
   {
     this->robotNamespace = transport::TopicUtils::AsValidTopic(
         sdfClone->Get<std::string>("robotNamespace"));
     if (this->robotNamespace.empty())
     {
       gzerr << "Robot namespace ["
-             << sdfClone->Get<std::string>("robotNamespace") <<"] is invalid."
+             << sdfClone->Get<std::string>("robotNamespace") 
+             <<"] specified in the plugin <robotNamespace> element is invalid."
              << std::endl;
       return;
     }
   }
   else
   {
-    gzerr << "Please specify a robotNamespace.\n";
+    gzerr << "No robotNamespace was specified. Please set either a model "
+           << "namespace component or the plugin <robotNamespace> element."
+           << std::endl;
     return;
   }
 
