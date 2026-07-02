@@ -164,7 +164,7 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_sdf_3k_shapes_dart,
     ->Arg(1) // dartsim does not need warmup (no island sleep function for now)
     ->Unit(benchmark::kMillisecond);
 
-/* Benchmark runtime with contacts performance on bullet-featherstone physics engine */
+/* Benchmark runtime with contacts performance */
 BENCHMARK_CAPTURE(BM_RuntimeWorldContacts, sdf_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "shapes.sdf")
