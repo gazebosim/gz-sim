@@ -772,13 +772,11 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 
   // Enable simulation asset download
   this->enableDownload = true;
+  this->downloadAssetsComplete = false;
 
   // Download models in a separate thread.
   this->downloadThread = std::thread([&, _config]()
   {
-    if (_config.WaitForAssets())
-      std::lock_guard threadLocalLock(this->downloadAssetMutex);
-
     // Fetch queued assets
     this->FetchQueuedAssets();
 
@@ -804,7 +802,13 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
           runner->Stop();
         }
         if (_config.WaitForAssets())
+        {
+          {
+            std::lock_guard<std::mutex> doneLock(this->downloadAssetMutex);
+            this->downloadAssetsComplete = true;
+          }
           this->downloadAssetCv.notify_one();
+        }
       }
     }
 
@@ -844,14 +848,22 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       runner->SetCreateEntities();
     }
     if (_config.WaitForAssets())
+    {
+      {
+        std::lock_guard<std::mutex> doneLock(this->downloadAssetMutex);
+        this->downloadAssetsComplete = true;
+      }
       this->downloadAssetCv.notify_one();
+    }
   });
 
   // Wait for assets to download if configured to do so, and then create
-  // entities.
+  // entities. A predicate guards against spurious wakeups and against the
+  // download thread completing before this thread reaches the wait.
   if (_config.WaitForAssets())
   {
-    this->downloadAssetCv.wait(assetLock);
+    this->downloadAssetCv.wait(assetLock,
+        [this] { return this->downloadAssetsComplete; });
     for (auto &runner : this->simRunners)
       runner->CreateEntities();
   }

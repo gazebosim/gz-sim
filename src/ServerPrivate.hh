@@ -253,6 +253,9 @@ namespace gz
 
       // \brief Download asset condition variable.
       private: std::condition_variable downloadAssetCv;
+
+      /// \brief Predicate for downloadAssetCv.
+      private: bool downloadAssetsComplete = false;
     };
     }
   }
