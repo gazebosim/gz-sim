@@ -742,7 +742,6 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    this->entityCompMgr.LockAddingEntitiesToViews(true);
     if (!this->parallelPostUpdates)
     {
       for (auto &system : this->systemMgr->SystemsPostUpdate())
@@ -764,7 +763,7 @@ void SimulationRunner::UpdateSystems()
         this->postUpdateStopBarrier->Wait();
       }
     }
-    this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 
@@ -1573,7 +1572,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
     return;
   }
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.EachNoCache<components::Model,
+  this->entityCompMgr.Each<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
