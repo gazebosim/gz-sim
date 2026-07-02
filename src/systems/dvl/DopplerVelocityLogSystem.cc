@@ -15,7 +15,9 @@
  *
 */
 
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -88,10 +90,20 @@ struct SetEnvironmentalData
   std::shared_ptr<gz::sensors::EnvironmentalData> environmentalData;
 };
 
+/// \brief A request to rebind an existing DVL sensor after reset.
+struct ResetSensor
+{
+  /// \brief Sensor description
+  CreateSensor sensor;
+
+  /// \brief Reset time
+  std::chrono::steady_clock::duration simTime;
+};
+
 /// \brief Union request type.
 using SomeRequest = std::variant<
   CreateSensor, DestroySensor,
-  SetWorldState, SetEnvironmentalData>;
+  SetWorldState, SetEnvironmentalData, ResetSensor>;
 
 }  // namespace requests
 }
@@ -130,12 +142,20 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   /// \brief Overload to handle environment data update requests.
   public: void Handle(requests::SetEnvironmentalData _request);
 
+  /// \brief Overload to handle sensor reset requests.
+  public: void Handle(requests::ResetSensor _request);
+
   /// \brief Implementation for Configure() hook.
   public: void DoConfigure(
       const gz::sim::Entity &_entity,
       const std::shared_ptr<const sdf::Element> &_sdf,
       gz::sim::EntityComponentManager &_ecm,
       gz::sim::EventManager &_eventMgr);
+
+  /// \brief Implementation for Reset() hook.
+  public: void DoReset(
+      const gz::sim::UpdateInfo &_info,
+      gz::sim::EntityComponentManager &_ecm);
 
   /// \brief Implementation for PreUpdate() hook.
   public: void DoPreUpdate(
@@ -151,6 +171,15 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   public: void DoPostUpdate(
       const gz::sim::UpdateInfo &_info,
       const gz::sim::EntityComponentManager &_ecm);
+
+  /// \brief Queue DVL sensor creation or rebinding from an ECM sensor entity.
+  public: void QueueSensor(
+      const gz::sim::Entity &_entity,
+      const gz::sim::components::CustomSensor *_custom,
+      const gz::sim::components::ParentEntity *_parent,
+      gz::sim::EntityComponentManager &_ecm,
+      std::optional<std::chrono::steady_clock::duration> _resetTime =
+          std::nullopt);
 
   /// \brief State of all entities in the world in simulation thread
   public: std::optional<gz::sensors::WorldState> latestWorldState;
@@ -221,6 +250,9 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
 
   /// \brief Mutex to protect current simulation times
   public: std::mutex timeMutex;
+
+  /// \brief True when reset is waiting for current DVL entities to reappear.
+  public: bool resetSensorRebindPending{false};
 };
 
 using namespace gz;
@@ -254,8 +286,96 @@ void DopplerVelocityLogSystem::Implementation::DoConfigure(
 }
 
 //////////////////////////////////////////////////
+void DopplerVelocityLogSystem::Implementation::QueueSensor(
+  const gz::sim::Entity &_entity,
+  const gz::sim::components::CustomSensor *_custom,
+  const gz::sim::components::ParentEntity *_parent,
+  gz::sim::EntityComponentManager &_ecm,
+  std::optional<std::chrono::steady_clock::duration> _resetTime)
+{
+  using namespace gz::sim;
+  // Get sensor's scoped name without the world
+  std::string sensorScopedName = removeParentScope(
+      scopedName(_entity, _ecm, "::", false), "::");
+
+  // Check sensor's type before proceeding
+  sdf::Sensor sdf = _custom->Data();
+  sdf::ElementPtr root = sdf.Element();
+  if (!root->HasAttribute("gz:type"))
+  {
+    gzmsg << "No 'gz:type' attribute in custom sensor "
+           << "[" << sensorScopedName << "]. Ignoring."
+           << std::endl;
+    return;
+  }
+  auto type = root->Get<std::string>("gz:type");
+  if (type != "dvl")
+  {
+    gzdbg << "Found custom sensor [" << sensorScopedName << "]"
+           << " of '" << type << "' type. Ignoring." << std::endl;
+    return;
+  }
+  gzdbg << "Found custom sensor [" << sensorScopedName << "]"
+         << " of '" << type << "' type!" << std::endl;
+
+  sdf.SetName(sensorScopedName);
+
+  if (sdf.Topic().empty())
+  {
+    // Default to scoped name as topic
+    sdf.SetTopic(scopedName(_entity, _ecm) + "/dvl/velocity");
+  }
+
+  auto parentName =
+      _ecm.Component<components::Name>(_parent->Data());
+
+  enableComponent<components::WorldPose>(_ecm, _entity);
+  enableComponent<components::WorldAngularVelocity>(_ecm, _entity);
+  enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
+
+  requests::CreateSensor request{
+      sdf, _entity, _parent->Data(), parentName->Data()};
+
+  if (_resetTime)
+  {
+    this->perStepRequests.push_back(
+        requests::ResetSensor{std::move(request), *_resetTime});
+  }
+  else
+  {
+    this->perStepRequests.push_back(std::move(request));
+  }
+
+  this->knownSensorEntities.insert(_entity);
+}
+
+//////////////////////////////////////////////////
+void DopplerVelocityLogSystem::Implementation::DoReset(
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &)
+{
+  this->perStepRequests.clear();
+  this->knownSensorEntities.clear();
+  this->resetSensorRebindPending = true;
+
+  {
+    std::lock_guard<std::mutex> lock(this->requestsMutex);
+    this->queuedRequests.clear();
+    this->queuedSetWorldRequests.clear();
+    this->pendingRequests = false;
+    this->pendingSetWorldRequests = false;
+  }
+
+  {
+    std::lock_guard<std::mutex> timeLock(this->timeMutex);
+    this->simTime = _info.simTime;
+    this->nextUpdateTime = std::chrono::steady_clock::duration::max();
+  }
+}
+
+//////////////////////////////////////////////////
 void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
-  const gz::sim::UpdateInfo &,
+  const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
   _ecm.EachNew<gz::sim::components::Environment>(
@@ -280,58 +400,32 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
       return true;
     });
 
-  _ecm.EachNew<gz::sim::components::CustomSensor,
-               gz::sim::components::ParentEntity>(
-    [&](const gz::sim::Entity &_entity,
-        const gz::sim::components::CustomSensor *_custom,
-        const gz::sim::components::ParentEntity *_parent) -> bool
-    {
-      using namespace gz::sim;
-      // Get sensor's scoped name without the world
-      std::string sensorScopedName = removeParentScope(
-          scopedName(_entity, _ecm, "::", false), "::");
-
-      // Check sensor's type before proceeding
-      sdf::Sensor sdf = _custom->Data();
-      sdf::ElementPtr root = sdf.Element();
-      if (!root->HasAttribute("gz:type"))
+  if (this->resetSensorRebindPending)
+  {
+    _ecm.Each<gz::sim::components::CustomSensor,
+              gz::sim::components::ParentEntity>(
+      [&](const gz::sim::Entity &_entity,
+          const gz::sim::components::CustomSensor *_custom,
+          const gz::sim::components::ParentEntity *_parent) -> bool
       {
-        gzmsg << "No 'gz:type' attribute in custom sensor "
-               << "[" << sensorScopedName << "]. Ignoring."
-               << std::endl;
+        this->QueueSensor(_entity, _custom, _parent, _ecm, _info.simTime);
         return true;
-      }
-      auto type = root->Get<std::string>("gz:type");
-      if (type != "dvl")
+      });
+
+    this->resetSensorRebindPending = false;
+  }
+  else
+  {
+    _ecm.EachNew<gz::sim::components::CustomSensor,
+                 gz::sim::components::ParentEntity>(
+      [&](const gz::sim::Entity &_entity,
+          const gz::sim::components::CustomSensor *_custom,
+          const gz::sim::components::ParentEntity *_parent) -> bool
       {
-        gzdbg << "Found custom sensor [" << sensorScopedName << "]"
-               << " of '" << type << "' type. Ignoring." << std::endl;
+        this->QueueSensor(_entity, _custom, _parent, _ecm);
         return true;
-      }
-      gzdbg << "Found custom sensor [" << sensorScopedName << "]"
-             << " of '" << type << "' type!" << std::endl;
-
-      sdf.SetName(sensorScopedName);
-
-      if (sdf.Topic().empty())
-      {
-        // Default to scoped name as topic
-        sdf.SetTopic(scopedName(_entity, _ecm) + "/dvl/velocity");
-      }
-
-      auto parentName =
-          _ecm.Component<components::Name>(_parent->Data());
-
-      enableComponent<components::WorldPose>(_ecm, _entity);
-      enableComponent<components::WorldAngularVelocity>(_ecm, _entity);
-      enableComponent<components::WorldLinearVelocity>(_ecm, _entity);
-
-      this->perStepRequests.push_back(requests::CreateSensor{
-          sdf, _entity, _parent->Data(), parentName->Data()});
-
-      this->knownSensorEntities.insert(_entity);
-      return true;
-    });
+      });
+  }
 }
 
 //////////////////////////////////////////////////
@@ -381,7 +475,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
         kinematicState.linearVelocity = _linearVelocity->Data();
         kinematicState.angularVelocity = _angularVelocity->Data();
         return true;
-      });;
+      });
 
     {
       std::lock_guard<std::mutex> lock(this->requestsMutex);
@@ -413,6 +507,11 @@ gz::rendering::VisualPtr
     DopplerVelocityLogSystem::Implementation::FindEntityVisual(
     gz::rendering::ScenePtr _scene, gz::sim::Entity _entity)
 {
+  if (!_scene)
+  {
+    return gz::rendering::VisualPtr();
+  }
+
   for (unsigned int i = 0; i < _scene->VisualCount(); ++i)
   {
     gz::rendering::VisualPtr visual = _scene->VisualByIndex(i);
@@ -521,7 +620,10 @@ void DopplerVelocityLogSystem::Implementation::Handle(
   {
     auto *sensor = dynamic_cast<gz::sensors::DopplerVelocityLog *>(
         this->sensorManager.Sensor(sensorId));
-    sensor->SetWorldState(*this->latestWorldState);
+    if (sensor)
+    {
+      sensor->SetWorldState(*this->latestWorldState);
+    }
   }
   this->needsUpdate = true;
 }
@@ -535,8 +637,67 @@ void DopplerVelocityLogSystem::Implementation::Handle(
   {
     auto *sensor = dynamic_cast<gz::sensors::DopplerVelocityLog *>(
         this->sensorManager.Sensor(sensorId));
-    sensor->SetEnvironmentalData(*this->latestEnvironmentalData);
+    if (sensor)
+    {
+      sensor->SetEnvironmentalData(*this->latestEnvironmentalData);
+    }
   }
+  this->needsUpdate = true;
+}
+
+//////////////////////////////////////////////////
+void DopplerVelocityLogSystem::Implementation::Handle(
+    requests::ResetSensor _request)
+{
+  auto sensorIt = this->sensorIdPerEntity.find(_request.sensor.entity);
+  if (sensorIt == this->sensorIdPerEntity.end())
+  {
+    for (auto it = this->sensorIdPerEntity.begin();
+         it != this->sensorIdPerEntity.end(); ++it)
+    {
+      auto *sensor = this->sensorManager.Sensor(it->second);
+      if (sensor && sensor->Name() == _request.sensor.sdf.Name())
+      {
+        auto sensorId = it->second;
+        this->sensorIdPerEntity.erase(it);
+        sensorIt = this->sensorIdPerEntity.insert(
+            {_request.sensor.entity, sensorId}).first;
+        break;
+      }
+    }
+  }
+
+  if (sensorIt == this->sensorIdPerEntity.end())
+  {
+    this->Handle(std::move(_request.sensor));
+    return;
+  }
+
+  auto *sensor = dynamic_cast<gz::sensors::DopplerVelocityLog *>(
+      this->sensorManager.Sensor(sensorIt->second));
+  if (!sensor)
+  {
+    gzerr << "Internal error, missing DVL sensor "
+           << "[" << _request.sensor.sdf.Name() << "]" << std::endl;
+    return;
+  }
+
+  sensor->SetEntity(_request.sensor.entity);
+  sensor->SetParent(_request.sensor.parentName);
+  sensor->SetNextDataUpdateTime(_request.simTime);
+
+  gz::rendering::VisualPtr parentVisual =
+      this->FindEntityVisual(this->scene, _request.sensor.parent);
+  if (parentVisual)
+  {
+    for (auto renderingSensor : sensor->RenderingSensors())
+    {
+      renderingSensor->RemoveParent();
+      parentVisual->AddChild(renderingSensor);
+    }
+  }
+
+  this->updatedSensorIds.clear();
   this->needsUpdate = true;
 }
 
@@ -586,7 +747,8 @@ void DopplerVelocityLogSystem::Implementation::OnPreRender()
 void DopplerVelocityLogSystem::Implementation::OnRender()
 {
   GZ_PROFILE("DopplerVelocityLogSystem::Implementation::OnRender");
-  if (!this->scene->IsInitialized() ||
+  if (!this->scene ||
+      !this->scene->IsInitialized() ||
       this->scene->SensorCount() == 0)
   {
     return;
@@ -617,10 +779,20 @@ void DopplerVelocityLogSystem::Implementation::OnRender()
 
     std::lock_guard<std::mutex> timeLock(this->timeMutex);
 
-    for (const auto & [_, sensorId] : this->sensorIdPerEntity)
+    for (const auto & [entity, sensorId] : this->sensorIdPerEntity)
     {
+      if (this->latestWorldState &&
+          !this->latestWorldState->kinematics.count(entity))
+      {
+        continue;
+      }
+
       gz::sensors::Sensor *sensor =
           this->sensorManager.Sensor(sensorId);
+      if (!sensor)
+      {
+        continue;
+      }
 
       constexpr bool kForce = true;
       if (sensor->Update(this->simTime, !kForce))
@@ -649,7 +821,10 @@ void DopplerVelocityLogSystem::Implementation::OnPostRender()
     auto *sensor =
         dynamic_cast<gz::sensors::DopplerVelocityLog *>(
             this->sensorManager.Sensor(sensorId));
-    sensor->PostUpdate(this->simTime);
+    if (sensor)
+    {
+      sensor->PostUpdate(this->simTime);
+    }
   }
   this->updatedSensorIds.clear();
 }
@@ -702,6 +877,15 @@ void DopplerVelocityLogSystem::Configure(
 }
 
 //////////////////////////////////////////////////
+void DopplerVelocityLogSystem::Reset(
+  const gz::sim::UpdateInfo &_info,
+  gz::sim::EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("DopplerVelocityLogSystem::Reset");
+  this->dataPtr->DoReset(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
 void DopplerVelocityLogSystem::PreUpdate(
   const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
@@ -722,6 +906,7 @@ void DopplerVelocityLogSystem::PostUpdate(
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
   System,
   DopplerVelocityLogSystem::ISystemConfigure,
+  DopplerVelocityLogSystem::ISystemReset,
   DopplerVelocityLogSystem::ISystemPreUpdate,
   DopplerVelocityLogSystem::ISystemPostUpdate
 )
