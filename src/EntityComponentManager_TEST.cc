@@ -193,6 +193,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(cIntEIntDouble, manager.Component<IntComponent>(eIntDouble));
   EXPECT_EQ(cDoubleEIntDouble, manager.Component<DoubleComponent>(eIntDouble));
 
+  manager.RunClearRemovedComponents();
+
   // Remove component by type id
   EXPECT_TRUE(manager.RemoveComponent(eInt, IntComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(eInt, IntComponent::typeId));
@@ -2471,16 +2473,55 @@ TEST_P(EntityComponentManagerFixture,
   // We use this map because the order in which components are iterated
   // through depends on the (undetermined) order of unordered multimaps
   std::map<ComponentTypeId, bool> expectations;
+  // In the first iteration we expect all the components to be added,
+  // or rather not be marked removed.
   expectations.insert(std::make_pair(e1c0->TypeId(), false));
-  expectations.insert(std::make_pair(e1c1->TypeId(), true));
-  expectations.insert(std::make_pair(e1c2->TypeId(), true));
-
-  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
-  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
+  expectations.insert(std::make_pair(e1c1->TypeId(), false));
+  expectations.insert(std::make_pair(e1c2->TypeId(), false));
 
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
   manager.State(stateMsg);
+
+  // Three changes, three added components to one entity
+  ASSERT_EQ(stateMsg.entities().size(), 1);
+  ASSERT_EQ(stateMsg.entities().begin()->second.components().size(), 3);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // First component
+    const auto &c0 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = compIter->second;
+    compIter++;
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = compIter->second;
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
+  }
+
+  manager.RunClearRemovedComponents();
+
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
+
+  stateMsg.Clear();
+  manager.State(stateMsg);
+
+  // We now expect two removed components
+  ASSERT_EQ(stateMsg.entities().size(), 1);
+  ASSERT_EQ(stateMsg.entities().begin()->second.components().size(), 3);
+
+  expectations[e1c1->TypeId()] = true;
+  expectations[e1c2->TypeId()] = true;
 
   // Check message
   {
@@ -2541,15 +2582,50 @@ TEST_P(EntityComponentManagerFixture,
   // through depends on the (undetermined) order of unordered multimaps
   std::map<ComponentTypeId, bool> expectations;
   expectations.insert(std::make_pair(e1c0->TypeId(), false));
-  expectations.insert(std::make_pair(e1c1->TypeId(), true));
-  expectations.insert(std::make_pair(e1c2->TypeId(), true));
-
-  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
-  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
+  expectations.insert(std::make_pair(e1c1->TypeId(), false));
+  expectations.insert(std::make_pair(e1c2->TypeId(), false));
 
   // Serialize into a message
   msgs::SerializedState stateMsg;
   stateMsg = manager.State();
+
+  // There should be three just added components
+  ASSERT_EQ(stateMsg.entities().size(), 1);
+  ASSERT_EQ(stateMsg.entities().begin()->components().size(), 3);
+
+  // Check message
+  {
+    auto const &entityMsg = stateMsg.entities(0);
+
+    // First component
+    const auto &c0 = entityMsg.components(0);
+    EXPECT_EQ(c0.remove(), expectations.find(c0.type())->second);
+
+    // Second component
+    const auto &c1 = entityMsg.components(1);
+    EXPECT_EQ(c1.remove(), expectations.find(c1.type())->second);
+
+    // Third component
+    const auto &c2 = entityMsg.components(2);
+    EXPECT_EQ(c2.remove(), expectations.find(c2.type())->second);
+  }
+
+  // This flushes the newly created state
+  manager.RunClearRemovedComponents();
+
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
+
+  expectations[e1c1->TypeId()] = true;
+  expectations[e1c2->TypeId()] = true;
+
+  // Serialize into a message
+  stateMsg.Clear();
+  stateMsg = manager.State();
+
+  // There should be three components of which two just removed
+  ASSERT_EQ(stateMsg.entities().size(), 1);
+  ASSERT_EQ(stateMsg.entities().begin()->components().size(), 3);
 
   // Check message
   {
@@ -2570,8 +2646,13 @@ TEST_P(EntityComponentManagerFixture,
 
   // Check that removed components don't exist anymore after clearing them
   manager.RunClearRemovedComponents();
+
   msgs::SerializedState newStateMsg;
   newStateMsg = manager.State();
+
+  // There should only be one component now
+  ASSERT_EQ(newStateMsg.entities().size(), 1);
+  ASSERT_EQ(newStateMsg.entities().begin()->components().size(), 1);
 
   // Check message
   {
@@ -2603,6 +2684,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, e1c2);
 
   manager.RunSetAllComponentsUnchanged();
+  manager.RunClearRemovedComponents();
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c0->TypeId()));
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
   // Serialize into a message
@@ -2648,6 +2730,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, e1c2);
 
   manager.RunSetAllComponentsUnchanged();
+  manager.RunClearRemovedComponents();
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c0->TypeId()));
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
@@ -2709,6 +2792,10 @@ TEST_P(EntityComponentManagerFixture,
   msgs::SerializedStateMap guiStateMsg;
   guiManager.State(guiStateMsg);
 
+  // There should be three new components
+  ASSERT_EQ(guiStateMsg.entities().size(), 1);
+  ASSERT_EQ(guiStateMsg.entities().begin()->second.components().size(), 3);
+
   // Check sync message
   {
     auto iter = guiStateMsg.entities().find(e1);
@@ -2729,6 +2816,9 @@ TEST_P(EntityComponentManagerFixture,
     const auto &c2 = compIter->second;
     EXPECT_EQ(c2.remove(), expectationsBeforeRemoving.find(c2.type())->second);
   }
+
+  manager.RunClearRemovedComponents();
+  guiManager.RunClearRemovedComponents();
 
   std::map<ComponentTypeId, bool> expectationsAfterRemoving;
   expectationsAfterRemoving.insert(std::make_pair(e1c0->TypeId(), false));
@@ -2753,6 +2843,10 @@ TEST_P(EntityComponentManagerFixture,
   msgs::SerializedStateMap newGuiStateMsg;
   guiManager.State(newGuiStateMsg);
 
+  // There should be three components of which two marked as removed
+  ASSERT_EQ(newGuiStateMsg.entities().size(), 1);
+  ASSERT_EQ(newGuiStateMsg.entities().begin()->second.components().size(), 3);
+
   // Check message
   {
     auto iter = newGuiStateMsg.entities().find(e1);
@@ -2773,6 +2867,61 @@ TEST_P(EntityComponentManagerFixture,
     const auto &c2 = compIter->second;
     EXPECT_EQ(c2.remove(), expectationsAfterRemoving.find(c2.type())->second);
   }
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveComponentAddedInSameIteration))
+{
+  // Create entity with three components
+  Entity e1 = manager.CreateEntity();
+  auto e1c0 =
+    manager.CreateComponent<IntComponent>(e1, IntComponent(123));
+  ASSERT_NE(nullptr, e1c0);
+  auto e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
+  auto e1c2 =
+    manager.CreateComponent<StringComponent>(e1, StringComponent("foo"));
+  ASSERT_NE(nullptr, e1c2);
+
+  // Immediately delete two componentts
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
+
+  // Added and removed in the same step doesn't count as a removal
+  EXPECT_FALSE(manager.HasRemovedComponents());
+
+  // Serialize into a message
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Expect to only see one change for an added component (c0), since
+  // the other components were added and removed before the state was reset.
+  ASSERT_EQ(stateMsg.entities().size(), 1);
+  ASSERT_EQ(stateMsg.entities().begin()->second.components().size(), 1);
+
+  // Check message
+  {
+    auto iter = stateMsg.entities().find(e1);
+    const auto &e1Msg = iter->second;
+    auto compIter = e1Msg.components().begin();
+
+    // Only component in message should be e1c0
+    const auto &c0 = compIter->second;
+    EXPECT_EQ(c0.remove(), false);
+    EXPECT_EQ(c0.type(), e1c0->TypeId());
+  }
+
+  manager.RunClearRemovedComponents();
+
+  // Recreate and delete e1c1 again to make sure we cover subsequent
+  // component creation correctly
+  e1c1 =
+    manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
+  ASSERT_NE(nullptr, e1c1);
+  EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
+  EXPECT_FALSE(manager.HasRemovedComponents());
 }
 
 /// \brief Helper function for comparing the same type of component across two
