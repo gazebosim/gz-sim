@@ -577,7 +577,6 @@ bool populateECM(EntityComponentManager &_ecm)
 
   // Instantiate an ECM and populate with data from message
   _ecm.SetState(res.state());
-  _ecm.SortComponentStorages();
   return true;
 }
 

@@ -1933,7 +1933,10 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
 
-  _fromEcm.Registry().view<const Entity>().each([&](const Entity& e) {
+  const auto entityView = _fromEcm.Registry().view<const Entity>();
+
+  for (auto it = entityView.rbegin(); it != entityView.rend(); ++it) {
+    const auto e = *it;
     if (this->HasEntity(e))
       this->Registry().destroy(e);
     std::ignore = this->Registry().create(e);
@@ -1947,7 +1950,7 @@ void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
         toStorage->push(e, fromStorage.value(e));
       }
     }
-  });
+  }
 }
 
 /////////////////////////////////////////////////
@@ -2041,30 +2044,4 @@ std::optional<Entity> EntityComponentManager::EntityByName(
     entity = entByName;
 
   return entity;
-}
-
-
-
-/////////////////////////////////////////////////
-void EntityComponentManager::SortComponentStorages()
-{
-  this->dataPtr->registry.storage<Entity>()
-    .sort([](const Entity _lhs, const Entity _rhs)
-  {
-    return _lhs < _rhs;
-  });
-
-  for (auto [id, storage] : this->dataPtr->registry.storage())
-  {
-    storage.sort([](const Entity _lhs, const Entity _rhs)
-    {
-      return _lhs < _rhs;
-    });
-  }
-
-  std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
-  for (auto &group : this->dataPtr->allGroups)
-  {
-    group->SortGroup(this->Registry());
-  }
 }
