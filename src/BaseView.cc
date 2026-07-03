@@ -82,19 +82,19 @@ const std::set<ComponentTypeId> &BaseView::ComponentTypes() const
   return this->componentTypes;
 }
 
-const std::unordered_set<Entity> &BaseView::Entities() const
+const std::set<Entity> &BaseView::Entities() const
 {
   return this->entities;
 }
 
 //////////////////////////////////////////////////
-const std::unordered_set<Entity> &BaseView::NewEntities() const
+const std::set<Entity> &BaseView::NewEntities() const
 {
   return this->newEntities;
 }
 
 //////////////////////////////////////////////////
-const std::unordered_set<Entity> &BaseView::ToRemoveEntities() const
+const std::set<Entity> &BaseView::ToRemoveEntities() const
 {
   return this->toRemoveEntities;
 }
