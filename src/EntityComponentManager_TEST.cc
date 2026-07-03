@@ -962,7 +962,8 @@ TEST_P(EntityComponentManagerFixture, RemoveEntity)
   // Can not delete an invalid entity, but it shows up as marked for removal.
   manager.RequestRemoveEntity(6);
   EXPECT_EQ(3u, manager.EntityCount());
-  // BEHAVIOR CHANGE, now failing to add an entity will not mark it as added for removal
+  // BEHAVIOR CHANGE
+  // now failing to add an entity will not mark it as added for removal
   EXPECT_FALSE(manager.HasEntitiesMarkedForRemoval());
   manager.ProcessEntityRemovals();
   EXPECT_EQ(3u, manager.EntityCount());
@@ -2656,7 +2657,6 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, e1c2);
   const auto e1c0Id = e1c0->TypeId();
   const auto e1c1Id = e1c1->TypeId();
-  const auto e1c2Id = e1c2->TypeId();
 
   manager.RunSetAllComponentsUnchanged();
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c0->TypeId()));

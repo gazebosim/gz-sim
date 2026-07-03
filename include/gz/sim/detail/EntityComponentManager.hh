@@ -96,8 +96,10 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
 {
   if (!this->HasEntity(_entity))
     return nullptr;
-  auto* comp = &this->Registry().emplace_or_replace<ComponentTypeT>(_entity, _data);
-  this->SetChanged(_entity, ComponentTypeT::typeId, ComponentState::OneTimeChange);
+  auto* comp = &this->Registry()
+    .emplace_or_replace<ComponentTypeT>(_entity, _data);
+  this->SetChanged(_entity, ComponentTypeT::typeId,
+      ComponentState::OneTimeChange);
   return comp;
 }
 
@@ -184,7 +186,8 @@ namespace detail
   class GroupQueuer
   {
     public: virtual ~GroupQueuer() = default;
-    public: virtual void CreateGroup(entt::basic_registry<Entity> &_registry) = 0;
+    public: virtual void CreateGroup(
+                entt::basic_registry<Entity> &_registry) = 0;
     public: virtual void SortGroup(entt::basic_registry<Entity> &_registry) = 0;
   };
 
@@ -246,7 +249,8 @@ Entity EntityComponentManager::EntityByComponents(
     {
       for (const auto e : iterable)
       {
-        if (((iterable.template get<const ComponentTypeTs>(e) == _desiredComponents) && ...))
+        if (((iterable.template get<const ComponentTypeTs>(e) ==
+                _desiredComponents) && ...))
           return e;
       }
       return kNullEntity;
@@ -259,10 +263,11 @@ Entity EntityComponentManager::EntityByComponents(
     }
 
     // Enqueue group creation for next iteration
-    this->EnqueueGroup({ComponentTypeTs::typeId...},
-        std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
+    this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
+        detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    return findMatch(this->Registry().template view<const ComponentTypeTs...>());
+    return findMatch(
+        this->Registry().template view<const ComponentTypeTs...>());
   }
 }
 
@@ -283,7 +288,8 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
   };
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    return findMatches(this->Registry().template view<const ComponentTypeTs...>());
+    return findMatches(
+        this->Registry().template view<const ComponentTypeTs...>());
   }
   else
   {
@@ -293,10 +299,11 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
       return findMatches(group);
     }
     // Enqueue group creation for next iteration
-    this->EnqueueGroup({ComponentTypeTs::typeId...},
-        std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
+    this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
+        detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    return findMatches(this->Registry().template view<const ComponentTypeTs...>());
+    return findMatches(
+        this->Registry().template view<const ComponentTypeTs...>());
   }
 }
 
@@ -305,11 +312,6 @@ template<typename ...ComponentTypeTs>
 std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
      const ComponentTypeTs &..._desiredComponents) const
 {
-  // TODO(luca) The two implementations showed fairly similar results in benchmarking
-  // Iterating over children is slightly slower when there are a lot of children to one entity
-  // Iterating over the view is slightly faster when an entity has a lot of children
-  // The performance difference might be small enough that we shouldn't need two APIs
-  // return this->EntitiesByComponents(components::ParentEntity(_parent), _desiredComponents ...);
   std::vector<Entity> result;
   const auto& children = this->Registry().template get<Children>(_parent);
   auto view = this->Registry().template view<const ComponentTypeTs...>();
@@ -318,7 +320,8 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
   {
     if (!view.contains(e))
       continue;
-    bool match = ((view.template get<ComponentTypeTs>(e) == _desiredComponents) && ...);
+    bool match = ((view.template get<ComponentTypeTs>(e) ==
+          _desiredComponents) && ...);
 
     if (match)
       result.push_back(e);
@@ -364,7 +367,8 @@ void EntityComponentManager::Each(Func &&_f) const
     {
       for (const auto entity : iterable)
       {
-        if (!_f(entity, std::addressof(iterable.template get<const ComponentTypeTs>(entity))...))
+        if (!_f(entity, std::addressof(
+                iterable.template get<const ComponentTypeTs>(entity))...))
           break;
       }
     };
@@ -377,8 +381,8 @@ void EntityComponentManager::Each(Func &&_f) const
     }
 
     // Enqueue group creation for next iteration
-    this->EnqueueGroup({ComponentTypeTs::typeId...},
-        std::make_unique<detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
+    this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
+        detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
     iterate(this->Registry().template view<const ComponentTypeTs...>());
   }
@@ -403,7 +407,8 @@ void EntityComponentManager::Each(Func &&_f)
     {
       for (const auto entity : iterable)
       {
-        if (!_f(entity, std::addressof(iterable.template get<ComponentTypeTs>(entity))...))
+        if (!_f(entity, std::addressof(
+                iterable.template get<ComponentTypeTs>(entity))...))
           break;
       }
     };
@@ -434,7 +439,8 @@ void EntityComponentManager::EachNew(Func &&_f)
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, (std::addressof(view.template get<ComponentTypeTs>(entity)))...))
+    if (!_f(entity, (
+            std::addressof(view.template get<ComponentTypeTs>(entity)))...))
       break;
   }
 }
@@ -443,13 +449,15 @@ void EntityComponentManager::EachNew(Func &&_f)
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f) const
 {
-  auto view = this->Registry().template view<const NewEntity, const ComponentTypeTs...>();
+  auto view = this->Registry().template view<
+    const NewEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, std::addressof(view.template get<const ComponentTypeTs>(entity))...))
+    if (!_f(entity, std::addressof(
+            view.template get<const ComponentTypeTs>(entity))...))
       break;
   }
 }
@@ -458,13 +466,15 @@ void EntityComponentManager::EachNew(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachRemoved(Func &&_f) const
 {
-  auto view = this->Registry().template view<const RemoveEntity, const ComponentTypeTs...>();
+  auto view = this->Registry().template view<
+    const RemoveEntity, const ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, std::addressof(view.template get<const ComponentTypeTs>(entity))...))
+    if (!_f(entity, std::addressof(
+            view.template get<const ComponentTypeTs>(entity))...))
       break;
   }
 }

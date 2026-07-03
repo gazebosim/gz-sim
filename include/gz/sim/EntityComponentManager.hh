@@ -465,7 +465,8 @@ namespace gz
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void GZ_DEPRECATED(11) ForEach(Function _f, const ComponentTypeTs &... _components);
+      static void GZ_DEPRECATED(11) ForEach(Function _f,
+          const ComponentTypeTs &... _components);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
