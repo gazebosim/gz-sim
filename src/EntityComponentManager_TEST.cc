@@ -492,7 +492,7 @@ TEST_P(EntityComponentManagerFixture,
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(RebuildViews))
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RebuildGroups))
 {
   // Create some entities
   Entity eInt = manager.CreateEntity();
@@ -513,14 +513,15 @@ TEST_P(EntityComponentManagerFixture,
       DoubleComponent(0.456));
   ASSERT_NE(nullptr, comp4);
 
-  // The first iteration of this loop builds views. At the end, views are
-  // rebuilt. The second iteration should return the same values as the
+  // The first iteration of this loop runs with views. At the end, groups are
+  // built. The second iteration should return the same values as the
   // first iteration.
   for (int i = 0; i < 2; ++i)
   {
     int count = 0;
+    const auto& constMgr = manager;
     // The first call to each will create a view.
-    manager.Each<IntComponent> ([&](const Entity &_entity,
+    constMgr.Each<IntComponent> ([&](const Entity &_entity,
           const IntComponent *_value)->bool
         {
           EXPECT_NE(nullptr, _value);
@@ -538,7 +539,7 @@ TEST_P(EntityComponentManagerFixture,
     EXPECT_EQ(2, count);
 
     count = 0;
-    manager.Each<DoubleComponent> ([&](const Entity &_entity,
+    constMgr.Each<DoubleComponent> ([&](const Entity &_entity,
           const DoubleComponent *_value)->bool
         {
           EXPECT_NE(nullptr, _value);
@@ -555,8 +556,8 @@ TEST_P(EntityComponentManagerFixture,
         });
     EXPECT_EQ(2, count);
 
-    // Rebuild the view.
-    // manager.RebuildViews();
+    // Build the groups
+    manager.CreatePendingGroups();
   }
 }
 
@@ -1205,9 +1206,6 @@ TEST_P(EntityComponentManagerFixture,
   auto comp2 = manager.CreateComponent<IntComponent>(e2, IntComponent(456));
   ASSERT_NE(nullptr, comp2);
   EXPECT_EQ(1, newCount<IntComponent>(manager));
-  // Check if this true after RebuildViews
-  // manager.RebuildViews();
-  EXPECT_EQ(1, newCount<IntComponent>(manager));
 }
 
 //////////////////////////////////////////////////
@@ -1314,9 +1312,6 @@ TEST_P(EntityComponentManagerFixture,
   manager.RunClearNewlyCreatedEntities();
 
   manager.RequestRemoveEntity(e1);
-  EXPECT_EQ(1, removedCount<IntComponent>(manager));
-
-  // manager.RebuildViews();
   EXPECT_EQ(1, removedCount<IntComponent>(manager));
 }
 
@@ -1546,7 +1541,6 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("123456")));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(StringComponent("int"),
       UIntComponent(456u)));
-  // CHANGED query with duplicate components is a compile error now
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(UIntComponent(123u)));
   EXPECT_EQ(kNullEntity, manager.EntityByComponents(IntComponent(-123),
       UIntComponent(456u)));
@@ -2316,7 +2310,6 @@ TEST_P(EntityComponentManagerFixture,
   manager.RemoveComponent<IntComponent>(e1);
   manager.UpdatePeriodicChangeCache(changeTracker);
   EXPECT_EQ(changeTracker.size(), 1u);
-  // CHANGED we were dereferencing a pointer to a non existing component!
   EXPECT_EQ(changeTracker[c1Id].size(), 0u);
 
   manager.RunSetAllComponentsUnchanged();
@@ -2333,7 +2326,6 @@ TEST_P(EntityComponentManagerFixture,
   manager.UpdatePeriodicChangeCache(changeTracker);
   EXPECT_EQ(changeTracker[c2->TypeId()].size(), 1u);
 
-  // CHANGED we were dereferencing a pointer to a non existing component!
   const auto c2Id = c2->TypeId();
   // Entity removed cache should be updated.
   manager.RequestRemoveEntity(e1);
@@ -2432,8 +2424,6 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e1, c1->TypeId()));
 
-  // CHANGED pass a copy instead of referencing c2 otherwise it
-  // would crash. Consider having the API pass by value as well
   EXPECT_TRUE(manager.RemoveComponent(e2, c2Id));
 
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
@@ -2665,7 +2655,6 @@ TEST_P(EntityComponentManagerFixture,
   // Serialize into a message, providing a list of types to be included
   msgs::SerializedStateMap stateMsg;
   std::unordered_set<Entity> entitySet{e1};
-  // CHANGED we were dereferencing invalid pointers!
   std::unordered_set<ComponentTypeId> types{e1c0Id, e1c1Id};
   manager.State(stateMsg, entitySet, types, false);
 
@@ -3500,7 +3489,6 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_TRUE(iter != stateMsg.mutable_entities()->end());
   msgs::SerializedEntityMap &e1Msg = iter->second;
 
-  // CHANGED! we were dereferencing a removed component!
   auto compIter = e1Msg.mutable_components()->find(compId);
   ASSERT_TRUE(compIter != e1Msg.mutable_components()->end());
   msgs::SerializedComponent &e1c1Msg = compIter->second;
