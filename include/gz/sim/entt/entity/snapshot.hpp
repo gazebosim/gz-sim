@@ -9,6 +9,7 @@
 #include <vector>
 #include "../config/config.h"
 #include "../container/dense_map.hpp"
+#include "../core/type_info.hpp"
 #include "../core/type_traits.hpp"
 #include "entity.hpp"
 #include "fwd.hpp"
