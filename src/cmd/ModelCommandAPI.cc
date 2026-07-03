@@ -611,8 +611,8 @@ void printLinks(const uint64_t _modelEntity,
                 const std::string &_sensorName,
                 int _spaces)
 {
-  auto links = _ecm.EntitiesByComponents(
-      components::ParentEntity(_modelEntity), components::Link());
+  auto links = _ecm.ChildrenByComponents(
+      _modelEntity, components::Link());
   std::sort(links.begin(), links.end());
   for (const auto &entity : links)
   {
@@ -669,8 +669,8 @@ void printLinks(const uint64_t _modelEntity,
       spaces += 2;
     }
 
-    auto sensors = _ecm.EntitiesByComponents(
-      components::ParentEntity(entity), components::Sensor());
+    auto sensors = _ecm.ChildrenByComponents(
+      entity, components::Sensor());
     std::sort(sensors.begin(), sensors.end());
     for (const auto &sensor : sensors)
     {
@@ -722,8 +722,8 @@ void printJoints(const uint64_t _modelEntity,
     {sdf::JointType::UNIVERSAL, "universal"}
   };
 
-  auto joints = _ecm.EntitiesByComponents(
-      components::ParentEntity(_modelEntity), components::Joint());
+  auto joints = _ecm.ChildrenByComponents(
+      _modelEntity, components::Joint());
   std::sort(joints.begin(), joints.end());
 
   for (const auto &entity : joints)
