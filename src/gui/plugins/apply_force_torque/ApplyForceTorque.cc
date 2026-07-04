@@ -442,7 +442,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     }
   }
 
-  if (this->dataPtr->changedIndex)
+  if (this->dataPtr->changedIndex && this->dataPtr->linkIndex >= 0)
   {
     this->dataPtr->changedIndex = false;
 

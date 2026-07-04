@@ -711,6 +711,58 @@ TEST_P(EntityComponentManagerFixture,
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsRecreateRemovedComponent))
+{
+  // Create an entity and initialize it with one component of a two-component
+  // view
+  Entity entity = manager.CreateEntity();
+  auto comp1 = manager.CreateComponent<IntComponent>(entity,
+      IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+
+  // Initialize the view by calling Each with both components.
+  // It shouldn't match yet because the entity only has IntComponent.
+  int count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &, const IntComponent *,
+          const DoubleComponent *) -> bool
+      {
+        count++;
+        return true;
+      });
+  EXPECT_EQ(0, count);
+
+  // Add the second component. This matches the view and marks the entity to
+  // add.
+  auto comp2 = manager.CreateComponent<DoubleComponent>(entity,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp2);
+
+  // Remove, then re-add the second component.
+  EXPECT_TRUE(manager.RemoveComponent(entity, DoubleComponent::typeId));
+
+  auto comp3 = manager.CreateComponent<DoubleComponent>(entity,
+      DoubleComponent(0.789));
+  ASSERT_NE(nullptr, comp3);
+
+  // Query the view. The entity should match and be found.
+  count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, const IntComponent *_intComp,
+          const DoubleComponent *_doubleComp) -> bool
+      {
+        EXPECT_EQ(entity, _entity);
+        EXPECT_EQ(123, _intComp->Data());
+        EXPECT_DOUBLE_EQ(0.789, _doubleComp->Data());
+        count++;
+        return true;
+      });
+  EXPECT_EQ(1, count);
+}
+
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsAddEntity))
 {
   // Create some entities
@@ -3167,6 +3219,76 @@ TEST_P(EntityComponentManagerFixture,
         return true;
       });
   EXPECT_EQ(1, foundEntities);
+}
+
+//////////////////////////////////////////////////
+/// \brief Test that after serializing and deserializing state the hierarchy
+/// is preserved.
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(StateMsgHierarchy))
+{
+  static constexpr std::size_t NUM_ENTITIES = 100;
+  EntityComponentManager originalECMStateMap;
+  EntityComponentManager otherECMStateMap;
+
+  // A series of entities where half have no parent and half have the previous
+  // entity as a parent.
+  std::vector<Entity> entities;
+  entities.reserve(NUM_ENTITIES);
+  auto parentEntity = kNullEntity;
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto entity = originalECMStateMap.CreateEntity();
+    originalECMStateMap.CreateComponent(entity,
+        components::Name("entity_" + std::to_string(i)));
+    if (i % 2)
+    {
+      EXPECT_TRUE(originalECMStateMap.SetParentEntity(entity, parentEntity));
+    }
+    parentEntity = entity;
+    entities.push_back(entity);
+  }
+
+  // update the other ECM to have the new entity and component
+  msgs::SerializedStateMap stateMapMsg;
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+
+  ASSERT_EQ(otherECMStateMap.EntityCount(), originalECMStateMap.EntityCount());
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto desc = otherECMStateMap.Descendants(entities[i]);
+    // Descendants includes self, remove it to simplify asserts
+    desc.erase(entities[i]);
+    if (i % 2 == 0)
+    {
+      // Entity with no descendents
+      ASSERT_EQ(desc.size(), 1);
+      EXPECT_EQ(*desc.begin(), entities[i + 1]);
+    } else {
+      EXPECT_EQ(desc.size(), 0);
+    }
+  }
+
+  EntityComponentManager otherECMState;
+  auto stateMsg = originalECMStateMap.State();
+  otherECMState.SetState(stateMsg);
+
+  ASSERT_EQ(otherECMState.EntityCount(), originalECMStateMap.EntityCount());
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto desc = otherECMState.Descendants(entities[i]);
+    // Descendants includes self, remove it to simplify asserts
+    desc.erase(entities[i]);
+    if (i % 2 == 0)
+    {
+      // Entity with no descendents
+      ASSERT_EQ(desc.size(), 1);
+      EXPECT_EQ(*desc.begin(), entities[i + 1]);
+    } else {
+      EXPECT_EQ(desc.size(), 0);
+    }
+  }
 }
 
 //////////////////////////////////////////////////

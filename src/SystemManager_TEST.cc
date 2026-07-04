@@ -320,8 +320,10 @@ TEST(SystemManager, AddAndRemoveSystemEcm)
 
   // Remove the entity
   ecm.RequestRemoveEntity(entity);
-  systemMgr.ProcessRemovedEntities(ecm);
+  bool needsCleanUp;
+  systemMgr.ProcessRemovedEntities(ecm, needsCleanUp);
 
+  EXPECT_TRUE(needsCleanUp);
   EXPECT_EQ(1u, systemMgr.ActiveCount());
   EXPECT_EQ(0u, systemMgr.PendingCount());
   EXPECT_EQ(1u, systemMgr.TotalCount());

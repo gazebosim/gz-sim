@@ -74,6 +74,15 @@ class gz::sim::EntityComponentManagerPrivate
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
 
+  /// \brief Helper function to only update the entity graph for a new
+  /// parent - child relation. This does not do any book-keeping on the
+  /// components::ParentEntity component, for which the EntityComponentManager
+  /// SetParentEntity function should be used.
+  /// \param[in] _child the entity to update the parent for.
+  /// \param[in] _parent the new parent of the entity, or kNullEntity if the
+  /// entity should be left parentless.
+  public: bool SetParentEntityGraph(const Entity _child, const Entity _parent);
+
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
   /// it can have additional parameters if the need arises in the future.
@@ -317,6 +326,13 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
+  // Rebuild component storage by cloning every component from `_from`.
+  // \warning This destroys the existing component objects and replaces them
+  // with freshly allocated clones at new addresses. Any raw component pointer
+  // handed out earlier (Component(), ComponentImplementation(), ...) is left
+  // dangling by this loop and must be re-fetched by callers afterwards.
+  // Holding such a pointer across CopyFrom()/ResetTo() and dereferencing it is
+  // undefined behavior (see gazebosim/gz-sim#3635).
   for (const auto &[entity, comps] : _from.componentStorage)
   {
     this->componentStorage[entity].clear();
@@ -508,7 +524,6 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   if (_parent != kNullEntity)
   {
     this->SetParentEntity(clonedEntity, _parent);
-    this->CreateComponent(clonedEntity, components::ParentEntity(_parent));
   }
 
   // make sure that the cloned entity has a unique name
@@ -909,6 +924,12 @@ bool EntityComponentManager::RemoveComponent(
     this->dataPtr->removedComponents[_entity].insert(_typeId);
   }
 
+  // If the component is a components::ParentEntity, leave the entity parentless
+  if (_typeId == components::ParentEntity::typeId)
+  {
+    this->dataPtr->SetParentEntityGraph(_entity, kNullEntity);
+  }
+
   return true;
 }
 
@@ -1065,24 +1086,43 @@ bool EntityComponentManager::HasEntity(const Entity _entity) const
 /////////////////////////////////////////////////
 Entity EntityComponentManager::ParentEntity(const Entity _entity) const
 {
-  auto parents = this->Entities().AdjacentsTo(_entity);
-  if (parents.empty())
+  const auto* parent = this->Component<components::ParentEntity>(_entity);
+  if (!parent)
     return kNullEntity;
-
-  // TODO(louise) Do we want to support multiple parents?
-  return parents.begin()->first;
+  return parent->Data();
 }
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::SetParentEntity(const Entity _child,
     const Entity _parent)
 {
+  // Validate input, child must exist and parent must either be kNullEntity
+  // (in which case we remove the parent) or a valid entity to set.
+  if (!this->HasEntity(_child))
+    return false;
+  if (_parent != kNullEntity && !this->HasEntity(_parent))
+    return false;
+
+  // Component creation and deletion take care of updating the graph
+  this->RemoveComponent<components::ParentEntity>(_child);
+  if (_parent == kNullEntity)
+  {
+    return true;
+  }
+  this->CreateComponent(_child, components::ParentEntity(_parent));
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManagerPrivate::SetParentEntityGraph(const Entity _child,
+    const Entity _parent)
+{
   // Remove current parent(s)
-  auto parents = this->Entities().AdjacentsTo(_child);
+  auto parents = this->entities.AdjacentsTo(_child);
   for (const auto &parent : parents)
   {
-    auto edge = this->dataPtr->entities.EdgeFromVertices(parent.first, _child);
-    this->dataPtr->entities.RemoveEdge(edge);
+    auto edge = this->entities.EdgeFromVertices(parent.first, _child);
+    this->entities.RemoveEdge(edge);
   }
 
   // Leave parent-less
@@ -1092,7 +1132,7 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
   }
 
   // Add edge
-  auto edge = this->dataPtr->entities.AddEdge({_parent, _child}, true);
+  auto edge = this->entities.AddEdge({_parent, _child}, true);
   return (math::graph::kNullId != edge.Id());
 }
 
@@ -1193,8 +1233,20 @@ bool EntityComponentManager::CreateComponentImplementation(
 
       for (auto &viewPair : this->dataPtr->views)
       {
-        viewPair.second.first->NotifyComponentAddition(_entity,
-            this->IsNewEntity(_entity), _componentTypeId);
+        auto &view = viewPair.second.first;
+        // There are two cases to handle here:
+        // 1. Entity is associated with this view. Call
+        //    `NotifyComponentAddition` to update the cached component data.
+        // 2. Entity is not associated with this view yet. This can happen
+        //    if the entity was in `toAddEntities`, but removed before
+        //    processing because `NotifyComponentRemoval` was called.
+        //    Call `MarkEntityToAdd` to add the entity again to the view.
+        if (this->EntityMatches(_entity, view->ComponentTypes()) &&
+            !view->NotifyComponentAddition(_entity,
+                this->IsNewEntity(_entity), _componentTypeId))
+        {
+          view->MarkEntityToAdd(_entity, this->IsNewEntity(_entity));
+        }
       }
     }
   }
@@ -1205,8 +1257,18 @@ bool EntityComponentManager::CreateComponentImplementation(
   // update the entities graph.
   if (_componentTypeId == components::ParentEntity::typeId)
   {
-    auto parentComp = this->Component<components::ParentEntity>(_entity);
-    this->SetParentEntity(_entity, parentComp->Data());
+    if (!_data)
+    {
+      gzerr << "Internal error: Invalid parent component detected, "
+            << "this should not happen." << std::endl;
+      return updateData;
+    }
+    const auto *parent = static_cast<const components::ParentEntity *>(_data);
+    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
+    {
+      gzerr << "Failed setting parent for entity " << _entity << " to "
+            << parent->Data() << std::endl;
+    }
   }
 
   return updateData;
@@ -1836,8 +1898,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  {
+    const auto &entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (int c = 0; c < entityMsg.components_size(); ++c)
     {
       const auto &compMsg = entityMsg.components(c);
@@ -1934,8 +2008,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (const auto &iter : _stateMsg.entities())
+  {
+    const auto &entityMsg = iter.second;
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (const auto &compIter : iter.second.components())
     {
       const auto &compMsg = compIter.second;
@@ -2298,7 +2384,6 @@ void EntityComponentManager::ApplyEntityDiff(
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
-      this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
   }
 
@@ -2322,7 +2407,6 @@ void EntityComponentManager::ApplyEntityDiff(
         this->dataPtr->entityCount = entity;
       }
       copyComponents(entity);
-      this->SetParentEntity(entity, _other.ParentEntity(entity));
     }
 
     this->RequestRemoveEntity(entity, false);
@@ -2332,6 +2416,9 @@ void EntityComponentManager::ApplyEntityDiff(
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
+  // \warning The final CopyFrom() below rebuilds the component storage, so any
+  // raw component pointer obtained before this call is invalidated. Callers
+  // must re-fetch components after a reset (see gazebosim/gz-sim#3635).
   auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
   tmpCopy.CopyFrom(_other);

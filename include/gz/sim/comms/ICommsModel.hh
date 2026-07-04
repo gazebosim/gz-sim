@@ -47,9 +47,10 @@ namespace comms
   /// parameters:
   ///
   /// * Optional parameters:
-  /// <step_size> If defined this will allow the comms model to run at a
-  /// higher frequency than the physics engine. This is useful when dealing
-  /// with ranging. If the <step_size> is set larger than the physics engine dt
+  /// `<step_size>` If defined this will allow the comms model to
+  /// run at a higher frequency than the physics engine. This is
+  /// useful when dealing with ranging. If the `<step_size>` is
+  /// set larger than the physics engine dt
   /// then the comms model step size will default to dt.
   /// Note: for consistency it is advised that the dt is a multiple of timestep.
   /// Units are in seconds.
