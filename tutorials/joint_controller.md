@@ -37,7 +37,7 @@ e.g.
 
 ```bash
 mkdir gz_tutorial
-cd gz_turtorial
+cd gz_tutorial
 ```
 
 2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/joint_controller.sdf)).
