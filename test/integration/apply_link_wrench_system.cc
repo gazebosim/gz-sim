@@ -114,8 +114,10 @@ TEST_F(ApplyLinkWrenchTestFixture,
     "test", "worlds", "apply_link_wrench.sdf"));
 
   std::size_t iterations{0};
+  std::size_t waitingIterations{0};
   std::size_t movingIterations{0};
   std::size_t clearedIterations{0};
+  bool wrenchesApplied{false};
   bool wrenchesCleared{false};
   Link link3, link4;
   fixture.OnConfigure([&](
@@ -147,12 +149,24 @@ TEST_F(ApplyLinkWrenchTestFixture,
       const UpdateInfo &,
       const EntityComponentManager &_ecm)
       {
+        ++iterations;
+
         auto wrenchComp3 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link3.Entity());
-        EXPECT_NE(nullptr, wrenchComp3);
-
         auto wrenchComp4 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link4.Entity());
+
+        // Publishing through transport is asynchronous. HasConnections()
+        // confirms the subscriber exists, but the first simulated iteration can
+        // still run before both persistent wrench messages are processed.
+        if (!wrenchesCleared && !wrenchesApplied &&
+            (nullptr == wrenchComp3 || nullptr == wrenchComp4))
+        {
+          ++waitingIterations;
+          return;
+        }
+
+        EXPECT_NE(nullptr, wrenchComp3);
         EXPECT_NE(nullptr, wrenchComp4);
 
         auto linAccel3 = link3.WorldLinearAcceleration(_ecm);
@@ -166,6 +180,7 @@ TEST_F(ApplyLinkWrenchTestFixture,
           EXPECT_NEAR(50.0, linAccel3.value().X(), tol);
           EXPECT_NEAR(-100.0, linAccel4.value().X(), tol);
 
+          wrenchesApplied = true;
           ++movingIterations;
         }
         else
@@ -175,8 +190,6 @@ TEST_F(ApplyLinkWrenchTestFixture,
 
           ++clearedIterations;
         }
-
-        ++iterations;
       }).Finalize();
 
   // Publish messages
@@ -211,10 +224,19 @@ TEST_F(ApplyLinkWrenchTestFixture,
     pubPersistent.Publish(msg);
   }
 
+  std::size_t maxStartIterations{100};
+  fixture.Server()->Run(true, maxStartIterations, false);
+  ASSERT_TRUE(wrenchesApplied);
+
+  iterations = 0;
+  waitingIterations = 0;
+  movingIterations = 0;
+
   std::size_t targetIterations{100};
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
-  EXPECT_EQ(movingIterations, iterations);
+  EXPECT_EQ(0u, waitingIterations);
+  EXPECT_EQ(targetIterations, movingIterations);
 
   // Clear wrenches
   auto pubClear = node.Advertise<msgs::Entity>(
