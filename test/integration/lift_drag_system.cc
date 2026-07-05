@@ -15,6 +15,8 @@
  *
  */
 
+#include <chrono>
+
 #include <gtest/gtest.h>
 
 #include <gz/msgs/double.pb.h>
@@ -234,3 +236,77 @@ INSTANTIATE_TEST_SUITE_P(
         VerticalForceTestParam{
             common::joinPaths("test", "worlds", "lift_drag_nested_model.sdf"),
             "wing_1::base_link"}));
+
+TEST(AdvancedLiftDragTest, PitchMomentKeepsAlphaContribution)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(R"(
+<sdf version="1.10">
+  <world name="default">
+    <wind>
+      <linear_velocity>-10 0 0</linear_velocity>
+    </wind>
+    <model name="aircraft">
+      <link name="wing">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>1.0</ixx>
+            <ixy>0.0</ixy>
+            <ixz>0.0</ixz>
+            <iyy>1.0</iyy>
+            <iyz>0.0</iyz>
+            <izz>1.0</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-advanced-lift-drag-system"
+              name="gz::sim::systems::AdvancedLiftDrag">
+        <link_name>wing</link_name>
+        <area>1.0</area>
+        <AR>1.0</AR>
+        <mac>1.0</mac>
+        <air_density>1.0</air_density>
+        <forward>1 0 0</forward>
+        <upward>0 0 1</upward>
+        <Cem0>0.2</Cem0>
+        <Cema>0.0</Cema>
+        <Cemb>0.0</Cemb>
+      </plugin>
+    </model>
+  </world>
+</sdf>)");
+
+  Server server(serverConfig);
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(0ns);
+
+  std::vector<math::Vector3d> torques;
+  test::Relay wrenchRecorder;
+  wrenchRecorder.OnPreUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        auto linkEntity = _ecm.EntityByComponents(
+            components::Link(), components::Name("wing"));
+        if (kNullEntity == linkEntity)
+        {
+          return;
+        }
+
+        auto wrenchComp =
+            _ecm.Component<components::ExternalWorldWrenchCmd>(linkEntity);
+        if (wrenchComp)
+        {
+          torques.push_back(msgs::Convert(wrenchComp->Data().torque()));
+        }
+      });
+  server.AddSystem(wrenchRecorder.systemPtr);
+
+  server.Run(true, 1, false);
+
+  ASSERT_FALSE(torques.empty());
+  const auto &torque = torques.back();
+  EXPECT_NEAR(0.0, torque.X(), TOL);
+  EXPECT_NEAR(-10.0, torque.Y(), TOL);
+  EXPECT_NEAR(0.0, torque.Z(), TOL);
+}
