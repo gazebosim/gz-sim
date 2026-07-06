@@ -298,7 +298,7 @@ if encountered like:
 ```
 
 But this automatic parsing capability is limited to plain solid colors, other colors would be
-rendered with a default <material> value. Eventually, to make your models compatible with both
+rendered with a default `<material>` value. Eventually, to make your models compatible with both
  simulators, such material defining plain colors should be updated to use the `<ambient>`, `<specular>`,
 `<emissive>` and `<diffuse>` tags as needed:
 

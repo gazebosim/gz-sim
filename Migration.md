@@ -14,6 +14,18 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Entity wrapper classes (`Model`, `Link`, `World`)**
+  * These now store their private data via `gz::utils::ImplPtr` (matching
+    `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
+    `std::unique_ptr` pimpl. This is an **ABI break** — the size and layout of
+    these classes changed — but the public API is unchanged: they remain
+    copyable and movable with the same value semantics.
+  * The `Model` and `World` destructors are **no longer `virtual`**. These are
+    lightweight value handles around an entity id and were never intended to be
+    used as polymorphic base classes (none of the sibling wrapper classes had a
+    virtual destructor). Deriving from `Model` or `World` and deleting through a
+    base pointer is no longer supported.
+
 * **Deprecations**
   * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
     `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
@@ -81,6 +93,9 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
+  * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
+    which has the same behavior but returns a `std::string_view` and avoids
+    a memory allocation to improve performance.
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
