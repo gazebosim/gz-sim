@@ -47,9 +47,10 @@ namespace systems
   ///
   /// ## System Parameters:
   ///
-  // <plugin
-  //   filename="gz-sim-led-plugin-system"
-  //   name="gz::sim::systems::LedPlugin">
+  /// \code{.xml}
+  /// <plugin
+  ///   filename="gz-sim-led-plugin-system"
+  ///   name="gz::sim::systems::LedPlugin">
   ///
   ///   <!-- Name of the whole LED system / group -->
   ///   <led_group_name>group_name</led_group_name>
@@ -70,36 +71,37 @@ namespace systems
   ///   </led>
   ///
   ///   <!-- Different LED modes -->
-  ///   <mode name=”mode_name1”>
+  ///   <mode name="mode_name1">
   ///     <!-- Active LEDs for this specific mode -->
   ///     <active_leds>
   ///       <led>led1</led>
   ///     </active_leds>
-  ///     <step always_on=”false”>
+  ///     <step always_on="false">
   ///       <color>r g b a</color>
-  ///       <on_time>time(s)<on_time>
+  ///       <on_time>time(s)</on_time>
   ///       <intensity>1.0</intensity>
   ///     </step>
-  ///     <step always_on=”false”>
+  ///     <step always_on="false">
   ///       <color>r g b a</color>
-  ///       <on_time>time(s)<on_time>
+  ///       <on_time>time(s)</on_time>
   ///     </step>
-  ///     <step always_on=”false”>
+  ///     <step always_on="false">
   ///       <color>r g b a</color>
-  ///       <on_time>time(s)<on_time>
-  ///     </step>
-  ///   </mode>
-  ///   <mode name=”mode_name2”>
-  ///     <step always_on=”true”>
-  ///       <color>r g b a</color>
+  ///       <on_time>time(s)</on_time>
   ///     </step>
   ///   </mode>
-  ///   <mode name=”mode_name3”>
+  ///   <mode name="mode_name2">
+  ///     <step always_on="true">
+  ///       <color>r g b a</color>
+  ///     </step>
+  ///   </mode>
+  ///   <mode name="mode_name3">
   ///   .
   ///   .
   ///   .
   ///   </mode>
   /// </plugin>
+  /// \endcode
 
   class LedPlugin:
     public System,
