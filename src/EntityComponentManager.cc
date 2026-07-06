@@ -739,7 +739,6 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity,
       this->Registry().get_or_emplace<RemovedComponents>(_entity);
     removedComp.data.insert(_typeId);
   }
-
 }
 
 /////////////////////////////////////////////////
@@ -906,14 +905,13 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::CreateComponentImplementation(
-    const Entity _entity, const ComponentTypeId _componentTypeId,
-    const components::BaseComponent *_data)
+bool EntityComponentManager::CanCreateComponent(
+    const Entity _entity, const ComponentTypeId _typeId) const
 {
   // make sure the entity exists
   if (!this->HasEntity(_entity))
   {
-    gzerr << "Trying to create a component of type [" << _componentTypeId
+    gzerr << "Trying to create a component of type [" << _typeId
       << "] attached to entity [" << _entity << "], but this entity does not "
       << "exist. This create component request will be ignored." << std::endl;
     return false;
@@ -921,20 +919,29 @@ bool EntityComponentManager::CreateComponentImplementation(
 
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
-  if (!this->HasComponentType(_componentTypeId) &&
-      !components::Factory::Instance()->HasType(_componentTypeId))
+  if (!this->HasComponentType(_typeId) &&
+      !components::Factory::Instance()->HasType(_typeId))
   {
-    gzerr << "Failed to create component of type [" << _componentTypeId
+    gzerr << "Failed to create component of type [" << _typeId
            << "] for entity [" << _entity
            << "]. Type has not been properly registered." << std::endl;
     return false;
   }
 
+  return true;
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::CreateComponentImplementation(
+    const Entity _entity, const ComponentTypeId _componentTypeId,
+    const components::BaseComponent *_data)
+{
+  if (!this->CanCreateComponent(_entity, _componentTypeId))
+    return false;
+
   // assume the component data needs to be updated externally unless this
   // component is a brand new creation/addition
   bool updateData = true;
-
-  this->SetChanged(_entity, _componentTypeId, ComponentState::OneTimeChange);
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
@@ -943,19 +950,6 @@ bool EntityComponentManager::CreateComponentImplementation(
   // If entity has never had a component of this type
   if (!storage || !storage->contains(_entity))
   {
-    {
-      std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-      auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
-      if (removedComp)
-      {
-        removedComp->data.erase(_componentTypeId);
-        if (removedComp->data.empty())
-        {
-          this->Registry().erase<RemovedComponents>(_entity);
-        }
-      }
-    }
-
     if (storage->push(_entity, newComp.get()) == storage->end())
     {
       gzwarn << "Failed syncing component. This should not happen" << std::endl;
@@ -963,6 +957,8 @@ bool EntityComponentManager::CreateComponentImplementation(
       updateData = false;
     }
   }
+
+  this->SetChanged(_entity, _componentTypeId, ComponentState::OneTimeChange);
 
   return updateData;
 }

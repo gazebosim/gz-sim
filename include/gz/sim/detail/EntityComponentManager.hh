@@ -94,7 +94,7 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  if (!this->HasEntity(_entity))
+  if (!this->CanCreateComponent(_entity, ComponentTypeT::typeId))
     return nullptr;
   auto* comp = &this->Registry()
     .emplace_or_replace<ComponentTypeT>(_entity, _data);

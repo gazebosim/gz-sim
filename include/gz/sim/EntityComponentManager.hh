@@ -746,6 +746,14 @@ namespace gz
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
+      /// \brief Check whether a component of a given type can be created on an
+      /// entity (i.e. whether the entity exists and the type is registered).
+      /// \param[in] _entity The entity id.
+      /// \param[in] _typeId Id of the component type.
+      /// \return True if the component can be created; false otherwise.
+      private: bool CanCreateComponent(const Entity _entity,
+                   const ComponentTypeId _typeId) const;
+
       /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
