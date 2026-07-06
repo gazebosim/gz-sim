@@ -435,41 +435,6 @@ class gz::sim::systems::PhysicsPrivate
                        return _a == _b;
                      }};
 
-  /// \brief msgs::Contacts equality comparison function.
-  public: std::function<bool(const msgs::Contacts &,
-          const msgs::Contacts &)>
-          contactsEql { [](const msgs::Contacts &_a,
-                          const msgs::Contacts &_b)
-                    {
-                      if (_a.contact_size() != _b.contact_size())
-                      {
-                        return false;
-                      }
-
-                      for (int i = 0; i < _a.contact_size(); ++i)
-                      {
-                        if (_a.contact(i).position_size() !=
-                            _b.contact(i).position_size())
-                        {
-                          return false;
-                        }
-
-                        for (int j = 0; j < _a.contact(i).position_size();
-                          ++j)
-                        {
-                          auto pos1 = _a.contact(i).position(j);
-                          auto pos2 = _b.contact(i).position(j);
-
-                          if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
-                              !math::equal(pos1.y(), pos2.y(), 1e-6) ||
-                              !math::equal(pos1.z(), pos2.z(), 1e-6))
-                          {
-                            return false;
-                          }
-                        }
-                      }
-                      return true;
-                    }};
   /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
@@ -576,6 +541,90 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief World type with just the minimum features. Non-pointer.
   public: using WorldShapeType = physics::World<
             physics::FeaturePolicy3d, ContactFeatureList>;
+
+  /// \brief Using ExtraContactData to expose contact Norm, Force & Depth
+  public: using Policy = physics::FeaturePolicy3d;
+  public: using GCFeature = physics::GetContactsFromLastStepFeature;
+  public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
+
+  /// \brief A contact is described by a contactPoint and the corresponding
+  /// extraContactData which we bundle in a pair data structure
+  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+                                const ExtraContactData *>;
+  /// \brief Each contact object we get from gz-physics contains the EntityPtrs
+  /// of the two colliding entities and other data about the contact such as the
+  /// position and extra contact date (wrench, normal and penetration depth).
+  /// This map groups contacts so that it is easy to query all the
+  /// contacts of one entity.
+  public: using EntityContactMap = std::unordered_map<
+            Entity, std::deque<ContactData>>;
+
+  /// \brief msgs::Contacts equality comparison function.
+  public: bool contactsEql(const msgs::Contacts &_msg,
+                           const EntityContactMap &_map)
+  {
+    if (_msg.contact_size() != static_cast<int>(_map.size()))
+    {
+      return false;
+    }
+
+    auto mapIt = _map.begin();
+    for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
+    {
+      const auto &contactData = mapIt->second;
+      if (_msg.contact(i).position_size() !=
+          static_cast<int>(contactData.size()))
+      {
+        return false;
+      }
+
+      for (int j = 0; j < _msg.contact(i).position_size(); ++j)
+      {
+        const auto &contact = contactData[j];
+        auto pos1 = _msg.contact(i).position(j);
+        auto pos2 = contact.first->point;
+
+        if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
+            !math::equal(pos1.y(), pos2.y(), 1e-6) ||
+            !math::equal(pos1.z(), pos2.z(), 1e-6))
+        {
+          return false;
+        }
+
+        if(contact.second != nullptr)
+        {
+          // Compare normals
+          auto normal1 = _msg.contact(i).normal(j);
+          auto normal2 = contact.second->normal;
+          if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
+              !math::equal(normal1.y(), normal2.y(), 1e-6) ||
+              !math::equal(normal1.z(), normal2.z(), 1e-6))
+          {
+            return false;
+          }
+          // Compare body1 and body2 forces
+          auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
+          auto body1force2 = contact.second->force;
+          if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
+              !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
+              !math::equal(body1force1.z(), body1force2.z(), 1e-6))
+          {
+            return false;
+          }
+
+          auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
+          auto body2force2 = -contact.second->force;
+          if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
+              !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
+              !math::equal(body2force1.z(), body2force2.z(), 1e-6))
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
 
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
@@ -4250,22 +4299,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
-  // Using ExtraContactData to expose contact Norm, Force & Depth
-  using Policy = physics::FeaturePolicy3d;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
-
-  // A contact is described by a contactPoint and the corresponding
-  // extraContactData which we bundle in a pair data structure
-  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
-  // Each contact object we get from gz-physics contains the EntityPtrs of the
-  // two colliding entities and other data about the contact such as the
-  // position and extra contact date (wrench, normal and penetration depth).
-  // This map groups contacts so that it is easy to query all the
-  // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
-
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
   // create msgs::Contact objects conveniently later on.
@@ -4301,12 +4334,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        msgs::Contacts contactsComp;
-        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        const auto contactMapIt = entityContactMap.find(_collEntity1);
+        if (contactMapIt == entityContactMap.end())
         {
           // Clear the last contact data
-          auto state = _contacts->SetData(contactsComp,
-            this->contactsEql) ?
+          bool changed = _contacts->Data().contact_size() > 0;
+          if (changed)
+          {
+            _contacts->Data().Clear();
+          }
+
+          auto state = changed ?
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
@@ -4314,11 +4352,26 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
-        const auto &contactMap = entityContactMap[_collEntity1];
+        const auto &contactMap = contactMapIt->second;
 
+        bool changed = !this->contactsEql(_contacts->Data(), contactMap);
+        auto state = changed ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+        _ecm.SetChanged(
+          _collEntity1, components::ContactSensorData::typeId, state);
+
+        // If contacts are unchanged, no need to update them again
+        if (!changed)
+        {
+          return true;
+        }
+
+        // If contacts have changed, first clear data then add contacts
+        _contacts->Data().Clear();
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = contactsComp.add_contact();
+          msgs::Contact *contactMsg = _contacts->Data().add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -4363,14 +4416,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             }
           }
         }
-
-        auto state = _contacts->SetData(contactsComp,
-          this->contactsEql) ?
-          ComponentState::PeriodicChange :
-          ComponentState::NoChange;
-        _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
-
         return true;
       });
 }
@@ -4486,13 +4531,10 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   if (!setContactPropertiesCallbackFeature)
     return;
 
-  using Policy = physics::FeaturePolicy3d;
   using Feature = physics::SetContactPropertiesCallbackFeature;
   using FeatureList = SetContactPropertiesCallbackFeatureList;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
   using GCFeatureWorld = GCFeature::World<Policy, FeatureList>;
   using ContactPoint = GCFeatureWorld::ContactPoint;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
