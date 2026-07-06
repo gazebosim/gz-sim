@@ -1671,10 +1671,6 @@ void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
     sim::ComponentState _c)
 {
-  // make sure _entity exists
-  if (!this->HasEntity(_entity))
-    return;
-
   // make sure the entity has a component of type _type
   const auto* storage = this->Registry().storage(_type);
   if (storage == nullptr || !storage->contains(_entity))
