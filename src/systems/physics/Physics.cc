@@ -27,6 +27,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -1318,6 +1319,9 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
 void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
                                          bool _warnIfEntityExists)
 {
+  std::map<Entity, std::tuple<const components::Name*, const components::Pose*,
+    const components::ParentEntity*>> modelEntities;
+
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1326,152 +1330,157 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
-          return true;
-
-        // Check if model already exists
-        if (this->entityModelMap.HasEntity(_entity))
-        {
-          if (_warnIfEntityExists)
-          {
-            gzwarn << "Model entity [" << _entity
-                    << "] marked as new, but it's already on the map."
-                    << std::endl;
-          }
-          return true;
-        }
-        // TODO(anyone) Don't load models unless they have collisions
-
-        // Check if parent world / model exists
-        sdf::Model model;
-        if (const auto *modelSdfComp =
-            _ecm.Component<components::ModelSdf>(_entity))
-        {
-          model = modelSdfComp->Data();
-        }
-
-        // Component values should override whatever values were put into the
-        // ModelSdf component.
-        model.SetName(_name->Data());
-        model.SetRawPose(_pose->Data());
-        model.SetPoseRelativeTo("");
-
-        sdf::Root root;
-        root.SetModel(model);
-        root.UpdateGraphs();
-
-        auto staticComp = _ecm.Component<components::Static>(_entity);
-        if (staticComp && staticComp->Data())
-        {
-          model.SetStatic(staticComp->Data());
-          this->staticEntities.insert(_entity);
-        }
-        auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
-        if (selfCollideComp && selfCollideComp ->Data())
-        {
-          model.SetSelfCollide(selfCollideComp->Data());
-        }
-
-        // check if parent is a world
-        if (auto worldPtrPhys =
-                this->entityWorldMap.Get(_parent->Data()))
-        {
-          // Use the ConstructNestedModel feature for nested models
-          if (model.ModelCount() > 0)
-          {
-            auto nestedModelFeature =
-                this->entityWorldMap.EntityCast<NestedModelFeatureList>(
-                    _parent->Data());
-            if (!nestedModelFeature)
-            {
-              static bool informed{false};
-              if (!informed)
-              {
-                gzdbg << "Attempting to construct nested models, but the "
-                       << "physics engine doesn't support feature "
-                       << "[ConstructSdfNestedModelFeature]. "
-                       << "Nested model will be ignored."
-                       << std::endl;
-                informed = true;
-              }
-              return true;
-            }
-            auto modelPtrPhys =
-              nestedModelFeature->ConstructNestedModel(*root.Model());
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-          }
-          else
-          {
-            auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-          }
-        }
-        // check if parent is a model (nested model)
-        else
-        {
-          if (auto parentPtrPhys = this->entityModelMap.Get(_parent->Data()))
-          {
-            auto nestedModelFeature =
-                this->entityModelMap.EntityCast<NestedModelFeatureList>(
-                    _parent->Data());
-            if (!nestedModelFeature)
-            {
-              static bool informed{false};
-              if (!informed)
-              {
-                gzdbg << "Attempting to construct nested models, but the "
-                       << "physics engine doesn't support feature "
-                       << "[ConstructSdfNestedModelFeature]. "
-                       << "Nested model will be ignored."
-                       << std::endl;
-                informed = true;
-              }
-              return true;
-            }
-
-            // override static property only if parent is static.
-            auto parentStaticComp =
-              _ecm.Component<components::Static>(_parent->Data());
-            if (parentStaticComp && parentStaticComp->Data())
-            {
-              model.SetStatic(true);
-              this->staticEntities.insert(_entity);
-            }
-
-            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-            else
-            {
-              gzerr << "Model: '" << _name->Data() << "' not loaded. "
-                     << "Failed to create nested model."
-                     << std::endl;
-            }
-          }
-          else
-          {
-            gzwarn << "Model's parent entity [" << _parent->Data()
-                    << "] not found on world / model map." << std::endl;
-            return true;
-          }
-        }
-
+        if (!_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+          modelEntities.insert({_entity,
+              std::make_tuple(_name, _pose, _parent)});
         return true;
       });
+
+  for (const auto &[_entity, components] : modelEntities)
+  {
+    const auto [_name, _pose, _parent] = components;
+
+    // Check if model already exists
+    if (this->entityModelMap.HasEntity(_entity))
+    {
+      if (_warnIfEntityExists)
+      {
+        gzwarn << "Model entity [" << _entity
+                << "] marked as new, but it's already on the map."
+                << std::endl;
+      }
+      continue;
+    }
+    // TODO(anyone) Don't load models unless they have collisions
+
+    // Check if parent world / model exists
+    sdf::Model model;
+    if (const auto *modelSdfComp =
+        _ecm.Component<components::ModelSdf>(_entity))
+    {
+      model = modelSdfComp->Data();
+    }
+
+    // Component values should override whatever values were put into the
+    // ModelSdf component.
+    model.SetName(_name->Data());
+    model.SetRawPose(_pose->Data());
+    model.SetPoseRelativeTo("");
+
+    sdf::Root root;
+    root.SetModel(model);
+    root.UpdateGraphs();
+
+    auto staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp && staticComp->Data())
+    {
+      model.SetStatic(staticComp->Data());
+      this->staticEntities.insert(_entity);
+    }
+    auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+    if (selfCollideComp && selfCollideComp ->Data())
+    {
+      model.SetSelfCollide(selfCollideComp->Data());
+    }
+
+    // check if parent is a world
+    if (auto worldPtrPhys =
+            this->entityWorldMap.Get(_parent->Data()))
+    {
+      // Use the ConstructNestedModel feature for nested models
+      if (model.ModelCount() > 0)
+      {
+        auto nestedModelFeature =
+            this->entityWorldMap.EntityCast<NestedModelFeatureList>(
+                _parent->Data());
+        if (!nestedModelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to construct nested models, but the "
+                   << "physics engine doesn't support feature "
+                   << "[ConstructSdfNestedModelFeature]. "
+                   << "Nested model will be ignored."
+                   << std::endl;
+            informed = true;
+          }
+          continue;
+        }
+        auto modelPtrPhys =
+          nestedModelFeature->ConstructNestedModel(*root.Model());
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+      }
+      else
+      {
+        auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+      }
+    }
+    // check if parent is a model (nested model)
+    else
+    {
+      if (auto parentPtrPhys = this->entityModelMap.Get(_parent->Data()))
+      {
+        auto nestedModelFeature =
+            this->entityModelMap.EntityCast<NestedModelFeatureList>(
+                _parent->Data());
+        if (!nestedModelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to construct nested models, but the "
+                   << "physics engine doesn't support feature "
+                   << "[ConstructSdfNestedModelFeature]. "
+                   << "Nested model will be ignored."
+                   << std::endl;
+            informed = true;
+          }
+          continue;
+        }
+
+        // override static property only if parent is static.
+        auto parentStaticComp =
+          _ecm.Component<components::Static>(_parent->Data());
+        if (parentStaticComp && parentStaticComp->Data())
+        {
+          model.SetStatic(true);
+          this->staticEntities.insert(_entity);
+        }
+
+        auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+        else
+        {
+          gzerr << "Model: '" << _name->Data() << "' not loaded. "
+                 << "Failed to create nested model."
+                 << std::endl;
+        }
+      }
+      else
+      {
+        gzwarn << "Model's parent entity [" << _parent->Data()
+                << "] not found on world / model map." << std::endl;
+        continue;
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
