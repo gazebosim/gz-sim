@@ -144,8 +144,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
-
-
   /// \brief Set a cloned joint's parent or child link name.
   /// \param[in] _joint The cloned joint.
   /// \param[in] _originalLink The original joint's parent or child link.
@@ -211,16 +209,14 @@ class gz::sim::EntityComponentManagerPrivate
   public: std::unordered_map<Entity, std::pair<Entity, Entity>>
           clonedToOriginalJointLinks;
 
-  /// \brief Groups that are pending to be created.
-  public: std::vector<std::unique_ptr<detail::GroupQueuer>> pendingGroups;
+  /// \brief Groups that are pending to be created, mapped by component types.
+  public: std::map<std::vector<ComponentTypeId>,
+              std::unique_ptr<detail::GroupQueuer>> pendingGroups;
 
   /// \brief All groups that have been created.
   public: std::vector<std::unique_ptr<detail::GroupQueuer>> allGroups;
 
-  /// \brief Set of group component types that are already enqueued.
-  public: std::set<std::vector<ComponentTypeId>> enqueuedGroups;
-
-  /// \brief Mutex to protect enqueuedGroups, pendingGroups and allGroups.
+  /// \brief Mutex to protect pendingGroups and allGroups.
   public: mutable std::mutex groupMutex;
 
   /// \brief Registry.
@@ -243,13 +239,12 @@ const entt::basic_registry<Entity> &EntityComponentManager::Registry() const
 void EntityComponentManager::CreatePendingGroups()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
-  for (auto &group : this->dataPtr->pendingGroups)
+  for (auto &[types, group] : this->dataPtr->pendingGroups)
   {
     group->CreateGroup(this->Registry());
     this->dataPtr->allGroups.push_back(std::move(group));
   }
   this->dataPtr->pendingGroups.clear();
-  this->dataPtr->enqueuedGroups.clear();
 }
 
 //////////////////////////////////////////////////
@@ -258,10 +253,7 @@ void EntityComponentManager::EnqueueGroup(
     std::unique_ptr<detail::GroupQueuer> _queuer) const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->groupMutex);
-  if (this->dataPtr->enqueuedGroups.insert(_types).second)
-  {
-    this->dataPtr->pendingGroups.push_back(std::move(_queuer));
-  }
+  this->dataPtr->pendingGroups.try_emplace(_types, std::move(_queuer));
 }
 
 //////////////////////////////////////////////////
@@ -275,7 +267,6 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<Children>();
   this->Registry().storage<OneTimeChangedComponents>();
   this->Registry().storage<PeriodicChangedComponents>();
-
   this->Registry().storage<RemovedComponents>();
 
   components::Factory::Instance()->RegisterAllToEntt(this->Registry());
@@ -831,7 +822,6 @@ bool EntityComponentManager::HasPeriodicComponentChanges() const
 std::unordered_set<ComponentTypeId>
     EntityComponentManager::ComponentTypesWithPeriodicChanges() const
 {
-  // TODO(luca) Remove this API since it seems unused and became more expensive
   std::unordered_set<ComponentTypeId> periodicComponents;
   this->Registry().view<PeriodicChangedComponents>()
     .each([&periodicComponents](const PeriodicChangedComponents& changes) {
@@ -944,11 +934,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   // component is a brand new creation/addition
   bool updateData = true;
 
-  this->dataPtr->AddModifiedComponent(_entity);
-
-  auto& oneTimeChangedComp =
-    this->Registry().get_or_emplace<OneTimeChangedComponents>(_entity);
-  oneTimeChangedComp.data.insert(_componentTypeId);
+  this->SetChanged(_entity, _componentTypeId, ComponentState::OneTimeChange);
 
   // Instantiate the new component.
   auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);

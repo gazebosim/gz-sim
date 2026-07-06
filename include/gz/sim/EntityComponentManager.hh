@@ -572,7 +572,7 @@ namespace gz
       /// \brief Get the components types that are marked as periodic changes.
       /// \return All the components that at least one entity marked as
       /// periodic changes.
-      public: std::unordered_set<ComponentTypeId>
+      public: std::unordered_set<ComponentTypeId> GZ_DEPRECATED(11)
           ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Get a cache of components with periodic changes.

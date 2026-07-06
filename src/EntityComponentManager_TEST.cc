@@ -23,6 +23,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -2337,6 +2338,9 @@ TEST_P(EntityComponentManagerFixture,
 TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChanged))
 {
+  // ComponentTypesWithPeriodicChanges is deprecated, suppress for this test
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+
   // Create entities
   Entity e1 = manager.CreateEntity();
   Entity e2 = manager.CreateEntity();
@@ -2429,6 +2433,7 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_FALSE(manager.HasOneTimeComponentChanges());
   EXPECT_EQ(ComponentState::NoChange,
       manager.ComponentState(e2, c2Id));
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 //////////////////////////////////////////////////
