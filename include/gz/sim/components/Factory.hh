@@ -24,7 +24,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -213,29 +212,24 @@ namespace components
     public: void operator=(Factory &&) = delete;
 
     public:
-      using RegisterFunc = std::function<void(entt::basic_registry<Entity>&)>;
+      using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
 
       template <typename T>
       void RegisterType() {
         this->registerMap[T::typeId] =
-          [this](entt::basic_registry<Entity>& _registry) {
-          this->SyncTypeIdMap<T>(_registry);
-        };
-      }
-
-      template <typename T>
-      void SyncTypeIdMap(entt::basic_registry<Entity>& _registry) {
-        _registry.storage<T>();
+          [](entt::basic_registry<Entity>& _registry) {
+            _registry.storage<T>();
+          };
       }
 
       void RegisterAllToEntt(entt::basic_registry<Entity>& _registry) {
-        for (const auto& mapIt : this->registerMap) {
-          mapIt.second(_registry);
+        for (const auto& [_, registerFunc] : this->registerMap) {
+          registerFunc(_registry);
         }
       }
 
     private:
-      std::unordered_map<ComponentTypeId, RegisterFunc> registerMap;
+      std::map<ComponentTypeId, RegisterFunc> registerMap;
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
