@@ -513,8 +513,15 @@ namespace gz
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
+      /// \note This method generates the graph on demand. For better
+      /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
-      public: const EntityGraph &Entities() const;
+      /// \deprecated See EntitiesVector
+      public: GZ_DEPRECATED(11) const EntityGraph &Entities() const;
+
+      /// \brief Get all entities.
+      /// \return Vector of all entities.
+      public: std::vector<Entity> EntitiesVector() const;
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.

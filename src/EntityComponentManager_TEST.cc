@@ -23,6 +23,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
@@ -1570,6 +1571,7 @@ TEST_P(EntityComponentManagerFixture,
 TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(EntityGraph))
 {
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
   EXPECT_EQ(0u, manager.EntityCount());
 
   /*
@@ -1704,6 +1706,14 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_FALSE(manager.HasEntity(e2));
   EXPECT_FALSE(manager.HasEntity(e4));
   EXPECT_FALSE(manager.HasEntity(e6));
+
+  // Test both new EntitiesVector() and deprecated Entities() graph generation
+  EXPECT_EQ(4u, manager.EntitiesVector().size());
+  EXPECT_EQ(4u, manager.Entities().Vertices().size());
+  auto parentsOfE5 = manager.Entities().AdjacentsTo(e5);
+  ASSERT_EQ(1u, parentsOfE5.size());
+  EXPECT_EQ(e3, parentsOfE5.begin()->first);
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 /////////////////////////////////////////////////

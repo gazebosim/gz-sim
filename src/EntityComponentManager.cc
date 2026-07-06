@@ -30,9 +30,8 @@
 #include <vector>
 
 #include <gz/common/Profiler.hh>
-#include <gz/math/graph/GraphAlgorithms.hh>
-
 #include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Children.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Component.hh"
 #include "gz/sim/components/DetachableJoint.hh"
@@ -57,31 +56,39 @@ class gz::sim::EntityComponentManagerPrivate
   public: Entity CreateEntityImplementation(Entity _entity);
 
   /// \brief Recursively insert an entity and all its descendants into a given
-  /// set.
+  /// set by traversing components::Children.
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager.
   public: void InsertEntityRecursive(Entity _entity,
-      std::unordered_set<Entity> &_set);
+      std::unordered_set<Entity> &_set, const EntityComponentManager &_ecm);
 
   /// \brief Recursively erase an entity and all its descendants from a given
-  /// set.
+  /// set by traversing components::Children.
   /// \param[in] _entity Entity to be erased.
   /// \param[in, out] _set Set to erase from.
+  /// \param[in] _ecm Immutable reference to the EntityComponentManager.
   public: void EraseEntityRecursive(Entity _entity,
-      std::unordered_set<Entity> &_set);
+      std::unordered_set<Entity> &_set, const EntityComponentManager &_ecm);
 
   /// \brief Allots the work for multiple threads prior to running
   /// `AddEntityToMessage`.
   public: void CalculateStateThreadLoad();
 
-  /// \brief Helper function to only update the entity graph for a new
-  /// parent - child relation. This does not do any book-keeping on the
-  /// components::ParentEntity component, for which the EntityComponentManager
-  /// SetParentEntity function should be used.
-  /// \param[in] _child the entity to update the parent for.
-  /// \param[in] _parent the new parent of the entity, or kNullEntity if the
+  /// \brief Helper function to update the components::Children component on
+  /// parent entities when a parent-child relationship changes. This does not do
+  /// any book-keeping on the components::ParentEntity component, for which the
+  /// EntityComponentManager::SetParentEntity function should be used.
+  /// \param[in] _child The child entity to update the parent for.
+  /// \param[in] _parent The new parent of the entity, or kNullEntity if the
   /// entity should be left parentless.
-  public: bool SetParentEntityGraph(const Entity _child, const Entity _parent);
+  /// \param[in] _oldParent The previous parent of the entity, or kNullEntity if
+  /// the entity previously had no parent.
+  /// \param[in] _ecm Mutable reference to the EntityComponentManager.
+  /// \return True if the relationship was updated successfully, false if
+  /// either entity does not exist or if component creation fails.
+  public: bool SetParentEntityGraph(const Entity _child, const Entity _parent,
+      const Entity _oldParent, EntityComponentManager &_ecm);
 
   /// \brief Copies the contents of `_from` into this object.
   /// \note This is a member function instead of a copy constructor so that
@@ -143,9 +150,8 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief All component types that have ever been created.
   public: std::unordered_set<ComponentTypeId> createdCompTypes;
 
-  /// \brief A graph holding all entities, arranged according to their
-  /// parenting.
-  public: EntityGraph entities;
+  /// \brief Graph of entities generated on demand for deprecated Entities() API
+  public: mutable EntityGraph entitiesGraph;
 
   /// \brief Components that have been changed through a periodic change.
   /// The key is the type of component which has changed, and the value is the
@@ -196,12 +202,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief A flag that indicates whether views should be locked while adding
   /// new entities to them or not.
   public: bool lockAddEntitiesToViews{false};
-
-  /// \brief Cache of previously queried descendants. The key is the parent
-  /// entity for which descendants were queried, and the value are all its
-  /// descendants.
-  public: mutable std::unordered_map<Entity, std::unordered_set<Entity>>
-          descendantCache;
 
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
@@ -312,7 +312,6 @@ void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
   this->createdCompTypes = _from.createdCompTypes;
-  this->entities = _from.entities;
   this->periodicChangedComponents = _from.periodicChangedComponents;
   this->oneTimeChangedComponents = _from.oneTimeChangedComponents;
   this->newlyCreatedEntities = _from.newlyCreatedEntities;
@@ -321,7 +320,6 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->removeAllEntities = _from.removeAllEntities;
   this->views.clear();
   this->lockAddEntitiesToViews = _from.lockAddEntitiesToViews;
-  this->descendantCache.clear();
   this->entityCount = _from.entityCount;
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
@@ -354,7 +352,7 @@ void EntityComponentManagerPrivate::CopyFrom(
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->dataPtr->entities.Vertices().size();
+  return this->dataPtr->componentStorage.size();
 }
 
 /////////////////////////////////////////////////
@@ -376,16 +374,12 @@ Entity EntityComponentManager::CreateEntity()
 Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 {
   GZ_PROFILE("EntityComponentManager::CreateEntityImplementation");
-  this->entities.AddVertex(std::to_string(_entity), _entity, _entity);
 
   // Add entity to the list of newly created entities
   {
     std::lock_guard<std::mutex> lock(this->entityCreatedMutex);
     this->newlyCreatedEntities.insert(_entity);
   }
-
-  // Reset descendants cache
-  this->descendantCache.clear();
 
   const auto result = this->componentStorage.insert({_entity,
       std::vector<std::unique_ptr<components::BaseComponent>>()});
@@ -697,22 +691,30 @@ void EntityComponentManager::ClearRemovedComponents()
 
 /////////////////////////////////////////////////
 void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
-    std::unordered_set<Entity> &_set)
+    std::unordered_set<Entity> &_set, const EntityComponentManager &_ecm)
 {
-  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  const auto *children = _ecm.Component<components::Children>(_entity);
+  if (children)
   {
-    this->InsertEntityRecursive(vertex.first, _set);
+    for (const Entity child : children->Data())
+    {
+      this->InsertEntityRecursive(child, _set, _ecm);
+    }
   }
   _set.insert(_entity);
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManagerPrivate::EraseEntityRecursive(Entity _entity,
-    std::unordered_set<Entity> &_set)
+    std::unordered_set<Entity> &_set, const EntityComponentManager &_ecm)
 {
-  for (const auto &vertex : this->entities.AdjacentsFrom(_entity))
+  const auto *children = _ecm.Component<components::Children>(_entity);
+  if (children)
   {
-    this->EraseEntityRecursive(vertex.first, _set);
+    for (const Entity child : children->Data())
+    {
+      this->EraseEntityRecursive(child, _set, _ecm);
+    }
   }
   _set.erase(_entity);
 }
@@ -730,7 +732,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
   }
   else
   {
-    this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities);
+    this->dataPtr->InsertEntityRecursive(_entity, tmpToRemoveEntities, *this);
 
     // remove detachable joint entities that are connected to
     // any of the entities to be removed
@@ -801,13 +803,13 @@ void EntityComponentManager::RequestRemoveEntities()
 
     // Store the to-be-removed entities in a temporary set so we can
     // mark each of them to be removed from views that contain them.
-    for (const auto &vertex : this->dataPtr->entities.Vertices())
+    for (const auto &storageIt : this->dataPtr->componentStorage)
     {
       if (std::find(this->dataPtr->pinnedEntities.begin(),
-                    this->dataPtr->pinnedEntities.end(), vertex.first) ==
+                    this->dataPtr->pinnedEntities.end(), storageIt.first) ==
           this->dataPtr->pinnedEntities.end())
       {
-        tmpToRemoveEntities.insert(vertex.first);
+        tmpToRemoveEntities.insert(storageIt.first);
       }
     }
 
@@ -837,7 +839,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
   {
     GZ_PROFILE("RemoveAll");
     this->dataPtr->removeAllEntities = false;
-    this->dataPtr->entities = EntityGraph();
     this->dataPtr->toRemoveEntities.clear();
     this->dataPtr->componentsMarkedAsRemoved.clear();
 
@@ -859,8 +860,12 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
       if (!this->HasEntity(entity))
         continue;
 
-      // Remove from graph
-      this->dataPtr->entities.RemoveVertex(entity);
+      auto *parentComp = this->Component<components::ParentEntity>(entity);
+      if (parentComp && parentComp->Data() != kNullEntity)
+      {
+        this->dataPtr->SetParentEntityGraph(entity, kNullEntity,
+            parentComp->Data(), *this);
+      }
 
       this->dataPtr->componentsMarkedAsRemoved.erase(entity);
       this->dataPtr->componentStorage.erase(entity);
@@ -876,9 +881,6 @@ void EntityComponentManager::ProcessRemoveEntityRequests()
     // Clear the set of entities to remove.
     this->dataPtr->toRemoveEntities.clear();
   }
-
-  // Reset descendants cache
-  this->dataPtr->descendantCache.clear();
 }
 
 /////////////////////////////////////////////////
@@ -925,9 +927,11 @@ bool EntityComponentManager::RemoveComponent(
   }
 
   // If the component is a components::ParentEntity, leave the entity parentless
-  if (_typeId == components::ParentEntity::typeId)
+  if (_typeId == components::ParentEntity::typeId && compPtr)
   {
-    this->dataPtr->SetParentEntityGraph(_entity, kNullEntity);
+    auto *parentComp = static_cast<components::ParentEntity *>(compPtr);
+    this->dataPtr->SetParentEntityGraph(
+        _entity, kNullEntity, parentComp->Data(), *this);
   }
 
   return true;
@@ -1079,8 +1083,8 @@ void EntityComponentManager::UpdatePeriodicChangeCache(
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntity(const Entity _entity) const
 {
-  auto vertex = this->dataPtr->entities.VertexFromId(_entity);
-  return vertex.Id() != math::graph::kNullId;
+  return this->dataPtr->componentStorage.find(_entity) !=
+      this->dataPtr->componentStorage.end();
 }
 
 /////////////////////////////////////////////////
@@ -1115,14 +1119,22 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 
 /////////////////////////////////////////////////
 bool EntityComponentManagerPrivate::SetParentEntityGraph(const Entity _child,
-    const Entity _parent)
+    const Entity _parent, const Entity _oldParent,
+    EntityComponentManager &_ecm)
 {
-  // Remove current parent(s)
-  auto parents = this->entities.AdjacentsTo(_child);
-  for (const auto &parent : parents)
+  if (!_ecm.HasEntity(_child))
+    return false;
+  if (_parent != kNullEntity && !_ecm.HasEntity(_parent))
+    return false;
+
+  // Remove from old parent
+  if (_oldParent != kNullEntity && _oldParent != _parent)
   {
-    auto edge = this->entities.EdgeFromVertices(parent.first, _child);
-    this->entities.RemoveEdge(edge);
+    auto *oldChildrenComp = _ecm.Component<components::Children>(_oldParent);
+    if (oldChildrenComp)
+    {
+      oldChildrenComp->Data().erase(_child);
+    }
   }
 
   // Leave parent-less
@@ -1131,9 +1143,19 @@ bool EntityComponentManagerPrivate::SetParentEntityGraph(const Entity _child,
     return true;
   }
 
-  // Add edge
-  auto edge = this->entities.AddEdge({_parent, _child}, true);
-  return (math::graph::kNullId != edge.Id());
+  // Add to new parent
+  if (_oldParent != _parent)
+  {
+    auto *newChildrenComp = _ecm.Component<components::Children>(_parent);
+    if (!newChildrenComp)
+    {
+      newChildrenComp = _ecm.CreateComponent(_parent, components::Children());
+    }
+    if (!newChildrenComp)
+      return false;
+    newChildrenComp->Data().insert(_child);
+  }
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -1141,6 +1163,14 @@ bool EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
+  Entity oldParent = kNullEntity;
+  if (_componentTypeId == components::ParentEntity::typeId)
+  {
+    auto *parentComp = this->Component<components::ParentEntity>(_entity);
+    if (parentComp)
+      oldParent = parentComp->Data();
+  }
+
   // make sure the entity exists
   if (!this->HasEntity(_entity))
   {
@@ -1254,7 +1284,7 @@ bool EntityComponentManager::CreateComponentImplementation(
   this->dataPtr->createdCompTypes.insert(_componentTypeId);
 
   // If the component is a components::ParentEntity, then make sure to
-  // update the entities graph.
+  // update the children component on the parent.
   if (_componentTypeId == components::ParentEntity::typeId)
   {
     if (!_data)
@@ -1264,7 +1294,8 @@ bool EntityComponentManager::CreateComponentImplementation(
       return updateData;
     }
     const auto *parent = static_cast<const components::ParentEntity *>(_data);
-    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
+    if (!this->dataPtr->SetParentEntityGraph(
+          _entity, parent->Data(), oldParent, *this))
     {
       gzerr << "Failed setting parent for entity " << _entity << " to "
             << parent->Data() << std::endl;
@@ -1367,7 +1398,35 @@ bool EntityComponentManager::HasComponentType(
 //////////////////////////////////////////////////
 const EntityGraph &EntityComponentManager::Entities() const
 {
-  return this->dataPtr->entities;
+  this->dataPtr->entitiesGraph = EntityGraph();
+  for (const auto &[entity, comps] : this->dataPtr->componentStorage)
+  {
+    this->dataPtr->entitiesGraph.AddVertex(
+        std::to_string(entity), entity, entity);
+  }
+  this->Each<components::ParentEntity>(
+      [&](const Entity _entity, const components::ParentEntity *_parent)
+      {
+        if (_parent->Data() != kNullEntity)
+        {
+          this->dataPtr->entitiesGraph.AddEdge(
+              {_parent->Data(), _entity}, true);
+        }
+        return true;
+      });
+  return this->dataPtr->entitiesGraph;
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> EntityComponentManager::EntitiesVector() const
+{
+  std::vector<Entity> entities;
+  entities.reserve(this->dataPtr->componentStorage.size());
+  for (const auto &compIt : this->dataPtr->componentStorage)
+  {
+    entities.push_back(compIt.first);
+  }
+  return entities;
 }
 
 //////////////////////////////////////////////////
@@ -1410,9 +1469,9 @@ void EntityComponentManager::RebuildViews()
 
     // Add all the entities that match the component types to the
     // view.
-    for (const auto &vertex : this->dataPtr->entities.Vertices())
+    for (const auto &compIt : this->dataPtr->componentStorage)
     {
-      Entity entity = vertex.first;
+      const Entity entity = compIt.first;
       if (this->EntityMatches(entity, view->ComponentTypes()))
       {
         view->MarkEntityToAdd(entity, this->IsNewEntity(entity));
@@ -2096,24 +2155,12 @@ void EntityComponentManager::SetState(
 std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
     const
 {
-  // Check cache
-  if (this->dataPtr->descendantCache.find(_entity) !=
-      this->dataPtr->descendantCache.end())
-  {
-    return this->dataPtr->descendantCache[_entity];
-  }
-
   std::unordered_set<Entity> descendants;
 
   if (!this->HasEntity(_entity))
     return descendants;
 
-  auto descVector = math::graph::BreadthFirstSort(this->dataPtr->entities,
-      _entity);
-  std::move(descVector.begin(), descVector.end(), std::inserter(descendants,
-      descendants.end()));
-
-  this->dataPtr->descendantCache[_entity] = descendants;
+  this->dataPtr->InsertEntityRecursive(_entity, descendants, *this);
   return descendants;
 }
 
@@ -2295,7 +2342,7 @@ void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
   if (_recursive)
   {
     this->dataPtr->InsertEntityRecursive(_entity,
-        this->dataPtr->pinnedEntities);
+        this->dataPtr->pinnedEntities, *this);
   }
   else
   {
@@ -2309,7 +2356,7 @@ void EntityComponentManager::UnpinEntity(const Entity _entity, bool _recursive)
   if (_recursive)
   {
     this->dataPtr->EraseEntityRecursive(_entity,
-        this->dataPtr->pinnedEntities);
+        this->dataPtr->pinnedEntities, *this);
   }
   else
   {
@@ -2334,25 +2381,23 @@ EntityComponentManagerDiff EntityComponentManager::ComputeEntityDiff(
     const EntityComponentManager &_other) const
 {
   EntityComponentManagerDiff diff;
-  for (const auto &item : _other.dataPtr->entities.Vertices())
+  for (const auto &compIt : _other.dataPtr->componentStorage)
   {
-    const auto &v = item.second.get();
-    if (!this->dataPtr->entities.VertexFromId(v.Id()).Valid())
+    if (!this->HasEntity(compIt.first))
     {
       // In `_other` but not in `this`, so insert the entity as an "added"
       // entity.
-      diff.InsertAddedEntity(v.Data());
+      diff.InsertAddedEntity(compIt.first);
     }
   }
 
-  for (const auto &item : this->dataPtr->entities.Vertices())
+  for (const auto &compIt : this->dataPtr->componentStorage)
   {
-    const auto &v = item.second.get();
-    if (!_other.dataPtr->entities.VertexFromId(v.Id()).Valid())
+    if (!_other.HasEntity(compIt.first))
     {
       // In `this` but not in `other`, so insert the entity as a "removed"
       // entity.
-      diff.InsertRemovedEntity(v.Data());
+      diff.InsertRemovedEntity(compIt.first);
     }
   }
   return diff;

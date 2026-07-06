@@ -31,6 +31,7 @@
 #include <gz/math/Helpers.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/Children.hh"
 
 namespace gz
 {
@@ -259,20 +260,22 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
   const auto &view = this->FindView<ComponentTypeTs...>();
 
   // Get all entities which are immediate children of the given parent
-  auto children = this->Entities().AdjacentsFrom(_parent);
+  const auto *childrenComp = this->Component<components::Children>(_parent);
+  if (!childrenComp)
+    return {};
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const auto &child : children)
+  for (const Entity child : childrenComp->Data())
   {
-    if (view->Entities().find(child.first) == view->Entities().end())
+    if (view->Entities().find(child) == view->Entities().end())
     {
       continue;
     }
 
     // Iterate over desired components, comparing each of them to the
     // equivalent component in the entity.
-    const auto &componentVector = view->EntityComponentConstData(child.first);
+    const auto &componentVector = view->EntityComponentConstData(child);
     bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
       componentVector,
       std::index_sequence_for<ComponentTypeTs...>{},
@@ -280,7 +283,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
     if (allEqual)
     {
-      result.push_back(child.first);
+      result.push_back(child);
     }
   }
 
@@ -299,9 +302,8 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
-  for (const auto &vertex : this->Entities().Vertices())
+  for (const Entity entity : this->EntitiesVector())
   {
-    Entity entity = vertex.first;
     auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
 
     if (this->EntityMatches(entity, types))
@@ -320,9 +322,8 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachNoCache(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
-  for (const auto &vertex : this->Entities().Vertices())
+  for (const Entity entity : this->EntitiesVector())
   {
-    Entity entity = vertex.first;
     auto types = std::set<ComponentTypeId>{ComponentTypeTs::typeId...};
 
     if (this->EntityMatches(entity, types))
@@ -542,9 +543,8 @@ detail::View *EntityComponentManager::FindView() const
   // create a new view if one wasn't found
   detail::View view(std::set<ComponentTypeId>{ComponentTypeTs::typeId...});
 
-  for (const auto &vertex : this->Entities().Vertices())
+  for (const Entity entity : this->EntitiesVector())
   {
-    Entity entity = vertex.first;
 
     // only add entities to the view that have all of the components in viewKey
     if (!this->EntityMatches(entity, view.ComponentTypes()))
