@@ -135,7 +135,7 @@ void TestPlugin::Configure(const Entity &,
                const std::shared_ptr<const sdf::Element>&,
                EntityComponentManager &_ecm, EventManager&) {
 
-  Entity simpleArmEntity;
+  Entity simpleArmEntity = kNullEntity;
 
   _ecm.Each<components::Model, components::Name>(
       [&](const Entity &_entityIt,
