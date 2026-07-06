@@ -150,19 +150,20 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
   this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
-           components::Name>(
+           components::Name,
+           components::Namespace>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name)->bool
+        const components::Name *_name,
+        const components::Namespace *_ns)->bool
     {
       EXPECT_NE(nullptr, _model);
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
-
-      const auto ns = this->ecm.Component<components::Namespace>(_entity);
+      EXPECT_NE(nullptr, _ns);
 
       modelCount++;
 
@@ -173,35 +174,35 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       {
         EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ(nullptr, ns);
+        EXPECT_EQ("", _ns->Data());
         boxModelEntity = _entity;
       }
       else if (_name->Data() == "cylinder")
       {
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("cylinder", ns->Data());
+        EXPECT_EQ("cylinder", _ns->Data());
         cylModelEntity = _entity;
       }
       else if (_name->Data() == "sphere")
       {
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("sphere_ns", ns->Data());
+        EXPECT_EQ("sphere_ns", _ns->Data());
         sphModelEntity = _entity;
       }
       else if (_name->Data() == "capsule")
       {
         EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("ns", ns->Data());
+        EXPECT_EQ("ns", _ns->Data());
         capModelEntity = _entity;
       }
       else if (_name->Data() == "ellipsoid")
       {
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ(nullptr, ns);
+        EXPECT_EQ("", _ns->Data());
         ellipModelEntity = _entity;
       }
       return true;

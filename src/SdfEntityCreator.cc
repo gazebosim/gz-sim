@@ -532,6 +532,11 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
     this->dataPtr->ecm->CreateComponent(modelEntity,
         components::Namespace(_model->Namespace().value()));
   }
+  else
+  {
+    this->dataPtr->ecm->CreateComponent(modelEntity,
+        components::Namespace(""));
+  }
   bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(isStatic));
