@@ -182,12 +182,32 @@ void AirPressurePrivate::AddAirPressure(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _airPressure->Data();
   data.SetName(sensorScopedName);
-  // check topic
-  if (data.Topic().empty())
+
+  // generate namespace
+  std::string ns;
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+  if (hasNamespace(_ecm))
   {
-    std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
-    data.SetTopic(topic);
+    ns = scopedNamespace(_ecm, _entity);
+    defaultPrefix = ns;
   }
+
+  // check topic
+  std::vector<std::string> topics;
+  if (!data.Topic().empty())
+  {
+    std::string topicName = data.Topic();
+    // Only prepend namespace to relative topic names.
+    // Absolute topic names (starting with '/') are left unchanged.
+    if (topicName.front() != '/')
+    {
+      topicName = ns+ "/" + topicName;
+    }
+    topics.push_back(topicName);
+  }
+  topics.push_back(defaultPrefix + "/air_pressure");
+  data.SetTopic(validTopic(topics));
+
   std::unique_ptr<sensors::AirPressureSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::AirPressureSensor>(data);

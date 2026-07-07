@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <gz/plugin/Register.hh>
 
@@ -195,6 +196,7 @@ void ImuPrivate::AddSensor(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _imu->Data();
   data.SetName(sensorScopedName);
+
   // generate namespace
   std::string ns;
   std::string defaultPrefix = scopedName(_entity, _ecm);
@@ -209,14 +211,11 @@ void ImuPrivate::AddSensor(
   if (!data.Topic().empty())
   {
     std::string topicName = data.Topic();
-    if (!topicName.empty())
+    // Only prepend namespace to relative topic names.
+    // Absolute topic names (starting with '/') are left unchanged.
+    if (topicName.front() != '/')
     {
-      // Only prepend namespace to relative topic names.
-      // Absolute topic names (starting with '/') are left unchanged.
-      if (topicName.front() != '/')
-      {
-        topicName = ns+ "/" + topicName;
-      }
+      topicName = ns+ "/" + topicName;
     }
     topics.push_back(topicName);
   }

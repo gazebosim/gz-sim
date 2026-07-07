@@ -313,11 +313,30 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
 
       sdf.SetName(sensorScopedName);
 
-      if (sdf.Topic().empty())
+      // Generate namespace
+      std::string ns;
+      std::string defaultPrefix = scopedName(_entity, _ecm);
+      if (hasNamespace(_ecm))
       {
-        // Default to scoped name as topic
-        sdf.SetTopic(scopedName(_entity, _ecm) + "/dvl/velocity");
+        ns = scopedNamespace(_ecm, _entity);
+        defaultPrefix = ns;
       }
+
+      // Check topic
+      std::vector<std::string> topics;
+      if (!sdf.Topic().empty())
+      {
+        std::string topicName = sdf.Topic();
+        // Only prepend namespace to relative topic names.
+        // Absolute topic names (starting with '/') are left unchanged.
+        if (topicName.front() != '/')
+        {
+          topicName = ns+ "/" + topicName;
+        }
+        topics.push_back(topicName);
+      }
+      topics.push_back(defaultPrefix + "/dvl/velocity");
+      sdf.SetTopic(validTopic(topics));
 
       auto parentName =
           _ecm.Component<components::Name>(_parent->Data());
