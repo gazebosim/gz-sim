@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="camera_sensor">
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="box">
+      <pose>0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+
+        <collision name="collision_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <specular>1 1 1 0.8</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="relative_topics" namespace="__name___ns">
+      <static>true</static>
+      <pose>-6 2 2 0 0.5 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="camera" type="camera">
+          <pose>1 0 1.3 0 0 0</pose>
+          <camera>
+            <triggered>true</triggered>
+            <trigger_topic>trigger_relative</trigger_topic>
+            <camera_info_topic>camera_info_relative</camera_info_topic>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <noise>
+              <type>gaussian_quantized</type>
+              <mean>0.01</mean>
+              <stddev>0.0002</stddev>
+            </noise>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>camera_relative</topic>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="absolute_topics" namespace="__name___ns">
+      <pose>20 0 0.5 0 0 0.0 </pose>
+      <static>true</static>
+      <link name="camera_link">
+        <sensor name="camera" type="camera">
+          <update_rate>50</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <trigger_topic>/trigger_absolute</trigger_topic>
+            <camera_info_topic>/camera_info_absolute</camera_info_topic>            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+          <topic>/camera_absolute</topic>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="default_topics" namespace="__name___ns">
+      <pose>10 0 0.5 0 0 0.0 </pose>
+      <static>true</static>
+      <link name="camera_link">
+        <sensor name="camera" type="camera">
+          <update_rate>50</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>

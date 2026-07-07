@@ -1719,11 +1719,62 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   std::string sensorScopedName =
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdfDataCopy.SetName(sensorScopedName);
-  // check topic
-  if (sdfDataCopy.Topic().empty())
+
+  // generate namespace
+  std::string ns;
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+  if (hasNamespace(_ecm))
   {
-    sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
+    ns = scopedNamespace(_ecm, _entity);
+    defaultPrefix = ns;
   }
+  
+  // check topic
+  std::vector<std::string> topics;
+  if (!sdfDataCopy.Topic().empty())
+  {
+    std::string topicName = sdfDataCopy.Topic();
+    // Only prepend namespace to relative topic names.
+    // Absolute topic names (starting with '/') are left unchanged.
+    if (topicName.front() != '/')
+    {
+      topicName = ns + "/" + topicName;
+    }
+    topics.push_back(topicName);
+  }
+  topics.push_back(defaultPrefix + _topicSuffix);
+  sdfDataCopy.SetTopic(validTopic(topics));
+
+  if (auto cam = sdfDataCopy.CameraSensor())
+  {
+    sdf::Camera camCopy = *cam;
+    if (!camCopy.TriggerTopic().empty())
+    {
+      std::string triggerTopicName = camCopy.TriggerTopic();
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (triggerTopicName.front() != '/')
+      {
+        triggerTopicName = ns + "/" + triggerTopicName;
+      }
+      camCopy.SetTriggerTopic(triggerTopicName);
+    }
+
+    if (!camCopy.CameraInfoTopic().empty())
+    {
+      std::string infoTopicName = camCopy.CameraInfoTopic();
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (infoTopicName.front() != '/')
+      {
+        infoTopicName = ns + "/" + infoTopicName;
+      }
+      camCopy.SetCameraInfoTopic(infoTopicName);
+    }
+
+    sdfDataCopy.SetCameraSensor(camCopy);
+  }
+
   this->newSensorTopics[_entity] = sdfDataCopy.Topic();
   this->newSensors.push_back(
       std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
