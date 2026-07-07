@@ -29,6 +29,27 @@ namespace sim
 {
 // Inline bracket to help doxygen filtering.
 inline namespace GZ_SIM_VERSION_NAMESPACE {
+namespace serializers
+{
+  /// \brief Specialize the DefaultSerializer on detail::FlatSet<Entity> so we
+  /// can skip serialization
+  template <>
+  class DefaultSerializer<detail::FlatSet<Entity>>
+  {
+    public: static std::ostream &Serialize(std::ostream &_out,
+                                           const detail::FlatSet<Entity> &)
+    {
+      return _out;
+    }
+
+    public: static std::istream &Deserialize(std::istream &_in,
+                                             detail::FlatSet<Entity> &)
+    {
+      return _in;
+    }
+  };
+}
+
 namespace components
 {
   /// \brief This component holds an entity's children entities.
