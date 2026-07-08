@@ -35,7 +35,6 @@ ServerConfig getServerConfig(const std::string &_physics_engine,
   std::string path = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "/test/worlds/models");
   common::setenv("GZ_SIM_RESOURCE_PATH", path.c_str());
   ServerConfig serverConfig;
-  serverConfig.SetWaitForAssets(true);
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
                                             "test/worlds/", _world_sdf));
   serverConfig.SetPhysicsEngine(_physics_engine);
