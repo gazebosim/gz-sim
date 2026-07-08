@@ -16,6 +16,8 @@
  */
 
 #include <chrono>
+#include <fstream>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -45,5 +47,20 @@ bool waitForService(const transport::Node &_node, const std::string &_service,
     ++curSleep;
   }
   return false;
+}
+
+/// \brief Read a given file path and return its contents
+/// \param[in] _filePath The path to the file
+/// \return An optional string with the contents of the file. nullopt if there
+/// was an error reading the file
+std::optional<std::string> readFileContents(const std::string &_filePath)
+{
+  std::ifstream infile(_filePath);
+  if (!infile.good())
+  {
+    return std::nullopt;
+  }
+  return std::string(std::istreambuf_iterator<char>(infile),
+                     std::istreambuf_iterator<char>());
 }
 }  // namespace gz::sim::test

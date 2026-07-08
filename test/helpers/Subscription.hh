@@ -38,8 +38,26 @@ class Subscription
   /// \brief Default constructor.
   public: Subscription() = default;
 
+  /// \brief Destructor. Unsubscribes from the topic before this object is
+  /// destroyed so that the transport's asynchronous delivery thread cannot
+  /// invoke OnMessage() on an already-destroyed instance. Node::Unsubscribe
+  /// removes the handler and drains any in-flight callback, which prevents a
+  /// use-after-free on the members below (e.g. messageHistory) when messages
+  /// are still being delivered at teardown.
+  public: ~Subscription()
+  {
+    if (this->subscribed)
+    {
+      this->node->Unsubscribe(this->topicName);
+    }
+  }
+
   /// \brief Subscribe to a topic.
-  /// \param[in] _node Node to use to subscribe.
+  /// \param[in] _node Node to use to subscribe. It must outlive this
+  /// Subscription: the destructor unsubscribes through this node, so the
+  /// node has to still be alive when the Subscription is destroyed.
+  /// Declare the node before the Subscription so the latter is destroyed
+  /// first.
   /// \param[in] _topicName Name of the topic to subscribe.
   /// \param[in] _messageHistoryDepth Maximum size for
   /// message history buffer. Buffer grows indefinitely
@@ -59,6 +77,8 @@ class Subscription
     {
       throw std::runtime_error("Cannot subscribe to " + _topicName);
     }
+    this->node = &_node;
+    this->topicName = _topicName;
     this->messageHistoryDepth = _messageHistoryDepth;
     this->subscribed = true;
   }
@@ -99,7 +119,7 @@ class Subscription
   public: MessageT GetMessageByIndex(int _index)
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    return this->messageHistory[_index];
+    return this->messageHistory.at(_index);
   }
 
   /// \brief Reset the messageHistory container by clearing
@@ -144,6 +164,13 @@ class Subscription
     }
     this->messageArrival.notify_all();
   }
+
+  /// \brief Node used to subscribe, needed to unsubscribe on destruction.
+  /// Not owned; must outlive this object (the standard transport contract).
+  private: transport::Node *node{nullptr};
+
+  /// \brief Name of the subscribed topic, needed to unsubscribe.
+  private: std::string topicName;
 
   /// \brief Flag to indicate if topic is subscribed or not
   private: bool subscribed{false};
