@@ -51,7 +51,7 @@
 
 // Custom implementation
 // TODO(anyone) switch to std <flat_set> when migrating to C++-23
-#include "gz/sim/flat_set.hh"
+#include "gz/sim/detail/flat_set.hh"
 
 namespace gz
 {
@@ -63,6 +63,12 @@ namespace gz
     class GZ_SIM_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
 
+    /// \brief Type alias for the graph that holds entities.
+    /// Each vertex is an entity, and the direction points from the parent to
+    /// its children.
+    /// All edges are positive booleans.
+    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
+
     namespace detail
     {
       class GroupQueuer;
@@ -71,7 +77,7 @@ namespace gz
     struct NewEntity { };
     struct RemoveEntity { };
     struct Children {
-      FlatSet<Entity> data;
+      detail::FlatSet<Entity> data;
     };
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
@@ -515,8 +521,15 @@ namespace gz
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
+      /// \note This method generates the graph on demand. For better
+      /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
-      public: const std::vector<Entity> Entities() const;
+      /// \deprecated See EntitiesVector
+      public: GZ_DEPRECATED(11) const EntityGraph &Entities() const;
+
+      /// \brief Get all entities.
+      /// \return Vector of all entities.
+      public: std::vector<Entity> EntitiesVector() const;
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.

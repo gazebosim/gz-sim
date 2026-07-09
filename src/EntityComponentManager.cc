@@ -106,7 +106,7 @@ class gz::sim::EntityComponentManagerPrivate
   public: Entity CreateEntityImplementation(Entity _entity);
 
   /// \brief Recursively insert an entity and all its descendants into a given
-  /// set.
+  /// set by traversing components::Children.
   /// \param[in] _entity Entity to be inserted.
   /// \param[in, out] _set Set to be filled.
   public: void InsertEntityRecursive(Entity _entity,
@@ -159,6 +159,9 @@ class gz::sim::EntityComponentManagerPrivate
   public: template<typename ComponentTypeT>
           bool ClonedJointLinkName(Entity _joint, Entity _originalLink,
               EntityComponentManager *_ecm);
+
+  /// \brief Graph of entities generated on demand for deprecated Entities() API
+  public: mutable EntityGraph entitiesGraph;
 
   /// \brief A mutex to protect newly created entities.
   public: std::mutex entityCreatedMutex;
@@ -903,7 +906,6 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
   return true;
 }
 
-
 /////////////////////////////////////////////////
 bool EntityComponentManager::CanCreateComponent(
     const Entity _entity, const ComponentTypeId _typeId) const
@@ -1027,7 +1029,28 @@ bool EntityComponentManager::HasComponentType(
 }
 
 //////////////////////////////////////////////////
-const std::vector<Entity> EntityComponentManager::Entities() const
+const EntityGraph& EntityComponentManager::Entities() const
+{
+  this->dataPtr->entitiesGraph = EntityGraph();
+  this->Registry().view<Entity>().each([&](const Entity& e) {
+    this->dataPtr->entitiesGraph.AddVertex(
+        std::to_string(e), e, e);
+  });
+  this->Each<components::ParentEntity>(
+      [&](const Entity _entity, const components::ParentEntity *_parent)
+      {
+        if (_parent->Data() != kNullEntity)
+        {
+          this->dataPtr->entitiesGraph.AddEdge(
+              {_parent->Data(), _entity}, true);
+        }
+        return true;
+      });
+  return this->dataPtr->entitiesGraph;
+}
+
+//////////////////////////////////////////////////
+std::vector<Entity> EntityComponentManager::EntitiesVector() const
 {
   std::vector<Entity> entities;
   entities.reserve(this->EntityCount());
@@ -1648,7 +1671,6 @@ void EntityComponentManager::SetState(
 std::unordered_set<Entity> EntityComponentManager::Descendants(Entity _entity)
     const
 {
-  // TODO(luca) consider doing a cache
   std::unordered_set<Entity> descendants;
 
   if (!this->HasEntity(_entity))
@@ -1868,8 +1890,7 @@ void EntityComponentManager::PinEntity(const Entity _entity, bool _recursive)
   if (_recursive)
   {
     std::unordered_set<Entity> toPin;
-    this->dataPtr->InsertEntityRecursive(_entity,
-        toPin);
+    this->dataPtr->InsertEntityRecursive(_entity, toPin);
     for (const auto& e : toPin) {
       this->Registry().emplace_or_replace<PinnedEntity>(e);
     }
