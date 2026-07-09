@@ -19,8 +19,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <iterator>
-#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -44,19 +42,21 @@ class FlatSet
   private: std::vector<T> data;
 
   /// \brief Inserts an element
+  /// \param value The value to insert in the set.
   /// \return True if it was inserted, false otherwise.
-  public: bool insert(T value)
+  public: bool insert(const T& value)
   {
     const auto it = std::lower_bound(data.begin(), data.end(), value);
     if (it == data.end() || *it != value)
     {
-      data.emplace(it, std::move(value));
+      data.emplace(it, value);
       return true;
     }
     return false;
   }
 
   /// \brief Erases an element
+  /// \brief value the value to erase from the set.
   /// \return True if it was erased, false otherwise.
   public: bool erase(const T& value)
   {
@@ -71,7 +71,7 @@ class FlatSet
 
   /// \brief Check if set is empty
   /// \return True if empty, false otherwise.
-  public: bool empty() const
+  public: [[nodiscard]] bool empty() const
   {
     return data.empty();
   }
