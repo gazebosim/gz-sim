@@ -12,15 +12,15 @@ concurrency:
 
 jobs:
   test:
-    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.2.2
+    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
       folders: |
         [
-          ".",
+          "."
         ]
       exclude: |
         [
-          {"folder": ".", "bzlmodEnabled": false},
+          {"folder": ".", "bzlmodEnabled": false}
         ]
       exclude_windows: true
       bazel_test_command: "bazel test --repo_env=CC=clang --repo_env=CXX=clang++ --test_output=errors //..."
