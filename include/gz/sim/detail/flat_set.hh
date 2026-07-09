@@ -103,7 +103,7 @@ class FlatSet
   /// \brief Find an element
   /// \param[in] value Element to find
   /// \return Iterator to element if found, end() otherwise.
-  public: const_iterator find(const T& value) const
+  public: [[nodiscard]] const_iterator find(const T& value) const
   {
     const auto it = std::lower_bound(data.begin(), data.end(), value);
     if (it != data.end() && *it == value)
@@ -114,7 +114,7 @@ class FlatSet
   /// \brief Check if set contains an element
   /// \param[in] value Element to check
   /// \return True if contained, false otherwise.
-  public: bool contains(const T& value) const
+  public: [[nodiscard]] bool contains(const T& value) const
   {
     return this->find(value) != this->end();
   }
