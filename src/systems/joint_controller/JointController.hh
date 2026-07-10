@@ -48,7 +48,7 @@ namespace systems
   /// for velocity command. The actuator msg is an array of floats for
   /// position, velocity and normalized commands. Relies on
   /// `<actuator_number>` for the index of the velocity actuator and
-  /// defaults to topic "/actuators" when `topic` or `subtopic not set.
+  /// defaults to topic "/actuators" when `topic` or `sub_topic` is not set.
   ///
   /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the velocity actuator.
