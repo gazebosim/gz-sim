@@ -468,6 +468,9 @@ void SwerveDrive::Configure(const Entity &_entity,
   gzmsg << "SwerveDrive publishing odom messages on [" << odomTopic << "]"
          << std::endl;
 
+  gzmsg << "SwerveDrive publishing tf messages on [" << tfTopic << "]"
+         << std::endl;
+
   gzmsg << "SwerveDrive subscribing to twist messages on [" << topic << "]"
          << std::endl;
 }
