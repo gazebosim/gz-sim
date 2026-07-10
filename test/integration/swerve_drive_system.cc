@@ -454,5 +454,6 @@ TEST_F(SwerveDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
     EXPECT_STREQ(tfMsg.pose(0).header().data(1).key().c_str(),
                  "child_frame_id");
     EXPECT_STREQ(tfMsg.pose(0).header().data(1).value().Get(0).c_str(),
-                 "vehicle_blue/chassis");  }
+                 "vehicle_blue/chassis");
+  }
 }

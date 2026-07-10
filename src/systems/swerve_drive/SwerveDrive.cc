@@ -94,52 +94,52 @@ class gz::sim::systems::SwerveDrivePrivate
   public: transport::Node node;
 
   /// \brief Entity of the front left wheel joint
-  public: std::vector<Entity> frontLeftWheelJoints;
+  public: Entity frontLeftWheelJoint;
 
   /// \brief Entity of the front right wheel joint
-  public: std::vector<Entity> frontRightWheelJoints;
+  public: Entity frontRightWheelJoint;
 
   /// \brief Entity of the back left wheel joint
-  public: std::vector<Entity> backLeftWheelJoints;
+  public: Entity backLeftWheelJoint;
 
   /// \brief Entity of the back right wheel joint
-  public: std::vector<Entity> backRightWheelJoints;
+  public: Entity backRightWheelJoint;
 
   /// \brief Entity of the front left steering joint
-  public: std::vector<Entity> frontLeftSteeringJoints;
+  public: Entity frontLeftSteeringJoint;
 
   /// \brief Entity of the front right steering joint
-  public: std::vector<Entity> frontRightSteeringJoints;
+  public: Entity frontRightSteeringJoint;
 
   /// \brief Entity of the back left steering joint
-  public: std::vector<Entity> backLeftSteeringJoints;
+  public: Entity backLeftSteeringJoint;
 
   /// \brief Entity of the back right steering joint
-  public: std::vector<Entity> backRightSteeringJoints;
+  public: Entity backRightSteeringJoint;
 
   /// \brief Name of front left wheel joint
-  public: std::vector<std::string> frontLeftWheelJointNames;
+  public: std::string frontLeftWheelJointName;
 
   /// \brief Name of front right wheel joint
-  public: std::vector<std::string> frontRightWheelJointNames;
+  public: std::string frontRightWheelJointName;
 
   /// \brief Name of back left wheel joint
-  public: std::vector<std::string> backLeftWheelJointNames;
+  public: std::string backLeftWheelJointName;
 
   /// \brief Name of back right wheel joint
-  public: std::vector<std::string> backRightWheelJointNames;
+  public: std::string backRightWheelJointName;
 
   /// \brief Name of front left steering joint
-  public: std::vector<std::string> frontLeftSteeringJointNames;
+  public: std::string frontLeftSteeringJointName;
 
   /// \brief Name of front right steering joint
-  public: std::vector<std::string> frontRightSteeringJointNames;
+  public: std::string frontRightSteeringJointName;
 
   /// \brief Name of back left steering joint
-  public: std::vector<std::string> backLeftSteeringJointNames;
+  public: std::string backLeftSteeringJointName;
 
   /// \brief Name of back right steering joint
-  public: std::vector<std::string> backRightSteeringJointNames;
+  public: std::string backRightSteeringJointName;
 
   /// \brief Calculated speed of front left wheel joint
   public: double frontLeftWheelJointSpeed{0};
@@ -262,61 +262,45 @@ void SwerveDrive::Configure(const Entity &_entity,
   }
 
   // Get params from SDF
-  auto sdfElem = _sdf->FindElement("front_left_wheel_joint");
-  while(sdfElem)
+  if (_sdf->HasElement("front_left_wheel_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->frontLeftWheelJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("front_left_wheel_joint");
+    this->dataPtr->frontLeftWheelJointName =
+      _sdf->Get<std::string>("front_left_wheel_joint");
   }
-  sdfElem = _sdf->FindElement("front_right_wheel_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("front_right_wheel_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->frontRightWheelJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("front_right_wheel_joint");
+    this->dataPtr->frontRightWheelJointName =
+      _sdf->Get<std::string>("front_right_wheel_joint");
   }
-  sdfElem = _sdf->FindElement("back_left_wheel_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("back_left_wheel_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->backLeftWheelJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("back_left_wheel_joint");
+    this->dataPtr->backLeftWheelJointName =
+      _sdf->Get<std::string>("back_left_wheel_joint");
   }
-  sdfElem = _sdf->FindElement("back_right_wheel_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("back_right_wheel_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->backRightWheelJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("back_right_wheel_joint");
+    this->dataPtr->backRightWheelJointName =
+      _sdf->Get<std::string>("back_right_wheel_joint");
   }
-  sdfElem = _sdf->FindElement("front_left_steering_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("front_left_steering_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->frontLeftSteeringJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("front_left_steering_joint");
+    this->dataPtr->frontLeftSteeringJointName =
+      _sdf->Get<std::string>("front_left_steering_joint");
   }
-  sdfElem = _sdf->FindElement("front_right_steering_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("front_right_steering_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->frontRightSteeringJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("front_right_steering_joint");
+    this->dataPtr->frontRightSteeringJointName =
+      _sdf->Get<std::string>("front_right_steering_joint");
   }
-  sdfElem = _sdf->FindElement("back_left_steering_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("back_left_steering_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->backLeftSteeringJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("back_left_steering_joint");
+    this->dataPtr->backLeftSteeringJointName =
+      _sdf->Get<std::string>("back_left_steering_joint");
   }
-  sdfElem = _sdf->FindElement("back_right_steering_joint");
-  while (sdfElem)
+  if (_sdf->HasElement("back_right_steering_joint"))
   {
-    auto jointName = sdfElem->Get<std::string>();
-    this->dataPtr->backRightSteeringJointNames.push_back(jointName);
-    sdfElem = sdfElem->GetNextElement("back_right_steering_joint");
+    this->dataPtr->backRightSteeringJointName =
+      _sdf->Get<std::string>("back_right_steering_joint");
   }
 
   this->dataPtr->wheelSeparation = _sdf->Get<double>("wheel_separation",
@@ -501,21 +485,22 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
   auto modelName = this->dataPtr->model.Name(_ecm);
-  if (this->dataPtr->frontLeftWheelJoints.empty() ||
-      this->dataPtr->frontRightWheelJoints.empty() ||
-      this->dataPtr->backLeftWheelJoints.empty() ||
-      this->dataPtr->backRightWheelJoints.empty() ||
-      this->dataPtr->frontLeftSteeringJoints.empty() ||
-      this->dataPtr->frontRightSteeringJoints.empty() ||
-      this->dataPtr->backLeftSteeringJoints.empty() ||
-      this->dataPtr->backRightSteeringJoints.empty())
+  if (this->dataPtr->frontLeftWheelJoint == kNullEntity ||
+      this->dataPtr->frontRightWheelJoint == kNullEntity ||
+      this->dataPtr->backLeftWheelJoint == kNullEntity ||
+      this->dataPtr->backRightWheelJoint == kNullEntity ||
+      this->dataPtr->frontLeftSteeringJoint == kNullEntity ||
+      this->dataPtr->frontRightSteeringJoint == kNullEntity ||
+      this->dataPtr->backLeftSteeringJoint == kNullEntity ||
+      this->dataPtr->backRightSteeringJoint == kNullEntity)
   {
     bool warned{false};
-    for (const std::string &name : this->dataPtr->frontLeftWheelJointNames)
+    if (this->dataPtr->frontLeftWheelJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->frontLeftWheelJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->frontLeftWheelJoints.push_back(joint);
+        this->dataPtr->frontLeftWheelJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find front left wheel joint [" << name
@@ -525,11 +510,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->frontRightWheelJointNames)
+    if (this->dataPtr->frontRightWheelJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->frontRightWheelJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->frontRightWheelJoints.push_back(joint);
+        this->dataPtr->frontRightWheelJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find front right wheel joint [" << name
@@ -539,11 +525,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->backLeftWheelJointNames)
+    if (this->dataPtr->backLeftWheelJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->backLeftWheelJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->backLeftWheelJoints.push_back(joint);
+        this->dataPtr->backLeftWheelJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find back left wheel joint [" << name
@@ -553,11 +540,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->backRightWheelJointNames)
+    if (this->dataPtr->backRightWheelJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->backRightWheelJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->backRightWheelJoints.push_back(joint);
+        this->dataPtr->backRightWheelJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find back right wheel joint [" << name
@@ -567,11 +555,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->frontLeftSteeringJointNames)
+    if (this->dataPtr->frontLeftSteeringJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->frontLeftSteeringJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->frontLeftSteeringJoints.push_back(joint);
+        this->dataPtr->frontLeftSteeringJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find front left steering joint [" << name
@@ -581,11 +570,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->frontRightSteeringJointNames)
+    if (this->dataPtr->frontRightSteeringJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->frontRightSteeringJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->frontRightSteeringJoints.push_back(joint);
+        this->dataPtr->frontRightSteeringJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find front right steering joint [" << name
@@ -595,11 +585,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->backLeftSteeringJointNames)
+    if (this->dataPtr->backLeftSteeringJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->backLeftSteeringJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->backLeftSteeringJoints.push_back(joint);
+        this->dataPtr->backLeftSteeringJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find back left steering joint [" << name
@@ -609,11 +600,12 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
       }
     }
 
-    for (const std::string &name : this->dataPtr->backRightSteeringJointNames)
+    if (this->dataPtr->backRightSteeringJoint == kNullEntity)
     {
+      std::string name = this->dataPtr->backRightSteeringJointName;
       Entity joint = this->dataPtr->model.JointByName(_ecm, name);
       if (joint != kNullEntity)
-        this->dataPtr->backRightSteeringJoints.push_back(joint);
+        this->dataPtr->backRightSteeringJoint = joint;
       else if (warnedModels.find(modelName) == warnedModels.end())
       {
         gzwarn << "Failed to find back right steering joint [" << name
@@ -629,14 +621,14 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
     }
   }
 
-  if (this->dataPtr->frontLeftWheelJoints.empty() ||
-      this->dataPtr->frontRightWheelJoints.empty() ||
-      this->dataPtr->backLeftWheelJoints.empty() ||
-      this->dataPtr->backRightWheelJoints.empty() ||
-      this->dataPtr->frontLeftSteeringJoints.empty() ||
-      this->dataPtr->frontRightSteeringJoints.empty() ||
-      this->dataPtr->backLeftSteeringJoints.empty() ||
-      this->dataPtr->backRightSteeringJoints.empty())
+  if (this->dataPtr->frontLeftWheelJoint == kNullEntity ||
+      this->dataPtr->frontRightWheelJoint == kNullEntity ||
+      this->dataPtr->backLeftWheelJoint == kNullEntity ||
+      this->dataPtr->backRightWheelJoint == kNullEntity ||
+      this->dataPtr->frontLeftSteeringJoint == kNullEntity ||
+      this->dataPtr->frontRightSteeringJoint == kNullEntity ||
+      this->dataPtr->backLeftSteeringJoint == kNullEntity ||
+      this->dataPtr->backRightSteeringJoint == kNullEntity)
   {
     return;
   }
@@ -652,169 +644,146 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
   if (_info.paused)
     return;
 
-  for (Entity joint : this->dataPtr->frontLeftWheelJoints)
-  {
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->frontLeftWheelJointSpeed});
-  }
+  // Update wheel velocity
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->frontLeftWheelJoint,
+    {this->dataPtr->frontLeftWheelJointSpeed});
 
-  for (Entity joint : this->dataPtr->frontRightWheelJoints)
-  {
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->frontRightWheelJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->frontRightWheelJoint,
+    {this->dataPtr->frontRightWheelJointSpeed});
 
-  for (Entity joint : this->dataPtr->backLeftWheelJoints)
-  {
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->backLeftWheelJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->backLeftWheelJoint,
+    {this->dataPtr->backLeftWheelJointSpeed});
 
-  for (Entity joint : this->dataPtr->backRightWheelJoints)
-  {
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->backRightWheelJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->backRightWheelJoint,
+    {this->dataPtr->backRightWheelJointSpeed});
 
-  for (Entity joint : this->dataPtr->frontLeftSteeringJoints)
-  {
-    // Update steering velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->frontLeftSteeringJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->frontLeftSteeringJoint,
+    {this->dataPtr->frontLeftSteeringJointSpeed});
 
-  for (Entity joint : this->dataPtr->frontRightSteeringJoints)
-  {
-    // Update steering velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->frontRightSteeringJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->frontRightSteeringJoint,
+    {this->dataPtr->frontRightSteeringJointSpeed});
 
-  for (Entity joint : this->dataPtr->backLeftSteeringJoints)
-  {
-    // Update steering velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->backLeftSteeringJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->backLeftSteeringJoint,
+    {this->dataPtr->backLeftSteeringJointSpeed});
 
-  for (Entity joint : this->dataPtr->backRightSteeringJoints)
-  {
-    // Update steering velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->backRightSteeringJointSpeed});
-  }
+  _ecm.SetComponentData<components::JointVelocityCmd>(
+    this->dataPtr->backRightSteeringJoint,
+    {this->dataPtr->backRightSteeringJointSpeed});
 
   // Create the joint position components if they don't exist.
   auto frontLeftWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontLeftWheelJoints[0]);
+      this->dataPtr->frontLeftWheelJoint);
   if (!frontLeftWheelPos
-    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoint,
         components::JointPosition());
   }
 
   auto frontRightWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontRightWheelJoints[0]);
+      this->dataPtr->frontRightWheelJoint);
   if (!frontRightWheelPos
-    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoint,
         components::JointPosition());
   }
 
   auto backLeftWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backLeftWheelJoints[0]);
+      this->dataPtr->backLeftWheelJoint);
   if (!backLeftWheelPos
-    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoint,
         components::JointPosition());
   }
 
   auto backRightWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backRightWheelJoints[0]);
+      this->dataPtr->backRightWheelJoint);
   if (!backRightWheelPos
-    && _ecm.HasEntity(this->dataPtr->backRightWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->backRightWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backRightWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backRightWheelJoint,
         components::JointPosition());
   }
 
   auto frontLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontLeftSteeringJoints[0]);
+      this->dataPtr->frontLeftSteeringJoint);
   if (!frontLeftSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->frontLeftSteeringJoints[0]))
+      _ecm.HasEntity(this->dataPtr->frontLeftSteeringJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontLeftSteeringJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontLeftSteeringJoint,
         components::JointPosition());
   }
 
   auto frontRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontRightSteeringJoints[0]);
+      this->dataPtr->frontRightSteeringJoint);
   if (!frontRightSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->frontRightSteeringJoints[0]))
+      _ecm.HasEntity(this->dataPtr->frontRightSteeringJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontRightSteeringJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontRightSteeringJoint,
         components::JointPosition());
   }
 
   auto backLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backLeftSteeringJoints[0]);
+      this->dataPtr->backLeftSteeringJoint);
   if (!backLeftSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->backLeftSteeringJoints[0]))
+      _ecm.HasEntity(this->dataPtr->backLeftSteeringJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backLeftSteeringJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backLeftSteeringJoint,
         components::JointPosition());
   }
 
   auto backRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backRightSteeringJoints[0]);
+      this->dataPtr->backRightSteeringJoint);
   if (!backRightSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->backRightSteeringJoints[0]))
+      _ecm.HasEntity(this->dataPtr->backRightSteeringJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backRightSteeringJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backRightSteeringJoint,
         components::JointPosition());
   }
 
   // Create the angular velocity components if they don't exist.
   auto frontLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->frontLeftWheelJoints[0]);
+      this->dataPtr->frontLeftWheelJoint);
   if (!frontLeftWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoint,
         components::JointVelocity());
   }
 
   auto frontRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->frontRightWheelJoints[0]);
+      this->dataPtr->frontRightWheelJoint);
   if (!frontRightWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoint,
         components::JointVelocity());
   }
 
   auto backLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->backLeftWheelJoints[0]);
+      this->dataPtr->backLeftWheelJoint);
   if (!backLeftWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoint,
         components::JointVelocity());
   }
 
   auto backRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->backRightWheelJoints[0]);
+      this->dataPtr->backRightWheelJoint);
   if (!backRightWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->backRightWheelJoints[0]))
+    && _ecm.HasEntity(this->dataPtr->backRightWheelJoint))
   {
-    _ecm.CreateComponent(this->dataPtr->backRightWheelJoints[0],
+    _ecm.CreateComponent(this->dataPtr->backRightWheelJoint,
         components::JointVelocity());
   }
 }
@@ -839,37 +808,37 @@ void SwerveDrivePrivate::UpdateOdometry(
 {
   GZ_PROFILE("SwerveDrive::UpdateOdometry");
 
-  if (this->frontLeftWheelJoints.empty() ||
-      this->frontRightWheelJoints.empty() ||
-      this->backLeftWheelJoints.empty() ||
-      this->backRightWheelJoints.empty() ||
-      this->frontLeftSteeringJoints.empty() ||
-      this->frontRightSteeringJoints.empty() ||
-      this->backLeftSteeringJoints.empty() ||
-      this->backRightSteeringJoints.empty())
+  if (this->frontLeftWheelJoint == kNullEntity ||
+      this->frontRightWheelJoint == kNullEntity ||
+      this->backLeftWheelJoint == kNullEntity ||
+      this->backRightWheelJoint == kNullEntity ||
+      this->frontLeftSteeringJoint == kNullEntity ||
+      this->frontRightSteeringJoint == kNullEntity ||
+      this->backLeftSteeringJoint == kNullEntity ||
+      this->backRightSteeringJoint == kNullEntity)
   {
     return;
   }
 
   // Get the angular velocities for each wheel joint.
   auto frontLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-    this->frontLeftWheelJoints[0]);
+    this->frontLeftWheelJoint);
   auto frontRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-    this->frontRightWheelJoints[0]);
+    this->frontRightWheelJoint);
   auto backLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-    this->backLeftWheelJoints[0]);
+    this->backLeftWheelJoint);
   auto backRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-    this->backRightWheelJoints[0]);
+    this->backRightWheelJoint);
 
   // Get the positions for each steering joint.
   auto frontLeftSteeringPos = _ecm.Component<components::JointPosition>(
-    this->frontLeftSteeringJoints[0]);
+    this->frontLeftSteeringJoint);
   auto frontRightSteeringPos = _ecm.Component<components::JointPosition>(
-    this->frontRightSteeringJoints[0]);
+    this->frontRightSteeringJoint);
   auto backLeftSteeringPos = _ecm.Component<components::JointPosition>(
-    this->backLeftSteeringJoints[0]);
+    this->backLeftSteeringJoint);
   auto backRightSteeringPos = _ecm.Component<components::JointPosition>(
-    this->backRightSteeringJoints[0]);
+    this->backRightSteeringJoint);
 
   // Initialize, if not already initialized.
   if (!this->odom.Initialized())
@@ -1036,13 +1005,13 @@ void SwerveDrivePrivate::UpdateVelocity(
       backRightWheelLinVel);
 
   auto frontLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->frontLeftSteeringJoints[0]);
+      this->frontLeftSteeringJoint);
   auto frontRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->frontRightSteeringJoints[0]);
+      this->frontRightSteeringJoint);
   auto backLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->backLeftSteeringJoints[0]);
+      this->backLeftSteeringJoint);
   auto backRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->backRightSteeringJoints[0]);
+      this->backRightSteeringJoint);
 
   if (!frontLeftSteeringPos || frontLeftSteeringPos->Data().empty() ||
       !frontRightSteeringPos || frontRightSteeringPos->Data().empty() ||
