@@ -245,17 +245,8 @@ namespace gz
       /// \brief Publisher of resource paths.
       private: transport::Node::Publisher pathPub;
 
-      // \brief Simulation asset download queue.
+      /// \brief Simulation asset download queue.
       private: std::map<std::string, std::string> uriDownloadQueue;
-
-      // \brief Download asset mutex.
-      private: std::mutex downloadAssetMutex;
-
-      // \brief Download asset condition variable.
-      private: std::condition_variable downloadAssetCv;
-
-      /// \brief Predicate for downloadAssetCv.
-      private: bool downloadAssetsComplete = false;
     };
     }
   }

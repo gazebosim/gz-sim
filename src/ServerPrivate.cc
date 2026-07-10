@@ -768,14 +768,11 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 //////////////////////////////////////////////////
 void ServerPrivate::DownloadAssets(const ServerConfig &_config)
 {
-  std::unique_lock assetLock(this->downloadAssetMutex);
-
   // Enable simulation asset download
   this->enableDownload = true;
-  this->downloadAssetsComplete = false;
 
   // Download models in a separate thread.
-  this->downloadThread = std::thread([&, _config]()
+  this->downloadThread = std::thread([this, _config]()
   {
     // Fetch queued assets
     this->FetchQueuedAssets();
@@ -801,14 +798,9 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
           runner->SetExitedWithErrors();
           runner->Stop();
         }
-        if (_config.WaitForAssets())
-        {
-          {
-            std::lock_guard<std::mutex> doneLock(this->downloadAssetMutex);
-            this->downloadAssetsComplete = true;
-          }
-          this->downloadAssetCv.notify_one();
-        }
+        // The server is exiting with errors and the runners have been
+        // stopped, so skip updating the runners' worlds.
+        return;
       }
     }
 
@@ -819,6 +811,9 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       sdf::World *world = localRoot.WorldByName(runner->WorldSdf().Name());
       if (!world)
       {
+        // Intentional fallback: the runner keeps its original world SDF so
+        // the simulation can still run, but models that required a download
+        // will be missing from it.
         gzerr << "Unable to find world with name["
           << runner->WorldSdf().Name() << "]. "
           << "Downloaded models may not appear.\n";
@@ -847,25 +842,24 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
       // Tell the SimulationRunner to create the entities on the next step.
       runner->SetCreateEntities();
     }
-    if (_config.WaitForAssets())
-    {
-      {
-        std::lock_guard<std::mutex> doneLock(this->downloadAssetMutex);
-        this->downloadAssetsComplete = true;
-      }
-      this->downloadAssetCv.notify_one();
-    }
   });
 
   // Wait for assets to download if configured to do so, and then create
-  // entities. A predicate guards against spurious wakeups and against the
-  // download thread completing before this thread reaches the wait.
+  // entities. Joining the download thread guarantees that every runner's
+  // world SDF has been updated before entities are created from it, and,
+  // unlike a condition variable, cannot miss the completion signal or wake
+  // up spuriously.
   if (_config.WaitForAssets())
   {
-    this->downloadAssetCv.wait(assetLock,
-        [this] { return this->downloadAssetsComplete; });
-    for (auto &runner : this->simRunners)
-      runner->CreateEntities();
+    this->downloadThread.join();
+
+    // If the download thread exited with errors, the runners have already
+    // been stopped, so don't create entities for them.
+    if (!this->exitedWithErrors)
+    {
+      for (auto &runner : this->simRunners)
+        runner->CreateEntities();
+    }
   }
 }
 
