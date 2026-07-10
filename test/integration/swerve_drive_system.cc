@@ -117,19 +117,12 @@ class SwerveDriveTest : public InternalFixture<::testing::Test>
       double desiredLinVelX = fb_component;
       double desiredLinVelY = lr_component;
       double desiredAngVel  = yaw_component;
+      msgs::Set(msg.mutable_linear(),
+                math::Vector3d(desiredLinVelX, desiredLinVelY, 0));
+      msgs::Set(msg.mutable_angular(),
+                math::Vector3d(0.0, 0, desiredAngVel));
 
-      velocityRamp.OnPreUpdate(
-          [&](const UpdateInfo &/*_info*/,
-              const EntityComponentManager &)
-          {
-            msgs::Set(msg.mutable_linear(),
-                      math::Vector3d(desiredLinVelX, desiredLinVelY, 0));
-            msgs::Set(msg.mutable_angular(),
-                      math::Vector3d(0.0, 0, desiredAngVel));
-            pub.Publish(msg);
-          });
-
-      server.AddSystem(velocityRamp.systemPtr);
+      pub.Publish(msg);
 
       server.Run(true, 3000, false);
 
