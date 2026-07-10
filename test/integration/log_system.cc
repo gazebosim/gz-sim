@@ -1133,12 +1133,12 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   test::Relay testSystem;
 
-  std::vector<Entity> entities;
+  std::vector<Entity> entityGraph;
 
   testSystem.OnPostUpdate(
       [&](const UpdateInfo &, const EntityComponentManager &_ecm)
       {
-        entities = _ecm.Entities();
+        entityGraph = _ecm.EntitiesVector();
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -1146,7 +1146,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store the entities at the beginning of playback
   std::set<uint64_t> entitiesAtTime0;
-  for (const auto &v : entities)
+  for (const auto &v : entityGraph)
     entitiesAtTime0.insert(v);
 
   // verify there are entities at the beginning of the playback
@@ -1176,7 +1176,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time A
   std::set<uint64_t> entitiesAtTimeA;
-  for (const auto &v : entities)
+  for (const auto &v : entityGraph)
     entitiesAtTimeA.insert(v);
 
   // Seek forward again
@@ -1194,7 +1194,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time B
   std::set<uint64_t> entitiesAtTimeB;
-  for (const auto &v : entities)
+  for (const auto &v : entityGraph)
     entitiesAtTimeB.insert(v);
 
   // the entities at time B should be different from time A as levels get
@@ -1217,7 +1217,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time A after jumping back in time
   std::set<uint64_t> entitiesAtTimeAA;
-  for (const auto &v : entities)
+  for (const auto &v : entityGraph)
     entitiesAtTimeAA.insert(v);
 
   // verify the entities are the same at time A
@@ -1246,7 +1246,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time 0 after rewind
   std::set<uint64_t> entitiesAtTime00;
-  for (const auto &v : entities)
+  for (const auto &v : entityGraph)
     entitiesAtTime00.insert(v);
 
   // verify the entities are the same at beginning of playback

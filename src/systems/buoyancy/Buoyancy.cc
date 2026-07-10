@@ -159,6 +159,10 @@ class gz::sim::systems::BuoyancyPrivate
 
   /// \brief Volumes to be added on the next.
   public: std::unordered_map<Entity, double> volumes;
+
+  /// \brief Force a one-time full rescan after reset because reset does not
+  /// mark restored entities as "new".
+  public: bool rescanEntities {false};
 };
 
 //////////////////////////////////////////////////
@@ -279,8 +283,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
 //////////////////////////////////////////////////
 void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 {
-  // Compute the volume and center of volume for each new link
-  _ecm.EachNew<components::Link, components::Inertial>(
+  auto checkEntity =
       [&](const Entity &_entity,
           const components::Link *,
           const components::Inertial *) -> bool
@@ -386,7 +389,19 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
     }
 
     return true;
-  });
+  };
+
+  // Reset restores existing entities without making them "new", so buoyancy
+  // needs one full pass to restore Volume / CenterOfVolume components.
+  if (this->rescanEntities)
+  {
+    _ecm.Each<components::Link, components::Inertial>(checkEntity);
+    this->rescanEntities = false;
+  }
+  else
+  {
+    _ecm.EachNew<components::Link, components::Inertial>(checkEntity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -688,6 +703,16 @@ void Buoyancy::PostUpdate(
 }
 
 //////////////////////////////////////////////////
+void Buoyancy::Reset(const UpdateInfo &,
+    EntityComponentManager &)
+{
+  this->dataPtr->centerOfVolumes.clear();
+  this->dataPtr->volumes.clear();
+  this->dataPtr->buoyancyForces.clear();
+  this->dataPtr->rescanEntities = true;
+}
+
+//////////////////////////////////////////////////
 bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
@@ -698,7 +723,8 @@ GZ_ADD_PLUGIN(Buoyancy,
                     System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate,
-                    Buoyancy::ISystemPostUpdate)
+                    Buoyancy::ISystemPostUpdate,
+                    Buoyancy::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")

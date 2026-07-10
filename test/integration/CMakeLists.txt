@@ -17,6 +17,7 @@ set(tests
   collada_world_exporter.cc
   components.cc
   contact_system.cc
+  cpu_lidar_system.cc
   detachable_joint.cc
   diff_drive_system.cc
   drive_to_pose_controller_system.cc
@@ -97,6 +98,10 @@ set(tests
   world.cc
   world_control_state.cc
 )
+
+if (libwebsockets_FOUND)
+  list(APPEND tests websocket_server.cc)
+endif()
 
 # elevator system causes compile errors on windows
 if (NOT WIN32)
@@ -226,6 +231,34 @@ endif()
 if (TARGET INTEGRATION_log_system)
   target_link_libraries(INTEGRATION_log_system
     gz-transport::log
+  )
+endif()
+
+# The websocket_server security regression tests exercise WebsocketServer's
+# private OnAsset() and the nested Connection type via a friend declaration.
+# gz-cmake builds the production shared library with visibility=hidden, so
+# linking against libgz-sim-websocket-server-system.so does not expose
+# those symbols. We instead recompile WebsocketServer.cc directly into the
+# test executable and add the same third-party libraries the plugin links
+# against so that private symbols are accessible.
+if (TARGET INTEGRATION_websocket_server)
+  target_sources(INTEGRATION_websocket_server PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/systems/websocket_server/WebsocketServer.cc
+  )
+  target_include_directories(INTEGRATION_websocket_server PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/systems/websocket_server
+  )
+  target_compile_definitions(INTEGRATION_websocket_server PRIVATE
+    BUILD_TESTING
+  )
+  target_link_libraries(INTEGRATION_websocket_server
+    websockets_shared
+    gz-common::gz-common
+    gz-common::graphics
+    gz-fuel_tools::gz-fuel_tools
+    gz-msgs::core
+    gz-plugin::core
+    gz-transport::core
   )
 endif()
 

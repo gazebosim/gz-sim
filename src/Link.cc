@@ -28,6 +28,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
@@ -45,10 +46,10 @@
 
 #include "gz/sim/Link.hh"
 
-class gz::sim::LinkPrivate
+class gz::sim::Link::Implementation
 {
   /// \brief Id of link entity.
-  public: Entity id{kNullEntity};
+  public: sim::Entity id{kNullEntity};
 };
 
 using namespace gz;
@@ -56,32 +57,10 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 Link::Link(sim::Entity _entity)
-  : dataPtr(std::make_unique<LinkPrivate>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
-
-/////////////////////////////////////////////////
-Link::Link(const Link &_link)
-  : dataPtr(std::make_unique<LinkPrivate>(*_link.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-Link::Link(Link &&_link) noexcept = default;
-
-//////////////////////////////////////////////////
-Link::~Link() = default;
-
-/////////////////////////////////////////////////
-Link &Link::operator=(const Link &_link)
-{
-  *this->dataPtr = (*_link.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Link &Link::operator=(Link &&_link) noexcept = default;
 
 //////////////////////////////////////////////////
 Entity Link::Entity() const
@@ -199,6 +178,13 @@ bool Link::WindMode(const EntityComponentManager &_ecm) const
     return comp->Data();
 
   return false;
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Link::GravityEnabled(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::GravityEnabled>(this->dataPtr->id);
 }
 
 //////////////////////////////////////////////////
@@ -347,6 +333,29 @@ void Link::SetAngularVelocity(EntityComponentManager &_ecm,
     else
     {
       vel->Data() = _vel;
+    }
+}
+
+//////////////////////////////////////////////////
+void Link::SetGravityEnabled(EntityComponentManager &_ecm,
+  bool _enabled) const
+{
+    auto comp =
+      _ecm.Component<components::GravityEnabledCmd>(this->dataPtr->id);
+
+    if (comp == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::GravityEnabledCmd(_enabled));
+    }
+    else
+    {
+      comp->SetData(_enabled,
+          [](const bool &, const bool &){return false;});
+      _ecm.SetChanged(this->dataPtr->id,
+          components::GravityEnabledCmd::typeId,
+          ComponentState::OneTimeChange);
     }
 }
 

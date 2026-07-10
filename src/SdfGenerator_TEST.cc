@@ -281,7 +281,6 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
     this->world = root.WorldByIndex(0);
     ASSERT_NE(nullptr, this->world);
     this->creator->CreateEntities(world);
-    // this->ecm.SortComponentStorages();
   }
 
   public: virtual void LoadWorldString(const std::string &_worldSdf)
@@ -292,7 +291,6 @@ class ElementUpdateFixture : public InternalFixture<::testing::Test>
     this->world = root.WorldByIndex(0);
     ASSERT_NE(nullptr, this->world);
     this->creator->CreateEntities(world);
-    // this->ecm.SortComponentStorages();
   }
   // Helper function to get a model by name from an sdf::World
   const sdf::Model *ModelByName(const std::string &_name)
@@ -576,7 +574,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 
   ASSERT_TRUE(elem->HasElement("model"));
   auto modelElem = elem->GetElement("model");
-  for (; modelElem; modelElem->GetNextElement("model"))
+  for (; modelElem; modelElem = modelElem->GetNextElement("model"))
   {
     if (modelName == modelElem->Get<std::string>("name"))
       break;

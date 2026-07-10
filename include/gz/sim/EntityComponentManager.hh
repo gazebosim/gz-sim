@@ -51,6 +51,10 @@
 
 #include "gz/sim/components/Component.hh"
 
+// Custom implementation
+// TODO(anyone) switch to std <flat_set> when migrating to C++-23
+#include "gz/sim/detail/flat_set.hh"
+
 namespace gz
 {
   namespace sim
@@ -66,30 +70,22 @@ namespace gz
     class GZ_SIM_HIDDEN EntityComponentManagerPrivate;
     class EntityComponentManagerDiff;
 
+    /// \brief Type alias for the graph that holds entities.
+    /// Each vertex is an entity, and the direction points from the parent to
+    /// its children.
+    /// All edges are positive booleans.
+    using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
+
     namespace detail
     {
       class GroupQueuer;
     }
 
-    struct ModifiedComponent { };
     struct NewEntity { };
-    struct OneTimeChangedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct PeriodicChangedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct ComponentsMarkedAsRemoved {
-      std::unordered_set<ComponentTypeId> data;
-    };
-    struct RemovedComponents {
-      std::unordered_set<ComponentTypeId> data;
-    };
     struct RemoveEntity { };
     struct Children {
-      std::set<Entity> data;
+      detail::FlatSet<Entity> data;
     };
-
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
     **/
@@ -111,6 +107,12 @@ namespace gz
       /// it can have additional parameters if the need arises in the future.
       /// Additionally, not every data member is copied making its behavior
       /// different from what would be expected from a copy constructor.
+      /// \warning This rebuilds the underlying component storage: every
+      /// existing component is destroyed and replaced by a freshly allocated
+      /// clone. Any raw component pointer previously obtained from this ECM
+      /// (e.g. via Component()) is therefore left dangling and must be
+      /// re-fetched after this call. Dereferencing a stale pointer is
+      /// undefined behavior.
       /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
@@ -268,9 +270,8 @@ namespace gz
       /// removed.
       /// \param[in] _entity The entity that the component was removed for.
       /// \param[in] _typeId The type Id of the removed component.
-      private: void PostRemoveComponent(const Entity _entity, const ComponentTypeId &_typeId);
-
-      private: void MarkComponentAsRemoved(const Entity& _entity, const ComponentTypeId _id, bool _removed);
+      private: void PostRemoveComponent(const Entity _entity,
+         const ComponentTypeId &_typeId);
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
@@ -454,8 +455,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
+      /// \deprecated Use Each instead.
       public: template<typename ...ComponentTypeTs, typename Func>
-              void EachNoCache(Func &&_f) const;
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f) const;
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -469,8 +471,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired mutable component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
+      /// \deprecated Use Each instead.
       public: template<typename ...ComponentTypeTs, typename Func>
-              void EachNoCache(Func &&_f);
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f);
 
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for removal (but not
@@ -507,7 +510,8 @@ namespace gz
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void ForEach(Function _f, const ComponentTypeTs &... _components);
+      static void GZ_DEPRECATED(11) ForEach(Function _f,
+          const ComponentTypeTs &... _components);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -556,8 +560,15 @@ namespace gz
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
+      /// \note This method generates the graph on demand. For better
+      /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
-      public: const std::vector<Entity> Entities() const;
+      /// \deprecated See EntitiesVector
+      public: GZ_DEPRECATED(11) const EntityGraph &Entities() const;
+
+      /// \brief Get all entities.
+      /// \return Vector of all entities.
+      public: std::vector<Entity> EntitiesVector() const;
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
@@ -613,7 +624,7 @@ namespace gz
       /// \brief Get the components types that are marked as periodic changes.
       /// \return All the components that at least one entity marked as
       /// periodic changes.
-      public: std::unordered_set<ComponentTypeId>
+      public: std::unordered_set<ComponentTypeId> GZ_DEPRECATED(11)
           ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Get a cache of components with periodic changes.
@@ -713,9 +724,15 @@ namespace gz
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
 
-      /// \brief Given a diff, apply it to this ECM. Note that for removed
-      /// entities, this would mark them for removal instead of actually
-      /// removing the entities.
+      /// \brief Reset this ECM back to the state captured in `_other`,
+      /// reconciling any entities that were added or removed since `_other` was
+      /// taken. This is the operation used to implement world reset/rewind.
+      /// \warning This rebuilds the underlying component storage via
+      /// CopyFrom(). Any raw component pointer obtained from this ECM before
+      /// the reset (e.g. via Component()) is invalidated and must be
+      /// re-fetched afterwards. Holding such a pointer across a reset and
+      /// dereferencing it is undefined behavior (see issue
+      /// https://github.com/gazebosim/gz-sim/issues/3635).
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
       public: void ResetTo(const EntityComponentManager &_other);
@@ -750,11 +767,6 @@ namespace gz
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
 
-
-      /// \brief Sorts component storages to allow iteration in order of entities.
-      /// Note this is very expensive and should be done only if necessary.
-      public: void SortComponentStorages();
-
       /// \brief Enqueue a group to be created.
       /// \param[in] _types Component type IDs.
       /// \param[in] _queuer Queuer that will create the group.
@@ -786,17 +798,25 @@ namespace gz
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
-      /// \brief Implementation of CreateComponent.
+      /// \brief Check whether a component of a given type can be created on an
+      /// entity (i.e. whether the entity exists and the type is registered).
+      /// \param[in] _entity The entity id.
+      /// \param[in] _typeId Id of the component type.
+      /// \return True if the component can be created; false otherwise.
+      private: bool CanCreateComponent(const Entity _entity,
+                   const ComponentTypeId _typeId) const;
+
+      /// \brief Create a component given its data and type ID.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
-      /// \param[in] _data Data used to construct the component.
+      /// \param[in] _data The data of the component moved into this function.
       /// \return True if the component's data needs to be set externally; false
       /// otherwise.
-      private: bool CreateComponentImplementation(
+      private: bool CreateComponentDynamic(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   const components::BaseComponent *_data);
+                   std::unique_ptr<components::BaseComponent> _data);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.
