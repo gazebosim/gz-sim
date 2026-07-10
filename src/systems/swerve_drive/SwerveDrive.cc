@@ -678,114 +678,43 @@ void SwerveDrive::PreUpdate(const UpdateInfo &_info,
     {this->dataPtr->backRightSteeringJointSpeed});
 
   // Create the joint position components if they don't exist.
-  auto frontLeftWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontLeftWheelJoint);
-  if (!frontLeftWheelPos
-    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->frontLeftWheelJoint);
 
-  auto frontRightWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontRightWheelJoint);
-  if (!frontRightWheelPos
-    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->frontRightWheelJoint);
 
-  auto backLeftWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backLeftWheelJoint);
-  if (!backLeftWheelPos
-    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->backLeftWheelJoint);
 
-  auto backRightWheelPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backRightWheelJoint);
-  if (!backRightWheelPos
-    && _ecm.HasEntity(this->dataPtr->backRightWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backRightWheelJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->backRightWheelJoint);
 
-  auto frontLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontLeftSteeringJoint);
-  if (!frontLeftSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->frontLeftSteeringJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontLeftSteeringJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->frontLeftSteeringJoint);
 
-  auto frontRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->frontRightSteeringJoint);
-  if (!frontRightSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->frontRightSteeringJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontRightSteeringJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->frontRightSteeringJoint);
 
-  auto backLeftSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backLeftSteeringJoint);
-  if (!backLeftSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->backLeftSteeringJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backLeftSteeringJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->backLeftSteeringJoint);
 
-  auto backRightSteeringPos = _ecm.Component<components::JointPosition>(
-      this->dataPtr->backRightSteeringJoint);
-  if (!backRightSteeringPos &&
-      _ecm.HasEntity(this->dataPtr->backRightSteeringJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backRightSteeringJoint,
-        components::JointPosition());
-  }
+  enableComponent<components::JointPosition>(
+      _ecm, this->dataPtr->backRightSteeringJoint);
 
   // Create the angular velocity components if they don't exist.
-  auto frontLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->frontLeftWheelJoint);
-  if (!frontLeftWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->frontLeftWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontLeftWheelJoint,
-        components::JointVelocity());
-  }
+  enableComponent<components::JointVelocity>(
+      _ecm, this->dataPtr->frontLeftWheelJoint);
 
-  auto frontRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->frontRightWheelJoint);
-  if (!frontRightWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->frontRightWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->frontRightWheelJoint,
-        components::JointVelocity());
-  }
+  enableComponent<components::JointVelocity>(
+      _ecm, this->dataPtr->frontRightWheelJoint);
 
-  auto backLeftWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->backLeftWheelJoint);
-  if (!backLeftWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->backLeftWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backLeftWheelJoint,
-        components::JointVelocity());
-  }
+  enableComponent<components::JointVelocity>(
+      _ecm, this->dataPtr->backLeftWheelJoint);
 
-  auto backRightWheelAngVel = _ecm.Component<components::JointVelocity>(
-      this->dataPtr->backRightWheelJoint);
-  if (!backRightWheelAngVel
-    && _ecm.HasEntity(this->dataPtr->backRightWheelJoint))
-  {
-    _ecm.CreateComponent(this->dataPtr->backRightWheelJoint,
-        components::JointVelocity());
-  }
+  enableComponent<components::JointVelocity>(
+      _ecm, this->dataPtr->backRightWheelJoint);
+
 }
 
 //////////////////////////////////////////////////
