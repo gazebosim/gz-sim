@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -216,6 +217,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
   this->currentInfo.simTime = this->simTimeEpoch;
+
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
 
 #ifdef _WIN32
   HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
@@ -434,19 +451,22 @@ void SimulationRunner::UpdatePhysicsParams()
   }
   const auto& physicsParams = physicsCmdComp->Data();
 
-  auto gravityComp =
-    this->entityCompMgr.Component<components::Gravity>(worldEntity);
-  if (gravityComp)
+  if(physicsParams.has_gravity())
   {
-    const  gz::math::Vector3<double>  newGravity =
+    auto gravityComp =
+      this->entityCompMgr.Component<components::Gravity>(worldEntity);
+    if (gravityComp)
     {
-        physicsParams.gravity().x(),
-        physicsParams.gravity().y(),
-        physicsParams.gravity().z()
-    };
-    gravityComp->Data() = newGravity;
-    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
-          ComponentState::OneTimeChange);
+      const  gz::math::Vector3<double>  newGravity =
+      {
+          physicsParams.gravity().x(),
+          physicsParams.gravity().y(),
+          physicsParams.gravity().z()
+      };
+      gravityComp->Data() = newGravity;
+      this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+            ComponentState::OneTimeChange);
+    }
   }
 
   auto physicsComp =
@@ -586,6 +606,13 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
+
   // If additional systems are to be added or have been removed,
   // stop the existing threads.
   this->StopWorkerThreads();
@@ -673,16 +700,26 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    if (!this->parallelPostUpdates)
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
@@ -1186,6 +1223,12 @@ bool SimulationRunner::Running() const
 }
 
 /////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::StopReceived() const
 {
   return this->stopReceived;
@@ -1428,6 +1471,10 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
   GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
+  if (!this->entityCompMgr.HasComponentType(components::Recreate::typeId))
+  {
+    return;
+  }
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
