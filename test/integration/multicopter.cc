@@ -109,7 +109,11 @@ TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
         if (_info.iterations == iterTestStart)
         {
           msgs::Actuators msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+          msg.mutable_velocity()->resize(4, cmdSpeed);
+#else
           msg.mutable_velocity()->Resize(4, cmdSpeed);
+#endif
           cmdMotorSpeed.Publish(msg);
         }
         else if (_info.iterations == iterTestStart + nIters)
@@ -298,7 +302,11 @@ TEST_F(MulticopterTest,
         // Publish a motor speed command
         {
           msgs::Actuators msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+          msg.mutable_velocity()->resize(4, 60);
+#else
           msg.mutable_velocity()->Resize(4, 60);
+#endif
           cmdMotorSpeed.Publish(msg);
         }
 
