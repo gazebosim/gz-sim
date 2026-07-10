@@ -465,7 +465,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto clonedComp = originalComp->Clone();
 
     auto updateData =
-      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+      this->CreateComponentDynamic(clonedEntity, type, std::move(clonedComp));
     if (updateData)
     {
       // When a cloned entity is removed, it erases all components/data so a new
@@ -934,9 +934,9 @@ bool EntityComponentManager::CanCreateComponent(
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::CreateComponentImplementation(
+bool EntityComponentManager::CreateComponentDynamic(
     const Entity _entity, const ComponentTypeId _componentTypeId,
-    const components::BaseComponent *_data)
+    std::unique_ptr<components::BaseComponent> _data)
 {
   if (!this->CanCreateComponent(_entity, _componentTypeId))
     return false;
@@ -945,14 +945,11 @@ bool EntityComponentManager::CreateComponentImplementation(
   // component is a brand new creation/addition
   bool updateData = true;
 
-  // Instantiate the new component.
-  auto newComp = components::Factory::Instance()->New(_componentTypeId, _data);
-
   auto* storage = this->Registry().storage(_componentTypeId);
   // If entity has never had a component of this type
   if (!storage || !storage->contains(_entity))
   {
-    if (storage->push(_entity, newComp.get()) == storage->end())
+    if (storage->push(_entity, _data.get()) == storage->end())
     {
       gzwarn << "Failed syncing component. This should not happen" << std::endl;
     } else {
@@ -1540,7 +1537,7 @@ void EntityComponentManager::SetState(
         newComp->Deserialize(istr);
 
         auto updateData =
-          this->CreateComponentImplementation(entity, type, newComp.get());
+          this->CreateComponentDynamic(entity, type, std::move(newComp));
         if (updateData)
         {
           // Set comp so we deserialize the data below again
@@ -1644,8 +1641,8 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        auto updateData = this->CreateComponentImplementation(
-          entity, newComp->TypeId(), newComp.get());
+        auto updateData = this->CreateComponentDynamic(
+          entity, compMsg.type(), std::move(newComp));
         if (updateData)
         {
           // Set comp so we deserialize the data below again

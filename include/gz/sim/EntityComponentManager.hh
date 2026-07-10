@@ -767,17 +767,17 @@ namespace gz
       private: bool CanCreateComponent(const Entity _entity,
                    const ComponentTypeId _typeId) const;
 
-      /// \brief Implementation of CreateComponent.
+      /// \brief Create a component given its data and type ID.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
-      /// \param[in] _data Data used to construct the component.
+      /// \param[in] _data The data of the component moved into this function.
       /// \return True if the component's data needs to be set externally; false
       /// otherwise.
-      private: bool CreateComponentImplementation(
+      private: bool CreateComponentDynamic(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   const components::BaseComponent *_data);
+                   std::unique_ptr<components::BaseComponent> _data);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.
