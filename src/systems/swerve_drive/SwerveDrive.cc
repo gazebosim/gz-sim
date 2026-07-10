@@ -448,10 +448,14 @@ void SwerveDrive::Configure(const Entity &_entity,
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
 
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/tf"};
+  std::vector<std::string> tfTopics;
   if (_sdf->HasElement("tf_topic"))
-    tfTopic = _sdf->Get<std::string>("tf_topic");
+  {
+    tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+  }
+  tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/tf");
+  auto tfTopic = validTopic(tfTopics);
+
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
       tfTopic);
 
