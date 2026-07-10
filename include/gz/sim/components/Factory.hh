@@ -307,8 +307,6 @@ namespace components
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
-
-
     /// \brief Unregister a component so that the factory can't create instances
     /// of the component anymore.
     /// \tparam ComponentTypeT Type of component to unregister.
