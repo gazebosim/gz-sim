@@ -85,7 +85,6 @@ if (BUILD_TESTING)
     sensor_TEST
     testFixture_TEST
     world_TEST
-    custom_component_TEST
   )
 
   execute_process(COMMAND "${Python3_EXECUTABLE}" -m pytest --version

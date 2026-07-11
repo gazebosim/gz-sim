@@ -286,18 +286,6 @@ namespace gz
                   const Entity _entity,
                   const ComponentTypeT &_data);
 
-      /// \brief Create a component of a particular type ID. This will copy the
-      /// _data parameter.
-      /// \param[in] _entity The entity that will be associated with
-      /// the component.
-      /// \param[in] _typeId ID of the component type.
-      /// \param[in] _data Data used to construct the component.
-      /// \return A pointer to the component that was created. nullptr is
-      /// returned if the component was not able to be created.
-      private: components::BaseComponent *CreateComponent(
-                  const Entity _entity,
-                  const ComponentTypeId _typeId,
-                  const components::BaseComponent *_data);
 
       /// \brief Get a component assigned to an entity based on a
       /// component type.
@@ -328,23 +316,6 @@ namespace gz
               const typename ComponentTypeT::Type &_default =
                   typename ComponentTypeT::Type());
 
-      /// \brief Get a component assigned to an entity based on a
-      /// component type ID.
-      /// \param[in] _entity The entity.
-      /// \param[in] _type ID of the component type.
-      /// \return The component of the specified type assigned to specified
-      /// Entity, or nullptr if the component could not be found.
-      private: const components::BaseComponent *Component(const Entity _entity,
-                  const ComponentTypeId _type) const;
-
-      /// \brief Get a mutable component assigned to an entity based on a
-      /// component type ID.
-      /// \param[in] _entity The entity.
-      /// \param[in] _type ID of the component type.
-      /// \return The component of the specified type assigned to specified
-      /// Entity, or nullptr if the component could not be found.
-      private: components::BaseComponent *Component(const Entity _entity,
-                  const ComponentTypeId _type);
 
       /// \brief Get the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.

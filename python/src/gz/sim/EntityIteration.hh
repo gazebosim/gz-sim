@@ -41,14 +41,14 @@ class ECMPythonAccessor
       const gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity, gz::sim::ComponentTypeId _typeId)
   {
-    return _ecm.Component(_entity, _typeId);
+    return _ecm.ComponentImplementation(_entity, _typeId);
   }
 
   public: static gz::sim::components::BaseComponent *Component(
       gz::sim::EntityComponentManager &_ecm, const gz::sim::Entity &_entity,
       gz::sim::ComponentTypeId _typeId)
   {
-    return _ecm.Component(_entity, _typeId);
+    return _ecm.ComponentImplementation(_entity, _typeId);
   }
 
 

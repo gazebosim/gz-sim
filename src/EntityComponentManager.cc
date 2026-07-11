@@ -1020,20 +1020,6 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
 }
 
 /////////////////////////////////////////////////
-const components::BaseComponent *EntityComponentManager::Component(
-    const Entity _entity, const ComponentTypeId _type) const
-{
-  return this->ComponentImplementation(_entity, _type);
-}
-
-/////////////////////////////////////////////////
-components::BaseComponent *EntityComponentManager::Component(
-    const Entity _entity, const ComponentTypeId _type)
-{
-  return this->ComponentImplementation(_entity, _type);
-}
-
-/////////////////////////////////////////////////
 void EntityComponentManager::EntitiesByComponentIds(
     const std::vector<ComponentTypeId> &_types,
     std::function<void(Entity,
