@@ -2,25 +2,25 @@
 <sdf version="1.11">
   <world name="genesis_world">
 
-    <!-- <physics name="1ms" type="ignored"> -->
-    <!--     <max_step_size>0.010</max_step_size> -->
-    <!--     <real_time_factor>0.0</real_time_factor> -->
-    <!-- </physics> -->
+    <physics name="1ms" type="ignored">
+        <max_step_size>0.010</max_step_size>
+        <real_time_factor>0.0</real_time_factor>
+    </physics>
     <gz:policies>
       <include_server_config_plugins>false</include_server_config_plugins>
     </gz:policies>
     <!---->
-    <!-- <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader"> -->
-    <!--   <module_name>genesis_physics</module_name> -->
-    <!--   <backend>cpu</backend> -->
-    <!--   <ecm_update_rate>30</ecm_update_rate> -->
-    <!-- </plugin> -->
-
-
     <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader">
-      <module_name>newton_physics</module_name>
-      <ecm_update_rate>60</ecm_update_rate>
+      <module_name>genesis_physics</module_name>
+      <backend>cpu</backend>
+      <ecm_update_rate>30</ecm_update_rate>
     </plugin>
+
+
+    <!-- <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader"> -->
+    <!--   <module_name>newton_physics</module_name> -->
+    <!--   <ecm_update_rate>60</ecm_update_rate> -->
+    <!-- </plugin> -->
     
     <plugin
       filename="gz-sim-user-commands-system"

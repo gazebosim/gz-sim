@@ -4,6 +4,7 @@ from gz.math import Vector3d, Pose3d
 import sdformat as sdf
 import time
 import logging
+import numpy as np
 import sys
 import os
 
@@ -378,60 +379,92 @@ class NewtonPhysics:
             self._check_profile()
             return
             
+        # Group simulated links by model
+        model_simulated_links = {}
+        for link_entity, cache in self.newton_caches.items():
+            model_entity = cache['model_entity']
+            if model_entity not in model_simulated_links:
+                model_simulated_links[model_entity] = []
+            model_simulated_links[model_entity].append(link_entity)
+
         model_pose_map = {}
         for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):
             model_pose_map[entity] = model_pose_comp
             
-        for link_entity, (link_pose_comp,) in _ecm.each([components.Pose]):
-            cache = self.newton_caches.get(link_entity)
-            if not cache:
-                continue
-                
-            ref_link_entity = cache['ref_link_entity']
-            model_entity = cache['model_entity']
+        link_pose_map = {}
+        for entity, (link_pose_comp,) in _ecm.each([components.Pose]):
+            link_pose_map[entity] = link_pose_comp
             
-            if link_entity not in self.entity_map:
+        for model_entity, links in model_simulated_links.items():
+            model_pose_comp = model_pose_map.get(model_entity)
+            if not model_pose_comp:
                 continue
                 
-            link_index = self.entity_map[link_entity]
+            ref_link_entity = self.newton_caches[links[0]]['ref_link_entity']
+            if ref_link_entity not in self.entity_map:
+                continue
+                
             ref_link_index = self.entity_map[ref_link_entity]
-            
             if len(body_q.shape) == 2:
-                link_pos = body_q[link_index][:3]
-                link_quat = body_q[link_index][3:]
-                
                 ref_pos = body_q[ref_link_index][:3]
                 ref_quat = body_q[ref_link_index][3:]
             else:
-                base_idx = link_index * 7
                 ref_idx = ref_link_index * 7
-                
-                if base_idx + 6 >= len(body_q) or ref_idx + 6 >= len(body_q):
+                if ref_idx + 6 >= len(body_q):
                     continue
-                    
-                link_pos = body_q[base_idx:base_idx+3]
-                link_quat = body_q[base_idx+3:base_idx+7]
-                
                 ref_pos = body_q[ref_idx:ref_idx+3]
                 ref_quat = body_q[ref_idx+3:ref_idx+7]
-            
-            # Compute relative position for Gazebo
-            rel_pos = (link_pos[0] - ref_pos[0], link_pos[1] - ref_pos[1], link_pos[2] - ref_pos[2])
-            
-            link_pose_comp.pos().set(rel_pos[0], rel_pos[1], rel_pos[2])
-            
-            if link_entity == ref_link_entity:
-                model_pose_comp = model_pose_map.get(model_entity)
-                if model_pose_comp:
-                    model_pose_comp.pos().set(ref_pos[0], ref_pos[1], ref_pos[2])
-                    model_pose_comp.rot().set(link_quat[3], link_quat[0], link_quat[1], link_quat[2])
-                    _ecm.set_changed(model_entity, components.Pose.type_id, ComponentState.PeriodicChange)
-                    
-                link_pose_comp.rot().set(1.0, 0.0, 0.0, 0.0)
-            else:
-                link_pose_comp.rot().set(1.0, 0.0, 0.0, 0.0)
                 
-            _ecm.set_changed(link_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+            ref_q_C = gz.math.Quaterniond(ref_quat[3], ref_quat[0], ref_quat[1], ref_quat[2])
+            
+            # Canonical link relative pose in model frame
+            ref_pose_in_model = link_pose_map.get(ref_link_entity)
+            if not ref_pose_in_model:
+                continue
+            p_MC = ref_pose_in_model.pos()
+            q_MC = ref_pose_in_model.rot()
+            
+            # Model orientation: q_M = q_C * q_MC^-1
+            q_M = ref_q_C * q_MC.inverse()
+            
+            # Model world position: p_M = p_C - q_M * p_MC
+            p_MC_world = q_M * gz.math.Vector3d(p_MC.x(), p_MC.y(), p_MC.z())
+            p_M = ref_pos - np.array([p_MC_world.x(), p_MC_world.y(), p_MC_world.z()])
+            
+            # Update model pose in Gazebo
+            model_pose_comp.pos().set(p_M[0], p_M[1], p_M[2])
+            model_pose_comp.rot().set(q_M.w(), q_M.x(), q_M.y(), q_M.z())
+            _ecm.set_changed(model_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+            
+            # Update all other non-canonical links' relative poses
+            for l in links:
+                if l == ref_link_entity:
+                    continue
+                if l not in self.entity_map:
+                    continue
+                link_index = self.entity_map[l]
+                if len(body_q.shape) == 2:
+                    link_pos = body_q[link_index][:3]
+                    link_quat = body_q[link_index][3:]
+                else:
+                    base_idx = link_index * 7
+                    if base_idx + 6 >= len(body_q):
+                        continue
+                    link_pos = body_q[base_idx:base_idx+3]
+                    link_quat = body_q[base_idx+3:base_idx+7]
+                    
+                q_L = gz.math.Quaterniond(link_quat[3], link_quat[0], link_quat[1], link_quat[2])
+                
+                rel_pos_world = gz.math.Vector3d(link_pos[0] - p_M[0], link_pos[1] - p_M[1], link_pos[2] - p_M[2])
+                rel_pos_model = q_M.inverse() * rel_pos_world
+                
+                rel_rot_model = q_M.inverse() * q_L
+                
+                link_pose_comp = link_pose_map.get(l)
+                if link_pose_comp:
+                    link_pose_comp.pos().set(rel_pos_model.x(), rel_pos_model.y(), rel_pos_model.z())
+                    link_pose_comp.rot().set(rel_rot_model.w(), rel_rot_model.x(), rel_rot_model.y(), rel_rot_model.z())
+                    _ecm.set_changed(l, components.Pose.type_id, ComponentState.PeriodicChange)
             
         self.profile_data['ecm'] += time.perf_counter() - t_e0
         self.profile_data['ecm_count'] += 1

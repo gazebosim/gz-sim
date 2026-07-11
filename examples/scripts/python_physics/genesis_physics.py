@@ -4,11 +4,18 @@ from gz.sim import Model, World, Link, components, ComponentState
 from gz.math import Vector3d, Pose3d
 import sdformat as sdf
 from genesis.options.solvers import SimOptions
+from genesis.options.profiling import ProfilingOptions
 import time
 import logging
+import numpy as np
 import sys
 import os
 import shutil
+
+def to_numpy(val):
+    if hasattr(val, 'cpu'):
+        return val.cpu().numpy()
+    return np.array(val)
 
 class GenesisPhysics:
     def __init__(self):
@@ -17,6 +24,11 @@ class GenesisPhysics:
         self.genesis_caches = {}
         self.ecm_update_rate = 0.0
         self.last_component_update_time = 0.0
+        self.profile_data = {
+            'solver': 0.0,
+            'total': 0.0,
+            'count': 0,
+        }
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("GenesisPhysics configure method called")
@@ -48,12 +60,13 @@ class GenesisPhysics:
         orig_exe = sys.executable
         sys.executable = detected_python
         try:
-            gs.init(backend=backend, logging_level=logging.INFO, performance_mode=False)
+            gs.init(backend=backend, logging_level=logging.INFO, performance_mode=True)
         finally:
             sys.executable = orig_exe
         
         sim_options = SimOptions(dt=dt)
-        self.scene = gs.Scene(sim_options=sim_options, show_viewer=True)
+        profiling_options = ProfilingOptions(show_FPS=False)
+        self.scene = gs.Scene(sim_options=sim_options, show_viewer=False, profiling_options=profiling_options)
         
         # 3. Parse scene geometry from ECM by iterating on Collision entities
         seen_links = set()
@@ -144,11 +157,14 @@ class GenesisPhysics:
             print(f"Attached GenesisLinkCache internally to link {link_entity}: ref_link={ref_link_entity}, model={model_entity}")
 
     def update(self, _info, _ecm):
+        t_t0 = time.perf_counter()
         if _info.paused:
             return
             
-        self.scene.step()
-        
+        t_s0 = time.perf_counter()
+        self.scene.step(update_visualizer=False, refresh_visualizer=False)
+        self.profile_data['solver'] += time.perf_counter() - t_s0
+
         # Rate limiting
         should_update_ecm = True
         if self.ecm_update_rate > 0.0:
@@ -161,48 +177,91 @@ class GenesisPhysics:
         if not should_update_ecm:
             return
             
-        # 1. Build map of model_entity -> Pose_component
+        # Group simulated links by model
+        model_simulated_links = {}
+        for link_entity, cache in self.genesis_caches.items():
+            model_entity = cache['model_entity']
+            if model_entity not in model_simulated_links:
+                model_simulated_links[model_entity] = []
+            model_simulated_links[model_entity].append(link_entity)
+
         model_pose_map = {}
         for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):
             model_pose_map[entity] = model_pose_comp
             
-        # 2. Iterate over links with GenesisLinkCache internally
-        for link_entity, (link_pose_comp,) in _ecm.each([components.Pose]):
-            cache = self.genesis_caches.get(link_entity)
-            if not cache:
+        link_pose_map = {}
+        for entity, (link_pose_comp,) in _ecm.each([components.Pose]):
+            link_pose_map[entity] = link_pose_comp
+            
+        for model_entity, links in model_simulated_links.items():
+            model_pose_comp = model_pose_map.get(model_entity)
+            if not model_pose_comp:
                 continue
-            
-            ref_link_entity = cache['ref_link_entity']
-            model_entity = cache['model_entity']
-            
-            gen_entity = self.entity_map.get(link_entity)
+                
+            ref_link_entity = self.genesis_caches[links[0]]['ref_link_entity']
             ref_gen_entity = self.entity_map.get(ref_link_entity)
-            
-            if not gen_entity or not ref_gen_entity:
+            if not ref_gen_entity:
                 continue
                 
-            ref_pos = ref_gen_entity.get_pos()
-            link_pos = gen_entity.get_pos()
+            ref_pos = to_numpy(ref_gen_entity.get_pos())
+            quat = to_numpy(ref_gen_entity.get_quat())
+            ref_q_C = gz.math.Quaterniond(quat[0], quat[1], quat[2], quat[3])
             
-            rel_pos = (link_pos[0] - ref_pos[0], link_pos[1] - ref_pos[1], link_pos[2] - ref_pos[2])
+            # Canonical link relative pose in model frame
+            ref_pose_in_model = link_pose_map.get(ref_link_entity)
+            if not ref_pose_in_model:
+                continue
+            p_MC = ref_pose_in_model.pos()
+            q_MC = ref_pose_in_model.rot()
             
-            link_pose_comp.pos().set(rel_pos[0], rel_pos[1], rel_pos[2])
+            # Model orientation: q_M = q_C * q_MC^-1
+            q_M = ref_q_C * q_MC.inverse()
             
-            quat = gen_entity.get_quat()
+            # Model world position: p_M = p_C - q_M * p_MC
+            p_MC_world = q_M * gz.math.Vector3d(p_MC.x(), p_MC.y(), p_MC.z())
+            p_M = ref_pos - np.array([p_MC_world.x(), p_MC_world.y(), p_MC_world.z()])
             
-            if link_entity == ref_link_entity:
-                model_pose_comp = model_pose_map.get(model_entity)
-                if model_pose_comp:
-                    model_pose_comp.pos().set(ref_pos[0], ref_pos[1], ref_pos[2])
-                    model_pose_comp.rot().set(quat[0], quat[1], quat[2], quat[3])
-                    _ecm.set_changed(model_entity, components.Pose.type_id, ComponentState.PeriodicChange)
-                    
-                link_pose_comp.rot().set(1.0, 0.0, 0.0, 0.0)
-            else:
-                # For non-reference links, assume identity rotation relative to model for now
-                link_pose_comp.rot().set(1.0, 0.0, 0.0, 0.0)
+            # Update model pose in Gazebo
+            model_pose_comp.pos().set(p_M[0], p_M[1], p_M[2])
+            model_pose_comp.rot().set(q_M.w(), q_M.x(), q_M.y(), q_M.z())
+            _ecm.set_changed(model_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+            
+            # Update all other non-canonical links' relative poses
+            for l in links:
+                if l == ref_link_entity:
+                    continue
+                gen_entity = self.entity_map.get(l)
+                if not gen_entity:
+                    continue
+                link_pos = to_numpy(gen_entity.get_pos())
+                link_quat = to_numpy(gen_entity.get_quat())
+                q_L = gz.math.Quaterniond(link_quat[0], link_quat[1], link_quat[2], link_quat[3])
                 
-            _ecm.set_changed(link_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+                rel_pos_world = gz.math.Vector3d(link_pos[0] - p_M[0], link_pos[1] - p_M[1], link_pos[2] - p_M[2])
+                rel_pos_model = q_M.inverse() * rel_pos_world
+                
+                rel_rot_model = q_M.inverse() * q_L
+                
+                link_pose_comp = link_pose_map.get(l)
+                if link_pose_comp:
+                    link_pose_comp.pos().set(rel_pos_model.x(), rel_pos_model.y(), rel_pos_model.z())
+                    link_pose_comp.rot().set(rel_rot_model.w(), rel_rot_model.x(), rel_rot_model.y(), rel_rot_model.z())
+                    _ecm.set_changed(l, components.Pose.type_id, ComponentState.PeriodicChange)
+        self.profile_data['total'] += time.perf_counter() - t_t0
+        self.profile_data['count'] += 1
+        # self._check_profile()
 
+        return
+
+    def _check_profile(self):
+        if self.profile_data['count'] >= 100:
+            count = self.profile_data['count']
+            print(f"--- Profile (avg over {count} steps) ---")
+            print(f"  Solver: {self.profile_data['solver']/count*1000:.3f} ms/step")
+            print(f"  Total: {self.profile_data['total']/count*1000:.3f} ms/step")
+            # Reset
+            self.profile_data['solver'] = 0.0
+            self.profile_data['total'] = 0.0
+            self.profile_data['count'] = 0
 def get_system():
     return GenesisPhysics()

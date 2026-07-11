@@ -22,6 +22,14 @@ class PBDPhysics:
         self.pbd_entities = {}
         self.constraints = {}
         self.last_component_update_time = 0.0
+        self.profile_data = {
+            'external': 0.0,
+            'broadphase': 0.0,
+            'constraints': 0.0,
+            'updates': 0.0,
+            'total': 0.0,
+            'count': 0,
+        }
 
     def configure(self, _entity, _sdf, _ecm, _event_mgr):
         print("PBDPhysics configure method called")
@@ -161,6 +169,7 @@ class PBDPhysics:
                             }
                             print(f"Created DISTANCE constraint between link {parent_name} and {child_name}")
 
+
     def resolve_sphere_sphere(self, obj1, obj2):
         delta_pos = obj1['predicted_position'] - obj2['predicted_position']
         dist = np.linalg.norm(delta_pos)
@@ -179,18 +188,23 @@ class PBDPhysics:
             obj2['predicted_position'] -= correction_vector * obj2['inv_mass']
 
     def update(self, _info, _ecm):
+        t_t0 = time.perf_counter()
         dt = _info.dt.total_seconds()
         if dt == 0:
             return
 
         # Phase 1: External Forces (Gravity)
+        t_e0 = time.perf_counter()
         for entity, data in self.pbd_entities.items():            
             if data['inv_mass'] == 0:
                 continue
             data['velocity'] += GRAVITY * dt
             data['predicted_position'] = data['position'] + data['velocity'] * dt
+        self.profile_data['external'] += time.perf_counter() - t_e0
         
         # --- OPTIMIZATION: Broad-phase ONCE per step ---
+        t_b0 = time.perf_counter()
+
         self.broadphase.clear()
         pbd_entities = {}
         for entity, data in self.pbd_entities.items():
@@ -212,9 +226,11 @@ class PBDPhysics:
             self.broadphase.add(entity, aabb_min, aabb_max)
 
         candidate_pairs = self.broadphase.get_candidate_pairs()
+        self.profile_data['broadphase'] += time.perf_counter() - t_b0
         # -----------------------------------------------
 
         # Phase 2: Constraint Resolution
+        t_c0 = time.perf_counter()
         for i in range(PBD_ITERATIONS):
             # Ground Collision
             for entity, data in self.pbd_entities.items():
@@ -268,7 +284,10 @@ class PBDPhysics:
                         obj1['predicted_position'] += correction * obj1['inv_mass']
                         obj2['predicted_position'] -= correction * obj2['inv_mass']
 
+        self.profile_data['constraints'] += time.perf_counter() - t_c0
+
         # Phase 3: Update Positions and Velocities
+        t_u0 = time.perf_counter()
         for entity, data in self.pbd_entities.items():
             if data['inv_mass'] == 0:
                 continue
@@ -279,15 +298,95 @@ class PBDPhysics:
         current_time = time.monotonic()
         if current_time - self.last_component_update_time >= 1.0 / 60.0:
             self.last_component_update_time = current_time
-            for entity, (world_pose,) in _ecm.each([components.Pose]):
-                data = self.pbd_entities.get(entity)
-                if not data or data['inv_mass'] == 0:
-                    continue
+            # Group simulated links by model
+            model_simulated_links = {}
+            for link_entity, data in self.pbd_entities.items():
+                model_entity = data["model_entity"]
+                if model_entity:
+                    if model_entity not in model_simulated_links:
+                        model_simulated_links[model_entity] = []
+                    model_simulated_links[model_entity].append(link_entity)
+
+            model_pose_map = {}
+            for entity, (_, model_pose_comp) in _ecm.each([components.Model, components.Pose]):
+                model_pose_map[entity] = model_pose_comp
                 
-                # Use cached model_pos!
-                relative_pos = data['position'] - data.get('model_pos', np.array([0.0, 0.0, 0.0]))
-                        
-                world_pose.pos().set(relative_pos[0], relative_pos[1], relative_pos[2])
-                _ecm.set_changed(entity, components.Pose.type_id, ComponentState.PeriodicChange)
+            link_pose_map = {}
+            for entity, (link_pose_comp,) in _ecm.each([components.Pose]):
+                link_pose_map[entity] = link_pose_comp
+                
+            for model_entity, links in model_simulated_links.items():
+                model_pose_comp = model_pose_map.get(model_entity)
+                if not model_pose_comp:
+                    continue
+                    
+                # Find canonical link
+                canonical_link = None
+                for l in links:
+                    if _ecm.component(l, components.CanonicalLink):
+                        canonical_link = l
+                        break
+                if not canonical_link:
+                    canonical_link = links[0]
+                    
+                canonical_data = self.pbd_entities.get(canonical_link)
+                if not canonical_data:
+                    continue
+                p_C = canonical_data['position']
+                
+                # Canonical link relative pose in model frame (stored in link's Pose component)
+                ref_pose_in_model = link_pose_map.get(canonical_link)
+                if not ref_pose_in_model:
+                    continue
+                p_MC = ref_pose_in_model.pos()
+                
+                # Model orientation (we keep current rotation, as PBD doesn't simulate rot)
+                q_M = model_pose_comp.rot()
+                
+                # Model world position: p_M = p_C - q_M * p_MC
+                p_MC_world = q_M * gz.math.Vector3d(p_MC.x(), p_MC.y(), p_MC.z())
+                p_M = p_C - np.array([p_MC_world.x(), p_MC_world.y(), p_MC_world.z()])
+                
+                # Update model position component
+                model_pose_comp.pos().set(p_M[0], p_M[1], p_M[2])
+                _ecm.set_changed(model_entity, components.Pose.type_id, ComponentState.PeriodicChange)
+                
+                # Update all other non-canonical links' relative positions
+                for l in links:
+                    if l == canonical_link:
+                        continue
+                    link_data = self.pbd_entities.get(l)
+                    if not link_data:
+                        continue
+                    p_L = link_data['position']
+                    
+                    rel_pos_world = gz.math.Vector3d(p_L[0] - p_M[0], p_L[1] - p_M[1], p_L[2] - p_M[2])
+                    rel_pos_model = q_M.inverse() * rel_pos_world
+                    
+                    link_pose_comp = link_pose_map.get(l)
+                    if link_pose_comp:
+                        link_pose_comp.pos().set(rel_pos_model.x(), rel_pos_model.y(), rel_pos_model.z())
+                        _ecm.set_changed(l, components.Pose.type_id, ComponentState.PeriodicChange)
+        self.profile_data['updates'] += time.perf_counter() - t_u0
+        self.profile_data['total'] += time.perf_counter() - t_t0
+        self.profile_data['count'] += 1
+        self._check_profile()
+
+    def _check_profile(self):
+        if self.profile_data['count'] >= 100:
+            count = self.profile_data['count']
+            print(f"--- Profile (avg over {count} steps) ---")
+            print(f"  External Forces: {self.profile_data['external']/count*1000:.3f} ms/step")
+            print(f"  Broadphase: {self.profile_data['broadphase']/count*1000:.3f} ms/step")
+            print(f"  Constraints: {self.profile_data['constraints']/count*1000:.3f} ms/step")
+            print(f"  Updates: {self.profile_data['updates']/count*1000:.3f} ms/step")
+            print(f"  Total: {self.profile_data['total']/count*1000:.3f} ms/step")
+            # Reset
+            self.profile_data['external'] = 0.0
+            self.profile_data['broadphase'] = 0.0
+            self.profile_data['updates'] = 0.0
+            self.profile_data['constraints'] = 0.0
+            self.profile_data['total'] = 0.0
+            self.profile_data['count'] = 0
 def get_system():
     return PBDPhysics()

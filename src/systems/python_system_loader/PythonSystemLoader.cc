@@ -20,6 +20,7 @@
 #include <pybind11/stl.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <memory>
 #include <sdf/Element.hh>
@@ -199,6 +200,7 @@ void PythonSystemLoader::CallPythonMethod(py::object _method, Args &&..._args)
 void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
                                    EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("PythonSystemLoader::PreUpdate");
   (void)_ecm;
   if (!this->preUpdateMethod)
     return;
@@ -219,6 +221,7 @@ void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
 void PythonSystemLoader::Update(const UpdateInfo &_info,
                                 EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("PythonSystemLoader::Update");
   (void)_ecm;
   if (!this->updateMethod)
     return;
@@ -236,6 +239,7 @@ void PythonSystemLoader::Update(const UpdateInfo &_info,
 void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
                                     const EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("PythonSystemLoader::PostUpdate");
   if (!this->postUpdateMethod)
     return;
 
@@ -257,6 +261,7 @@ void PythonSystemLoader::PostUpdate(const UpdateInfo &_info,
 void PythonSystemLoader::Reset(const UpdateInfo &_info,
                                EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("PythonSystemLoader::Reset");
   (void)_ecm;
   if (!this->resetMethod)
     return;
