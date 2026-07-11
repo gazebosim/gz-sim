@@ -208,7 +208,10 @@ void PythonSystemLoader::PreUpdate(const UpdateInfo &_info,
     this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
   }
 
-
+  // Add explicit scoped acquire and release of GIL, so that Python
+  // Systems can be executed.This acquire and release is only required
+  // from the PythonSystem code
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->preUpdateMethod, this->pyInfo, this->pyEcm);
 }
 
@@ -225,7 +228,7 @@ void PythonSystemLoader::Update(const UpdateInfo &_info,
     this->pyInfo = py::cast(&_info, py::return_value_policy::reference);
   }
 
-
+  py::gil_scoped_acquire gil;
   CallPythonMethod(this->updateMethod, this->pyInfo, this->pyEcm);
 }
 
@@ -267,8 +270,6 @@ void PythonSystemLoader::Reset(const UpdateInfo &_info,
   CallPythonMethod(this->resetMethod, this->pyInfo, this->pyEcm);
 }
 
-// GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
-//               ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN(PythonSystemLoader, System, ISystemConfigure, ISystemPreUpdate,
-              ISystemUpdate, ISystemReset)
+              ISystemUpdate, ISystemPostUpdate, ISystemReset)
 GZ_ADD_PLUGIN_ALIAS(PythonSystemLoader, "gz::sim::systems::PythonSystemLoader")
