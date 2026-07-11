@@ -81,7 +81,7 @@ void PythonSystemLoader::Configure(
   }
   catch (const pybind11::error_already_set &_err)
   {
-    gzerr << "Error while loading required modules:\n"
+    gzerr << "Error while loading required modules gz.sim and sdformat:\n"
           << _err.what() << std::endl;
     return;
   }
