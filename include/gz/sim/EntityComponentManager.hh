@@ -26,22 +26,21 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <type_traits>
 #include <typeinfo>
-#include <unordered_map>
+#include <type_traits>
 #include <unordered_set>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include <gz/common/Console.hh>
 #include <gz/math/graph/Graph.hh>
-
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
 #ifndef ENTT_ID_TYPE
-  #define ENTT_ID_TYPE uint64_t
+#  define ENTT_ID_TYPE uint64_t
 #endif
 // Entt generates a lot of switch with no default statement warnings
 #pragma GCC diagnostic push

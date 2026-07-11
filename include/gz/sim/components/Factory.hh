@@ -30,7 +30,6 @@
 #include <gz/common/SingletonT.hh>
 #include <gz/common/Util.hh>
 #include <gz/sim/components/Component.hh>
-#include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
@@ -44,8 +43,6 @@
 #pragma GCC diagnostic ignored "-Wswitch-default"
 #include <gz/sim/entt/entity/registry.hpp>
 #pragma GCC diagnostic pop
-
-
 
 namespace gz
 {

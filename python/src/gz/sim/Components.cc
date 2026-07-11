@@ -23,7 +23,6 @@
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/python/ComponentPybindRegistry.hh>
-#include "EntityIteration.hh"
 
 namespace py = pybind11;
 namespace gz
@@ -39,10 +38,6 @@ struct ComponentType
   std::string name;
   gz::sim::ComponentTypeId typeId;
 };
-
-
-
-
 
 
 /////////////////////////////////////////////////

@@ -45,7 +45,11 @@ namespace traits
   struct HasEqualityOperator : std::false_type {};
 
   template <typename T>
-  struct HasEqualityOperator<T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>> : std::true_type {};
+  struct HasEqualityOperator<
+      T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+      : std::true_type
+  {
+  };
 }
 
 //////////////////////////////////////////////////

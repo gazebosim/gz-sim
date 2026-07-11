@@ -33,14 +33,8 @@ namespace sim
 namespace python
 {
 
-
-
 class ECMPythonAccessor
 {
-
-
-
-
   public: static pybind11::list EachList(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
