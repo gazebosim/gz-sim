@@ -22,7 +22,7 @@
 #include <gz/sim/Types.hh>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/EntityComponentManager.hh>
-#include <gz/sim/detail/ComponentPybindRegistry.hh>
+#include <gz/sim/python/ComponentPybindRegistry.hh>
 #include "EntityIteration.hh"
 
 namespace py = pybind11;

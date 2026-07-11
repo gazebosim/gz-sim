@@ -44,7 +44,7 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/World.cc
   src/gz/sim/InstallationDirectories.cc
   src/gz/sim/Components.cc
-  src/gz/sim/ComponentDataWrapper.cc
+  src/gz/sim/PyComponents.cc
 )
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE

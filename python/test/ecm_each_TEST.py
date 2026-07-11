@@ -48,9 +48,20 @@ class EcmEachTest(unittest.TestCase):
         self.assertEqual(matches[0], (e1, "entity1", e2))
         
         # Test modifying component values
-        ecm.create_component(e1, name_type, "updated_entity1")
-        w1 = ecm.component(e1, name_type)
-        self.assertEqual(w1.data(), "updated_entity1")
+        # create_component just sets it, but we can also use set_component_data
+        changed = ecm.set_component_data(e1, name_type, "updated_entity1")
+        self.assertTrue(changed)
+        
+        # Test modifying component values again with the same data
+        changed = ecm.set_component_data(e1, name_type, "updated_entity1")
+        self.assertFalse(changed)
+        
+        # Test that skipping comparison always returns true
+        changed = ecm.set_component_data(e1, name_type, "updated_entity1", compare=False)
+        self.assertTrue(changed)
+
+        val = ecm.component(e1, name_type)
+        self.assertEqual(val, "updated_entity1")
         
         print("test_each passed!")
 

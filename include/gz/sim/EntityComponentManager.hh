@@ -286,7 +286,6 @@ namespace gz
                   const Entity _entity,
                   const ComponentTypeT &_data);
 
-
       /// \brief Get a component assigned to an entity based on a
       /// component type.
       /// \param[in] _entity The entity.
@@ -315,7 +314,6 @@ namespace gz
               ComponentTypeT *ComponentDefault(Entity _entity,
               const typename ComponentTypeT::Type &_default =
                   typename ComponentTypeT::Type());
-
 
       /// \brief Get the data from a component.
       /// * If the component type doesn't hold any data, this won't compile.

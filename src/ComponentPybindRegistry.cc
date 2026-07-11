@@ -15,7 +15,7 @@
  *
  */
 
-#include <gz/sim/detail/ComponentPybindRegistry.hh>
+#include <gz/sim/python/ComponentPybindRegistry.hh>
 
 namespace gz
 {

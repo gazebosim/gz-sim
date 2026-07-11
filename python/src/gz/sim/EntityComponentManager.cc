@@ -17,7 +17,7 @@
 #include <pybind11/stl.h>
 
 #include "EntityComponentManager.hh"
-#include "ComponentDataWrapper.hh"
+
 #include "EntityIteration.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Types.hh"
@@ -64,24 +64,23 @@ void defineSimEntityComponentManager(pybind11::object module)
           "component",
           [](gz::sim::EntityComponentManager &self,
              const gz::sim::Entity &_entity,
-             const py::object &_comp_type_proxy) -> ComponentDataWrapper *
+             const py::object &_comp_type_proxy) -> py::object
           {
             if (!py::hasattr(_comp_type_proxy, "type_id"))
             {
-              return nullptr;
+              return py::none();
             }
             auto type_id = py::cast<gz::sim::ComponentTypeId>(
                 _comp_type_proxy.attr("type_id"));
             
-            auto compBase = ECMPythonAccessor::Component(self, _entity, type_id);
-            if (!compBase)
+            auto getter = gz::sim::python::ComponentPybindRegistry::Instance()->Getter(type_id);
+            if (getter)
             {
-              return nullptr;
+              return getter(self, _entity);
             }
-            return new ComponentDataWrapper(&self, _entity, type_id);
+            return py::none();
           },
-          py::return_value_policy::take_ownership,
-          "Get a component data wrapper for an entity and component type if it exists.")
+          "Get the data of a component for an entity and component type if it exists.")
       .def("create_component", [](gz::sim::EntityComponentManager &self,
                                   const gz::sim::Entity &_entity,
                                   const py::object &_comp_type_proxy,
@@ -97,17 +96,36 @@ void defineSimEntityComponentManager(pybind11::object module)
              auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id);
              if (setter)
              {
-               setter(self, _entity, _data);
+               setter(self, _entity, _data, false);
              }
            },
            "Create a component for an entity with initial data.")
+      .def("set_component_data", [](gz::sim::EntityComponentManager &self,
+                                    const gz::sim::Entity &_entity,
+                                    const py::object &_comp_type_proxy,
+                                    const py::object &_data,
+                                    bool _compare) -> bool
+           {
+             if (!py::hasattr(_comp_type_proxy, "type_id"))
+             {
+               return false;
+             }
+             auto type_id = py::cast<gz::sim::ComponentTypeId>(
+                 _comp_type_proxy.attr("type_id"));
+             
+             auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id);
+             if (setter)
+             {
+               return setter(self, _entity, _data, _compare);
+             }
+             return false;
+           },
+           py::arg("entity"),
+           py::arg("comp_type"),
+           py::arg("data"),
+           py::arg("compare") = true,
+           "Set the data for an entity's component. If compare is True (default), only sets if data changed and returns True if changed.")
       .def("set_changed", &gz::sim::EntityComponentManager::SetChanged);
-
-  py::class_<ComponentDataWrapper>(module, "ComponentDataWrapper")
-      .def("data", &ComponentDataWrapper::Data)
-      .def("set_data", &ComponentDataWrapper::SetData)
-      .def_readonly("typeId", &ComponentDataWrapper::typeId)
-  ;
 }
 }  // namespace python
 }  // namespace sim

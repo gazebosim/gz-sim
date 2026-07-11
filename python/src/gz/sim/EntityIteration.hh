@@ -22,7 +22,7 @@
 
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Types.hh>
-#include <gz/sim/detail/ComponentPybindRegistry.hh>
+#include <gz/sim/python/ComponentPybindRegistry.hh>
 
 namespace py = pybind11;
 
@@ -37,19 +37,7 @@ namespace python
 
 class ECMPythonAccessor
 {
-  public: static const gz::sim::components::BaseComponent *Component(
-      const gz::sim::EntityComponentManager &_ecm,
-      const gz::sim::Entity &_entity, gz::sim::ComponentTypeId _typeId)
-  {
-    return _ecm.ComponentImplementation(_entity, _typeId);
-  }
 
-  public: static gz::sim::components::BaseComponent *Component(
-      gz::sim::EntityComponentManager &_ecm, const gz::sim::Entity &_entity,
-      gz::sim::ComponentTypeId _typeId)
-  {
-    return _ecm.ComponentImplementation(_entity, _typeId);
-  }
 
 
 

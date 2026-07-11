@@ -71,9 +71,10 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
       const gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity)>;
 
-  public: using SetterFn = std::function<void(gz::sim::EntityComponentManager &_ecm,
+  public: using SetterFn = std::function<bool(gz::sim::EntityComponentManager &_ecm,
                                               const gz::sim::Entity &_entity,
-                                              const pybind11::object &_obj)>;
+                                              const pybind11::object &_obj,
+                                              bool _compare)>;
 
   public: struct PybindDescriptor
   {
@@ -132,13 +133,16 @@ struct AddPybindGetterSetter
   /// \param[in] _ecm The EntityComponentManager.
   /// \param[in] _entity The Entity to write to.
   /// \param[in] _obj The python object to cast and write.
-  static void Setter(gz::sim::EntityComponentManager &_ecm,
+  /// \param[in] _compare If true, performs an equality check to only update if changed.
+  /// \return True if the component was created or modified.
+  static bool Setter(gz::sim::EntityComponentManager &_ecm,
                      const gz::sim::Entity &_entity,
-                     const pybind11::object &_obj)
+                     const pybind11::object &_obj,
+                     bool _compare)
   {
     if (_obj.is_none())
     {
-      return;
+      return false;
     }
     try
     {
@@ -148,14 +152,24 @@ struct AddPybindGetterSetter
       if (nullptr == comp)
       {
         _ecm.CreateComponent(_entity, T(data));
-        return;
+        return true;
       }
-      comp->Data() = data;
+      
+      if (_compare)
+      {
+        return comp->SetData(data, gz::sim::CompareData<typename T::Type>);
+      }
+      else
+      {
+        comp->Data() = data;
+        return true;
+      }
     }
     catch (const pybind11::cast_error &e)
     {
       std::cerr << "Failed to cast python object to component data type: "
                 << e.what() << std::endl;
+      return false;
     }
   }
 
