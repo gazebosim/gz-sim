@@ -86,17 +86,13 @@ void defineSimEntityComponentManager(pybind11::object module)
                                   const py::object &_comp_type_proxy,
                                   const py::object &_data)
            {
-             if (!py::hasattr(_comp_type_proxy, "type_id"))
+             if (py::hasattr(_comp_type_proxy, "type_id"))
              {
-               return;
-             }
-             auto type_id = py::cast<gz::sim::ComponentTypeId>(
-                 _comp_type_proxy.attr("type_id"));
-             
-             auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id);
-             if (setter)
-             {
-               setter(self, _entity, _data, false);
+               auto type_id = py::cast<gz::sim::ComponentTypeId>(_comp_type_proxy.attr("type_id"));
+               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id))
+               {
+                 setter(self, _entity, _data, false);
+               }
              }
            },
            "Create a component for an entity with initial data.")
@@ -106,17 +102,13 @@ void defineSimEntityComponentManager(pybind11::object module)
                                     const py::object &_data,
                                     bool _compare) -> bool
            {
-             if (!py::hasattr(_comp_type_proxy, "type_id"))
+             if (py::hasattr(_comp_type_proxy, "type_id"))
              {
-               return false;
-             }
-             auto type_id = py::cast<gz::sim::ComponentTypeId>(
-                 _comp_type_proxy.attr("type_id"));
-             
-             auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id);
-             if (setter)
-             {
-               return setter(self, _entity, _data, _compare);
+               auto type_id = py::cast<gz::sim::ComponentTypeId>(_comp_type_proxy.attr("type_id"));
+               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id))
+               {
+                 return setter(self, _entity, _data, _compare);
+               }
              }
              return false;
            },

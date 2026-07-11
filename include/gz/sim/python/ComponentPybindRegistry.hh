@@ -147,23 +147,19 @@ struct AddPybindGetterSetter
     try
     {
       auto data = pybind11::cast<typename T::Type>(_obj);
-      T *comp = _ecm.Component<T>(_entity);
+      if (_compare)
+      {
+        return _ecm.SetComponentData<T>(_entity, data);
+      }
 
+      T *comp = _ecm.Component<T>(_entity);
       if (nullptr == comp)
       {
         _ecm.CreateComponent(_entity, T(data));
         return true;
       }
-      
-      if (_compare)
-      {
-        return comp->SetData(data, gz::sim::CompareData<typename T::Type>);
-      }
-      else
-      {
-        comp->Data() = data;
-        return true;
-      }
+      comp->Data() = data;
+      return true;
     }
     catch (const pybind11::cast_error &e)
     {
