@@ -90,5 +90,51 @@ class EcmEachTest(unittest.TestCase):
         self.assertEqual(count, 2)
         print("test_each_static passed!")
 
+    def test_entity_lifecycle_apis(self):
+        name_type = gz.sim.components.Name
+        ecm = gz.sim.EntityComponentManager()
+
+        # 1. Create entities and test has_entity
+        e1 = ecm.create_entity()
+        e2 = ecm.create_entity()
+        self.assertTrue(ecm.has_entity(e1))
+        self.assertTrue(ecm.has_entity(e2))
+
+        # 2. Test parent_entity
+        self.assertEqual(ecm.parent_entity(e1), 0)
+
+        # 3. Test set_parent_entity and parent_entity
+        self.assertTrue(ecm.set_parent_entity(e1, e2))
+        self.assertEqual(ecm.parent_entity(e1), e2)
+
+        # 4. Test children
+        child_list = ecm.children(e2)
+        self.assertEqual(len(child_list), 1)
+        self.assertEqual(child_list[0], e1)
+
+        # 5. Test has_component_type
+        self.assertFalse(ecm.has_component_type(e1, name_type))
+        ecm.create_component(e1, name_type, "child_entity")
+        self.assertTrue(ecm.has_component_type(e1, name_type))
+
+        # 6. Test each_new
+        new_items = ecm.each_new([name_type])
+        self.assertEqual(len(new_items), 1)
+        self.assertEqual(new_items[0][0], e1)
+        self.assertEqual(new_items[0][1][0], "child_entity")
+
+        # 7. Test remove_component and has_component_type
+        self.assertTrue(ecm.remove_component(e1, name_type))
+        self.assertFalse(ecm.has_component_type(e1, name_type))
+
+        # 8. Test request_remove_entity and each_removed
+        ecm.create_component(e1, name_type, "to_be_deleted")
+        ecm.request_remove_entity(e1)
+        removed_items = ecm.each_removed([name_type])
+        self.assertEqual(len(removed_items), 1)
+        self.assertEqual(removed_items[0][0], e1)
+        self.assertEqual(removed_items[0][1][0], "to_be_deleted")
+        print("test_entity_lifecycle_apis passed!")
+
 if __name__ == '__main__':
     unittest.main()
