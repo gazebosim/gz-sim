@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -32,6 +33,29 @@ namespace sim
 namespace python
 {
 
+static std::vector<gz::sim::ComponentTypeId> parseComponentTypes(const pybind11::list &_comp_types)
+{
+  std::vector<gz::sim::ComponentTypeId> types;
+  types.reserve(_comp_types.size());
+  for (auto item : _comp_types)
+  {
+    if (pybind11::hasattr(item, "type_id"))
+    {
+      types.push_back(pybind11::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
+    }
+  }
+  return types;
+}
+
+static std::optional<gz::sim::ComponentTypeId> getTypeId(const pybind11::object &_comp_type_proxy)
+{
+  if (pybind11::hasattr(_comp_type_proxy, "type_id"))
+  {
+    return pybind11::cast<gz::sim::ComponentTypeId>(_comp_type_proxy.attr("type_id"));
+  }
+  return std::nullopt;
+}
+
 /////////////////////////////////////////////////
 void defineSimEntityComponentManager(pybind11::object module)
 {
@@ -42,55 +66,39 @@ void defineSimEntityComponentManager(pybind11::object module)
 
   py::class_<gz::sim::EntityComponentManager,
              std::shared_ptr<gz::sim::EntityComponentManager>>(
-      module, "EntityComponentManager",
-      "The Entity Component Manager (ECM) manages entities and their "
-      "components "
-      "in the simulation.")
+       module, "EntityComponentManager",
+       "The Entity Component Manager (ECM) manages entities and their "
+       "components "
+       "in the simulation.")
       .def(py::init<>())
       .def("create_entity", &gz::sim::EntityComponentManager::CreateEntity)
       .def("each", [](gz::sim::EntityComponentManager &self, const py::list &comp_types)
            {
-             std::vector<gz::sim::ComponentTypeId> types;
-             for (auto item : comp_types)
-             {
-               if (py::hasattr(item, "type_id"))
-               {
-                 types.push_back(py::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
-               }
-             }
-             return ECMPythonAccessor::EachList(self, types);
+             return ECMPythonAccessor::EachList(self, parseComponentTypes(comp_types));
            },
            "Get all entities and components matching the query as a list at once.")
       .def(
-          "component",
-          [](gz::sim::EntityComponentManager &self,
-             const gz::sim::Entity &_entity,
-             const py::object &_comp_type_proxy) -> py::object
-          {
-            if (!py::hasattr(_comp_type_proxy, "type_id"))
-            {
-              return py::none();
-            }
-            auto type_id = py::cast<gz::sim::ComponentTypeId>(
-                _comp_type_proxy.attr("type_id"));
-            
-            auto getter = gz::sim::python::ComponentPybindRegistry::Instance()->Getter(type_id);
-            if (getter)
-            {
-              return getter(self, _entity);
-            }
-            return py::none();
-          },
-          "Get the data of a component for an entity and component type if it exists.")
+           "component",
+           [](gz::sim::EntityComponentManager &self,
+              const gz::sim::Entity &_entity,
+              const py::object &_comp_type_proxy) -> py::object
+           {
+             auto type_id = getTypeId(_comp_type_proxy);
+             if (!type_id)
+               return py::none();
+
+             auto getter = gz::sim::python::ComponentPybindRegistry::Instance()->Getter(*type_id);
+             return getter ? getter(self, _entity) : py::none();
+           },
+           "Get the data of a component for an entity and component type if it exists.")
       .def("create_component", [](gz::sim::EntityComponentManager &self,
                                   const gz::sim::Entity &_entity,
                                   const py::object &_comp_type_proxy,
                                   const py::object &_data)
            {
-             if (py::hasattr(_comp_type_proxy, "type_id"))
+             if (auto type_id = getTypeId(_comp_type_proxy))
              {
-               auto type_id = py::cast<gz::sim::ComponentTypeId>(_comp_type_proxy.attr("type_id"));
-               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id))
+               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(*type_id))
                {
                  setter(self, _entity, _data, false);
                }
@@ -103,10 +111,9 @@ void defineSimEntityComponentManager(pybind11::object module)
                                     const py::object &_data,
                                     bool _compare) -> bool
            {
-             if (py::hasattr(_comp_type_proxy, "type_id"))
+             if (auto type_id = getTypeId(_comp_type_proxy))
              {
-               auto type_id = py::cast<gz::sim::ComponentTypeId>(_comp_type_proxy.attr("type_id"));
-               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(type_id))
+               if (auto setter = gz::sim::python::ComponentPybindRegistry::Instance()->Setter(*type_id))
                {
                  return setter(self, _entity, _data, _compare);
                }
@@ -137,13 +144,8 @@ void defineSimEntityComponentManager(pybind11::object module)
                                   const gz::sim::Entity &_entity,
                                   const py::object &_comp_type_proxy) -> bool
            {
-             if (!py::hasattr(_comp_type_proxy, "type_id"))
-             {
-               return false;
-             }
-             auto type_id = py::cast<gz::sim::ComponentTypeId>(
-                 _comp_type_proxy.attr("type_id"));
-             return self.RemoveComponent(_entity, type_id);
+             auto type_id = getTypeId(_comp_type_proxy);
+             return type_id ? self.RemoveComponent(_entity, *type_id) : false;
            },
            py::arg("entity"), py::arg("comp_type"),
            "Remove a component from an entity.")
@@ -151,41 +153,20 @@ void defineSimEntityComponentManager(pybind11::object module)
                                      const gz::sim::Entity &_entity,
                                      const py::object &_comp_type_proxy) -> bool
            {
-             if (!py::hasattr(_comp_type_proxy, "type_id"))
-             {
-               return false;
-             }
-             auto type_id = py::cast<gz::sim::ComponentTypeId>(
-                 _comp_type_proxy.attr("type_id"));
-             return self.EntityHasComponentType(_entity, type_id);
+             auto type_id = getTypeId(_comp_type_proxy);
+             return type_id ? self.EntityHasComponentType(_entity, *type_id) : false;
            },
            py::arg("entity"), py::arg("comp_type"),
            "Check whether an entity has a specific component type.")
       .def("each_new", [](gz::sim::EntityComponentManager &self, const py::list &comp_types)
            {
-             std::vector<gz::sim::ComponentTypeId> types;
-             for (auto item : comp_types)
-             {
-               if (py::hasattr(item, "type_id"))
-               {
-                 types.push_back(py::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
-               }
-             }
-             return ECMPythonAccessor::EachNewList(self, types);
+             return ECMPythonAccessor::EachNewList(self, parseComponentTypes(comp_types));
            },
            py::arg("comp_types"),
            "Get all newly created entities and components matching the query as a list at once.")
       .def("each_removed", [](gz::sim::EntityComponentManager &self, const py::list &comp_types)
            {
-             std::vector<gz::sim::ComponentTypeId> types;
-             for (auto item : comp_types)
-             {
-               if (py::hasattr(item, "type_id"))
-               {
-                 types.push_back(py::cast<gz::sim::ComponentTypeId>(item.attr("type_id")));
-               }
-             }
-             return ECMPythonAccessor::EachRemovedList(self, types);
+             return ECMPythonAccessor::EachRemovedList(self, parseComponentTypes(comp_types));
            },
            py::arg("comp_types"),
            "Get all entities and components about to be removed matching the query as a list at once.");
@@ -193,4 +174,3 @@ void defineSimEntityComponentManager(pybind11::object module)
 }  // namespace python
 }  // namespace sim
 }  // namespace gz
-

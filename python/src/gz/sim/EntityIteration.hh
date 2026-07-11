@@ -78,7 +78,8 @@ class ECMPythonAccessor
     return result;
   }
 
-  public: static pybind11::list EachNewList(
+  private: template <typename TagType>
+  static pybind11::list EachListWithTag(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
   {
@@ -89,8 +90,8 @@ class ECMPythonAccessor
         std::remove_pointer_t<decltype(_ecm.Registry().storage(0))>;
     entt::basic_runtime_view<SparseSetType, std::allocator<SparseSetType *>> view;
 
-    auto &newStorage = _ecm.Registry().storage<gz::sim::NewEntity>();
-    view.iterate(newStorage);
+    auto &tagStorage = _ecm.Registry().storage<TagType>();
+    view.iterate(tagStorage);
 
     std::vector<SparseSetType *> storages;
     storages.reserve(_types.size());
@@ -136,62 +137,18 @@ class ECMPythonAccessor
     return result;
   }
 
+  public: static pybind11::list EachNewList(
+      gz::sim::EntityComponentManager &_ecm,
+      const std::vector<gz::sim::ComponentTypeId> &_types)
+  {
+    return EachListWithTag<gz::sim::NewEntity>(_ecm, _types);
+  }
+
   public: static pybind11::list EachRemovedList(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
   {
-    pybind11::list result;
-    auto registry = gz::sim::python::ComponentPybindRegistry::Instance();
-
-    using SparseSetType =
-        std::remove_pointer_t<decltype(_ecm.Registry().storage(0))>;
-    entt::basic_runtime_view<SparseSetType, std::allocator<SparseSetType *>> view;
-
-    auto &removeStorage = _ecm.Registry().storage<gz::sim::RemoveEntity>();
-    view.iterate(removeStorage);
-
-    std::vector<SparseSetType *> storages;
-    storages.reserve(_types.size());
-
-    for (auto typeId : _types)
-    {
-      auto *storage = _ecm.Registry().storage(typeId);
-      if (!storage)
-        return result;
-      view.iterate(*storage);
-      storages.push_back(storage);
-    }
-
-    for (auto entity : view)
-    {
-      pybind11::list py_components;
-      for (size_t i = 0; i < _types.size(); ++i)
-      {
-        auto *storage = storages[i];
-        auto compBase = static_cast<const components::BaseComponent *>(storage->value(entity));
-        if (compBase)
-        {
-          auto typeId = _types[i];
-          auto getter = registry->Getter(typeId);
-          if (getter)
-          {
-            py_components.append(getter(_ecm, entity));
-          }
-          else
-          {
-            py_components.append(pybind11::none());
-          }
-        }
-        else
-        {
-          py_components.append(pybind11::none());
-        }
-      }
-      result.append(
-          pybind11::make_tuple(pybind11::cast(entity), py_components));
-    }
-
-    return result;
+    return EachListWithTag<gz::sim::RemoveEntity>(_ecm, _types);
   }
 };
 
