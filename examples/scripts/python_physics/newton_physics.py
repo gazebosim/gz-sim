@@ -46,7 +46,7 @@ class NewtonPhysics:
         # 1. Retrieve dt from Physics component on world entity
         physics_comp = _ecm.component(_entity, components.Physics)
         if physics_comp:
-            self.sim_dt = physics_comp.data().max_step_size()
+            self.sim_dt = physics_comp.max_step_size()
             print(f"Retrieved dt from Physics component: {self.sim_dt}")
         else:
             print(f"Physics component not found, defaulting dt to: {self.sim_dt}")
@@ -89,7 +89,7 @@ class NewtonPhysics:
             
             if inertial_comp:
                 try:
-                    inertial_data = inertial_comp.data()
+                    inertial_data = inertial_comp
                     mass = inertial_data.mass()
                     moi = inertial_data.moi()
                     
@@ -207,7 +207,7 @@ class NewtonPhysics:
             axis_vec = wp.vec3(0.0, 0.0, 1.0) # Default axis
             axis_comp = _ecm.component(joint_entity, components.JointAxis)
             if axis_comp:
-                axis_data = axis_comp.data()
+                axis_data = axis_comp
                 try:
                     xyz = axis_data.xyz()
                     axis_vec = wp.vec3(xyz.x(), xyz.y(), xyz.z())
@@ -276,7 +276,7 @@ class NewtonPhysics:
         gravity_comp = _ecm.component(_entity, components.Gravity)
         if gravity_comp:
             try:
-                g = gravity_comp.data()
+                g = gravity_comp
                 self.model.set_gravity((g.x(), g.y(), g.z()))
                 print(f"Set Newton gravity from Gazebo: {g.x()}, {g.y()}, {g.z()}")
             except Exception as e:
@@ -299,7 +299,7 @@ class NewtonPhysics:
         for link_entity in self.entity_map.keys():
             parent_comp = _ecm.component(link_entity, components.ParentEntity)
             if parent_comp:
-                model_entity = parent_comp.data()
+                model_entity = parent_comp
                 if model_entity not in model_links:
                     model_links[model_entity] = []
                 model_links[model_entity].append(link_entity)

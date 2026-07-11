@@ -24,7 +24,7 @@ class GenesisPhysics:
         # 1. Retrieve dt from Physics component on world entity
         physics_comp = _ecm.component(_entity, components.Physics)
         if physics_comp:
-            dt = physics_comp.data().max_step_size()
+            dt = physics_comp.max_step_size()
             print(f"Retrieved dt from Physics component: {dt}")
         else:
             dt = 0.001 # Fallback if not found
@@ -65,7 +65,7 @@ class GenesisPhysics:
                 
             if parent_link_entity in seen_links:
                 name_comp = _ecm.component(parent_link_entity, components.Name)
-                name = name_comp.data() if name_comp else str(parent_link_entity)
+                name = name_comp if name_comp else str(parent_link_entity)
                 print(f"Link {name} has multiple collisions. Genesis only supports one per link in this mode. Ignoring this one.")
                 continue
                 
@@ -79,7 +79,7 @@ class GenesisPhysics:
             pos = (collision_world_pose.pos().x(), collision_world_pose.pos().y(), collision_world_pose.pos().z())
             
             name_comp = _ecm.component(parent_link_entity, components.Name)
-            name = name_comp.data() if name_comp else str(parent_link_entity)
+            name = name_comp if name_comp else str(parent_link_entity)
             
             if geom_data.type() == sdf.GeometryType.SPHERE:
                 radius = geom_data.sphere_shape().radius()
@@ -112,7 +112,7 @@ class GenesisPhysics:
         for parent_link_entity in self.entity_map.keys():
             parent_comp = _ecm.component(parent_link_entity, components.ParentEntity)
             if parent_comp:
-                model_entity = parent_comp.data()
+                model_entity = parent_comp
                 if model_entity not in model_simulated_links:
                     model_simulated_links[model_entity] = []
                 model_simulated_links[model_entity].append(parent_link_entity)
@@ -134,7 +134,7 @@ class GenesisPhysics:
         # Cache GenesisLinkCache internally to simulated links
         for link_entity in self.entity_map.keys():
             parent_comp = _ecm.component(link_entity, components.ParentEntity)
-            model_entity = parent_comp.data() if parent_comp else None
+            model_entity = parent_comp if parent_comp else None
             ref_link_entity = model_ref_links.get(model_entity)
             
             self.genesis_caches[link_entity] = {

@@ -37,13 +37,13 @@ class PBDPhysics:
                 model_pos = np.array([0.0, 0.0, 0.0])
                 
                 if parent_comp:
-                    parent_model = parent_comp.data()
+                    parent_model = parent_comp
                     is_static = Model(parent_model).static(_ecm)
                      
                     # Cache model position!
                     model_pose_comp = _ecm.component(parent_model, components.Pose)
                     if model_pose_comp:
-                        p = model_pose_comp.data().pos()
+                        p = model_pose_comp.pos()
                         model_pos = np.array([p.x(), p.y(), p.z()])
                 
                 inv_mass = 0.0 if is_static else 1.0
@@ -55,8 +55,8 @@ class PBDPhysics:
                 if collisions:
                     collision_entity = collisions[0]
                     base_comp = _ecm.component(collision_entity, components.Geometry)
-                    if base_comp and base_comp.data():
-                        geom_data = base_comp.data()
+                    if base_comp:
+                        geom_data = base_comp
                         if geom_data.type() == sdf.GeometryType.SPHERE:
                             shape_type = ShapeType.SPHERE.value
                             dimensions['radius'] = geom_data.sphere_shape().radius()
@@ -89,7 +89,7 @@ class PBDPhysics:
                     }
                     self.pbd_entities[link_entity] = pbd_data
                     name_comp = _ecm.component(link_entity, components.Name)
-                    name = name_comp.data() if name_comp else str(link_entity)
+                    name = name_comp if name_comp else str(link_entity)
                     print(f"Created PBD data for link: {name}")
 
         # 2. Create Distance and Fixed Constraints from Joints
