@@ -36,50 +36,8 @@ namespace python
 
 class ECMPythonAccessor
 {
-  public: static pybind11::list EachList(
-      gz::sim::EntityComponentManager &_ecm,
-      const std::vector<gz::sim::ComponentTypeId> &_types)
-  {
-    pybind11::list result;
-    auto registry = gz::sim::python::ComponentPybindRegistry::Instance();
-
-    auto callback =
-        [&](Entity entity,
-            const std::vector<const components::BaseComponent *> &compData)
-    {
-      pybind11::list py_components;
-      for (size_t i = 0; i < _types.size(); ++i)
-      {
-        auto compBase = compData[i];
-        if (compBase)
-        {
-          auto typeId = _types[i];
-          auto getter = registry->Getter(typeId);
-          if (getter)
-          {
-            py_components.append(getter(_ecm, entity));
-          }
-          else
-          {
-            py_components.append(pybind11::none());
-          }
-        }
-        else
-        {
-          py_components.append(pybind11::none());
-        }
-      }
-      result.append(
-          pybind11::make_tuple(pybind11::cast(entity), py_components));
-    };
-
-    _ecm.EntitiesByComponentIds(_types, callback);
-
-    return result;
-  }
-
-  private: template <typename TagType>
-  static pybind11::list EachListWithTag(
+  private: template <typename TagType = void>
+  static pybind11::list EachListImpl(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
   {
@@ -90,8 +48,11 @@ class ECMPythonAccessor
         std::remove_pointer_t<decltype(_ecm.Registry().storage(0))>;
     entt::basic_runtime_view<SparseSetType, std::allocator<SparseSetType *>> view;
 
-    auto &tagStorage = _ecm.Registry().storage<TagType>();
-    view.iterate(tagStorage);
+    if constexpr (!std::is_same_v<TagType, void>)
+    {
+      auto &tagStorage = _ecm.Registry().storage<TagType>();
+      view.iterate(tagStorage);
+    }
 
     std::vector<SparseSetType *> storages;
     storages.reserve(_types.size());
@@ -107,6 +68,12 @@ class ECMPythonAccessor
 
     for (auto entity : view)
     {
+      if constexpr (std::is_same_v<TagType, void>)
+      {
+        if (_ecm.IsMarkedForRemoval(entity))
+          continue;
+      }
+
       pybind11::list py_components;
       for (size_t i = 0; i < _types.size(); ++i)
       {
@@ -137,18 +104,25 @@ class ECMPythonAccessor
     return result;
   }
 
+  public: static pybind11::list EachList(
+      gz::sim::EntityComponentManager &_ecm,
+      const std::vector<gz::sim::ComponentTypeId> &_types)
+  {
+    return EachListImpl<void>(_ecm, _types);
+  }
+
   public: static pybind11::list EachNewList(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
   {
-    return EachListWithTag<gz::sim::NewEntity>(_ecm, _types);
+    return EachListImpl<gz::sim::NewEntity>(_ecm, _types);
   }
 
   public: static pybind11::list EachRemovedList(
       gz::sim::EntityComponentManager &_ecm,
       const std::vector<gz::sim::ComponentTypeId> &_types)
   {
-    return EachListWithTag<gz::sim::RemoveEntity>(_ecm, _types);
+    return EachListImpl<gz::sim::RemoveEntity>(_ecm, _types);
   }
 };
 

@@ -821,18 +821,6 @@ namespace gz
       /// \return Constant reference to the registry.
       private: const entt::basic_registry<Entity> &Registry() const;
 
-      /// \brief Get all entities and their components matching the given types.
-      /// \param[in] _types Component type IDs.
-      /// \param[in] _callback Callback function to be called for each matching
-      /// entity. It receives the entity and a vector of pointers to its
-      /// components in the order of _types.
-      /// \note This is a private method intended for use by Python bindings
-      /// to avoid allocations and C++ to Python overhead.
-      private: void EntitiesByComponentIds(
-          const std::vector<ComponentTypeId> &_types,
-          std::function<void(
-              Entity, const std::vector<const components::BaseComponent *> &)>
-              _callback) const;
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
 
