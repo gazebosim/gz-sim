@@ -46,7 +46,7 @@
       </link>
     </model>
 
-    <model name='vehicle' namespace="__name__">
+    <model name='vehicle' namespace="{name}">
       <link name="base_link">
         <collision name='collision'>
           <geometry>

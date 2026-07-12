@@ -38,7 +38,7 @@
         </visual>
       </link>
     </model>
-    <model name="relative_topics" namespace="__name___ns">
+    <model name="relative_topics" namespace="{name}_ns">
       <static>true</static>
       <pose>-6 2 2 0 0.5 0</pose>
       <link name="link">
@@ -86,7 +86,7 @@
       </link>
     </model>
 
-    <model name="absolute_topics" namespace="__name___ns">
+    <model name="absolute_topics" namespace="{name}_ns">
       <pose>20 0 0.5 0 0 0.0 </pose>
       <static>true</static>
       <link name="camera_link">
@@ -110,7 +110,7 @@
       </link>
     </model>
 
-    <model name="default_topics" namespace="__name___ns">
+    <model name="default_topics" namespace="{name}_ns">
       <pose>10 0 0.5 0 0 0.0 </pose>
       <static>true</static>
       <link name="camera_link">
