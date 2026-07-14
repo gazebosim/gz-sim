@@ -73,6 +73,7 @@ namespace systems
   class DetachableJoint
       : public System,
         public ISystemConfigure,
+        public ISystemReset,
         public ISystemPreUpdate
   {
     /// Documentation inherited
@@ -83,6 +84,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
     public: void PreUpdate(

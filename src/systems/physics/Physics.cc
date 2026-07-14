@@ -27,6 +27,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -60,6 +61,7 @@
 #include <gz/physics/FixedJoint.hh>
 #include <gz/physics/GetContacts.hh>
 #include <gz/physics/GetBoundingBox.hh>
+#include <gz/physics/GetBatchRayIntersection.hh>
 #include <gz/physics/GetEntities.hh>
 #include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
@@ -109,6 +111,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
@@ -393,9 +396,21 @@ class gz::sim::systems::PhysicsPrivate
   /// be deleted the following iteration.
   public: std::unordered_set<Entity> staticCmdsToRemove;
 
+  /// \brief Entities whose collide bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> collideBitmaskCmdsToRemove;
+
+  /// \brief Entities whose category bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> categoryBitmaskCmdsToRemove;
+
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
 
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
@@ -435,41 +450,6 @@ class gz::sim::systems::PhysicsPrivate
                        return _a == _b;
                      }};
 
-  /// \brief msgs::Contacts equality comparison function.
-  public: std::function<bool(const msgs::Contacts &,
-          const msgs::Contacts &)>
-          contactsEql { [](const msgs::Contacts &_a,
-                          const msgs::Contacts &_b)
-                    {
-                      if (_a.contact_size() != _b.contact_size())
-                      {
-                        return false;
-                      }
-
-                      for (int i = 0; i < _a.contact_size(); ++i)
-                      {
-                        if (_a.contact(i).position_size() !=
-                            _b.contact(i).position_size())
-                        {
-                          return false;
-                        }
-
-                        for (int j = 0; j < _a.contact(i).position_size();
-                          ++j)
-                        {
-                          auto pos1 = _a.contact(i).position(j);
-                          auto pos2 = _b.contact(i).position(j);
-
-                          if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
-                              !math::equal(pos1.y(), pos2.y(), 1e-6) ||
-                              !math::equal(pos1.z(), pos2.z(), 1e-6))
-                          {
-                            return false;
-                          }
-                        }
-                      }
-                      return true;
-                    }};
   /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
@@ -567,6 +547,21 @@ class gz::sim::systems::PhysicsPrivate
             MinimumFeatureList,
             physics::GetRayIntersectionFromLastStepFeature>{};
 
+  /// \brief Feature list for batched ray intersection queries.
+  public: struct BatchRayIntersectionFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetBatchRayIntersectionFromLastStepFeature>{};
+
+  /// \brief Per-entity cached batch ray query buffers to avoid per-step
+  /// heap allocation. Input is cleared and refilled each step; output retains
+  /// its allocated capacity so the physics engine can reuse it.
+  public: struct BatchRayCacheEntry {
+    using BatchWorld = physics::World3d<BatchRayIntersectionFeatureList>;
+    std::vector<BatchWorld::RayQuery> input;
+    BatchWorld::BatchedRayIntersectionData output;
+  };
+  public: std::unordered_map<Entity, BatchRayCacheEntry> batchRayCache;
+
   /// \brief Feature list to change contacts before they are applied to physics.
   public: struct SetContactPropertiesCallbackFeatureList :
             physics::FeatureList<
@@ -581,13 +576,98 @@ class gz::sim::systems::PhysicsPrivate
   public: using WorldShapeType = physics::World<
             physics::FeaturePolicy3d, ContactFeatureList>;
 
+  /// \brief Using ExtraContactData to expose contact Norm, Force & Depth
+  public: using Policy = physics::FeaturePolicy3d;
+  public: using GCFeature = physics::GetContactsFromLastStepFeature;
+  public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
+
+  /// \brief A contact is described by a contactPoint and the corresponding
+  /// extraContactData which we bundle in a pair data structure
+  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+                                const ExtraContactData *>;
+  /// \brief Each contact object we get from gz-physics contains the EntityPtrs
+  /// of the two colliding entities and other data about the contact such as the
+  /// position and extra contact date (wrench, normal and penetration depth).
+  /// This map groups contacts so that it is easy to query all the
+  /// contacts of one entity.
+  public: using EntityContactMap = std::unordered_map<
+            Entity, std::deque<ContactData>>;
+
+  /// \brief msgs::Contacts equality comparison function.
+  public: bool contactsEql(const msgs::Contacts &_msg,
+                           const EntityContactMap &_map)
+  {
+    if (_msg.contact_size() != static_cast<int>(_map.size()))
+    {
+      return false;
+    }
+
+    auto mapIt = _map.begin();
+    for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
+    {
+      const auto &contactData = mapIt->second;
+      if (_msg.contact(i).position_size() !=
+          static_cast<int>(contactData.size()))
+      {
+        return false;
+      }
+
+      for (int j = 0; j < _msg.contact(i).position_size(); ++j)
+      {
+        const auto &contact = contactData[j];
+        auto pos1 = _msg.contact(i).position(j);
+        auto pos2 = contact.first->point;
+
+        if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
+            !math::equal(pos1.y(), pos2.y(), 1e-6) ||
+            !math::equal(pos1.z(), pos2.z(), 1e-6))
+        {
+          return false;
+        }
+
+        if(contact.second != nullptr)
+        {
+          // Compare normals
+          auto normal1 = _msg.contact(i).normal(j);
+          auto normal2 = contact.second->normal;
+          if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
+              !math::equal(normal1.y(), normal2.y(), 1e-6) ||
+              !math::equal(normal1.z(), normal2.z(), 1e-6))
+          {
+            return false;
+          }
+          // Compare body1 and body2 forces
+          auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
+          auto body1force2 = contact.second->force;
+          if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
+              !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
+              !math::equal(body1force1.z(), body1force2.z(), 1e-6))
+          {
+            return false;
+          }
+
+          auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
+          auto body2force2 = -contact.second->force;
+          if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
+              !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
+              !math::equal(body2force1.z(), body2force2.z(), 1e-6))
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
   public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature,
+          physics::CategoryFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
@@ -616,6 +696,13 @@ class gz::sim::systems::PhysicsPrivate
   public: struct GravityEnabledFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Collision Enabled
+  /// \brief Feature list for enabling and disabling model collisions.
+  public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelCollisionEnabled>{};
 
   //////////////////////////////////////////////////
   // Link Bounding box
@@ -726,6 +813,7 @@ class gz::sim::systems::PhysicsPrivate
           ContactFeatureList,
           GravityFeatureList,
           RayIntersectionFeatureList,
+          BatchRayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
           CollisionDetectorFeatureList,
@@ -748,7 +836,8 @@ class gz::sim::systems::PhysicsPrivate
             ConstructSdfLinkFeatureList,
             ConstructSdfJointFeatureList,
             StaticStateFeatureList,
-            GravityEnabledFeatureList>;
+            GravityEnabledFeatureList,
+            ModelCollisionEnabledFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -837,6 +926,9 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Cached physics output, to reduce allocations / deallocations
+  physics::ForwardStep::Output stepOutput;
 };
 
 //////////////////////////////////////////////////
@@ -1227,6 +1319,9 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
 void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
                                          bool _warnIfEntityExists)
 {
+  std::map<Entity, std::tuple<const components::Name*, const components::Pose*,
+    const components::ParentEntity*>> modelEntities;
+
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1235,152 +1330,157 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
-        if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
-          return true;
-
-        // Check if model already exists
-        if (this->entityModelMap.HasEntity(_entity))
-        {
-          if (_warnIfEntityExists)
-          {
-            gzwarn << "Model entity [" << _entity
-                    << "] marked as new, but it's already on the map."
-                    << std::endl;
-          }
-          return true;
-        }
-        // TODO(anyone) Don't load models unless they have collisions
-
-        // Check if parent world / model exists
-        sdf::Model model;
-        if (const auto *modelSdfComp =
-            _ecm.Component<components::ModelSdf>(_entity))
-        {
-          model = modelSdfComp->Data();
-        }
-
-        // Component values should override whatever values were put into the
-        // ModelSdf component.
-        model.SetName(_name->Data());
-        model.SetRawPose(_pose->Data());
-        model.SetPoseRelativeTo("");
-
-        sdf::Root root;
-        root.SetModel(model);
-        root.UpdateGraphs();
-
-        auto staticComp = _ecm.Component<components::Static>(_entity);
-        if (staticComp && staticComp->Data())
-        {
-          model.SetStatic(staticComp->Data());
-          this->staticEntities.insert(_entity);
-        }
-        auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
-        if (selfCollideComp && selfCollideComp ->Data())
-        {
-          model.SetSelfCollide(selfCollideComp->Data());
-        }
-
-        // check if parent is a world
-        if (auto worldPtrPhys =
-                this->entityWorldMap.Get(_parent->Data()))
-        {
-          // Use the ConstructNestedModel feature for nested models
-          if (model.ModelCount() > 0)
-          {
-            auto nestedModelFeature =
-                this->entityWorldMap.EntityCast<NestedModelFeatureList>(
-                    _parent->Data());
-            if (!nestedModelFeature)
-            {
-              static bool informed{false};
-              if (!informed)
-              {
-                gzdbg << "Attempting to construct nested models, but the "
-                       << "physics engine doesn't support feature "
-                       << "[ConstructSdfNestedModelFeature]. "
-                       << "Nested model will be ignored."
-                       << std::endl;
-                informed = true;
-              }
-              return true;
-            }
-            auto modelPtrPhys =
-              nestedModelFeature->ConstructNestedModel(*root.Model());
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-          }
-          else
-          {
-            auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-          }
-        }
-        // check if parent is a model (nested model)
-        else
-        {
-          if (auto parentPtrPhys = this->entityModelMap.Get(_parent->Data()))
-          {
-            auto nestedModelFeature =
-                this->entityModelMap.EntityCast<NestedModelFeatureList>(
-                    _parent->Data());
-            if (!nestedModelFeature)
-            {
-              static bool informed{false};
-              if (!informed)
-              {
-                gzdbg << "Attempting to construct nested models, but the "
-                       << "physics engine doesn't support feature "
-                       << "[ConstructSdfNestedModelFeature]. "
-                       << "Nested model will be ignored."
-                       << std::endl;
-                informed = true;
-              }
-              return true;
-            }
-
-            // override static property only if parent is static.
-            auto parentStaticComp =
-              _ecm.Component<components::Static>(_parent->Data());
-            if (parentStaticComp && parentStaticComp->Data())
-            {
-              model.SetStatic(true);
-              this->staticEntities.insert(_entity);
-            }
-
-            auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
-            if (modelPtrPhys)
-            {
-              this->entityModelMap.AddEntity(_entity, modelPtrPhys);
-              this->topLevelModelMap.insert(std::make_pair(_entity,
-                  topLevelModel(_entity, _ecm)));
-            }
-            else
-            {
-              gzerr << "Model: '" << _name->Data() << "' not loaded. "
-                     << "Failed to create nested model."
-                     << std::endl;
-            }
-          }
-          else
-          {
-            gzwarn << "Model's parent entity [" << _parent->Data()
-                    << "] not found on world / model map." << std::endl;
-            return true;
-          }
-        }
-
+        if (!_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
+          modelEntities.insert({_entity,
+              std::make_tuple(_name, _pose, _parent)});
         return true;
       });
+
+  for (const auto &[_entity, components] : modelEntities)
+  {
+    const auto [_name, _pose, _parent] = components;
+
+    // Check if model already exists
+    if (this->entityModelMap.HasEntity(_entity))
+    {
+      if (_warnIfEntityExists)
+      {
+        gzwarn << "Model entity [" << _entity
+                << "] marked as new, but it's already on the map."
+                << std::endl;
+      }
+      continue;
+    }
+    // TODO(anyone) Don't load models unless they have collisions
+
+    // Check if parent world / model exists
+    sdf::Model model;
+    if (const auto *modelSdfComp =
+        _ecm.Component<components::ModelSdf>(_entity))
+    {
+      model = modelSdfComp->Data();
+    }
+
+    // Component values should override whatever values were put into the
+    // ModelSdf component.
+    model.SetName(_name->Data());
+    model.SetRawPose(_pose->Data());
+    model.SetPoseRelativeTo("");
+
+    sdf::Root root;
+    root.SetModel(model);
+    root.UpdateGraphs();
+
+    auto staticComp = _ecm.Component<components::Static>(_entity);
+    if (staticComp && staticComp->Data())
+    {
+      model.SetStatic(staticComp->Data());
+      this->staticEntities.insert(_entity);
+    }
+    auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
+    if (selfCollideComp && selfCollideComp ->Data())
+    {
+      model.SetSelfCollide(selfCollideComp->Data());
+    }
+
+    // check if parent is a world
+    if (auto worldPtrPhys =
+            this->entityWorldMap.Get(_parent->Data()))
+    {
+      // Use the ConstructNestedModel feature for nested models
+      if (model.ModelCount() > 0)
+      {
+        auto nestedModelFeature =
+            this->entityWorldMap.EntityCast<NestedModelFeatureList>(
+                _parent->Data());
+        if (!nestedModelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to construct nested models, but the "
+                   << "physics engine doesn't support feature "
+                   << "[ConstructSdfNestedModelFeature]. "
+                   << "Nested model will be ignored."
+                   << std::endl;
+            informed = true;
+          }
+          continue;
+        }
+        auto modelPtrPhys =
+          nestedModelFeature->ConstructNestedModel(*root.Model());
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+      }
+      else
+      {
+        auto modelPtrPhys = worldPtrPhys->ConstructModel(*root.Model());
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+      }
+    }
+    // check if parent is a model (nested model)
+    else
+    {
+      if (auto parentPtrPhys = this->entityModelMap.Get(_parent->Data()))
+      {
+        auto nestedModelFeature =
+            this->entityModelMap.EntityCast<NestedModelFeatureList>(
+                _parent->Data());
+        if (!nestedModelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to construct nested models, but the "
+                   << "physics engine doesn't support feature "
+                   << "[ConstructSdfNestedModelFeature]. "
+                   << "Nested model will be ignored."
+                   << std::endl;
+            informed = true;
+          }
+          continue;
+        }
+
+        // override static property only if parent is static.
+        auto parentStaticComp =
+          _ecm.Component<components::Static>(_parent->Data());
+        if (parentStaticComp && parentStaticComp->Data())
+        {
+          model.SetStatic(true);
+          this->staticEntities.insert(_entity);
+        }
+
+        auto modelPtrPhys = nestedModelFeature->ConstructNestedModel(model);
+        if (modelPtrPhys)
+        {
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+          this->topLevelModelMap.insert(std::make_pair(_entity,
+              topLevelModel(_entity, _ecm)));
+        }
+        else
+        {
+          gzerr << "Model: '" << _name->Data() << "' not loaded. "
+                 << "Failed to create nested model."
+                 << std::endl;
+        }
+      }
+      else
+      {
+        gzwarn << "Model's parent entity [" << _parent->Data()
+                << "] not found on world / model map." << std::endl;
+        continue;
+      }
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -2045,7 +2145,10 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           this->topLevelModelMap.insert(std::make_pair(_entity,
               topLevelModel(_entity, _ecm)));
 
-          if (this->enforceFixedConstraint)
+          bool enforce = _ecm.ComponentData<
+              components::DetachableJointEnforceFixedConstraint>(
+              _entity).value_or(this->enforceFixedConstraint);
+          if (enforce)
           {
             auto jointPtrWeld = this->entityJointMap
                 .EntityCast<SetFixedJointWeldChildToParentFeatureList>(_entity);
@@ -2265,6 +2368,78 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           entityOffMap[_ecm.ParentEntity(_entity)] = false;
         return true;
       });
+
+  // Update Collision Bitmasks
+  auto olderCollideBitmaskCmdsToRemove =
+      std::move(this->collideBitmaskCmdsToRemove);
+  this->collideBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CollideBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->collideBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collide bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCollideBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollideBitmaskCmd>(entity);
+  }
+
+  // Update Category Bitmasks
+  auto olderCategoryBitmaskCmdsToRemove =
+      std::move(this->categoryBitmaskCmdsToRemove);
+  this->categoryBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CategoryBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->categoryBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCategoryFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set category bitmasks, but the physics "
+                   << "engine doesn't support feature [CategoryFilterMask]. "
+                   << "Category bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCategoryBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
+  }
 
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
@@ -2752,6 +2927,73 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
   }
 
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+    std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelCollisionEnabledFeature =
+          this->entityModelMap.EntityCast<ModelCollisionEnabledFeatureList>(
+            _entity);
+
+        if (!modelCollisionEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collision enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelCollisionEnabled]. Collision state won't be "
+                   << "populated. " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelCollisionEnabledFeature->SetCollisionEnabled(
+            _collisionEnabledCmd->Data());
+
+        // Reflect the applied state in the CollisionEnabled component so
+        // queries via Model::CollisionEnabled() return the latest value.
+        auto stateComp =
+            _ecm.Component<components::CollisionEnabled>(_entity);
+        if (stateComp == nullptr)
+        {
+          _ecm.CreateComponent(_entity,
+              components::CollisionEnabled(_collisionEnabledCmd->Data()));
+        }
+        else
+        {
+          stateComp->SetData(_collisionEnabledCmd->Data(),
+              [](const bool &, const bool &){return false;});
+          _ecm.SetChanged(_entity,
+              components::CollisionEnabled::typeId,
+              ComponentState::OneTimeChange);
+        }
+        return true;
+      });
+
+  // Remove collision enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
+
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
   this->worldPoseCmdsToRemove.clear();
@@ -3210,7 +3452,10 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
   this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -3332,16 +3577,15 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
   GZ_PROFILE("PhysicsPrivate::Step");
   physics::ForwardStep::Input input;
   physics::ForwardStep::State state;
-  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(output, state, input);
+    world.second->Step(this->stepOutput, state, input);
   }
 
-  return output;
+  return this->stepOutput;
 }
 
 //////////////////////////////////////////////////
@@ -4379,22 +4623,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
-  // Using ExtraContactData to expose contact Norm, Force & Depth
-  using Policy = physics::FeaturePolicy3d;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
-
-  // A contact is described by a contactPoint and the corresponding
-  // extraContactData which we bundle in a pair data structure
-  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
-  // Each contact object we get from gz-physics contains the EntityPtrs of the
-  // two colliding entities and other data about the contact such as the
-  // position and extra contact date (wrench, normal and penetration depth).
-  // This map groups contacts so that it is easy to query all the
-  // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
-
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
   // create msgs::Contact objects conveniently later on.
@@ -4430,12 +4658,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        msgs::Contacts contactsComp;
-        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        const auto contactMapIt = entityContactMap.find(_collEntity1);
+        if (contactMapIt == entityContactMap.end())
         {
           // Clear the last contact data
-          auto state = _contacts->SetData(contactsComp,
-            this->contactsEql) ?
+          bool changed = _contacts->Data().contact_size() > 0;
+          if (changed)
+          {
+            _contacts->Data().Clear();
+          }
+
+          auto state = changed ?
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
@@ -4443,11 +4676,26 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
-        const auto &contactMap = entityContactMap[_collEntity1];
+        const auto &contactMap = contactMapIt->second;
 
+        bool changed = !this->contactsEql(_contacts->Data(), contactMap);
+        auto state = changed ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+        _ecm.SetChanged(
+          _collEntity1, components::ContactSensorData::typeId, state);
+
+        // If contacts are unchanged, no need to update them again
+        if (!changed)
+        {
+          return true;
+        }
+
+        // If contacts have changed, first clear data then add contacts
+        _contacts->Data().Clear();
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = contactsComp.add_contact();
+          msgs::Contact *contactMsg = _contacts->Data().add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -4492,14 +4740,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             }
           }
         }
-
-        auto state = _contacts->SetData(contactsComp,
-          this->contactsEql) ?
-          ComponentState::PeriodicChange :
-          ComponentState::NoChange;
-        _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
-
         return true;
       });
 }
@@ -4522,6 +4762,77 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
+  // Prefer the batched ray intersection API when available.
+  auto worldBatchRayFeature =
+      this->entityWorldMap
+        .EntityCast<BatchRayIntersectionFeatureList>(worldEntity);
+
+  if (worldBatchRayFeature)
+  {
+    using BatchWorld = physics::World3d<BatchRayIntersectionFeatureList>;
+    using RayQuery = BatchWorld::RayQuery;
+    using RayIntersection = BatchWorld::RayIntersection;
+
+    _ecm.Each<components::RaycastData,
+              components::NeedsRaycast,
+              components::WorldPose>(
+        [&](const Entity &_entity,
+            components::RaycastData *_raycastData,
+            components::NeedsRaycast *_needsRaycast,
+            const components::WorldPose *_worldPose) -> bool
+        {
+          if (!_needsRaycast->Data())
+            return true;
+          _needsRaycast->Data() = false;
+
+          const auto &rays = _raycastData->Data().rays;
+          auto &results = _raycastData->Data().results;
+          results.clear();
+          results.reserve(rays.size());
+
+          const auto &entityWorldPose = _worldPose->Data();
+
+          auto &cache = this->batchRayCache[_entity];
+          auto &batchInput = cache.input;
+          auto &batchOutput = cache.output;
+          batchInput.clear();
+          batchInput.reserve(rays.size());
+          for (const auto &ray : rays)
+          {
+            RayQuery q;
+            q.origin = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.start));
+            q.target = math::eigen3::convert(
+              entityWorldPose.Pos() +
+              entityWorldPose.Rot().RotateVector(ray.end));
+            batchInput.push_back(q);
+          }
+
+          worldBatchRayFeature->GetBatchRayIntersectionFromLastStep(
+            batchInput, batchOutput);
+
+          for (const auto &hit :
+              batchOutput.Get<std::vector<RayIntersection>>())
+          {
+            auto &result = results.emplace_back();
+
+            const math::Vector3d intersectionPoint =
+              math::eigen3::convert(hit.point);
+            result.point = entityWorldPose.Rot().RotateVectorReverse(
+              intersectionPoint - entityWorldPose.Pos());
+
+            result.fraction = hit.fraction;
+
+            const math::Vector3d normal = math::eigen3::convert(hit.normal);
+            result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
+          }
+          return true;
+        });
+    return;
+  }
+
+  // Fallback: single-ray intersection
   auto worldRayIntersectionFeature =
       this->entityWorldMap.EntityCast<RayIntersectionFeatureList>(worldEntity);
 
@@ -4539,34 +4850,35 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
     return;
   }
 
-  // Go through each entity that has a RaycastData components, trace the
+  // Go through each entity that has a RaycastData component, trace the
   // rays and store the results
   _ecm.Each<components::RaycastData,
-            components::Pose>(
-      [&](const Entity &_entity,
+            components::NeedsRaycast,
+            components::WorldPose>(
+      [&](const Entity & /*_entity*/,
           components::RaycastData *_raycastData,
-          components::Pose */*_pose*/) -> bool
+          components::NeedsRaycast *_needsRaycast,
+          const components::WorldPose *_worldPose) -> bool
       {
-        // Retrieve the rays from the RaycastData component
+        if (!_needsRaycast->Data())
+          return true;
+        _needsRaycast->Data() = false;
+
         const auto &rays = _raycastData->Data().rays;
 
-        // Clear the previous results
         auto &results = _raycastData->Data().results;
         results.clear();
         results.reserve(rays.size());
 
-        // Get the entity's world pose
-        const auto &entityWorldPose = worldPose(_entity, _ecm);
+        const auto &entityWorldPose = _worldPose->Data();
 
         for (const auto &ray : rays)
         {
-          // Convert ray to world frame
           const math::Vector3d rayStart = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.start);
           const math::Vector3d rayEnd = entityWorldPose.Pos() +
             entityWorldPose.Rot().RotateVector(ray.end);
 
-          // Perform ray intersection
           auto rayIntersection =
             worldRayIntersectionFeature->GetRayIntersectionFromLastStep(
               math::eigen3::convert(rayStart),
@@ -4576,10 +4888,8 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             rayIntersection.Get<
               physics::World3d<RayIntersectionFeatureList>::RayIntersection>();
 
-          results.emplace_back();
-          auto &result = results.back();
+          auto &result = results.emplace_back();
 
-          // Convert result to entity frame and store
           const math::Vector3d intersectionPoint =
             math::eigen3::convert(rayIntersectionResult.point);
           result.point = entityWorldPose.Rot().RotateVectorReverse(
@@ -4591,6 +4901,14 @@ void PhysicsPrivate::UpdateRayIntersections(EntityComponentManager &_ecm)
             math::eigen3::convert(rayIntersectionResult.normal);
           result.normal = entityWorldPose.Rot().RotateVectorReverse(normal);
         }
+        return true;
+      });
+
+  _ecm.EachRemoved<components::RaycastData>(
+      [&](const Entity &_entity,
+          const components::RaycastData *) -> bool
+      {
+        this->batchRayCache.erase(_entity);
         return true;
       });
 }
@@ -4615,13 +4933,10 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   if (!setContactPropertiesCallbackFeature)
     return;
 
-  using Policy = physics::FeaturePolicy3d;
   using Feature = physics::SetContactPropertiesCallbackFeature;
   using FeatureList = SetContactPropertiesCallbackFeatureList;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
   using GCFeatureWorld = GCFeature::World<Policy, FeatureList>;
   using ContactPoint = GCFeatureWorld::ContactPoint;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(

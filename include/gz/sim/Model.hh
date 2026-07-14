@@ -23,6 +23,8 @@
 
 #include <gz/math/Pose3.hh>
 
+#include <gz/utils/ImplPtr.hh>
+
 #include <gz/sim/config.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/Export.hh>
@@ -34,8 +36,6 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
-    // Forward declarations.
-    class GZ_SIM_HIDDEN ModelPrivate;
     //
     /// \class Model Model.hh gz/sim/Model.hh
     /// \brief This class provides wrappers around entities and components
@@ -61,27 +61,6 @@ namespace gz
       /// \brief Constructor
       /// \param[in] _entity Model entity
       public: explicit Model(sim::Entity _entity = kNullEntity);
-
-      /// \brief Copy constructor
-      /// \param[in] _model Model to copy.
-      public: Model(const Model &_model);
-
-      /// \brief Move constructor
-      /// \param[in] _model Model to move.
-      public: Model(Model &&_model) noexcept;
-
-      /// \brief Move assignment operator.
-      /// \param[in] _model Model component to move.
-      /// \return Reference to this.
-      public: Model &operator=(Model &&_model) noexcept;
-
-      /// \brief Copy assignment operator.
-      /// \param[in] _model Model to copy.
-      /// \return Reference to this.
-      public: Model &operator=(const Model &_model);
-
-      /// \brief Destructor
-      public: virtual ~Model();
 
       /// \brief Get the entity which this Model is related to.
       /// \return Model entity.
@@ -205,14 +184,27 @@ namespace gz
       public: void SetGravityEnabled(EntityComponentManager &_ecm,
           bool _enabled);
 
+      /// \brief Get whether this model has collisions enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if collisions are enabled, nullopt if component is
+      /// missing.
+      public: std::optional<bool> CollisionEnabled(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Set a new command to enable or disable the model's collisions.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _enabled True to enable collisions, false otherwise.
+      public: void SetCollisionEnabled(EntityComponentManager &_ecm,
+          bool _enabled);
+
       /// \brief Get the model's canonical link entity.
       /// \param[in] _ecm Entity-component manager.
       /// \return Link entity.
       public: sim::Entity CanonicalLink(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Pointer to private data.
-      private: std::unique_ptr<ModelPrivate> dataPtr;
+      /// \brief Private data pointer.
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }
