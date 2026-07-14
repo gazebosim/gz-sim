@@ -84,6 +84,14 @@ class gz::sim::systems::DiffDrivePrivate
   public: void UpdateVelocity(const UpdateInfo &_info,
     const EntityComponentManager &_ecm);
 
+  public: void ResolvedTopicNames(
+      const std::shared_ptr<const sdf::Element> &_sdf,
+      const EntityComponentManager &_ecm,
+      std::string &_cmdVelTopic,
+      std::string &_enableTopic,
+      std::string &_odomTopic,
+      std::string &_tfTopic);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
@@ -342,32 +350,14 @@ void DiffDrive::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
-  {
-    std::string topicName = _sdf->Get<std::string>("topic");
-    if (!topicName.empty())
-    {
-      // Only prepend namespace to relative topic names.
-      // Absolute topic names (starting with '/') are left unchanged.
-      if (topicName.front() != '/')
-      {
-        topicName = ns + "/" + topicName;
-      }
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/cmd_vel");
-  auto topic = validTopic(topics);
+  std::string cmdVelTopic, enableTopic, odomTopic, tfTopic;
+  this->dataPtr->ResolvedTopicNames(_sdf, _ecm,
+    cmdVelTopic, enableTopic, odomTopic, tfTopic);
 
-  this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
+  this->dataPtr->node.Subscribe(cmdVelTopic, &DiffDrivePrivate::OnCmdVel,
       this->dataPtr.get());
 
   // Subscribe to enable/disable
-  std::vector<std::string> enableTopics;
-  enableTopics.push_back(defaultPrefix + "/enable");
-  auto enableTopic = validTopic(enableTopics);
-
   if (!enableTopic.empty())
   {
     this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
@@ -375,44 +365,8 @@ void DiffDrive::Configure(const Entity &_entity,
   }
   this->dataPtr->enabled = true;
 
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
-  {
-    std::string odomTopicName = _sdf->Get<std::string>("odom_topic");
-    if (!odomTopicName.empty())
-    {
-      // Only prepend namespace to relative topic names.
-      // Absolute topic names (starting with '/') are left unchanged.
-      if (odomTopicName.front() != '/')
-      {
-        odomTopicName = ns + "/" + odomTopicName;
-      }
-    }
-    odomTopics.push_back(odomTopicName);
-  }
-  odomTopics.push_back(defaultPrefix + "/odometry");
-  auto odomTopic = validTopic(odomTopics);
-
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
-
-  std::vector<std::string> tfTopics;
-  if (_sdf->HasElement("tf_topic"))
-  {
-    std::string tfTopicName = _sdf->Get<std::string>("tf_topic");
-    if (!tfTopicName.empty())
-    {
-      // Only prepend namespace to relative topic names.
-      // Absolute topic names (starting with '/') are left unchanged.
-      if (tfTopicName.front() != '/')
-      {
-        tfTopicName = ns + "/" + tfTopicName;
-      }
-    }
-    tfTopics.push_back(tfTopicName);
-  }
-  tfTopics.push_back(defaultPrefix + "/tf");
-  auto tfTopic = validTopic(tfTopics);
 
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
       tfTopic);
@@ -423,7 +377,7 @@ void DiffDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  gzmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
+  gzmsg << "DiffDrive subscribing to twist messages on [" << cmdVelTopic << "]"
          << std::endl;
 }
 
@@ -695,6 +649,57 @@ void DiffDrivePrivate::OnEnable(const msgs::Boolean &_msg)
     msgs::Set(this->targetVel.mutable_linear(), zeroVector);
     msgs::Set(this->targetVel.mutable_angular(), zeroVector);
   }
+}
+
+//////////////////////////////////////////////////
+void DiffDrivePrivate::ResolvedTopicNames(
+    const std::shared_ptr<const sdf::Element> &_sdf,
+    const EntityComponentManager &_ecm,
+    std::string &_cmdVelTopic,
+    std::string &_enableTopic,
+    std::string &_odomTopic,
+    std::string &_tfTopic)
+{
+  // Generate namespace
+  std::string ns;
+  std::string defaultPrefix = "/model/" + this->model.Name(_ecm);
+  if (hasNamespace(_ecm))
+  {
+    ns = scopedNamespace(_ecm, this->model.Entity());
+    defaultPrefix = ns;
+  }
+
+  auto resolveTopic =
+    [&](const std::string &_sdfElement,
+        const std::string &_defaultTopic) -> std::string
+    {
+      std::vector<std::string> topics;
+
+      if (_sdf->HasElement(_sdfElement))
+      {
+        std::string topicName = _sdf->Get<std::string>(_sdfElement);
+
+        if (!topicName.empty())
+        {
+          // Only prepend namespace to relative topic names.
+          // Absolute topic names (starting with '/') are left unchanged.
+          if (topicName.front() != '/')
+          {
+            topicName = ns + "/" + topicName;
+          }
+        }
+
+        topics.push_back(topicName);
+      }
+
+      topics.push_back(_defaultTopic);
+      return validTopic(topics);
+    };
+
+  _cmdVelTopic = resolveTopic("topic", defaultPrefix + "/cmd_vel");
+  _enableTopic = validTopic({defaultPrefix + "/enable"});
+  _odomTopic = resolveTopic("odom_topic", defaultPrefix + "/odometry");
+  _tfTopic = resolveTopic("tf_topic", defaultPrefix + "/tf");
 }
 
 GZ_ADD_PLUGIN(DiffDrive,
