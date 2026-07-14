@@ -90,7 +90,6 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/VisualCmd.hh"
 #include "gz/sim/components/WheelSlipCmd.hh"
-#include "gz/sim/detail/MessageCast.hh"
 
 using namespace gz;
 using namespace sim;
@@ -830,7 +829,8 @@ CreateCommand::CreateCommand(msgs::EntityFactory_V *_msg,
 //////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
-  auto createMsg = detail::DoDynamicCastMessage<msgs::EntityFactory>(this->msg);
+  auto createMsg =
+      gz::msgs::DoDynamicCastMessage<msgs::EntityFactory>(this->msg);
   if (nullptr != createMsg)
   {
     return this->CreateFromMsg(*createMsg);
@@ -839,7 +839,7 @@ bool CreateCommand::Execute()
   {
     // It could also be an EntityFactory_V
     auto createMsgV =
-        detail::DoDynamicCastMessage<msgs::EntityFactory_V>(this->msg);
+        gz::msgs::DoDynamicCastMessage<msgs::EntityFactory_V>(this->msg);
     if (nullptr != createMsgV)
     {
       bool result = true;
@@ -1128,7 +1128,7 @@ RemoveCommand::RemoveCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool RemoveCommand::Execute()
 {
-  auto removeMsg = detail::DoDynamicCastMessage<msgs::Entity>(this->msg);
+  auto removeMsg = gz::msgs::DoDynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == removeMsg)
   {
     gzerr << "Internal error, null remove message" << std::endl;
@@ -1177,7 +1177,7 @@ LightCommand::LightCommand(msgs::Light *_msg,
 //////////////////////////////////////////////////
 bool LightCommand::Execute()
 {
-  auto lightMsg = detail::DoDynamicCastMessage<msgs::Light>(this->msg);
+  auto lightMsg = gz::msgs::DoDynamicCastMessage<msgs::Light>(this->msg);
   if (nullptr == lightMsg)
   {
     gzerr << "Internal error, null light message" << std::endl;
@@ -1371,7 +1371,7 @@ PoseCommand::PoseCommand(msgs::Pose *_msg,
 //////////////////////////////////////////////////
 bool PoseCommand::Execute()
 {
-  auto poseMsg = detail::DoDynamicCastMessage<msgs::Pose>(this->msg);
+  auto poseMsg = gz::msgs::DoDynamicCastMessage<msgs::Pose>(this->msg);
   if (nullptr == poseMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1391,7 +1391,7 @@ PoseVectorCommand::PoseVectorCommand(msgs::Pose_V *_msg,
 //////////////////////////////////////////////////
 bool PoseVectorCommand::Execute()
 {
-  auto poseVectorMsg = detail::DoDynamicCastMessage<msgs::Pose_V>(this->msg);
+  auto poseVectorMsg = gz::msgs::DoDynamicCastMessage<msgs::Pose_V>(this->msg);
   if (nullptr == poseVectorMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1419,7 +1419,7 @@ PhysicsCommand::PhysicsCommand(msgs::Physics *_msg,
 //////////////////////////////////////////////////
 bool PhysicsCommand::Execute()
 {
-  auto physicsMsg = detail::DoDynamicCastMessage<msgs::Physics>(this->msg);
+  auto physicsMsg = gz::msgs::DoDynamicCastMessage<msgs::Physics>(this->msg);
   if (nullptr == physicsMsg)
   {
     gzerr << "Internal error, null physics message" << std::endl;
@@ -1455,7 +1455,7 @@ SphericalCoordinatesCommand::SphericalCoordinatesCommand(
 bool SphericalCoordinatesCommand::Execute()
 {
   auto sphericalCoordinatesMsg =
-      detail::DoDynamicCastMessage<msgs::SphericalCoordinates>(this->msg);
+      gz::msgs::DoDynamicCastMessage<msgs::SphericalCoordinates>(this->msg);
   if (nullptr == sphericalCoordinatesMsg)
   {
     gzerr << "Internal error, null SphericalCoordinates message" << std::endl;
@@ -1538,7 +1538,7 @@ EnableCollisionCommand::EnableCollisionCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool EnableCollisionCommand::Execute()
 {
-  auto entityMsg = detail::DoDynamicCastMessage<msgs::Entity>(this->msg);
+  auto entityMsg = gz::msgs::DoDynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == entityMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1588,7 +1588,7 @@ DisableCollisionCommand::DisableCollisionCommand(msgs::Entity *_msg,
 //////////////////////////////////////////////////
 bool DisableCollisionCommand::Execute()
 {
-  auto entityMsg = detail::DoDynamicCastMessage<msgs::Entity>(this->msg);
+  auto entityMsg = gz::msgs::DoDynamicCastMessage<msgs::Entity>(this->msg);
   if (nullptr == entityMsg)
   {
     gzerr << "Internal error, null create message" << std::endl;
@@ -1647,9 +1647,9 @@ VisualCommand::VisualCommand(msgs::MaterialColor *_msg,
 //////////////////////////////////////////////////
 bool VisualCommand::Execute()
 {
-  auto visualMsg = detail::DoDynamicCastMessage<msgs::Visual>(this->msg);
+  auto visualMsg = gz::msgs::DoDynamicCastMessage<msgs::Visual>(this->msg);
   auto materialColorMsg =
-      detail::DoDynamicCastMessage<msgs::MaterialColor>(this->msg);
+      gz::msgs::DoDynamicCastMessage<msgs::MaterialColor>(this->msg);
   if (visualMsg != nullptr)
   {
     Entity visualEntity = kNullEntity;
@@ -1775,7 +1775,7 @@ WheelSlipCommand::WheelSlipCommand(msgs::WheelSlipParametersCmd *_msg,
 bool WheelSlipCommand::Execute()
 {
   auto wheelSlipMsg =
-      detail::DoDynamicCastMessage<msgs::WheelSlipParametersCmd>(this->msg);
+      gz::msgs::DoDynamicCastMessage<msgs::WheelSlipParametersCmd>(this->msg);
   if (nullptr == wheelSlipMsg)
   {
     gzerr << "Internal error, null wheel slip message" << std::endl;

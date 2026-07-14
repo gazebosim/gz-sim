@@ -34,6 +34,7 @@
 #include <gz/msgs/sensor_noise.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/uint32_v.pb.h>
 #include <gz/msgs/visual.pb.h>
 
@@ -83,7 +84,6 @@
 #include "gz/sim/components/ThermalCamera.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
-#include "gz/sim/detail/MessageCast.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
@@ -1265,8 +1265,8 @@ void SceneBroadcasterPrivate::AddModels(T *_msg, const Entity _entity,
 {
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto modelMsg = detail::DoDynamicCastMessage<msgs::Model>(
-        vertex.second.get().Data());
+    auto modelMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Model>(vertex.second.get().Data());
     if (!modelMsg)
       continue;
 
@@ -1291,8 +1291,8 @@ void SceneBroadcasterPrivate::AddLights(T *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto lightMsg = detail::DoDynamicCastMessage<msgs::Light>(
-        vertex.second.get().Data());
+    auto lightMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Light>(vertex.second.get().Data());
     if (!lightMsg)
       continue;
 
@@ -1309,7 +1309,7 @@ void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto visualMsg = detail::DoDynamicCastMessage<msgs::Visual>(
+    auto visualMsg = gz::msgs::DoDynamicCastMessage<msgs::Visual>(
         vertex.second.get().Data());
     if (!visualMsg)
       continue;
@@ -1327,7 +1327,7 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto sensorMsg = detail::DoDynamicCastMessage<msgs::Sensor>(
+    auto sensorMsg = gz::msgs::DoDynamicCastMessage<msgs::Sensor>(
         vertex.second.get().Data());
     if (!sensorMsg)
       continue;
@@ -1345,7 +1345,7 @@ void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto emitterMsg = detail::DoDynamicCastMessage<msgs::ParticleEmitter>(
+    auto emitterMsg = gz::msgs::DoDynamicCastMessage<msgs::ParticleEmitter>(
         vertex.second.get().Data());
     if (!emitterMsg)
       continue;
@@ -1363,7 +1363,7 @@ void SceneBroadcasterPrivate::AddProjectors(msgs::Link *_msg,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto projectorMsg = detail::DoDynamicCastMessage<msgs::Projector>(
+    auto projectorMsg = gz::msgs::DoDynamicCastMessage<msgs::Projector>(
         vertex.second.get().Data());
     if (!projectorMsg)
       continue;
@@ -1381,8 +1381,8 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto linkMsg = detail::DoDynamicCastMessage<msgs::Link>(
-        vertex.second.get().Data());
+    auto linkMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Link>(vertex.second.get().Data());
     if (!linkMsg)
       continue;
 
