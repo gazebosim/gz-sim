@@ -21,6 +21,7 @@
 #include <gz/msgs/serialized_map.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <map>
@@ -610,8 +611,9 @@ void printLinks(const uint64_t _modelEntity,
                 const std::string &_sensorName,
                 int _spaces)
 {
-  const auto links = _ecm.ChildrenByComponents(
+  auto links = _ecm.ChildrenByComponents(
       _modelEntity, components::Link());
+  std::sort(links.begin(), links.end());
   for (const auto &entity : links)
   {
     const auto nameComp = _ecm.Component<components::Name>(entity);
@@ -667,8 +669,9 @@ void printLinks(const uint64_t _modelEntity,
       spaces += 2;
     }
 
-    const auto sensors = _ecm.ChildrenByComponents(
+    auto sensors = _ecm.ChildrenByComponents(
       entity, components::Sensor());
+    std::sort(sensors.begin(), sensors.end());
     for (const auto &sensor : sensors)
     {
       const auto sensorNameComp = _ecm.Component<components::Name>(sensor);
@@ -719,8 +722,9 @@ void printJoints(const uint64_t _modelEntity,
     {sdf::JointType::UNIVERSAL, "universal"}
   };
 
-  const auto joints = _ecm.ChildrenByComponents(
+  auto joints = _ecm.ChildrenByComponents(
       _modelEntity, components::Joint());
+  std::sort(joints.begin(), joints.end());
 
   for (const auto &entity : joints)
   {
@@ -794,8 +798,9 @@ void cmdModelList()
     return;
   }
 
-  const auto models = ecm.EntitiesByComponents(
+  auto models = ecm.EntitiesByComponents(
     components::ParentEntity(world), components::Model());
+  std::sort(models.begin(), models.end());
 
   if (models.size() == 0)
   {
