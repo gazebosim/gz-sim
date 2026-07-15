@@ -1204,8 +1204,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
   if (this->HasEntity(_id))
   {
-    gzerr << "Light with Id: [" << _id << "] can not be create there is "
-              "another entity with the same entity number" << std::endl;
+    gzerr << "Light with Id: [" << _id << "] cannot be created because "
+              "another entity has the same entity number" << std::endl;
     return nullptr;
   }
 
