@@ -42,7 +42,7 @@ class FlatSet
   private: std::vector<T> data;
 
   /// \brief Inserts an element
-  /// \param value The value to insert in the set.
+  /// \param[in] value The value to insert in the set.
   /// \return True if it was inserted, false otherwise.
   public: bool insert(const T& value)
   {
@@ -56,7 +56,7 @@ class FlatSet
   }
 
   /// \brief Erases an element
-  /// \brief value the value to erase from the set.
+  /// \param[in] value the value to erase from the set.
   /// \return True if it was erased, false otherwise.
   public: bool erase(const T& value)
   {
@@ -120,12 +120,14 @@ class FlatSet
   }
 
   /// \brief Equality comparison
+  /// \param[in] _other element to check against
   public: bool operator==(const FlatSet<T>& _other) const
   {
     return data == _other.data;
   }
 
   /// \brief Inequality comparison
+  /// \param[in] _other element to check against
   public: bool operator!=(const FlatSet<T>& _other) const
   {
     return !(*this == _other);
