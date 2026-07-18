@@ -1187,7 +1187,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
   msgs::EntityFactory baseMsg;
   baseMsg.ParseFromString(_createMsg.SerializeAsString());
 
-  return this->CreateFromMsg(baseMsg, _createMsg.namespace_());
+  return this->CreateFromMsg(baseMsg, _createMsg.entity_namespace());
 }
 
 //////////////////////////////////////////////////
