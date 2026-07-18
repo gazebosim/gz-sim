@@ -37,7 +37,7 @@ e.g.
 
 ```bash
 mkdir gz_tutorial
-cd gz_turtorial
+cd gz_tutorial
 ```
 
 2) In this tutorial we will be using the following SDF file (this is just a slight modification of the original `joint_controller.sdf` [example](https://github.com/gazebosim/gz-sim/blob/gz-sim7/examples/worlds/joint_controller.sdf)).
@@ -215,7 +215,7 @@ Replace the velocity mode plugin mentioned above with the following lines in the
 This would look almost the same as velocity mode if PID gains are tuned properly.
 
 5) Checking Joint states.
-Here the state of the joint is obtained using the Gazebo’s JointStatepublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
+Here the state of the joint is obtained using the Gazebo’s JointStatePublisher plugin. Please visit \ref gz::sim::systems::JointStatePublisher for more information.
 - Add the following lines to the SDF file before `</model>` tag:
 ```xml
 <plugin
@@ -370,7 +370,7 @@ joint {
 
 - Joint trajectory controller, which can be attached to a model with reference to one or more 1-axis joints to follow a trajectory.
 
-JointTrajectoryController lets’s user specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller.
+JointTrajectoryController lets users specify the required position, velocity, and effort with respect to time. For velocity and position, this controller uses a PID controller.
 
 A detailed description and related parameter of JointTrajectoryController can be found \ref gz::sim::systems::JointTrajectoryController "here".
 
