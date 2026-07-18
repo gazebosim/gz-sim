@@ -459,7 +459,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   msgs::EntityFactoryWithNs reqWithNs;
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_ns");
-  reqWithNs.set_namespace_("test_ns");
+  reqWithNs.set_entity_namespace("test_ns");
 
   std::string serviceWithNs{"/world/empty/create_with_ns/blocking"};
   auto requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
@@ -486,7 +486,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   reqWithNs.Clear();
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_empty_ns");
-  reqWithNs.set_namespace_("");
+  reqWithNs.set_entity_namespace("");
 
   requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
@@ -561,7 +561,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   reqWithNs.Clear();
   reqWithNs.set_sdf(modelStrWithoutNs );
   reqWithNs.set_name("grape");
-  reqWithNs.set_namespace_("test_ns");
+  reqWithNs.set_entity_namespace("test_ns");
 
   requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
