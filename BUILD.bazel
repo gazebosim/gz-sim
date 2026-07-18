@@ -587,6 +587,7 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
@@ -932,6 +933,8 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@com_google_protobuf//:protobuf_lite",
+        "@gz-common//profiler",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
@@ -1483,6 +1486,7 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-math",
         "@gz-msgs//:gzmsgs_cc_proto",
@@ -1525,6 +1529,7 @@ gz_sim_system_libraries(
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-math",
         "@gz-msgs//:gzmsgs_cc_proto",
