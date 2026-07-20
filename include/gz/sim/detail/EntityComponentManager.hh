@@ -390,17 +390,13 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    auto iterate = [&](const auto &iterable)
+    const auto group = this->Registry().template group<>(entt::get<ComponentTypeTs...>);
+    for (const auto entity : group)
     {
-      for (const auto entity : iterable)
-      {
-        if (!_f(entity, std::addressof(
-                iterable.template get<ComponentTypeTs>(entity))...))
-          break;
-      }
-    };
-
-    iterate(this->Registry().template group<>(entt::get<ComponentTypeTs...>));
+      if (!_f(entity, std::addressof(
+              group.template get<ComponentTypeTs>(entity))...))
+        break;
+    }
   }
 }
 
