@@ -114,6 +114,19 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+      
+      /// \brief Center of rotation topic name
+      public: std::string corTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+    };
+
     /// \brief Constructor
     public: TrackController();
 
@@ -134,6 +147,9 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
       const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TrackControllerPrivate> dataPtr;

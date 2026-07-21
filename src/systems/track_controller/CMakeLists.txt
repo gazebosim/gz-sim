@@ -9,3 +9,10 @@ gz_add_system(track-controller
     gz-plugin::gz-plugin
     gz-transport::gz-transport
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    TrackController_TEST.cc
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)

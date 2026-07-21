@@ -165,6 +165,9 @@ class gz::sim::systems::TrackControllerPrivate
   public: std::chrono::steady_clock::duration maxCommandAge
     {std::chrono::steady_clock::duration::max()};
 
+  /// \brief Resolved topic names
+  public: TrackController::TopicNames resolvedTopicNames;
+
   /// \brief This variable is set to true each time a new command arrives.
   /// It is intended to be set to false after the command is processed.
   public: bool hasNewCommand{false};
@@ -249,25 +252,36 @@ void TrackController::Configure(const Entity &_entity,
     }
   );
 
-  const auto topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm) +
-    "/link/" + this->dataPtr->linkName;
-
-  const auto kDefaultVelTopic = topicPrefix + "/track_cmd_vel";
-  const auto velTopic = validTopic({_sdf->Get<std::string>(
-    "velocity_topic", kDefaultVelTopic).first, kDefaultVelTopic});
-  if (!this->dataPtr->node.Subscribe(
-    velTopic, &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
+  // Generate namespace
+  std::string ns;
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  if (hasNamespace(_ecm))
   {
-    gzerr << "Error subscribing to topic [" << velTopic << "]. "
+    ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+    defaultPrefix = ns;
+  }
+  defaultPrefix += "/link/" + this->dataPtr->linkName;
+
+  // Subscribe to velocity commands
+  this->dataPtr->resolvedTopicNames.cmdVelTopic = 
+    resolvedTopicName(_sdf, "velocity_topic", ns,
+                      defaultPrefix + "/track_cmd_vel");
+  std::string cmdVelTopic = this->dataPtr->resolvedTopicNames.cmdVelTopic;
+  if (!this->dataPtr->node.Subscribe(
+    cmdVelTopic, &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
+  {
+    gzerr << "Error subscribing to topic [" << cmdVelTopic << "]. "
            << "Track will not receive commands." << std::endl;
     return;
   }
-  gzdbg << "Subscribed to " << velTopic << " for receiving track velocity "
+  gzdbg << "Subscribed to " << cmdVelTopic << " for receiving track velocity "
          << "commands." << std::endl;
 
-  const auto kDefaultCorTopic = topicPrefix + "/track_cmd_center_of_rotation";
-  const auto corTopic = validTopic({_sdf->Get<std::string>(
-    "center_of_rotation_topic", kDefaultCorTopic).first, kDefaultCorTopic});
+  // Subscribe to center of rotation commands
+  this->dataPtr->resolvedTopicNames.corTopic = 
+    resolvedTopicName(_sdf, "center_of_rotation_topic", ns,
+                      defaultPrefix + "/track_cmd_center_of_rotation");
+  std::string corTopic = this->dataPtr->resolvedTopicNames.corTopic;
   if (!this->dataPtr->node.Subscribe(
     corTopic, &TrackControllerPrivate::OnCenterOfRotation,
     this->dataPtr.get()))
@@ -281,11 +295,21 @@ void TrackController::Configure(const Entity &_entity,
          << "of rotation commands." << std::endl;
 
   // Publish track odometry
-  const auto kDefaultOdometryTopic = topicPrefix + "/odometry";
-  const auto odometryTopic = validTopic({_sdf->Get<std::string>(
-    "odometry_topic", kDefaultOdometryTopic).first, kDefaultOdometryTopic});
-  this->dataPtr->odometryPub =
-    this->dataPtr->node.Advertise<msgs::Odometry>(odometryTopic);
+  this->dataPtr->resolvedTopicNames.odomTopic = 
+    resolvedTopicName(_sdf, "odometry_topic", ns, defaultPrefix + "/odometry");
+  std::string odomTopic = this->dataPtr->resolvedTopicNames.odomTopic;
+  if (odomTopic.empty())
+  {
+    gzerr << "TrackController failed to find a valid topic name for "
+          << "odometry messages. Check the <odometry_topic> in the SDF."
+          << std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->odometryPub =
+      this->dataPtr->node.Advertise<msgs::Odometry>(odomTopic);
+  }
 
   double odometryFreq = _sdf->Get<double>(
     "odometry_publish_frequency", 50).first;
@@ -296,7 +320,7 @@ void TrackController::Configure(const Entity &_entity,
     this->dataPtr->odometryPubPeriod =
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(odomPer);
   }
-  gzdbg << "Publishing odometry to " << odometryTopic
+  gzdbg << "Publishing odometry to " << odomTopic
     << " with period " << odomPer.count() << " seconds." << std::endl;
 
 
@@ -533,6 +557,11 @@ void TrackController::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->odometryPub.Publish(msg);
 }
 
+//////////////////////////////////////////////////
+TrackController::TopicNames TrackController::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
 
 //////////////////////////////////////////////////
 void TrackControllerPrivate::ComputeSurfaceProperties(
