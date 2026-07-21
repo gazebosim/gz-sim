@@ -1022,7 +1022,7 @@ bool EntityComponentManager::HasComponentType(
     const ComponentTypeId _typeId) const
 {
   const auto* storage = this->Registry().storage(_typeId);
-  return storage != nullptr;
+  return storage != nullptr && !storage->empty();
 }
 
 //////////////////////////////////////////////////

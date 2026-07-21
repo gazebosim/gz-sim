@@ -1515,8 +1515,8 @@ TEST_P(SimulationRunnerTest,
   EXPECT_TRUE(runner.Run(100));
   EXPECT_GT(entityCount, runner.EntityCompMgr().EntityCount());
 
-  // Check component is still registered
-  EXPECT_TRUE(runner.EntityCompMgr().HasComponentType(componentId))
+  // Component doesn't exist anymore
+  EXPECT_FALSE(runner.EntityCompMgr().HasComponentType(componentId))
       << componentId;
 
   // Entities no longer exist

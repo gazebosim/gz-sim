@@ -311,8 +311,8 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_FALSE(manager.HasEntity(entity2));
   EXPECT_FALSE(manager.EntityHasComponentType(entity, IntComponent::typeId));
 
-  // The type itself still exists
-  EXPECT_TRUE(manager.HasComponentType(IntComponent::typeId));
+  // The type doesn't exist anymore
+  EXPECT_FALSE(manager.HasComponentType(IntComponent::typeId));
 }
 
 /////////////////////////////////////////////////
