@@ -16,11 +16,13 @@
  */
 
 #include <benchmark/benchmark.h>
+#include <cmath>
 #include <cstring>
 #include <vector>
 
 #include <gz/common/Util.hh>
 #include <gz/msgs/twist.pb.h>
+#include <gz/msgs/joint_trajectory.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ContactSensorData.hh>
@@ -126,30 +128,75 @@ void BM_MobileRobot(benchmark::State &_st, const std::string &_physics_engine,
                     const std::string &_world_sdf)
 {
   ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
+  sim::Server server(serverConfig);
 
-  // Publish command
   transport::Node node;
-  auto pub_vehicle_1 = node.Advertise<gz::msgs::Twist>("/model/vehicle_1/cmd_vel");
-  auto pub_vehicle_2 = node.Advertise<gz::msgs::Twist>("/model/vehicle_2/cmd_vel");
+  const std::string trajectoryTopic = "/model/RR_position_control/joint_trajectory";
+  auto cmdVelPublisher1 = node.Advertise<gz::msgs::Twist>("/model/vehicle_1/cmd_vel");
+  auto cmdVelPublisher2 = node.Advertise<gz::msgs::Twist>("/model/vehicle_2/cmd_vel");
+  auto trajectoryPublisher = node.Advertise<msgs::JointTrajectory>(trajectoryTopic);
 
-  test::Relay velocityRamp;
+  // Set up command velocity messages to mobile robots
   double desiredLinVel = 1.0;
   double desiredAngVel = 0.2;
-  gz::msgs::Twist msg;
-  velocityRamp.OnPreUpdate(
-      [&](const UpdateInfo &/*_info*/,
-          const EntityComponentManager &)
-      {
-        gz::msgs::Set(msg.mutable_linear(),
-                  math::Vector3d(desiredLinVel, 0, 0));
-        gz::msgs::Set(msg.mutable_angular(),
-                  math::Vector3d(0.0, 0, desiredAngVel));
-        pub_vehicle_1.Publish(msg);
-        pub_vehicle_2.Publish(msg);
-      });
+  gz::msgs::Twist cmdVelMsg;
+  gz::msgs::Set(
+    cmdVelMsg.mutable_linear(), math::Vector3d(desiredLinVel, 0, 0));
+  gz::msgs::Set(
+    cmdVelMsg.mutable_angular(), math::Vector3d(0.0, 0, desiredAngVel));
 
-  sim::Server server(serverConfig);
-  server.AddSystem(velocityRamp.systemPtr);
+  // Set up joint trajectory messages
+  const size_t kNumberOfJoints = 2;
+  const std::string jointNames[kNumberOfJoints] = {"RR_position_control_joint1",
+                                                  "RR_position_control_joint2"};
+
+  std::vector<std::array<int, 2>> trajectoryTimes;
+  std::vector<std::array<double, kNumberOfJoints>> trajectoryPositions;
+
+  // Generate 1000 trajectory points programmatically
+  int numPoints = 1000;
+  for (int i = 1; i <= numPoints; ++i)
+  {
+    double t = i * 0.5;
+    int sec = static_cast<int>(t);
+    int nsec = static_cast<int>((t - sec) * 1e9);
+    trajectoryTimes.push_back({sec, nsec});
+
+    // Oscillating positions over time
+    double pos1 = std::sin(t);
+    double pos2 = std::cos(t);
+    trajectoryPositions.push_back({pos1, pos2});
+  }
+
+  // Create new JointTrajectory message based on the defined trajectory
+  gz::msgs::JointTrajectory joint_traj_msg;
+  for (const auto &jointName : jointNames)
+  {
+    joint_traj_msg.add_joint_names(jointName);
+  }
+  for (size_t i = 0; i < trajectoryPositions.size(); ++i)
+  {
+    gz::msgs::JointTrajectoryPoint point;
+
+    // Set the temporal information for the point
+    auto time = point.mutable_time_from_start();
+    time->set_sec(trajectoryTimes[i][0]);
+    time->set_nsec(trajectoryTimes[i][1]);
+
+    // Add target positions to the point
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
+    {
+      point.add_positions(trajectoryPositions[i][j]);
+    }
+
+    // Add point to the trajectory
+    joint_traj_msg.add_points();
+    joint_traj_msg.mutable_points(i)->CopyFrom(point);
+  }
+
+  cmdVelPublisher1.Publish(cmdVelMsg);
+  cmdVelPublisher2.Publish(cmdVelMsg);
+  trajectoryPublisher.Publish(joint_traj_msg);
 
   for (auto _ : _st)
   {
@@ -272,11 +319,17 @@ BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_sdf_3k_shapes_dart,
                   "3k_shapes.sdf")
     ->Unit(benchmark::kMillisecond);
 
-/* Benchmark runtime for world with moving robots */
-BENCHMARK_CAPTURE(BM_MobileRobot, sdf_diff_drive,
+/* Benchmark runtime for world with sensors and moving robots */
+BENCHMARK_CAPTURE(BM_MobileRobot, sdf_moving_robots_and_sensors_dart,
                   "gz-physics-dartsim-plugin",
-                  "multi_diff_drive.sdf")
-    ->Iterations(100000)
+                  "moving_robots_and_sensors.sdf")
+    ->Iterations(10000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_MobileRobot, sdf_moving_robots_and_sensors_bullet,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "moving_robots_and_sensors.sdf")
+    ->Iterations(10000)
     ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN();
