@@ -115,6 +115,18 @@ TEST_F(ComponentTest, DeclareOnlyMacro)
   EXPECT_FALSE(components::Factory::Instance()->HasType(DeclareOnly::typeId));
 }
 
+/////////////////////////////////////////////////
+TEST_F(ComponentTest, CoreComponentWithoutLocalRegistration)
+{
+  // Component headers are declare-only: typeName must still resolve via ADL
+  // in this TU...
+  ASSERT_NE(nullptr, components::Name::typeName);
+  EXPECT_STREQ("gz_sim_components.Name", components::Name::typeName);
+  // ...and the core library's definition TU must have registered the type.
+  EXPECT_TRUE(components::Factory::Instance()->HasType(
+      components::Name::typeId));
+}
+
 //////////////////////////////////////////////////
 /// Test that using the default constructor of Component doesn't cause
 /// problems when copying

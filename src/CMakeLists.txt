@@ -68,6 +68,7 @@ set(material_sources
 
 set (sources
   Actor.cc
+  AllComponents.cc
   Barrier.cc
   Conversions.cc
   ComponentFactory.cc

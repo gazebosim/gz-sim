@@ -41,7 +41,7 @@ namespace components
   using ExternalWorldWrenchCmd =
       Component<msgs::Wrench, class ExternalWorldWrenchCmdTag,
       serializers::MsgSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.ExternalWorldWrenchCmd",
                                 ExternalWorldWrenchCmd)
 }
 }

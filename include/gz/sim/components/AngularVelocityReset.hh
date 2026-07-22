@@ -36,7 +36,7 @@ namespace components
   //  represented by gz::math::Vector3d.
   using AngularVelocityReset = Component<math::Vector3d,
                                        class AngularVelocityResetTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.AngularVelocityReset", AngularVelocityReset)
 
   /// \brief Angular velocity of an entity in the world frame
@@ -44,7 +44,7 @@ namespace components
   //  represented by gz::math::Vector3d.
   using WorldAngularVelocityReset = Component<math::Vector3d,
                                        class WorldAngularVelocityResetTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.WorldAngularVelocityReset", WorldAngularVelocityReset)
 }
 }

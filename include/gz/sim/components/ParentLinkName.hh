@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the name of the entity's parent link.
   using ParentLinkName = Component<std::string, class ParentLinkNameTag,
       serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
     "gz_sim_components.ParentLinkName", ParentLinkName)
 }
 }

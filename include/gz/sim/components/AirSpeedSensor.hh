@@ -36,7 +36,7 @@ namespace components
   /// sdf::AirSpeed, information.
   using AirSpeedSensor = Component<sdf::Sensor, class AirSpeedSensorTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AirSpeedSensor",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.AirSpeedSensor",
       AirSpeedSensor)
 }
 }

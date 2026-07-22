@@ -292,7 +292,7 @@ namespace components
   using LogicalAudioSource = Component<logical_audio::Source,
         class LogicalAudioSourceTag,
         serializers::LogicalAudioSourceSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogicalAudioSource",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.LogicalAudioSource",
       LogicalAudioSource)
 }
 
@@ -303,7 +303,7 @@ namespace components
   using LogicalAudioSourcePlayInfo = Component<logical_audio::SourcePlayInfo,
         class LogicalAudioSourcePlayInfoTag,
         serializers::LogicalAudioSourcePlayInfoSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.LogicalAudioSourcePlayInfo",
       LogicalAudioSourcePlayInfo)
 }
@@ -315,7 +315,7 @@ namespace components
   using LogicalMicrophone = Component<logical_audio::Microphone,
         class LogicalMicrophoneTag,
         serializers::LogicalMicrophoneSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LogicalMicrophone",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.LogicalMicrophone",
       LogicalMicrophone)
 }
 }

@@ -32,12 +32,12 @@ namespace components
   /// \brief A component used to indicate that a model is static (i.e. not
   /// moveable).
   using Static = Component<bool, class StaticTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Static", Static)
 
   /// \brief A component that contains a bool command to change the static state
   /// of an entity.
   using StaticCmd = Component<bool, class StaticCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.StaticCmd", StaticCmd)
 }
 }

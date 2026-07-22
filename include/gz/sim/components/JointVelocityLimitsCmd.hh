@@ -48,7 +48,7 @@ using JointVelocityLimitsCmd = Component<
   serializers::VectorSerializer<gz::math::Vector2d>
 >;
 
-GZ_SIM_REGISTER_COMPONENT(
+GZ_SIM_DECLARE_COMPONENT(
   "gz_sim_components.JointVelocityLimitsCmd", JointVelocityLimitsCmd)
 }
 }

@@ -38,7 +38,7 @@ namespace components
   /// sdf::NavSat, information.
   using NavSat = Component<sdf::Sensor, class NavSatTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.NavSat", NavSat)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.NavSat", NavSat)
 }
 }
 }
