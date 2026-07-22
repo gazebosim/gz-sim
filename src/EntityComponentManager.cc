@@ -1127,7 +1127,6 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
       continue;
     }
 
-
     const components::BaseComponent *compBase =
       this->ComponentImplementation(_entity, type);
 
@@ -1320,72 +1319,11 @@ void EntityComponentManager::State(
     bool _full) const
 {
   this->Registry().view<Entity>().each([&](const Entity& e) {
-    if (!_entities.empty() && _entities.find(e) == _entities.end())
-      return;
-    this->AddEntityToMessage(_state, e, _types, _full);
+    if (_entities.empty() || _entities.find(e) == _entities.end())
+    {
+      this->AddEntityToMessage(_state, e, _types, _full);
+    }
   });
-  return;
-
-  // TODO(luca) Benchmark whether multithreaded state really helps
-  /*
-  std::mutex stateMapMutex;
-  std::vector<std::thread> workers;
-
-  const auto entityView = this->Registry().view<Entity>();
-  int numEntities = entityView.size();
-  const auto addN = entityView.begin() + 100;
-
-  // Set the number of threads to spawn to the min of the calculated thread
-  // count or max threads that the hardware supports
-  int maxThreads = std::thread::hardware_concurrency();
-  uint64_t numThreads = std::min(numEntities, maxThreads);
-
-  int entitiesPerThread = static_cast<int>(std::ceil(
-    static_cast<double>(numEntities) / numThreads));
-
-  auto functor = [&](auto itStart, auto itEnd)
-  {
-    msgs::SerializedStateMap threadMap;
-    while (itStart != itEnd)
-    {
-      auto entity = *itStart;
-      if (_entities.empty() || _entities.find(entity) != _entities.end())
-      {
-        this->AddEntityToMessage(threadMap, entity, _types, _full);
-      }
-      itStart++;
-    }
-    std::lock_guard<std::mutex> lock(stateMapMutex);
-
-    for (const auto &entity : threadMap.entities())
-    {
-      (*_state.mutable_entities())[static_cast<uint64_t>(entity.first)] =
-          entity.second;
-    }
-  };
-
-  auto itBegin = entityView.begin();
-  for (uint64_t i = 0; i < numThreads; ++i)
-  {
-    // If we have added all of the entities to the iterator vector, we are
-    // done so push back the end iterator
-    numEntities -= entitiesPerThread;
-    auto itEnd = entityView.begin() + (i + 1) * entitiesPerThread;
-    if (numEntities <= 0)
-    {
-      itEnd = entityView.end();
-    }
-    workers.push_back(std::thread(functor,
-        itBegin, itEnd));
-    itBegin = itEnd;
-  }
-
-  // Wait for each thread to finish processing its components
-  std::for_each(workers.begin(), workers.end(), [](std::thread &_t)
-  {
-    _t.join();
-  });
-  */
 }
 
 //////////////////////////////////////////////////
