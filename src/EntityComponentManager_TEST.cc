@@ -2675,6 +2675,7 @@ TEST_P(EntityComponentManagerFixture,
   // Check message
   {
     auto iter = stateMsg.entities().find(e1);
+    ASSERT_NE(iter, stateMsg.entities().end());
     const auto &e1Msg = iter->second;
     auto compIter = e1Msg.components().begin();
 
