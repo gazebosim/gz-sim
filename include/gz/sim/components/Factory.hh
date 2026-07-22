@@ -446,33 +446,46 @@ struct type_hash<Type, std::void_t<decltype(Type::typeId)>> {
 };
 }
 
-/// \brief Static component registration macro.
+/// \brief Internal macro: ADL helper functions for a component type.
 ///
-/// Use this macro to register components.
-///
-/// \details Each time a plugin which uses a component is loaded, it tries to
-/// register the component again, so we prevent that.
-/// \param[in] _compType Component type name.
-/// \param[in] _classname Class name for component.
-///
-/// This macro defines a non-member function `gzSimFactorycomponentTypeId`
-/// in the current namespace. This function is used by the `Component` class
-/// template to discover the component's unique ID via Argument Dependent
-/// Lookup (ADL).
-/// This removes the constraint that all components must be defined inside the
+/// Defines two non-member functions in the current namespace, discovered by
+/// the `Component` class template via Argument Dependent Lookup (ADL):
+/// `gzSimFactoryComponentTypeId` (the component's unique ID) and
+/// `gzSimFactoryComponentTypeName` (its registered name). ADL removes the
+/// constraint that all components must be defined inside the
 /// `gz::sim::components` namespace, enabling custom components to be defined
 /// in any namespace.
 ///
 /// We take a pointer to `_classname` as the argument to avoid name collisions
 /// and support distinguishing components that share the same tag type but have
 /// different data types.
-#define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
+///
+/// These helpers are cheap to compile: no Factory or EnTT machinery is
+/// instantiated by them.
+#define GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname) \
 inline constexpr ::gz::sim::ComponentTypeId \
   gzSimFactoryComponentTypeId(_classname* ptr) \
 { \
   (void)ptr; \
   return ::gz::common::hash64(_compType); \
 } \
+inline constexpr const char * \
+  gzSimFactoryComponentTypeName(_classname* ptr) \
+{ \
+  (void)ptr; \
+  return _compType; \
+}
+
+/// \brief Internal macro: static Factory registration object.
+///
+/// Instantiates the Factory registration machinery
+/// (`Factory::Register<_classname>`, `ComponentDescriptor<_classname>` and,
+/// through it, the EnTT storage for the component) and creates a static
+/// object whose constructor/destructor register/unregister the component
+/// when the enclosing shared library is loaded/unloaded. This is expensive
+/// to compile — expand it once per shared library, not per translation
+/// unit.
+#define GZ_SIM_COMPONENT_REGISTRATION(_compType, _classname) \
 class GzSimComponents##_classname \
 { \
   public: GzSimComponents##_classname() \
@@ -494,5 +507,46 @@ class GzSimComponents##_classname \
 }; \
 static GzSimComponents##_classname\
   GzSimComponentsInitializer##_classname;
+
+/// \brief Component declaration macro for components defined in headers
+/// that are included by many translation units.
+///
+/// Expands only the ADL helpers (typeId/typeName), keeping component
+/// headers cheap to include: no registration static, no Factory/EnTT
+/// template instantiation in consumer translation units.
+///
+/// Registration of gz-sim's own components happens once per shared library
+/// in `src/AllComponents.cc`, which defines
+/// `GZ_SIM_COMPONENT_DEFINITION_TU` before including every component
+/// header, turning this macro into a full registration there.
+///
+/// Out-of-tree code should normally keep using GZ_SIM_REGISTER_COMPONENT;
+/// use this macro only together with your own definition TU that defines
+/// GZ_SIM_COMPONENT_DEFINITION_TU and includes your component headers.
+#ifdef GZ_SIM_COMPONENT_DEFINITION_TU
+#define GZ_SIM_DECLARE_COMPONENT(_compType, _classname) \
+GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname) \
+GZ_SIM_COMPONENT_REGISTRATION(_compType, _classname)
+#else
+#define GZ_SIM_DECLARE_COMPONENT(_compType, _classname) \
+GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname)
+#endif
+
+/// \brief Static component registration macro.
+///
+/// Use this macro to register components.
+///
+/// \details Each time a plugin which uses a component is loaded, it tries to
+/// register the component again, so we prevent that.
+/// \param[in] _compType Component type name.
+/// \param[in] _classname Class name for component.
+///
+/// Declares the ADL helper functions (see GZ_SIM_COMPONENT_ADL_HELPERS) and
+/// creates the static registration object in the current translation unit.
+/// Prefer GZ_SIM_DECLARE_COMPONENT + a single definition TU when a library
+/// defines many components in headers included by many translation units.
+#define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
+GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname) \
+GZ_SIM_COMPONENT_REGISTRATION(_compType, _classname)
 
 #endif
