@@ -322,3 +322,56 @@ gz_create_docs(
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)
 endif()
+
+#============================================================================
+# Extend the shared precompiled header (GZ_SIM_ENABLE_PCH) to the test
+# executables. They are produced by gz_build_tests()/gz_configure_build() in
+# many subdirectories -- and with BUILD_TESTING on they are the bulk of the
+# translation units -- so applying the PCH here is where much of the remaining
+# win comes from. It is done as a post-configure directory walk because those
+# targets are created by a gz-cmake macro we do not invoke directly per site.
+#============================================================================
+if(GZ_SIM_ENABLE_PCH AND BUILD_TESTING AND TARGET gz-sim-pch)
+  # Recursively collect every target defined under the source tree.
+  function(_gz_sim_collect_targets _dir _out_var)
+    set(_result "")
+    get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
+    foreach(_sub IN LISTS _subdirs)
+      _gz_sim_collect_targets("${_sub}" _sub_targets)
+      list(APPEND _result ${_sub_targets})
+    endforeach()
+    get_property(_here DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND _result ${_here})
+    set(${_out_var} "${_result}" PARENT_SCOPE)
+  endfunction()
+
+  _gz_sim_collect_targets("${CMAKE_CURRENT_SOURCE_DIR}" _gz_sim_all_targets)
+
+  foreach(_tgt IN LISTS _gz_sim_all_targets)
+    if(NOT TARGET ${_tgt})
+      continue()
+    endif()
+    get_target_property(_tgt_type ${_tgt} TYPE)
+    # Only the compiled gtest binaries reuse the PCH.
+    if(NOT _tgt_type STREQUAL "EXECUTABLE")
+      continue()
+    endif()
+    if(NOT ${_tgt} MATCHES "^(UNIT|INTEGRATION|PERFORMANCE|REGRESSION)_")
+      continue()
+    endif()
+    # REUSE_FROM requires the reusing target's position-independent-code setting
+    # to match the provider (which is PIC on).
+    set_target_properties(${_tgt} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_precompile_headers(${_tgt} REUSE_FROM gz-sim-pch)
+  endforeach()
+
+  # added_mass.cc defines _USE_MATH_DEFINES before its includes to expose M_PI
+  # from <cmath> on MSVC. A force-included <cmath> from the PCH would make that
+  # define a no-op, so keep this one translation unit off the PCH.
+  if(TARGET INTEGRATION_added_mass)
+    set_source_files_properties(
+      "${CMAKE_CURRENT_SOURCE_DIR}/test/integration/added_mass.cc"
+      TARGET_DIRECTORY INTEGRATION_added_mass
+      PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+  endif()
+endif()
