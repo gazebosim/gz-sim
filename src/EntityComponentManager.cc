@@ -988,10 +988,7 @@ const components::BaseComponent
   GZ_PROFILE("EntityComponentManager::ComponentImplementation");
 
   const auto* storage = this->Registry().storage(_type);
-  if (!storage)
-    return nullptr;
-
-  if (!storage->contains(_entity))
+  if (!storage || !storage->contains(_entity))
     return nullptr;
 
   // TODO(luca) Document why this is safe
@@ -1040,12 +1037,10 @@ const EntityGraph& EntityComponentManager::Entities() const
 //////////////////////////////////////////////////
 std::vector<Entity> EntityComponentManager::EntitiesVector() const
 {
-  std::vector<Entity> entities;
-  entities.reserve(this->EntityCount());
-  this->Registry().view<Entity>().each([&](const Entity& e) {
-    entities.push_back(e);
-  });
-  return entities;
+  const auto* storage = this->Registry().storage<Entity>();
+  if (!storage)
+    return {};
+  return {storage->data(), storage->data() + storage->size()};
 }
 
 //////////////////////////////////////////////////
