@@ -315,15 +315,14 @@ void EntityComponentManager::EachNoCache(Func &&_f)
   this->Each<ComponentTypeTs...>(std::forward<Func>(_f));
 }
 
-// TODO(luca) There was logic to avoid iterating on Each for entities marked
-// to be removed, check if we need to add it (entt::exclude<RemoveEntity>).
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f) const
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<const ComponentTypeTs...>();
+    auto view = this->Registry().template view<const ComponentTypeTs...>(
+        entt::exclude<RemoveEntity>);
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -343,7 +342,8 @@ void EntityComponentManager::Each(Func &&_f) const
     };
 
     if (auto group = this->Registry().template group_if_exists<>(
-        entt::get<const ComponentTypeTs...>); group)
+        entt::get<const ComponentTypeTs...>, entt::exclude<RemoveEntity>);
+        group)
     {
       iterate(group);
       return;
@@ -353,7 +353,8 @@ void EntityComponentManager::Each(Func &&_f) const
     this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
         detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    iterate(this->Registry().template view<const ComponentTypeTs...>());
+    iterate(this->Registry().template view<const ComponentTypeTs...>(
+          entt::exclude<RemoveEntity>));
   }
 }
 
@@ -363,7 +364,8 @@ void EntityComponentManager::Each(Func &&_f)
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<ComponentTypeTs...>();
+    auto view = this->Registry().template view<ComponentTypeTs...>(
+        entt::exclude<RemoveEntity>);
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -372,8 +374,8 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    const auto group =
-      this->Registry().template group<>(entt::get<ComponentTypeTs...>);
+    const auto group = this->Registry().template group<>(
+        entt::get<ComponentTypeTs...>, entt::exclude<RemoveEntity>);
     for (const auto entity : group)
     {
       if (!_f(entity, std::addressof(
