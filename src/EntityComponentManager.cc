@@ -163,15 +163,6 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief Graph of entities generated on demand for deprecated Entities() API
   public: mutable EntityGraph entitiesGraph;
 
-  /// \brief A mutex to protect newly created entities.
-  public: std::mutex entityCreatedMutex;
-
-  /// \brief A mutex to protect entity remove.
-  public: std::mutex entityRemoveMutex;
-
-  /// \brief A mutex to protect removed components
-  public: mutable std::mutex removedComponentsMutex;
-
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 
@@ -288,6 +279,24 @@ EntityComponentManager::~EntityComponentManager() = default;
 void EntityComponentManagerPrivate::CopyFrom(
     const EntityComponentManagerPrivate &_from)
 {
+  this->registry.clear();
+
+  const auto entityView = _from.registry.view<const Entity>();
+
+  for (auto it = entityView.rbegin(); it != entityView.rend(); ++it) {
+    const auto e = *it;
+    std::ignore = this->registry.create(e);
+
+    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
+        _from.registry, e);
+    for (const auto [typeId, fromStorage] : fromHandle.storage())
+    {
+      auto* toStorage = this->registry.storage(typeId);
+      if (toStorage) {
+        toStorage->push(e, fromStorage.value(e));
+      }
+    }
+  }
   this->entityCount = _from.entityCount;
   // Not copying maps related to cloning since they are transient variables
   // that are used as return values of some member functions.
@@ -580,21 +589,18 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 /////////////////////////////////////////////////
 void EntityComponentManager::ClearNewlyCreatedEntities()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   this->Registry().clear<NewEntity>();
 }
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasRemovedComponents() const
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
   return this->Registry().view<RemovedComponents>().size() > 0;
 }
 
 /////////////////////////////////////////////////
 void EntityComponentManager::ClearRemovedComponents()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
   this->Registry().clear<RemovedComponents>();
 }
 
@@ -649,7 +655,6 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 
   // Remove entities from tmpToRemoveEntities that are marked as
   // unremovable.
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   const auto& storage = this->Registry().storage<PinnedEntity>();
   for (const auto& e : tmpToRemoveEntities)
   {
@@ -664,7 +669,6 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
 /////////////////////////////////////////////////
 void EntityComponentManager::RequestRemoveEntities()
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   this->Registry().view<Entity>(entt::exclude<PinnedEntity>)
     .each([&](const Entity _e) {
     this->Registry().emplace<RemoveEntity>(_e);
@@ -675,7 +679,6 @@ void EntityComponentManager::RequestRemoveEntities()
 void EntityComponentManager::ProcessRemoveEntityRequests()
 {
   GZ_PROFILE("EntityComponentManager::ProcessRemoveEntityRequests");
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   auto view = this->Registry().view<RemoveEntity>();
   const auto& pinnedStorage = this->Registry().storage<PinnedEntity>();
   for (auto entity : view)
@@ -736,12 +739,9 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity,
   this->dataPtr->AddModifiedComponent(_entity);
 
   // Add component to map of removed components
-  {
-    std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-    auto& removedComp =
-      this->Registry().get_or_emplace<RemovedComponents>(_entity);
-    removedComp.data.insert(_typeId);
-  }
+  auto& removedComp =
+    this->Registry().get_or_emplace<RemovedComponents>(_entity);
+  removedComp.data.insert(_typeId);
 }
 
 /////////////////////////////////////////////////
@@ -761,7 +761,6 @@ bool EntityComponentManager::IsMarkedForRemoval(const Entity _entity) const
 {
   if (!this->HasEntity(_entity))
     return false;
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   return this->Registry().any_of<RemoveEntity>(_entity);
 }
 
@@ -797,14 +796,12 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasNewEntities() const
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityCreatedMutex);
   return this->Registry().view<NewEntity>().size() > 0;
 }
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::HasEntitiesMarkedForRemoval() const
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->entityRemoveMutex);
   return this->Registry().view<RemoveEntity>().size() > 0;
 }
 
@@ -946,8 +943,8 @@ bool EntityComponentManager::CreateComponentDynamic(
   bool updateData = true;
 
   auto* storage = this->Registry().storage(_componentTypeId);
-  // If entity has never had a component of this type
-  if (!storage || !storage->contains(_entity))
+  // Storage is guaranteed to be valid (or CanCreateComponent would have failed)
+  if (!storage->contains(_entity))
   {
     if (storage->push(_entity, _data.get()) == storage->end())
     {
@@ -1062,7 +1059,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     msgs::SerializedEntity *_entityMsg,
     const std::unordered_set<ComponentTypeId> &_types)
 {
-  std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
   const auto* removedComps = this->registry.try_get<RemovedComponents>(_entity);
   if (!removedComps)
     return;
@@ -1087,7 +1083,6 @@ void EntityComponentManagerPrivate::SetRemovedComponentsMsgs(Entity &_entity,
     msgs::SerializedStateMap &_msg,
     const std::unordered_set<ComponentTypeId> &_types)
 {
-  std::lock_guard<std::mutex> lock(this->removedComponentsMutex);
   const auto* removedComps = this->registry.try_get<RemovedComponents>(_entity);
   if (!removedComps || removedComps->data.empty())
     return;
@@ -1696,16 +1691,13 @@ void EntityComponentManager::SetChanged(
     return;
 
   // If it was removed in this iteration, un-remove it
+  auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
+  if (removedComp)
   {
-    std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
-    auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
-    if (removedComp)
+    removedComp->data.erase(_type);
+    if (removedComp->data.empty())
     {
-      removedComp->data.erase(_type);
-      if (removedComp->data.empty())
-      {
-        this->Registry().erase<RemovedComponents>(_entity);
-      }
+      this->Registry().erase<RemovedComponents>(_entity);
     }
   }
 
@@ -1804,7 +1796,7 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::LockAddingEntitiesToViews(bool /*_lock*/)
+void EntityComponentManager::LockAddingEntitiesToViews(bool)
 {
 }
 
@@ -1925,25 +1917,6 @@ void EntityComponentManager::UnpinAllEntities()
 void EntityComponentManager::CopyFrom(const EntityComponentManager &_fromEcm)
 {
   this->dataPtr->CopyFrom(*_fromEcm.dataPtr);
-
-  const auto entityView = _fromEcm.Registry().view<const Entity>();
-
-  for (auto it = entityView.rbegin(); it != entityView.rend(); ++it) {
-    const auto e = *it;
-    if (this->HasEntity(e))
-      this->Registry().destroy(e);
-    std::ignore = this->Registry().create(e);
-
-    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
-        _fromEcm.Registry(), e);
-    for (const auto [typeId, fromStorage] : fromHandle.storage())
-    {
-      auto* toStorage = this->Registry().storage(typeId);
-      if (toStorage) {
-        toStorage->push(e, fromStorage.value(e));
-      }
-    }
-  }
 }
 
 /////////////////////////////////////////////////

@@ -372,7 +372,8 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    const auto group = this->Registry().template group<>(entt::get<ComponentTypeTs...>);
+    const auto group =
+      this->Registry().template group<>(entt::get<ComponentTypeTs...>);
     for (const auto entity : group)
     {
       if (!_f(entity, std::addressof(
