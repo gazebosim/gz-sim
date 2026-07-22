@@ -51,7 +51,7 @@
 
 // Custom implementation
 // TODO(anyone) switch to std <flat_set> when migrating to C++-23
-#include "gz/sim/detail/flat_set.hh"
+#include "gz/sim/detail/FlatSet.hh"
 
 namespace gz
 {

@@ -44,12 +44,12 @@ class FlatSet
   /// \brief Inserts an element
   /// \param value The value to insert in the set.
   /// \return True if it was inserted, false otherwise.
-  public: bool insert(const T& value)
+  public: bool insert(const T &_value)
   {
-    const auto it = std::lower_bound(data.begin(), data.end(), value);
-    if (it == data.end() || *it != value)
+    const auto it = std::lower_bound(data.begin(), data.end(), _value);
+    if (it == data.end() || *it != _value)
     {
-      data.emplace(it, value);
+      data.emplace(it, _value);
       return true;
     }
     return false;
@@ -58,10 +58,10 @@ class FlatSet
   /// \brief Erases an element
   /// \brief value the value to erase from the set.
   /// \return True if it was erased, false otherwise.
-  public: bool erase(const T& value)
+  public: bool erase(const T &_value)
   {
-    const auto it = std::lower_bound(data.begin(), data.end(), value);
-    if (it == data.end() || *it != value)
+    const auto it = this->find(_value);
+    if (it == data.end())
     {
       return false;
     }
@@ -89,24 +89,22 @@ class FlatSet
     data.clear();
   }
 
-  // Type aliases to make the struct compatible with STL algorithms
-  using iterator = typename std::vector<T>::iterator;
-  using const_iterator = typename std::vector<T>::const_iterator;
+  /// \brief Type alias to make the struct compatible with STL algorithms
+  public: using const_iterator = typename std::vector<T>::const_iterator;
 
-  // Forwarding methods
-  iterator begin() { return data.begin(); }
-  iterator end() { return data.end(); }
+  /// \brief Forwarding method for begin() iterator
+  public: const_iterator begin() const { return data.begin(); }
 
-  const_iterator begin() const { return data.begin(); }
-  const_iterator end() const { return data.end(); }
+  /// \brief Forwarding method for end() iterator
+  public: const_iterator end() const { return data.end(); }
 
   /// \brief Find an element
   /// \param[in] value Element to find
   /// \return Iterator to element if found, end() otherwise.
-  public: [[nodiscard]] const_iterator find(const T& value) const
+  public: [[nodiscard]] const_iterator find(const T _value) const
   {
-    const auto it = std::lower_bound(data.begin(), data.end(), value);
-    if (it != data.end() && *it == value)
+    const auto it = std::lower_bound(data.begin(), data.end(), _value);
+    if (it != data.end() && *it == _value)
       return it;
     return data.end();
   }
@@ -114,19 +112,19 @@ class FlatSet
   /// \brief Check if set contains an element
   /// \param[in] value Element to check
   /// \return True if contained, false otherwise.
-  public: [[nodiscard]] bool contains(const T& value) const
+  public: [[nodiscard]] bool contains(const T &_value) const
   {
-    return this->find(value) != this->end();
+    return this->find(_value) != this->end();
   }
 
   /// \brief Equality comparison
-  public: bool operator==(const FlatSet<T>& _other) const
+  public: bool operator==(const FlatSet<T> &_other) const
   {
     return data == _other.data;
   }
 
   /// \brief Inequality comparison
-  public: bool operator!=(const FlatSet<T>& _other) const
+  public: bool operator!=(const FlatSet<T> &_other) const
   {
     return !(*this == _other);
   }
