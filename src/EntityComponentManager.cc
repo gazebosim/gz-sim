@@ -966,20 +966,14 @@ bool EntityComponentManager::EntityMatches(Entity _entity,
   if (!this->HasEntity(_entity))
     return false;
 
-  const auto entityTypes = this->ComponentTypes(_entity);
-  // quick check: the entity cannot match _types if _types is larger than the
-  // number of component types the entity has
-  if (_types.size() > entityTypes.size())
-    return false;
-
   // \todo(nkoenig) The performance of this could be improved.
   // It might be possible to create bitmask for component sets.
   // Fixing this might not be high priority, unless we expect frequent
   // creation of entities and/or queries.
   for (const ComponentTypeId &type : _types)
   {
-    auto typeIter = entityTypes.find(type);
-    if (typeIter == entityTypes.end())
+    const auto* storage = this->Registry().storage(type);
+    if (!storage || !storage->contains(_entity))
       return false;
   }
 
@@ -1796,7 +1790,7 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::LockAddingEntitiesToViews(bool)
+void EntityComponentManager::LockAddingEntitiesToViews(bool) // NOLINT
 {
 }
 
