@@ -48,6 +48,12 @@ function(gz_add_system system_name)
     SOURCES ${sources}
     GET_TARGET_NAME system_target)
 
+  # Reuse the shared precompiled header built by the gz-sim-pch object library
+  # (defined in src/CMakeLists.txt). Off unless GZ_SIM_ENABLE_PCH is enabled.
+  if(GZ_SIM_ENABLE_PCH)
+    target_precompile_headers(${system_target} REUSE_FROM gz-sim-pch)
+  endif()
+
   target_link_libraries(${system_target}
     PUBLIC
       ${gz_add_system_PUBLIC_LINK_LIBS}

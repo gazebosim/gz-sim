@@ -121,6 +121,16 @@ gz_find_package(gz-fuel_tools REQUIRED)
 # Option to build gz-sim with GUI support
 option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
+# Option to build the core library and system plugins with a shared
+# precompiled header (PCH). Off by default: it changes nothing unless enabled,
+# and PCH interacts badly with ccache unless CCACHE_SLOPPINESS includes
+# "pch_defines,time_macros". When on, a single PCH (protobuf/gz-msgs, sdf, gz
+# core libs, std, EntityComponentManager.hh) is built once and reused by every
+# system plugin and core translation unit. See src/CMakeLists.txt.
+option(GZ_SIM_ENABLE_PCH
+       "Speed up compilation with a shared precompiled header (experimental)"
+       OFF)
+
 if(ENABLE_GUI)
   gz_find_package(gz-gui REQUIRED)
   gz_find_package(TINYXML2 REQUIRED)

@@ -1,3 +1,82 @@
+#============================================================================
+# Optional shared precompiled header (see GZ_SIM_ENABLE_PCH in the top-level
+# CMakeLists.txt). Building the PCH once in a dedicated object library and
+# having every consumer REUSE_FROM it keeps the (large) precompiled header on
+# disk and in memory a single time instead of once per target. This must be
+# defined before add_subdirectory(systems) so the system plugins can reuse it.
+#============================================================================
+if(GZ_SIM_ENABLE_PCH)
+  add_library(gz-sim-pch OBJECT pch_provider.cc)
+
+  # The consumers (core library and plugins) are position-independent shared
+  # objects; REUSE_FROM requires the provider's PIC setting to match, and
+  # object libraries default to PIC off.
+  set_target_properties(gz-sim-pch PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+  # Inherit the include directories of the dependencies whose headers the PCH
+  # pulls in, plus gz-sim's own source and generated public headers. The core
+  # library target does not exist yet, so its dependencies are listed directly.
+  target_link_libraries(gz-sim-pch PRIVATE
+    gz-math
+    gz-common::gz-common
+    gz-common::profiler
+    gz-transport::gz-transport
+    gz-msgs::gz-msgs
+    gz-plugin::core
+    gz-plugin::register
+    sdformat::sdformat
+    protobuf::libprotobuf
+  )
+  target_include_directories(gz-sim-pch PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
+  )
+
+  # Contents are ordered by parse cost: protobuf/gz-msgs and sdf dominate,
+  # followed by the gz core libraries and the C++ standard library, with
+  # EntityComponentManager.hh last. EnTT is deliberately absent: its parse
+  # self-time is negligible (see the entt-improvements compile-time analysis),
+  # and the component headers are already declare-only after R1.
+  target_precompile_headers(gz-sim-pch PRIVATE
+    # C++ standard library (most-included headers first)
+    <memory>
+    <string>
+    <vector>
+    <unordered_map>
+    <unordered_set>
+    <map>
+    <set>
+    <utility>
+    <algorithm>
+    <mutex>
+    <chrono>
+    <optional>
+    <limits>
+    <functional>
+    # protobuf / gz-msgs runtime -- the dominant per-TU parse cost
+    <gz/msgs/Utility.hh>
+    # SDFormat
+    <sdf/sdf.hh>
+    # gz core libraries (hot headers shared by most translation units)
+    <gz/math/Pose3.hh>
+    <gz/math/Vector3.hh>
+    <gz/math/Helpers.hh>
+    <gz/transport/Node.hh>
+    <gz/common/Profiler.hh>
+    <gz/common/Console.hh>
+    <gz/common/Util.hh>
+    # NOTE: gz/plugin/Register.hh is intentionally NOT in the PCH. It emits a
+    # GzPluginHook symbol in every translation unit that includes it and is
+    # meant to be included exactly once per plugin; force-including it into a
+    # shared PCH causes multiple-definition link errors in multi-TU targets.
+    # gz-sim stable public headers
+    <gz/sim/System.hh>
+    <gz/sim/config.hh>
+    # EntityComponentManager last (pulls in Factory.hh and the vendored EnTT)
+    <gz/sim/EntityComponentManager.hh>
+  )
+endif()
+
 add_subdirectory(rendering)
 
 if(ENABLE_GUI)
@@ -163,6 +242,19 @@ endif()
 
 # Create the library target
 gz_create_core_library(SOURCES ${sources} CXX_STANDARD 17)
+
+if(GZ_SIM_ENABLE_PCH)
+  target_precompile_headers(${PROJECT_LIBRARY_TARGET_NAME} REUSE_FROM gz-sim-pch)
+
+  # AllComponents.cc defines GZ_SIM_COMPONENT_DEFINITION_TU before its includes
+  # to turn GZ_SIM_DECLARE_COMPONENT into full registration. The PCH would
+  # force-include Factory.hh ahead of that define, baking the declare-only
+  # branch and silently dropping every component registration. Keep this TU off
+  # the PCH.
+  set_source_files_properties(AllComponents.cc PROPERTIES
+    SKIP_PRECOMPILE_HEADERS ON)
+endif()
+
 gz_add_get_install_prefix_impl(GET_INSTALL_PREFIX_FUNCTION gz::sim::getInstallPrefix
                                GET_INSTALL_PREFIX_HEADER gz/sim/InstallationDirectories.hh
                                OVERRIDE_INSTALL_PREFIX_ENV_VARIABLE GZ_SIM_INSTALL_PREFIX)
