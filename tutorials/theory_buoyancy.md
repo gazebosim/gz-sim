@@ -94,5 +94,6 @@ fluid density of `1 kgm^-3`.
 
 # Known limitations
 
-When the buoyancy plugin is configured in `graded buoyancy mode`, only `<box>`
-and `<sphere>` collision geometries are supported.
+The graded buoyancy mode supports `<box>`, `<sphere>`, `<cylinder>`,
+`<capsule>`, `<ellipsoid>`, and `<cone>` collision geometries.
+`<mesh>` and `<plane>` geometries are not supported in graded mode.

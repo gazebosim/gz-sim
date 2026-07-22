@@ -96,19 +96,27 @@ gz sim -r ~/gazebo_maritime/worlds/buoyant_turtle.sdf
 As you just observed, we failed in our goal and the turtle behaved as if it was
 moving on ice. Now, let's add hydrodynamics.
 
-Uncomment the following block from `buoyant_turtle.sdf`:
+First, add `<fluid_added_mass>` to the `base_link`'s `<inertial>` element in
+your `model.sdf` to account for the inertia of the surrounding fluid:
+
+```xml
+<fluid_added_mass>
+  <xx>0.04876161</xx>
+  <yy>1.26324739</yy>
+  <zz>1.26324739</zz>
+  <qq>0.3346</qq>
+  <rr>0.3346</rr>
+</fluid_added_mass>
+```
+
+Then, uncomment the following block from `buoyant_turtle.sdf` to add
+hydrodynamic damping:
 
 ```xml
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-0.04876161</xDotU>
-  <yDotV>-1.26324739</yDotV>
-  <zDotW>-1.26324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-0.3346</mDotQ>
-  <nDotR>-0.3346</nDotR>
   <xUabsU>-0.62282</xUabsU>
   <xU>-5</xU>
   <yVabsV>-60.127</yVabsV>

@@ -1,5 +1,172 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.4.0 (2026-06-03)
+
+1. Add parallel_postupdates gz policy
+    * [Pull request #3648](https://github.com/gazebosim/gz-sim/pull/3648)
+
+1. Update some tests to be independent of entity ordering
+    * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
+
+1. Mitigate #3589: Restrict reading of resources to paths that live only within approved resource list
+    * [Pull request #3590](https://github.com/gazebosim/gz-sim/pull/3590)
+    * [Issue #3589](https://github.com/gazebosim/gz-sim/issues/3589)
+
+1. Fix crash for invalid index in force torque GUI plugin
+    * [Pull request #3601](https://github.com/gazebosim/gz-sim/pull/3601)
+
+1. Fix ECM view update when component is added, then removed before the view is queried
+    * [Pull request #3607](https://github.com/gazebosim/gz-sim/pull/3607)
+
+1. Fix branch in custom_sensor_system example
+    * [Pull request #3614](https://github.com/gazebosim/gz-sim/pull/3614)
+
+1. Fix cmake warning with FetchContent_MakeAvailable
+    * [Pull request #3613](https://github.com/gazebosim/gz-sim/pull/3613)
+
+1. Fix compiler warnings with protobuf 35.0
+    * [Pull request #3604](https://github.com/gazebosim/gz-sim/pull/3604)
+
+1. ModelCommandAPI_TEST: skip failing check on arm64
+    * [Pull request #3603](https://github.com/gazebosim/gz-sim/pull/3603)
+
+1. [bazel] Fixes build on macos
+    * [Pull request #3609](https://github.com/gazebosim/gz-sim/pull/3609)
+
+1. Fix LinearBatteryPlugin state contamination on world reset
+    * [Pull request #3533](https://github.com/gazebosim/gz-sim/pull/3533)
+
+1. Fix Contact state contamination on world reset
+    * [Pull request #3541](https://github.com/gazebosim/gz-sim/pull/3541)
+
+1. Add extensive benchmarking for ECM
+    * [Pull request #3476](https://github.com/gazebosim/gz-sim/pull/3476)
+
+1. Add reset test helpers and migrate reset integration tests
+    * [Pull request #3503](https://github.com/gazebosim/gz-sim/pull/3503)
+
+1. Add a default for touch plugin namespace
+    * [Pull request #3513](https://github.com/gazebosim/gz-sim/pull/3513)
+
+### Gazebo Sim 10.3.0 (2026-05-14)
+
+1. Add components for setting gravity and static state of entities (backport #3532)
+    * [Pull request #3555](https://github.com/gazebosim/gz-sim/pull/3555)
+
+1. Fix EventManager RTTI failures across shared-library boundaries
+    * [Pull request #3542](https://github.com/gazebosim/gz-sim/pull/3542)
+
+1. Fix crash when adding a `Light` via `Component Inspector Editor` (#3137)
+    * [Pull request #3504](https://github.com/gazebosim/gz-sim/pull/3504)
+
+1. Add getters for joint velocity, effort, and position limits (#3272)
+    * [Pull request #3534](https://github.com/gazebosim/gz-sim/pull/3534)
+
+1. Create RenderEngineServerApiBackend component in SimulationRunner
+    * [Pull request #3471](https://github.com/gazebosim/gz-sim/pull/3471)
+
+1. Improve performance of `ECM::Entit(y|ies)ByComponents` and `ECM::ChildrenByComponents` (#3375)
+    * [Pull request #3525](https://github.com/gazebosim/gz-sim/pull/3525)
+
+1. Fix potential iterator invalidation in EntityTree (#3514)
+    * [Pull request #3515](https://github.com/gazebosim/gz-sim/pull/3515)
+
+1. Fix Python test PYTHONPATH: use `ENVIRONMENT_MODIFICATION` instead of ENVIRONMENT (#3480)
+    * [Pull request #3500](https://github.com/gazebosim/gz-sim/pull/3500)
+
+1. Infrastructure
+    * [Pull request #3492](https://github.com/gazebosim/gz-sim/pull/3492)
+    * [Pull request #3521](https://github.com/gazebosim/gz-sim/pull/3521)
+
+### Gazebo Sim 10.2.0 (2026-04-22)
+
+1. Use high resolution timer on Windows (#3478)
+    * [Pull request #3484](https://github.com/gazebosim/gz-sim/pull/3484)
+
+1. Hydrodynamic updates (#3456)
+    * [Pull request #3463](https://github.com/gazebosim/gz-sim/pull/3463)
+
+1. [Performance] - Remove / Optimize EntitiesByComponents calls
+    * [Pull request #3362](https://github.com/gazebosim/gz-sim/pull/3362)
+
+1. Add cylinder, capsule, ellipsoid and cone support to graded buoyancy (#3423)
+    * [Pull request #3429](https://github.com/gazebosim/gz-sim/pull/3429)
+
+1. docs: fix selected Doxygen warnings in docs build (#3445)
+    * [Pull request #3448](https://github.com/gazebosim/gz-sim/pull/3448)
+
+1. docs: fix @param mismatches for unused parameters
+    * [Pull request #3435](https://github.com/gazebosim/gz-sim/pull/3435)
+
+1. Fix crash when calling reset in model_photo_shoot (#3416)
+    * [Pull request #3436](https://github.com/gazebosim/gz-sim/pull/3436)
+
+1. Fix graded buoyancy SDF parsing and division by zero (#3422)
+    * [Pull request #3425](https://github.com/gazebosim/gz-sim/pull/3425)
+
+1. Fix running server and GUI together on macOS (#3405)
+    * [Pull request #3424](https://github.com/gazebosim/gz-sim/pull/3424)
+
+1. Fix some tutorial doxygen warnings
+    * [Pull request #3410](https://github.com/gazebosim/gz-sim/pull/3410)
+
+1. Extend TouchPlugin to support auto creation of contact sensors (#3403)
+    * [Pull request #3406](https://github.com/gazebosim/gz-sim/pull/3406)
+
+1. docs: fix XML tag parsing in markdown tutorials
+    * [Pull request #3411](https://github.com/gazebosim/gz-sim/pull/3411)
+
+1. Add global odometry frame offset support to OdometryPublisher
+    * [Pull request #3370](https://github.com/gazebosim/gz-sim/pull/3370)
+
+1. docs: fix doxygen parameter inconsistencies in core headers
+    * [Pull request #3399](https://github.com/gazebosim/gz-sim/pull/3399)
+
+1. Extend visualize frustum plugin to support rgb camera (#3374)
+    * [Pull request #3391](https://github.com/gazebosim/gz-sim/pull/3391)
+
+1. docs: fix doxygen warnings for sdf tag parameters in system header
+    * [Pull request #3397](https://github.com/gazebosim/gz-sim/pull/3397)
+
+1. Fixed Doxygen warnings related to include/gz/sim/comms files
+    * [Pull request #3396](https://github.com/gazebosim/gz-sim/pull/3396)
+
+1. docs: fix doxygen parameter mismatches in core headers
+    * [Pull request #3372](https://github.com/gazebosim/gz-sim/pull/3372)
+
+1. Fix unused-result warnings
+    * [Pull request #3382](https://github.com/gazebosim/gz-sim/pull/3382)
+
+1. Added explicit find package for TINYXML to CMakelist at root
+    * [Pull request #3360](https://github.com/gazebosim/gz-sim/pull/3360)
+
+1. Add missing include in lrauv_control example
+    * [Pull request #3354](https://github.com/gazebosim/gz-sim/pull/3354)
+
+1. Re-enable doxygen on macOS, fix some warnings (#3346)
+    * [Pull request #3348](https://github.com/gazebosim/gz-sim/pull/3348)
+
+1. Fix C4530 warning in backward-cpp by enabling /EHsc on MSVC
+    * [Pull request #3341](https://github.com/gazebosim/gz-sim/pull/3341)
+
+1. Support for user-defined topic in PosePublisher
+    * [Pull request #3331](https://github.com/gazebosim/gz-sim/pull/3331)
+
+1. Add <collision> parameter to TouchPlugin
+    * [Pull request #3320](https://github.com/gazebosim/gz-sim/pull/3320)
+
+1. Remove AUTOMOC from non-GUI targets
+    * [Pull request #3325](https://github.com/gazebosim/gz-sim/pull/3325)
+
+1. Prevent duplicate loading of default systems with legacy ignition plugins (#3301)
+    * [Pull request #3322](https://github.com/gazebosim/gz-sim/pull/3322)
+
+1. Fix SDF generation (world saving) when schemed URIs are used for resource URIs
+    * [Pull request #3286](https://github.com/gazebosim/gz-sim/pull/3286)
+
+1. [bazel/ infra] Fix publish.yaml indent error
+    * [Pull request #3308](https://github.com/gazebosim/gz-sim/pull/3308)
+
 ### Gazebo Sim 10.1.1 (2026-02-03)
 
 1. [bazel/infra] Create BCR PRs as ready for review and automatically when a tag is pushed

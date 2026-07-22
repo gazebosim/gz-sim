@@ -16,6 +16,7 @@
 */
 
 #include "gz/sim/components/CanonicalLink.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
@@ -161,24 +162,24 @@ Entity Model::ModelByName(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Joints(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Joint());
 }
 
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Links(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Link());
 }
 
 //////////////////////////////////////////////////
 std::vector<Entity> Model::Models(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  return _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Model());
 }
 
@@ -216,6 +217,52 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
         [](const math::Pose3d &, const math::Pose3d &){return false;});
     _ecm.SetChanged(this->dataPtr->id,
         components::WorldPoseCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+void Model::SetStatic(EntityComponentManager &_ecm,
+    bool _state)
+{
+  auto staticComp = _ecm.Component<components::StaticCmd>(
+      this->dataPtr->id);
+  if (!staticComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id, components::StaticCmd(_state));
+  }
+  else
+  {
+    staticComp->SetData(_state,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::StaticCmd::typeId, ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+std::optional<bool> Model::GravityEnabled(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::GravityEnabled>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
+void Model::SetGravityEnabled(EntityComponentManager &_ecm,
+    bool _enabled)
+{
+  auto staticComp = _ecm.Component<components::GravityEnabledCmd>(
+      this->dataPtr->id);
+  if (!staticComp)
+  {
+    _ecm.CreateComponent(this->dataPtr->id,
+        components::GravityEnabledCmd(_enabled));
+  }
+  else
+  {
+    staticComp->SetData(_enabled,
+        [](const bool &, const bool &){return false;});
+    _ecm.SetChanged(this->dataPtr->id,
+        components::GravityEnabledCmd::typeId, ComponentState::OneTimeChange);
   }
 }
 
