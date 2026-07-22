@@ -296,7 +296,7 @@ void EntityComponentManagerPrivate::CopyFrom(
 //////////////////////////////////////////////////
 size_t EntityComponentManager::EntityCount() const
 {
-  return this->Registry().storage<Entity>()->free_list();
+  return this->Registry().view<Entity>().size();
 }
 
 /////////////////////////////////////////////////
@@ -1803,20 +1803,17 @@ void EntityComponentManager::SetEntityCreateOffset(uint64_t _offset)
   this->dataPtr->entityCount = _offset;
 }
 
-/*
 /////////////////////////////////////////////////
-void EntityComponentManager::LockAddingEntitiesToViews(bool _lock)
+void EntityComponentManager::LockAddingEntitiesToViews(bool /*_lock*/)
 {
-  this->dataPtr->lockAddEntitiesToViews = _lock;
 }
 
 /////////////////////////////////////////////////
 bool EntityComponentManager::LockAddingEntitiesToViews() const
 {
-  return this->dataPtr->lockAddEntitiesToViews;
+  return false;
 }
 
-*/
 /////////////////////////////////////////////////
 void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 {

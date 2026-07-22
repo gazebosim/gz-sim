@@ -158,27 +158,6 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
   return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
 }
 
-
-namespace detail
-{
-template <typename ComponentTypeT>
-bool checkEquality(const ComponentTypeT &_desired,
-                   const components::BaseComponent *_baseComp)
-{
-  const ComponentTypeT *entityComponent =
-      static_cast<const ComponentTypeT *>(_baseComp);
-  return *entityComponent == _desired;
-}
-
-template <typename... ComponentTypeTs, std::size_t... Is>
-bool checkAllEquality(
-    const std::vector<const components::BaseComponent *> &_data,
-    std::index_sequence<Is...>, const ComponentTypeTs &..._desiredComponents)
-{
-  return (... && checkEquality(_desiredComponents, _data[Is]));
-}
-}  // namespace detail
-//
 //////////////////////////////////////////////////
 namespace detail
 {
@@ -300,10 +279,13 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
      const ComponentTypeTs &..._desiredComponents) const
 {
   std::vector<Entity> result;
-  const auto& children = this->Registry().template get<Children>(_parent);
+  const auto* children = this->Registry().template try_get<Children>(_parent);
+  if (!children)
+    return result;
+
   auto view = this->Registry().template view<const ComponentTypeTs...>();
 
-  for (const Entity e : children.data)
+  for (const Entity e : children->data)
   {
     if (!view.contains(e))
       continue;

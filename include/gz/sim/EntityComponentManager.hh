@@ -831,6 +831,24 @@ namespace gz
           const std::unordered_set<ComponentTypeId> &_types = {},
           bool _full = false) const;
 
+      /// \brief Set whether views should be locked when entities are being
+      /// added to them. This can be used to prevent race conditions in
+      /// system PostUpdates, since these are run in parallel (entities are
+      /// added to views when the view is used, so if two systems try to access
+      /// the same view in PostUpdate, we run the risk of multiple threads
+      /// reading/writing from the same data).
+      /// \param[in] _lock Whether the views should lock while entities are
+      /// being added to them (true) or not (false).
+      /// \deprecated This function is a noop and will be removed.
+      private: GZ_DEPRECATED(11) void LockAddingEntitiesToViews(bool _lock);
+
+      /// \brief Get whether views should be locked when entities are being
+      /// added to them.
+      /// \return True if views should be locked during entity addition, false
+      /// otherwise.
+      /// \deprecated This function is a noop and will be removed.
+      private: GZ_DEPRECATED(11) bool LockAddingEntitiesToViews() const;
+
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal
       // to Gazebo.

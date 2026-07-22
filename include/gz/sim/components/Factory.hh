@@ -211,25 +211,7 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
-    public:
-      using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
-
-      template <typename T>
-      void RegisterType() {
-        this->registerMap[T::typeId] =
-          [](entt::basic_registry<Entity>& _registry) {
-            _registry.storage<T>();
-          };
-      }
-
-      void RegisterAllToEntt(entt::basic_registry<Entity>& _registry) {
-        for (const auto& [_, registerFunc] : this->registerMap) {
-          registerFunc(_registry);
-        }
-      }
-
-    private:
-      std::map<ComponentTypeId, RegisterFunc> registerMap;
+    private: using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
@@ -247,8 +229,6 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
-      this->RegisterType<ComponentTypeT>();
-
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
       // only add them to the maps below once.
@@ -272,6 +252,14 @@ namespace components
           return;
         }
       }
+      else
+      {
+        // Adds to the list a function that will initialize the entt storage
+        this->registerList.push_back(
+          [](entt::basic_registry<Entity>& _registry) {
+            _registry.storage<ComponentTypeT>();
+        });
+      }
 
       // This happens at static initialization time, so we can't use common
       // console
@@ -288,6 +276,15 @@ namespace components
       this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
+    }
+
+    /// \brief Initialize the storage for all registered components
+    /// \param[in] _registry The registry to initialize storages for.
+    public: void RegisterAllToEntt(entt::basic_registry<Entity>& _registry)
+    {
+      for (const auto& registerFunc : this->registerList) {
+        registerFunc(_registry);
+      }
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -431,6 +428,9 @@ namespace components
     /// they try to register different types with the same typeName.
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
+
+    /// \brief A list of functions used to register the types to Entt registry.
+    private: std::vector<RegisterFunc> registerList;
   };
 }
 }
