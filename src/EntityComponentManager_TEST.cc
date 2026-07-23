@@ -2898,6 +2898,7 @@ TEST_P(EntityComponentManagerFixture,
 
   // Expect to only see one change for an added component (c0), since
   // the other components were added and removed before the state was reset.
+  // THIS NOW FAILS, we return _all_ removed components
   ASSERT_EQ(stateMsg.entities().size(), 1);
   ASSERT_EQ(stateMsg.entities().begin()->second.components().size(), 1);
 
