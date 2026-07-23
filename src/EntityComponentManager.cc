@@ -1319,7 +1319,7 @@ void EntityComponentManager::State(
     bool _full) const
 {
   this->Registry().view<Entity>().each([&](const Entity& e) {
-    if (_entities.empty() || _entities.find(e) == _entities.end())
+    if (_entities.empty() || _entities.find(e) != _entities.end())
     {
       this->AddEntityToMessage(_state, e, _types, _full);
     }
