@@ -22,12 +22,39 @@
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
 static const std::string kGzModelCommand(std::string(GZ_PATH) + " model ");
+
+class ModelCommandAPI : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    // Save previous partition to restore it later
+    char *prevPartition = std::getenv("GZ_PARTITION");
+    if (prevPartition) {
+      this->oldPartition = prevPartition;
+    }
+
+    // Generate unique partition for this test
+    this->partition = gz::common::uuid();
+    gz::common::setenv("GZ_PARTITION", this->partition);
+  }
+
+  void TearDown() override {
+    if (this->oldPartition.empty()) {
+      gz::common::unsetenv("GZ_PARTITION");
+    } else {
+      gz::common::setenv("GZ_PARTITION", this->oldPartition);
+    }
+  }
+
+  std::string oldPartition;
+  std::string partition;
+};
 
 /////////////////////////////////////////////////
 /// \brief Used to avoid the cases where the zero is
@@ -74,7 +101,7 @@ std::string customExecStr(std::string _cmd)
 /////////////////////////////////////////////////
 // Test `gz model` command when no Gazebo server is running.
 // See https://github.com/gazebosim/gz-sim/issues/1175
-TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kGzModelCommand + "--list ";
   const std::string output = customExecStr(cmd);
@@ -87,7 +114,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 
 /////////////////////////////////////////////////
 // Tests `gz model` command.
-TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -393,7 +420,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 
 /////////////////////////////////////////////////
 // Tests `gz model -s` command with an airpressure sensor.
-TEST(ModelCommandAPI, AirPressureSensor)
+TEST_F(ModelCommandAPI, AirPressureSensor)
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -436,7 +463,7 @@ TEST(ModelCommandAPI, AirPressureSensor)
 
 /////////////////////////////////////////////////
 // Tests `gz model -s` command with an altimeter.
-TEST(ModelCommandAPI, AltimeterSensor)
+TEST_F(ModelCommandAPI, AltimeterSensor)
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -486,7 +513,7 @@ TEST(ModelCommandAPI, AltimeterSensor)
 
 /////////////////////////////////////////////////
 // Tests `gz model -s` command with a gpu lidar sensor.
-TEST(ModelCommandAPI, GpuLidarSensor)
+TEST_F(ModelCommandAPI, GpuLidarSensor)
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -542,7 +569,7 @@ TEST(ModelCommandAPI, GpuLidarSensor)
 
 /////////////////////////////////////////////////
 // Tests `gz model -s` command with a magnetometer.
-TEST(ModelCommandAPI, MagnetometerSensor)
+TEST_F(ModelCommandAPI, MagnetometerSensor)
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -601,7 +628,7 @@ TEST(ModelCommandAPI, MagnetometerSensor)
 
 /////////////////////////////////////////////////
 // Tests `gz model -s` command with an rgbd camera.
-TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
+TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 {
   gz::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
@@ -672,7 +699,7 @@ TEST(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_MAC(RgbdCameraSensor))
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
-TEST(ModelCommandAPI,
+TEST_F(ModelCommandAPI,
   GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelHelpVsCompletionFlags))
 {
   // Flags in help message
