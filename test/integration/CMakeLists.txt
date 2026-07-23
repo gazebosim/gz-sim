@@ -143,19 +143,6 @@ if (MSVC OR NOT GZ_TOOLS_PROGRAM)
   list(REMOVE_ITEM tests log_system.cc)
 endif()
 
-# Add systems that need a valid display here.
-# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-# or Xdummy instead of skipping them
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-  list(APPEND tests ${tests_needing_display})
-else()
-  message(STATUS
-    "Skipping these INTEGRATION tests because a valid display was not found:")
-  foreach(test ${tests_needing_display})
-    message(STATUS " ${test}")
-  endforeach(test)
-endif()
-
 # Add tests that need pybind11
 if (${pybind11_FOUND})
   list(APPEND tests python_system_loader.cc)
@@ -167,7 +154,9 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${tests} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(
+    ${tests} ${tests_needing_display}
+    COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 link_directories(${PROJECT_BINARY_DIR}/test)
@@ -183,6 +172,30 @@ gz_build_tests(TYPE INTEGRATION
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
 )
+
+gz_build_tests(TYPE INTEGRATION
+  SOURCES
+    ${tests_needing_display}
+  TEST_LIST display_test_targets
+  LIB_DEPS
+    ${EXTRA_TEST_LIB_DEPS}
+    ${PROJECT_LIBRARY_TARGET_NAME}-rendering
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+)
+
+if(BUILD_TESTING AND (NOT VALID_DISPLAY OR NOT VALID_DRI_DISPLAY))
+  message(STATUS
+    "Disabling these INTEGRATION tests because a valid display was not found:")
+  foreach(test_target ${display_test_targets})
+    message(STATUS " ${test_target}")
+    set_tests_properties(${test_target} PROPERTIES DISABLED TRUE)
+    if(TEST check_${test_target})
+      set_tests_properties(check_${test_target} PROPERTIES DISABLED TRUE)
+    endif()
+  endforeach()
+endif()
 
 
 # For INTEGRATION_physics_system, we need to check what version of DART is
@@ -284,10 +297,13 @@ if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
 endif()
 
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
+if(TARGET INTEGRATION_sensors_system)
   target_link_libraries(INTEGRATION_sensors_system
     gz-rendering::gz-rendering
   )
+endif()
+
+if(TARGET INTEGRATION_actor_trajectory)
   target_link_libraries(INTEGRATION_actor_trajectory
     gz-rendering::gz-rendering
   )
