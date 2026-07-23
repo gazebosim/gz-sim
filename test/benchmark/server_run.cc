@@ -132,17 +132,17 @@ void BM_MobileRobot(benchmark::State &_st, const std::string &_physics_engine,
 
   transport::Node node;
   const std::string trajectoryTopic = "/model/RR_position_control/joint_trajectory";
-  auto cmdVelPublisher1 = node.Advertise<gz::msgs::Twist>("/model/vehicle_1/cmd_vel");
-  auto cmdVelPublisher2 = node.Advertise<gz::msgs::Twist>("/model/vehicle_2/cmd_vel");
+  auto cmdVelPublisher1 = node.Advertise<msgs::Twist>("/model/vehicle_1/cmd_vel");
+  auto cmdVelPublisher2 = node.Advertise<msgs::Twist>("/model/vehicle_2/cmd_vel");
   auto trajectoryPublisher = node.Advertise<msgs::JointTrajectory>(trajectoryTopic);
 
   // Set up command velocity messages to mobile robots
   double desiredLinVel = 1.0;
   double desiredAngVel = 0.2;
-  gz::msgs::Twist cmdVelMsg;
-  gz::msgs::Set(
+  msgs::Twist cmdVelMsg;
+  msgs::Set(
     cmdVelMsg.mutable_linear(), math::Vector3d(desiredLinVel, 0, 0));
-  gz::msgs::Set(
+  msgs::Set(
     cmdVelMsg.mutable_angular(), math::Vector3d(0.0, 0, desiredAngVel));
 
   // Set up joint trajectory messages
@@ -169,14 +169,14 @@ void BM_MobileRobot(benchmark::State &_st, const std::string &_physics_engine,
   }
 
   // Create new JointTrajectory message based on the defined trajectory
-  gz::msgs::JointTrajectory joint_traj_msg;
+  msgs::JointTrajectory joint_traj_msg;
   for (const auto &jointName : jointNames)
   {
     joint_traj_msg.add_joint_names(jointName);
   }
   for (size_t i = 0; i < trajectoryPositions.size(); ++i)
   {
-    gz::msgs::JointTrajectoryPoint point;
+    msgs::JointTrajectoryPoint point;
 
     // Set the temporal information for the point
     auto time = point.mutable_time_from_start();
