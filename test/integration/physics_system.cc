@@ -3142,6 +3142,9 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(RayIntersections))
             math::eigen3::convert(results2[i].point).array().isNaN().all());
           ASSERT_TRUE(
             math::eigen3::convert(results2[i].normal).array().isNaN().all());
+          // gz-physics9 returns NaN on a ray miss (gz-physics10 uses +INF per
+          // REP-117). gz-sim10 intentionally keeps this as isnan and does not
+          // backport gz-sim#3554, which flipped it to isinf for gz-physics10.
           ASSERT_TRUE(
             std::isnan(results2[i].fraction));
         }
