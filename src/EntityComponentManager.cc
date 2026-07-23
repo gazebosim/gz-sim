@@ -1037,10 +1037,8 @@ const EntityGraph& EntityComponentManager::Entities() const
 //////////////////////////////////////////////////
 std::vector<Entity> EntityComponentManager::EntitiesVector() const
 {
-  const auto* storage = this->Registry().storage<Entity>();
-  if (!storage)
-    return {};
-  return {storage->data(), storage->data() + storage->size()};
+  const auto view = this->Registry().view<Entity>();
+  return {view.begin(), view.end()};
 }
 
 //////////////////////////////////////////////////

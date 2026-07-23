@@ -321,8 +321,7 @@ void EntityComponentManager::Each(Func &&_f) const
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<const ComponentTypeTs...>(
-        entt::exclude<RemoveEntity>);
+    auto view = this->Registry().template view<const ComponentTypeTs...>();
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -342,8 +341,7 @@ void EntityComponentManager::Each(Func &&_f) const
     };
 
     if (auto group = this->Registry().template group_if_exists<>(
-        entt::get<const ComponentTypeTs...>, entt::exclude<RemoveEntity>);
-        group)
+        entt::get<const ComponentTypeTs...>); group)
     {
       iterate(group);
       return;
@@ -353,8 +351,7 @@ void EntityComponentManager::Each(Func &&_f) const
     this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
         detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    iterate(this->Registry().template view<const ComponentTypeTs...>(
-          entt::exclude<RemoveEntity>));
+    iterate(this->Registry().template view<const ComponentTypeTs...>());
   }
 }
 
@@ -364,8 +361,7 @@ void EntityComponentManager::Each(Func &&_f)
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<ComponentTypeTs...>(
-        entt::exclude<RemoveEntity>);
+    auto view = this->Registry().template view<ComponentTypeTs...>();
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -374,8 +370,8 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    const auto group = this->Registry().template group<>(
-        entt::get<ComponentTypeTs...>, entt::exclude<RemoveEntity>);
+    const auto group =
+      this->Registry().template group<>(entt::get<ComponentTypeTs...>);
     for (const auto entity : group)
     {
       if (!_f(entity, std::addressof(
