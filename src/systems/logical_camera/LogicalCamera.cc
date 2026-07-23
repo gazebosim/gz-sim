@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
@@ -186,12 +187,35 @@ void LogicalCameraPrivate::AddLogicalCamera(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   auto data = _logicalCamera->Data()->Clone();
   data->GetAttribute("name")->Set(sensorScopedName);
-  // check topic
-  if (!data->HasElement("topic"))
+
+  // generate namespace
+  std::string ns;
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+  if (hasNamespace(_ecm))
   {
-    std::string topic = scopedName(_entity, _ecm) + "/logical_camera";
-    data->GetElement("topic")->Set(topic);
+    ns = scopedNamespace(_ecm, _entity);
+    defaultPrefix = ns;
   }
+
+  // check topic
+  std::vector<std::string> topics;
+  if (data->HasElement("topic"))
+  {
+    std::string topicName = data->Get<std::string>("topic");
+    if (!topicName.empty())
+    {
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (topicName.front() != '/')
+      {
+        topicName = ns+ "/" + topicName;
+      }
+    }
+    topics.push_back(topicName);
+  }
+  topics.push_back(defaultPrefix + "/logical_camera");
+  data->GetElement("topic")->Set(validTopic(topics));
+
   std::unique_ptr<sensors::LogicalCameraSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::LogicalCameraSensor>(data);

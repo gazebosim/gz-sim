@@ -48,6 +48,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Projector.hh"
@@ -201,6 +202,89 @@ std::string scopedName(const Entity &_entity,
   }
 
   return result;
+}
+
+//////////////////////////////////////////////////
+bool hasNamespace(const EntityComponentManager &_ecm)
+{
+  const auto &entities = _ecm.Entities().Vertices();
+
+  for ( const auto &entity : entities)
+  {
+    const auto ns = _ecm.Component<components::Namespace>(entity.first);
+    if (ns && !ns->Data().empty())
+      return true;
+  }
+  return false;
+}
+
+//////////////////////////////////////////////////
+std::string scopedNamespace(const EntityComponentManager &_ecm,
+    const Entity &_entity, const std::string &_delim)
+{
+  std::vector<std::string> namespaces;
+
+  auto entity = _entity;
+  while (entity != kNullEntity)
+  {
+    const auto ns = _ecm.Component<components::Namespace>(entity);
+    if (ns && !ns->Data().empty())
+    {
+      std::string nsStr = ns->Data();
+      const bool isAbsolute = nsStr.front() == '/';
+      const auto begin = nsStr.find_first_not_of('/');
+      if (begin != std::string::npos)
+      {
+        const auto end = nsStr.find_last_not_of('/');
+        nsStr = nsStr.substr(begin, end - begin + 1);
+
+        namespaces.push_back(nsStr);
+      }
+      if (isAbsolute)
+      {
+        break;
+      }
+    }
+
+    const auto parentEntity = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentEntity)
+      break;
+    entity = parentEntity->Data();
+  }
+
+  std::reverse(namespaces.begin(), namespaces.end());
+  std::string result;
+  for (const auto &ns : namespaces)
+  {
+    result += _delim + ns;
+  }
+  return result;
+}
+
+std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
+    const std::string &_sdfElement, const std::string &_ns,
+    const std::string &_defaultTopic)
+{
+  std::vector<std::string> topics;
+
+  if (_sdf->HasElement(_sdfElement))
+  {
+    std::string customTopic = _sdf->Get<std::string>(_sdfElement);
+
+    if (!customTopic.empty())
+    {
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (customTopic.front() != '/')
+      {
+        customTopic = _ns + "/" + customTopic;
+      }
+      topics.push_back(customTopic);
+    }
+  }
+
+  topics.push_back(_defaultTopic);
+  return validTopic(topics);
 }
 
 //////////////////////////////////////////////////

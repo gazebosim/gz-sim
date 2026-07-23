@@ -149,6 +149,9 @@ class gz::sim::systems::TrackedVehiclePrivate
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: TrackedVehicle::TopicNames resolvedTopicNames;
+
   /// \brief Update period calculated from <odom_publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
 
@@ -256,19 +259,54 @@ void TrackedVehicle::Configure(const Entity &_entity,
     sdfElem = sdfElem->GetNextElement("right_track");
   }
 
+  // Generate namespace
+  std::string ns;
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  if (hasNamespace(_ecm))
+  {
+    ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+    defaultPrefix = ns;
+  }
+
   for (const auto &[linkName, elem] : tracks)
   {
-    const auto prefix = "/model/" + modelName + "/link/" + linkName;
+    const auto prefix = defaultPrefix + "/link/" + linkName;
 
-    auto topic = validTopic({elem->Get<std::string>(
-      "velocity_topic", prefix + "/track_cmd_vel").first});
-    this->dataPtr->velPublishers[linkName] =
-      this->dataPtr->node.Advertise<msgs::Double>(topic);
+    this->dataPtr->resolvedTopicNames.tracks[linkName].velTopic =
+      resolvedTopicName(elem, "velocity_topic", ns, prefix + "/track_cmd_vel");
+    std::string velTopic =
+      this->dataPtr->resolvedTopicNames.tracks[linkName].velTopic;
+    
+    if (velTopic.empty())
+    {
+      gzerr << "TrackedVehicle failed to find a valid topic name for ["
+            << linkName << "] track velocity messages. Check the "
+            << "<velocity_topic> in the SDF."<< std::endl;
+      return;
+    }
+    else
+    {
+      this->dataPtr->velPublishers[linkName] =
+        this->dataPtr->node.Advertise<msgs::Double>(velTopic);
+    }
 
-    topic = validTopic({elem->Get<std::string>("center_of_rotation_topic",
-      prefix + "/track_cmd_center_of_rotation").first});
-    this->dataPtr->corPublishers[linkName] =
-      this->dataPtr->node.Advertise<msgs::Vector3d>(topic);
+    this->dataPtr->resolvedTopicNames.tracks[linkName].corTopic =
+      resolvedTopicName(elem, "center_of_rotation_topic", ns,
+      prefix + "/track_cmd_center_of_rotation");
+    std::string corTopic =
+      this->dataPtr->resolvedTopicNames.tracks[linkName].corTopic;
+    if (corTopic.empty())
+    {
+      gzerr << "TrackedVehicle failed to find a valid topic name for ["
+            << linkName << "] track center of rotation messages. Check the "
+            << "<center_of_rotation_topic> in the SDF."<< std::endl;
+      return;
+    }
+    else
+    {
+      this->dataPtr->corPublishers[linkName] =
+        this->dataPtr->node.Advertise<msgs::Vector3d>(corTopic);
+    }
   }
 
   this->dataPtr->tracksSeparation = _sdf->Get<double>("tracks_separation",
@@ -366,39 +404,73 @@ void TrackedVehicle::Configure(const Entity &_entity,
       this->dataPtr->trackHeight/2, this->dataPtr->trackHeight/2);
 
   // Subscribe to commands
-  const auto topicPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  this->dataPtr->resolvedTopicNames.cmdVelTopic =
+    resolvedTopicName(_sdf, "topic", ns, defaultPrefix + "/cmd_vel");
+  std::string cmdVelTopic = this->dataPtr->resolvedTopicNames.cmdVelTopic;
+  if (cmdVelTopic.empty())
+  {
+    gzerr << "TrackedVehicle failed to find a valid topic name for "
+          << "twist messages. Check the <topic> in the SDF."
+          << std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(cmdVelTopic, 
+      &TrackedVehiclePrivate::OnCmdVel, this->dataPtr.get());
+  }
 
-  const auto kDefaultCmdVelTopic {topicPrefix + "/cmd_vel"};
-  const auto topic = validTopic({
-    _sdf->Get<std::string>("topic", kDefaultCmdVelTopic).first,
-    kDefaultCmdVelTopic});
-
-  this->dataPtr->node.Subscribe(topic, &TrackedVehiclePrivate::OnCmdVel,
-      this->dataPtr.get());
-
-  const auto kDefaultOdomTopic {topicPrefix + "/odometry"};
-  const auto odomTopic = validTopic({
-    _sdf->Get<std::string>("odom_topic", kDefaultOdomTopic).first,
-    kDefaultOdomTopic});
-
-  this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+  // Publish odometry
+  this->dataPtr->resolvedTopicNames.odomTopic =
+    resolvedTopicName(_sdf, "odom_topic", ns, defaultPrefix + "/odometry");
+  std::string odomTopic = this->dataPtr->resolvedTopicNames.odomTopic;
+  if (odomTopic.empty())
+  {
+    gzerr << "TrackedVehicle failed to find a valid topic name for "
+          << "odometry messages. Check the <odom_topic> in the SDF."
+          << std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       odomTopic);
+  }
 
-  const auto kDefaultTfTopic {topicPrefix + "/tf"};
-  const auto tfTopic = validTopic({
-    _sdf->Get<std::string>("tf_topic", kDefaultTfTopic).first,
-    kDefaultTfTopic});
-
-  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+  // Publish tf
+  this->dataPtr->resolvedTopicNames.tfTopic =
+    resolvedTopicName(_sdf, "tf_topic", ns, defaultPrefix + "/tf");
+  std::string tfTopic = this->dataPtr->resolvedTopicNames.tfTopic;
+  if (tfTopic.empty())
+  {
+    gzerr << "TrackedVehicle failed to find a valid topic name for "
+          << "tf messages. Check the <tf_topic> in the SDF."
+          << std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
       tfTopic);
+  }
 
-  const auto kDefaultSeTopic {topicPrefix + "/steering_efficiency"};
-  const auto seTopic = validTopic({
-    _sdf->Get<std::string>("steering_efficiency_topic", kDefaultSeTopic).first,
-    kDefaultSeTopic});
-
-  this->dataPtr->node.Subscribe(seTopic,
-    &TrackedVehiclePrivate::OnSteeringEfficiency, this->dataPtr.get());
+  // Subscribe to steering efficiency
+  this->dataPtr->resolvedTopicNames.seTopic =
+    resolvedTopicName(_sdf, "steering_efficiency_topic", ns,
+                      defaultPrefix + "/steering_efficiency");
+  std::string seTopic = this->dataPtr->resolvedTopicNames.seTopic;
+  if (seTopic.empty())
+  {
+    gzerr << "TrackedVehicle failed to find a valid topic name for "
+          << "steering efficiency messages. Check the <steering_efficiency_topic>"
+          << " in the SDF." << std::endl;
+    return;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(seTopic,
+      &TrackedVehiclePrivate::OnSteeringEfficiency, this->dataPtr.get());
+  }
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
@@ -413,7 +485,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
          << " m" << std::endl;
   gzmsg << "- initial steering efficiency: "
          << this->dataPtr->steeringEfficiency << std::endl;
-  gzmsg << "- subscribing to twist messages on [" << topic << "]" << std::endl;
+  gzmsg << "- subscribing to twist messages on ["
+        << cmdVelTopic << "]" << std::endl;
   gzmsg << "- subscribing to steering efficiency messages on ["
          << seTopic << "]" << std::endl;
   gzmsg << "- publishing odometry on [" << odomTopic << "]" << std::endl;
@@ -544,6 +617,12 @@ void TrackedVehicle::PostUpdate(const UpdateInfo &_info,
 
   this->dataPtr->UpdateVelocity(_info, _ecm);
   this->dataPtr->UpdateOdometry(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+TrackedVehicle::TopicNames TrackedVehicle::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

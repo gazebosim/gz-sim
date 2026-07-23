@@ -164,6 +164,9 @@ class gz::sim::systems::AckermannSteeringPrivate
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: AckermannSteering::TopicNames resolvedTopicNames;
+
   /// \brief True if using Actuator msg to control steering angle.
   public: bool useActuatorMsg{false};
 
@@ -390,105 +393,115 @@ void AckermannSteering::Configure(const Entity &_entity,
           odomPer);
     }
   }
+
+  // Generate namespace
+  std::string ns;
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  if (hasNamespace(_ecm))
+  {
+    ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+    defaultPrefix = ns;
+  }
+
   // Subscribe to commands
-  std::vector<std::string> topics;
-
-
-  if (_sdf->HasElement("topic"))
+  std::string defaultCmdVelTopic;
+  if (_sdf->HasElement("sub_topic"))
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    defaultCmdVelTopic =
+      defaultPrefix + "/" + _sdf->Get<std::string>("sub_topic");
   }
-  else if (_sdf->HasElement("sub_topic"))
-  {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/" + _sdf->Get<std::string>("sub_topic"));
-  }
-  else if ((this->dataPtr->steeringOnly) &&
-    (!this->dataPtr->useActuatorMsg))
-  {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/steer_angle");
-  }
-  else if ((this->dataPtr->steeringOnly) &&
-    (this->dataPtr->useActuatorMsg))
-  {
-    topics.push_back("/actuators");
-  }
-  else if (!this->dataPtr->steeringOnly)
-  {
-    topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  }
-
-  auto topic = validTopic(topics);
-  if (topic.empty())
-  {
-    gzerr << "AckermannSteering plugin received invalid topic name "
-           << "Failed to initialize." << std::endl;
-    return;
-  }
-  if (this->dataPtr->steeringOnly)
+  else if (this->dataPtr->steeringOnly)
   {
     if (this->dataPtr->useActuatorMsg)
     {
-      this->dataPtr->node.Subscribe(topic,
-        &AckermannSteeringPrivate::OnActuatorAng,
-        this->dataPtr.get());
-      gzmsg << "AckermannSteering subscribing to Actuator messages on ["
-            << topic << "]" << std::endl;
+      defaultCmdVelTopic = defaultPrefix + "/actuators";
     }
     else
     {
-      this->dataPtr->node.Subscribe(topic,
-        &AckermannSteeringPrivate::OnCmdAng,
-        this->dataPtr.get());
-      gzmsg << "AckermannSteering subscribing to float messages on ["
-            << topic << "]" << std::endl;
+      defaultCmdVelTopic = defaultPrefix + "/steer_angle";
     }
   }
   else
   {
-    this->dataPtr->node.Subscribe(topic, &AckermannSteeringPrivate::OnCmdVel,
+    defaultCmdVelTopic = defaultPrefix + "/cmd_vel";
+  }
+
+  this->dataPtr->resolvedTopicNames.cmdVelTopic =
+    resolvedTopicName(_sdf, "topic", ns, defaultCmdVelTopic);
+  std::string cmdVelTopic = this->dataPtr->resolvedTopicNames.cmdVelTopic;
+  if (cmdVelTopic.empty())
+  {
+    gzerr << "AckermannSteering failed to find a valid topic name for "
+          << "twist messages. Check the <topic> and <sub_topic> in the SDF."
+          << std::endl;
+    return;
+  }
+
+  if (this->dataPtr->steeringOnly)
+  {
+    if (this->dataPtr->useActuatorMsg)
+    {
+      this->dataPtr->node.Subscribe(cmdVelTopic,
+        &AckermannSteeringPrivate::OnActuatorAng,
+        this->dataPtr.get());
+      gzmsg << "AckermannSteering subscribing to Actuator messages on ["
+            << cmdVelTopic << "]" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->node.Subscribe(cmdVelTopic,
+        &AckermannSteeringPrivate::OnCmdAng,
+        this->dataPtr.get());
+      gzmsg << "AckermannSteering subscribing to float messages on ["
+            << cmdVelTopic << "]" << std::endl;
+    }
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(cmdVelTopic, &AckermannSteeringPrivate::OnCmdVel,
       this->dataPtr.get());
     gzmsg << "AckermannSteering subscribing to twist messages on ["
-          << topic << "]" << std::endl;
+          << cmdVelTopic << "]" << std::endl;
   }
   if (!this->dataPtr->steeringOnly)
   {
-    std::vector<std::string> odomTopics;
-    if (_sdf->HasElement("odom_topic"))
+    // Publish odometry
+    this->dataPtr->resolvedTopicNames.odomTopic =
+      resolvedTopicName(_sdf, "odom_topic", ns, defaultPrefix + "/odometry");
+    std::string odomTopic = this->dataPtr->resolvedTopicNames.odomTopic;
+    if (odomTopic.empty())
     {
-      odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
-    }
-    odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-        "/odometry");
-    auto odomTopic = validTopic(odomTopics);
-    if (topic.empty())
-    {
-      gzerr << "AckermannSteering plugin received invalid model name "
-            << "Failed to initialize." << std::endl;
+      gzerr << "AckermannSteering failed to find a valid topic name for"
+            << " odometry messages. Check the <odom_topic> in the SDF."
+            << std::endl;
       return;
     }
-
-    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-        odomTopic);
-
-    std::vector<std::string> tfTopics;
-    if (_sdf->HasElement("tf_topic"))
+    else
     {
-      tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+      gzmsg << "AckermannSteering publishing odometry messages on ["
+            << odomTopic << "]" << std::endl;
+      this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+        odomTopic);
     }
-    tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/tf");
-    auto tfTopic = validTopic(tfTopics);
+
+    // Publish tf
+    this->dataPtr->resolvedTopicNames.tfTopic =
+      resolvedTopicName(_sdf, "tf_topic", ns, defaultPrefix + "/tf");
+    std::string tfTopic = this->dataPtr->resolvedTopicNames.tfTopic;
     if (tfTopic.empty())
     {
-      gzerr << "AckermannSteering plugin invalid tf topic name "
-            << "Failed to initialize." << std::endl;
+      gzerr << "AckermannSteering failed to find a valid topic name for"
+             << " tf messages. Check the <tf_topic> in the SDF."
+             << std::endl;
       return;
     }
-
-    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+    else
+    {
+      gzmsg << "AckermannSteering publishing tf messages on ["
+             << tfTopic << "]" << std::endl;
+      this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
         tfTopic);
+    }
 
     if (_sdf->HasElement("frame_id"))
       this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
@@ -691,6 +704,12 @@ void AckermannSteering::PostUpdate(const UpdateInfo &_info,
     this->dataPtr->UpdateVelocity(_info, _ecm);
     this->dataPtr->UpdateOdometry(_info, _ecm);
   }
+}
+
+//////////////////////////////////////////////////
+AckermannSteering::TopicNames AckermannSteering::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

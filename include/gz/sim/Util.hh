@@ -69,6 +69,40 @@ namespace gz
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
 
+    /// \brief Helper function to check whether any entity has a non-empty
+    /// namespace component.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \return True if any entity has a non-empty namespace.
+    bool GZ_SIM_VISIBLE hasNamespace(
+        const EntityComponentManager &_ecm);
+
+    /// \brief Helper function to generate the full scoped namespace of an entity,
+    /// including namespaces inherited from all parent entities.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _entity Entity to get the scoped namespace for.
+    /// \param[in] _delim Delimiter to put between namespaces, defaults to "/".
+    /// \return Scoped namespace, or empty string if no namespace is found.
+    std::string GZ_SIM_VISIBLE scopedNamespace(
+        const EntityComponentManager &_ecm, const Entity &_entity,
+        const std::string &_delim = "/");
+
+    /// \brief Helper function to resolve a topic name from the SDF element.
+    /// If the SDF element exists and contains a non-empty topic name, that topic
+    /// is preferred. Relative topic names are prefixed with the provided
+    /// namespace, while absolute topic names are left unchanged. If no custom
+    /// topic is available, the default topic is used.
+    /// \param[in] _sdf SDF to read the topic name from.
+    /// \param[in] _sdfElement Name of the SDF child element containing the
+    /// topic name.
+    /// \param[in] _ns Namespace to prepend to relative topic name.
+    /// \param[in] _defaultTopic Topic to use when no custom topic is specified.
+    /// \return A valid Gazebo Transport topic name, or an empty string if no
+    /// valid topic could be generated.
+    std::string GZ_SIM_VISIBLE resolvedTopicName(
+        const std::shared_ptr<const sdf::Element> &_sdf,
+        const std::string &_sdfElement, const std::string &_ns,
+        const std::string &_defaultTopic);
+  
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this
     /// hierarchy:

@@ -4,3 +4,10 @@ gz_add_system(diff-drive
   PUBLIC_LINK_LIBS
     gz-common::gz-common
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    DiffDrive_TEST.cc
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)

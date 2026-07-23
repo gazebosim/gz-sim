@@ -56,7 +56,7 @@ class TestSensor(unittest.TestCase):
             if self.iterations <= 1:
                 self.assertEqual(None, sensor.topic(_ecm))
             else:
-                self.assertEqual('sensor_topic_test', sensor.topic(_ecm))
+                self.assertEqual('/sensor_topic_test', sensor.topic(_ecm))
             # Parent Test
             self.assertEqual(j.entity(), sensor.parent(_ecm))
 
