@@ -210,9 +210,7 @@
     </model>
 
     <model name="force_torque_demo">
-      <link name="base_plate">
-        <static>true</static>
-      </link>
+      <link name="base_plate"/>
 
       <link name="link_1">
         <pose> 0 0 2.0 0 0 0</pose>
