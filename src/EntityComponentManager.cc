@@ -209,8 +209,18 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief Unordered map of removed components. The key is the entity to
   /// which belongs the component, and the value is a set of the component types
   /// being removed.
+  /// This map only contains components that were removed and previously existed
+  /// in the simulation (i.e. they have not been added in this step).
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     removedComponents;
+
+  /// \brief Unordered map of removed components. The key is the entity to
+  /// which the component belongs, and the value is a set of the component types
+  /// being removed.
+  /// This map contains _all_ components that were removed, regardless whether
+  /// they have been added in this step or not.
+  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
+    allRemovedComponents;
 
   /// \brief Unordered map of added components. The key is the entity to
   /// which the component belongs, and the value is a set of the component types
@@ -335,6 +345,7 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->entityCount = _from.entityCount;
   this->addedComponents = _from.addedComponents;
   this->removedComponents = _from.removedComponents;
+  this->allRemovedComponents = _from.allRemovedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
   // Rebuild component storage by cloning every component from `_from`.
@@ -696,6 +707,13 @@ void EntityComponentManager::ClearNewlyCreatedEntities()
 bool EntityComponentManager::HasRemovedComponents() const
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+  return !this->dataPtr->allRemovedComponents.empty();
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::HasRemovedExistingComponents() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
   return !this->dataPtr->removedComponents.empty();
 }
 
@@ -704,6 +722,7 @@ void EntityComponentManager::ClearRemovedComponents()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
   this->dataPtr->removedComponents.clear();
+  this->dataPtr->allRemovedComponents.clear();
   // Added component map is used purely to avoid false positives in removed
   // component detection, so we clear it here.
   this->dataPtr->addedComponents.clear();
@@ -943,6 +962,7 @@ bool EntityComponentManager::RemoveComponent(
       // added in this iteration to reduce false positives.
       this->dataPtr->removedComponents[_entity].insert(_typeId);
     }
+    this->dataPtr->allRemovedComponents[_entity].insert(_typeId);
   }
 
   // If the component is a components::ParentEntity, leave the entity parentless

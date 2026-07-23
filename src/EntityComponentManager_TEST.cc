@@ -193,8 +193,6 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(cIntEIntDouble, manager.Component<IntComponent>(eIntDouble));
   EXPECT_EQ(cDoubleEIntDouble, manager.Component<DoubleComponent>(eIntDouble));
 
-  manager.RunClearRemovedComponents();
-
   // Remove component by type id
   EXPECT_TRUE(manager.RemoveComponent(eInt, IntComponent::typeId));
   EXPECT_FALSE(manager.EntityHasComponentType(eInt, IntComponent::typeId));
@@ -2889,8 +2887,10 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c2->TypeId()));
 
-  // Added and removed in the same step doesn't count as a removal
-  EXPECT_FALSE(manager.HasRemovedComponents());
+  // Added and removed in the same step doesn't count as a removal for the
+  // HasRemovedExistingComponents API, normal API still reports true
+  EXPECT_TRUE(manager.HasRemovedComponents());
+  EXPECT_FALSE(manager.HasRemovedExistingComponents());
 
   // Serialize into a message
   msgs::SerializedStateMap stateMsg;
@@ -2921,7 +2921,8 @@ TEST_P(EntityComponentManagerFixture,
     manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(0.0));
   ASSERT_NE(nullptr, e1c1);
   EXPECT_TRUE(manager.RemoveComponent(e1, e1c1->TypeId()));
-  EXPECT_FALSE(manager.HasRemovedComponents());
+  EXPECT_TRUE(manager.HasRemovedComponents());
+  EXPECT_FALSE(manager.HasRemovedExistingComponents());
 }
 
 /// \brief Helper function for comparing the same type of component across two
