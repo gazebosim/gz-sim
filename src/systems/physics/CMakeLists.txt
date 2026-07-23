@@ -1,6 +1,11 @@
 gz_add_system(physics
   SOURCES
     Physics.cc
+    PhysicsEntityCreation.cc
+    PhysicsUpdatePhysics.cc
+    PhysicsReset.cc
+    PhysicsUpdateSim.cc
+    PhysicsCollisions.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-common::geospatial

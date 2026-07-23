@@ -86,7 +86,7 @@ namespace systems::physics_system
     private: static inline const std::set<Entity> kEmptyModelOrdering{};
   };
 
-  void CanonicalLinkModelTracker::AddNewModels(
+  inline void CanonicalLinkModelTracker::AddNewModels(
       const EntityComponentManager &_ecm)
   {
     _ecm.EachNew<components::Model, components::ModelCanonicalLink>(
@@ -97,7 +97,7 @@ namespace systems::physics_system
           return true;
         });
   }
-  void CanonicalLinkModelTracker::AddAllModels(
+  inline void CanonicalLinkModelTracker::AddAllModels(
       const EntityComponentManager &_ecm)
   {
     _ecm.Each<components::Model, components::ModelCanonicalLink>(
@@ -109,7 +109,7 @@ namespace systems::physics_system
         });
   }
 
-  const std::set<Entity> &CanonicalLinkModelTracker::CanonicalLinkModels(
+  inline const std::set<Entity> &CanonicalLinkModelTracker::CanonicalLinkModels(
       const Entity _canonicalLink) const
   {
     auto it = this->linkModelMap.find(_canonicalLink);
@@ -120,7 +120,7 @@ namespace systems::physics_system
     return this->kEmptyModelOrdering;
   }
 
-  void CanonicalLinkModelTracker::RemoveLink(const Entity &_link)
+  inline void CanonicalLinkModelTracker::RemoveLink(const Entity &_link)
   {
     this->linkModelMap.erase(_link);
   }
