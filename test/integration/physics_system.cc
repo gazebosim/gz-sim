@@ -537,7 +537,6 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
   ecm->CreateComponent(modelEntity, components::Name("new_model"));
   ecm->CreateComponent(modelEntity, components::Static(false));
   ecm->SetParentEntity(modelEntity, worldEntity);
-  ecm->CreateComponent(modelEntity, components::ParentEntity(worldEntity));
 
   auto linkEntity = ecm->CreateEntity();
   ecm->CreateComponent(linkEntity, components::Link());
@@ -554,7 +553,6 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(CreateRuntime))
   ecm->CreateComponent(linkEntity, components::Inertial(inertia));
 
   ecm->SetParentEntity(linkEntity, modelEntity);
-  ecm->CreateComponent(linkEntity, components::ParentEntity(modelEntity));
 
   // Check we have a new model
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
