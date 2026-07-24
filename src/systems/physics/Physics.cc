@@ -281,7 +281,10 @@ class gz::sim::systems::PhysicsPrivate
   /// std::map is used because canonical links must be in topological order
   /// to ensure that nested models with multiple canonical links are updated
   /// properly (models must be updated in topological order).
-  public: std::map<Entity, physics::FrameData3d> ChangedLinks(
+  /// Returns a reference to the persistent changedLinkFrameData member
+  /// (cleared, not reallocated, at the top of each call) rather than a
+  /// fresh map by value.
+  public: std::map<Entity, physics::FrameData3d> &ChangedLinks(
               EntityComponentManager &_ecm,
               const gz::physics::ForwardStep::Output &_updatedLinks);
 
@@ -383,6 +386,19 @@ class gz::sim::systems::PhysicsPrivate
   /// models may not move on a given iteration, we want to keep track of the
   /// most recent model world pose change that took place.
   public: std::unordered_map<Entity, math::Pose3d> modelWorldPoses;
+
+  /// \brief Per-UpdateSim-call cache of each parent model's world pose
+  /// inverse, keyed by parent entity. Multiple non-canonical links commonly
+  /// share the same parent within a single call to UpdateSim; this avoids
+  /// recomputing Pose3d::Inverse() once per link when it's the same value
+  /// for every link under that parent. Cleared (not reallocated) at the top
+  /// of each UpdateSim call.
+  public: std::unordered_map<Entity, math::Pose3d> parentWorldPoseInv;
+
+  /// \brief Persistent scratch storage for ChangedLinks(), cleared (not
+  /// reallocated) at the top of each call, returned by reference rather
+  /// than copied out.
+  public: std::map<Entity, physics::FrameData3d> changedLinkFrameData;
 
   /// \brief A map between model entity ids in the ECM to whether its battery
   /// has drained.
@@ -1131,7 +1147,7 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     {
       stepOutput = this->dataPtr->Step(_info.dt);
     }
-    auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
+    auto &changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
     // Entities scheduled to be removed should be removed from physics after the
@@ -3625,13 +3641,15 @@ math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 }
 
 //////////////////////////////////////////////////
-std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
+std::map<Entity, physics::FrameData3d> &PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
     const gz::physics::ForwardStep::Output &_updatedLinks)
 {
   GZ_PROFILE("Links Frame Data");
 
-  std::map<Entity, physics::FrameData3d> linkFrameData;
+  // Reused (not reallocated) across calls; see the member declaration.
+  auto &linkFrameData = this->changedLinkFrameData;
+  linkFrameData.clear();
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
@@ -3876,6 +3894,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 {
   GZ_PROFILE("PhysicsPrivate::UpdateSim");
 
+  // Reused (not reallocated) across calls; see the member declaration.
+  this->parentWorldPoseInv.clear();
+
   // Populate world components with default values
   _ecm.EachNew<components::World>(
       [&](const Entity &_entity,
@@ -3965,10 +3986,24 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       }
       const math::Pose3d &parentWorldPose = parentModelPoseIt->second;
 
+      // Links commonly share a parent within this loop; cache each parent's
+      // Inverse() instead of recomputing it once per link under that parent.
+      math::Pose3d parentWorldPoseInverse;
+      auto parentInvIt = this->parentWorldPoseInv.find(parentEntity);
+      if (parentInvIt != this->parentWorldPoseInv.end())
+      {
+        parentWorldPoseInverse = parentInvIt->second;
+      }
+      else
+      {
+        parentWorldPoseInverse = parentWorldPose.Inverse();
+        this->parentWorldPoseInv[parentEntity] = parentWorldPoseInverse;
+      }
+
       // Unlike canonical links, pose of regular links can move relative.
       // to the parent. Same for links inside nested models.
       auto pose = _ecm.Component<components::Pose>(entity);
-      *pose = components::Pose(parentWorldPose.Inverse() *
+      *pose = components::Pose(parentWorldPoseInverse *
                                 math::eigen3::convert(worldPose));
       _ecm.SetChanged(entity, components::Pose::typeId,
           ComponentState::PeriodicChange);
