@@ -15,6 +15,7 @@
  *
 */
 
+#include <future>
 #include <numeric>
 
 #ifdef HAVE_PYBIND11
@@ -174,7 +175,7 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
     }
 
     // Do not allow running more than once.
-    if (this->dataPtr->running)
+    if (this->dataPtr->Running())
     {
       gzwarn << "The server is already runnnng.\n";
       return false;
@@ -188,15 +189,23 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
-    std::condition_variable cond;
+    // Hand the run thread a promise it fulfills once it has started running
+    // (or has decided not to start). We wait on the corresponding future so
+    // this function does not return before the run thread's startup is
+    // observable. Unlike waiting on a boolean flag, a satisfied future stays
+    // satisfied, so a run with few iterations that starts and finishes before
+    // we wake up cannot be missed (issues #2609 and #3829).
+    std::promise<void> startedP;
+    std::future<void> started = startedP.get_future();
     this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
+      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations,
+                  &startedP);
 
-    // Wait for the thread to start. We do this to guarantee that the
-    // running variable gets updated before this function returns. With
-    // a small number of iterations it is possible that the run thread
-    // successfully completes before this function returns.
-    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
+    // Release runMutex before waiting: std::future::wait() does not release it
+    // the way condition_variable::wait() used to, and the run thread needs
+    // runMutex to transition to the Running state and fulfill the promise.
+    lock.unlock();
+    started.wait();
     return true;
   }
 
@@ -233,7 +242,7 @@ void Server::SetUpdatePeriod(
 //////////////////////////////////////////////////
 bool Server::Running() const
 {
-  return this->dataPtr->running;
+  return this->dataPtr->Running();
 }
 
 //////////////////////////////////////////////////
@@ -320,7 +329,7 @@ std::optional<bool> Server::AddSystem(
   // Check the current state, and return early if preconditions are not met.
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
   // Do not allow running more than once.
-  if (this->dataPtr->running)
+  if (this->dataPtr->Running())
   {
     gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
@@ -350,7 +359,7 @@ std::optional<bool> Server::AddSystem(
     const unsigned int _worldIndex)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
-  if (this->dataPtr->running)
+  if (this->dataPtr->Running())
   {
     gzerr << "Cannot add system while the server is runnnng.\n";
     return false;
@@ -445,7 +454,7 @@ Server::Status gz::sim::Server::GetStatus() const
   if (this->dataPtr->exitedWithErrors)
     return Server::Status::EXITED;
 
-  if (this->dataPtr->running)
+  if (this->dataPtr->Running())
     return Server::Status::RUNNING;
 
   return Server::Status::STOPPED;

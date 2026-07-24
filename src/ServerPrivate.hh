@@ -24,6 +24,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <future>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -70,10 +71,13 @@ namespace gz
 
       /// \brief Run the server, and all the simulation runners.
       /// \param[in] _iterations Number of iterations.
-      /// \param[in] _cond Optional condition variable. This condition is
-      /// notified when the server has started running.
+      /// \param[in] _started Optional promise whose value is set once the run
+      /// thread has started running (or has decided not to start). Unlike a
+      /// condition variable on a boolean, a satisfied future stays satisfied,
+      /// so a non-blocking Server::Run caller can wait on it without missing a
+      /// run that started and finished before the caller woke up.
       public: bool Run(const uint64_t _iterations,
-                 std::optional<std::condition_variable *> _cond = std::nullopt);
+                 std::promise<void> *_started = nullptr);
 
       /// \brief Add logging record plugin.
       /// \param[in] _config Server configuration parameters.
@@ -183,9 +187,33 @@ namespace gz
       /// \brief Mutex to protect the Run operation.
       public: std::mutex runMutex;
 
-      /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state.
-      public: std::atomic<bool> running{false};
+      /// \brief Lifecycle states of the server run thread. This is the single
+      /// source of truth for the server run state, replacing an overloaded
+      /// boolean. The observable cycle is Created -> Running -> Stopping ->
+      /// Stopped; the transient "starting" phase collapses into the started
+      /// promise handshake (see Run) and is intentionally not represented.
+      public: enum class LifecycleState : uint8_t
+              {
+                /// \brief Constructed; Run has not been called yet.
+                Created,
+                /// \brief The run loop is executing.
+                Running,
+                /// \brief A stop has been requested; the loop is winding down.
+                Stopping,
+                /// \brief The run loop has finished.
+                Stopped
+              };
+
+      /// \brief Current lifecycle state of the server run thread. Written under
+      /// runMutex on transitions; read lock-free elsewhere.
+      public: std::atomic<LifecycleState> lifecycle{LifecycleState::Created};
+
+      /// \brief Whether the server run loop is currently executing.
+      /// \return True if the lifecycle state is Running.
+      public: bool Running() const noexcept
+              {
+                return this->lifecycle.load() == LifecycleState::Running;
+              }
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;

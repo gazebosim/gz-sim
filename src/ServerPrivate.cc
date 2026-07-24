@@ -141,7 +141,7 @@ void ServerPrivate::Stop()
   // SimulationRunner::Run returns. That way, `ServerPrivate::Run` cannot return
   // before the signal handler is finished.
   std::lock_guard<std::mutex> lock(this->runMutex);
-  this->running = false;
+  this->lifecycle = LifecycleState::Stopping;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
     runner->Stop();
@@ -153,20 +153,29 @@ void ServerPrivate::Stop()
 
 /////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations,
-    std::optional<std::condition_variable *> _cond)
+    std::promise<void> *_started)
 {
-  // Return early if we've received a signal right before.
-  // The ServerPrivate signal handler would set `running=false`,
-  // but we immediately would set it to true here, which will essentially ignore
-  // the signal. Since we can't reliably use the `running` variable, we return
-  // if `signalReceived` is true
+  // Return early if we've received a signal right before. The signal handler
+  // has already requested a stop, so honor it instead of starting the run
+  // loop. Still release the started promise, otherwise a non-blocking
+  // Server::Run caller waiting on the corresponding future would block forever.
   if (this->signalReceived)
+  {
+    if (_started)
+      _started->set_value();
     return false;
-  this->runMutex.lock();
-  this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
+  }
+
+  {
+    // Commit to the Running state and release the started promise exactly once,
+    // before the distributed-simulation readiness wait below (which can return
+    // early). A satisfied future stays satisfied, so the waiter cannot miss a
+    // run that starts and finishes immediately (issues #2609 and #3829).
+    std::lock_guard<std::mutex> lock(this->runMutex);
+    this->lifecycle = LifecycleState::Running;
+    if (_started)
+      _started->set_value();
+  }
 
   bool result = true;
 
@@ -175,7 +184,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     // Check for network ready (needed for distributed sim)
     bool networkReady = false;
     bool receivedStop = false;
-    while (this->running && !networkReady && !receivedStop)
+    while (this->Running() && !networkReady && !receivedStop)
     {
       networkReady = true;
       for (const auto &runner : this->simRunners)
@@ -225,7 +234,7 @@ bool ServerPrivate::Run(const uint64_t _iterations,
 
   // See comments ServerPrivate::Stop() for why we lock this mutex here.
   std::lock_guard<std::mutex> lock(this->runMutex);
-  this->running = false;
+  this->lifecycle = LifecycleState::Stopped;
   return result;
 }
 
@@ -866,7 +875,7 @@ void ServerPrivate::FetchQueuedAssets()
   for (auto &keyValue : this->uriDownloadQueue) {
     pool.AddWork([&keyValue, this] ()
     {
-      if (this->running) {
+      if (this->Running()) {
         this->uriDownloadQueue[keyValue.first] =
           fuel_tools::fetchResourceWithClient(keyValue.first,
                                               *this->fuelClient.get());
