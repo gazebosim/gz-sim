@@ -600,6 +600,35 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 }
 
 /////////////////////////////////////////////////
+// Regression test for the second hang mode of
+// https://github.com/gazebosim/gz-sim/issues/2609 and
+// https://github.com/gazebosim/gz-sim/issues/3829: Server::Run(false, ...)
+// used to wait on a boolean that is false again once a short run completes, so
+// a run that started and finished before the waiter woke up made Server::Run
+// wait forever. Single-iteration runs maximize that window; a lost wakeup would
+// make this test hang rather than fail.
+TEST_P(ServerFixture, RunNonBlockingShortMultiple)
+{
+  for (int i = 0; i < 20; ++i)
+  {
+    sim::Server server;
+    // Make the server run fast so the single iteration can finish before the
+    // Run() caller wakes from the started handshake.
+    server.SetUpdatePeriod(1ns);
+    EXPECT_TRUE(server.Run(false, 1, false));
+
+    // Bound the wait so a lost wakeup fails the test instead of hanging it.
+    int attempt = 0;
+    while (*server.IterationCount() < 1 && attempt < 1000)
+    {
+      GZ_SLEEP_MS(1);
+      ++attempt;
+    }
+    EXPECT_EQ(1u, *server.IterationCount());
+  }
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
   sim::Server server;
