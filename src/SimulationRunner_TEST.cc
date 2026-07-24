@@ -18,6 +18,10 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
@@ -1733,6 +1737,56 @@ TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
 
     EXPECT_FALSE(runner.ParallelPostUpdates());
   }
+}
+
+/////////////////////////////////////////////////
+// Regression test for https://github.com/gazebosim/gz-sim/issues/3829 and
+// https://github.com/gazebosim/gz-sim/issues/2609: a stop request that
+// arrives before Run() starts executing must not be lost, otherwise Run()
+// loops forever and Server's destructor blocks joining the run thread.
+TEST_P(SimulationRunnerTest, StopBeforeRun)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+  // Emit the stop request before Run is called, mimicking Server teardown
+  // racing the run thread's startup.
+  runner.Stop();
+
+  std::atomic<bool> finished{false};
+  std::atomic<bool> runResult{false};
+  std::thread runThread([&]()
+  {
+    // Run indefinitely: with the stop request lost this never returns.
+    runResult = runner.Run(0);
+    finished = true;
+  });
+
+  for (int attempt = 0; attempt < 100 && !finished; ++attempt)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  // If the stop request was lost, ask again so the thread can be joined and
+  // the test fails instead of hanging. Join before asserting so the worker
+  // thread is never left joinable behind a failed expectation.
+  if (!finished)
+    runner.Stop();
+  runThread.join();
+
+  ASSERT_TRUE(finished) << "Run() never returned: the stop request was lost";
+  // Run() honored the stop before starting, so it reports success but must not
+  // have stepped the world.
+  EXPECT_TRUE(runResult);
+  EXPECT_EQ(0u, runner.IterationCount());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

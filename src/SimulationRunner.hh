@@ -425,6 +425,10 @@ namespace gz
       private: void ProcessNewWorldControlState();
 
       /// \brief This is used to indicate that a stop event has been received.
+      /// This latch is monotonic: it is set once (see OnStop) and never
+      /// cleared, so stopping is permanent for the lifetime of this object.
+      /// Once set, Run() returns immediately without stepping, so a
+      /// SimulationRunner cannot be restarted after it has been stopped.
       private: std::atomic<bool> stopReceived{false};
 
       /// \brief This is used to indicate that Run has been called, and the
