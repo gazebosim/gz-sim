@@ -243,8 +243,10 @@ namespace gz
       public: std::thread downloadThread;
 
       /// \brief Flag indicating if the server encountered errors during
-      /// initialization and should exit immediately.
-      public: bool exitedWithErrors{false};
+      /// initialization and should exit immediately. Atomic because it is
+      /// written from the asset-download thread and read from whichever
+      /// thread calls Server::GetStatus().
+      public: std::atomic<bool> exitedWithErrors{false};
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;

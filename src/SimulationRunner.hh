@@ -598,8 +598,10 @@ namespace gz
 
       /// \brief Flag indicating if the server encountered errors during
       /// initialization and should exit immediately. See
-      /// `SetExitedWithErrors()`.
-      private: bool exitedWithErrors{false};
+      /// `SetExitedWithErrors()`. Atomic because it is written from the
+      /// asset-download thread and read from the run thread and from a
+      /// transport service thread.
+      private: std::atomic<bool> exitedWithErrors{false};
 
       /// \brief Whether parallel PostUpdate is enabled.
       private: bool parallelPostUpdates{false};
