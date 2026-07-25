@@ -139,10 +139,10 @@ TEST(TrackControllerTest, DefaultTopicNames)
 
   TrackController::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic =
-    "/ns/link/test_link/track_cmd_vel";
+    "/ns/test_link/track_cmd_vel";
   expectedTopicNames.corTopic =
-    "/ns/link/test_link/track_cmd_center_of_rotation";
+    "/ns/test_link/track_cmd_center_of_rotation";
   expectedTopicNames.odomTopic =
-    "/ns/link/test_link/odometry";
+    "/ns/test_link/odometry";
   TestTopicNames(sdfString, expectedTopicNames);
 }

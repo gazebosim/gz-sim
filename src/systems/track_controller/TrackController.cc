@@ -254,13 +254,13 @@ void TrackController::Configure(const Entity &_entity,
 
   // Generate namespace
   std::string ns;
-  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm) + "/link";
   if (hasNamespace(_ecm))
   {
     ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
     defaultPrefix = ns;
   }
-  defaultPrefix += "/link/" + this->dataPtr->linkName;
+  defaultPrefix += "/" + this->dataPtr->linkName;
 
   // Subscribe to velocity commands
   this->dataPtr->resolvedTopicNames.cmdVelTopic = 
