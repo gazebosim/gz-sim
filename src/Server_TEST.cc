@@ -635,12 +635,11 @@ TEST_P(ServerFixture, RunNonBlockingShortMultiple)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
 {
-  // A blocking Run() goes through ServerPrivate::Run and sets the runStarted
-  // latch without ever creating the run thread. If that latch leaked into the
-  // next non-blocking Run(), its cond.wait() would find the predicate already
-  // true and return without releasing runMutex, destroying the stack-local
-  // condition_variable before the run thread notifies it. Server::Run resets
-  // the latch per spawn to prevent that.
+  // A blocking Run() goes through ServerPrivate::Run without ever creating the
+  // run thread. Any state left behind by that call must not be mistaken by the
+  // next non-blocking Run() for its own run thread having started, or the wait
+  // below returns immediately and the caller races the run thread it just
+  // spawned. Server::Run creates the startup handshake fresh for each spawn.
   sim::Server server;
   server.SetUpdatePeriod(1ns);
 

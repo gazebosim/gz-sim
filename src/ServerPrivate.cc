@@ -153,7 +153,7 @@ void ServerPrivate::Stop()
 
 /////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations,
-    std::optional<std::condition_variable *> _cond)
+    std::shared_ptr<std::promise<bool>> _started)
 {
   // Return early if we've received a signal right before.
   // The ServerPrivate signal handler would set `running=false`,
@@ -162,29 +162,25 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // if `signalReceived` is true
   const bool signalled = this->signalReceived;
 
-  // Publish the startup state and notify the waiter exactly once, on both
-  // paths. Even when no run will happen the latch must be set and the
-  // condition notified, otherwise Server::Run waits forever for this thread's
-  // startup.
-  //
-  // Both the store and the notify must happen under runMutex. Server::Run
-  // evaluates the `runStarted` predicate holding that same mutex, so
-  // publishing outside it could drop the wakeup into the window between the
-  // waiter's predicate check and its sleep -- reintroducing the very hang
-  // this handshake exists to prevent. Holding the mutex across notify_all()
-  // is also what keeps Server::Run's stack-allocated condition_variable alive
-  // until the notify has completed. std::atomic gives neither guarantee.
   {
-    std::lock_guard<std::mutex> lock(this->runMutex);
+    // Publish the run state before releasing the waiter below, so that
+    // Server::Run cannot return before `running` is observable.
+    //
     // Deliberately not written on the signalled path: `running` is already
     // false there, and storing to it could clobber a concurrent run that
     // slipped past the precondition check in Server::Run.
+    std::lock_guard<std::mutex> lock(this->runMutex);
     if (!signalled)
       this->running = true;
-    this->runStarted = true;
-    if (_cond)
-      _cond.value()->notify_all();
   }
+
+  // Release the waiter exactly once, on both paths. Even when no run will
+  // happen the promise must be fulfilled, otherwise Server::Run waits forever
+  // for this thread's startup. The value carries whether a run actually
+  // started, so the waiter does not have to re-read `signalReceived` and
+  // mistake a signal arriving after a perfectly good start for a failed one.
+  if (_started)
+    _started->set_value(!signalled);
 
   if (signalled)
     return false;
