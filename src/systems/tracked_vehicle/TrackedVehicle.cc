@@ -262,7 +262,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
   // Generate namespace
   std::string ns;
   std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
-  if (hasNamespace(_ecm))
+  const bool hasNs = hasNamespace(_ecm);
+  if (hasNs)
   {
     ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
     defaultPrefix = ns;
@@ -270,7 +271,15 @@ void TrackedVehicle::Configure(const Entity &_entity,
 
   for (const auto &[linkName, elem] : tracks)
   {
-    const auto prefix = defaultPrefix + "/link/" + linkName;
+    std::string prefix;
+    if (hasNs)
+    {
+      prefix = defaultPrefix + "/" + linkName;
+    }
+    else
+    {
+      prefix = defaultPrefix + "/link/" + linkName;
+    }
 
     this->dataPtr->resolvedTopicNames.tracks[linkName].velTopic =
       resolvedTopicName(elem, "velocity_topic", ns, prefix + "/track_cmd_vel");
