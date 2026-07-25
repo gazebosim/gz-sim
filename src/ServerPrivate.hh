@@ -70,8 +70,11 @@ namespace gz
 
       /// \brief Run the server, and all the simulation runners.
       /// \param[in] _iterations Number of iterations.
-      /// \param[in] _cond Optional condition variable. This condition is
-      /// notified when the server has started running.
+      /// \param[in] _cond Optional condition variable, notified under runMutex
+      /// once this function has published its startup state -- whether or not
+      /// a run actually started, since a pending signal aborts the run but
+      /// must still notify. Callers must use `runStarted`, not `running`, as
+      /// the wait predicate.
       public: bool Run(const uint64_t _iterations,
                  std::optional<std::condition_variable *> _cond = std::nullopt);
 
@@ -186,6 +189,23 @@ namespace gz
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       public: std::atomic<bool> running{false};
+
+      /// \brief Startup handshake latch for the non-blocking Server::Run.
+      /// Set by ServerPrivate::Run once it has published its startup state,
+      /// including on the early return taken when a signal was already
+      /// received -- in which case `running` stays false, so this being true
+      /// does not by itself mean a run is, or ever was, in progress.
+      /// Unlike `running`, which is a level that is false again once the run
+      /// completes, this is a set-once edge, so a run that finishes before the
+      /// waiter wakes up cannot be missed.
+      /// \note Reset by Server::Run under runMutex before each run thread is
+      /// spawned, so it always refers to that specific spawn.
+      /// \note Must only be written while holding runMutex: Server::Run
+      /// evaluates it as a condition_variable predicate under that lock, and
+      /// notifying under the lock is what keeps the caller's stack-allocated
+      /// condition_variable alive across the notify.
+      /// \sa running
+      public: std::atomic<bool> runStarted{false};
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;

@@ -189,14 +189,37 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
     std::condition_variable cond;
+
+    // Reset the latch for this thread spawn. A previous blocking Run() or
+    // RunOnce() goes through ServerPrivate::Run too and also sets the latch,
+    // without ever creating runThread. If the latch were left set, the wait
+    // below would find its predicate already true, return without ever
+    // releasing runMutex, and `cond` -- a local -- would be destroyed on
+    // return *before* `lock` releases the mutex. The run thread, still
+    // blocked acquiring runMutex, would then notify a dangling pointer.
+    this->dataPtr->runStarted = false;
+
     this->dataPtr->runThread =
       std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
 
-    // Wait for the thread to start. We do this to guarantee that the
-    // running variable gets updated before this function returns. With
-    // a small number of iterations it is possible that the run thread
-    // successfully completes before this function returns.
-    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
+    // Wait for the thread to start, so the run state has been published before
+    // this function returns. `running` cannot be the predicate: it is a level,
+    // not an edge, and with a small number of iterations the run thread can
+    // complete -- setting it back to false -- before this thread wakes up,
+    // which would wait forever. `runStarted` is a set-once latch for this
+    // spawn, so it cannot be missed. See the `runStarted` docs for why it must
+    // be published, and notified, under runMutex.
+    cond.wait(lock, [this]() -> bool {return this->dataPtr->runStarted;});
+
+    // The run thread aborts without running when a signal arrived first.
+    // Report that rather than claiming a run was started.
+    if (this->dataPtr->signalReceived)
+    {
+      gzwarn << "A stop signal was received before the run started. "
+             << "Simulation will not run.\n";
+      return false;
+    }
+
     return true;
   }
 

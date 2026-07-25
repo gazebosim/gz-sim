@@ -600,6 +600,71 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingShortMultiple)
+{
+  // Regression test for the second of the two hangs behind the flaky timeouts
+  // reported in https://github.com/gazebosim/gz-sim/issues/2609 and
+  // https://github.com/gazebosim/gz-sim/issues/3829: Server::Run(false, ...)
+  // waited on `running`, which is false again once a short run completes, so
+  // a run that started and finished before the waiter woke up made
+  // Server::Run wait forever. Short runs maximize that window.
+  //
+  // This is a stress test: it reproduces probabilistically, so the repetition
+  // count is what gives it teeth. Every wait below is bounded so that a
+  // regression fails with a diagnosable message rather than hanging until the
+  // CTest timeout -- which is the very symptom #3829 reports.
+  for (int i = 0; i < 100; ++i)
+  {
+    sim::Server server;
+    server.SetUpdatePeriod(1ns);
+    EXPECT_TRUE(server.Run(false, 1, false)) << "iteration " << i;
+
+    ASSERT_NE(std::nullopt, server.IterationCount());
+    int sleep = 0;
+    const int maxSleep = 5000;
+    while (*server.IterationCount() < 1 && sleep < maxSleep)
+    {
+      GZ_SLEEP_MS(1);
+      ++sleep;
+    }
+    EXPECT_LT(sleep, maxSleep) << "run never executed on iteration " << i;
+    EXPECT_EQ(1u, *server.IterationCount()) << "iteration " << i;
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
+{
+  // A blocking Run() goes through ServerPrivate::Run and sets the runStarted
+  // latch without ever creating the run thread. If that latch leaked into the
+  // next non-blocking Run(), its cond.wait() would find the predicate already
+  // true and return without releasing runMutex, destroying the stack-local
+  // condition_variable before the run thread notifies it. Server::Run resets
+  // the latch per spawn to prevent that.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  EXPECT_TRUE(server.Run(true, 1, false));
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(1u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
+
+  // Now a non-blocking run on the same Server. The wait must actually block
+  // until this run thread has started.
+  EXPECT_TRUE(server.Run(false, 1, false));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (*server.IterationCount() < 2 && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  EXPECT_LT(sleep, maxSleep) << "second run never executed";
+  EXPECT_EQ(2u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
   sim::Server server;

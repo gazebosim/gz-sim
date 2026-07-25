@@ -160,13 +160,34 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   // but we immediately would set it to true here, which will essentially ignore
   // the signal. Since we can't reliably use the `running` variable, we return
   // if `signalReceived` is true
-  if (this->signalReceived)
+  const bool signalled = this->signalReceived;
+
+  // Publish the startup state and notify the waiter exactly once, on both
+  // paths. Even when no run will happen the latch must be set and the
+  // condition notified, otherwise Server::Run waits forever for this thread's
+  // startup.
+  //
+  // Both the store and the notify must happen under runMutex. Server::Run
+  // evaluates the `runStarted` predicate holding that same mutex, so
+  // publishing outside it could drop the wakeup into the window between the
+  // waiter's predicate check and its sleep -- reintroducing the very hang
+  // this handshake exists to prevent. Holding the mutex across notify_all()
+  // is also what keeps Server::Run's stack-allocated condition_variable alive
+  // until the notify has completed. std::atomic gives neither guarantee.
+  {
+    std::lock_guard<std::mutex> lock(this->runMutex);
+    // Deliberately not written on the signalled path: `running` is already
+    // false there, and storing to it could clobber a concurrent run that
+    // slipped past the precondition check in Server::Run.
+    if (!signalled)
+      this->running = true;
+    this->runStarted = true;
+    if (_cond)
+      _cond.value()->notify_all();
+  }
+
+  if (signalled)
     return false;
-  this->runMutex.lock();
-  this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
 
   bool result = true;
 
