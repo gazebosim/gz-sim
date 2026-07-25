@@ -23,8 +23,10 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
+#include <atomic>
 #include <csignal>
 #include <vector>
+#include <gz/common/SignalHandler.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Rand.hh>
@@ -661,6 +663,47 @@ TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
   }
   EXPECT_LT(sleep, maxSleep) << "second run never executed";
   EXPECT_EQ(2u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunAfterSignal)
+{
+  // A signal delivered before Run() aborts the run: ServerPrivate::Run returns
+  // early without stepping anything. Before the fix behind #3829 that early
+  // return never released the startup handshake, so the non-blocking
+  // Server::Run below waited forever. It must now return, and must report the
+  // failure rather than claiming a run was started.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  // gz-common dispatches signals on its own thread, invoking the registered
+  // handlers in registration order. A handler registered after the Server's is
+  // therefore invoked once the Server has finished processing the signal, so
+  // waiting on it beats guessing at a sleep.
+  std::atomic<bool> signalHandled{false};
+  common::SignalHandler testHandler;
+  ASSERT_TRUE(testHandler.Initialized());
+  ASSERT_TRUE(testHandler.AddCallback(
+        [&signalHandled](int) { signalHandled = true; }));
+
+  ASSERT_EQ(0, std::raise(SIGINT));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (!signalHandled && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  ASSERT_TRUE(signalHandled) << "the signal was never dispatched";
+
+  // Neither form of Run may claim success, and neither may step the world.
+  EXPECT_FALSE(server.Run(false, 1, false));
+  EXPECT_FALSE(server.Run(true, 1, false));
+
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
 }
 
 /////////////////////////////////////////////////
