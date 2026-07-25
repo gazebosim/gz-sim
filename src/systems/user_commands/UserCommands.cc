@@ -885,11 +885,19 @@ bool CreateCommand::Execute()
   else if (auto createMsgWithNs = dynamic_cast<const msgs::EntityFactoryWithNs *>(this->msg))
   {
     // It could also be an EntityFactoryWithNs
+    gzwarn << "The EntityFactoryWithNs message and /create_with_ns service "
+           << "are deprecated and will be removed in a future version. "
+           << "Please use EntityFactory and /create instead."
+           << std::endl;
     return this->CreateFromMsg(*createMsgWithNs);
   }
   else if (auto createMsgWithNsV = dynamic_cast<const msgs::EntityFactoryWithNs_V *>(this->msg))
   {
     // It could also be an EntityFactoryWithNs_V
+    gzwarn << "The EntityFactoryWithNs_V message and create_with_ns_multiple "
+           << "service are deprecated and will be removed in a future version."
+           << " Please use EntityFactory_V and /create_multiple instead."
+           << std::endl;
     bool result = true;
     for (const auto &msgItem : createMsgWithNsV->data())
     {
@@ -906,6 +914,17 @@ bool CreateCommand::Execute()
 bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
   const std::string &_ns)
 {
+  // Load entity_namespace
+  std::string ns;
+  if (!_ns.empty())
+  {
+    ns = _ns;
+  }
+  else
+  {
+    ns = _createMsg.entity_namespace();
+  }
+
   // Load SDF
   sdf::Root root;
   sdf::Light lightSdf;
@@ -950,7 +969,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
         {
           auto parentEntity = parentComp->Data();
           clonedEntity = this->iface->ecm->Clone(entityToClone,
-              parentEntity, _createMsg.name(), _ns, _createMsg.allow_renaming());
+              parentEntity, _createMsg.name(), ns, _createMsg.allow_renaming());
           validClone = kNullEntity != clonedEntity;
         }
       }
@@ -1075,9 +1094,9 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
   {
     auto model = *root.Model();
     model.SetName(desiredName);
-    if (!_ns.empty())
+    if (!ns.empty())
     {
-      model.SetRawNamespace(_ns);
+      model.SetRawNamespace(ns);
     }
     entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
