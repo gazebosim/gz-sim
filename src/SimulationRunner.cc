@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <unordered_set>
 #ifdef HAVE_PYBIND11
@@ -777,6 +778,7 @@ void SimulationRunner::Stop()
 /////////////////////////////////////////////////
 void SimulationRunner::OnStop()
 {
+  std::lock_guard<std::mutex> lock(this->runStateMutex);
   this->stopReceived = true;
   this->running = false;
 }
@@ -841,7 +843,20 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
-  this->running = true;
+  // A stop request may arrive while this thread is still starting up, e.g.
+  // the Server being destroyed right after a non-blocking Run(). Checking
+  // `stopReceived` and setting `running` under runStateMutex keeps such a
+  // stop from being overwritten (issues #2609 and #3829).
+  {
+    std::lock_guard<std::mutex> lock(this->runStateMutex);
+    if (this->stopReceived)
+    {
+      gzdbg << "SimulationRunner::Run: a stop request arrived before the run "
+            << "loop started; no iterations will be executed." << std::endl;
+      return false;
+    }
+    this->running = true;
+  }
 
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
@@ -931,7 +946,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (_iterations > 0)
   {
     bool created = this->entitiesCreated;
-    while(!created && this->running)
+    while (!created && this->running)
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
@@ -1083,7 +1098,10 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
   }
 
-  this->running = false;
+  {
+    std::lock_guard<std::mutex> lock(this->runStateMutex);
+    this->running = false;
+  }
 
   return true;
 }

@@ -30,6 +30,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <string>
@@ -425,11 +426,18 @@ namespace gz
       private: void ProcessNewWorldControlState();
 
       /// \brief This is used to indicate that a stop event has been received.
+      /// The latch is monotonic — nothing ever clears it — so stopping is
+      /// permanent: once set, Run() returns immediately without stepping.
       private: std::atomic<bool> stopReceived{false};
 
       /// \brief This is used to indicate that Run has been called, and the
       /// server is in the run state.
       private: std::atomic<bool> running{false};
+
+      /// \brief Guards every write to `running` and `stopReceived`, making
+      /// Run()'s startup check-then-set atomic with respect to OnStop() so a
+      /// racing stop request cannot be overwritten. Reads stay lock-free.
+      private: std::mutex runStateMutex;
 
       /// \brief Manager of all systems.
       /// Note: must be before EntityComponentManager
