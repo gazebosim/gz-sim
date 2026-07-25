@@ -841,6 +841,29 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
+  // A stop request may arrive while this thread is still starting up, e.g. the
+  // Server being destroyed right after a non-blocking Run(). `stopReceived` is
+  // a durable, monotonic latch: OnStop() sets it once and it is never cleared,
+  // whereas `running` is false in both the not-yet-started and the stopped
+  // cases, so `stopReceived` is the flag to consult here. Setting running to
+  // true unconditionally would overwrite the request and the run loop below
+  // would never terminate, blocking ServerPrivate's destructor forever as it
+  // joins the run thread.
+  //
+  // This check on its own is not enough: it is a load followed by a separate
+  // store, so a stop landing in between would still be overwritten. The loop
+  // conditions below therefore also consult `stopReceived` directly, which is
+  // what makes the handling race-free.
+  //
+  // See https://github.com/gazebosim/gz-sim/issues/2609 and
+  // https://github.com/gazebosim/gz-sim/issues/3829
+  if (this->stopReceived)
+  {
+    gzdbg << "SimulationRunner::Run: a stop request arrived before the run "
+          << "loop started; no iterations will be executed." << std::endl;
+    this->running = false;
+    return false;
+  }
   this->running = true;
 
   // Create the world statistics publisher.
@@ -931,7 +954,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (_iterations > 0)
   {
     bool created = this->entitiesCreated;
-    while(!created && this->running)
+    // `stopReceived` is checked alongside `running` so that a stop request
+    // racing this thread's startup cannot be lost (issues #2609 and #3829).
+    while (!created && this->running && !this->stopReceived)
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
@@ -948,7 +973,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   auto nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
-  while (this->running && (_iterations == 0 ||
+  while (this->running && !this->stopReceived && (_iterations == 0 ||
        processedIterations < _iterations))
   {
     // Create entities if set. This needs to be called before updating
