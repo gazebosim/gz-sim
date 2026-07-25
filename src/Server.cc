@@ -15,6 +15,8 @@
  *
 */
 
+#include <future>
+#include <memory>
 #include <numeric>
 
 #ifdef HAVE_PYBIND11
@@ -188,15 +190,35 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
-    std::condition_variable cond;
-    this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
+    // Hand the run thread a promise it fulfills once it has published its
+    // startup state, and wait on the corresponding future, so the run state
+    // has been published before this function returns.
+    //
+    // The promise is shared rather than a stack local handed over by pointer,
+    // and it is created fresh for each spawn so no state can leak from a
+    // previous blocking Run() or RunOnce(), which go through
+    // ServerPrivate::Run too without ever creating a run thread.
+    auto startedP = std::make_shared<std::promise<bool>>();
+    std::future<bool> started = startedP->get_future();
 
-    // Wait for the thread to start. We do this to guarantee that the
-    // running variable gets updated before this function returns. With
-    // a small number of iterations it is possible that the run thread
-    // successfully completes before this function returns.
-    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
+    this->dataPtr->runThread = std::thread(&ServerPrivate::Run,
+        this->dataPtr.get(), _iterations, startedP);
+
+    // Release runMutex before waiting: std::future::wait() does not drop it
+    // the way condition_variable::wait() does, and the run thread needs
+    // runMutex to publish the run state.
+    lock.unlock();
+
+    // The run thread aborts without running when a signal arrived first, and
+    // reports that through the promise. Pass it on rather than claiming a run
+    // was started.
+    if (!started.get())
+    {
+      gzwarn << "A stop signal was received before the run started. "
+             << "Simulation will not run.\n";
+      return false;
+    }
+
     return true;
   }
 
