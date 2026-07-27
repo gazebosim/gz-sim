@@ -81,8 +81,6 @@ gz_proto_library(
 public_headers_no_gen = glob(
     [
         "include/gz/sim/*.hh",
-        "include/gz/sim/entt/**/*.hpp",
-        "include/gz/sim/entt/**/*.h",
         "include/gz/sim/comms/*.hh",
         "include/gz/sim/components/*.hh",
         "include/gz/sim/detail/*.hh",
@@ -144,6 +142,7 @@ cc_library(
         ":gzsim_cc_proto",
         "@com_google_protobuf//:protobuf_lite",
         "@eigen",
+        "@entt",
         "@gz-common",
         "@gz-common//events",
         "@gz-common//geospatial",
