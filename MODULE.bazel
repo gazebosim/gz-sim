@@ -13,6 +13,16 @@ bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
 
+http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "entt",
+    patch_args = ["-p1"],
+    patches = ["//vendor/entt:entt.patch"],
+    strip_prefix = "entt-3.16.0",
+    urls = ["https://github.com/skypjack/entt/archive/refs/tags/v3.16.0.tar.gz"],
+)
+
 # Gazebo Dependencies
 bazel_dep(name = "rules_gazebo", version = "0.0.6")
 bazel_dep(name = "gz-common", version = "7.1.0")
