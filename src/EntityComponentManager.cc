@@ -661,7 +661,7 @@ void EntityComponentManager::RequestRemoveEntity(Entity _entity,
     if (!storage.contains(e))
     {
       // Not pinned, erase
-      this->Registry().emplace<RemoveEntity>(e);
+      this->Registry().emplace_or_replace<RemoveEntity>(e);
     }
   }
 }
@@ -671,7 +671,7 @@ void EntityComponentManager::RequestRemoveEntities()
 {
   this->Registry().view<Entity>(entt::exclude<PinnedEntity>)
     .each([&](const Entity _e) {
-    this->Registry().emplace<RemoveEntity>(_e);
+    this->Registry().emplace_or_replace<RemoveEntity>(_e);
   });
 }
 
