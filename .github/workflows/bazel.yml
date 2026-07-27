@@ -14,6 +14,16 @@ jobs:
   test:
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
+      # Note: Specifying bazel_versions overrides the default fallback behavior
+      # (which would otherwise test .bazelversion and 8.0.0). All desired versions
+      # (including the one in .bazelversion) must be listed here explicitly.
+      # We add bazel 7.x since that is still supported on Jetty releases.
+      bazel_versions: |
+        [
+          "7.x",
+          "8.x",
+          "9.x"
+        ]
       folders: |
         [
           "."
