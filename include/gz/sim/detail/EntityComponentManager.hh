@@ -215,8 +215,8 @@ Entity EntityComponentManager::EntityByComponents(
     {
       for (const auto e : iterable)
       {
-        if (((iterable.template get<const ComponentTypeTs>(e) ==
-                _desiredComponents) && ...))
+        if (std::forward_as_tuple(_desiredComponents...) ==
+            iterable.template get<const ComponentTypeTs...>(e))
           return e;
       }
       return kNullEntity;
