@@ -20,9 +20,11 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <mutex>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include <gz/common/Console.hh>
@@ -332,6 +334,7 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
   // Treat all pre-existent entities as new at startup
   if (!this->dataPtr->initialized)
   {
+    std::map<Entity, std::tuple<QString, Entity>> entities;
     _ecm.Each<components::Name>(
       [&](const Entity &_entity,
           const components::Name *_name)->bool
@@ -361,14 +364,21 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         parentEntity = kNullEntity;
       }
 
+      entities.insert({_entity,
+          {QString::fromStdString(_name->Data()), parentEntity}});
+      return true;
+    });
+
+    for (const auto& [_entity, data] : entities)
+    {
+      const auto& [name, parentEntity] = data;
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(Entity, _entity),
-          Q_ARG(QString, QString::fromStdString(_name->Data())),
+          Q_ARG(QString, name),
           Q_ARG(Entity, parentEntity),
           Q_ARG(QString, entityType(_entity, _ecm)));
-      return true;
-    });
+    }
 
     if (this->dataPtr->worldEntity != kNullEntity)
       this->dataPtr->initialized = true;

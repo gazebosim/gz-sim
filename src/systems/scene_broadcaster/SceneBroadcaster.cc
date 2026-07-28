@@ -34,6 +34,7 @@
 #include <gz/msgs/sensor_noise.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/uint32_v.pb.h>
 #include <gz/msgs/visual.pb.h>
 
@@ -44,6 +45,7 @@
 #include <condition_variable>
 #include <map>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -821,6 +823,10 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
       });
 
   // Models
+  // Sort them into a map to make sure parents are added before children for
+  // nested models, assuming strictly increasing entity order.
+  std::map<Entity, std::tuple<const components::Name*,
+    const components::ParentEntity*, const components::Pose*>> entities;
   _manager.EachNew<components::Model, components::Name,
                    components::ParentEntity, components::Pose>(
       [&](const Entity &_entity, const components::Model *,
@@ -828,18 +834,25 @@ void SceneBroadcasterPrivate::SceneGraphAddEntities(
           const components::ParentEntity *_parentComp,
           const components::Pose *_poseComp) -> bool
       {
-        auto modelMsg = std::make_shared<msgs::Model>();
-        modelMsg->set_id(_entity);
-        modelMsg->set_name(_nameComp->Data());
-        modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
-
-        // Add to graph
-        newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
-        newGraph.AddEdge({_parentComp->Data(), _entity}, true);
-
+        entities.insert({_entity,
+            std::make_tuple(_nameComp, _parentComp, _poseComp)});
         newEntity = true;
         return true;
       });
+
+  for (const auto &[_entity, components] : entities)
+  {
+    const auto [_nameComp, _parentComp, _poseComp] = components;
+
+    auto modelMsg = std::make_shared<msgs::Model>();
+    modelMsg->set_id(_entity);
+    modelMsg->set_name(_nameComp->Data());
+    modelMsg->mutable_pose()->CopyFrom(msgs::Convert(_poseComp->Data()));
+
+    // Add to graph
+    newGraph.AddVertex(_nameComp->Data(), modelMsg, _entity);
+    newGraph.AddEdge({_parentComp->Data(), _entity}, true);
+  }
 
   // Links
   _manager.EachNew<components::Link, components::Name, components::ParentEntity,
@@ -1252,8 +1265,8 @@ void SceneBroadcasterPrivate::AddModels(T *_msg, const Entity _entity,
 {
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto modelMsg = std::dynamic_pointer_cast<msgs::Model>(
-        vertex.second.get().Data());
+    auto modelMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Model>(vertex.second.get().Data());
     if (!modelMsg)
       continue;
 
@@ -1278,8 +1291,8 @@ void SceneBroadcasterPrivate::AddLights(T *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto lightMsg = std::dynamic_pointer_cast<msgs::Light>(
-        vertex.second.get().Data());
+    auto lightMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Light>(vertex.second.get().Data());
     if (!lightMsg)
       continue;
 
@@ -1296,7 +1309,7 @@ void SceneBroadcasterPrivate::AddVisuals(msgs::Link *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto visualMsg = std::dynamic_pointer_cast<msgs::Visual>(
+    auto visualMsg = gz::msgs::DoDynamicCastMessage<msgs::Visual>(
         vertex.second.get().Data());
     if (!visualMsg)
       continue;
@@ -1314,7 +1327,7 @@ void SceneBroadcasterPrivate::AddSensors(msgs::Link *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto sensorMsg = std::dynamic_pointer_cast<msgs::Sensor>(
+    auto sensorMsg = gz::msgs::DoDynamicCastMessage<msgs::Sensor>(
         vertex.second.get().Data());
     if (!sensorMsg)
       continue;
@@ -1332,7 +1345,7 @@ void SceneBroadcasterPrivate::AddParticleEmitters(msgs::Link *_msg,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto emitterMsg = std::dynamic_pointer_cast<msgs::ParticleEmitter>(
+    auto emitterMsg = gz::msgs::DoDynamicCastMessage<msgs::ParticleEmitter>(
         vertex.second.get().Data());
     if (!emitterMsg)
       continue;
@@ -1350,7 +1363,7 @@ void SceneBroadcasterPrivate::AddProjectors(msgs::Link *_msg,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto projectorMsg = std::dynamic_pointer_cast<msgs::Projector>(
+    auto projectorMsg = gz::msgs::DoDynamicCastMessage<msgs::Projector>(
         vertex.second.get().Data());
     if (!projectorMsg)
       continue;
@@ -1368,8 +1381,8 @@ void SceneBroadcasterPrivate::AddLinks(msgs::Model *_msg, const Entity _entity,
 
   for (const auto &vertex : _graph.AdjacentsFrom(_entity))
   {
-    auto linkMsg = std::dynamic_pointer_cast<msgs::Link>(
-        vertex.second.get().Data());
+    auto linkMsg =
+        gz::msgs::DoDynamicCastMessage<msgs::Link>(vertex.second.get().Data());
     if (!linkMsg)
       continue;
 
