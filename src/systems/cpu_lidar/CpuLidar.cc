@@ -138,6 +138,12 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> CpuLidar::ResolvedTopicNames() const
+{
+  return this->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void CpuLidar::AddSensor(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -160,20 +166,10 @@ void CpuLidar::AddSensor(
   }
 
   // check topic
-  std::vector<std::string> topics;
-  if (!data.Topic().empty())
-  {
-    std::string topicName = data.Topic();
-    // Only prepend namespace to relative topic names.
-    // Absolute topic names (starting with '/') are left unchanged.
-    if (topicName.front() != '/')
-    {
-      topicName = ns+ "/" + topicName;
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/lidar");
-  data.SetTopic(validTopic(topics));
+  const auto topic = resolvedTopicName(
+    data.Element(), "topic", ns, defaultPrefix + "/lidar");
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
 
   std::unique_ptr<sensors::CpuLidarSensor> sensor =
       this->sensorFactory.CreateSensor<
@@ -292,6 +288,16 @@ void CpuLidar::RemoveSensorEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved CpuLidar sensor topic"
+                 << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

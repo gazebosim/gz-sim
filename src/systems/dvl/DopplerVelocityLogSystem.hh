@@ -63,6 +63,9 @@ class DopplerVelocityLogSystem :
       const UpdateInfo &_info,
       const EntityComponentManager &_ecm) override;
 
+  /// Get the resolved topic names
+  public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+
   /// \brief Pointer to private data
   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };

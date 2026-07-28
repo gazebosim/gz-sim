@@ -57,6 +57,9 @@ class gz::sim::systems::AltimeterPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AltimeterSensor>> entitySensorMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -173,6 +176,12 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> Altimeter::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void AltimeterPrivate::AddAltimeter(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -195,20 +204,10 @@ void AltimeterPrivate::AddAltimeter(
   }
 
   // check topic
-  std::vector<std::string> topics;
-  if (!data.Topic().empty())
-  {
-    std::string topicName = data.Topic();
-    // Only prepend namespace to relative topic names.
-    // Absolute topic names (starting with '/') are left unchanged.
-    if (topicName.front() != '/')
-    {
-      topicName = ns+ "/" + topicName;
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/altimeter");
-  data.SetTopic(validTopic(topics));
+  const auto topic = resolvedTopicName(
+    data.Element(), "topic", ns, defaultPrefix + "/altimeter");
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
 
   std::unique_ptr<sensors::AltimeterSensor> sensor =
       this->sensorFactory.CreateSensor<
@@ -314,6 +313,16 @@ void AltimeterPrivate::RemoveAltimeterEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved altimeter sensor topic "
+                 << "name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

@@ -6,3 +6,12 @@ gz_add_system(forcetorque
   PRIVATE_LINK_LIBS
     gz-sensors::force_torque
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    ForceTorque_TEST.cc
+  LIB_DEPS
+    gz-sensors::force_torque
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)

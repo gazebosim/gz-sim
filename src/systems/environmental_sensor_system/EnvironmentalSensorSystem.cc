@@ -365,6 +365,8 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
   public: std::unordered_map<Entity, std::shared_ptr<EnvironmentalSensor>>
     entitySensorMap;
 
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   public: std::unordered_set<std::string> fields;
 
   public: void RemoveSensorEntities(
@@ -377,7 +379,13 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
           if (this->entitySensorMap.erase(_entity) == 0)
           {
             gzerr << "Internal error, missing environment sensor for entity ["
-                          << _entity << "]" << std::endl;
+                    << _entity << "]" << std::endl;
+          }
+
+          if (this->resolvedTopicNames.erase(_entity) == 0)
+          {
+            gzerr << "Internal error, missing resolved environment sensor "
+                    << "topic name for entity ["<< _entity << "]" << std::endl;
           }
           return true;
         });
@@ -427,12 +435,20 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
           return true;
         }
 
-        // Default to scoped name as topic
-        if (data.Topic().empty())
+        // Generate namespace
+        std::string ns;
+        std::string defaultPrefix = scopedName(_entity, _ecm);
+        if (hasNamespace(_ecm))
         {
-          std::string topic = scopedName(_entity, _ecm) + "/" + type;
-          data.SetTopic(topic);
+          ns = scopedNamespace(_ecm, _entity);
+          defaultPrefix = ns;
         }
+
+        // Generate topic name
+        const auto topic = resolvedTopicName(
+          data.Element(), "topic", ns, defaultPrefix + "/" + type);
+        this->dataPtr->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+        data.SetTopic(topic);
 
         gz::sensors::SensorFactory sensorFactory;
         auto sensor = sensorFactory.CreateSensor<EnvironmentalSensor>(data);
@@ -494,6 +510,13 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
   }
 
   this->dataPtr->RemoveSensorEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> 
+  EnvironmentalSensorSystem::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(

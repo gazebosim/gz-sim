@@ -187,6 +187,9 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   public: std::unordered_map<
     gz::sim::Entity, gz::sensors::SensorId> sensorIdPerEntity;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief IDs of sensors updated in the last rendering pass
   public: std::vector<gz::sensors::SensorId> updatedSensorIds;
 
@@ -323,20 +326,10 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
       }
 
       // Check topic
-      std::vector<std::string> topics;
-      if (!sdf.Topic().empty())
-      {
-        std::string topicName = sdf.Topic();
-        // Only prepend namespace to relative topic names.
-        // Absolute topic names (starting with '/') are left unchanged.
-        if (topicName.front() != '/')
-        {
-          topicName = ns+ "/" + topicName;
-        }
-        topics.push_back(topicName);
-      }
-      topics.push_back(defaultPrefix + "/dvl/velocity");
-      sdf.SetTopic(validTopic(topics));
+      const auto topic = resolvedTopicName(
+        sdf.Element(), "topic", ns, defaultPrefix + "/dvl/velocity");
+      this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+      sdf.SetTopic(topic);
 
       auto parentName =
           _ecm.Component<components::Name>(_parent->Data());
@@ -367,6 +360,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
         this->perStepRequests.push_back(
             requests::DestroySensor{_entity});
         this->knownSensorEntities.erase(_entity);
+        this->resolvedTopicNames.erase(_entity);
       }
       return true;
     });
@@ -736,6 +730,13 @@ void DopplerVelocityLogSystem::PostUpdate(
 {
   GZ_PROFILE("DopplerVelocityLogSystem::PostUpdate");
   this->dataPtr->DoPostUpdate(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> 
+  DopplerVelocityLogSystem::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,

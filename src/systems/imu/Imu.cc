@@ -56,6 +56,9 @@ class gz::sim::systems::ImuPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::ImuSensor>> entitySensorMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -177,6 +180,12 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> Imu::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void ImuPrivate::AddSensor(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -207,20 +216,10 @@ void ImuPrivate::AddSensor(
   }
 
   // check topic
-  std::vector<std::string> topics;
-  if (!data.Topic().empty())
-  {
-    std::string topicName = data.Topic();
-    // Only prepend namespace to relative topic names.
-    // Absolute topic names (starting with '/') are left unchanged.
-    if (topicName.front() != '/')
-    {
-      topicName = ns+ "/" + topicName;
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/imu");
-  data.SetTopic(validTopic(topics));
+  const auto topic = resolvedTopicName(
+    data.Element(), "topic", ns, defaultPrefix + "/imu");
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
 
   std::unique_ptr<sensors::ImuSensor> sensor =
       this->sensorFactory.CreateSensor<
@@ -385,6 +384,16 @@ void ImuPrivate::RemoveImuEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved IMU sensor topic name "
+                 << "for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

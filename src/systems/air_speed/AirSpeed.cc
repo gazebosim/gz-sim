@@ -58,6 +58,9 @@ class gz::sim::systems::AirSpeedPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AirSpeedSensor>> entitySensorMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -190,6 +193,13 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->RemoveAirSpeedEntities(_ecm);
 }
 
+
+//////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> AirSpeed::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
 //////////////////////////////////////////////////
 void AirSpeedPrivate::Load(
     EntityComponentManager &_ecm)
@@ -221,20 +231,10 @@ void AirSpeedPrivate::AddAirSpeed(
   }
 
   // check topic
-  std::vector<std::string> topics;
-  if (!data.Topic().empty())
-  {
-    std::string topicName = data.Topic();
-    // Only prepend namespace to relative topic names.
-    // Absolute topic names (starting with '/') are left unchanged.
-    if (topicName.front() != '/')
-    {
-      topicName = ns+ "/" + topicName;
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/air_speed");
-  data.SetTopic(validTopic(topics));
+  const auto topic = resolvedTopicName(
+    data.Element(), "topic", ns, defaultPrefix + "/air_speed");
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
 
   std::unique_ptr<sensors::AirSpeedSensor> sensor =
       this->sensorFactory.CreateSensor<
@@ -347,6 +347,16 @@ void AirSpeedPrivate::RemoveAirSpeedEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved air speed sensor topic "
+                 << "name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

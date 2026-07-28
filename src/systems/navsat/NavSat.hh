@@ -55,6 +55,9 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
+    /// Get the resolved topic names
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+
     /// \brief Private data pointer.
     GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
   };

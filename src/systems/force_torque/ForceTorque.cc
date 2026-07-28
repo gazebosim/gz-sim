@@ -76,6 +76,9 @@ class gz::sim::systems::ForceTorquePrivate
   /// \brief Cache of the entities associated with the sensor
   public: std::unordered_map<Entity, SensorJointAndLinks> sensorJointLinkMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -227,6 +230,12 @@ void ForceTorque::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> ForceTorque::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 Entity ForceTorquePrivate::GetLinkFromScopedName(
     const EntityComponentManager &_ecm, const std::string &_name,
     Entity _parentModel) const
@@ -369,20 +378,10 @@ void ForceTorquePrivate::AddSensor(
   }
 
   // check topic
-  std::vector<std::string> topics;
-  if (!data.Topic().empty())
-  {
-    std::string topicName = data.Topic();
-    // Only prepend namespace to relative topic names.
-    // Absolute topic names (starting with '/') are left unchanged.
-    if (topicName.front() != '/')
-    {
-      topicName = ns+ "/" + topicName;
-    }
-    topics.push_back(topicName);
-  }
-  topics.push_back(defaultPrefix + "/forcetorque");
-  data.SetTopic(validTopic(topics));
+  const auto topic = resolvedTopicName(
+    data.Element(), "topic", ns, defaultPrefix + "/forcetorque");
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
 
   std::unique_ptr<sensors::ForceTorqueSensor> sensor =
       this->sensorFactory.CreateSensor<
@@ -475,6 +474,16 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved force torque sensor topic"
+                 << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

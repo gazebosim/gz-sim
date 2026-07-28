@@ -60,6 +60,9 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
+    /// Get the resolved topic names
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+
     private: void CreateSensors(const EntityComponentManager &_ecm);
 
     private: void Update(const EntityComponentManager &_ecm);
@@ -74,6 +77,8 @@ namespace systems
 
     private: std::unordered_map<Entity,
         std::unique_ptr<sensors::CpuLidarSensor>> entitySensorMap;
+
+    private: std::unordered_map<Entity, std::string> resolvedTopicNames;  
 
     private: sensors::SensorFactory sensorFactory;
 

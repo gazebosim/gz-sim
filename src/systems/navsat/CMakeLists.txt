@@ -6,3 +6,12 @@ gz_add_system(navsat
   PRIVATE_LINK_LIBS
     gz-sensors::navsat
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    NavSat_TEST.cc
+  LIB_DEPS
+    gz-sensors::navsat
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
