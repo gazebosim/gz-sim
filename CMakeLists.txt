@@ -33,10 +33,6 @@ else()
 endif()
 
 #--------------------------------------
-# Find or fetch EnTT for entity-component-system storage
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/entt)
-
-#--------------------------------------
 # Find Backward-cpp for stack trace support
 # See https://github.com/gazebosim/gz-cmake/issues/477 before copy this code
 
