@@ -23,7 +23,6 @@
 #include <gz/msgs/Utility.hh>
 
 #include <algorithm>
-#include <iostream>
 #include <deque>
 #include <map>
 #include <set>
@@ -77,6 +76,8 @@
 #include <gz/physics/sdf/ConstructModel.hh>
 #include <gz/physics/sdf/ConstructNestedModel.hh>
 #include <gz/physics/sdf/ConstructWorld.hh>
+#include <gz/physics/Gravity.hh>
+#include <gz/physics/Model.hh>
 #include <gz/plugin/Loader.hh>
 #include <gz/plugin/PluginPtr.hh>
 #include <gz/plugin/Register.hh>
@@ -93,6 +94,7 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
@@ -107,6 +109,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
@@ -341,6 +344,14 @@ class gz::sim::systems::PhysicsPrivate
   /// \param[in] _world The world to disable it for.
   public: void DisableContactSurfaceCustomization(const Entity &_world);
 
+  /// \brief Update the AxisAlignedBox for link entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateLinksBoundingBoxes(EntityComponentManager &_ecm);
+
+  /// \brief Update the AxisAlignedBox for model entities.
+  /// \param[in] _ecm The entity component manager.
+  public: void UpdateModelsBoundingBoxes(EntityComponentManager &_ecm);
+
   /// \brief Cache the top-level model for each entity.
   /// The key is an entity and the value is its top level model.
   public: std::unordered_map<Entity, Entity> topLevelModelMap;
@@ -370,6 +381,26 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Entities whose pose commands have been processed and should be
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
+
+  /// \brief Entities whose static commands have been processed and should
+  /// be deleted the following iteration.
+  public: std::unordered_set<Entity> staticCmdsToRemove;
+
+  /// \brief Entities whose collide bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> collideBitmaskCmdsToRemove;
+
+  /// \brief Entities whose category bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> categoryBitmaskCmdsToRemove;
+
+  /// \brief Entities whose gravity enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose collision enabled commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
 
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
@@ -404,41 +435,6 @@ class gz::sim::systems::PhysicsPrivate
                        return _a == _b;
                      }};
 
-  /// \brief msgs::Contacts equality comparison function.
-  public: std::function<bool(const msgs::Contacts &,
-          const msgs::Contacts &)>
-          contactsEql { [](const msgs::Contacts &_a,
-                          const msgs::Contacts &_b)
-                    {
-                      if (_a.contact_size() != _b.contact_size())
-                      {
-                        return false;
-                      }
-
-                      for (int i = 0; i < _a.contact_size(); ++i)
-                      {
-                        if (_a.contact(i).position_size() !=
-                            _b.contact(i).position_size())
-                        {
-                          return false;
-                        }
-
-                        for (int j = 0; j < _a.contact(i).position_size();
-                          ++j)
-                        {
-                          auto pos1 = _a.contact(i).position(j);
-                          auto pos2 = _b.contact(i).position(j);
-
-                          if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
-                              !math::equal(pos1.y(), pos2.y(), 1e-6) ||
-                              !math::equal(pos1.z(), pos2.z(), 1e-6))
-                          {
-                            return false;
-                          }
-                        }
-                      }
-                      return true;
-                    }};
   /// \brief msgs::Wrench equality comparison function.
   public: std::function<bool(const msgs::Wrench &, const msgs::Wrench &)>
           wrenchEql{
@@ -463,6 +459,13 @@ class gz::sim::systems::PhysicsPrivate
   //////////////////////////////////////////////////
 
   //////////////////////////////////////////////////
+
+  // Gravity
+  public: struct GravityFeatureList
+    : physics::FeatureList<
+          MinimumFeatureList,
+          physics::Gravity>{};
+
   // Slip Compliance
 
   /// \brief Feature list to process `FrictionPyramidSlipCompliance` components.
@@ -539,13 +542,98 @@ class gz::sim::systems::PhysicsPrivate
   public: using WorldShapeType = physics::World<
             physics::FeaturePolicy3d, ContactFeatureList>;
 
+  /// \brief Using ExtraContactData to expose contact Norm, Force & Depth
+  public: using Policy = physics::FeaturePolicy3d;
+  public: using GCFeature = physics::GetContactsFromLastStepFeature;
+  public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
+
+  /// \brief A contact is described by a contactPoint and the corresponding
+  /// extraContactData which we bundle in a pair data structure
+  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
+                                const ExtraContactData *>;
+  /// \brief Each contact object we get from gz-physics contains the EntityPtrs
+  /// of the two colliding entities and other data about the contact such as the
+  /// position and extra contact date (wrench, normal and penetration depth).
+  /// This map groups contacts so that it is easy to query all the
+  /// contacts of one entity.
+  public: using EntityContactMap = std::unordered_map<
+            Entity, std::deque<ContactData>>;
+
+  /// \brief msgs::Contacts equality comparison function.
+  public: bool contactsEql(const msgs::Contacts &_msg,
+                           const EntityContactMap &_map)
+  {
+    if (_msg.contact_size() != static_cast<int>(_map.size()))
+    {
+      return false;
+    }
+
+    auto mapIt = _map.begin();
+    for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
+    {
+      const auto &contactData = mapIt->second;
+      if (_msg.contact(i).position_size() !=
+          static_cast<int>(contactData.size()))
+      {
+        return false;
+      }
+
+      for (int j = 0; j < _msg.contact(i).position_size(); ++j)
+      {
+        const auto &contact = contactData[j];
+        auto pos1 = _msg.contact(i).position(j);
+        auto pos2 = contact.first->point;
+
+        if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
+            !math::equal(pos1.y(), pos2.y(), 1e-6) ||
+            !math::equal(pos1.z(), pos2.z(), 1e-6))
+        {
+          return false;
+        }
+
+        if(contact.second != nullptr)
+        {
+          // Compare normals
+          auto normal1 = _msg.contact(i).normal(j);
+          auto normal2 = contact.second->normal;
+          if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
+              !math::equal(normal1.y(), normal2.y(), 1e-6) ||
+              !math::equal(normal1.z(), normal2.z(), 1e-6))
+          {
+            return false;
+          }
+          // Compare body1 and body2 forces
+          auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
+          auto body1force2 = contact.second->force;
+          if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
+              !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
+              !math::equal(body1force1.z(), body1force2.z(), 1e-6))
+          {
+            return false;
+          }
+
+          auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
+          auto body2force2 = -contact.second->force;
+          if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
+              !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
+              !math::equal(body2force1.z(), body2force2.z(), 1e-6))
+          {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
   /// \brief Feature list to filter collisions with bitmasks.
   public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature,
+          physics::CategoryFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
@@ -555,12 +643,39 @@ class gz::sim::systems::PhysicsPrivate
 
 
   //////////////////////////////////////////////////
-  // Bounding box
+  // Model Bounding box
   /// \brief Feature list for model bounding box.
-  public: struct BoundingBoxFeatureList : physics::FeatureList<
+  public: struct ModelBoundingBoxFeatureList : physics::FeatureList<
             MinimumFeatureList,
             physics::GetModelBoundingBox>{};
 
+  //////////////////////////////////////////////////
+  // Static State
+  /// \brief Feature list for model static state.
+  public: struct StaticStateFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelStaticState>{};
+
+  //////////////////////////////////////////////////
+  // Gravity Enabled
+  /// \brief Feature list for gravity enabled.
+  public: struct GravityEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GravityEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Collision Enabled
+  /// \brief Feature list for enabling and disabling model collisions.
+  public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::ModelCollisionEnabled>{};
+
+  //////////////////////////////////////////////////
+  // Link Bounding box
+  /// \brief Feature list for model bounding box.
+  public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::GetLinkBoundingBox>{};
 
   //////////////////////////////////////////////////
   // Joint velocity command
@@ -663,6 +778,7 @@ class gz::sim::systems::PhysicsPrivate
           MinimumFeatureList,
           CollisionFeatureList,
           ContactFeatureList,
+          GravityFeatureList,
           RayIntersectionFeatureList,
           SetContactPropertiesCallbackFeatureList,
           NestedModelFeatureList,
@@ -681,10 +797,13 @@ class gz::sim::systems::PhysicsPrivate
             physics::Model,
             MinimumFeatureList,
             JointFeatureList,
-            BoundingBoxFeatureList,
+            ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
-            ConstructSdfJointFeatureList>;
+            ConstructSdfJointFeatureList,
+            StaticStateFeatureList,
+            GravityEnabledFeatureList,
+            ModelCollisionEnabledFeatureList>;
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -698,7 +817,9 @@ class gz::sim::systems::PhysicsPrivate
             CollisionFeatureList,
             HeightmapFeatureList,
             LinkForceFeatureList,
-            MeshFeatureList>;
+            MeshFeatureList,
+            LinkBoundingBoxFeatureList,
+            GravityEnabledFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -2085,6 +2206,30 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
+  // Gravity state
+  _ecm.Each<components::Gravity>(
+      [&](const Entity & _entity, const components::Gravity *_gravity)
+      {
+        auto gravityFeature =
+          this->entityWorldMap.EntityCast<GravityFeatureList>(_entity);
+        if (!gravityFeature)
+        {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "physics engine doesn't support feature "
+                     << "[GravityFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+            return false;
+        }
+        auto new_grav = _gravity->Data();
+        gravityFeature->SetGravity({new_grav.X(), new_grav.Y(), new_grav.Z()});
+        return true;
+  });
+
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2095,6 +2240,78 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           entityOffMap[_ecm.ParentEntity(_entity)] = false;
         return true;
       });
+
+  // Update Collision Bitmasks
+  auto olderCollideBitmaskCmdsToRemove =
+      std::move(this->collideBitmaskCmdsToRemove);
+  this->collideBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CollideBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->collideBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collide bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCollideBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollideBitmaskCmd>(entity);
+  }
+
+  // Update Category Bitmasks
+  auto olderCategoryBitmaskCmdsToRemove =
+      std::move(this->categoryBitmaskCmdsToRemove);
+  this->categoryBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CategoryBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->categoryBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCategoryFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set category bitmasks, but the physics "
+                   << "engine doesn't support feature [CategoryFilterMask]. "
+                   << "Category bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCategoryBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
+  }
 
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
@@ -2394,6 +2611,260 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         return true;
       });
+
+  // update Static State
+  auto olderStaticStatesToRemove = std::move(this->staticCmdsToRemove);
+  this->staticCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::StaticCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::StaticCmd *_staticCmd,
+          const components::Name *_name)->bool
+      {
+        this->staticCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelStaticStateFeature =
+          this->entityModelMap.EntityCast<StaticStateFeatureList>(_entity);
+
+        if (!modelStaticStateFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set static state, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelStaticState]. Static state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+
+        // Make sure to update the set of staticEntities
+        bool isStatic = this->staticEntities.find(_entity) !=
+            this->staticEntities.end();
+        if (isStatic != _staticCmd->Data())
+        {
+          sim::Model model(_entity);
+          auto links = model.Links(_ecm);
+
+          if (isStatic)
+          {
+            this->staticEntities.erase(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.erase(linkEntity);
+            }
+          }
+          else
+          {
+            this->staticEntities.insert(_entity);
+            for (const auto &linkEntity : links)
+            {
+              this->staticEntities.insert(linkEntity);
+
+              // Zero out velocities in ECM when making static.
+              // This is needed because the physics engine (e.g., DART)
+              // freezes the model but may keep stale velocities in its
+              // body node cache. By zeroing them here and adding links to
+              // staticEntities, we ensure they stay zero.
+              auto linVelComp =
+                  _ecm.Component<components::WorldLinearVelocity>(
+                      linkEntity);
+              if (linVelComp)
+              {
+                linVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldLinearVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+              auto angVelComp =
+                  _ecm.Component<components::WorldAngularVelocity>(
+                      linkEntity);
+              if (angVelComp)
+              {
+                angVelComp->SetData(math::Vector3d::Zero, this->vec3Eql);
+                _ecm.SetChanged(linkEntity,
+                    components::WorldAngularVelocity::typeId,
+                    ComponentState::OneTimeChange);
+              }
+            }
+          }
+        }
+
+        modelStaticStateFeature->SetStatic(_staticCmd->Data());
+        return true;
+      });
+
+  // Remove static commands from previous iteration. We let them rotate one
+  // iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderStaticStatesToRemove)
+  {
+    _ecm.RemoveComponent<components::StaticCmd>(entity);
+  }
+
+  // update Gravity enabled
+  auto olderGravityEnabledCmdsToRemove =
+    std::move(this->gravityEnabledCmdsToRemove);
+  this->gravityEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelGravityEnabledFeature =
+          this->entityModelMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
+
+        if (!modelGravityEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set gravity enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GravityEnabled]. Gravity state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // update Link Gravity enabled
+  _ecm.Each<components::Link,
+    components::GravityEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::GravityEnabledCmd *_gravityEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->gravityEnabledCmdsToRemove.insert(_entity);
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto linkGravityEnabledFeature =
+          this->entityLinkMap.EntityCast<GravityEnabledFeatureList>(
+            _entity);
+
+        if (!linkGravityEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link gravity enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[GravityEnabled]. Gravity state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
+        }
+        linkGravityEnabledFeature->SetGravityEnabled(
+            _gravityEnabledCmd->Data());
+        return true;
+      });
+
+  // Remove gravity enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderGravityEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
+  }
+
+  // update Collision enabled
+  auto olderCollisionEnabledCmdsToRemove =
+    std::move(this->collisionEnabledCmdsToRemove);
+  this->collisionEnabledCmdsToRemove.clear();
+
+  _ecm.Each<components::Model,
+    components::CollisionEnabledCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Model *,
+          const components::CollisionEnabledCmd *_collisionEnabledCmd,
+          const components::Name *_name)->bool
+      {
+        this->collisionEnabledCmdsToRemove.insert(_entity);
+
+        auto modelPtrPhys = this->entityModelMap.Get(_entity);
+        if (nullptr == modelPtrPhys)
+          return true;
+
+        auto modelCollisionEnabledFeature =
+          this->entityModelMap.EntityCast<ModelCollisionEnabledFeatureList>(
+            _entity);
+
+        if (!modelCollisionEnabledFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collision enabled, but the physics "
+                   << "engine doesn't support feature "
+                   << "[ModelCollisionEnabled]. Collision state won't be "
+                   << "populated. " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          return true;
+        }
+        modelCollisionEnabledFeature->SetCollisionEnabled(
+            _collisionEnabledCmd->Data());
+
+        // Reflect the applied state in the CollisionEnabled component so
+        // queries via Model::CollisionEnabled() return the latest value.
+        auto stateComp =
+            _ecm.Component<components::CollisionEnabled>(_entity);
+        if (stateComp == nullptr)
+        {
+          _ecm.CreateComponent(_entity,
+              components::CollisionEnabled(_collisionEnabledCmd->Data()));
+        }
+        else
+        {
+          stateComp->SetData(_collisionEnabledCmd->Data(),
+              [](const bool &, const bool &){return false;});
+          _ecm.SetChanged(_entity,
+              components::CollisionEnabled::typeId,
+              ComponentState::OneTimeChange);
+        }
+        return true;
+      });
+
+  // Remove collision enabled commands from previous iteration. We let them
+  // rotate one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderCollisionEnabledCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
+  }
 
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
@@ -2712,46 +3183,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
 
   // Populate bounding box info
-  // Only compute bounding box if component exists to avoid unnecessary
-  // computations
-  _ecm.Each<components::Model, components::AxisAlignedBox>(
-      [&](const Entity &_entity, const components::Model *,
-          components::AxisAlignedBox *_bbox)
-      {
-        if (!this->entityModelMap.HasEntity(_entity))
-        {
-          gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
-          return true;
-        }
-
-        auto bbModel =
-            this->entityModelMap.EntityCast<BoundingBoxFeatureList>(_entity);
-
-        if (!bbModel)
-        {
-          static bool informed{false};
-          if (!informed)
-          {
-            gzdbg << "Attempting to get a bounding box, but the physics "
-                   << "engine doesn't support feature "
-                   << "[GetModelBoundingBox]. Bounding box won't be populated."
-                   << std::endl;
-            informed = true;
-          }
-
-          // Break Each call since no AxisAlignedBox'es can be processed
-          return false;
-        }
-
-        math::AxisAlignedBox bbox =
-            math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
-        auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
-            ComponentState::PeriodicChange :
-            ComponentState::NoChange;
-        _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
-
-        return true;
-      });
+  this->UpdateLinksBoundingBoxes(_ecm);
+  this->UpdateModelsBoundingBoxes(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
@@ -2765,6 +3198,11 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
+  this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
+  this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -3861,22 +4299,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     return;
   }
 
-  // Using ExtraContactData to expose contact Norm, Force & Depth
-  using Policy = physics::FeaturePolicy3d;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
-
-  // A contact is described by a contactPoint and the corresponding
-  // extraContactData which we bundle in a pair data structure
-  using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
-  // Each contact object we get from gz-physics contains the EntityPtrs of the
-  // two colliding entities and other data about the contact such as the
-  // position and extra contact date (wrench, normal and penetration depth).
-  // This map groups contacts so that it is easy to query all the
-  // contacts of one entity.
-  using EntityContactMap = std::unordered_map<Entity, std::deque<ContactData>>;
-
   // This data structure is essentially a mapping between a pair of entities and
   // a list of pointers to their contact object. We use a map inside a map to
   // create msgs::Contact objects conveniently later on.
@@ -3912,12 +4334,17 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
       [&](const Entity &_collEntity1, components::Collision *,
           components::ContactSensorData *_contacts) -> bool
       {
-        msgs::Contacts contactsComp;
-        if (entityContactMap.find(_collEntity1) == entityContactMap.end())
+        const auto contactMapIt = entityContactMap.find(_collEntity1);
+        if (contactMapIt == entityContactMap.end())
         {
           // Clear the last contact data
-          auto state = _contacts->SetData(contactsComp,
-            this->contactsEql) ?
+          bool changed = _contacts->Data().contact_size() > 0;
+          if (changed)
+          {
+            _contacts->Data().Clear();
+          }
+
+          auto state = changed ?
             ComponentState::PeriodicChange :
             ComponentState::NoChange;
           _ecm.SetChanged(
@@ -3925,11 +4352,26 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           return true;
         }
 
-        const auto &contactMap = entityContactMap[_collEntity1];
+        const auto &contactMap = contactMapIt->second;
 
+        bool changed = !this->contactsEql(_contacts->Data(), contactMap);
+        auto state = changed ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+        _ecm.SetChanged(
+          _collEntity1, components::ContactSensorData::typeId, state);
+
+        // If contacts are unchanged, no need to update them again
+        if (!changed)
+        {
+          return true;
+        }
+
+        // If contacts have changed, first clear data then add contacts
+        _contacts->Data().Clear();
         for (const auto &[collEntity2, contactData] : contactMap)
         {
-          msgs::Contact *contactMsg = contactsComp.add_contact();
+          msgs::Contact *contactMsg = _contacts->Data().add_contact();
           contactMsg->mutable_collision1()->set_id(_collEntity1);
           contactMsg->mutable_collision2()->set_id(collEntity2);
           if (this->contactsEntityNames)
@@ -3974,14 +4416,6 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
             }
           }
         }
-
-        auto state = _contacts->SetData(contactsComp,
-          this->contactsEql) ?
-          ComponentState::PeriodicChange :
-          ComponentState::NoChange;
-        _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
-
         return true;
       });
 }
@@ -4097,13 +4531,10 @@ void PhysicsPrivate::EnableContactSurfaceCustomization(const Entity &_world)
   if (!setContactPropertiesCallbackFeature)
     return;
 
-  using Policy = physics::FeaturePolicy3d;
   using Feature = physics::SetContactPropertiesCallbackFeature;
   using FeatureList = SetContactPropertiesCallbackFeatureList;
-  using GCFeature = physics::GetContactsFromLastStepFeature;
   using GCFeatureWorld = GCFeature::World<Policy, FeatureList>;
   using ContactPoint = GCFeatureWorld::ContactPoint;
-  using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   const auto callbackID = "gz::sim::systems::Physics";
   setContactPropertiesCallbackFeature->AddContactPropertiesCallback(
@@ -4176,6 +4607,107 @@ void PhysicsPrivate::DisableContactSurfaceCustomization(const Entity &_world)
 
   gzmsg << "Disabled contact surface customization for world entity ["
          << _world << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for links.
+  _ecm.Each<components::Link, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Link *,
+        components::AxisAlignedBox *_bbox)
+    {
+      auto linkPhys = this->entityLinkMap.Get(_entity);
+      if (!linkPhys)
+      {
+        gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbLink = this->entityLinkMap.EntityCast<
+        LinkBoundingBoxFeatureList>(_entity);
+
+      // Bounding box expressed in the link frame
+      math::AxisAlignedBox bbox;
+
+      if (bbLink)
+      {
+        bbox = math::eigen3::convert(
+          bbLink->GetAxisAlignedBoundingBox(linkPhys->GetFrameID()));
+      }
+      else
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetLinkBoundingBox]. Link bounding boxes will be "
+                 << "computed from their collision shapes based on their "
+                 << "geometry properties in SDF." << std::endl;
+          informed = true;
+        }
+
+        // Fallback to SDF API to get the link AABB from its collision shapes.
+        // If the link has no collision shapes, the AABB will be invalid.
+        bbox = gz::sim::Link(_entity).ComputeAxisAlignedBox(_ecm).value_or(
+          math::AxisAlignedBox());
+      }
+
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
+{
+  // Only compute bounding box if component exists to avoid unnecessary
+  // computation for models.
+  _ecm.Each<components::Model, components::AxisAlignedBox>(
+    [&](const Entity &_entity, const components::Model *,
+        components::AxisAlignedBox *_bbox)
+    {
+      if (!this->entityModelMap.HasEntity(_entity))
+      {
+        gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
+        return true;
+      }
+
+      auto bbModel = this->entityModelMap.EntityCast<
+        ModelBoundingBoxFeatureList>(_entity);
+
+      if (!bbModel)
+      {
+        static bool informed{false};
+        if (!informed)
+        {
+          gzdbg << "Attempting to get a bounding box, but the physics "
+                 << "engine doesn't support feature "
+                 << "[GetModelBoundingBox]. Bounding box won't be populated."
+                 << std::endl;
+          informed = true;
+        }
+
+        // Break Each call since no AxisAlignedBox'es can be processed
+        return false;
+      }
+
+      // Bounding box expressed in the world frame
+      math::AxisAlignedBox bbox =
+          math::eigen3::convert(bbModel->GetAxisAlignedBoundingBox());
+      auto state = _bbox->SetData(bbox, this->axisAlignedBoxEql) ?
+          ComponentState::PeriodicChange :
+          ComponentState::NoChange;
+      _ecm.SetChanged(_entity, components::AxisAlignedBox::typeId, state);
+
+      return true;
+    });
 }
 
 GZ_ADD_PLUGIN(Physics,

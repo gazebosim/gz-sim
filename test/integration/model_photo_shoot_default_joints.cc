@@ -17,6 +17,7 @@
 
 #include "ModelPhotoShootTest.hh"
 
+#include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 // Test the Model Photo Shoot plugin on the example world.
@@ -24,7 +25,7 @@ TEST_F(ModelPhotoShootTest,
        GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelPhotoShootDefaultJoints))
 {
   this->ModelPhotoShootTestCmd(
-      "examples/worlds/model_photo_shoot.sdf");
+      gz::common::joinPaths("examples", "worlds", "model_photo_shoot.sdf"));
 }
 
 int main(int _argc, char **_argv)

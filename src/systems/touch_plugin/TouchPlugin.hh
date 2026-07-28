@@ -52,13 +52,32 @@ namespace systems
   ///              collisions (scoped name
   ///              `/model_name/link_name/collision_name`).
   ///
-  /// - `<time>` Target time in seconds to maintain contact.
+  /// - `<collision>` Optional parameter. Multiple <collision> elements are
+  ///                 allowed. If specified, a touch event will only be emitted
+  ///                 if contact occurs with the specified contact sensor
+  ///                 collision in the model that the touch plugin is
+  ///                 attached to. If no <collision> elements are specified,
+  ///                 all contact sensor collisions are used.
   ///
-  /// - `<namespace>` Namespace for transport topics/services:
+  /// - `<create_contact_sensor_for_collision>` Optional parameter. If true,
+  ///                 automatically create a contact sensor for the collision
+  ///                 if the sensor does not exist already. This allows the
+  ///                 TouchPlugin system to be used without explicitly defining
+  ///                 contact sensors inside links in SDF. Default to false.
+  ///
+  /// - `<namespace>` Optional parameter. Namespace for transport topics and
+  ///                 services. Defaults to `<scoped_name>/touch`.
+  ///                 Note that if multiple touch plugins without a namespace
+  ///                 are added to a model their topic / service will conflict.
+  ///                 In this case, it is recommended to either specify the
+  ///                 namespace or use nested models to have only one touch
+  ///                 plugin per model.
   ///   - `/<namespace>/enable` : Service used to enable and disable
   ///                             the plugin.
   ///   - `/<namespace>/touched` : Topic where a message is published
   ///                              once the touch event occurs.
+  ///
+  /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<enabled>` Set this to true so the plugin works from the start and
   ///               doesn't need to be enabled.

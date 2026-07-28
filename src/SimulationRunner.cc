@@ -24,6 +24,7 @@
 #include <pybind11/pybind11.h>
 #endif
 
+#include <gz/math/Vector3.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
@@ -39,17 +40,20 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsCmd.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
+#include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Conversions.hh"
@@ -61,6 +65,16 @@
 #include "network/NetworkManagerPrimary.hh"
 #include "LevelManager.hh"
 #include "SdfGenerator.hh"
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
 
 using namespace gz;
 using namespace sim;
@@ -98,6 +112,34 @@ struct MaybeGilScopedRelease
 #endif
 }
 
+#ifdef _WIN32
+namespace gz
+{
+namespace sim
+{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
+// Utility class to store the windows HANDLE variable and close
+// the handle using RAII. This class also hides the HANDLE
+// type from the global header files.
+class SimulationRunnerWinHandleStorage
+{
+  private: HANDLE handleStorage{NULL};
+
+  public: HANDLE handle() { return handleStorage; }
+
+  public: SimulationRunnerWinHandleStorage(HANDLE h) : handleStorage(h) {}
+
+  public: ~SimulationRunnerWinHandleStorage() {
+    if (handleStorage != NULL)
+    {
+      CloseHandle(handleStorage);
+    }
+  }
+};
+}
+}
+}
+#endif
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World &_world,
@@ -175,6 +217,32 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
   this->currentInfo.simTime = this->simTimeEpoch;
+
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
+
+#ifdef _WIN32
+  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  if (winPrecisionTimerHandle != NULL)
+  {
+    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(
+      winPrecisionTimerHandle);
+  }
+#endif
 
   // World control
   transport::NodeOptions opts;
@@ -381,10 +449,29 @@ void SimulationRunner::UpdatePhysicsParams()
   {
     return;
   }
+  const auto& physicsParams = physicsCmdComp->Data();
+
+  if(physicsParams.has_gravity())
+  {
+    auto gravityComp =
+      this->entityCompMgr.Component<components::Gravity>(worldEntity);
+    if (gravityComp)
+    {
+      const  gz::math::Vector3<double>  newGravity =
+      {
+          physicsParams.gravity().x(),
+          physicsParams.gravity().y(),
+          physicsParams.gravity().z()
+      };
+      gravityComp->Data() = newGravity;
+      this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+            ComponentState::OneTimeChange);
+    }
+  }
+
   auto physicsComp =
     this->entityCompMgr.Component<components::Physics>(worldEntity);
 
-  const auto& physicsParams = physicsCmdComp->Data();
   const auto newStepSize =
     std::chrono::duration<double>(physicsParams.max_step_size());
   const double newRTF = physicsParams.real_time_factor();
@@ -519,6 +606,13 @@ void SimulationRunner::ProcessSystemQueue()
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
 
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
+
   // If additional systems are to be added or have been removed,
   // stop the existing threads.
   this->StopWorkerThreads();
@@ -606,16 +700,26 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    if (!this->parallelPostUpdates)
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
@@ -686,11 +790,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // runner is not paused.
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
-
-  // Variables for time keeping.
-  std::chrono::steady_clock::time_point startTime;
-  std::chrono::steady_clock::duration sleepTime;
-  std::chrono::steady_clock::duration actualSleep;
 
   this->running = true;
 
@@ -777,6 +876,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
+  auto nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
   while (this->running && (_iterations == 0 ||
        processedIterations < _iterations))
   {
@@ -784,32 +884,6 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
-
-    // Compute the time to sleep in order to match, as closely as possible,
-    // the update period.
-    sleepTime = 0ns;
-    actualSleep = 0ns;
-
-    sleepTime = std::max(0ns, this->prevUpdateRealTime +
-        this->updatePeriod - std::chrono::steady_clock::now() -
-        this->sleepOffset);
-
-    // Only sleep if needed.
-    if (sleepTime > 0ns)
-    {
-      GZ_PROFILE("Sleep");
-      // Get the current time, sleep for the duration needed to match the
-      // updatePeriod, and then record the actual time slept.
-      startTime = std::chrono::steady_clock::now();
-      std::this_thread::sleep_for(sleepTime);
-      actualSleep = std::chrono::steady_clock::now() - startTime;
-    }
-
-    // Exponentially average out the difference between expected sleep time
-    // and actual sleep time.
-    this->sleepOffset =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(
-          (actualSleep - sleepTime) * 0.01 + this->sleepOffset * 0.99);
 
     // Update time information. This will update the iteration count, RTF,
     // and other values.
@@ -845,6 +919,90 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
 
     this->resetInitiated = false;
+
+    // Only sleep when not paused.
+    if (!this->currentInfo.paused)
+    {
+      // A hybrid sleep/busy-wait strategy is used for precise timing. A simple
+      // sleep can suffer from wake-up latency due to CPU power-saving states
+      // (C-states), which causes RTF to undershoot. This strategy sleeps for
+      // long waits but busy-waits for the final moments to ensure precision.
+      // The threshold is a conservative value based on typical C-state
+      // latencies.
+      using namespace std::chrono_literals;
+
+      // Threshold at which we switch from sleeping to spinning. This should be
+      // larger than the typical OS + CPU C-state latency.
+      constexpr auto kSpinThreshold = 200us;
+
+      auto now = std::chrono::steady_clock::now();
+
+      // If the scheduled update time is in the future...
+      if (nextUpdateTime > now)
+      {
+        // ...sleep until we are close to the target time.
+        auto sleepTarget = nextUpdateTime - kSpinThreshold;
+        if (sleepTarget > now)
+        {
+#ifndef _WIN32
+          std::this_thread::sleep_until(sleepTarget);
+#else
+          if (winPrecisionTimer)
+          {
+            auto sleepTargetDuration =
+              std::chrono::duration_cast<std::chrono::microseconds>(
+              sleepTarget - now);
+            LARGE_INTEGER due_time;
+            memset(&due_time, 0, sizeof(due_time));
+            // Positive durations are absolute, while negative durations
+            // are relative in 10 us intervals.
+            // The absolute time uses the non-precision system clock so we
+            // need to use relative time.
+            due_time.QuadPart = -sleepTargetDuration.count() * 10;
+            if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0,
+              NULL, NULL, FALSE) != TRUE)
+            {
+              gzerr << "Could not SetWaitableTimer" << std::endl;
+            }
+            else
+            {
+              WaitForSingleObject(winPrecisionTimer->handle(), INFINITE);
+            }
+          }
+          else
+          {
+            std::this_thread::sleep_until(sleepTarget);
+          }
+#endif
+        }
+
+        // ...then busy-wait for the final moments for precision.
+        while (std::chrono::steady_clock::now() < nextUpdateTime)
+        {
+          // Spin.
+        }
+      }
+
+      // Schedule the next update time.
+      now = std::chrono::steady_clock::now();
+      nextUpdateTime += this->updatePeriod;
+      if (nextUpdateTime < now)
+      {
+        nextUpdateTime = now + this->updatePeriod;
+      }
+    }
+    else
+    {
+      // We still need a small sleep to prevent this loop from spinning
+      // at 100% CPU when paused.
+      using namespace std::chrono_literals;
+      std::this_thread::sleep_for(1ms);
+
+      // When paused, pre-schedule the next update time for the near future.
+      // This ensures that when the simulation is un-paused, the first step
+      // has a valid schedule to meet, preventing a jump in RTF.
+      nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
+    }
   }
 
   this->running = false;
@@ -864,9 +1022,6 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 
   // Publish info
   this->PublishStats();
-
-  // Record when the update step starts.
-  this->prevUpdateRealTime = std::chrono::steady_clock::now();
 
   this->levelMgr->UpdateLevelsState();
 
@@ -1065,6 +1220,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
 }
 
 /////////////////////////////////////////////////
@@ -1310,6 +1471,10 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
   GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
+  if (!this->entityCompMgr.HasComponentType(components::Recreate::typeId))
+  {
+    return;
+  }
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
@@ -1577,6 +1742,10 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
       components::RenderEngineGuiPlugin(
       this->serverConfig.RenderEngineGui()));
 
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerApiBackend(
+      this->serverConfig.RenderEngineServerApiBackend()));
+
   // Load the world entities from SDF
   creator->CreateEntities(&this->sdfWorld, worldEntity);
 
@@ -1586,8 +1755,6 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // Some entities and component should be removed based on the levels.
   this->entityCompMgr.ProcessRemoveEntityRequests();
   this->entityCompMgr.ClearRemovedComponents();
-
-  this->LoadLoggingPlugins(this->serverConfig);
 
   // Load any additional plugins from the Server Configuration
   this->LoadServerPlugins(this->serverConfig.Plugins());
@@ -1601,7 +1768,10 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
     auto plugins = gz::sim::loadPluginInfo(isPlayback);
     this->LoadServerPlugins(plugins);
   }
-
+  // Load logging plugins after all server plugins so that necessary
+  // plugins such as SceneBroadcaster are loaded first. This might be
+  // a bug or an assumption made in the logging plugins.
+  this->LoadLoggingPlugins(this->serverConfig);
   // Store the initial state of the ECM;
   this->initialEntityCompMgr.CopyFrom(this->entityCompMgr);
 
@@ -1609,4 +1779,18 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // In the future, support modifying GUI from the server at runtime.
   if (_world.Gui())
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = _all || _time;
+  if (_model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
 }

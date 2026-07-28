@@ -101,6 +101,10 @@ namespace systems
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);
 
+    /// \brief Retrieve the relevant link entity
+    private: void GetChildModelAndLinkEntities(
+      gz::sim::EntityComponentManager &_ecm);
+
     /// \brief The model associated with this system.
     private: Model model;
 

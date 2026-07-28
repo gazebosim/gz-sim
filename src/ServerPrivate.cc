@@ -180,16 +180,22 @@ bool ServerPrivate::Run(const uint64_t _iterations,
   }
   else
   {
+    if (!this->workerPool.has_value())
+    {
+      // Initialize the workerpool if we do have multiple simulation runners and
+      // it hasn't been initialized before
+      this->workerPool.emplace(2);
+    }
     for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
     {
-      this->workerPool.AddWork([&runner, &_iterations] ()
+      this->workerPool->AddWork([&runner, &_iterations] ()
         {
           runner->Run(_iterations);
         });
     }
 
     // Wait for the runner to complete.
-    result = this->workerPool.WaitForResults();
+    result = this->workerPool->WaitForResults();
   }
 
   this->running = false;

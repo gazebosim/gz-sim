@@ -442,8 +442,7 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(ServerConfigLogRecord))
 
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
-    // Only the log record system is needed and therefore loaded.
-    EXPECT_EQ(1u, *server.SystemCount());
+    EXPECT_EQ(4u, *server.SystemCount());
 
     EXPECT_TRUE(serverConfig.LogRecordTopics().empty());
     serverConfig.AddLogRecordTopic("test_topic1");
@@ -482,9 +481,7 @@ TEST_P(ServerFixture,
     sim::Server server(serverConfig);
     EXPECT_EQ(0u, *server.IterationCount());
     EXPECT_EQ(3u, *server.EntityCount());
-
-    // Only the log record system is needed and therefore loaded.
-    EXPECT_EQ(1u, *server.SystemCount());
+    EXPECT_EQ(4u, *server.SystemCount());
   }
 
   EXPECT_FALSE(common::exists(logFile));
@@ -587,6 +584,9 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -607,6 +607,9 @@ TEST_P(ServerFixture, RunNonBlocking)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -758,6 +761,9 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
   while (*server.IterationCount() < 100)
     GZ_SLEEP_MS(100);
 
+  // Sleep one more time before checking because iterationCount might be updated
+  // before the iteration is complete
+  GZ_SLEEP_MS(100);
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));

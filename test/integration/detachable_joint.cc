@@ -67,7 +67,8 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/detachable_joint.sdf");
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
 
   // A lambda that takes a model name and a mutable reference to a vector of
   // poses and returns another lambda that can be passed to
@@ -145,7 +146,8 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/detachable_joint.sdf");
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
 
   // A lambda that takes a model name and a mutable reference to a vector of
   // poses and returns another lambda that can be passed to
@@ -218,6 +220,80 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
 }
 
+/////////////////////////////////////////////////
+TEST_F(DetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelsWithSameName))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint_child.sdf"));
+
+
+  std::vector<math::Pose3d> childM4Poses, childM5Poses;
+  test::Relay testSystem1;
+  testSystem1.OnPostUpdate([&childM4Poses, &childM5Poses](
+    const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
+  {
+    auto childModels = _ecm.EntitiesByComponents(
+      components::Model(), components::Name("child_model"));
+
+    auto entityM5 = _ecm.EntityByComponents(
+      components::Model(), components::Name("M5"));
+
+    Model modelM5(entityM5);
+    auto childModelsM5 = modelM5.Models(_ecm);
+
+    Entity childEntityM5{kNullEntity}, childEntityM4{kNullEntity};
+    for(auto entity : childModelsM5)
+    {
+      if (entity == childModels[0])
+      {
+        childEntityM5 = childModels[0];
+        childEntityM4 = childModels[1];
+      }
+      if (entity == childModels[1])
+      {
+        childEntityM5 = childModels[1];
+        childEntityM4 = childModels[0];
+      }
+    }
+
+    Model childModelM4(childEntityM4);
+    Model childModelM5(childEntityM5);
+
+    auto poseM4 = _ecm.Component<components::Pose>(childEntityM4);
+    auto poseM5 = _ecm.Component<components::Pose>(childEntityM5);
+
+    childM4Poses.push_back(poseM4->Data());
+    childM5Poses.push_back(poseM5->Data());
+  }
+  );
+
+  this->server->AddSystem(testSystem1.systemPtr);
+
+  const std::size_t nIters{20};
+  this->server->Run(true, nIters, false);
+
+  // Children of model4 and model5 should not move as they are held
+  // in place
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
+  EXPECT_EQ(childM5Poses.front(), childM5Poses.back());
+
+  // Release M5's child only
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M5/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  this->server->Run(true, nIters, false);
+  // M5 and M4 start at the same height
+  // Only M5 should fall.
+  EXPECT_LT(childM5Poses.back().Z(), childM4Poses.back().Z());
+  EXPECT_LT(childM5Poses.back().Z(), childM5Poses.front().Z());
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
+}
  /////////////////////////////////////////////////
  // Test for re-attaching a detached joint. This uses the vehicle_blue and B1
  // box models. The B1 model is first detached from the vehicle. Although

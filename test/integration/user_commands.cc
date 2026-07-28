@@ -15,6 +15,8 @@
  *
  */
 
+#include <future>
+#include <gz/msgs/details/vector3d.pb.h>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -36,6 +38,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Material.hh"
@@ -61,6 +64,32 @@ using namespace sim;
 class UserCommandsTest : public InternalFixture<::testing::Test>
 {
 };
+
+struct AsyncRequestInfo {
+  bool retval{false};
+  msgs::Boolean response;
+  bool result{false};
+};
+
+// This calls a request from a new thread so that the calling function can
+// continue even if the request blocks.
+template <typename RequestT>
+auto asyncRequest(transport::Node &_node, const std::string &_topic,
+                              const RequestT &_req)
+{
+  unsigned int timeout = 5000;
+  auto asyncRetval = std::async(std::launch::async, [&]
+  {
+    AsyncRequestInfo info;
+    info.retval =
+        _node.Request(_topic, _req, timeout, info.response, info.result);
+    return info;
+  });
+  // Sleep for a little bit for the async thread to spin up and make the service
+  // request
+  GZ_SLEEP_MS(10);
+  return asyncRetval;
+}
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
@@ -137,15 +166,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   auto pos = pose->mutable_position();
   pos->set_z(10);
 
-  msgs::Boolean res;
-  bool result;
-  unsigned int timeout = 5000;
-  std::string service{"/world/empty/create"};
-
+  std::string service{"/world/empty/create/blocking"};
   transport::Node node;
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  auto requestDataFuture = asyncRequest(node, service, req);
 
   // Check entity has not been created yet
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
@@ -153,6 +176,13 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
 
@@ -169,12 +199,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.set_sdf(modelStr);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was not created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_FALSE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount, ecm->EntityCount());
 
@@ -183,12 +217,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.set_sdf(modelStr);
   req.set_allow_renaming(true);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was created with a new name
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -202,12 +240,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.set_sdf(modelStr);
   req.set_name("banana");
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was created with given name
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -220,12 +262,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.set_sdf(lightStr);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -239,12 +285,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.mutable_light()->set_name("light_test");
   req.mutable_light()->set_parent_id(1);
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -259,17 +309,13 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.set_sdf(modelStr);
   req.set_name("acerola");
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  auto requestDataFuture1 = asyncRequest(node, service, req);
 
   req.Clear();
   req.set_sdf(modelStr);
   req.set_name("coconut");
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  auto requestDataFuture2 = asyncRequest(node, service, req);
 
   // Check neither exists yet
   EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
@@ -280,6 +326,18 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   // Run an iteration and check both models were created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture1.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+  {
+    auto requestData = requestDataFuture2.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 8, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -293,12 +351,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.set_sdf(lightsStr);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check only the 1st was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount + 2, ecm->EntityCount());
   entityCount = ecm->EntityCount();
@@ -315,12 +377,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.set_sdf(badStr);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check nothing was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_FALSE(requestData.response.data());
+  }
 
   EXPECT_EQ(entityCount, ecm->EntityCount());
 
@@ -330,12 +396,16 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   req.Clear();
   req.set_sdf_filename(testModel);
 
-  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
-  EXPECT_TRUE(result);
-  EXPECT_TRUE(res.data());
+  requestDataFuture = asyncRequest(node, service, req);
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
@@ -1516,14 +1586,29 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   auto worldEntity = ecm->EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, worldEntity);
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
+  auto gravityComp = ecm->Component<components::Gravity>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
+  ASSERT_NE(nullptr, gravityComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
+
+  auto gravity = gravityComp->Data();
+  EXPECT_DOUBLE_EQ(0.0, gravity.X());
+  EXPECT_DOUBLE_EQ(0.0, gravity.Y());
+  EXPECT_DOUBLE_EQ(-9.8, gravity.Z());
 
   // Set physics properties
   msgs::Physics req;
   req.set_max_step_size(0.123);
   req.set_real_time_factor(4.567);
+
+  gz::msgs::Vector3d new_gravity;
+  new_gravity.set_x(1.0);
+  new_gravity.set_y(3.0);
+  new_gravity.set_z(5.0);
+  req.mutable_gravity()->set_x(new_gravity.x());
+  req.mutable_gravity()->set_y(new_gravity.y());
+  req.mutable_gravity()->set_z(new_gravity.z());
 
   msgs::Boolean res;
   bool result;
@@ -1538,6 +1623,13 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Run two iterations, in the first one the PhysicsCmd component is created
   // in the second one it is processed
   server.Run(true, 2, false);
+
+  // Check updated gravity
+  gravityComp = ecm->Component<components::Gravity>(worldEntity);
+  gravity = gravityComp->Data();
+  EXPECT_DOUBLE_EQ(new_gravity.x(), gravity.X());
+  EXPECT_DOUBLE_EQ(new_gravity.y(), gravity.Y());
+  EXPECT_DOUBLE_EQ(new_gravity.z(), gravity.Z());
 
   // Check updated physics properties
   physicsComp = ecm->Component<components::Physics>(worldEntity);

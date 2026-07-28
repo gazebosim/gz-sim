@@ -69,7 +69,7 @@
     </model>
 
     <model name="duck1">
-      <pose>0 0 3 0.0 0.0</pose>
+      <pose>0 0 3 0.0 0.0 0</pose>
       <link name="link">
         <inertial>
           <inertia>
