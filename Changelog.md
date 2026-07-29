@@ -78,7 +78,7 @@
 
 1. Skip Recreate component query if no component exists
     * [Pull request #3650](https://github.com/gazebosim/gz-sim/pull/3650)
-    
+
 1. Minor documentation improvements
     * [Pull request #3763](https://github.com/gazebosim/gz-sim/pull/3763)
     * [Pull request #3772](https://github.com/gazebosim/gz-sim/pull/3772)
