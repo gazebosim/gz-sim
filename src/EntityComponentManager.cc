@@ -46,7 +46,7 @@
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch-default"
-#include "gz/sim/entt/entity/handle.hpp"
+#include "gz/sim/detail/entt/entity/handle.hpp"
 #pragma GCC diagnostic pop
 
 using namespace gz;
