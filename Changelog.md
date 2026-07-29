@@ -32,7 +32,7 @@
 1. Benchmark for scopedName function in Utils.cc
     * [Pull request #3666](https://github.com/gazebosim/gz-sim/pull/3666)
 
-1. Use marker array visualize contacts
+1. Use marker array to visualize contacts
     * [Pull request #3737](https://github.com/gazebosim/gz-sim/pull/3737)
 
 1. fix: Fixed data race for UI updates (#3751)
