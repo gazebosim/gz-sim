@@ -16,7 +16,7 @@
 
 1. Fix wrong moment computation in advanced liftdrag (#3817)
     * [Pull request #3817](https://github.com/gazebosim/gz-sim/pull/3817)
-    
+
 1. Fix potentially uninitialized variables (#3776)
     * [Pull request #3776](https://github.com/gazebosim/gz-sim/pull/3776)
 
