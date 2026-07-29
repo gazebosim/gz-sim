@@ -1,3 +1,4 @@
+exclude: ^include/gz/sim/detail/entt
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
@@ -14,7 +15,6 @@ repos:
     -   id: check-yaml
     -   id: destroyed-symlinks
     -   id: end-of-file-fixer
-        exclude: '^vendor/entt/entt\.patch$'
     -   id: mixed-line-ending
     -   id: trailing-whitespace
 
