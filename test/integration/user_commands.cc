@@ -24,7 +24,6 @@
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
-#include <gz/msgs/entity_factory_with_ns.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
@@ -533,7 +532,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   // Spawn a model through EntityFactoryWithNs to verify the
   // compatibility service still works during the deprecation cycle.
-  msgs::EntityFactoryWithNs reqWithNs;
+  msgs::EntityFactory reqWithNs;
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_ns_deprecated");
   reqWithNs.set_entity_namespace("test_ns_deprecated");

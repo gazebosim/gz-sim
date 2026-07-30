@@ -870,7 +870,7 @@ bool CreateCommand::Execute()
 {
   if (auto createMsg = dynamic_cast<const msgs::EntityFactory *>(this->msg))
   {
-    return this->CreateFromMsg(*createMsg, "");
+    return this->CreateFromMsg(*createMsg, createMsg->entity_namespace());
   }
   else if (auto createMsgV = dynamic_cast<const msgs::EntityFactory_V *>(this->msg))
   {
@@ -878,7 +878,7 @@ bool CreateCommand::Execute()
     bool result = true;
     for (const auto &msgItem : createMsgV->data())
     {
-      result = result && this->CreateFromMsg(msgItem, "");
+      result = result && this->CreateFromMsg(msgItem, msgItem.entity_namespace());
     }
     return result;
   }
@@ -1187,15 +1187,6 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
          << std::endl;
 
   return true;
-}
-
-//////////////////////////////////////////////////
-bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
-{
-  msgs::EntityFactory baseMsg;
-  baseMsg.ParseFromString(_createMsg.SerializeAsString());
-
-  return this->CreateFromMsg(baseMsg, _createMsg.entity_namespace());
 }
 
 //////////////////////////////////////////////////
