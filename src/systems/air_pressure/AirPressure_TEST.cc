@@ -15,6 +15,9 @@
  *
  */
 
+
+#include "AirPressure.hh"
+
 #include <gtest/gtest.h>
 
 #include <sdf/Root.hh>
@@ -24,8 +27,6 @@
 
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
-
-#include "AirPressure.cc"
 
 using namespace gz;
 using namespace sim;

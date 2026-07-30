@@ -15,3 +15,5 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+target_sources(UNIT_AirPressure_TEST PRIVATE AirPressure.cc)
