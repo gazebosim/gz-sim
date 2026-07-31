@@ -68,10 +68,10 @@ namespace gz
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
 
-    /// \brief Helper function to check whether any entity has a non-empty
-    /// namespace component.
+    /// \brief Helper function to check whether any entity has a namespace
+    /// component.
     /// \param[in] _ecm Immutable reference to ECM.
-    /// \return True if any entity has a non-empty namespace.
+    /// \return True if any entity has a namespace.
     bool GZ_SIM_VISIBLE hasNamespace(
         const EntityComponentManager &_ecm);
 
