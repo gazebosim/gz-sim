@@ -710,20 +710,19 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   this->ecm.Each<components::Model,
            components::Pose,
            components::ParentEntity,
-           components::Name,
-           components::Namespace>(
+           components::Name>(
     [&](const Entity &_entity,
         const components::Model *_model,
         const components::Pose *_pose,
         const components::ParentEntity *_parent,
-        const components::Name *_name,
-        const components::Namespace *_ns)->bool
+        const components::Name *_name)->bool
     {
       EXPECT_NE(nullptr, _model);
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
-      EXPECT_NE(nullptr, _ns);
+
+      const auto ns = this->ecm.Component<components::Namespace>(_entity);
 
       modelCount++;
 
@@ -733,7 +732,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
-      EXPECT_EQ("sphere", _ns->Data());
+      EXPECT_EQ("sphere", ns->Data());
       sphModelEntity = _entity;
 
       return true;
