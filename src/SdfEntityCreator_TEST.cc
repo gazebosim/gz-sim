@@ -161,7 +161,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       EXPECT_NE(nullptr, _pose);
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
-      
+
       const auto ns = this->ecm.Component<components::Namespace>(_entity);
 
       modelCount++;
