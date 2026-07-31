@@ -208,7 +208,7 @@
       </link>
     </model>
 
-    <model name="ellipsoid">
+    <model name="ellipsoid" namespace="{name}/ns">
       <pose>4 5 6 0 0 1</pose>
       <link name="ellipsoid_link">
         <pose>0.8 0.8 0.8 0 0 0</pose>
