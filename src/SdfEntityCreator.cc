@@ -527,8 +527,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
-  this->dataPtr->ecm->CreateComponent(modelEntity,
-      components::Namespace(_model->Namespace().value_or("")));
+  const auto ns = _model->Namespace();
+  if (ns.has_value() && !ns->empty())
+  {
+    this->dataPtr->ecm->CreateComponent(modelEntity,
+        components::Namespace(ns.value()));
+  }
   bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(isStatic));
