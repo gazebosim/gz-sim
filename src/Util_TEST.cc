@@ -264,6 +264,7 @@ TEST_F(UtilTest, ScopedNamespace)
   // world
   //  - modelA
   //    - modelAA
+  //      - modelAAA
   //  - modelB
   //    - modelBA
   //  - modelC
@@ -300,6 +301,10 @@ TEST_F(UtilTest, ScopedNamespace)
   ecm.CreateComponent(modelCAEntity, components::Namespace("///"));
   ecm.CreateComponent(modelCAEntity, components::ParentEntity(modelCEntity));
 
+  auto modelCBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCBEntity, components::Namespace("/"));
+  ecm.CreateComponent(modelCBEntity, components::ParentEntity(modelCEntity));
+
   EXPECT_EQ("/world_ns", scopedNamespace(ecm, worldEntity));
   EXPECT_EQ("/world_ns/model_a_ns", scopedNamespace(ecm, modelAEntity));
   EXPECT_EQ("/model_aa_ns", scopedNamespace(ecm, modelAAEntity));
@@ -308,6 +313,7 @@ TEST_F(UtilTest, ScopedNamespace)
   EXPECT_EQ("/world_ns/model_ba_ns", scopedNamespace(ecm, modelBAEntity));
   EXPECT_EQ("/model_c_ns", scopedNamespace(ecm, modelCEntity));
   EXPECT_EQ("", scopedNamespace(ecm, modelCAEntity));
+  EXPECT_EQ("", scopedNamespace(ecm, modelCBEntity));
 
   EXPECT_TRUE(scopedNamespace(ecm, kNullEntity).empty());
 }

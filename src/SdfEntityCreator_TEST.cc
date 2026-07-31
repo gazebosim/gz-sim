@@ -201,7 +201,7 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       {
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ(nullptr, ns);
+        EXPECT_EQ("ellipsoid/ns", ns->Data());
         ellipModelEntity = _entity;
       }
       return true;
