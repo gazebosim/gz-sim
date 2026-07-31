@@ -207,15 +207,7 @@ std::string scopedName(const Entity &_entity,
 //////////////////////////////////////////////////
 bool hasNamespace(const EntityComponentManager &_ecm)
 {
-  const auto &entities = _ecm.Entities().Vertices();
-
-  for ( const auto &entity : entities)
-  {
-    const auto ns = _ecm.Component<components::Namespace>(entity.first);
-    if (ns && !ns->Data().empty())
-      return true;
-  }
-  return false;
+  return _ecm.HasComponentType(components::Namespace::typeId);
 }
 
 //////////////////////////////////////////////////

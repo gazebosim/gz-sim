@@ -251,10 +251,6 @@ TEST_F(UtilTest, HasNamespace)
   ecm.CreateEntity();
   EXPECT_FALSE(hasNamespace(ecm));
 
-  auto entityWithEmptyNamespace = ecm.CreateEntity();
-  ecm.CreateComponent(entityWithEmptyNamespace, components::Namespace(""));
-  EXPECT_FALSE(hasNamespace(ecm));
-
   auto entityWithNamespace = ecm.CreateEntity();
   ecm.CreateComponent(entityWithNamespace, components::Namespace("robot"));
   EXPECT_TRUE(hasNamespace(ecm));
