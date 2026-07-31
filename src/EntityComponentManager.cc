@@ -549,19 +549,14 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
   auto originalNsComp = this->Component<components::Namespace>(_entity);
-  if (nullptr != originalNsComp)
+  if (!_ns.empty())
   {
-    std::string ns;
-    if (!_ns.empty())
-    {
-      ns = _ns;
-    }
-    else
-    {
-      // If the namespace is not provided, use the original entity's namespace.
-      ns = originalNsComp->Data();
-    }
-    this->CreateComponent(clonedEntity, components::Namespace(ns));
+    this->CreateComponent(clonedEntity, components::Namespace(_ns));
+  }
+  else if (nullptr != originalNsComp && !originalNsComp->Data().empty())
+  {
+    this->CreateComponent(clonedEntity,
+      components::Namespace(originalNsComp->Data()));
   }
 
   // copy all components from _entity to clonedEntity
