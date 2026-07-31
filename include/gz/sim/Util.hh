@@ -75,15 +75,13 @@ namespace gz
     bool GZ_SIM_VISIBLE hasNamespace(
         const EntityComponentManager &_ecm);
 
-    /// \brief Helper function to generate the full scoped namespace of an entity,
-    /// including namespaces inherited from all parent entities.
-    /// \param[in] _ecm Immutable reference to ECM.
-    /// \param[in] _entity Entity to get the scoped namespace for.
-    /// \param[in] _delim Delimiter to put between namespaces, defaults to "/".
-    /// \return Scoped namespace, or empty string if no namespace is found.
-    std::string GZ_SIM_VISIBLE scopedNamespace(
-        const EntityComponentManager &_ecm, const Entity &_entity,
-        const std::string &_delim = "/");
+  /// \brief Helper function to generate the full scoped namespace of an entity,
+  /// including namespaces inherited from all parent entities.
+  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _entity Entity to get the scoped namespace for.
+  /// \return Scoped namespace, or empty string if no namespace is found.
+  std::string GZ_SIM_VISIBLE scopedNamespace(
+      const EntityComponentManager &_ecm, const Entity &_entity);
 
     /// \brief Helper function to resolve a topic name from the SDF element.
     /// If the SDF element exists and contains a non-empty topic name, that topic

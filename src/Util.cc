@@ -193,17 +193,18 @@ bool hasNamespace(const EntityComponentManager &_ecm)
 
 //////////////////////////////////////////////////
 std::string scopedNamespace(const EntityComponentManager &_ecm,
-    const Entity &_entity, const std::string &_delim)
+    const Entity &_entity)
 {
-  std::vector<std::string> namespaces;
+  std::vector<std::string_view> namespaces;
+  namespaces.reserve(10);
 
   auto entity = _entity;
-  while (entity != kNullEntity)
+  while (true)
   {
     const auto ns = _ecm.Component<components::Namespace>(entity);
     if (ns && !ns->Data().empty())
     {
-      std::string nsStr = ns->Data();
+      std::string_view nsStr = ns->Data();
       const bool isAbsolute = nsStr.front() == '/';
       const auto begin = nsStr.find_first_not_of('/');
       if (begin != std::string::npos)
@@ -213,6 +214,7 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
 
         namespaces.push_back(nsStr);
       }
+
       if (isAbsolute)
       {
         break;
@@ -221,15 +223,31 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
 
     const auto parentEntity = _ecm.Component<components::ParentEntity>(entity);
     if (!parentEntity)
+    {
       break;
+    }
     entity = parentEntity->Data();
   }
 
-  std::reverse(namespaces.begin(), namespaces.end());
+  if (namespaces.empty())
+  {
+    return "";
+  }
+
   std::string result;
+  size_t totalSize = 0;
   for (const auto &ns : namespaces)
   {
-    result += _delim + ns;
+    totalSize += ns.size();
+  }
+  // Add 1 for each "/" separator
+  totalSize += namespaces.size() * 1;
+  result.reserve(totalSize);
+
+  for (auto it = namespaces.rbegin(); it != namespaces.rend(); ++it)
+  {
+    result += "/";
+    result += *it;
   }
   return result;
 }
