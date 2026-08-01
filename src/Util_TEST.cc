@@ -268,6 +268,7 @@ TEST_F(UtilTest, ScopedNamespace)
   //    - modelBA
   //  - modelC
   //    - modelCA
+  //    - modelCB
 
   auto worldEntity = ecm.CreateEntity();
   ecm.CreateComponent(worldEntity, components::Namespace("world_ns/"));
