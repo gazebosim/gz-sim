@@ -180,28 +180,44 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       {
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("cylinder", ns->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("cylinder", ns->Data());
+        }
         cylModelEntity = _entity;
       }
       else if (_name->Data() == "sphere")
       {
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("sphere_ns", ns->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("sphere_ns", ns->Data());
+        }
         sphModelEntity = _entity;
       }
       else if (_name->Data() == "capsule")
       {
         EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("ns", ns->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("ns", ns->Data());
+        }
         capModelEntity = _entity;
       }
       else if (_name->Data() == "ellipsoid")
       {
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("ellipsoid/ns", ns->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("ellipsoid/ns", ns->Data());
+        }
         ellipModelEntity = _entity;
       }
       return true;
@@ -685,7 +701,7 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
   unsigned int worldCount{0};
   Entity worldEntity = kNullEntity;
   this->ecm.Each<components::World,
-           components::Name>(
+                            components::Name>(
     [&](const Entity &_entity,
         const components::World *_world,
         const components::Name *_name)->bool
@@ -732,7 +748,11 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
-      EXPECT_EQ("sphere", ns->Data());
+      EXPECT_NE(nullptr, ns);
+      if (nullptr != ns)
+      {
+        EXPECT_EQ("sphere", ns->Data());
+      }
       sphModelEntity = _entity;
 
       return true;
