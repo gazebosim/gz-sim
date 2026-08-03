@@ -260,7 +260,8 @@ TEST_F(UtilTest, ScopedNamespace)
 {
   EntityComponentManager ecm;
 
-  // world
+  // model1
+  // model2
   //  - modelA
   //    - modelAA
   //      - modelAAA
@@ -270,12 +271,14 @@ TEST_F(UtilTest, ScopedNamespace)
   //    - modelCA
   //    - modelCB
 
-  auto worldEntity = ecm.CreateEntity();
-  ecm.CreateComponent(worldEntity, components::Namespace("world_ns/"));
+  auto model1Entity = ecm.CreateEntity();
+
+  auto model2Entity = ecm.CreateEntity();
+  ecm.CreateComponent(model2Entity, components::Namespace("model_2_ns/"));
 
   auto modelAEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelAEntity, components::Namespace("model_a_ns"));
-  ecm.CreateComponent(modelAEntity, components::ParentEntity(worldEntity));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(model2Entity));
 
   auto modelAAEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelAAEntity, components::Namespace("/model_aa_ns/"));
@@ -287,7 +290,7 @@ TEST_F(UtilTest, ScopedNamespace)
 
   auto modelBEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelBEntity, components::Namespace(""));
-  ecm.CreateComponent(modelBEntity, components::ParentEntity(worldEntity));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(model2Entity));
 
   auto modelBAEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelBAEntity, components::Namespace("model_ba_ns"));
@@ -295,7 +298,7 @@ TEST_F(UtilTest, ScopedNamespace)
 
   auto modelCEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelCEntity, components::Namespace("//model_c_ns//"));
-  ecm.CreateComponent(modelCEntity, components::ParentEntity(worldEntity));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(model2Entity));
 
   auto modelCAEntity = ecm.CreateEntity();
   ecm.CreateComponent(modelCAEntity, components::Namespace("///"));
@@ -305,12 +308,13 @@ TEST_F(UtilTest, ScopedNamespace)
   ecm.CreateComponent(modelCBEntity, components::Namespace("/"));
   ecm.CreateComponent(modelCBEntity, components::ParentEntity(modelCEntity));
 
-  EXPECT_EQ("world_ns", scopedNamespace(ecm, worldEntity));
-  EXPECT_EQ("world_ns/model_a_ns", scopedNamespace(ecm, modelAEntity));
+  EXPECT_EQ("", scopedNamespace(ecm, model1Entity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, model2Entity));
+  EXPECT_EQ("model_2_ns/model_a_ns", scopedNamespace(ecm, modelAEntity));
   EXPECT_EQ("/model_aa_ns", scopedNamespace(ecm, modelAAEntity));
   EXPECT_EQ("/model_aa_ns/model_aaa_ns", scopedNamespace(ecm, modelAAAEntity));
-  EXPECT_EQ("world_ns", scopedNamespace(ecm, modelBEntity));
-  EXPECT_EQ("world_ns/model_ba_ns", scopedNamespace(ecm, modelBAEntity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, modelBEntity));
+  EXPECT_EQ("model_2_ns/model_ba_ns", scopedNamespace(ecm, modelBAEntity));
   EXPECT_EQ("/model_c_ns", scopedNamespace(ecm, modelCEntity));
   EXPECT_EQ("/", scopedNamespace(ecm, modelCAEntity));
   EXPECT_EQ("/", scopedNamespace(ecm, modelCBEntity));
