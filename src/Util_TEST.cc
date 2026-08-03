@@ -338,8 +338,10 @@ TEST_F(UtilTest, ResolvedTopicName)
   sdf::initFile("plugin.sdf", sdf);
   sdf::readString(sdfString, sdf);
 
-  EXPECT_EQ("/test_relative_topic",
+  EXPECT_EQ("test_relative_topic",
     resolvedTopicName(sdf, "relative_topic", "", "/default_relative_topic"));
+  EXPECT_EQ("/test_relative_topic",
+    resolvedTopicName(sdf, "relative_topic", "/", "/default_relative_topic"));
   EXPECT_EQ("/ns/test_relative_topic",
     resolvedTopicName(sdf, "relative_topic", "/ns", "/default_relative_topic"));
   EXPECT_EQ("/test_absolute_topic",

@@ -285,7 +285,12 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
       // Absolute topic names (starting with '/') are left unchanged.
       if (customTopic.front() != '/')
       {
-        customTopic = _ns + "/" + customTopic;
+        std::string prefix = _ns;
+        if (!prefix.empty() && prefix.back() != '/')
+        {
+          prefix += "/";
+        }
+        customTopic = prefix + customTopic;
       }
       topics.push_back(customTopic);
     }
