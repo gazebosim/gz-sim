@@ -89,7 +89,7 @@ TEST(DiffDriveTest, AbsoluteTopicNames)
 
   DiffDrive::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic = "/test_cmd_vel";
-  expectedTopicNames.enableTopic = "/ns/enable";
+  expectedTopicNames.enableTopic = "ns/enable";
   expectedTopicNames.odomTopic = "/test_odom";
   expectedTopicNames.tfTopic = "/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
@@ -113,10 +113,10 @@ TEST(DiffDriveTest, RelativeTopicNames)
     </sdf>)";
 
   DiffDrive::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/test_cmd_vel";
-  expectedTopicNames.enableTopic = "/ns/enable";
-  expectedTopicNames.odomTopic = "/ns/test_odom";
-  expectedTopicNames.tfTopic = "/ns/test_tf";
+  expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
+  expectedTopicNames.enableTopic = "ns/enable";
+  expectedTopicNames.odomTopic = "ns/test_odom";
+  expectedTopicNames.tfTopic = "ns/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
@@ -135,9 +135,9 @@ TEST(DiffDriveTest, DefaultTopicNames)
     </sdf>)";
 
   DiffDrive::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/cmd_vel";
-  expectedTopicNames.enableTopic = "/ns/enable";
-  expectedTopicNames.odomTopic = "/ns/odometry";
-  expectedTopicNames.tfTopic = "/ns/tf";
+  expectedTopicNames.cmdVelTopic = "ns/cmd_vel";
+  expectedTopicNames.enableTopic = "ns/enable";
+  expectedTopicNames.odomTopic = "ns/odometry";
+  expectedTopicNames.tfTopic = "ns/tf";
   TestTopicNames(sdfString, expectedTopicNames);
 }
