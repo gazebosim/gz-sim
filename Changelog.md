@@ -1,5 +1,91 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.5.0 (2026-07-29)
+
+1. [bazel] Bump default bazel version to 9.1.1 and CI workflow version (backport #3802)
+    * [Pull request #3802](https://github.com/gazebosim/gz-sim/pull/3802)
+
+1. Fix quaternion sign-flip causing angular velocity spikes (#3834)
+    * [Pull request #3834](https://github.com/gazebosim/gz-sim/pull/3834)
+
+1. Use components::ParentEntity for parent lookup
+    * [Pull request #3711](https://github.com/gazebosim/gz-sim/pull/3711)
+
+1. Fix sdf_exporter.py to be compatible with newer versions of Blender
+    * [Pull request #2678](https://github.com/gazebosim/gz-sim/pull/2678)
+
+1. Fix wrong moment computation in advanced liftdrag (#3817)
+    * [Pull request #3817](https://github.com/gazebosim/gz-sim/pull/3817)
+
+1. Fix potentially uninitialized variables (#3776)
+    * [Pull request #3776](https://github.com/gazebosim/gz-sim/pull/3776)
+
+1. Performance: don't create new msg::Contacts when adding contacts to ContactSensorData component
+    * [Pull request #3714](https://github.com/gazebosim/gz-sim/pull/3714)
+
+1. Add benchmark for Server.Run operation  (#3671)
+    * [Pull request #3671](https://github.com/gazebosim/gz-sim/pull/3671)
+
+1. Fix regression in tactile plugin (#3600)
+    * [Pull request #3600](https://github.com/gazebosim/gz-sim/pull/3600)
+
+1. Benchmark for scopedName function in Utils.cc
+    * [Pull request #3666](https://github.com/gazebosim/gz-sim/pull/3666)
+
+1. Use marker array to visualize contacts
+    * [Pull request #3737](https://github.com/gazebosim/gz-sim/pull/3737)
+
+1. fix: Fixed data race for UI updates (#3751)
+    * [Pull request #3751](https://github.com/gazebosim/gz-sim/pull/3751)
+
+1. Optimize scopedName function (backport #3667)
+    * [Pull request #3667](https://github.com/gazebosim/gz-sim/pull/3667)
+
+1. Add DetachableJointEnforceFixedConstraint component (#3644)
+    * [Pull request #3644](https://github.com/gazebosim/gz-sim/pull/3644)
+
+1. Add CI for Bazel - Clang, Fix layering failure (#3712)
+    * [Pull request #3712](https://github.com/gazebosim/gz-sim/pull/3712)
+
+1. fix: Race condition in `PeerTracker` (#3715)
+    * [Pull request #3715](https://github.com/gazebosim/gz-sim/pull/3715)
+
+1. Make the mechanism that checks wayland and forces to use X for rendering also
+   consider WAYLAND_DISPLAY, WAYLAND_DISPLAY=wayland-0 with empty XDG_SESSION_TYPE
+   is a common scenario for WSLg
+    * [Pull request #3665](https://github.com/gazebosim/gz-sim/pull/3665)
+
+1. Workaround failing entity_system test with dartsim 6.19.1
+    * [Pull request #3701](https://github.com/gazebosim/gz-sim/pull/3701)
+
+1. Implement an isolation layer for `ModelCommand_API` tests
+    * [Pull request #3683](https://github.com/gazebosim/gz-sim/pull/3683)
+
+1. Use protobuf Arena allocation in publisher systems
+    * [Pull request #3481](https://github.com/gazebosim/gz-sim/pull/3481)
+
+1. Add CollideBitmaskCmd and CategoryBitmaskCmd components
+    * [Pull request #3672](https://github.com/gazebosim/gz-sim/pull/3672)
+
+1. Fix QuickStart.qml fileURL error
+    * [Pull request #3688](https://github.com/gazebosim/gz-sim/pull/3688)
+
+1. fix: Only update physics parameters that are present in the update msg
+    * [Pull request #3686](https://github.com/gazebosim/gz-sim/pull/3686)
+
+1. Added update rate param to Joint state publisher
+    * [Pull request #3498](https://github.com/gazebosim/gz-sim/pull/3498)
+
+1. Skip Recreate component query if no component exists
+    * [Pull request #3650](https://github.com/gazebosim/gz-sim/pull/3650)
+
+1. Minor documentation improvements
+    * [Pull request #3763](https://github.com/gazebosim/gz-sim/pull/3763)
+    * [Pull request #3772](https://github.com/gazebosim/gz-sim/pull/3772)
+    * [Pull request #3764](https://github.com/gazebosim/gz-sim/pull/3764)
+    * [Pull request #3433](https://github.com/gazebosim/gz-sim/pull/3433)
+    * [Pull request #3767](https://github.com/gazebosim/gz-sim/pull/3767)
+
 ### Gazebo Sim 10.4.0 (2026-06-03)
 
 1. Add parallel_postupdates gz policy
