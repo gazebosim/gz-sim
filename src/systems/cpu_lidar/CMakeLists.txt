@@ -15,3 +15,7 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+if (TARGET UNIT_CpuLidar_TEST)
+  target_sources(UNIT_CpuLidar_TEST PRIVATE CpuLidar.cc)
+endif()

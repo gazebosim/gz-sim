@@ -18,6 +18,10 @@ gz_build_tests(TYPE UNIT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
+if (TARGET UNIT_DopplerVelocityLogSystem_TEST)
+  target_sources(UNIT_DopplerVelocityLogSystem_TEST PRIVATE DopplerVelocityLogSystem.cc)
+endif()
+
 # Suppress maybe-uninitialized from gcc due to issue 3627
 # https://github.com/gazebosim/gz-sim/issues/3627
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

@@ -15,3 +15,7 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+if (TARGET UNIT_Altimeter_TEST)
+  target_sources(UNIT_Altimeter_TEST PRIVATE Altimeter.cc)
+endif()

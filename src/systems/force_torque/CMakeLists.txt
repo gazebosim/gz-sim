@@ -15,3 +15,7 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+if (TARGET UNIT_ForceTorque_TEST)
+  target_sources(UNIT_ForceTorque_TEST PRIVATE ForceTorque.cc)
+endif()
