@@ -114,9 +114,9 @@ TEST(TrackControllerTest, RelativeTopicNames)
     </sdf>)";
 
   TrackController::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/test_cmd_vel";
-  expectedTopicNames.corTopic = "/ns/test_cor";
-  expectedTopicNames.odomTopic = "/ns/test_odom";
+  expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
+  expectedTopicNames.corTopic = "ns/test_cor";
+  expectedTopicNames.odomTopic = "ns/test_odom";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
@@ -138,10 +138,10 @@ TEST(TrackControllerTest, DefaultTopicNames)
 
   TrackController::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic =
-    "/ns/test_link/track_cmd_vel";
+    "ns/test_link/track_cmd_vel";
   expectedTopicNames.corTopic =
-    "/ns/test_link/track_cmd_center_of_rotation";
+    "ns/test_link/track_cmd_center_of_rotation";
   expectedTopicNames.odomTopic =
-    "/ns/test_link/odometry";
+    "ns/test_link/odometry";
   TestTopicNames(sdfString, expectedTopicNames);
 }

@@ -149,14 +149,14 @@ TEST(TrackedVehicleTest, RelativeTopicNames)
     </sdf>)";
 
   TrackedVehicle::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/test_cmd_vel";
-  expectedTopicNames.odomTopic = "/ns/test_odom";
-  expectedTopicNames.tfTopic = "/ns/test_tf";
-  expectedTopicNames.seTopic = "/ns/test_se";
-  expectedTopicNames.tracks["left_track"].velTopic = "/ns/test_left_vel";
-  expectedTopicNames.tracks["left_track"].corTopic = "/ns/test_left_cor";
-  expectedTopicNames.tracks["right_track"].velTopic = "/ns/test_right_vel";
-  expectedTopicNames.tracks["right_track"].corTopic = "/ns/test_right_cor";
+  expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
+  expectedTopicNames.odomTopic = "ns/test_odom";
+  expectedTopicNames.tfTopic = "ns/test_tf";
+  expectedTopicNames.seTopic = "ns/test_se";
+  expectedTopicNames.tracks["left_track"].velTopic = "ns/test_left_vel";
+  expectedTopicNames.tracks["left_track"].corTopic = "ns/test_left_cor";
+  expectedTopicNames.tracks["right_track"].velTopic = "ns/test_right_vel";
+  expectedTopicNames.tracks["right_track"].corTopic = "ns/test_right_cor";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
@@ -181,17 +181,17 @@ TEST(TrackedVehicleTest, DefaultTopicNames)
     </sdf>)";
 
   TrackedVehicle::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/cmd_vel";
-  expectedTopicNames.odomTopic = "/ns/odometry";
-  expectedTopicNames.tfTopic = "/ns/tf";
-  expectedTopicNames.seTopic = "/ns/steering_efficiency";
+  expectedTopicNames.cmdVelTopic = "ns/cmd_vel";
+  expectedTopicNames.odomTopic = "ns/odometry";
+  expectedTopicNames.tfTopic = "ns/tf";
+  expectedTopicNames.seTopic = "ns/steering_efficiency";
   expectedTopicNames.tracks["left_track"].velTopic =
-    "/ns/left_track/track_cmd_vel";
+    "ns/left_track/track_cmd_vel";
   expectedTopicNames.tracks["left_track"].corTopic =
-    "/ns/left_track/track_cmd_center_of_rotation";
+    "ns/left_track/track_cmd_center_of_rotation";
   expectedTopicNames.tracks["right_track"].velTopic =
-    "/ns/right_track/track_cmd_vel";
+    "ns/right_track/track_cmd_vel";
   expectedTopicNames.tracks["right_track"].corTopic =
-    "/ns/right_track/track_cmd_center_of_rotation";
+    "ns/right_track/track_cmd_center_of_rotation";
   TestTopicNames(sdfString, expectedTopicNames);
 }
