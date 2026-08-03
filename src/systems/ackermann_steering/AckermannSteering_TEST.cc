@@ -116,9 +116,9 @@ TEST(AckermannSteeringTest, RelativeTopicNames)
     </sdf>)";
   
   AckermannSteering::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/test_cmd_vel";
-  expectedTopicNames.odomTopic = "/ns/test_odom";
-  expectedTopicNames.tfTopic = "/ns/test_tf";
+  expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
+  expectedTopicNames.odomTopic = "ns/test_odom";
+  expectedTopicNames.tfTopic = "ns/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
@@ -140,9 +140,9 @@ TEST(AckermannSteeringTest, SubTopicNames)
     </sdf>)";
   
   AckermannSteering::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/test_cmd_vel";
-  expectedTopicNames.odomTopic = "/ns/test_odom";
-  expectedTopicNames.tfTopic = "/ns/test_tf";
+  expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
+  expectedTopicNames.odomTopic = "ns/test_odom";
+  expectedTopicNames.tfTopic = "ns/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
@@ -161,9 +161,9 @@ TEST(AckermannSteeringTest, DefaultTopicNames)
     </sdf>)";
   
   AckermannSteering::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/ns/cmd_vel";
-  expectedTopicNames.odomTopic = "/ns/odometry";
-  expectedTopicNames.tfTopic = "/ns/tf";
+  expectedTopicNames.cmdVelTopic = "ns/cmd_vel";
+  expectedTopicNames.odomTopic = "ns/odometry";
+  expectedTopicNames.tfTopic = "ns/tf";
   TestTopicNames(sdfString, expectedTopicNames);
 
   // Incomplete sdf, only used to test topic resolution behavior
@@ -179,7 +179,7 @@ TEST(AckermannSteeringTest, DefaultTopicNames)
       </world>
     </sdf>)";
   
-  expectedTopicNames.cmdVelTopic = "/ns/steer_angle";
+  expectedTopicNames.cmdVelTopic = "ns/steer_angle";
   TestTopicNames(sdfString, expectedTopicNames);
 
   // Incomplete sdf, only used to test topic resolution behavior
@@ -197,6 +197,6 @@ TEST(AckermannSteeringTest, DefaultTopicNames)
       </world>
     </sdf>)";
   
-  expectedTopicNames.cmdVelTopic = "/ns/actuators";
+  expectedTopicNames.cmdVelTopic = "ns/actuators";
   TestTopicNames(sdfString, expectedTopicNames);
 }
