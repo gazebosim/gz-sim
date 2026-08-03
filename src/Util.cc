@@ -199,13 +199,14 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   namespaces.reserve(10);
 
   auto entity = _entity;
+  bool isAbsolute = false;
   while (true)
   {
     const auto ns = _ecm.Component<components::Namespace>(entity);
     if (ns && !ns->Data().empty())
     {
       std::string_view nsStr = ns->Data();
-      const bool isAbsolute = nsStr.front() == '/';
+      isAbsolute = nsStr.front() == '/';
       const auto begin = nsStr.find_first_not_of('/');
       if (begin != std::string::npos)
       {
@@ -229,9 +230,13 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
     entity = parentEntity->Data();
   }
 
-  if (namespaces.empty())
+  if (namespaces.empty() && !isAbsolute)
   {
     return "";
+  }
+  else if (namespaces.empty() && isAbsolute)
+  {
+    return "/";
   }
 
   std::string result;
@@ -240,15 +245,27 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   {
     totalSize += ns.size();
   }
-  // Add 1 for each "/" separator
+  // Add 1 for each '/' separator
   totalSize += namespaces.size() * 1;
   result.reserve(totalSize);
 
-  for (auto it = namespaces.rbegin(); it != namespaces.rend(); ++it)
+  if (isAbsolute)
   {
     result += "/";
-    result += *it;
   }
+
+  for (auto it = namespaces.rbegin(); it != namespaces.rend(); ++it)
+  {
+    result += *it;
+    result += "/";
+  }
+
+  // Remove trailing '/'
+  if (!result.empty() && result.back() == '/')
+  {
+    result.pop_back();
+  }
+
   return result;
 }
 
