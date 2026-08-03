@@ -11,3 +11,7 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+if (TARGET UNIT_DiffDrive_TEST)
+  target_sources(UNIT_DiffDrive_TEST PRIVATE DiffDrive.cc)
+endif()
