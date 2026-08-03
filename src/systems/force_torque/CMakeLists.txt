@@ -18,4 +18,6 @@ gz_build_tests(TYPE UNIT
 
 if (TARGET UNIT_ForceTorque_TEST)
   target_sources(UNIT_ForceTorque_TEST PRIVATE ForceTorque.cc)
+  target_include_directories(UNIT_ForceTorque_TEST PRIVATE
+    ${PROJECT_SOURCE_DIR}/test)
 endif()

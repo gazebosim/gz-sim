@@ -27,9 +27,12 @@
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
+#include "helpers/UnitTestUtil.hh"
+
 using namespace gz;
 using namespace sim;
 using namespace systems;
+using namespace test;
 
 /// \brief Test topic name resolution for ForceTorque system
 /// \param[in] _sdfString The SDF string to load
@@ -37,24 +40,11 @@ using namespace systems;
 void TestTopicName(const std::string &_sdfString,
       const std::string &_expectedTopicName)
 {
-  sdf::Root root;
-  root.LoadSdfString(_sdfString);
-
-  ASSERT_EQ(1u, root.WorldCount());
-  const sdf::World *worldSdf = root.WorldByIndex(0);
-  ASSERT_NE(nullptr, worldSdf);
-
-  ASSERT_EQ(1u, worldSdf->ModelCount());
-  const sdf::Model *modelSdf = worldSdf->ModelByIndex(0);
-  ASSERT_NE(nullptr, modelSdf);
-
   EntityComponentManager ecm;
   EventManager eventMgr;
-  SdfEntityCreator entityCreator(ecm, eventMgr);
+  Entity modelEntity;
 
-  Entity modelEntity =
-    entityCreator.CreateEntitiesWithoutLoadingPlugins(modelSdf);
-  ASSERT_NE(kNullEntity, modelEntity);
+  LoadModelContext(_sdfString, ecm, eventMgr, modelEntity);
 
   auto plugin = std::make_unique<ForceTorque>();
   UpdateInfo info;

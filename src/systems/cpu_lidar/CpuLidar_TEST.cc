@@ -27,9 +27,12 @@
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
+#include "helpers/UnitTestUtil.hh"
+
 using namespace gz;
 using namespace sim;
 using namespace systems;
+using namespace test;
 
 /// \brief Test topic name resolution for CpuLidar system
 /// \param[in] _sdfString The SDF string to load
@@ -37,20 +40,11 @@ using namespace systems;
 void TestTopicName(const std::string &_sdfString,
       const std::string &_expectedTopicName)
 {
-  sdf::Root root;
-  root.LoadSdfString(_sdfString);
-
-  ASSERT_EQ(1u, root.WorldCount());
-  const sdf::World *worldSdf = root.WorldByIndex(0);
-  ASSERT_NE(nullptr, worldSdf);
-
   EntityComponentManager ecm;
   EventManager eventMgr;
-  SdfEntityCreator entityCreator(ecm, eventMgr);
+  Entity worldEntity;
 
-  Entity worldEntity =
-    entityCreator.CreateEntities(worldSdf);
-  ASSERT_NE(kNullEntity, worldEntity);
+  LoadWorldContext(_sdfString, ecm, eventMgr, worldEntity);
 
   auto plugin = std::make_unique<CpuLidar>();
   UpdateInfo info;

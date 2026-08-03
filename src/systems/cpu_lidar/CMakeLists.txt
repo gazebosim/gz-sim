@@ -18,4 +18,6 @@ gz_build_tests(TYPE UNIT
 
 if (TARGET UNIT_CpuLidar_TEST)
   target_sources(UNIT_CpuLidar_TEST PRIVATE CpuLidar.cc)
+  target_include_directories(UNIT_CpuLidar_TEST PRIVATE
+    ${PROJECT_SOURCE_DIR}/test)
 endif()
