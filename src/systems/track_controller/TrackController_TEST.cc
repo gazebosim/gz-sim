@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#include "TrackController.hh"
 
 #include <gtest/gtest.h>
 
@@ -24,8 +25,6 @@
 
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
-
-#include "TrackController.cc"
 
 using namespace gz;
 using namespace sim;

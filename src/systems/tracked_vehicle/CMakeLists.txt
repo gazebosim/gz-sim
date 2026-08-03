@@ -13,3 +13,7 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+if (TARGET UNIT_TrackedVehicle_TEST)
+  target_sources(UNIT_TrackedVehicle_TEST PRIVATE TrackedVehicle.cc)
+endif()
