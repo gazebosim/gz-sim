@@ -19,4 +19,6 @@ gz_build_tests(TYPE UNIT
 
 if (TARGET UNIT_TrackController_TEST)
   target_sources(UNIT_TrackController_TEST PRIVATE TrackController.cc)
+  target_include_directories(UNIT_TrackController_TEST PRIVATE
+    ${PROJECT_SOURCE_DIR}/test)
 endif()

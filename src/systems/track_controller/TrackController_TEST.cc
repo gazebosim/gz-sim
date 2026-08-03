@@ -26,9 +26,12 @@
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
+#include "helpers/UnitTestUtil.hh"
+
 using namespace gz;
 using namespace sim;
 using namespace systems;
+using namespace test;
 
 /// \brief Test topic name resolution for TrackController system
 /// \param[in] _sdfString The SDF string to load
@@ -36,27 +39,12 @@ using namespace systems;
 void TestTopicNames(const std::string &_sdfString,
   const TrackController::TopicNames &_expectedTopicNames)
 {
-  sdf::Root root;
-  root.LoadSdfString(_sdfString);
-
-  ASSERT_EQ(1u, root.WorldCount());
-  const sdf::World *worldSdf = root.WorldByIndex(0);
-  ASSERT_NE(nullptr, worldSdf);
-
-  ASSERT_EQ(1u, worldSdf->ModelCount());
-  const sdf::Model *modelSdf = worldSdf->ModelByIndex(0);
-  ASSERT_NE(nullptr, modelSdf);
-
-  ASSERT_FALSE(modelSdf->Plugins().empty());
-  const sdf::Plugin &pluginSdf = modelSdf->Plugins()[0];
-  
   EntityComponentManager ecm;
   EventManager eventMgr;
-  SdfEntityCreator entityCreator(ecm, eventMgr);
+  Entity modelEntity;
+  sdf::Plugin pluginSdf;
 
-  Entity modelEntity =
-    entityCreator.CreateEntitiesWithoutLoadingPlugins(modelSdf);
-  ASSERT_NE(kNullEntity, modelEntity);
+  LoadModelContext(_sdfString, ecm, eventMgr, modelEntity, pluginSdf);
 
   auto plugin = new TrackController();
   plugin->Configure(modelEntity, pluginSdf.Element(), ecm, eventMgr);

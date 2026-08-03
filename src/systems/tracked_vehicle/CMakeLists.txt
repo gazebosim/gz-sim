@@ -16,4 +16,6 @@ gz_build_tests(TYPE UNIT
 
 if (TARGET UNIT_TrackedVehicle_TEST)
   target_sources(UNIT_TrackedVehicle_TEST PRIVATE TrackedVehicle.cc)
+  target_include_directories(UNIT_TrackedVehicle_TEST PRIVATE
+    ${PROJECT_SOURCE_DIR}/test)
 endif()
