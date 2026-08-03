@@ -103,7 +103,7 @@ TEST(AirSpeedTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(AirSpeedTest, DefaultTopicName)
@@ -120,5 +120,5 @@ TEST(AirSpeedTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/air_speed");
+  TestTopicName(sdfString, "ns/air_speed");
 }

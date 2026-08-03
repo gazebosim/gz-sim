@@ -96,7 +96,7 @@ TEST(CpuLidarTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(CpuLidarTest, DefaultTopicName)
@@ -113,5 +113,5 @@ TEST(CpuLidarTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/lidar");
+  TestTopicName(sdfString, "ns/lidar");
 }

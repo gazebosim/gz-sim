@@ -101,7 +101,7 @@ TEST(AirPressureTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(AirPressureTest, DefaultTopicName)
@@ -118,5 +118,5 @@ TEST(AirPressureTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/air_pressure");
+  TestTopicName(sdfString, "ns/air_pressure");
 }

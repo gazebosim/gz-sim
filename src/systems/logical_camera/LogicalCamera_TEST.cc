@@ -100,7 +100,7 @@ TEST(LogicalCameraTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(LogicalCameraTest, DefaultTopicName)
@@ -117,5 +117,5 @@ TEST(LogicalCameraTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/logical_camera");
+  TestTopicName(sdfString, "ns/logical_camera");
 }

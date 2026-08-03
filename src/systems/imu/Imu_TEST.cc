@@ -96,7 +96,7 @@ TEST(ImuTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(ImuTest, DefaultTopicName)
@@ -113,5 +113,5 @@ TEST(ImuTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/imu");
+  TestTopicName(sdfString, "ns/imu");
 }

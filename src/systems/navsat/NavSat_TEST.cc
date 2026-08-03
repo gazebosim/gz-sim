@@ -100,7 +100,7 @@ TEST(NavSatTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(NavSatTest, DefaultTopicName)
@@ -117,5 +117,5 @@ TEST(NavSatTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/navsat");
+  TestTopicName(sdfString, "ns/navsat");
 }

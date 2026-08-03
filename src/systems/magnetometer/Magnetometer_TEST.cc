@@ -96,7 +96,7 @@ TEST(MagnetometerTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(MagnetometerTest, DefaultTopicName)
@@ -113,5 +113,5 @@ TEST(MagnetometerTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/magnetometer");
+  TestTopicName(sdfString, "ns/magnetometer");
 }

@@ -102,7 +102,7 @@ TEST(DopplerVelocityLogTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(DopplerVelocityLogTest, DefaultTopicName)
@@ -119,5 +119,5 @@ TEST(DopplerVelocityLogTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/dvl/velocity");
+  TestTopicName(sdfString, "ns/dvl/velocity");
 }

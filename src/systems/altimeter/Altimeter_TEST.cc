@@ -100,7 +100,7 @@ TEST(AltimeterTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(AltimeterTest, DefaultTopicName)
@@ -117,5 +117,5 @@ TEST(AltimeterTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/altimeter");
+  TestTopicName(sdfString, "ns/altimeter");
 }

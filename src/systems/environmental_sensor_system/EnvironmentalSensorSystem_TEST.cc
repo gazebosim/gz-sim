@@ -101,7 +101,7 @@ TEST(EnvironmentalSensorSystemTest, RelativeTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/test_sensor_topic");
+  TestTopicName(sdfString, "ns/test_sensor_topic");
 }
 
 TEST(EnvironmentalSensorSystemTest, DefaultTopicName)
@@ -119,5 +119,5 @@ TEST(EnvironmentalSensorSystemTest, DefaultTopicName)
     </world>
   </sdf>)";
 
-  TestTopicName(sdfString, "/ns/environmental_sensor/humidity");
+  TestTopicName(sdfString, "ns/environmental_sensor/humidity");
 }
