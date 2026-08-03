@@ -405,6 +405,9 @@ EnvironmentalSensorSystem::EnvironmentalSensorSystem () :
 }
 
 ////////////////////////////////////////////////////////////////
+EnvironmentalSensorSystem::~EnvironmentalSensorSystem() = default;
+
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &/*_sdf*/,
