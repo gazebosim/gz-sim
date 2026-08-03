@@ -1,0 +1,24 @@
+diff --git a/include/gz/sim/detail/entt/entity/snapshot.hpp b/include/gz/sim/detail/entt/entity/snapshot.hpp
+index 6ee54c304..29621fba1 100644
+--- a/include/gz/sim/detail/entt/entity/snapshot.hpp
++++ b/include/gz/sim/detail/entt/entity/snapshot.hpp
+@@ -9,6 +9,7 @@
+ #include <vector>
+ #include "../config/config.h"
+ #include "../container/dense_map.hpp"
++#include "../core/type_info.hpp"
+ #include "../core/type_traits.hpp"
+ #include "entity.hpp"
+ #include "fwd.hpp"
+diff --git a/include/gz/sim/detail/entt/meta/template.hpp b/include/gz/sim/detail/entt/meta/template.hpp
+index 5eab2afcd..8093679d9 100644
+--- a/include/gz/sim/detail/entt/meta/template.hpp
++++ b/include/gz/sim/detail/entt/meta/template.hpp
+@@ -4,6 +4,7 @@
+ #define ENTT_META_TEMPLATE_HPP
+ 
+ #include "../core/type_traits.hpp"
++#include "type_traits.hpp"
+ 
+ namespace entt {
+ 
