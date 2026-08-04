@@ -1354,6 +1354,14 @@ void EntityComponentManager::PeriodicStateFromCache(
       const components::BaseComponent *comp =
         this->ComponentImplementation(entity, typeId);
 
+      if (!comp)
+      {
+        gzwarn << "Attempted to add component with id " << typeId <<
+               " to entity " << entity << " but the component was not found" <<
+               std::endl;
+        continue;
+      }
+
       // Add the component to the message
       msgs::SerializedComponent cmp;
       cmp.set_type(comp->TypeId());
