@@ -96,6 +96,14 @@ release will remove the deprecated code.
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
+  * Several `EntityComponentManager` APIs have been deprecated as part of the
+    move to the Entt library:
+    * `EachNoCache`, there is no explicit cache anymore, use `Each` instead.
+    * `Entities`, Entities are not store in a graph anymore, use
+      `EntitiesVector` if you need all the entities in the world, combine it
+      reading the `ParentEntity` and `Children` components if you need hierarchy
+      information.
+
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
@@ -115,6 +123,15 @@ release will remove the deprecated code.
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
     registered before they are instantiated, else a static assertion failure
     will be triggered at compile time.
+  * The implementation of the EntityComponentManager now uses the entt library
+    behind the scenes. This results in a few breaking changes:
+    * The order of entities returned by the Each APIs is not guaranteed to be
+      sorted anymore. Internal systems have been migrated to work regardless
+      of entity order, downstream systems should be updated.
+    * Entities are not stored in a `gz::math::Graph` anymore. Users that need
+      to need hierarchy information should read the `ParentEntity` or `Children`
+      components attached to entities.
+    * Deleting a non existing entity now does not mark it for removal.
 
 ## Gazebo Sim 9.x to 10.0
 
