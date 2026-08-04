@@ -1892,6 +1892,9 @@ void EntityComponentManager::ApplyEntityDiff(
     }
   };
 
+  std::vector<Entity> addedEntities;
+  // Two steps, first create all entities then add the components to make
+  // sure hierarchy updates don't fail because of missing parents
   for(auto entity : _diff.AddedEntities())
   {
     if (!this->HasEntity(entity))
@@ -1901,8 +1904,13 @@ void EntityComponentManager::ApplyEntityDiff(
       {
         this->dataPtr->entityCount = entity;
       }
-      copyComponents(entity);
+      addedEntities.push_back(entity);
     }
+  }
+
+  for(auto entity : addedEntities)
+  {
+    copyComponents(entity);
   }
 
   for (const auto &entity : _diff.RemovedEntities())
