@@ -282,11 +282,15 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->registry.clear();
 
   const auto entityView = _from.registry.view<const Entity>();
-
-  for (auto it = entityView.rbegin(); it != entityView.rend(); ++it) {
-    const auto e = *it;
+  // Create all entities first so the Children update component hook doesn't
+  // fail if an entity was not created yet.
+  for (const auto e : entityView)
+  {
     std::ignore = this->registry.create(e);
+  }
 
+  for (const auto e : entityView)
+  {
     auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
         _from.registry, e);
     for (const auto [typeId, fromStorage] : fromHandle.storage())
