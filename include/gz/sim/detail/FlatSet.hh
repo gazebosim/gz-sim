@@ -42,7 +42,7 @@ class FlatSet
   private: std::vector<T> data;
 
   /// \brief Inserts an element
-  /// \param _value The value to insert in the set.
+  /// \param[in] _value The value to insert in the set.
   /// \return True if it was inserted, false otherwise.
   public: bool insert(const T &_value)
   {
@@ -57,7 +57,7 @@ class FlatSet
   }
 
   /// \brief Erases an element
-  /// \brief _value the value to erase from the set.
+  /// \param[in] _value the value to erase from the set.
   /// \return True if it was erased, false otherwise.
   public: bool erase(const T &_value)
   {
@@ -102,7 +102,7 @@ class FlatSet
   /// \brief Find an element
   /// \param[in] _value Element to find
   /// \return Iterator to element if found, end() otherwise.
-  public: [[nodiscard]] const_iterator find(const T _value) const
+  public: [[nodiscard]] const_iterator find(const T &_value) const
   {
     const auto it = std::lower_bound(
         this->data.begin(), this->data.end(), _value);
