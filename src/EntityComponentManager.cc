@@ -59,16 +59,13 @@ namespace
   {
     const auto &parentComp = _registry.get<components::ParentEntity>(_entity);
     const Entity parentEntity = parentComp.Data();
-    auto *children = _registry.try_get<Children>(parentEntity);
-    if (children)
-    {
-      children->data.insert(_entity);
-    }
-    else
+    if (!_registry.valid(parentEntity))
     {
       gzerr << "Failed setting parent for entity " << _entity << " to "
-            << parentEntity << std::endl;
+            << parentEntity << ", parent entity is not valid" << std::endl;
     }
+    auto &children = _registry.get_or_emplace<Children>(parentEntity);
+    children.data.insert(_entity);
   }
 
   void OnParentEntityDestroy(entt::basic_registry<Entity> &_registry,
@@ -325,7 +322,6 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
   GZ_PROFILE("EntityComponentManager::CreateEntityImplementation");
   const auto e = this->registry.create(_entity);
   this->registry.emplace<NewEntity>(e);
-  this->registry.emplace<Children>(e);
   return e;
 }
 
@@ -613,8 +609,12 @@ void EntityComponentManagerPrivate::InsertEntityRecursive(Entity _entity,
     std::unordered_set<Entity> &_set)
 {
   _set.insert(_entity);
-  const auto& children = this->registry.get<Children>(_entity);
-  for (const auto& child : children.data)
+  const auto* children = this->registry.try_get<Children>(_entity);
+  if (!children)
+  {
+    return;
+  }
+  for (const auto& child : children->data)
   {
     this->InsertEntityRecursive(child, _set);
   }
