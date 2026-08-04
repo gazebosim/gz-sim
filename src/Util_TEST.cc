@@ -242,21 +242,6 @@ TEST_F(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
-TEST_F(UtilTest, HasNamespace)
-{
-  EntityComponentManager ecm;
-
-  EXPECT_FALSE(hasNamespace(ecm));
-
-  ecm.CreateEntity();
-  EXPECT_FALSE(hasNamespace(ecm));
-
-  auto entityWithNamespace = ecm.CreateEntity();
-  ecm.CreateComponent(entityWithNamespace, components::Namespace("robot"));
-  EXPECT_TRUE(hasNamespace(ecm));
-}
-
-/////////////////////////////////////////////////
 TEST_F(UtilTest, ScopedNamespace)
 {
   EntityComponentManager ecm;
