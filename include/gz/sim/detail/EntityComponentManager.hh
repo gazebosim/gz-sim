@@ -450,7 +450,8 @@ bool EntityComponentManager::RemoveComponent(Entity _entity)
   if (!this->HasEntity(_entity))
     return false;
   bool removed = this->Registry().remove<ComponentTypeT>(_entity);
-  this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
+  if (removed)
+    this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
   return removed;
 }
 }
