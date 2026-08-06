@@ -34,15 +34,14 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
 #endif
-// Entt generates a lot of switch with no default statement warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch-default"
+GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
 #include <gz/sim/detail/entt/entity/registry.hpp>
-#pragma GCC diagnostic pop
+GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
 namespace gz
 {
