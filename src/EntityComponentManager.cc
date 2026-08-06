@@ -141,6 +141,13 @@ class gz::sim::EntityComponentManagerPrivate
   /// \param[in] _entity Entity that has component newly modified
   public: void AddModifiedComponent(const Entity &_entity);
 
+  /// \brief Copies all the components for the requested entity from a registry
+  /// to `this->registry`.
+  /// \param[in] _entity The entity to copy components for.
+  /// \param[in] _fromRegistry The registry to copy components from.
+  public: void CopyComponents(const Entity &_entity,
+      const entt::basic_registry<Entity> &_fromRegistry);
+
   /// \brief Set a cloned joint's parent or child link name.
   /// \param[in] _joint The cloned joint.
   /// \param[in] _originalLink The original joint's parent or child link.
@@ -288,15 +295,7 @@ void EntityComponentManagerPrivate::CopyFrom(
 
   for (const auto e : entityView)
   {
-    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
-        _from.registry, e);
-    for (const auto [typeId, fromStorage] : fromHandle.storage())
-    {
-      auto* toStorage = this->registry.storage(typeId);
-      if (toStorage) {
-        toStorage->push(e, fromStorage.value(e));
-      }
-    }
+    this->CopyComponents(e, _from.registry);
   }
   this->entityCount = _from.entityCount;
   // Not copying maps related to cloning since they are transient variables
@@ -1758,6 +1757,23 @@ void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 }
 
 /////////////////////////////////////////////////
+void EntityComponentManagerPrivate::CopyComponents(const Entity &_entity,
+    const entt::basic_registry<Entity> &_fromRegistry)
+{
+  auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
+      _fromRegistry, _entity);
+  for (const auto [typeId, fromStorage] : fromHandle.storage())
+  {
+    auto* toStorage = this->registry.storage(typeId);
+    if (toStorage) {
+      if (toStorage->contains(_entity))
+        toStorage->remove(_entity);
+      toStorage->push(_entity, fromStorage.value(_entity));
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 template<typename ComponentTypeT>
 bool EntityComponentManagerPrivate::ClonedJointLinkName(Entity _joint,
     Entity _originalLink, EntityComponentManager *_ecm)
@@ -1877,57 +1893,37 @@ void EntityComponentManager::ApplyEntityDiff(
     const EntityComponentManager &_other,
     const EntityComponentManagerDiff &_diff)
 {
-  auto copyComponents = [&](Entity _entity)
+  std::vector<Entity> addedEntities;
+  auto addMissingEntities = [&](const std::vector<Entity>& _entities)
   {
-    auto fromHandle = entt::basic_handle<const entt::basic_registry<Entity>>(
-        _other.Registry(), _entity);
-    for (const auto [typeId, fromStorage] : fromHandle.storage())
+    for (const auto entity : _entities)
     {
-      auto* toStorage = this->Registry().storage(typeId);
-      if (toStorage) {
-        if (toStorage->contains(_entity))
-          toStorage->remove(_entity);
-        toStorage->push(_entity, fromStorage.value(_entity));
+      if (!this->HasEntity(entity))
+      {
+        std::ignore = this->Registry().create(entity);
+        if (entity >= this->dataPtr->entityCount)
+        {
+          this->dataPtr->entityCount = entity;
+        }
+        addedEntities.push_back(entity);
       }
     }
   };
 
-  std::vector<Entity> addedEntities;
   // Two steps, first create all entities then add the components to make
   // sure hierarchy updates don't fail because of missing parents
-  for(auto entity : _diff.AddedEntities())
-  {
-    if (!this->HasEntity(entity))
-    {
-      std::ignore = this->Registry().create(entity);
-      if (entity >= this->dataPtr->entityCount)
-      {
-        this->dataPtr->entityCount = entity;
-      }
-      addedEntities.push_back(entity);
-    }
-  }
+  addMissingEntities(_diff.AddedEntities());
+  // if the entity is not in this ECM, add it before requesting for its
+  // removal.
+  addMissingEntities(_diff.RemovedEntities());
 
   for(auto entity : addedEntities)
   {
-    copyComponents(entity);
+    this->dataPtr->CopyComponents(entity, _other.Registry());
   }
 
   for (const auto &entity : _diff.RemovedEntities())
   {
-    // if the entity is not in this ECM, add it before requesting for its
-    // removal.
-    if (!this->HasEntity(entity))
-    {
-      std::ignore = this->Registry().create(entity);
-      // Copy components so that EachRemoved match correctly
-      if (entity >= this->dataPtr->entityCount)
-      {
-        this->dataPtr->entityCount = entity;
-      }
-      copyComponents(entity);
-    }
-
     this->RequestRemoveEntity(entity, false);
   }
 }
