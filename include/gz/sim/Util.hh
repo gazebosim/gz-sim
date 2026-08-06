@@ -69,8 +69,9 @@ namespace gz
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
 
-    /// \brief Helper function to generate the full scoped namespace of an entity,
-    /// including namespaces inherited from all parent entities.
+    /// \brief Helper function to generate the full scoped namespace of an
+    /// entity by searching parent entities. The search stops when an absolute
+    /// namespace (starting with '/') is found.
     /// \param[in] _ecm Immutable reference to ECM.
     /// \param[in] _entity Entity to get the scoped namespace for.
     /// \return Scoped namespace, or empty string if no namespace is found.
