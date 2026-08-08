@@ -554,8 +554,9 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("pineapple"), components::Namespace(""));
+      components::Name("pineapple"));
   EXPECT_NE(kNullEntity, model);
+  EXPECT_EQ(nullptr, ecm->Component<components::Namespace>(model));
 
   // Spawn a model from SDF that doesn't define a namespace through
   // EntityFactoryWithNs with a namespace override.
