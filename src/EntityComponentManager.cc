@@ -421,7 +421,8 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   this->dataPtr->originalToClonedLink.clear();
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
-  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _ns, _allowRename);
+  auto clonedEntity =
+    this->CloneImpl(_entity, _parent, _name, _ns, _allowRename);
 
   if (kNullEntity != clonedEntity)
   {
@@ -562,8 +563,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   // copy all components from _entity to clonedEntity
   for (const auto &type : this->ComponentTypes(_entity))
   {
-    // skip the Name, Namespace and ParentEntity components since those were already
-    // handled above
+    // skip the Name, Namespace and ParentEntity components since those were
+    // already handled above
     if ((type == components::Name::typeId) ||
         (type == components::ParentEntity::typeId) ||
         (type == components::Namespace::typeId))

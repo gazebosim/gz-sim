@@ -456,7 +456,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
       components::Name("test_model")));
 
   // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
-  // with a namespace override.  
+  // with a namespace override.
   msgs::EntityFactoryWithNs reqWithNs;
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_ns");

@@ -111,7 +111,8 @@ namespace gz
       /// \param[in] _name The name that should be given to the cloned entity.
       /// Set this to an empty string if the cloned entity name should be
       /// auto-generated to something unique.
-      /// \param[in] _ns The namespace that should be given to the cloned entity.
+      /// \param[in] _ns The namespace that should be given to the cloned
+      /// entity.
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name. If _allowRename is set to False, and
@@ -379,7 +380,8 @@ namespace gz
       /// \param[in] _entity The entity to clone.
       /// \param[in] _parent The parent of the cloned entity.
       /// \param[in] _name The name that should be given to the cloned entity.
-      /// \param[in] _ns The namespace that should be given to the cloned entity.
+      /// \param[in] _ns The namespace that should be given to the cloned
+      /// entity.
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name.
