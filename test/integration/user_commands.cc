@@ -455,18 +455,20 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("test_model")));
 
-  // Spawn a model from SDF that defines a namespace with a namespace override.
-  req.Clear();
-  req.set_sdf(modelStr);
-  req.set_name("spawned_model_with_ns");
-  req.set_entity_namespace("test_ns");
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // with a namespace override.  
+  msgs::EntityFactoryWithNs reqWithNs;
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_with_ns");
+  reqWithNs.set_entity_namespace("test_ns");
 
-  requestDataFuture = asyncRequest(node, service, req);
+  std::string serviceWithNs{"/world/empty/create_with_ns/blocking"};
+  auto requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
   // Run an iteration and check it was created with namespace
   server.Run(true, 1, false);
   {
-    auto requestData = requestDataFuture.get();
+    auto requestData = requestWithNsFuture.get();
     EXPECT_TRUE(requestData.retval);
     EXPECT_TRUE(requestData.result);
     EXPECT_TRUE(requestData.response.data());
@@ -480,19 +482,19 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
       components::Namespace("test_ns"));
   EXPECT_NE(kNullEntity, model);
 
-  // Spawn a model from SDF that defines a namespace with an empty
-  // namespace override.
-  req.Clear();
-  req.set_sdf(modelStr);
-  req.set_name("spawned_model_with_empty_ns");
-  req.set_entity_namespace("");
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // with an empty namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_with_empty_ns");
+  reqWithNs.set_entity_namespace("");
 
-  requestDataFuture = asyncRequest(node, service, req);
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
   // Run an iteration and check it was created with namespace
   server.Run(true, 1, false);
   {
-    auto requestData = requestDataFuture.get();
+    auto requestData = requestWithNsFuture.get();
     EXPECT_TRUE(requestData.retval);
     EXPECT_TRUE(requestData.result);
     EXPECT_TRUE(requestData.response.data());
@@ -506,19 +508,18 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
       components::Namespace("spawned_model_with_empty_ns/ns"));
   EXPECT_NE(kNullEntity, model);
 
-  // Spawn a model from SDF that doesn't define a namespace with a
-  // namespace override.
-  req.Clear();
-  req.set_sdf(modelStrWithoutNs);
-  req.set_name("grape");
-  req.set_entity_namespace("test_ns");
+  // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
+  // without a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStr);
+  reqWithNs.set_name("spawned_model_without_ns");
 
-  requestDataFuture = asyncRequest(node, service, req);
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
   // Run an iteration and check it was created with namespace
   server.Run(true, 1, false);
   {
-    auto requestData = requestDataFuture.get();
+    auto requestData = requestWithNsFuture.get();
     EXPECT_TRUE(requestData.retval);
     EXPECT_TRUE(requestData.result);
     EXPECT_TRUE(requestData.response.data());
@@ -528,23 +529,47 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("grape"),
-      components::Namespace("test_ns"));
+      components::Name("spawned_model_without_ns"),
+      components::Namespace("spawned_model_without_ns/ns"));
   EXPECT_NE(kNullEntity, model);
 
-  // Spawn a model through EntityFactoryWithNs to verify the
-  // compatibility service still works during the deprecation cycle.
-  msgs::EntityFactoryWithNs reqWithNs;
-  reqWithNs.set_sdf(modelStr);
-  reqWithNs.set_name("spawned_model_with_ns_deprecated");
-  reqWithNs.set_entity_namespace("test_ns_deprecated");
+  // Spawn a model from SDF that doesn't define a namespace through
+  // EntityFactoryWithNs without a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStrWithoutNs);
+  reqWithNs.set_name("pineapple");
 
-  std::string serviceWithNs{"/world/empty/create_with_ns/blocking"};
-  auto requestDataWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
   // Run an iteration and check it was created with namespace
   server.Run(true, 1, false);
   {
-    auto requestData = requestDataWithNsFuture.get();
+    auto requestData = requestWithNsFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+
+  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+  entityCount = ecm->EntityCount();
+
+  model = ecm->EntityByComponents(components::Model(),
+      components::Name("pineapple"), components::Namespace(""));
+  EXPECT_NE(kNullEntity, model);
+
+  // Spawn a model from SDF that doesn't define a namespace through
+  // EntityFactoryWithNs with a namespace override.
+  reqWithNs.Clear();
+  reqWithNs.set_sdf(modelStrWithoutNs );
+  reqWithNs.set_name("grape");
+  reqWithNs.set_entity_namespace("test_ns");
+
+  requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
+
+  // Run an iteration and check it was created with namespace
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestWithNsFuture.get();
     EXPECT_TRUE(requestData.retval);
     EXPECT_TRUE(requestData.result);
     EXPECT_TRUE(requestData.response.data());
@@ -553,7 +578,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model_with_ns"),
+      components::Name("grape"),
       components::Namespace("test_ns"));
   EXPECT_NE(kNullEntity, model);
 }
