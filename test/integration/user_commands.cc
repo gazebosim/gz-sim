@@ -277,7 +277,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
       components::Name("banana"), components::Namespace("banana/ns"));
   EXPECT_NE(kNullEntity, model);
 
-  // Spawn a model from SDF that doesn't define a namespace
+  // Spawn a model from SDF that doesn't set the namespace
   req.Clear();
   req.set_sdf(modelStrWithoutNs);
   req.set_name("orange");
@@ -297,9 +297,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("orange"));
+      components::Name("orange"), components::Namespace(""));
   EXPECT_NE(kNullEntity, model);
-  EXPECT_EQ(nullptr, ecm->Component<components::Namespace>(model));
 
   // Spawn a light
   req.Clear();
@@ -460,7 +459,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   msgs::EntityFactoryWithNs reqWithNs;
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_ns");
-  reqWithNs.mutable_namespace_()->set_data("test_ns");
+  reqWithNs.set_namespace_("test_ns");
 
   std::string serviceWithNs{"/world/empty/create_with_ns/blocking"};
   auto requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
@@ -487,7 +486,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   reqWithNs.Clear();
   reqWithNs.set_sdf(modelStr);
   reqWithNs.set_name("spawned_model_with_empty_ns");
-  reqWithNs.mutable_namespace_()->set_data("");
+  reqWithNs.set_namespace_("");
 
   requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
@@ -505,7 +504,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   model = ecm->EntityByComponents(components::Model(),
       components::Name("spawned_model_with_empty_ns"),
-      components::Namespace(""));
+      components::Namespace("spawned_model_with_empty_ns/ns"));
   EXPECT_NE(kNullEntity, model);
 
   // Spawn a model from SDF that defines a namespace through EntityFactoryWithNs
@@ -554,16 +553,15 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   entityCount = ecm->EntityCount();
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("pineapple"));
+      components::Name("pineapple"), components::Namespace(""));
   EXPECT_NE(kNullEntity, model);
-  EXPECT_EQ(nullptr, ecm->Component<components::Namespace>(model));
 
   // Spawn a model from SDF that doesn't define a namespace through
   // EntityFactoryWithNs with a namespace override.
   reqWithNs.Clear();
   reqWithNs.set_sdf(modelStrWithoutNs );
   reqWithNs.set_name("grape");
-  reqWithNs.mutable_namespace_()->set_data("test_ns");
+  reqWithNs.set_namespace_("test_ns");
 
   requestWithNsFuture = asyncRequest(node, serviceWithNs, reqWithNs);
 
