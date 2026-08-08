@@ -132,7 +132,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // SDF strings
   auto modelStr = std::string("<?xml version=\"1.0\" ?>") +
       "<sdf version='1.6'>" +
-      "<model name='spawned_model' namespace='__name__/ns'>" +
+      "<model name='spawned_model' namespace='{name}/ns'>" +
       "<link name='link'>" +
       "<visual name='visual'>" +
       "<geometry><sphere><radius>1.0</radius></sphere></geometry>" +
