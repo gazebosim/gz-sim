@@ -267,8 +267,9 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
   /// \returns Output data from the physics engine (this currently contains
-  /// data for links that experienced a pose change in the physics step)
-  public: gz::physics::ForwardStep::Output Step(
+  /// data for links that experienced a pose change in the physics step).
+  /// The reference remains valid until the next call to Step.
+  public: const gz::physics::ForwardStep::Output &Step(
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -1125,12 +1126,9 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    gz::physics::ForwardStep::Output stepOutput;
-    // Only step if not paused.
-    if (!_info.paused)
-    {
-      stepOutput = this->dataPtr->Step(_info.dt);
-    }
+    static const gz::physics::ForwardStep::Output emptyStepOutput;
+    const auto &stepOutput = _info.paused ? emptyStepOutput :
+        this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
@@ -3571,7 +3569,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-gz::physics::ForwardStep::Output PhysicsPrivate::Step(
+const gz::physics::ForwardStep::Output &PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
