@@ -1,5 +1,77 @@
 ## Gazebo Sim 8.x
 
+### Gazebo Sim 8.15.0 (2026-08-11)
+
+1. Use components::ParentEntity for parent lookup
+    * [Pull request #3711](https://github.com/gazebosim/gz-sim/pull/3711)
+
+1. [Performance] - Remove / Optimize EntitiesByComponents calls (backport #3362)
+    * [Pull request #3362](https://github.com/gazebosim/gz-sim/pull/3362)
+
+1. Add reset test helpers and migrate reset integration tests (backport #3503)
+    * [Pull request #3503](https://github.com/gazebosim/gz-sim/pull/3503)
+
+1. Fix sdf_exporter.py to be compatible with newer versions of Blender
+    * [Pull request #2678](https://github.com/gazebosim/gz-sim/pull/2678)
+
+1. docs: consolidate wording corrections (backport #3772)
+    * [Pull request #3772](https://github.com/gazebosim/gz-sim/pull/3772)
+
+1. Fix wrong moment computation in advanced liftdrag (#3817)
+    * [Pull request #3817](https://github.com/gazebosim/gz-sim/pull/3817)
+
+1. Use marker array visualize contacts (#3737)
+    * [Pull request #3737](https://github.com/gazebosim/gz-sim/pull/3737)
+
+1. doc: fix SceneBroadcaster typo in migration guide (#3767)
+    * [Pull request #3767](https://github.com/gazebosim/gz-sim/pull/3767)
+
+1. doc: fix joint controller tutorial typos (#3764)
+    * [Pull request #3764](https://github.com/gazebosim/gz-sim/pull/3764)
+
+1. Fix potentially uninitialized variables (#3776)
+    * [Pull request #3776](https://github.com/gazebosim/gz-sim/pull/3776)
+
+1. Performance: don't create new msg::Contacts when adding contacts to ContactSensorData component
+    * [Pull request #3714](https://github.com/gazebosim/gz-sim/pull/3714)
+
+1. Add benchmark for Server.Run operation (backport #3671)
+    * [Pull request #3671](https://github.com/gazebosim/gz-sim/pull/3671)
+
+1. doc: fix JointController parameter markup
+    * [Pull request #3763](https://github.com/gazebosim/gz-sim/pull/3763)
+
+1. Benchmark for scopedName function in Utils.cc
+    * [Pull request #3666](https://github.com/gazebosim/gz-sim/pull/3666)
+
+1. Optimize scopedName function (backport #3667) (#3731)
+    * [Pull request #3667](https://github.com/gazebosim/gz-sim/pull/3667)
+
+1. fix: Race condition in `PeerTracker` (#3715)
+    * [Pull request #3715](https://github.com/gazebosim/gz-sim/pull/3715)
+
+1. Fix regression in tactile plugin (#3600)
+    * [Pull request #3600](https://github.com/gazebosim/gz-sim/pull/3600)
+
+1. Update some tests to be independent of entity ordering (#3592)
+    * [Pull request #3592](https://github.com/gazebosim/gz-sim/pull/3592)
+
+1. Make the mechanism that checks wayland and forces to use X for rendering also consider WAYLAND_DISPLAY, WAYLAND_DISPLAY=wayland-0 with empty XDG_SESSION_TYPE is a common scenario for WSLg (#3665)
+    * [Pull request #3665](https://github.com/gazebosim/gz-sim/pull/3665)
+
+1. Add CollideBitmaskCmd and CategoryBitmaskCmd components
+    * [Pull request #3672](https://github.com/gazebosim/gz-sim/pull/3672)
+
+1. Use protobuf Arena allocation in publisher systems (#3481)
+    * [Pull request #3481](https://github.com/gazebosim/gz-sim/pull/3481)
+
+1. Workaround failing entity_system test with dartsim 6.19.1
+    * [Pull request #3701](https://github.com/gazebosim/gz-sim/pull/3701)
+
+1. Implement an isolation layer for `ModelCommand_API` tests
+    * [Pull request #3683](https://github.com/gazebosim/gz-sim/pull/3683)
+
+
 ### Gazebo Sim 8.14.0 (2026-06-18)
 
 1. Fix crash for invalid index in force torque GUI plugin
