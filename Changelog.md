@@ -2,6 +2,9 @@
 
 ### Gazebo Sim 8.15.0 (2026-08-11)
 
+1. Fix quaternion sign-flip causing angular velocity spikes (#3834)
+    * [Pull request #3834](https://github.com/gazebosim/gz-sim/pull/3834)
+
 1. Use components::ParentEntity for parent lookup
     * [Pull request #3711](https://github.com/gazebosim/gz-sim/pull/3711)
 
