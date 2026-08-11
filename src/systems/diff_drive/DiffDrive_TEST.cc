@@ -42,7 +42,7 @@ void TestTopicNames(const std::string &_sdfString,
   Entity modelEntity;
   sdf::Plugin pluginSdf;
 
-  LoadModelContext(_sdfString, ecm, eventMgr, modelEntity, pluginSdf);
+  LoadModelContext(_sdfString, ecm, eventMgr, modelEntity, &pluginSdf);
 
   auto plugin = new DiffDrive();
   plugin->Configure(modelEntity, pluginSdf.Element(), ecm, eventMgr);
