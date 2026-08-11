@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_DIFFDRIVE_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -172,7 +173,7 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
-    
+
     /// \brief Get the resolved topic names
     public: TopicNames ResolvedTopicNames() const;
 

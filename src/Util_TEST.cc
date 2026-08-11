@@ -319,7 +319,7 @@ TEST_F(UtilTest, ResolvedTopicName)
         <empty_topic></empty_topic>
       </plugin>
     </sdf>)";
-  
+
   auto sdf = std::make_shared<sdf::Element>();
   sdf::initFile("plugin.sdf", sdf);
   sdf::readString(sdfString, sdf);

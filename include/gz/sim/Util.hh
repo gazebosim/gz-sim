@@ -79,8 +79,8 @@ namespace gz
         const EntityComponentManager &_ecm, const Entity &_entity);
 
     /// \brief Helper function to resolve a topic name from the SDF element.
-    /// If the SDF element exists and contains a non-empty topic name, that topic
-    /// is preferred. Relative topic names are prefixed with the provided
+    /// If the SDF element exists and contains a non-empty topic name, that
+    /// topic is preferred. Relative topic names are prefixed with the provided
     /// namespace, while absolute topic names are left unchanged. If no custom
     /// topic is available, the default topic is used.
     /// \param[in] _sdf SDF to read the topic name from.
@@ -94,7 +94,7 @@ namespace gz
         const std::shared_ptr<const sdf::Element> &_sdf,
         const std::string &_sdfElement, const std::string &_ns,
         const std::string &_defaultTopic);
-  
+
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this
     /// hierarchy:

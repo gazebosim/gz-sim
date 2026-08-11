@@ -36,7 +36,7 @@ using namespace test;
 /// \param[in] _expectedTopicNames The expected resolved topic names
 void TestTopicNames(const std::string &_sdfString,
   const DiffDrive::TopicNames &_expectedTopicNames)
-{ 
+{
   EntityComponentManager ecm;
   EventManager eventMgr;
   Entity modelEntity;
