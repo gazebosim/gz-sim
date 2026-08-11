@@ -2,7 +2,6 @@
 
 ### Gazebo Sim 9.6.0 (2026-08-11)
 
-
 1. Fix quaternion sign-flip causing angular velocity spikes (#3834)
     * [Pull request #3834](https://github.com/gazebosim/gz-sim/pull/3834)
 
