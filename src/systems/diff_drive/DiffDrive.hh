@@ -135,6 +135,22 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Enable/disable topic name
+      public: std::string enableTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: DiffDrive();
 
@@ -156,6 +172,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+    
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<DiffDrivePrivate> dataPtr;
