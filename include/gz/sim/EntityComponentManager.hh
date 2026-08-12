@@ -73,11 +73,17 @@ namespace gz
       class GroupQueuer;
     }
 
+    /// \brief Marker component for newly created entities.
     struct NewEntity { };
+
+    /// \brief Marker component for entities marked for removal.
     struct RemoveEntity { };
+
+    /// \brief Component containing all the children of an entity.
     struct Children {
       detail::FlatSet<Entity> data;
     };
+
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
     **/

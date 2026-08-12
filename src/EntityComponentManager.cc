@@ -51,6 +51,10 @@ using namespace sim;
 
 namespace
 {
+  /// \brief Component construction hook that updates Children component
+  /// when a components::ParentEntity is created.
+  /// \param[in] _registry Registry where the event was triggered.
+  /// \param[in] _entity Entity where the components was just added.
   void OnParentEntityConstruct(entt::basic_registry<Entity> &_registry,
       Entity _entity)
   {
@@ -65,6 +69,10 @@ namespace
     children.data.insert(_entity);
   }
 
+  /// \brief Component destruction hook that updates Children component
+  /// when a components::ParentEntity is destroyed.
+  /// \param[in] _registry Registry where the event was triggered.
+  /// \param[in] _entity Entity where the components was just destroyed.
   void OnParentEntityDestroy(entt::basic_registry<Entity> &_registry,
       Entity _entity)
   {
@@ -76,20 +84,32 @@ namespace
       children->data.erase(_entity);
     }
   }
+
+  /// \brief Internal component to mark an entity as Pinned (cannot be deleted).
+  struct PinnedEntity { };
+
+  /// \brief Internal component to mark an entity as having at least one of its
+  /// components modified.
+  struct ModifiedComponent { };
+
+  /// \brief Internal component containing the components marked as one time
+  /// changed for the specific entity.
+  struct OneTimeChangedComponents {
+    std::unordered_set<ComponentTypeId> data;
+  };
+
+  /// \brief Internal component containing the components marked as periodic
+  /// changed for the specific entity.
+  struct PeriodicChangedComponents {
+    std::unordered_set<ComponentTypeId> data;
+  };
+
+  /// \brief Internal component containing the components that were removed
+  /// from the entity.
+  struct RemovedComponents {
+    std::unordered_set<ComponentTypeId> data;
+  };
 }
-
-struct PinnedEntity { };
-struct ModifiedComponent { };
-struct OneTimeChangedComponents {
-  std::unordered_set<ComponentTypeId> data;
-};
-struct PeriodicChangedComponents {
-  std::unordered_set<ComponentTypeId> data;
-};
-
-struct RemovedComponents {
-  std::unordered_set<ComponentTypeId> data;
-};
 
 class gz::sim::EntityComponentManagerPrivate
 {
