@@ -254,10 +254,11 @@ namespace components
       else
       {
         // Adds to the list a function that will initialize the entt storage
-        this->registerList.push_back(
+        this->registerMap.insert({
+          ComponentTypeT::typeId,
           [](entt::basic_registry<Entity>& _registry) {
             _registry.storage<ComponentTypeT>();
-        });
+        }});
       }
 
       // This happens at static initialization time, so we can't use common
@@ -279,11 +280,26 @@ namespace components
 
     /// \brief Initialize the storage for all registered components
     /// \param[in] _registry The registry to initialize storages for.
-    public: void RegisterAllToEntt(entt::basic_registry<Entity>& _registry)
+    /// \param[in] _typeId Id to register, nullopt to register all types.
+    /// \return True if registration was successful, false otherwise.
+    public: bool RegisterToEntt(entt::basic_registry<Entity>& _registry,
+                const std::optional<ComponentTypeId> _typeId = std::nullopt)
     {
-      for (const auto& registerFunc : this->registerList) {
-        registerFunc(_registry);
+      if (_typeId.has_value())
+      {
+        const auto registerIt = this->registerMap.find(_typeId.value());
+        if (registerIt == this->registerMap.end())
+        {
+          return false;
+        }
+        registerIt->second(_registry);
+        return true;
       }
+      for (const auto& registerIt : this->registerMap)
+      {
+        registerIt.second(_registry);
+      }
+      return true;
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -428,8 +444,8 @@ namespace components
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
 
-    /// \brief A list of functions used to register the types to Entt registry.
-    private: std::vector<RegisterFunc> registerList;
+    /// \brief A map of type IDs to functions used to register them to Entt.
+    private: std::map<ComponentTypeId, RegisterFunc> registerMap;
   };
 }
 }

@@ -284,7 +284,7 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<PeriodicChangedComponents>();
   this->Registry().storage<RemovedComponents>();
 
-  components::Factory::Instance()->RegisterAllToEntt(this->Registry());
+  components::Factory::Instance()->RegisterToEntt(this->Registry());
 
   // No replace hooks since we have no public API to replace components
   this->Registry().on_construct<components::ParentEntity>()
@@ -937,22 +937,28 @@ bool EntityComponentManager::CreateComponentImplementation(
     return false;
   }
 
+  auto* storage = this->Registry().storage(_componentTypeId);
+
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
-  if (!this->HasComponentType(_componentTypeId) &&
-      !components::Factory::Instance()->HasType(_componentTypeId))
+  if (storage == nullptr)
   {
-    gzerr << "Failed to create component of type [" << _componentTypeId
-           << "] for entity [" << _entity
-           << "]. Type has not been properly registered." << std::endl;
-    return false;
+    if (!components::Factory::Instance()->RegisterToEntt(
+        this->Registry(), _componentTypeId))
+    {
+      gzerr << "Failed to create component of type [" << _componentTypeId
+             << "] for entity [" << _entity
+             << "]. Type has not been properly registered." << std::endl;
+      return false;
+    }
+    // Now the storage should be valid
+    storage = this->Registry().storage(_componentTypeId);
   }
 
   // assume the component data needs to be updated externally unless this
   // component is a brand new creation/addition
   bool updateData = true;
 
-  auto* storage = this->Registry().storage(_componentTypeId);
   // Storage is guaranteed to be valid (or CanCreateComponent would have failed)
   if (!storage->contains(_entity))
   {
