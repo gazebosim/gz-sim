@@ -210,7 +210,8 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
-    private: using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
+    private: using StorageType = entt::basic_registry<Entity>::common_type;
+    private: using RegisterFunc = StorageType *(*)(entt::basic_registry<Entity> &);
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
@@ -256,8 +257,8 @@ namespace components
         // Adds to the list a function that will initialize the entt storage
         this->registerMap.insert({
           ComponentTypeT::typeId,
-          [](entt::basic_registry<Entity>& _registry) {
-            _registry.storage<ComponentTypeT>();
+          [](entt::basic_registry<Entity>& _registry) -> StorageType* {
+            return &_registry.storage<ComponentTypeT>();
         }});
       }
 
@@ -278,11 +279,13 @@ namespace components
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
-    /// \brief Initialize the storage for all registered components
+    /// \brief Initialize the storage for all components or a specific type.
     /// \param[in] _registry The registry to initialize storages for.
     /// \param[in] _typeId Id to register, nullopt to register all types.
-    /// \return True if registration was successful, false otherwise.
-    public: bool RegisterToEntt(entt::basic_registry<Entity>& _registry,
+    /// \return Pointer to the storage if _typeId was passed and registered
+    /// or nullptr if _typeId was not found or registering all types.
+    public: StorageType *RegisterToEntt(
+                entt::basic_registry<Entity>& _registry,
                 const std::optional<ComponentTypeId> _typeId = std::nullopt)
     {
       if (_typeId.has_value())
@@ -290,16 +293,15 @@ namespace components
         const auto registerIt = this->registerMap.find(_typeId.value());
         if (registerIt == this->registerMap.end())
         {
-          return false;
+          return nullptr;
         }
-        registerIt->second(_registry);
-        return true;
+        return registerIt->second(_registry);
       }
-      for (const auto& registerIt : this->registerMap)
+      for (const auto &[typeId, registerFunc] : this->registerMap)
       {
-        registerIt.second(_registry);
+        registerFunc(_registry);
       }
-      return true;
+      return nullptr;
     }
 
     /// \brief Unregister a component so that the factory can't create instances

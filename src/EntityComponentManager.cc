@@ -943,16 +943,15 @@ bool EntityComponentManager::CreateComponentImplementation(
   // the component type to be created is valid
   if (storage == nullptr)
   {
-    if (!components::Factory::Instance()->RegisterToEntt(
-        this->Registry(), _componentTypeId))
+    storage = components::Factory::Instance()->RegisterToEntt(
+        this->Registry(), _componentTypeId);
+    if (storage == nullptr)
     {
       gzerr << "Failed to create component of type [" << _componentTypeId
              << "] for entity [" << _entity
              << "]. Type has not been properly registered." << std::endl;
       return false;
     }
-    // Now the storage should be valid
-    storage = this->Registry().storage(_componentTypeId);
   }
 
   // assume the component data needs to be updated externally unless this
