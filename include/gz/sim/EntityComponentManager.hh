@@ -764,25 +764,17 @@ namespace gz
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
-      /// \brief Check whether a component of a given type can be created on an
-      /// entity (i.e. whether the entity exists and the type is registered).
-      /// \param[in] _entity The entity id.
-      /// \param[in] _typeId Id of the component type.
-      /// \return True if the component can be created; false otherwise.
-      private: bool CanCreateComponent(const Entity _entity,
-                   const ComponentTypeId _typeId) const;
-
-      /// \brief Create a component given its data and type ID.
+      /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
-      /// \param[in] _data The data of the component moved into this function.
+      /// \param[in] _data Data used to construct the component.
       /// \return True if the component's data needs to be set externally; false
       /// otherwise.
-      private: bool CreateComponentDynamic(
+      private: bool CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   std::unique_ptr<components::BaseComponent> _data);
+                   const components::BaseComponent *_data);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.

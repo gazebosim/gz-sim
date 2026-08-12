@@ -490,7 +490,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto clonedComp = originalComp->Clone();
 
     auto updateData =
-      this->CreateComponentDynamic(clonedEntity, type, std::move(clonedComp));
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
     if (updateData)
     {
       // When a cloned entity is removed, it erases all components/data so a new
@@ -924,13 +924,14 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::CanCreateComponent(
-    const Entity _entity, const ComponentTypeId _typeId) const
+bool EntityComponentManager::CreateComponentImplementation(
+    const Entity _entity, const ComponentTypeId _componentTypeId,
+    const components::BaseComponent *_data)
 {
   // make sure the entity exists
   if (!this->HasEntity(_entity))
   {
-    gzerr << "Trying to create a component of type [" << _typeId
+    gzerr << "Trying to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity << "], but this entity does not "
       << "exist. This create component request will be ignored." << std::endl;
     return false;
@@ -938,25 +939,14 @@ bool EntityComponentManager::CanCreateComponent(
 
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
-  if (!this->HasComponentType(_typeId) &&
-      !components::Factory::Instance()->HasType(_typeId))
+  if (!this->HasComponentType(_componentTypeId) &&
+      !components::Factory::Instance()->HasType(_componentTypeId))
   {
-    gzerr << "Failed to create component of type [" << _typeId
+    gzerr << "Failed to create component of type [" << _componentTypeId
            << "] for entity [" << _entity
            << "]. Type has not been properly registered." << std::endl;
     return false;
   }
-
-  return true;
-}
-
-/////////////////////////////////////////////////
-bool EntityComponentManager::CreateComponentDynamic(
-    const Entity _entity, const ComponentTypeId _componentTypeId,
-    std::unique_ptr<components::BaseComponent> _data)
-{
-  if (!this->CanCreateComponent(_entity, _componentTypeId))
-    return false;
 
   // assume the component data needs to be updated externally unless this
   // component is a brand new creation/addition
@@ -966,7 +956,7 @@ bool EntityComponentManager::CreateComponentDynamic(
   // Storage is guaranteed to be valid (or CanCreateComponent would have failed)
   if (!storage->contains(_entity))
   {
-    if (storage->push(_entity, _data.get()) == storage->end())
+    if (storage->push(_entity, _data) == storage->end())
     {
       gzwarn << "Failed syncing component. This should not happen" << std::endl;
     } else {
@@ -1485,7 +1475,7 @@ void EntityComponentManager::SetState(
         newComp->Deserialize(istr);
 
         auto updateData =
-          this->CreateComponentDynamic(entity, type, std::move(newComp));
+          this->CreateComponentImplementation(entity, type, newComp.get());
         if (updateData)
         {
           // Set comp so we deserialize the data below again
@@ -1589,8 +1579,8 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        auto updateData = this->CreateComponentDynamic(
-          entity, compMsg.type(), std::move(newComp));
+        auto updateData = this->CreateComponentImplementation(
+          entity, compMsg.type(), newComp.get());
         if (updateData)
         {
           // Set comp so we deserialize the data below again
