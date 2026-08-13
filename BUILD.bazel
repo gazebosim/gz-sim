@@ -646,6 +646,7 @@ gz_sim_system_libraries(
             "src/systems/diff_drive/**/*.cc",
             "src/systems/diff_drive/**/*.hh",
         ],
+        exclude = ["src/systems/diff_drive/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-diff-drive-system.so",
     static_lib_name = "gz-sim-diff-drive-system-static",
@@ -659,6 +660,23 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+diff_drive_test_sources = glob([
+    "src/systems/diff_drive/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim-diff-drive-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+    ],
+) for src in diff_drive_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
