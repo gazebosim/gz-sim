@@ -211,7 +211,8 @@ namespace components
     public: void operator=(Factory &&) = delete;
 
     private: using StorageType = entt::basic_registry<Entity>::common_type;
-    private: using RegisterFunc = StorageType *(*)(entt::basic_registry<Entity> &);
+    private: using RegisterFunc =
+             StorageType *(*)(entt::basic_registry<Entity> &);
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
