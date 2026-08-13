@@ -1186,7 +1186,11 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
 bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
 {
   msgs::EntityFactory baseMsg;
-  baseMsg.ParseFromString(_createMsg.SerializeAsString());
+  if (!baseMsg.ParseFromString(_createMsg.SerializeAsString()))
+  {
+    gzerr << "Failed to parse EntityFactoryWithNs message" << std::endl;
+    return false;
+  }
 
   return this->CreateFromMsg(baseMsg, _createMsg.entity_namespace());
 }
