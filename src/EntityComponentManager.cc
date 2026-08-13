@@ -284,8 +284,6 @@ EntityComponentManager::EntityComponentManager()
   this->Registry().storage<PeriodicChangedComponents>();
   this->Registry().storage<RemovedComponents>();
 
-  components::Factory::Instance()->RegisterToEntt(this->Registry());
-
   // No replace hooks since we have no public API to replace components
   this->Registry().on_construct<components::ParentEntity>()
     .connect<&OnParentEntityConstruct>();
@@ -1777,7 +1775,13 @@ void EntityComponentManagerPrivate::CopyComponents(const Entity &_entity,
   for (const auto [typeId, fromStorage] : fromHandle.storage())
   {
     auto* toStorage = this->registry.storage(typeId);
-    if (toStorage) {
+    if (!toStorage)
+    {
+      toStorage = components::Factory::Instance()->RegisterToEntt(
+          this->registry, typeId);
+    }
+    if (toStorage)
+    {
       if (toStorage->contains(_entity))
         toStorage->remove(_entity);
       toStorage->push(_entity, fromStorage.value(_entity));

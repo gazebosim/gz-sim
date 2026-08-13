@@ -282,27 +282,19 @@ namespace components
 
     /// \brief Initialize the storage for all components or a specific type.
     /// \param[in] _registry The registry to initialize storages for.
-    /// \param[in] _typeId Id to register, nullopt to register all types.
-    /// \return Pointer to the storage if _typeId was passed and registered
-    /// or nullptr if _typeId was not found or registering all types.
+    /// \param[in] _typeId Id to register.
+    /// \return Pointer to the storage if _typeId was registered correctly,
+    /// or nullptr if _typeId was not registered.
     public: StorageType *RegisterToEntt(
                 entt::basic_registry<Entity>& _registry,
-                const std::optional<ComponentTypeId> _typeId = std::nullopt)
+                const ComponentTypeId _typeId)
     {
-      if (_typeId.has_value())
+      const auto registerIt = this->registerMap.find(_typeId);
+      if (registerIt == this->registerMap.end())
       {
-        const auto registerIt = this->registerMap.find(_typeId.value());
-        if (registerIt == this->registerMap.end())
-        {
-          return nullptr;
-        }
-        return registerIt->second(_registry);
+        return nullptr;
       }
-      for (const auto &[typeId, registerFunc] : this->registerMap)
-      {
-        registerFunc(_registry);
-      }
-      return nullptr;
+      return registerIt->second(_registry);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -337,6 +329,7 @@ namespace components
         if (it->second.Empty())
         {
           this->compsById.erase(it);
+          this->registerMap.erase(_typeId);
         }
       }
     }
