@@ -253,15 +253,11 @@ namespace components
           return;
         }
       }
-      else
-      {
-        // Adds to the list a function that will initialize the entt storage
-        this->registerMap.insert({
-          ComponentTypeT::typeId,
-          [](entt::basic_registry<Entity>& _registry) -> StorageType* {
-            return &_registry.storage<ComponentTypeT>();
-        }});
-      }
+      // Adds to the list a function that will initialize the entt storage
+      this->registerMap[ComponentTypeT::typeId] =
+        [](entt::basic_registry<Entity>& _registry) -> StorageType* {
+          return &_registry.storage<ComponentTypeT>();
+      };
 
       // This happens at static initialization time, so we can't use common
       // console
