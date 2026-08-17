@@ -51,6 +51,8 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
+  using StorageType = entt::basic_registry<Entity>::common_type;
+
   /// \brief A base class for an object responsible for creating components.
   class ComponentDescriptorBase
   {
@@ -66,6 +68,12 @@ namespace components
     /// \return Pointer to a component.
     public: virtual std::unique_ptr<BaseComponent> Create(
                 const components::BaseComponent *_data) const = 0;
+
+    /// \brief Create/get the entt storage for this component in the registry.
+    /// \param[in] _registry The registry to register the storage to.
+    /// \return Pointer to the storage.
+    public: virtual StorageType *RegisterToEntt(
+                entt::basic_registry<Entity> &_registry) const = 0;
   };
 
   /// \brief A class for an object responsible for creating components.
@@ -86,6 +94,13 @@ namespace components
     {
       ComponentTypeT comp(*static_cast<const ComponentTypeT *>(_data));
       return std::make_unique<ComponentTypeT>(comp);
+    }
+
+    /// \brief Documentation inherited
+    public: StorageType *RegisterToEntt(
+                entt::basic_registry<Entity> &_registry) const override
+    {
+      return &_registry.storage<ComponentTypeT>();
     }
   };
 
@@ -196,6 +211,20 @@ namespace components
       return {};
     }
 
+    /// \brief Register the component to Entt using the latest available
+    /// component descriptor.
+    /// \param[in] _registry The registry to register to.
+    /// \return Pointer to the storage if registered, nullptr otherwise.
+    public: GZ_SIM_HIDDEN StorageType *RegisterToEntt(
+        entt::basic_registry<Entity> &_registry) const
+    {
+      if (!this->queue.empty())
+      {
+        return this->queue.front().second->RegisterToEntt(_registry);
+      }
+      return nullptr;
+    }
+
     /// \brief Queue of component descriptors registered by static registration
     /// objects.
     private: std::deque<std::pair<RegistrationObjectId,
@@ -210,9 +239,7 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
-    private: using StorageType = entt::basic_registry<Entity>::common_type;
-    private: using RegisterFunc =
-             StorageType *(*)(entt::basic_registry<Entity> &);
+    public: using StorageType = components::StorageType;
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
@@ -253,11 +280,6 @@ namespace components
           return;
         }
       }
-      // Adds to the list a function that will initialize the entt storage
-      this->registerMap[ComponentTypeT::typeId] =
-        [](entt::basic_registry<Entity>& _registry) -> StorageType* {
-          return &_registry.storage<ComponentTypeT>();
-      };
 
       // This happens at static initialization time, so we can't use common
       // console
@@ -285,12 +307,12 @@ namespace components
                 entt::basic_registry<Entity>& _registry,
                 const ComponentTypeId _typeId)
     {
-      const auto registerIt = this->registerMap.find(_typeId);
-      if (registerIt == this->registerMap.end())
+      const auto it = this->compsById.find(_typeId);
+      if (it == this->compsById.end())
       {
         return nullptr;
       }
-      return registerIt->second(_registry);
+      return it->second.RegisterToEntt(_registry);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -325,7 +347,6 @@ namespace components
         if (it->second.Empty())
         {
           this->compsById.erase(it);
-          this->registerMap.erase(_typeId);
         }
       }
     }
@@ -435,9 +456,6 @@ namespace components
     /// they try to register different types with the same typeName.
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
-
-    /// \brief A map of type IDs to functions used to register them to Entt.
-    private: std::map<ComponentTypeId, RegisterFunc> registerMap;
   };
 }
 }

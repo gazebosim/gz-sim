@@ -43,6 +43,15 @@ class ComponentFactoryTest : public InternalFixture<::testing::Test>
 using MyCustom = components::Component<components::NoData, class MyCustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MyCustom", MyCustom);
 
+// Component for manual register / unregister testing
+using ManualComp = components::Component<int, class ManualCompTag>;
+// NOLINTNEXTLINE(readability/casting)
+inline constexpr ::gz::sim::ComponentTypeId gzSimFactoryComponentTypeId(
+    ManualComp *)
+{
+  return ::gz::common::hash64("gz_sim_components.ManualComp");
+}
+
 /////////////////////////////////////////////////
 TEST_F(ComponentFactoryTest, Register)
 {
