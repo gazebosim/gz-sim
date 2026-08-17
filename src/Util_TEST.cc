@@ -36,6 +36,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Projector.hh"
@@ -238,6 +239,73 @@ TEST_F(UtilTest, ScopedName)
   EXPECT_EQ(worldEntity, sim::worldEntity(linkCCEntity, ecm));
   EXPECT_EQ(worldEntity, sim::worldEntity(actorDEntity, ecm));
   EXPECT_EQ(kNullEntity, sim::worldEntity(kNullEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, ScopedNamespace)
+{
+  EntityComponentManager ecm;
+
+  // model1
+  // model2
+  //  - modelA
+  //    - modelAA
+  //      - modelAAA
+  //  - modelB
+  //    - modelBA
+  //  - modelC
+  //    - modelCA
+  //    - modelCB
+
+  auto model1Entity = ecm.CreateEntity();
+
+  auto model2Entity = ecm.CreateEntity();
+  ecm.CreateComponent(model2Entity, components::Namespace("model_2_ns/"));
+
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Namespace("model_a_ns"));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(model2Entity));
+
+  auto modelAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAAEntity, components::Namespace("/model_aa_ns/"));
+  ecm.CreateComponent(modelAAEntity, components::ParentEntity(modelAEntity));
+
+  auto modelAAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAAAEntity, components::Namespace("model_aaa_ns"));
+  ecm.CreateComponent(modelAAAEntity, components::ParentEntity(modelAAEntity));
+
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Namespace(""));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(model2Entity));
+
+  auto modelBAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBAEntity, components::Namespace("model_ba_ns"));
+  ecm.CreateComponent(modelBAEntity, components::ParentEntity(modelBEntity));
+
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Namespace("//model_c_ns//"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(model2Entity));
+
+  auto modelCAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCAEntity, components::Namespace("///"));
+  ecm.CreateComponent(modelCAEntity, components::ParentEntity(modelCEntity));
+
+  auto modelCBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCBEntity, components::Namespace("/"));
+  ecm.CreateComponent(modelCBEntity, components::ParentEntity(modelCEntity));
+
+  EXPECT_EQ("", scopedNamespace(ecm, model1Entity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, model2Entity));
+  EXPECT_EQ("model_2_ns/model_a_ns", scopedNamespace(ecm, modelAEntity));
+  EXPECT_EQ("/model_aa_ns", scopedNamespace(ecm, modelAAEntity));
+  EXPECT_EQ("/model_aa_ns/model_aaa_ns", scopedNamespace(ecm, modelAAAEntity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, modelBEntity));
+  EXPECT_EQ("model_2_ns/model_ba_ns", scopedNamespace(ecm, modelBAEntity));
+  EXPECT_EQ("/model_c_ns", scopedNamespace(ecm, modelCEntity));
+  EXPECT_EQ("/", scopedNamespace(ecm, modelCAEntity));
+  EXPECT_EQ("/", scopedNamespace(ecm, modelCBEntity));
+
+  EXPECT_TRUE(scopedNamespace(ecm, kNullEntity).empty());
 }
 
 /////////////////////////////////////////////////
