@@ -412,8 +412,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
-    const std::string &_name, const std::string &_ns,
-    bool _allowRename)
+    const std::string &_name, bool _allowRename, const std::string &_ns)
 {
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
@@ -422,7 +421,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
   auto clonedEntity =
-    this->CloneImpl(_entity, _parent, _name, _ns, _allowRename);
+    this->CloneImpl(_entity, _parent, _name, _allowRename, _ns);
 
   if (kNullEntity != clonedEntity)
   {
@@ -475,8 +474,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, const std::string &_ns,
-    bool _allowRename)
+    const std::string &_name, bool _allowRename, const std::string &_ns)
 {
   auto uniqueNameGenerated = false;
 
@@ -674,8 +672,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       }
     }
 
-    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
-        "", _allowRename);
+    auto clonedChild = this->CloneImpl(
+      childEntity, clonedEntity, name, _allowRename);
     if (kNullEntity == clonedChild)
     {
       gzerr << "Cloning child entity [" << childEntity << "] failed.\n";
