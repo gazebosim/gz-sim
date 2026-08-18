@@ -1,0 +1,70 @@
+<?xml version="1.0" ?>
+<!--
+  A floating cylinder whose collision is rotated 90 degrees about Y, so its
+  axis lies along world X. Mass is half the displaced water mass, so it
+  floats half-submerged at the surface and must stay level and in place.
+-->
+<sdf version="1.6">
+  <world name="buoyancy_rotated_collision">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <!-- mass = 500 * volume = 500 * pi * 0.2^2 * 2, so it floats half-submerged -->
+    <model name="horizontal_cylinder">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>125.66</mass>
+          <inertia>
+            <ixx>2.51</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>43.14</iyy>
+            <iyz>0</iyz>
+            <izz>43.14</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <pose>0 0 0 0 1.5707963267948966 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </visual>
+        <collision name="collision">
+          <pose>0 0 0 0 1.5707963267948966 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>0.2</radius>
+              <length>2.0</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

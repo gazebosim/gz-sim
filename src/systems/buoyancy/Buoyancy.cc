@@ -178,8 +178,10 @@ void BuoyancyPrivate::GradedFluidDensity(
 
   for (const auto &[height, currFluidDensity] : this->layers)
   {
-    // TODO(arjo): Transform plane and slice the shape
-    math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
+    // VolumeBelow and CenterOfVolumeBelow expect the plane in the shape frame.
+    math::Planed plane{
+      _pose.Rot().RotateVectorReverse(math::Vector3d::UnitZ),
+      height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
     // Short circuit.

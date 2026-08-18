@@ -399,6 +399,39 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
 
 
 /////////////////////////////////////////////////
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancyRotatedCollision))
+{
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "graded_buoyancy_rotated_collision.sdf"));
+
+  std::size_t iterations{0};
+  fixture.OnPostUpdate([&](
+      const sim::UpdateInfo &,
+      const sim::EntityComponentManager &_ecm)
+  {
+    auto links = entitiesFromScopedName("horizontal_cylinder::link", _ecm);
+    ASSERT_EQ(1u, links.size());
+    auto link = *links.begin();
+    EXPECT_NE(kNullEntity, link);
+
+    // The cylinder floats half-submerged: it must not translate or rotate.
+    auto pose = worldPose(link, _ecm);
+    EXPECT_NEAR(0.0, pose.Pos().X(), 1e-2);
+    EXPECT_NEAR(0.0, pose.Pos().Y(), 1e-2);
+    EXPECT_NEAR(0.0, pose.Pos().Z(), 1e-2);
+    EXPECT_NEAR(0.0, pose.Rot().Euler().X(), 1e-2);
+    EXPECT_NEAR(0.0, pose.Rot().Euler().Y(), 1e-2);
+    EXPECT_NEAR(0.0, pose.Rot().Euler().Z(), 1e-2);
+
+    iterations++;
+  }).Finalize();
+
+  std::size_t targetIterations{1000};
+  fixture.Server()->Run(true, targetIterations, false);
+  EXPECT_EQ(targetIterations, iterations);
+}
+
+/////////////////////////////////////////////////
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotationGraded))
 {
   TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
