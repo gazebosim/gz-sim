@@ -115,6 +115,14 @@ void JointStatePublisher::Configure(
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
 
+  this->jointStateMsg.set_name(this->model.Name(_ecm));
+  this->jointStateMsg.set_id(this->model.Entity());
+  for (const Entity &joint : this->joints)
+  {
+    msgs::Joint *jointMsg = this->jointStateMsg.add_joint();
+    jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
+    jointMsg->set_id(joint);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -208,26 +216,6 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   this->lastUpdateTime = _info.simTime;
 
   msgs::Model &msg = this->jointStateMsg;
-
-  // Build the static message shape once (name/id + one Joint per joint,
-  // with name/id). The joint set is fixed after Configure(), so the tree
-  // shape never changes; only the numeric fields below change each step.
-  if (!this->jointStateMsgBuilt)
-  {
-    msg.set_name(this->model.Name(_ecm));
-    msg.set_id(this->model.Entity());
-    this->jointMsgHandles.clear();
-    for (const Entity &joint : this->joints)
-    {
-      msgs::Joint *jointMsg = msg.add_joint();
-      jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
-      jointMsg->set_id(joint);
-      this->jointMsgHandles.emplace_back(joint, jointMsg);
-    }
-    this->jointStateMsgBuilt = true;
-  }
-
-  // Per-step: overwrite only the changing numeric fields (no allocation).
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
 
@@ -240,10 +228,10 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   static bool hasWarned {false};
 
   // Process each joint
-  for (auto &handle : this->jointMsgHandles)
+  int jointIndex = 0;
+  for (const Entity &joint : this->joints)
   {
-    const Entity joint = handle.first;
-    msgs::Joint *jointMsg = handle.second;
+    msgs::Joint *jointMsg = msg.mutable_joint(jointIndex++);
 
     // Set the joint pose
     pose = _ecm.Component<components::Pose>(joint);

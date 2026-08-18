@@ -20,12 +20,10 @@
 
 #include <gz/msgs/model.pb.h>
 
+#include <chrono>
 #include <memory>
 #include <set>
 #include <string>
-#include <utility>
-#include <vector>
-#include <chrono>
 #include <gz/sim/Model.hh>
 #include <gz/transport/Node.hh>
 #include <gz/sim/System.hh>
@@ -109,12 +107,6 @@ namespace systems
     /// \brief Persistent joint-state message, built once then updated in
     /// place each step.
     private: msgs::Model jointStateMsg;
-
-    /// \brief True once `jointStateMsg` has been built.
-    private: bool jointStateMsgBuilt{false};
-
-    /// \brief Cached Joint submessage handles, in `joints` iteration order.
-    private: std::vector<std::pair<Entity, msgs::Joint *>> jointMsgHandles;
   };
   }
 }
