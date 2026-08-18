@@ -16,6 +16,7 @@
  */
 
 #include <benchmark/benchmark.h>
+#include <chrono>
 #include <cstring>
 #include <vector>
 
@@ -52,6 +53,28 @@ void BM_RuntimeWorld(benchmark::State &_st, const std::string &_physics_engine,
   auto stabilizingSteps = _st.range(0);
   ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
   sim::Server server(serverConfig); // Add system from plugin
+  // Wait for simulation to stabilize before timing
+  server.Run(true, stabilizingSteps, false);
+
+  for (auto _ : _st)
+  {
+    server.Run(true, 1, false);
+  }
+}
+
+// Same as BM_RuntimeWorld but disables real-time throttling so the measured
+// time reflects the per-step compute cost rather than the wall-clock sleep
+// used to match the target real-time factor. Used for worlds whose single
+// step is much cheaper than the real-time step size (e.g. the
+// JointStatePublisher example worlds).
+void BM_RuntimeWorldNoThrottle(benchmark::State &_st,
+                     const std::string &_physics_engine,
+                     const std::string &_world_sdf)
+{
+  auto stabilizingSteps = _st.range(0);
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
+  sim::Server server(serverConfig); // Add system from plugin
+  server.SetUpdatePeriod(std::chrono::nanoseconds::zero());
   // Wait for simulation to stabilize before timing
   server.Run(true, stabilizingSteps, false);
 
@@ -156,6 +179,22 @@ BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_sdf_3k_shapes_bullet,
                   "gz-physics-bullet-featherstone-plugin",
                   "3k_shapes.sdf")
     ->Arg(3000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_RuntimeWorldNoThrottle,
+                  existing_lift_drag_joint_state_publisher,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "../../examples/worlds/lift_drag.sdf")
+    ->Arg(2000)
+    ->Iterations(50000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(
+    BM_RuntimeWorldNoThrottle, existing_advanced_lift_drag_joint_state_publisher,
+    "gz-physics-bullet-featherstone-plugin",
+    "../../examples/worlds/advanced_lift_drag_system.sdf")
+    ->Arg(2000)
+    ->Iterations(50000)
     ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_CAPTURE(BM_RuntimeWorld, lengthy_sdf_3k_shapes_dart,
