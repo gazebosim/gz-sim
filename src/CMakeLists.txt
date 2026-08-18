@@ -69,9 +69,9 @@ set(material_sources
 set (sources
   Actor.cc
   Barrier.cc
-  BaseView.cc
   Conversions.cc
   ComponentFactory.cc
+  ComponentPybindRegistry.cc
   EntityComponentManager.cc
   EntityComponentManagerDiff.cc
   InstallationDirectories.cc
@@ -93,7 +93,6 @@ set (sources
   SystemManager.cc
   TestFixture.cc
   Util.cc
-  View.cc
   World.cc
   ${network_sources}
   ${comms_sources}
@@ -106,7 +105,6 @@ set (gtest_sources
   Actor_TEST.cc
   AddedMass_TEST.cc
   Barrier_TEST.cc
-  BaseView_TEST.cc
   ComponentFactory_TEST.cc
   Component_TEST.cc
   Conversions_TEST.cc
@@ -208,7 +206,7 @@ if(ENABLE_GUI)
 endif()
 
 if (pybind11_FOUND)
-  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
+  target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC pybind11::embed)
   target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC -DHAVE_PYBIND11)
 endif()
 

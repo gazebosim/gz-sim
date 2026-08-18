@@ -35,6 +35,15 @@
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
 
+#ifndef ENTT_ID_TYPE
+#  define ENTT_ID_TYPE uint64_t
+#endif
+// Entt generates a lot of switch with no default statement warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
+#include <gz/sim/entt/entity/registry.hpp>
+#pragma GCC diagnostic pop
+
 namespace gz
 {
 namespace sim
@@ -202,6 +211,26 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
+    public:
+      using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
+
+      template <typename T>
+      void RegisterType() {
+        this->registerMap[T::typeId] =
+          [](entt::basic_registry<Entity>& _registry) {
+            _registry.storage<T>();
+          };
+      }
+
+      void RegisterAllToEntt(entt::basic_registry<Entity>& _registry) {
+        for (const auto& [_, registerFunc] : this->registerMap) {
+          registerFunc(_registry);
+        }
+      }
+
+    private:
+      std::map<ComponentTypeId, RegisterFunc> registerMap;
+
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
 
@@ -218,6 +247,8 @@ namespace components
     void Register(const char *_type, ComponentDescriptorBase *_compDesc,
                   RegistrationObjectId  _regObjId)
     {
+      this->RegisterType<ComponentTypeT>();
+
       // Initialize static member variable - we need to set these
       // static members for every shared lib that uses the component, but we
       // only add them to the maps below once.
@@ -404,6 +435,15 @@ namespace components
 }
 }
 }
+}
+
+namespace entt {
+template<typename Type>
+struct type_hash<Type, std::void_t<decltype(Type::typeId)>> {
+  static constexpr ENTT_ID_TYPE value() noexcept {
+      return Type::typeId;
+  }
+};
 }
 
 /// \brief Static component registration macro.

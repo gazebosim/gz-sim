@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<sdf version="1.11">
+  <world name="pbd_empty">
+
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <gz:policies>
+      <include_server_config_plugins>false</include_server_config_plugins>
+    </gz:policies>
+
+    <plugin filename="gz-sim-python-system-loader-system" name="gz::sim::systems::PythonSystemLoader">
+      <module_name>pbd_physics</module_name>
+    </plugin>
+
+    <!-- <plugin -->
+    <!--   filename="gz-sim-physics-system" -->
+    <!--   name="gz::sim::systems::Physics"> -->
+    <!-- </plugin> -->
+  </world>
+</sdf>
+

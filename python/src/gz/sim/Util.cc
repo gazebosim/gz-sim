@@ -35,7 +35,12 @@ void defineSimUtil(pybind11::module &_module)
       pybind11::overload_cast<const EntityComponentManager &>(
       &gz::sim::worldEntity),
       "Get the first world entity that's found.");
+
+  _module.def("world_pose",
+      &gz::sim::worldPose,
+      "Get the world pose of an entity.");
 }
+
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

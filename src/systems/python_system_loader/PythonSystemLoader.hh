@@ -118,6 +118,20 @@ class GZ_SIM_PYTHON_SYSTEM_LOADER_SYSTEM_HIDDEN PythonSystemLoader final
   private: pybind11::object postUpdateMethod;
   /// \brief Pointer to the Reset method inside the Python System
   private: pybind11::object resetMethod;
+  /// \brief Cached Python object for the EntityComponentManager. This avoids
+  /// dynamically allocating and creating fresh Python wrappers for C++
+  /// pointers on every single simulation step.
+  private: pybind11::object pyEcm;
+
+  /// \brief Cached Python object for the const EntityComponentManager. This
+  /// avoids dynamically allocating and creating fresh Python wrappers for C++
+  /// pointers on every single simulation step.
+  private: pybind11::object pyConstEcm;
+
+  /// \brief Cached Python object for the UpdateInfo. This avoids dynamically
+  /// allocating and creating fresh Python wrappers for C++ pointers on every
+  /// single simulation step.
+  private: pybind11::object pyInfo;
 };
 }  // namespace systems
 }  // namespace GZ_SIM_VERSION_NAMESPACE
