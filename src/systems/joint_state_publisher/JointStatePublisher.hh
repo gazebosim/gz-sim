@@ -18,11 +18,13 @@
 #ifndef GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 #define GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 
-#include <google/protobuf/arena.h>
+#include <gz/msgs/model.pb.h>
 
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
+#include <vector>
 #include <chrono>
 #include <gz/sim/Model.hh>
 #include <gz/transport/Node.hh>
@@ -104,10 +106,15 @@ namespace systems
     /// \brief Simulation time of last publication.
     private: std::chrono::steady_clock::duration lastUpdateTime{0};
 
-    /// \brief Arena used to allocate the per-step Model message. Reset() is
-    /// called after each publish so the bump-allocator block is reused
-    /// without freeing back to the system allocator.
-    private: google::protobuf::Arena arena;
+    /// \brief Persistent joint-state message, built once then updated in
+    /// place each step.
+    private: msgs::Model jointStateMsg;
+
+    /// \brief True once `jointStateMsg` has been built.
+    private: bool jointStateMsgBuilt{false};
+
+    /// \brief Cached Joint submessage handles, in `joints` iteration order.
+    private: std::vector<std::pair<Entity, msgs::Joint *>> jointMsgHandles;
   };
   }
 }
