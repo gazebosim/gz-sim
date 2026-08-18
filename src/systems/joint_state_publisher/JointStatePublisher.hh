@@ -18,6 +18,8 @@
 #ifndef GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 #define GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 
+#include <google/protobuf/arena.h>
+
 #include <memory>
 #include <set>
 #include <string>
@@ -101,6 +103,11 @@ namespace systems
 
     /// \brief Simulation time of last publication.
     private: std::chrono::steady_clock::duration lastUpdateTime{0};
+
+    /// \brief Arena used to allocate the per-step Model message. Reset() is
+    /// called after each publish so the bump-allocator block is reused
+    /// without freeing back to the system allocator.
+    private: google::protobuf::Arena arena;
   };
   }
 }
