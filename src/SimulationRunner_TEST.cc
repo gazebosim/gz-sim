@@ -204,39 +204,34 @@ TEST_P(SimulationRunnerTest, CreateEntities)
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
-      if (modelCount == 1)
+      if (_name->Data() == "box")
       {
         EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("box", _name->Data());
         boxModelEntity = _entity;
       }
-      else if (modelCount == 2)
+      else if (_name->Data() == "cylinder")
       {
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("cylinder", _name->Data());
         cylModelEntity = _entity;
       }
-      else if (modelCount == 3)
+      else if (_name->Data() == "sphere")
       {
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("sphere", _name->Data());
         sphModelEntity = _entity;
       }
-      else if (modelCount == 4)
+      else if (_name->Data() == "capsule")
       {
         EXPECT_EQ(ignition::math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("capsule", _name->Data());
         capModelEntity = _entity;
       }
-      else if (modelCount == 5)
+      else if (_name->Data() == "ellipsoid")
       {
         EXPECT_EQ(ignition::math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
-        EXPECT_EQ("ellipsoid", _name->Data());
         ellipModelEntity = _entity;
       }
       return true;
@@ -273,43 +268,38 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       linkCount++;
 
-      if (linkCount == 1)
+      if (_name->Data() == "box_link")
       {
         EXPECT_EQ(math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("box_link", _name->Data());
         EXPECT_EQ(boxModelEntity, _parent->Data());
         boxLinkEntity = _entity;
       }
-      else if (linkCount == 2)
+      else if (_name->Data() == "cylinder_link")
       {
         EXPECT_EQ(math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("cylinder_link", _name->Data());
         EXPECT_EQ(cylModelEntity, _parent->Data());
         cylLinkEntity = _entity;
       }
-      else if (linkCount == 3)
+      else if (_name->Data() == "sphere_link")
       {
         EXPECT_EQ(math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("sphere_link", _name->Data());
         EXPECT_EQ(sphModelEntity, _parent->Data());
         sphLinkEntity = _entity;
       }
-      else if (linkCount == 4)
+      else if (_name->Data() == "capsule_link")
       {
         EXPECT_EQ(ignition::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("capsule_link", _name->Data());
         EXPECT_EQ(capModelEntity, _parent->Data());
         capLinkEntity = _entity;
       }
-      else if (linkCount == 5)
+      else if (_name->Data() == "ellipsoid_link")
       {
         EXPECT_EQ(ignition::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("ellipsoid_link", _name->Data());
         EXPECT_EQ(ellipModelEntity, _parent->Data());
         ellipLinkEntity = _entity;
       }
@@ -371,6 +361,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
   EXPECT_EQ(5u, inertialCount);
 
   // Check collisions
+  std::unordered_set<std::string> requiredCollisions;
   unsigned int collisionCount{0};
   runner.EntityCompMgr().Each<Collision,
                             Geometry,
@@ -392,81 +383,93 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       collisionCount++;
 
-      if (collisionCount == 1)
+      if (_name->Data() == "box_collision")
       {
+        requiredCollisions.insert("box_collision");
         EXPECT_EQ(math::Pose3d(0.11, 0.11, 0.11, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("box_collision", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
-        EXPECT_EQ(math::Vector3d(3, 4, 5),
-                  _geometry->Data().BoxShape()->Size());
+        if (_geometry->Data().BoxShape())
+        {
+          EXPECT_EQ(math::Vector3d(3, 4, 5),
+                    _geometry->Data().BoxShape()->Size());
+        }
       }
-      else if (collisionCount == 2)
+      else if (_name->Data() == "cylinder_collision")
       {
+        requiredCollisions.insert("cylinder_collision");
         EXPECT_EQ(math::Pose3d(0.21, 0.21, 0.21, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("cylinder_collision", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
-        EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
-        EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
+        if (_geometry->Data().CylinderShape())
+        {
+          EXPECT_DOUBLE_EQ(0.2, _geometry->Data().CylinderShape()->Radius());
+          EXPECT_DOUBLE_EQ(0.1, _geometry->Data().CylinderShape()->Length());
+        }
       }
-      else if (collisionCount == 3)
+      else if (_name->Data() == "sphere_collision")
       {
+        requiredCollisions.insert("sphere_collision");
         EXPECT_EQ(math::Pose3d(0.31, 0.31, 0.31, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("sphere_collision", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
-        EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
+        if (_geometry->Data().SphereShape())
+        {
+          EXPECT_DOUBLE_EQ(23.4, _geometry->Data().SphereShape()->Radius());
+        }
       }
-      else if (collisionCount == 4)
+      else if (_name->Data() == "capsule_collision")
       {
+        requiredCollisions.insert("capsule_collision");
         EXPECT_EQ(ignition::math::Pose3d(0.51, 0.51, 0.51, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("capsule_collision", _name->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CAPSULE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CapsuleShape());
-        EXPECT_DOUBLE_EQ(0.23, _geometry->Data().CapsuleShape()->Radius());
-        EXPECT_DOUBLE_EQ(0.14, _geometry->Data().CapsuleShape()->Length());
+        if (_geometry->Data().CapsuleShape())
+        {
+          EXPECT_DOUBLE_EQ(0.23, _geometry->Data().CapsuleShape()->Radius());
+          EXPECT_DOUBLE_EQ(0.14, _geometry->Data().CapsuleShape()->Length());
+        }
       }
-      else if (collisionCount == 5)
+      else if (_name->Data() == "ellipsoid_collision")
       {
+        requiredCollisions.insert("ellipsoid_collision");
         EXPECT_EQ(ignition::math::Pose3d(0.81, 0.81, 0.81, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("ellipsoid_collision", _name->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
-        _geometry->Data().EllipsoidShape()->Radii());
+        if (_geometry->Data().EllipsoidShape())
+        {
+          EXPECT_EQ(ignition::math::Vector3d(0.4, 0.6, 1.6),
+          _geometry->Data().EllipsoidShape()->Radii());
+        }
       }
       return true;
     });
 
   EXPECT_EQ(5u, collisionCount);
+  EXPECT_EQ(5u, requiredCollisions.size());
 
   // Check visuals
+  std::unordered_set<std::string> requiredVisuals;
   unsigned int visualCount{0};
   runner.EntityCompMgr().Each<Visual,
                             Geometry,
@@ -491,94 +494,104 @@ TEST_P(SimulationRunnerTest, CreateEntities)
 
       visualCount++;
 
-      if (visualCount == 1)
+      if (_name->Data() == "box_visual")
       {
+        requiredVisuals.insert("box_visual");
         EXPECT_EQ(math::Pose3d(0.12, 0.12, 0.12, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("box_visual", _name->Data());
 
         EXPECT_EQ(boxLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::BOX, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().BoxShape());
-        EXPECT_EQ(math::Vector3d(1, 2, 3),
-                  _geometry->Data().BoxShape()->Size());
+        if (_geometry->Data().BoxShape())
+        {
+          EXPECT_EQ(math::Vector3d(1, 2, 3),
+                    _geometry->Data().BoxShape()->Size());
+        }
 
         EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(1, 0, 0), _material->Data().Specular());
       }
-      else if (visualCount == 2)
+      else if (_name->Data() == "cylinder_visual")
       {
+        requiredVisuals.insert("cylinder_visual");
         EXPECT_EQ(math::Pose3d(0.22, 0.22, 0.22, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("cylinder_visual", _name->Data());
 
         EXPECT_EQ(cylLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CYLINDER, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CylinderShape());
-        EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
-        EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
+        if (_geometry->Data().CylinderShape())
+        {
+          EXPECT_DOUBLE_EQ(2.1, _geometry->Data().CylinderShape()->Radius());
+          EXPECT_DOUBLE_EQ(10.2, _geometry->Data().CylinderShape()->Length());
+        }
 
         EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 1, 0), _material->Data().Specular());
       }
-      else if (visualCount == 3)
+      else if (_name->Data() == "sphere_visual")
       {
+        requiredVisuals.insert("sphere_visual");
         EXPECT_EQ(math::Pose3d(0.32, 0.32, 0.32, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("sphere_visual", _name->Data());
 
         EXPECT_EQ(sphLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::SPHERE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().SphereShape());
-        EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
+        if (_geometry->Data().SphereShape())
+        {
+          EXPECT_DOUBLE_EQ(1.2, _geometry->Data().SphereShape()->Radius());
+        }
 
         EXPECT_EQ(math::Color(0, 0, 0), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0, 0, 1), _material->Data().Specular());
       }
-      else if (visualCount == 4)
+      else if (_name->Data() == "capsule_visual")
       {
+        requiredVisuals.insert("capsule_visual");
         EXPECT_EQ(math::Pose3d(0.52, 0.52, 0.52, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("capsule_visual", _name->Data());
 
         EXPECT_EQ(capLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::CAPSULE, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().CapsuleShape());
-        EXPECT_DOUBLE_EQ(2.12, _geometry->Data().CapsuleShape()->Radius());
-        EXPECT_DOUBLE_EQ(1.23, _geometry->Data().CapsuleShape()->Length());
+        if (_geometry->Data().CapsuleShape())
+        {
+          EXPECT_DOUBLE_EQ(2.12, _geometry->Data().CapsuleShape()->Radius());
+          EXPECT_DOUBLE_EQ(1.23, _geometry->Data().CapsuleShape()->Length());
+        }
 
         EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
         EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Ambient());
         EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f), _material->Data().Diffuse());
         EXPECT_EQ(math::Color(0.0f, 1.0f, 0.0f), _material->Data().Specular());
       }
-      else if (visualCount == 5)
+      else if (_name->Data() == "ellipsoid_visual")
       {
+        requiredVisuals.insert("ellipsoid_visual");
         EXPECT_EQ(math::Pose3d(0.82, 0.82, 0.82, 0, 0, 0),
             _pose->Data());
-
-        EXPECT_EQ("ellipsoid_visual", _name->Data());
 
         EXPECT_EQ(ellipLinkEntity, _parent->Data());
 
         EXPECT_EQ(sdf::GeometryType::ELLIPSOID, _geometry->Data().Type());
         EXPECT_NE(nullptr, _geometry->Data().EllipsoidShape());
-        EXPECT_EQ(math::Vector3d(0.4, 0.6, 1.6),
-          _geometry->Data().EllipsoidShape()->Radii());
+        if (_geometry->Data().EllipsoidShape())
+        {
+          EXPECT_EQ(math::Vector3d(0.4, 0.6, 1.6),
+            _geometry->Data().EllipsoidShape()->Radii());
+        }
 
         EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f), _material->Data().Emissive());
         EXPECT_EQ(math::Color(1.0f, 0.0f, 1.0f), _material->Data().Ambient());
@@ -589,6 +602,7 @@ TEST_P(SimulationRunnerTest, CreateEntities)
     });
 
   EXPECT_EQ(5u, visualCount);
+  EXPECT_EQ(5u, requiredVisuals.size());
 
   // Check lights
   unsigned int lightCount{0};
@@ -790,6 +804,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
   EXPECT_EQ(1u, visualCount);
 
   // Check lights
+  std::unordered_set<std::string> requiredLights;
   unsigned int lightCount{0};
   runner.EntityCompMgr().Each<Light,
                             Pose,
@@ -809,11 +824,11 @@ TEST_P(SimulationRunnerTest, CreateLights)
       lightCount++;
 
       // light attached to link
-      if (lightCount == 1u)
+      if (_name->Data() == "link_light_point")
       {
+        requiredLights.insert("link_light_point");
         EXPECT_EQ(math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("link_light_point", _name->Data());
         EXPECT_EQ(sphLinkEntity, _parent->Data());
         EXPECT_EQ("link_light_point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
@@ -831,11 +846,11 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
       }
       // directional light in the world
-      else if (lightCount == 2u)
+      else if (_name->Data() == "directional")
       {
+        requiredLights.insert("directional");
         EXPECT_EQ(math::Pose3d(0.0, 0.0, 10, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("directional", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("directional", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::DIRECTIONAL, _light->Data().Type());
@@ -855,11 +870,11 @@ TEST_P(SimulationRunnerTest, CreateLights)
             _light->Data().Direction());
       }
       // point light in the world
-      else if (lightCount == 3u)
+      else if (_name->Data() == "point")
       {
+        requiredLights.insert("point");
         EXPECT_EQ(math::Pose3d(0.0, -1.5, 3, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("point", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("point", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::POINT, _light->Data().Type());
@@ -877,11 +892,11 @@ TEST_P(SimulationRunnerTest, CreateLights)
         EXPECT_DOUBLE_EQ(0.01, _light->Data().QuadraticAttenuationFactor());
       }
       // spot light in the world
-      else if (lightCount == 4u)
+      else if (_name->Data() == "spot")
       {
+        requiredLights.insert("spot");
         EXPECT_EQ(math::Pose3d(0.0, 1.5, 3, 0, 0, 0),
             _pose->Data());
-        EXPECT_EQ("spot", _name->Data());
         EXPECT_EQ(worldEntity, _parent->Data());
         EXPECT_EQ("spot", _light->Data().Name());
         EXPECT_EQ(sdf::LightType::SPOT, _light->Data().Type());
@@ -906,6 +921,7 @@ TEST_P(SimulationRunnerTest, CreateLights)
       return true;
     });
 
+  EXPECT_EQ(4u, requiredLights.size());
   EXPECT_EQ(4u, lightCount);
 }
 
