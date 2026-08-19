@@ -552,7 +552,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   {
     this->CreateComponent(clonedEntity, components::Namespace(_ns));
   }
-  else if (nullptr != originalNsComp && !originalNsComp->Data().empty())
+  else if (nullptr != originalNsComp)
   {
     this->CreateComponent(clonedEntity,
       components::Namespace(originalNsComp->Data()));
