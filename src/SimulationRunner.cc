@@ -600,7 +600,7 @@ void SimulationRunner::PublishStats()
     clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
     clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
 
-    auto curTime = std::chrono::system_clock::now();
+    auto curTime = GZ_SYSTEM_TIME();
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
       curTime.time_since_epoch()).count();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
