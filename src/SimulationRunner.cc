@@ -544,8 +544,31 @@ void SimulationRunner::PublishStats()
     msg.set_stepping(true);
   }
 
+<<<<<<< HEAD
   // Publish the stats message. The stats message is throttled.
   this->statsPub.Publish(msg);
+=======
+  if (publishClock)
+  {
+    // Create and publish the clock message. The clock message is not
+    // throttled.
+    msgs::Clock clockMsg;
+    clockMsg.mutable_real()->set_sec(realTimeSecNsec.first);
+    clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
+    clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
+    clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
+
+    auto curTime = GZ_SYSTEM_TIME();
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+      curTime.time_since_epoch()).count();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      curTime.time_since_epoch()).count();
+    clockMsg.mutable_system()->set_sec(seconds);
+    clockMsg.mutable_system()->set_nsec(
+      ns - seconds * GZ_SEC_TO_NANO);
+
+    this->clockPub.Publish(clockMsg);
+>>>>>>> 2242d9ce (Get clock cpu load (#3816))
 
   if (this->rootStatsPub.Valid())
     this->rootStatsPub.Publish(msg);
