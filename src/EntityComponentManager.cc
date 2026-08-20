@@ -182,9 +182,6 @@ class gz::sim::EntityComponentManagerPrivate
           bool ClonedJointLinkName(Entity _joint, Entity _originalLink,
               EntityComponentManager *_ecm);
 
-  /// \brief Graph of entities generated on demand for deprecated Entities() API
-  public: mutable EntityGraph entitiesGraph;
-
   /// \brief Keep track of entities already used to ensure uniqueness.
   public: uint64_t entityCount{0};
 
@@ -962,7 +959,8 @@ bool EntityComponentManager::CreateComponentImplementation(
   {
     if (storage->push(_entity, _data) == storage->end())
     {
-      gzwarn << "Failed syncing component. This should not happen" << std::endl;
+      gzwarn << "Failed syncing component with id " << _componentTypeId
+        << " for entity " << _entity << ". This should not happen" << std::endl;
     } else {
       updateData = false;
     }
@@ -1028,24 +1026,22 @@ bool EntityComponentManager::HasComponentType(
 }
 
 //////////////////////////////////////////////////
-const EntityGraph& EntityComponentManager::Entities() const
+const EntityGraph EntityComponentManager::Entities() const
 {
-  this->dataPtr->entitiesGraph = EntityGraph();
+  EntityGraph entitiesGraph;
   this->Registry().view<Entity>().each([&](const Entity& e) {
-    this->dataPtr->entitiesGraph.AddVertex(
-        std::to_string(e), e, e);
+    entitiesGraph.AddVertex(std::to_string(e), e, e);
   });
   this->Each<components::ParentEntity>(
       [&](const Entity _entity, const components::ParentEntity *_parent)
       {
         if (_parent->Data() != kNullEntity)
         {
-          this->dataPtr->entitiesGraph.AddEdge(
-              {_parent->Data(), _entity}, true);
+          entitiesGraph.AddEdge({_parent->Data(), _entity}, true);
         }
         return true;
       });
-  return this->dataPtr->entitiesGraph;
+  return entitiesGraph;
 }
 
 //////////////////////////////////////////////////
