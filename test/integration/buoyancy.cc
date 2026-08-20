@@ -161,6 +161,56 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 }
 
 /////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// A surface piercing vessel with positive metacentric height must right
+// itself. Only a surface piercing case exercises the interface plane
+// orientation: with the plane fixed to the shape frame axes the buoyancy
+// centroid rotates rigidly with the hull and the vessel capsizes.
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SurfaceRighting))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_surface_righting.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  std::vector<math::Pose3d> poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
+  {
+    Entity vessel = _ecm.EntityByComponents(
+      components::Model(), components::Name("box_vessel"));
+    auto pose = _ecm.Component<components::Pose>(vessel);
+    ASSERT_NE(pose, nullptr);
+    poses.push_back(pose->Data());
+  });
+
+  Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+
+  // Several natural roll periods (about 1.4 s each).
+  const std::size_t iterations{4000};
+  server.Run(true, iterations, false);
+  ASSERT_EQ(poses.size(), iterations);
+
+  const double initialRoll{0.3};
+  double minRoll{initialRoll}, maxAbsRoll{0.0};
+  for (const auto &pose : poses)
+  {
+    const double roll = pose.Rot().Euler().X();
+    minRoll = std::min(minRoll, roll);
+    maxAbsRoll = std::max(maxAbsRoll, std::abs(roll));
+
+    // A capsizing vessel passes this bound within the first second.
+    EXPECT_LT(std::abs(roll), initialRoll + 0.15);
+    EXPECT_NEAR(pose.Pos().Z(), 0.0, 0.25);
+  }
+
+  // The moment must drive the roll through upright, not hold the heel.
+  EXPECT_LT(minRoll, 0.0);
+  EXPECT_GT(maxAbsRoll, 0.05);
+}
+
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {

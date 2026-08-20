@@ -152,10 +152,17 @@ void BuoyancyPrivate::GradedFluidDensity(
   auto prevLayerVol = 0.0;
   auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
 
+  // Express the fluid interface plane (world z = height) in the shape frame,
+  // where VolumeBelow evaluates. A shape frame point x lies on it when
+  // (p + R x) . z = height, i.e. x . (R^T z) = height - p.Z(): rotated
+  // normal, unchanged offset. An axis aligned plane here erases the
+  // restoring moment of inclined hulls.
+  const math::Vector3d planeNormal =
+      _pose.Rot().RotateVectorReverse(math::Vector3d::UnitZ);
+
   for (const auto &[height, currFluidDensity] : this->layers)
   {
-    // TODO(arjo): Transform plane and slice the shape
-    math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
+    math::Planed plane{planeNormal, height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
     // Short circuit.
