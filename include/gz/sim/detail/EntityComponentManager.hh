@@ -94,21 +94,8 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  auto updateData = this->CreateComponentImplementation(_entity,
-      ComponentTypeT::typeId, &_data);
-  auto comp = this->Component<ComponentTypeT>(_entity);
-  if (updateData)
-  {
-    if (!comp)
-    {
-      gzerr << "Internal error. Failure to create a component of type "
-        << ComponentTypeT::typeId << " for entity " << _entity
-        << ". This should never happen!\n";
-      return comp;
-    }
-    *comp = _data;
-  }
-  return comp;
+  return static_cast<ComponentTypeT *>(this->CreateComponentImplementation(
+      _entity, ComponentTypeT::typeId, &_data));
 }
 
 //////////////////////////////////////////////////
@@ -455,12 +442,7 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
-  if (!this->HasEntity(_entity))
-    return false;
-  bool removed = this->Registry().remove<ComponentTypeT>(_entity);
-  if (removed)
-    this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
-  return removed;
+  return this->RemoveComponent(_entity, ComponentTypeT::typeId);
 }
 }
 }

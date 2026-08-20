@@ -485,17 +485,7 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     auto originalComp = this->ComponentImplementation(_entity, type);
     auto clonedComp = originalComp->Clone();
 
-    auto updateData =
-      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
-    if (updateData)
-    {
-      // When a cloned entity is removed, it erases all components/data so a new
-      // cloned entity should not have components to be updated
-      // LCOV_EXCL_START
-      gzerr << "Internal error: The component's data needs to be updated but "
-             << "this should not happen." << std::endl;
-      // LCOV_EXCL_STOP
-    }
+    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -718,18 +708,11 @@ bool EntityComponentManager::RemoveComponent(
 
   auto* storage = this->Registry().storage(_typeId);
 
-  if (storage && storage->contains(_entity)) {
-      storage->remove(_entity);
-      this->PostRemoveComponent(_entity, _typeId);
-      return true;
-  }
-  return false;
-}
+  if (!storage || !storage->contains(_entity))
+    return false;
 
-/////////////////////////////////////////////////
-void EntityComponentManager::PostRemoveComponent(const Entity _entity,
-    const ComponentTypeId &_typeId)
-{
+  storage->remove(_entity);
+
   auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
   if (oneTimeChangeComp)
@@ -758,6 +741,7 @@ void EntityComponentManager::PostRemoveComponent(const Entity _entity,
   auto& removedComp =
     this->Registry().get_or_emplace<RemovedComponents>(_entity);
   removedComp.data.insert(_typeId);
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -920,7 +904,8 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 }
 
 /////////////////////////////////////////////////
-bool EntityComponentManager::CreateComponentImplementation(
+components::BaseComponent *
+EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
     const components::BaseComponent *_data)
 {
@@ -930,7 +915,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     gzerr << "Trying to create a component of type [" << _componentTypeId
       << "] attached to entity [" << _entity << "], but this entity does not "
       << "exist. This create component request will be ignored." << std::endl;
-    return false;
+    return nullptr;
   }
 
   auto* storage = this->Registry().storage(_componentTypeId);
@@ -946,29 +931,26 @@ bool EntityComponentManager::CreateComponentImplementation(
       gzerr << "Failed to create component of type [" << _componentTypeId
              << "] for entity [" << _entity
              << "]. Type has not been properly registered." << std::endl;
-      return false;
+      return nullptr;
     }
   }
 
-  // assume the component data needs to be updated externally unless this
-  // component is a brand new creation/addition
-  bool updateData = true;
-
-  // Storage is guaranteed to be valid (or CanCreateComponent would have failed)
-  if (!storage->contains(_entity))
+  // If component already exists, remove it first
+  if (storage->contains(_entity))
   {
-    if (storage->push(_entity, _data) == storage->end())
-    {
-      gzwarn << "Failed syncing component with id " << _componentTypeId
-        << " for entity " << _entity << ". This should not happen" << std::endl;
-    } else {
-      updateData = false;
-    }
+    storage->remove(_entity);
+  }
+
+  if (storage->push(_entity, _data) == storage->end())
+  {
+    gzwarn << "Failed syncing component with id " << _componentTypeId
+      << " for entity " << _entity << ". This should not happen" << std::endl;
+    return nullptr;
   }
 
   this->SetChanged(_entity, _componentTypeId, ComponentState::OneTimeChange);
 
-  return updateData;
+  return static_cast<components::BaseComponent *>(storage->value(_entity));
 }
 
 /////////////////////////////////////////////////
@@ -1474,13 +1456,8 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        auto updateData =
+        comp =
           this->CreateComponentImplementation(entity, type, newComp.get());
-        if (updateData)
-        {
-          // Set comp so we deserialize the data below again
-          comp = this->ComponentImplementation(entity, type);
-        }
       }
 
       // Update component value
@@ -1579,13 +1556,8 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        auto updateData = this->CreateComponentImplementation(
+        comp = this->CreateComponentImplementation(
           entity, compMsg.type(), newComp.get());
-        if (updateData)
-        {
-          // Set comp so we deserialize the data below again
-          comp = this->ComponentImplementation(entity, compIter.first);
-        }
       }
 
       // Update component value

@@ -263,13 +263,6 @@ namespace gz
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
 
-      /// \brief Internal function to mark components correctly after they are
-      /// removed.
-      /// \param[in] _entity The entity that the component was removed for.
-      /// \param[in] _typeId The type Id of the removed component.
-      private: void PostRemoveComponent(const Entity _entity,
-         const ComponentTypeId &_typeId);
-
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
       /// \param[in] _entity The entity that will be associated with
@@ -769,9 +762,8 @@ namespace gz
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
-      /// \return True if the component's data needs to be set externally; false
-      /// otherwise.
-      private: bool CreateComponentImplementation(
+      /// \return Pointer to the created component, or nullptr on failure.
+      private: components::BaseComponent *CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
                    const components::BaseComponent *_data);
