@@ -99,10 +99,13 @@ release will remove the deprecated code.
   * Several `EntityComponentManager` APIs have been deprecated as part of the
     move to the Entt library:
     * `EachNoCache`, there is no explicit cache anymore, use `Each` instead.
-    * `Entities`, Entities are not store in a graph anymore, use
+    * `Entities`, Entities are not stored in a graph anymore, use
       `EntitiesVector` if you need all the entities in the world, combine it
       reading the `ParentEntity` and `Children` components if you need hierarchy
       information.
+    * `ForEach` is an internal function that is not used anymore.
+    * `ComponentTypesWithPeriodicChanges` is significantly more expensive in
+      the new architecture and had no users so it has been deprecated.
 
 
 * **Breaking Changes**
@@ -129,9 +132,17 @@ release will remove the deprecated code.
       sorted anymore. Internal systems have been migrated to work regardless
       of entity order, downstream systems should be updated.
     * Entities are not stored in a `gz::math::Graph` anymore. Users that need
-      to need hierarchy information should read the `ParentEntity` or `Children`
+      hierarchy information should read the `ParentEntity` or `Children`
       components attached to entities.
     * Deleting a non existing entity now does not mark it for removal.
+    * `HasComponentType` now returns whether the EntityComponentManager has any
+      instance of the component, instead of whether it was ever created.
+    * Removing components now can deallocate the memory, instead of just marking
+      the component as removed and keeping it in place. Users are advised not to
+      store any component pointer.
+    * Queries with a repeated component are not allowed anymore. Users should
+      make sure their `Each` calls don't have duplicated components of the same
+      type.
 
 ## Gazebo Sim 9.x to 10.0
 

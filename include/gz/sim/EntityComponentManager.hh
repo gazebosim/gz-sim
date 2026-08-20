@@ -227,9 +227,9 @@ namespace gz
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
-      /// \brief Get whether a component type has ever been created.
+      /// \brief Get whether a component type is present in the ECM.
       /// \param[in] _typeId ID of the component type to check.
-      /// \return True if the provided _typeId has been created.
+      /// \return True if the provided _typeId is present.
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component type.

@@ -64,6 +64,7 @@ namespace
     {
       gzerr << "Failed setting parent for entity " << _entity << " to "
             << parentEntity << ", parent entity is not valid" << std::endl;
+      return;
     }
     auto &children = _registry.get_or_emplace<Children>(parentEntity);
     children.data.insert(_entity);
