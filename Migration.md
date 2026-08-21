@@ -14,6 +14,16 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Buoyancy**
+  * The graded buoyancy mode now accounts for the orientation of each
+    collision when slicing it against a fluid interface. Previously the
+    slicing plane was always axis aligned in the shape's own frame, so a
+    rolled or pitched shape displaced the wrong volume at the wrong
+    centroid, and a heeled floating body could receive a capsizing moment
+    instead of a righting moment. Bodies at nonzero roll or pitch near a
+    fluid interface now float and right themselves per hydrostatic theory;
+    models tuned to compensate for the old behavior may need retuning.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
