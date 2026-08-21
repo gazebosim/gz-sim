@@ -75,7 +75,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Pointer to FrustumVisual
     public: rendering::VisualPtr frustum;
-    
+
     /// \brief Marking for frustum edges
     public: rendering::MarkerPtr frustumMarker;
 
@@ -227,14 +227,14 @@ void VisualizeFrustum::ApplyFrustumData(const FrustumData &_data)
 void VisualizeFrustum::UpdateFrustumMarker()
 {
   const auto &data = this->dataPtr->frustumData;
-  
+
   // frustum near and far plane Dimensions
   const double tanFOV2 = std::tan(data.horizontalFov * 0.5);
   const double nearWidth = tanFOV2 * data.nearClip;
   const double nearHeight = nearWidth / data.aspectRatio;
   const double farWidth = tanFOV2 * data.farClip;
   const double farHeight = farWidth / data.aspectRatio;
-  
+
   const double n = data.nearClip;
   const double f = data.farClip;
 
@@ -299,7 +299,7 @@ void VisualizeFrustum::LoadFrustum()
   // Create a frustum visual
   this->dataPtr->frustum = scene->CreateVisual();
   this->dataPtr->frustumMarker = scene->CreateMarker();
-  
+
   if (!this->dataPtr->frustum || !this->dataPtr->frustumMarker)
   {
     gzwarn << "Failed to create frustum, visualize frustum plugin won't work."
@@ -310,15 +310,16 @@ void VisualizeFrustum::LoadFrustum()
 
     gz::gui::App()->findChild<
         gz::gui::MainWindow *>()->removeEventFilter(this);
-    
-    return; 
+
+    return;
   }
 
   if(scene->MaterialRegistered("VisualizeFrustum/BlueRay"))
   {
     mat = scene->Material("VisualizeFrustum/BlueRay");
   }
-  else {
+  else
+  {
     mat = scene->CreateMaterial("VisualizeFrustum/BlueRay");
     mat->SetAmbient(0.0, 0.0, 1.0);
     mat->SetDiffuse(0.0, 0.0, 1.0);
@@ -416,10 +417,10 @@ void VisualizeFrustum::Update(const UpdateInfo &,
       }
       else
       {
-        if (frustumURIVec.size() == 1u) 
+        if (frustumURIVec.size() == 1u)
           {
             this->dataPtr->frustumEntity = baseEntity;
-            this->dataPtr->frustumEntityDirty = false;  
+            this->dataPtr->frustumEntityDirty = false;
           }
           else
           {
@@ -427,7 +428,8 @@ void VisualizeFrustum::Update(const UpdateInfo &,
             bool success = false;
             for (size_t i = 0u; i < frustumURIVec.size()-1; ++i)
             {
-              const auto children = _ecm.EntitiesByComponents(components::ParentEntity(parent));
+              const auto children =
+                _ecm.EntitiesByComponents(components::ParentEntity(parent));
                 bool foundChild = false;
                 for (const auto child : children)
                 {
@@ -533,7 +535,7 @@ void VisualizeFrustum::DisplayVisual(bool _value)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->frustum)
-  { 
+  {
     this->dataPtr->displayVisual = _value;
     this->dataPtr->displayVisualDirty = true;
     gzdbg << "Frustum Visual Display " << (_value ? "ON." : "OFF.")
@@ -623,4 +625,3 @@ void VisualizeFrustum::OnCameraInfo(const msgs::CameraInfo &_msg)
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::VisualizeFrustum,
               gz::gui::Plugin)
-  
