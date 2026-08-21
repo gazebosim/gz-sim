@@ -5,6 +5,18 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 8.15.X to 8.16.X
+
+* **Buoyancy**
+  * The graded buoyancy mode now accounts for the orientation of each
+    collision when slicing it against a fluid interface. Previously the
+    slicing plane was always axis aligned in the shape's own frame, so a
+    rolled or pitched shape displaced the wrong volume at the wrong
+    centroid, and a heeled floating body could receive a capsizing moment
+    instead of a righting moment. Bodies at nonzero roll or pitch near a
+    fluid interface now float and right themselves per hydrostatic theory;
+    models tuned to compensate for the old behavior may need retuning.
+
 ## Gazebo Sim 7.x to 8.0
 
 * **Deprecations**
