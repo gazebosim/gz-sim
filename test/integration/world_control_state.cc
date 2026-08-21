@@ -117,3 +117,32 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   // "box"
   server.RunOnce(false);
 }
+
+/////////////////////////////////////////////////
+TEST_F(WorldControlState,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(StateOnlyRequestPreservesPause))
+{
+  ServerConfig serverConfig;
+  Server server(serverConfig);
+  transport::Node node;
+
+  ASSERT_TRUE(server.SetPaused(true));
+  ASSERT_TRUE(server.Paused().has_value());
+  EXPECT_TRUE(server.Paused().value());
+
+  msgs::WorldControlState req;
+  req.mutable_state();
+  msgs::Boolean rep;
+  bool result = false;
+  constexpr unsigned int timeout = 5000;
+  EXPECT_TRUE(node.Request(
+      "/world/default/control/state", req, timeout, rep, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(rep.data());
+
+  // Process the state-only request while staying paused. The request must not
+  // create an implicit WorldControl with the protobuf default pause=false.
+  EXPECT_TRUE(server.RunOnce(true));
+  ASSERT_TRUE(server.Paused().has_value());
+  EXPECT_TRUE(server.Paused().value());
+}

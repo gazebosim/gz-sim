@@ -1445,6 +1445,12 @@ bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     this->newWorldControlState->CopyFrom(_req);
   }
 
+  if (!_req.has_world_control())
+  {
+    _res.set_data(true);
+    return true;
+  }
+
   WorldControl control;
   control.pause = _req.world_control().pause();
 
