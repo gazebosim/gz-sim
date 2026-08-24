@@ -199,6 +199,33 @@ void Joint::SetVelocity(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
+bool Joint::AddForce(EntityComponentManager &_ecm,
+    const std::vector<double> &_forces)
+{
+  auto jointForceCmd =
+    _ecm.Component<components::JointForceCmd>(this->dataPtr->id);
+
+  if (!jointForceCmd)
+  {
+    _ecm.CreateComponent(
+        this->dataPtr->id,
+        components::JointForceCmd(_forces));
+  }
+  else
+  {
+    if (jointForceCmd->Data().size() != _forces.size())
+    {
+      return false;
+    }
+    for (std::size_t i = 0; i < _forces.size(); ++i)
+    {
+      jointForceCmd->Data()[i] = _forces[i];
+    }
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
 void Joint::SetForce(EntityComponentManager &_ecm,
     const std::vector<double> &_forces)
 {

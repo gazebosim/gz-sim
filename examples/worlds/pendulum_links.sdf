@@ -274,6 +274,9 @@
         <child>upper_link</child>
         <axis>
           <xyz>1.0 0 0</xyz>
+          <dynamics>
+            <friction>0.0</friction>
+          </dynamics>
         </axis>
       </joint>
       <!-- pin joint for lower link, at origin of child link -->
@@ -282,6 +285,9 @@
         <child>lower_link</child>
         <axis>
           <xyz>1.0 0 0</xyz>
+          <dynamics>
+            <friction>1000.0</friction>
+          </dynamics>
         </axis>
       </joint>
 

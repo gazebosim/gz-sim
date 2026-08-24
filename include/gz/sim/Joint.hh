@@ -164,8 +164,20 @@ namespace gz
       public: void SetVelocity(EntityComponentManager &_ecm,
           const std::vector<double> &_velocities);
 
-      /// \brief Set force on this joint. If both forces and velocities are set,
-      /// only forces are applied
+      /// \brief Add to force command applied on this joint. If both force and
+      /// velocity commands are set, only forces are applied
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _forces Joint force or torque commands to add to existing
+      /// commands for this timestep. The vector of forces should have the same
+      /// size as the degrees of freedom of the joint.
+      /// \return True if the force commands were added successfully, false
+      /// if the vector sizes do not match.
+      public: bool AddForce(EntityComponentManager &_ecm,
+          const std::vector<double> &_forces);
+
+      /// \brief Set force on this joint, overriding any previous calls to
+      /// SetForce during this timestep. If both force and velocity commands
+      /// are set, only forces are applied
       /// \param[in] _ecm Entity Component manager.
       /// \param[in] _forces Joint force or torque commands (target forces
       /// or torques). The vector of forces should have the same size as the
