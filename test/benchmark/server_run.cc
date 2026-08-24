@@ -16,10 +16,14 @@
  */
 
 #include <benchmark/benchmark.h>
+#include <cmath>
 #include <cstring>
 #include <vector>
 
 #include <gz/common/Util.hh>
+#include <gz/msgs/twist.pb.h>
+#include <gz/msgs/joint_trajectory.pb.h>
+#include <gz/transport/Node.hh>
 #include <gz/sim/components/Collision.hh>
 #include <gz/sim/components/ContactSensorData.hh>
 #include "gz/sim/Server.hh"
@@ -116,6 +120,86 @@ void BM_LoadWorld(benchmark::State &_st, const std::string &_physics_engine,
     // Add system from plugin
     sim::Server server(serverConfig);
     // Run one step
+    server.Run(true, 1, false);
+  }
+}
+
+void BM_MobileRobot(benchmark::State &_st, const std::string &_physics_engine,
+                    const std::string &_world_sdf)
+{
+  ServerConfig serverConfig { getServerConfig(_physics_engine, _world_sdf) };
+  sim::Server server(serverConfig);
+
+  transport::Node node;
+  const std::string trajectoryTopic = "/model/RR_position_control/joint_trajectory";
+  auto cmdVelPublisher1 = node.Advertise<msgs::Twist>("/model/vehicle_1/cmd_vel");
+  auto cmdVelPublisher2 = node.Advertise<msgs::Twist>("/model/vehicle_2/cmd_vel");
+  auto trajectoryPublisher = node.Advertise<msgs::JointTrajectory>(trajectoryTopic);
+
+  // Set up command velocity messages to mobile robots
+  double desiredLinVel = 1.0;
+  double desiredAngVel = 0.2;
+  msgs::Twist cmdVelMsg;
+  msgs::Set(
+    cmdVelMsg.mutable_linear(), math::Vector3d(desiredLinVel, 0, 0));
+  msgs::Set(
+    cmdVelMsg.mutable_angular(), math::Vector3d(0.0, 0, desiredAngVel));
+
+  // Set up joint trajectory messages
+  const size_t kNumberOfJoints = 2;
+  const std::string jointNames[kNumberOfJoints] = {"RR_position_control_joint1",
+                                                  "RR_position_control_joint2"};
+
+  std::vector<std::array<int, 2>> trajectoryTimes;
+  std::vector<std::array<double, kNumberOfJoints>> trajectoryPositions;
+
+  // Generate 1000 trajectory points programmatically
+  int numPoints = 1000;
+  for (int i = 1; i <= numPoints; ++i)
+  {
+    double t = i * 0.5;
+    int sec = static_cast<int>(t);
+    int nsec = static_cast<int>((t - sec) * 1e9);
+    trajectoryTimes.push_back({sec, nsec});
+
+    // Oscillating positions over time
+    double pos1 = std::sin(t);
+    double pos2 = std::cos(t);
+    trajectoryPositions.push_back({pos1, pos2});
+  }
+
+  // Create new JointTrajectory message based on the defined trajectory
+  msgs::JointTrajectory joint_traj_msg;
+  for (const auto &jointName : jointNames)
+  {
+    joint_traj_msg.add_joint_names(jointName);
+  }
+  for (size_t i = 0; i < trajectoryPositions.size(); ++i)
+  {
+    msgs::JointTrajectoryPoint point;
+
+    // Set the temporal information for the point
+    auto time = point.mutable_time_from_start();
+    time->set_sec(trajectoryTimes[i][0]);
+    time->set_nsec(trajectoryTimes[i][1]);
+
+    // Add target positions to the point
+    for (size_t j = 0; j < kNumberOfJoints; ++j)
+    {
+      point.add_positions(trajectoryPositions[i][j]);
+    }
+
+    // Add point to the trajectory
+    joint_traj_msg.add_points();
+    joint_traj_msg.mutable_points(i)->CopyFrom(point);
+  }
+
+  cmdVelPublisher1.Publish(cmdVelMsg);
+  cmdVelPublisher2.Publish(cmdVelMsg);
+  trajectoryPublisher.Publish(joint_traj_msg);
+
+  for (auto _ : _st)
+  {
     server.Run(true, 1, false);
   }
 }
@@ -233,6 +317,19 @@ BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_sdf_3k_shapes_bullet,
 BENCHMARK_CAPTURE(BM_LoadWorld, lengthy_sdf_3k_shapes_dart,
                   "gz-physics-dartsim-plugin",
                   "3k_shapes.sdf")
+    ->Unit(benchmark::kMillisecond);
+
+/* Benchmark runtime for world with sensors and moving robots */
+BENCHMARK_CAPTURE(BM_MobileRobot, sdf_moving_robots_and_sensors_dart,
+                  "gz-physics-dartsim-plugin",
+                  "moving_robots_and_sensors.sdf")
+    ->Iterations(10000)
+    ->Unit(benchmark::kMillisecond);
+
+BENCHMARK_CAPTURE(BM_MobileRobot, sdf_moving_robots_and_sensors_bullet,
+                  "gz-physics-bullet-featherstone-plugin",
+                  "moving_robots_and_sensors.sdf")
+    ->Iterations(10000)
     ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN();
