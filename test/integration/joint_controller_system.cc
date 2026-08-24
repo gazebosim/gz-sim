@@ -36,6 +36,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -337,6 +338,77 @@ TEST_F(JointControllerTestFixture,
   EXPECT_NEAR(0, angularVelocity.X(), 1e-2);
   EXPECT_NEAR(0, angularVelocity.Y(), 1e-2);
   EXPECT_NEAR(testAngVel, angularVelocity.Z(), 1e-2);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "joint_controller.sdf"));
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  const std::string linkName = "rotor";
+  test::Relay testSystem;
+  math::Vector3d angularVelocity;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto link = _ecm.EntityByComponents(
+            components::Link(), components::Name(linkName));
+        if (nullptr == _ecm.Component<components::AngularVelocity>(link))
+        {
+          _ecm.CreateComponent(link, components::AngularVelocity());
+        }
+      });
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+      {
+        _ecm.Each<components::Link, components::Name,
+                  components::AngularVelocity>(
+            [&](const Entity &,
+                const components::Link *,
+                const components::Name *_name,
+                const components::AngularVelocity *_angularVel) -> bool
+            {
+              if (_name->Data() == linkName)
+              {
+                angularVelocity = _angularVel->Data();
+              }
+              return true;
+            });
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&] { return std::abs(angularVelocity.Z() - 5.0) < TOL; }));
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_controller_test/joint/j1/cmd_vel");
+  ASSERT_TRUE(test::WaitUntil(3s, [&] { return pub.HasConnections(); }));
+
+  msgs::Double msg;
+  msg.set_data(10.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&] { return std::abs(angularVelocity.Z() - 10.0) < TOL; }));
+
+  server.ResetAll();
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&] { return std::abs(angularVelocity.Z() - 5.0) < TOL; }));
+
+  msg.set_data(-3.0);
+  pub.Publish(msg);
+  ASSERT_TRUE(test::StepUntil(server, 1000,
+      [&] { return std::abs(angularVelocity.Z() + 3.0) < TOL; }));
 }
 
 /////////////////////////////////////////////////

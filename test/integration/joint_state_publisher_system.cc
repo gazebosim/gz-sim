@@ -17,7 +17,13 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+#include <functional>
+#include <thread>
+
 #include <gz/msgs/model.pb.h>
+#include <gz/msgs/twist.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -27,6 +33,8 @@
 #include "gz/sim/Server.hh"
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -37,6 +45,28 @@ class JointStatePublisherTest
   : public InternalFixture<::testing::TestWithParam<int>>
 {
 };
+
+/////////////////////////////////////////////////
+double jointVelocity(const msgs::Model &_msg, const std::string &_jointName)
+{
+  for (int i = 0; i < _msg.joint_size(); ++i)
+  {
+    if (_msg.joint(i).name() == _jointName)
+      return _msg.joint(i).axis1().velocity();
+  }
+
+  ADD_FAILURE() << "Missing joint [" << _jointName << "]";
+  return 0.0;
+}
+
+/////////////////////////////////////////////////
+bool hasWheelVelocity(const msgs::Model &_msg, double _minAbsVelocity)
+{
+  return std::abs(jointVelocity(_msg, "left_wheel_joint")) >
+      _minAbsVelocity &&
+      std::abs(jointVelocity(_msg, "right_wheel_joint")) >
+      _minAbsVelocity;
+}
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
@@ -89,6 +119,69 @@ TEST_F(JointStatePublisherTest,
 
   // Make sure the callback was triggered at least once.
   EXPECT_GT(count, 0);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointStatePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(0ns);
+
+  transport::Node node;
+  // Destroy the subscription before the node so Unsubscribe sees a live node.
+  Subscription<msgs::Model> jointStates;
+  jointStates.Subscribe(node, "/world/diff_drive/model/vehicle/joint_state",
+      1);
+  auto waitForJointState =
+      [&server](Subscription<msgs::Model> &_subscription, auto _predicate)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u &&
+              _predicate(_subscription.Last());
+        });
+      };
+
+  ASSERT_TRUE(waitForJointState(jointStates,
+      [](const msgs::Model &_msg)
+      {
+        return _msg.joint_size() > 0;
+      }));
+
+  auto cmdPub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+  msgs::Twist cmd;
+  msgs::Set(cmd.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  cmdPub.Publish(cmd);
+  std::this_thread::sleep_for(100ms);
+
+  ASSERT_TRUE(waitForJointState(jointStates,
+      [](const msgs::Model &_msg)
+      {
+        return hasWheelVelocity(_msg, 1e-2);
+      }));
+
+  server.ResetAll();
+
+  // Ignore delayed messages from the previous episode.
+  jointStates.Clear();
+
+  ASSERT_TRUE(waitForJointState(jointStates,
+      [](const msgs::Model &_msg)
+      {
+        return _msg.joint_size() > 0 &&
+            !hasWheelVelocity(_msg, 1e-3);
+      }));
+
+  const auto postResetMsg = jointStates.Last();
+  EXPECT_NEAR(0.0, jointVelocity(postResetMsg, "left_wheel_joint"), 1e-3);
+  EXPECT_NEAR(0.0, jointVelocity(postResetMsg, "right_wheel_joint"), 1e-3);
 }
 
 /////////////////////////////////////////////////
