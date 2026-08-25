@@ -1,6 +1,7 @@
 set(TEST_TYPE "REGRESSION")
 
 set(tests
+  3830_odometry_angular_velocity_continuity.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)
