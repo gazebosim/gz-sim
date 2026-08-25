@@ -1441,12 +1441,11 @@ void EntityComponentManager::SetState(
 
       // Get Component
       auto comp = this->ComponentImplementation(entity, type);
+      std::istringstream istr(compMsg.component());
 
       // Create if new
       if (nullptr == comp)
       {
-        std::istringstream istr(compMsg.component());
-
         auto newComp = components::Factory::Instance()->New(type);
         if (nullptr == newComp)
         {
@@ -1456,14 +1455,11 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        comp =
-          this->CreateComponentImplementation(entity, type, newComp.get());
+        this->CreateComponentImplementation(entity, type, newComp.get());
       }
-
-      // Update component value
-      if (comp)
+      else
       {
-        std::istringstream istr(compMsg.component());
+        // Update component value
         comp->Deserialize(istr);
         this->dataPtr->AddModifiedComponent(entity);
       }
@@ -1540,13 +1536,11 @@ void EntityComponentManager::SetState(
       // Get Component
       components::BaseComponent *comp =
         this->ComponentImplementation(entity, compIter.first);
+      std::istringstream istr(compMsg.component());
 
       // Create if new
       if (nullptr == comp)
       {
-        std::istringstream istr(compMsg.component());
-
-        // Create component
         auto newComp = components::Factory::Instance()->New(compMsg.type());
         if (nullptr == newComp)
         {
@@ -1556,14 +1550,12 @@ void EntityComponentManager::SetState(
         }
         newComp->Deserialize(istr);
 
-        comp = this->CreateComponentImplementation(
+        this->CreateComponentImplementation(
           entity, compMsg.type(), newComp.get());
       }
-
-      // Update component value
-      if (comp)
+      else
       {
-        std::istringstream istr(compMsg.component());
+        // Update if existing
         comp->Deserialize(istr);
         this->SetChanged(entity, compIter.first,
             _stateMsg.has_one_time_component_changes() ?
