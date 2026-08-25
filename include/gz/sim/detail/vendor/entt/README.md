@@ -8,5 +8,5 @@ The `src/entt` folder from the v3.16.0 tag has been copied in, with the exclusio
 * The `meta` subfolder that introduced compile time warnings and is unused.
 * The `entt.hpp` and `fwd.hpp` headers that are unused and would have needed to be patched because of the above removal.
 
-Additionally, the `GAZEBO_MODIFIED_CODE.patch` has been applied to :
+Additionally, the `GAZEBO_MODIFIED_CODE.patch` has been applied to:
   * Fix layering checks in Bazel + Clang and fix compilation with Bazel >= 9.
