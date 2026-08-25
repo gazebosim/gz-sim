@@ -41,15 +41,3 @@ index 6ee54c304..29621fba1 100644
  #include "../core/type_traits.hpp"
  #include "entity.hpp"
  #include "fwd.hpp"
-diff --git b/include/gz/sim/detail/vendor/entt/meta/template.hpp a/include/gz/sim/detail/vendor/entt/meta/template.hpp
-index 5eab2afcd..8093679d9 100644
---- b/include/gz/sim/detail/vendor/entt/meta/template.hpp
-+++ a/include/gz/sim/detail/vendor/entt/meta/template.hpp
-@@ -4,6 +4,7 @@
- #define ENTT_META_TEMPLATE_HPP
- 
- #include "../core/type_traits.hpp"
-+#include "type_traits.hpp"
- 
- namespace entt {
- 
