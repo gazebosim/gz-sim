@@ -21,6 +21,8 @@
 #include <chrono>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -323,10 +325,19 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
       components::Name("link"),
       components::Link());
 
-    // Check the duck volume and center of volume
+    // Check the duck volume and center of volume. The expected volume is
+    // computed from the collider mesh rather than baked in, so the test
+    // tracks gz-common's mesh volume instead of regressing every time that
+    // computation improves (gazebosim/gz-common#877 changed it for meshes
+    // that are not star shaped about the origin).
+    const common::Mesh *duckMesh = common::MeshManager::Instance()->Load(
+        common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "media", "duck_collider.dae"));
+    ASSERT_NE(nullptr, duckMesh);
+    const double expectedDuckVolume = duckMesh->Volume();
     auto duckVolume = _ecm.Component<components::Volume>(duckLink);
     ASSERT_NE(duckVolume, nullptr);
-    EXPECT_NEAR(1.40186, duckVolume->Data(), 1e-3);
+    EXPECT_NEAR(expectedDuckVolume, duckVolume->Data(), 1e-6);
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
@@ -366,7 +377,15 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     {
       EXPECT_NEAR(-1.64, submarineSinkingPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
-      EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      // Drag free rise under constant net buoyancy, symplectic Euler:
+      // z_N = a dt^2 N(N+1)/2 with a = g (rho V / m - 1). The same formula
+      // reproduces the previous baked expectation of 171.4 m for the
+      // previous mesh volume of 1.40186 m^3.
+      const double duckAccel =
+          9.8 * (1000 * expectedDuckVolume / 39.0 - 1.0);
+      const double expectedDuckZ = duckAccel * 1e-6 *
+          static_cast<double>(_info.iterations) * (_info.iterations + 1) / 2;
+      EXPECT_NEAR(expectedDuckZ, duckPose->Data().Pos().Z(), 0.1);
       finished = true;
     }
   });
