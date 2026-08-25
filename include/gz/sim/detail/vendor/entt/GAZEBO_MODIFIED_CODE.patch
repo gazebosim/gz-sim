@@ -1,0 +1,55 @@
+diff --git b/include/gz/sim/detail/vendor/entt/config/config.h a/include/gz/sim/detail/vendor/entt/config/config.h
+index 610127bd8..05e07653e 100644
+--- b/include/gz/sim/detail/vendor/entt/config/config.h
++++ a/include/gz/sim/detail/vendor/entt/config/config.h
+@@ -38,7 +38,7 @@
+ 
+ #ifndef ENTT_ID_TYPE
+ #    include <cstdint>
+-#    define ENTT_ID_TYPE std::uint32_t
++#    define ENTT_ID_TYPE std::uint64_t
+ #else
+ #    include <cstdint> // provides coverage for types in the std namespace
+ #endif
+diff --git b/include/gz/sim/detail/vendor/entt/entity/entity.hpp a/include/gz/sim/detail/vendor/entt/entity/entity.hpp
+index 3c3dae697..61af29801 100644
+--- b/include/gz/sim/detail/vendor/entt/entity/entity.hpp
++++ a/include/gz/sim/detail/vendor/entt/entity/entity.hpp
+@@ -44,10 +44,10 @@ struct entt_traits<std::uint64_t> {
+     using value_type = std::uint64_t;
+ 
+     using entity_type = std::uint64_t;
+-    using version_type = std::uint32_t;
++    using version_type = std::uint8_t;
+ 
+-    static constexpr entity_type entity_mask = 0xFFFFFFFF;
+-    static constexpr entity_type version_mask = 0xFFFFFFFF;
++    static constexpr entity_type entity_mask = 0xFFFFFFFFFFFFFF;
++    static constexpr entity_type version_mask = 0xFF;
+ };
+ 
+ } // namespace internal
+diff --git b/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp a/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
+index 6ee54c304..29621fba1 100644
+--- b/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
++++ a/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
+@@ -9,6 +9,7 @@
+ #include <vector>
+ #include "../config/config.h"
+ #include "../container/dense_map.hpp"
++#include "../core/type_info.hpp"
+ #include "../core/type_traits.hpp"
+ #include "entity.hpp"
+ #include "fwd.hpp"
+diff --git b/include/gz/sim/detail/vendor/entt/meta/template.hpp a/include/gz/sim/detail/vendor/entt/meta/template.hpp
+index 5eab2afcd..8093679d9 100644
+--- b/include/gz/sim/detail/vendor/entt/meta/template.hpp
++++ a/include/gz/sim/detail/vendor/entt/meta/template.hpp
+@@ -4,6 +4,7 @@
+ #define ENTT_META_TEMPLATE_HPP
+ 
+ #include "../core/type_traits.hpp"
++#include "type_traits.hpp"
+ 
+ namespace entt {
+ 
