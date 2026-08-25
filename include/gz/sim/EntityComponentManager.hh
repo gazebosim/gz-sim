@@ -523,7 +523,7 @@ namespace gz
       /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
       /// \deprecated See EntitiesVector
-      public: GZ_DEPRECATED(11) const EntityGraph Entities() const;
+      public: GZ_DEPRECATED(11) EntityGraph Entities() const;
 
       /// \brief Get all entities.
       /// \return Vector of all entities.

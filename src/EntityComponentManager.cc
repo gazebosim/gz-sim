@@ -1008,7 +1008,7 @@ bool EntityComponentManager::HasComponentType(
 }
 
 //////////////////////////////////////////////////
-const EntityGraph EntityComponentManager::Entities() const
+EntityGraph EntityComponentManager::Entities() const
 {
   EntityGraph entitiesGraph;
   this->Registry().view<Entity>().each([&](const Entity& e) {
