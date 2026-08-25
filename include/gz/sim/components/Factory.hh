@@ -40,7 +40,7 @@
 #  define ENTT_ID_TYPE uint64_t
 #endif
 GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
-#include <gz/sim/detail/entt/entity/registry.hpp>
+#include <gz/sim/detail/vendor/entt/entity/registry.hpp>
 GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
 namespace gz
