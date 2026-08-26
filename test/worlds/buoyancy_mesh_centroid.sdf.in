@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<!--
+  Uniform buoyancy world for center of volume checks: an origin offset mesh,
+  and the same mesh scaled. The expected volumes and
+  centroids are exact; see INTEGRATION_buoyancy MeshCenterOfVolume.
+-->
+<sdf version="1.6">
+  <world name="buoyancy_mesh_centroid">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-scene-broadcaster-system"
+      name="ignition::gazebo::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="ignition-gazebo-buoyancy-system"
+      name="ignition::gazebo::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <model name="mesh_box">
+      <pose>0 0 10 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>24</mass></inertial>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/box_offset.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="mesh_box_scaled">
+      <pose>20 0 10 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>12</mass></inertial>
+        <collision name="collision">
+          <geometry>
+            <mesh>
+              <scale>0.5 0.5 2</scale>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/box_offset.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+  </world>
+</sdf>
