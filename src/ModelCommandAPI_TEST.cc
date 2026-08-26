@@ -34,21 +34,47 @@ class ModelCommandAPI : public ::testing::Test {
  protected:
   void SetUp() override {
     // Save previous partition to restore it later
-    char *prevPartition = std::getenv("GZ_PARTITION");
+    char *prevPartition = std::getenv("IGN_PARTITION");
     if (prevPartition) {
       this->oldPartition = prevPartition;
     }
 
     // Generate unique partition for this test
-    this->partition = gz::common::uuid();
-    gz::common::setenv("GZ_PARTITION", this->partition);
+    this->partition = ignition::common::uuid();
+    ignition::common::setenv("IGN_PARTITION", this->partition);
   }
 
   void TearDown() override {
     if (this->oldPartition.empty()) {
-      gz::common::unsetenv("GZ_PARTITION");
+      ignition::common::unsetenv("IGN_PARTITION");
     } else {
-      gz::common::setenv("GZ_PARTITION", this->oldPartition);
+      ignition::common::setenv("IGN_PARTITION", this->oldPartition);
+    }
+  }
+
+  std::string oldPartition;
+  std::string partition;
+};
+
+class ModelCommandAPI : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    // Save previous partition to restore it later
+    char *prevPartition = std::getenv("IGN_PARTITION");
+    if (prevPartition) {
+      this->oldPartition = prevPartition;
+    }
+
+    // Generate unique partition for this test
+    this->partition = ignition::common::uuid();
+    ignition::common::setenv("IGN_PARTITION", this->partition);
+  }
+
+  void TearDown() override {
+    if (this->oldPartition.empty()) {
+      ignition::common::unsetenv("IGN_PARTITION");
+    } else {
+      ignition::common::setenv("IGN_PARTITION", this->oldPartition);
     }
   }
 
@@ -100,7 +126,7 @@ std::string customExecStr(std::string _cmd)
 
 /////////////////////////////////////////////////
 // Test `ign model` command when no Gazebo server is running.
-// See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
+// See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 {
   const std::string cmd = kIgnModelCommand + "--list ";
@@ -116,13 +142,13 @@ TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(NoServerRunning))
 // Tests `ign model` command.
 TEST_F(ModelCommandAPI, IGN_UTILS_TEST_DISABLED_ON_WIN32(Commands))
 {
-  gz::sim::ServerConfig serverConfig;
+  ignition::sim::ServerConfig serverConfig;
   // Using an static model to avoid any movements in the simulation.
   serverConfig.SetSdfFile(
       ignition::common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "worlds", "static_diff_drive_vehicle.sdf"));
 
-  gz::sim::Server server(serverConfig);
+  ignition::sim::Server server(serverConfig);
   // Run at least one iteration before continuing to guarantee correctly set up.
   ASSERT_TRUE(server.Run(true, 5, false));
   // Run without blocking.
