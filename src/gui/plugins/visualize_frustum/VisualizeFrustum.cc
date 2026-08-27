@@ -52,7 +52,9 @@
 #include "gz/rendering/RenderingIface.hh"
 #include "gz/rendering/RenderEngine.hh"
 #include "gz/rendering/Scene.hh"
-#include "gz/rendering/FrustumVisual.hh"
+#include "gz/rendering/Visual.hh"
+#include "gz/rendering/Marker.hh"
+#include "gz/rendering/Material.hh"
 
 #include "gz/sim/Util.hh"
 
@@ -72,7 +74,14 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     public: rendering::ScenePtr scene;
 
     /// \brief Pointer to FrustumVisual
-    public: rendering::FrustumVisualPtr frustum;
+    public: rendering::VisualPtr frustum;
+
+    /// \brief Marking for frustum edges
+    public: rendering::MarkerPtr frustumMarker;
+
+    /// \brief using for rebuilding marker geometry
+    public: VisualizeFrustum::FrustumData frustumData;
+
 
     /// \brief URI sequence to the frustum link
     public: std::string frustumString;
@@ -112,6 +121,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     /// \brief Frustum sensor entity dirty flag
     public: bool frustumEntityDirty{true};
+
+    /// \brief Flag to indicate visual
+    public: bool displayVisual{true};
+
+    /// \brief Flag to indicate state
+    public: bool displayVisualDirty{false};
   };
 }
 }
@@ -198,10 +213,7 @@ void VisualizeFrustum::ApplyFrustumData(const FrustumData &_data)
   if (!this->dataPtr->initialized || !this->dataPtr->frustum || !_data.valid)
     return;
 
-  this->dataPtr->frustum->SetNearClipPlane(_data.nearClip);
-  this->dataPtr->frustum->SetFarClipPlane(_data.farClip);
-  this->dataPtr->frustum->SetHFOV(_data.horizontalFov);
-  this->dataPtr->frustum->SetAspectRatio(_data.aspectRatio);
+  this->dataPtr->frustumData = _data;
   this->dataPtr->visualDirty = true;
 
   if (this->dataPtr->frustumString != _data.frameId)
@@ -212,8 +224,67 @@ void VisualizeFrustum::ApplyFrustumData(const FrustumData &_data)
 }
 
 /////////////////////////////////////////////////
+void VisualizeFrustum::UpdateFrustumMarker()
+{
+  const auto &data = this->dataPtr->frustumData;
+
+  // frustum near and far plane Dimensions
+  const double tanFOV2 = std::tan(data.horizontalFov * 0.5);
+  const double nearWidth = tanFOV2 * data.nearClip;
+  const double nearHeight = nearWidth / data.aspectRatio;
+  const double farWidth = tanFOV2 * data.farClip;
+  const double farHeight = farWidth / data.aspectRatio;
+
+  const double n = data.nearClip;
+  const double f = data.farClip;
+
+  auto &marker = this->dataPtr->frustumMarker;
+  marker->ClearPoints();
+
+  const math::Color blue(0.0f, 0.0f, 1.0f, 1.0f);
+
+  marker->AddPoint(math::Vector3d(n,  nearWidth,  nearHeight), blue);
+  marker->AddPoint(math::Vector3d(n,  nearWidth, -nearHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n,  nearWidth, -nearHeight), blue);
+  marker->AddPoint(math::Vector3d(n, -nearWidth, -nearHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n, -nearWidth, -nearHeight), blue);
+  marker->AddPoint(math::Vector3d(n, -nearWidth,  nearHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n, -nearWidth,  nearHeight), blue);
+  marker->AddPoint(math::Vector3d(n,  nearWidth,  nearHeight), blue);
+
+  marker->AddPoint(math::Vector3d(f,  farWidth,  farHeight), blue);
+  marker->AddPoint(math::Vector3d(f,  farWidth, -farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(f,  farWidth, -farHeight), blue);
+  marker->AddPoint(math::Vector3d(f, -farWidth, -farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(f, -farWidth, -farHeight), blue);
+  marker->AddPoint(math::Vector3d(f, -farWidth,  farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(f, -farWidth,  farHeight), blue);
+  marker->AddPoint(math::Vector3d(f,  farWidth,  farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n,  nearWidth,  nearHeight), blue);
+  marker->AddPoint(math::Vector3d(f,  farWidth,  farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n, -nearWidth,  nearHeight), blue);
+  marker->AddPoint(math::Vector3d(f, -farWidth,  farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n, -nearWidth, -nearHeight), blue);
+  marker->AddPoint(math::Vector3d(f, -farWidth, -farHeight), blue);
+
+  marker->AddPoint(math::Vector3d(n,  nearWidth, -nearHeight), blue);
+  marker->AddPoint(math::Vector3d(f,  farWidth, -farHeight), blue);
+}
+
+
+/////////////////////////////////////////////////
 void VisualizeFrustum::LoadFrustum()
 {
+  rendering::MaterialPtr mat;
   auto scene = rendering::sceneFromFirstRenderEngine();
   if (!scene)
   {
@@ -226,23 +297,46 @@ void VisualizeFrustum::LoadFrustum()
   auto root = scene->RootVisual();
 
   // Create a frustum visual
-  this->dataPtr->frustum = scene->CreateFrustumVisual();
-  if (!this->dataPtr->frustum)
+  this->dataPtr->frustum = scene->CreateVisual();
+  this->dataPtr->frustumMarker = scene->CreateMarker();
+
+  if (!this->dataPtr->frustum || !this->dataPtr->frustumMarker)
   {
     gzwarn << "Failed to create frustum, visualize frustum plugin won't work."
            << std::endl;
 
-    scene->DestroyVisual(this->dataPtr->frustum);
+    if (this->dataPtr->frustum)
+      scene->DestroyVisual(this->dataPtr->frustum);
 
     gz::gui::App()->findChild<
         gz::gui::MainWindow *>()->removeEventFilter(this);
+
+    return;
+  }
+
+  if(scene->MaterialRegistered("VisualizeFrustum/BlueRay"))
+  {
+    mat = scene->Material("VisualizeFrustum/BlueRay");
   }
   else
   {
-    this->dataPtr->scene = scene;
-    root->AddChild(this->dataPtr->frustum);
-    this->dataPtr->initialized = true;
+    mat = scene->CreateMaterial("VisualizeFrustum/BlueRay");
+    mat->SetAmbient(0.0, 0.0, 1.0);
+    mat->SetDiffuse(0.0, 0.0, 1.0);
+    mat->SetEmissive(0.0, 0.0, 1.0);
+    mat->SetSpecular(0.0, 0.0, 1.0);
+    mat->SetLightingEnabled(false);
+    mat->SetDepthWriteEnabled(false);
   }
+
+  this->dataPtr->frustumMarker->SetType(rendering::MarkerType::MT_LINE_LIST);
+  this->dataPtr->frustumMarker->SetMaterial(mat, false);
+
+  this->dataPtr->frustum->AddGeometry(this->dataPtr->frustumMarker);
+  root->AddChild(this->dataPtr->frustum);
+
+  this->dataPtr->scene = scene;
+  this->dataPtr->initialized = true;
 }
 
 /////////////////////////////////////////////////
@@ -253,6 +347,7 @@ void VisualizeFrustum::LoadConfig(const tinyxml2::XMLElement *)
 
   gz::gui::App()->findChild<
     gz::gui::MainWindow *>()->installEventFilter(this);
+
 }
 
 /////////////////////////////////////////////////
@@ -269,8 +364,13 @@ bool VisualizeFrustum::eventFilter(QObject *_obj, QEvent *_event)
       this->LoadFrustum();
     }
 
-    if (this->dataPtr->frustum)
+    if (this->dataPtr->frustum && this->dataPtr->frustumMarker)
     {
+      if (this->dataPtr->displayVisualDirty)
+      {
+        this->dataPtr->frustum->SetVisible(this->dataPtr->displayVisual);
+        this->dataPtr->displayVisualDirty = false;
+      }
       if (this->dataPtr->resetVisual)
       {
         this->dataPtr->resetVisual = false;
@@ -278,7 +378,7 @@ bool VisualizeFrustum::eventFilter(QObject *_obj, QEvent *_event)
       if (this->dataPtr->visualDirty)
       {
         this->dataPtr->frustum->SetWorldPose(this->dataPtr->frustumPose);
-        this->dataPtr->frustum->Update();
+        this->UpdateFrustumMarker();
         this->dataPtr->visualDirty = false;
       }
     }
@@ -317,44 +417,52 @@ void VisualizeFrustum::Update(const UpdateInfo &,
       }
       else
       {
-        auto parent = baseEntity;
-        bool success = false;
-        for (size_t i = 0u; i < frustumURIVec.size()-1; ++i)
-        {
-          const auto children = _ecm.EntitiesByComponents(
-                            components::ParentEntity(parent));
-          bool foundChild = false;
-          for (const auto child : children)
+        if (frustumURIVec.size() == 1u)
           {
-            const auto &nextstring = frustumURIVec[i+1];
-            auto comp = _ecm.Component<components::Name>(child);
-            if (!comp)
+            this->dataPtr->frustumEntity = baseEntity;
+            this->dataPtr->frustumEntityDirty = false;
+          }
+          else
+          {
+            auto parent = baseEntity;
+            bool success = false;
+            for (size_t i = 0u; i < frustumURIVec.size()-1; ++i)
             {
-              continue;
-            }
-            const auto &childname = comp->Data();
-            if (nextstring == childname)
-            {
-              parent = child;
-              foundChild = true;
-              if (i+1 == frustumURIVec.size()-1)
+              const auto children =
+                _ecm.EntitiesByComponents(components::ParentEntity(parent));
+                bool foundChild = false;
+                for (const auto child : children)
+                {
+                  const auto &nextstring = frustumURIVec[i+1];
+                  auto comp = _ecm.Component<components::Name>(child);
+                  if (!comp)
+                  {
+                    continue;
+                  }
+              const auto &childname = comp->Data();
+              if (nextstring == childname)
               {
-                success = true;
+                parent = child;
+                foundChild = true;
+                if (i+1 == frustumURIVec.size()-1)
+                {
+                  success = true;
+                }
+                break;
               }
-              break;
+            }
+            if (!foundChild)
+            {
+              gzerr << "The entity could not be found."
+              << "Error displaying frustum visual" << std::endl;
+              return;
             }
           }
-          if (!foundChild)
+          if (success)
           {
-            gzerr << "The entity could not be found."
-                  << "Error displaying frustum visual" << std::endl;
-            return;
+            this->dataPtr->frustumEntity = parent;
+            this->dataPtr->frustumEntityDirty = false;
           }
-        }
-        if (success)
-        {
-          this->dataPtr->frustumEntity = parent;
-          this->dataPtr->frustumEntityDirty = false;
         }
       }
     }
@@ -428,7 +536,8 @@ void VisualizeFrustum::DisplayVisual(bool _value)
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   if (this->dataPtr->frustum)
   {
-    this->dataPtr->frustum->SetVisible(_value);
+    this->dataPtr->displayVisual = _value;
+    this->dataPtr->displayVisualDirty = true;
     gzdbg << "Frustum Visual Display " << (_value ? "ON." : "OFF.")
           << std::endl;
   }
