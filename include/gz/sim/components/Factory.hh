@@ -459,15 +459,6 @@ namespace components
 }
 }
 
-namespace entt {
-template<typename Type>
-struct type_hash<Type, std::void_t<decltype(Type::typeId)>> {
-  static constexpr ENTT_ID_TYPE value() noexcept {
-      return Type::typeId;
-  }
-};
-}
-
 /// \brief Static component registration macro.
 ///
 /// Use this macro to register components.
