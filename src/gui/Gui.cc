@@ -222,7 +222,8 @@ std::unique_ptr<gz::gui::Application> createGui(
   }
 
   // check for wayland and force to use X for rendering
-  if (QString::fromLocal8Bit(qgetenv("XDG_SESSION_TYPE")) == "wayland")
+  if (QString::fromLocal8Bit(qgetenv("XDG_SESSION_TYPE")) == "wayland" ||
+      !QString::fromLocal8Bit(qgetenv("WAYLAND_DISPLAY")).isEmpty())
   {
     if (QString::fromLocal8Bit(qgetenv("QT_QPA_PLATFORM")).isEmpty())
     {

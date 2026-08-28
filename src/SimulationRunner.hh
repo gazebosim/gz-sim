@@ -167,6 +167,10 @@ namespace gz
       /// \return True if the server is running.
       public: bool Running() const;
 
+      /// \brief Get whether parallel PostUpdate is enabled.
+      /// \return True if parallel PostUpdate is enabled, false otherwise.
+      public: bool ParallelPostUpdates() const;
+
       /// \brief Get whether the runner has received a stop event
       /// \return True if the event has been received.
       public: bool StopReceived() const;
@@ -371,6 +375,12 @@ namespace gz
       /// \brief Set the next step to be blocking and paused.
       public: void SetNextStepAsBlockingPaused(const bool value);
 
+      /// \brief Reset the current simulation runner
+      /// \param[in] _all Reset all parameters
+      /// \param[in] _time Reset the time
+      /// \param[in] _model Reset the model only [currently unsupported]
+      public: void Reset(const bool _all, const bool _time, const bool _model);
+
       /// \brief Updates the physics parameters of the simulation based on the
       /// Physics component of the world, if any.
       public: void UpdatePhysicsParams();
@@ -549,6 +559,9 @@ namespace gz
       /// initialization and should exit immediately. See
       /// `SetExitedWithErrors()`.
       private: bool exitedWithErrors{false};
+
+      /// \brief Whether parallel PostUpdate is enabled.
+      private: bool parallelPostUpdates{true};
 #ifdef _WIN32
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;

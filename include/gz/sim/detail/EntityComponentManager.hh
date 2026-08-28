@@ -264,9 +264,9 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view->Entities())
+  for (const auto &child : children)
   {
-    if (children.find(entity) == children.end())
+    if (view->Entities().find(child.first) == view->Entities().end())
     {
       continue;
     }
@@ -278,7 +278,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
     {
       auto entityComponent = this->Component<
           std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
+              decltype(_desiredComponent)>>>(child.first);
 
       if (*entityComponent != _desiredComponent)
       {
@@ -288,7 +288,7 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
     if (!different)
     {
-      result.push_back(entity);
+      result.push_back(child.first);
     }
   }
 
