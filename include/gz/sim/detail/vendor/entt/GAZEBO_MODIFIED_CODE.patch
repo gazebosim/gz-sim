@@ -1,0 +1,12 @@
+diff --git b/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp a/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
+index 6ee54c304..29621fba1 100644
+--- b/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
++++ a/include/gz/sim/detail/vendor/entt/entity/snapshot.hpp
+@@ -9,6 +9,7 @@
+ #include <vector>
+ #include "../config/config.h"
+ #include "../container/dense_map.hpp"
++#include "../core/type_info.hpp"
+ #include "../core/type_traits.hpp"
+ #include "entity.hpp"
+ #include "fwd.hpp"

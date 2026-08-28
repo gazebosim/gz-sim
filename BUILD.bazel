@@ -81,6 +81,8 @@ gz_proto_library(
 public_headers_no_gen = glob(
     [
         "include/gz/sim/*.hh",
+        "include/gz/sim/detail/vendor/entt/**/*.hpp",
+        "include/gz/sim/detail/vendor/entt/**/*.h",
         "include/gz/sim/comms/*.hh",
         "include/gz/sim/components/*.hh",
         "include/gz/sim/detail/*.hh",
@@ -1601,6 +1603,7 @@ gz_sim_system_libraries(
         "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
