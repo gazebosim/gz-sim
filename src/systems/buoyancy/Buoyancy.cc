@@ -159,6 +159,10 @@ class gz::sim::systems::BuoyancyPrivate
 
   /// \brief Volumes to be added on the next.
   public: std::unordered_map<Entity, double> volumes;
+
+  /// \brief Force a one-time full rescan after reset because reset does not
+  /// mark restored entities as "new".
+  public: bool rescanEntities {false};
 };
 
 //////////////////////////////////////////////////
@@ -176,10 +180,17 @@ void BuoyancyPrivate::GradedFluidDensity(
   auto prevLayerVol = 0.0;
   auto centerOfBuoyancy = math::Vector3d{0, 0, 0};
 
+  // Express the fluid interface plane (world z = height) in the shape frame,
+  // where VolumeBelow evaluates. A shape frame point x lies on it when
+  // (p + R x) . z = height, i.e. x . (R^T z) = height - p.Z(): rotated
+  // normal, unchanged offset. An axis aligned plane here erases the
+  // restoring moment of inclined hulls.
+  const math::Vector3d planeNormal =
+      _pose.Rot().RotateVectorReverse(math::Vector3d::UnitZ);
+
   for (const auto &[height, currFluidDensity] : this->layers)
   {
-    // TODO(arjo): Transform plane and slice the shape
-    math::Planed plane{math::Vector3d{0, 0, 1}, height - _pose.Pos().Z()};
+    math::Planed plane{planeNormal, height - _pose.Pos().Z()};
     auto vol = _shape.VolumeBelow(plane);
 
     // Short circuit.
@@ -235,8 +246,10 @@ void BuoyancyPrivate::GradedFluidDensity(
   // Archimedes principle for this layer
   auto forceMag = - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
-  // Calculate centre of buoyancy
-  auto cov = math::Vector3d{0, 0, 0};
+  // Calculate centre of buoyancy. The remaining volume is the whole shape
+  // minus the accumulated layers, so its centroid is the shape centroid:
+  // the origin only for symmetric shapes, (0, 0, -length/4) for a cone.
+  auto cov = _shape.Centroid();
   auto cob =
     (cov * vol - centerOfBuoyancy * prevLayerVol) / (vol - prevLayerVol);
   centerOfBuoyancy = cov;
@@ -279,8 +292,7 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
 //////////////////////////////////////////////////
 void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 {
-  // Compute the volume and center of volume for each new link
-  _ecm.EachNew<components::Link, components::Inertial>(
+  auto checkEntity =
       [&](const Entity &_entity,
           const components::Link *,
           const components::Inertial *) -> bool
@@ -313,6 +325,10 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
     for (const Entity &collision : collisions)
     {
       double volume = 0;
+      // Centroid of the collision geometry, in the collision frame. Zero
+      // for the shapes whose reference frame sits at the geometric center;
+      // a cone or a mesh carries its own offset.
+      math::Vector3d centroid = math::Vector3d::Zero;
       const components::CollisionElement *coll =
         _ecm.Component<components::CollisionElement>(collision);
 
@@ -341,6 +357,7 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
           break;
         case sdf::GeometryType::CONE:
           volume = coll->Data().Geom()->ConeShape()->Shape().Volume();
+          centroid = coll->Data().Geom()->ConeShape()->Shape().Centroid();
           break;
         case sdf::GeometryType::PLANE:
           // Ignore plane shapes. They have no volume and are not expected
@@ -356,7 +373,14 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
               const common::Mesh *mesh =
                 common::MeshManager::Instance()->Load(file);
               if (mesh)
-                volume = mesh->Volume();
+              {
+                // The SDF <scale> scales volume by its product and the
+                // centroid componentwise.
+                const math::Vector3d scale =
+                  coll->Data().Geom()->MeshShape()->Scale();
+                volume = mesh->Volume() * scale.X() * scale.Y() * scale.Z();
+                centroid = mesh->Centroid() * scale;
+              }
               else
                 gzerr << "Unable to load mesh[" << file << "]\n";
             }
@@ -374,7 +398,10 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 
       volumeSum += volume;
       auto poseInLink = _ecm.Component<components::Pose>(collision)->Data();
-      weightedPosInLinkSum += volume * poseInLink.Pos();
+      // The buoyant force acts at the geometry centroid, which the
+      // collision pose places and orients within the link.
+      weightedPosInLinkSum +=
+        volume * (poseInLink.Pos() + poseInLink.Rot().RotateVector(centroid));
     }
 
     if (volumeSum > 0)
@@ -386,7 +413,19 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
     }
 
     return true;
-  });
+  };
+
+  // Reset restores existing entities without making them "new", so buoyancy
+  // needs one full pass to restore Volume / CenterOfVolume components.
+  if (this->rescanEntities)
+  {
+    _ecm.Each<components::Link, components::Inertial>(checkEntity);
+    this->rescanEntities = false;
+  }
+  else
+  {
+    _ecm.EachNew<components::Link, components::Inertial>(checkEntity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -688,6 +727,16 @@ void Buoyancy::PostUpdate(
 }
 
 //////////////////////////////////////////////////
+void Buoyancy::Reset(const UpdateInfo &,
+    EntityComponentManager &)
+{
+  this->dataPtr->centerOfVolumes.clear();
+  this->dataPtr->volumes.clear();
+  this->dataPtr->buoyancyForces.clear();
+  this->dataPtr->rescanEntities = true;
+}
+
+//////////////////////////////////////////////////
 bool Buoyancy::IsEnabled(Entity _entity,
     const EntityComponentManager &_ecm) const
 {
@@ -698,7 +747,8 @@ GZ_ADD_PLUGIN(Buoyancy,
                     System,
                     Buoyancy::ISystemConfigure,
                     Buoyancy::ISystemPreUpdate,
-                    Buoyancy::ISystemPostUpdate)
+                    Buoyancy::ISystemPostUpdate,
+                    Buoyancy::ISystemReset)
 
 GZ_ADD_PLUGIN_ALIAS(Buoyancy,
                           "gz::sim::systems::Buoyancy")

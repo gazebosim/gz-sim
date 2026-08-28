@@ -58,7 +58,7 @@ joint.
 as the child link in the detachable joint.
 
 * `topic` (optional): Topic name to be used for detaching connections. Using
-<detach_topic> is preferred. If empty, a default topic will be created with a
+`<detach_topic>` is preferred. If empty, a default topic will be created with a
 pattern `/model/<model_name>/detachable_joint/detach`.
 
 * `detach_topic` (optional): Topic name to be used for detaching connections.

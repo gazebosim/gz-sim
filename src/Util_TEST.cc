@@ -27,6 +27,7 @@
 
 #include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <gz/utils/SuppressWarning.hh>
 
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Collision.hh"
@@ -35,6 +36,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Projector.hh"
@@ -240,6 +242,73 @@ TEST_F(UtilTest, ScopedName)
 }
 
 /////////////////////////////////////////////////
+TEST_F(UtilTest, ScopedNamespace)
+{
+  EntityComponentManager ecm;
+
+  // model1
+  // model2
+  //  - modelA
+  //    - modelAA
+  //      - modelAAA
+  //  - modelB
+  //    - modelBA
+  //  - modelC
+  //    - modelCA
+  //    - modelCB
+
+  auto model1Entity = ecm.CreateEntity();
+
+  auto model2Entity = ecm.CreateEntity();
+  ecm.CreateComponent(model2Entity, components::Namespace("model_2_ns/"));
+
+  auto modelAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAEntity, components::Namespace("model_a_ns"));
+  ecm.CreateComponent(modelAEntity, components::ParentEntity(model2Entity));
+
+  auto modelAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAAEntity, components::Namespace("/model_aa_ns/"));
+  ecm.CreateComponent(modelAAEntity, components::ParentEntity(modelAEntity));
+
+  auto modelAAAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelAAAEntity, components::Namespace("model_aaa_ns"));
+  ecm.CreateComponent(modelAAAEntity, components::ParentEntity(modelAAEntity));
+
+  auto modelBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBEntity, components::Namespace(""));
+  ecm.CreateComponent(modelBEntity, components::ParentEntity(model2Entity));
+
+  auto modelBAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelBAEntity, components::Namespace("model_ba_ns"));
+  ecm.CreateComponent(modelBAEntity, components::ParentEntity(modelBEntity));
+
+  auto modelCEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCEntity, components::Namespace("//model_c_ns//"));
+  ecm.CreateComponent(modelCEntity, components::ParentEntity(model2Entity));
+
+  auto modelCAEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCAEntity, components::Namespace("///"));
+  ecm.CreateComponent(modelCAEntity, components::ParentEntity(modelCEntity));
+
+  auto modelCBEntity = ecm.CreateEntity();
+  ecm.CreateComponent(modelCBEntity, components::Namespace("/"));
+  ecm.CreateComponent(modelCBEntity, components::ParentEntity(modelCEntity));
+
+  EXPECT_EQ("", scopedNamespace(ecm, model1Entity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, model2Entity));
+  EXPECT_EQ("model_2_ns/model_a_ns", scopedNamespace(ecm, modelAEntity));
+  EXPECT_EQ("/model_aa_ns", scopedNamespace(ecm, modelAAEntity));
+  EXPECT_EQ("/model_aa_ns/model_aaa_ns", scopedNamespace(ecm, modelAAAEntity));
+  EXPECT_EQ("model_2_ns", scopedNamespace(ecm, modelBEntity));
+  EXPECT_EQ("model_2_ns/model_ba_ns", scopedNamespace(ecm, modelBAEntity));
+  EXPECT_EQ("/model_c_ns", scopedNamespace(ecm, modelCEntity));
+  EXPECT_EQ("/", scopedNamespace(ecm, modelCAEntity));
+  EXPECT_EQ("/", scopedNamespace(ecm, modelCBEntity));
+
+  EXPECT_TRUE(scopedNamespace(ecm, kNullEntity).empty());
+}
+
+/////////////////////////////////////////////////
 TEST_F(UtilTest, EntitiesFromScopedName)
 {
   EntityComponentManager ecm;
@@ -376,54 +445,71 @@ TEST_F(UtilTest, EntityTypeId)
 /////////////////////////////////////////////////
 TEST_F(UtilTest, EntityTypeStr)
 {
+  // EntityTypeStr is deprecated, suppress once for the whole test
+  GZ_UTILS_WARN_IGNORE__DEPRECATED_DECLARATION
+
   EntityComponentManager ecm;
 
   auto entity = ecm.CreateEntity();
+  EXPECT_TRUE(entityTypeStrView(entity, ecm).empty());
   EXPECT_TRUE(entityTypeStr(entity, ecm).empty());
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::World());
+  EXPECT_EQ("world", entityTypeStrView(entity, ecm));
   EXPECT_EQ("world", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Model());
+  EXPECT_EQ("model", entityTypeStrView(entity, ecm));
   EXPECT_EQ("model", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Light());
+  EXPECT_EQ("light", entityTypeStrView(entity, ecm));
   EXPECT_EQ("light", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Link());
+  EXPECT_EQ("link", entityTypeStrView(entity, ecm));
   EXPECT_EQ("link", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Visual());
+  EXPECT_EQ("visual", entityTypeStrView(entity, ecm));
   EXPECT_EQ("visual", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Collision());
+  EXPECT_EQ("collision", entityTypeStrView(entity, ecm));
   EXPECT_EQ("collision", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Joint());
+  EXPECT_EQ("joint", entityTypeStrView(entity, ecm));
   EXPECT_EQ("joint", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Sensor());
+  EXPECT_EQ("sensor", entityTypeStrView(entity, ecm));
   EXPECT_EQ("sensor", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
+  EXPECT_EQ("actor", entityTypeStrView(entity, ecm));
   EXPECT_EQ("actor", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ("particle_emitter", entityTypeStrView(entity, ecm));
   EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ("projector", entityTypeStrView(entity, ecm));
   EXPECT_EQ("projector", entityTypeStr(entity, ecm));
+
+  GZ_UTILS_WARN_RESUME__DEPRECATED_DECLARATION
 }
 
 /////////////////////////////////////////////////

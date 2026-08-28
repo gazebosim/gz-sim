@@ -46,10 +46,10 @@
 
 #include "gz/sim/Link.hh"
 
-class gz::sim::LinkPrivate
+class gz::sim::Link::Implementation
 {
   /// \brief Id of link entity.
-  public: Entity id{kNullEntity};
+  public: sim::Entity id{kNullEntity};
 };
 
 using namespace gz;
@@ -57,32 +57,10 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 Link::Link(sim::Entity _entity)
-  : dataPtr(std::make_unique<LinkPrivate>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
-
-/////////////////////////////////////////////////
-Link::Link(const Link &_link)
-  : dataPtr(std::make_unique<LinkPrivate>(*_link.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-Link::Link(Link &&_link) noexcept = default;
-
-//////////////////////////////////////////////////
-Link::~Link() = default;
-
-/////////////////////////////////////////////////
-Link &Link::operator=(const Link &_link)
-{
-  *this->dataPtr = (*_link.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-Link &Link::operator=(Link &&_link) noexcept = default;
 
 //////////////////////////////////////////////////
 Entity Link::Entity() const
@@ -324,38 +302,16 @@ void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
 void Link::SetLinearVelocity(EntityComponentManager &_ecm,
   const math::Vector3d &_vel) const
 {
-    auto vel =
-      _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->id);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->id,
-          components::LinearVelocityCmd(_vel));
-    }
-    else
-    {
-      vel->Data() = _vel;
-    }
+  _ecm.SetComponentData<components::LinearVelocityCmd>(
+      this->dataPtr->id, _vel);
 }
 
 //////////////////////////////////////////////////
 void Link::SetAngularVelocity(EntityComponentManager &_ecm,
   const math::Vector3d &_vel) const
 {
-    auto vel =
-      _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->id);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->id,
-          components::AngularVelocityCmd(_vel));
-    }
-    else
-    {
-      vel->Data() = _vel;
-    }
+  _ecm.SetComponentData<components::AngularVelocityCmd>(
+      this->dataPtr->id, _vel);
 }
 
 //////////////////////////////////////////////////
