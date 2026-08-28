@@ -18,9 +18,8 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
-#include <atomic>
 #include <chrono>
-#include <thread>
+#include <future>
 
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
@@ -1760,30 +1759,24 @@ TEST_P(SimulationRunnerTest, StopBeforeRun)
   // run thread's startup.
   runner.Stop();
 
-  std::atomic<bool> returned{false};
-  std::atomic<bool> runResult{true};
-  std::thread runThread([&]()
+  // Run indefinitely on another thread: with the stop request lost this
+  // never returns, so bound the wait instead of hanging until the CTest
+  // timeout.
+  auto run = std::async(std::launch::async, [&runner]()
   {
-    // Run indefinitely: with the stop request lost this never returns.
-    runResult = runner.Run(0);
-    returned = true;
+    return runner.Run(0);
   });
-
-  // Bound the wait at 10s so a regression fails fast instead of hanging.
-  for (int sleep = 0; sleep < 100 && !returned; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  EXPECT_TRUE(returned);
+  const bool returned =
+    run.wait_for(std::chrono::seconds(10)) == std::future_status::ready;
+  EXPECT_TRUE(returned) << "Run() did not return: the stop request was lost";
 
   // On regression the runner is spinning in the run loop; a second stop lets
-  // it exit so join() returns and the test fails instead of hanging.
+  // it exit so the future's destructor can join the thread.
   if (!returned)
     runner.Stop();
-  runThread.join();
 
   // The stop must prevent any stepping and be reported as failure.
-  EXPECT_FALSE(runResult);
+  EXPECT_FALSE(run.get());
   EXPECT_FALSE(runner.Running());
   EXPECT_TRUE(runner.StopReceived());
   EXPECT_EQ(0u, runner.IterationCount());

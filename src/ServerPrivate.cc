@@ -152,21 +152,19 @@ void ServerPrivate::Stop()
 }
 
 /////////////////////////////////////////////////
-bool ServerPrivate::Run(const uint64_t _iterations,
-    std::optional<std::condition_variable *> _cond)
+bool ServerPrivate::Run(const uint64_t _iterations)
 {
-  // Return early if we've received a signal right before.
-  // The ServerPrivate signal handler would set `running=false`,
-  // but we immediately would set it to true here, which will essentially ignore
-  // the signal. Since we can't reliably use the `running` variable, we return
-  // if `signalReceived` is true
+  std::unique_lock<std::mutex> startLock(this->runMutex);
+
+  // Return early if we've received a signal right before. Clear `running`,
+  // which a non-blocking Server::Run publishes ahead of this thread.
   if (this->signalReceived)
+  {
+    this->running = false;
     return false;
-  this->runMutex.lock();
+  }
   this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
+  startLock.unlock();
 
   bool result = true;
 
