@@ -195,10 +195,8 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
-    // Publish the run state from this thread rather than waiting for the run
-    // thread to do it. `running` is a level, not an edge: a short run could
-    // start and finish, clearing it again, before a waiter here ever
-    // observed it, which left Server::Run waiting forever (issue #3829).
+    // Set `running` here instead of waiting for the run thread: a short run
+    // could finish and clear it before the wait ever saw it (issue #3829).
     this->dataPtr->running = true;
     this->dataPtr->runThread =
       std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);

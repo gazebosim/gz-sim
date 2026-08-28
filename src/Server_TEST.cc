@@ -604,12 +604,10 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingThenDestroy)
 {
-  // Regression test for https://github.com/gazebosim/gz-sim/issues/3829:
-  // destroying a Server right after a non-blocking Run() emits the stop
-  // request while the run thread may still be starting up. With that stop
-  // lost the run loop never terminates and the destructor blocks forever
-  // joining the run thread. This is the exact shape of the flaky teardown
-  // timeouts in this file, so it is repeated to widen the race window.
+  // Destroying a Server right after a non-blocking Run() sends the stop while
+  // the run thread may still be starting. If that stop is lost the destructor
+  // blocks forever joining the thread (issue #3829). Repeated to widen the
+  // race window.
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
       "test", "worlds", "shapes.sdf"));
@@ -624,11 +622,8 @@ TEST_P(ServerFixture, RunNonBlockingThenDestroy)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
 {
-  // A blocking Run() goes through ServerPrivate::Run without ever creating the
-  // run thread. Any state left behind by that call must not be mistaken by the
-  // next non-blocking Run() for its own run thread having started, or the wait
-  // below returns immediately and the caller races the run thread it just
-  // spawned. Server::Run creates the startup handshake fresh for each spawn.
+  // A blocking Run() never creates the run thread. State it leaves behind
+  // must not confuse the next non-blocking Run() on the same Server.
   sim::Server server;
   server.SetUpdatePeriod(1ns);
 
@@ -637,8 +632,7 @@ TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
   EXPECT_EQ(1u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
 
-  // Now a non-blocking run on the same Server. The wait must actually block
-  // until this run thread has started.
+  // Now a non-blocking run on the same Server.
   EXPECT_TRUE(server.Run(false, 1, false));
 
   int sleep = 0;
@@ -655,18 +649,13 @@ TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
 /////////////////////////////////////////////////
 TEST_P(ServerFixture, RunAfterSignal)
 {
-  // A signal delivered before Run() aborts the run: ServerPrivate::Run returns
-  // early without stepping anything. Before the fix behind #3829 that early
-  // return never released the startup handshake, so the non-blocking
-  // Server::Run below waited forever. It must now return, and must report the
-  // failure rather than claiming a run was started.
+  // A signal before Run() aborts the run. The non-blocking Run() below used
+  // to hang forever (issue #3829); it must return and report failure.
   sim::Server server;
   server.SetUpdatePeriod(1ns);
 
-  // gz-common dispatches signals on its own thread, invoking the registered
-  // handlers in registration order. A handler registered after the Server's is
-  // therefore invoked once the Server has finished processing the signal, so
-  // waiting on it beats guessing at a sleep.
+  // Signal handlers run in registration order on the gz-common signal thread,
+  // so a handler registered after the Server's runs once the Server is done.
   std::atomic<bool> signalHandled{false};
   common::SignalHandler testHandler;
   ASSERT_TRUE(testHandler.Initialized());
@@ -684,7 +673,7 @@ TEST_P(ServerFixture, RunAfterSignal)
   }
   ASSERT_TRUE(signalHandled) << "the signal was never dispatched";
 
-  // Neither form of Run may claim success, and neither may step the world.
+  // Neither form of Run may succeed or step the world.
   EXPECT_FALSE(server.Run(false, 1, false));
   EXPECT_FALSE(server.Run(true, 1, false));
 

@@ -840,10 +840,8 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
-  // A stop request may arrive while this thread is still starting up, e.g.
-  // the Server being destroyed right after a non-blocking Run(). Only an
-  // IDLE runner may transition to RUNNING, so such a stop is never
-  // overwritten (issues #2609 and #3829).
+  // A stop may have arrived while this thread was starting up, e.g. the
+  // Server being destroyed right after a non-blocking Run() (issue #3829).
   if (!this->runState.TryStart())
   {
     gzdbg << "SimulationRunner::Run: a stop request arrived before the run "

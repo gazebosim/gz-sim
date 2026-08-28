@@ -1759,9 +1759,8 @@ TEST_P(SimulationRunnerTest, StopBeforeRun)
   // run thread's startup.
   runner.Stop();
 
-  // Run indefinitely on another thread: with the stop request lost this
-  // never returns, so bound the wait instead of hanging until the CTest
-  // timeout.
+  // Run on another thread with a bounded wait: with the stop lost this
+  // would never return.
   auto run = std::async(std::launch::async, [&runner]()
   {
     return runner.Run(0);
@@ -1770,8 +1769,7 @@ TEST_P(SimulationRunnerTest, StopBeforeRun)
     run.wait_for(std::chrono::seconds(10)) == std::future_status::ready;
   EXPECT_TRUE(returned) << "Run() did not return: the stop request was lost";
 
-  // On regression the runner is spinning in the run loop; a second stop lets
-  // it exit so the future's destructor can join the thread.
+  // On regression a second stop lets the run loop exit so the thread joins.
   if (!returned)
     runner.Stop();
 

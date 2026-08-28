@@ -156,8 +156,8 @@ bool ServerPrivate::Run(const uint64_t _iterations)
 {
   std::unique_lock<std::mutex> startLock(this->runMutex);
 
-  // Return early if we've received a signal right before. Clear `running`,
-  // which a non-blocking Server::Run publishes ahead of this thread.
+  // A signal arrived before the run started. Clear `running`, which a
+  // non-blocking Server::Run has already set.
   if (this->signalReceived)
   {
     this->running = false;

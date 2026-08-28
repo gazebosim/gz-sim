@@ -181,9 +181,7 @@ namespace gz
       public: std::mutex runMutex;
 
       /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state. This is a level, not an edge: it is false
-      /// again once a run completes, so it must not be used to observe that a
-      /// run has started.
+      /// server is in the run state. It is cleared again when the run ends.
       public: std::atomic<bool> running{false};
 
       /// \brief Thread that executes systems.
