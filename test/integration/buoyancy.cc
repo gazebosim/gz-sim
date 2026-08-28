@@ -18,6 +18,8 @@
 #include <gtest/gtest.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
 #include <gz/common/Util.hh>
 #include <gz/utilities/ExtraTestMacros.hh>
 
@@ -161,6 +163,56 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 }
 
 /////////////////////////////////////////////////
+/////////////////////////////////////////////////
+// A surface piercing vessel with positive metacentric height must right
+// itself. Only a surface piercing case exercises the interface plane
+// orientation: with the plane fixed to the shape frame axes the buoyancy
+// centroid rotates rigidly with the hull and the vessel capsizes.
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(SurfaceRighting))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_surface_righting.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  std::vector<math::Pose3d> poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
+  {
+    Entity vessel = _ecm.EntityByComponents(
+      components::Model(), components::Name("box_vessel"));
+    auto pose = _ecm.Component<components::Pose>(vessel);
+    ASSERT_NE(pose, nullptr);
+    poses.push_back(pose->Data());
+  });
+
+  Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+
+  // Several natural roll periods (about 1.4 s each).
+  const std::size_t iterations{4000};
+  server.Run(true, iterations, false);
+  ASSERT_EQ(poses.size(), iterations);
+
+  const double initialRoll{0.3};
+  double minRoll{initialRoll}, maxAbsRoll{0.0};
+  for (const auto &pose : poses)
+  {
+    const double roll = pose.Rot().Euler().X();
+    minRoll = std::min(minRoll, roll);
+    maxAbsRoll = std::max(maxAbsRoll, std::abs(roll));
+
+    // A capsizing vessel passes this bound within the first second.
+    EXPECT_LT(std::abs(roll), initialRoll + 0.15);
+    EXPECT_NEAR(pose.Pos().Z(), 0.0, 0.25);
+  }
+
+  // The moment must drive the roll through upright, not hold the heel.
+  EXPECT_LT(minRoll, 0.0);
+  EXPECT_GT(maxAbsRoll, 0.05);
+}
+
 // See https://github.com/ignitionrobotics/ign-gazebo/issues/1175
 TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
@@ -262,10 +314,19 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
       components::Name("link"),
       components::Link());
 
-    // Check the duck volume and center of volume
+    // Check the duck volume and center of volume. The expected volume is
+    // computed from the collider mesh rather than baked in, so the test
+    // tracks gz-common's mesh volume instead of regressing every time that
+    // computation improves (gazebosim/gz-common#877 changed it for meshes
+    // that are not star shaped about the origin).
+    const common::Mesh *duckMesh = common::MeshManager::Instance()->Load(
+        common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "media", "duck_collider.dae"));
+    ASSERT_NE(nullptr, duckMesh);
+    const double expectedDuckVolume = duckMesh->Volume();
     auto duckVolume = _ecm.Component<components::Volume>(duckLink);
     ASSERT_NE(duckVolume, nullptr);
-    EXPECT_NEAR(1.40186, duckVolume->Data(), 1e-3);
+    EXPECT_NEAR(expectedDuckVolume, duckVolume->Data(), 1e-6);
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
@@ -305,7 +366,15 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     {
       EXPECT_NEAR(-1.64, submarineSinkingPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
-      EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      // Drag free rise under constant net buoyancy, symplectic Euler:
+      // z_N = a dt^2 N(N+1)/2 with a = g (rho V / m - 1). The same formula
+      // reproduces the previous baked expectation of 171.4 m for the
+      // previous mesh volume of 1.40186 m^3.
+      const double duckAccel =
+          9.8 * (1000 * expectedDuckVolume / 39.0 - 1.0);
+      const double expectedDuckZ = duckAccel * 1e-6 *
+          static_cast<double>(_info.iterations) * (_info.iterations + 1) / 2;
+      EXPECT_NEAR(expectedDuckZ, duckPose->Data().Pos().Z(), 0.1);
       finished = true;
     }
   });

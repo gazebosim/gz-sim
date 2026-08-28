@@ -1,5 +1,52 @@
 ## Ignition Gazebo 6.x
 
+### Gazebo Sim 6.18.0 (2026-06-09)
+
+1. Suppress cmake warning about FetchContent_Populate
+    * [Pull request #3625](https://github.com/gazebosim/gz-sim/pull/3625)
+
+1. Fix ECM view update when component is added, then removed before the view is queried
+    * [Pull request #3607](https://github.com/gazebosim/gz-sim/pull/3607)
+
+1. Fix compiler warnings with protobuf 35.0
+    * [Pull request #3604](https://github.com/gazebosim/gz-sim/pull/3604)
+
+1. ModelCommandAPI_TEST: skip failing check on arm64
+    * [Pull request #3603](https://github.com/gazebosim/gz-sim/pull/3603)
+
+1. Add extensive benchmarking for ECM
+    * [Pull request #3476](https://github.com/gazebosim/gz-sim/pull/3476)
+
+1. Delete python/src/gz/sim/Joint.cc
+    * [Pull request #3539](https://github.com/gazebosim/gz-sim/pull/3539)
+
+1. Add getters for joint velocity, effort, and position limits
+    * [Pull request #3537](https://github.com/gazebosim/gz-sim/pull/3537)
+
+1. Fix potential iterator invalidation in EntityTree
+    * [Pull request #3518](https://github.com/gazebosim/gz-sim/pull/3518)
+
+1. Add cylinder, capsule and ellipsoid support to graded buoyancy
+    * [Pull request #3423](https://github.com/gazebosim/gz-sim/pull/3423)
+
+1. Hydrodynamic updates
+    * [Pull request #3456](https://github.com/gazebosim/gz-sim/pull/3456)
+
+1. docs: fix selected Doxygen warnings in docs build
+    * [Pull request #3451](https://github.com/gazebosim/gz-sim/pull/3451)
+
+1. Fix graded buoyancy SDF parsing and division by zero
+    * [Pull request #3422](https://github.com/gazebosim/gz-sim/pull/3422)
+
+1. Added explicit find package for TINYXML to CMakelist at root
+    * [Pull request #3379](https://github.com/gazebosim/gz-sim/pull/3379)
+
+1. Fix unused-result warnings
+    * [Pull request #3382](https://github.com/gazebosim/gz-sim/pull/3382)
+
+1. Added missing gz::sim system aliases.
+    * [Pull request #3369](https://github.com/gazebosim/gz-sim/pull/3369)
+
 ### Gazebo Sim 6.17.1 (2026-02-12)
 
 1. Improve RTF Stability and Precision
