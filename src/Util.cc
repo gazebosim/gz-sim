@@ -139,8 +139,10 @@ std::string scopedName(const Entity &_entity,
     const EntityComponentManager &_ecm, const std::string &_delim,
     bool _includePrefix)
 {
-  std::string result;
-
+  std::vector<std::string_view> parts;
+  // Pre-allocate 10 entries, a sensible default that will prevent reallocation
+  // without occupying significant memory (string view is just a pointer + size)
+  parts.reserve(10);
   auto entity = _entity;
 
   while (true)
@@ -149,10 +151,10 @@ std::string scopedName(const Entity &_entity,
     auto nameComp = _ecm.Component<components::Name>(entity);
     if (nullptr == nameComp)
       break;
-    auto name = nameComp->Data();
+    const auto &name = nameComp->Data();
 
     // Get entity type
-    std::string prefix = entityTypeStr(entity, _ecm);
+    std::string_view prefix = entityTypeStrView(entity, _ecm);
     if (prefix.empty())
     {
       gzwarn << "Skipping entity [" << name
@@ -163,21 +165,38 @@ std::string scopedName(const Entity &_entity,
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
     if (!prefix.empty())
     {
-      result.insert(0, name);
+      parts.push_back(name);
       if (_includePrefix)
       {
-        result.insert(0, _delim);
-        result.insert(0, prefix);
+        parts.push_back(prefix);
       }
     }
 
     if (nullptr == parentComp)
       break;
 
-    if (!prefix.empty())
-      result.insert(0, _delim);
-
     entity = parentComp->Data();
+  }
+
+  if (parts.empty())
+    return "";
+
+  std::string result;
+  size_t totalSize = 0;
+  for (const auto &part : parts)
+  {
+    totalSize += part.size();
+  }
+  totalSize += (parts.size() - 1) * _delim.size();
+  result.reserve(totalSize);
+
+  for (auto it = parts.rbegin(); it != parts.rend(); ++it)
+  {
+    if (it != parts.rbegin())
+    {
+      result += _delim;
+    }
+    result += *it;
   }
 
   return result;
@@ -295,11 +314,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   return type;
 }
 
-//////////////////////////////////////////////////
-std::string entityTypeStr(const Entity &_entity,
+std::string_view entityTypeStrView(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
-  std::string type;
+  std::string_view type;
 
   if (_ecm.Component<components::World>(_entity))
   {
@@ -347,6 +365,13 @@ std::string entityTypeStr(const Entity &_entity,
   }
 
   return type;
+}
+
+//////////////////////////////////////////////////
+std::string entityTypeStr(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  return std::string(entityTypeStrView(_entity, _ecm));
 }
 
 //////////////////////////////////////////////////

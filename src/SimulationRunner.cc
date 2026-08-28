@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -216,6 +217,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
     std::chrono::duration<double>{_config.InitialSimTime()}
   );
   this->currentInfo.simTime = this->simTimeEpoch;
+
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
 
 #ifdef _WIN32
   HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
@@ -434,19 +451,22 @@ void SimulationRunner::UpdatePhysicsParams()
   }
   const auto& physicsParams = physicsCmdComp->Data();
 
-  auto gravityComp =
-    this->entityCompMgr.Component<components::Gravity>(worldEntity);
-  if (gravityComp)
+  if(physicsParams.has_gravity())
   {
-    const  gz::math::Vector3<double>  newGravity =
+    auto gravityComp =
+      this->entityCompMgr.Component<components::Gravity>(worldEntity);
+    if (gravityComp)
     {
-        physicsParams.gravity().x(),
-        physicsParams.gravity().y(),
-        physicsParams.gravity().z()
-    };
-    gravityComp->Data() = newGravity;
-    this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
-          ComponentState::OneTimeChange);
+      const  gz::math::Vector3<double>  newGravity =
+      {
+          physicsParams.gravity().x(),
+          physicsParams.gravity().y(),
+          physicsParams.gravity().z()
+      };
+      gravityComp->Data() = newGravity;
+      this->entityCompMgr.SetChanged(worldEntity, components::Gravity::typeId,
+            ComponentState::OneTimeChange);
+    }
   }
 
   auto physicsComp =
@@ -537,9 +557,16 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
   clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+
+  auto curTime = GZ_SYSTEM_TIME();
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+    curTime.time_since_epoch()).count();
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+    curTime.time_since_epoch()).count();
+  clockMsg.mutable_system()->set_sec(seconds);
   clockMsg.mutable_system()->set_nsec(
-      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+    ns - seconds * GZ_SEC_TO_NANO);
+
   this->clockPub.Publish(clockMsg);
 
   // Only publish to root topic if no others are.
@@ -585,6 +612,13 @@ void SimulationRunner::ProcessSystemQueue()
 
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
+
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
 
   // If additional systems are to be added or have been removed,
   // stop the existing threads.
@@ -673,16 +707,26 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    if (!this->parallelPostUpdates)
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
@@ -1186,6 +1230,12 @@ bool SimulationRunner::Running() const
 }
 
 /////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
+}
+
+/////////////////////////////////////////////////
 bool SimulationRunner::StopReceived() const
 {
   return this->stopReceived;
@@ -1428,6 +1478,10 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
 {
   GZ_PROFILE("SimulationRunner::ProcessRecreateEntitiesRemove");
 
+  if (!this->entityCompMgr.HasComponentType(components::Recreate::typeId))
+  {
+    return;
+  }
   // store the original entities to recreate and put in request to remove them
   this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
@@ -1732,4 +1786,18 @@ void SimulationRunner::CreateEntities(const sdf::World &_world)
   // In the future, support modifying GUI from the server at runtime.
   if (_world.Gui())
     this->guiMsg = convert<msgs::GUI>(*_world.Gui());
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::Reset(const bool _all,
+  const bool _time, const bool _model)
+{
+  WorldControl control;
+  std::lock_guard<std::mutex> lock(this->msgBufferMutex);
+  control.rewind = _all || _time;
+  if (_model)
+  {
+    gzwarn << "Model reset not supported" <<std::endl;
+  }
+  this->worldControls.push_back(control);
 }

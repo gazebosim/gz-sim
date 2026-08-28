@@ -320,7 +320,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     const std::string innerxml{"<verbose>0</verbose>"};
 
     // Get world entity
-    Entity worldEntity;
+    Entity worldEntity = kNullEntity;
     _ecm.Each<components::World, components::Name>(
       [&](const Entity &_entity,
         const components::World */*_world*/,
@@ -430,7 +430,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     }
   }
 
-  if (this->dataPtr->changedIndex)
+  if (this->dataPtr->changedIndex && this->dataPtr->linkIndex >= 0)
   {
     this->dataPtr->changedIndex = false;
 

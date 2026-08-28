@@ -145,6 +145,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \param[in] _data Frustum data
     private: void ApplyFrustumData(const FrustumData &_data);
 
+    /// \brief Recompute the marker line-list geometry for the frustum
+    private: void UpdateFrustumMarker();
+
     /// \internal
     /// \brief Pointer to private data
     private: std::unique_ptr<VisualizeFrustumPrivate> dataPtr;

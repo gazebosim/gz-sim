@@ -226,7 +226,12 @@ void EnvironmentVisualizationTool::ResizeCloud(
   }
   for (auto key : _data->frame.Keys())
   {
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+    this->floatFields[key].mutable_data()->resize(
+      numberOfPoints, std::nanf(""));
+#else
     this->floatFields[key].mutable_data()->Resize(
       numberOfPoints, std::nanf(""));
+#endif
   }
 }

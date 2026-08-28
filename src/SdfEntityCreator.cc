@@ -1247,8 +1247,7 @@ void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
         components::ParentEntity(_entity));
     for (const auto childEntity : childEntities)
     {
-      this->dataPtr->ecm->RemoveComponent<components::ParentEntity>(
-          childEntity);
+      this->dataPtr->ecm->SetParentEntity(childEntity, kNullEntity);
     }
   }
 
@@ -1261,6 +1260,4 @@ void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
   // TODO(louise) Figure out a way to avoid duplication while keeping all
   // state in components and also keeping a convenient graph in the ECM
   this->dataPtr->ecm->SetParentEntity(_child, _parent);
-  this->dataPtr->ecm->CreateComponent(_child,
-      components::ParentEntity(_parent));
 }

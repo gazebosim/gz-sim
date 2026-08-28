@@ -299,3 +299,34 @@ the background color is the default grey, instead of the blue color set on the
 GUI `GzScene` plugin.
 
 @image html files/server_config/camera_env.gif
+
+## Parallel PostUpdates
+
+By default, the `PostUpdate` phase of system plugins is executed in parallel
+using worker threads. This parallel execution is beneficial for worlds with a
+large number of plugins that perform heavy computational tasks during
+`PostUpdate`.
+
+However, in many typical simulations, most plugins perform trivial tasks on
+`PostUpdate`. In these scenarios, the overhead introduced by thread
+synchronization primitives can become a bottleneck and degrade simulation
+performance.
+
+To address this, you can configure `PostUpdate` functions to run sequentially
+instead of in parallel and see if it helps increase the Real Time Factor (RTF).
+This is done by setting the `<parallel_postupdates>` policy to `false`:
+
+```xml
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <gz:policies>
+      <parallel_postupdates>false</parallel_postupdates>
+    </gz:policies>
+
+    <!-- plugins and models... -->
+  </world>
+</sdf>
+```
+
+By default, this policy is set to `true`.

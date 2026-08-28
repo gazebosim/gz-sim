@@ -162,39 +162,34 @@ TEST_F(RecreateEntitiesFixture,
         modelCount++;
 
         EXPECT_EQ(worldEntity, _parent->Data());
-        if (modelCount == 1)
+        if (_name->Data() == "box")
         {
           EXPECT_EQ(gz::math::Pose3d(1, 2, 3, 0, 0, 1),
               _pose->Data());
-          EXPECT_EQ("box", _name->Data());
           boxModelEntity = _entity;
         }
-        else if (modelCount == 2)
+        else if (_name->Data() == "cylinder")
         {
           EXPECT_EQ(gz::math::Pose3d(-1, -2, -3, 0, 0, 1),
               _pose->Data());
-          EXPECT_EQ("cylinder", _name->Data());
           cylModelEntity = _entity;
         }
-        else if (modelCount == 3)
+        else if (_name->Data() == "sphere")
         {
           EXPECT_EQ(gz::math::Pose3d(0, 0, 0, 0, 0, 1),
               _pose->Data());
-          EXPECT_EQ("sphere", _name->Data());
           sphModelEntity = _entity;
         }
-        else if (modelCount == 4)
+        else if (_name->Data() == "capsule")
         {
           EXPECT_EQ(gz::math::Pose3d(-4, -5, -6, 0, 0, 1),
               _pose->Data());
-          EXPECT_EQ("capsule", _name->Data());
           capModelEntity = _entity;
         }
-        else if (modelCount == 5)
+        else if (_name->Data() == "ellipsoid")
         {
           EXPECT_EQ(gz::math::Pose3d(4, 5, 6, 0, 0, 1),
               _pose->Data());
-          EXPECT_EQ("ellipsoid", _name->Data());
           ellipModelEntity = _entity;
         }
         return true;
@@ -226,43 +221,38 @@ TEST_F(RecreateEntitiesFixture,
 
         linkCount++;
 
-        if (linkCount == 1)
+        if (_name->Data() == "box_link")
         {
           EXPECT_EQ(gz::math::Pose3d(0.1, 0.1, 0.1, 0, 0, 0),
               _pose->Data());
-          EXPECT_EQ("box_link", _name->Data());
           EXPECT_EQ(boxModelEntity, _parent->Data());
           boxLinkEntity = _entity;
         }
-        else if (linkCount == 2)
+        else if (_name->Data() == "cylinder_link")
         {
           EXPECT_EQ(gz::math::Pose3d(0.2, 0.2, 0.2, 0, 0, 0),
               _pose->Data());
-          EXPECT_EQ("cylinder_link", _name->Data());
           EXPECT_EQ(cylModelEntity, _parent->Data());
           cylLinkEntity = _entity;
         }
-        else if (linkCount == 3)
+        else if (_name->Data() == "sphere_link")
         {
           EXPECT_EQ(gz::math::Pose3d(0.3, 0.3, 0.3, 0, 0, 0),
               _pose->Data());
-          EXPECT_EQ("sphere_link", _name->Data());
           EXPECT_EQ(sphModelEntity, _parent->Data());
           sphLinkEntity = _entity;
         }
-        else if (linkCount == 4)
+        else if (_name->Data() == "capsule_link")
         {
           EXPECT_EQ(gz::math::Pose3d(0.5, 0.5, 0.5, 0, 0, 0),
               _pose->Data());
-          EXPECT_EQ("capsule_link", _name->Data());
           EXPECT_EQ(capModelEntity, _parent->Data());
           capLinkEntity = _entity;
         }
-        else if (linkCount == 5)
+        else if (_name->Data() == "ellipsoid_link")
         {
           EXPECT_EQ(gz::math::Pose3d(0.8, 0.8, 0.8, 0, 0, 0),
               _pose->Data());
-          EXPECT_EQ("ellipsoid_link", _name->Data());
           EXPECT_EQ(ellipModelEntity, _parent->Data());
           ellipLinkEntity = _entity;
         }
