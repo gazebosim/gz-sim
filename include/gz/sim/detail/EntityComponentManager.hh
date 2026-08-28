@@ -307,20 +307,11 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
     // Iterate over desired components, comparing each of them to the
     // equivalent component in the entity.
-<<<<<<< HEAD
-    bool different{false};
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-=======
-    const auto &componentVector = view->EntityComponentConstData(child.first);
+    const auto &componentVector = view->EntityComponentConstData(entity);
     bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
       componentVector,
       std::index_sequence_for<ComponentTypeTs...>{},
       _desiredComponents...);
->>>>>>> a5b6bcaa (Improve performance of `ECM::Entit(y|ies)ByComponents` and `ECM::ChildrenByComponents` (#3375))
 
     if (allEqual)
     {
