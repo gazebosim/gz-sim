@@ -350,7 +350,7 @@ TEST_F(ApplyLinkWrenchTestFixture,
         }
 
         // The component is created when the wrench is first applied to the
-        // link, and persists from then on.
+        // link, and persists from then on with the values cleared.
         if (impulseIterations3 > 0u)
         {
           EXPECT_NE(nullptr, wrenchComp3);
