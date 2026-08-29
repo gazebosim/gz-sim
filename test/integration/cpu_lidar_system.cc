@@ -243,8 +243,8 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  Subscription<msgs::LaserScan> sub;
   transport::Node node;
+  Subscription<msgs::LaserScan> sub;
   sub.Subscribe(node, "/test/cpu_lidar");
 
   std::thread serverThread([&]()
@@ -290,8 +290,8 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  Subscription<msgs::PointCloudPacked> sub;
   transport::Node node;
+  Subscription<msgs::PointCloudPacked> sub;
   sub.Subscribe(node, "/test/cpu_lidar/points");
 
   std::thread serverThread([&]()
