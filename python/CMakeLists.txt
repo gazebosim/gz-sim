@@ -81,6 +81,7 @@ if (BUILD_TESTING)
     link_TEST
     model_TEST
     sensor_TEST
+    server_TEST
     testFixture_TEST
     world_TEST
   )
