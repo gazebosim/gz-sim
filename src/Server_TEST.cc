@@ -1338,6 +1338,13 @@ TEST_P(ServerFixture, SdfErrorExit)
   // Check that server caught the error and is in EXITED state
   EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
 
+  // A server that exited with errors must not create entities or load
+  // system plugins.
+  ASSERT_NE(std::nullopt, server.EntityCount());
+  EXPECT_EQ(0u, *server.EntityCount());
+  ASSERT_NE(std::nullopt, server.SystemCount());
+  EXPECT_EQ(0u, *server.SystemCount());
+
   // Attempt to Run, expect failure
   EXPECT_FALSE(server.Run(true, 1, false));
 
