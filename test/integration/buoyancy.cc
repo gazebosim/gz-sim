@@ -17,7 +17,13 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+
 #include <gz/common/Console.hh>
+#include <gz/math/Helpers.hh>
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Util.hh>
@@ -314,24 +320,34 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
       components::Name("link"),
       components::Link());
 
-    // Check the duck volume and center of volume. The expected volume is
-    // computed from the collider mesh rather than baked in, so the test
-    // tracks gz-common's mesh volume instead of regressing every time that
-    // computation improves (gazebosim/gz-common#877 changed it for meshes
-    // that are not star shaped about the origin).
+    // Check the duck volume and center of volume. The expectations are
+    // computed from the collider mesh the same way the system does: the
+    // SDF <scale> scales the volume by its product and the centroid
+    // componentwise, and the collision pose places the centroid in the
+    // link frame.
     const common::Mesh *duckMesh = common::MeshManager::Instance()->Load(
         common::joinPaths(std::string(PROJECT_SOURCE_PATH),
         "test", "media", "duck_collider.dae"));
     ASSERT_NE(nullptr, duckMesh);
-    const double expectedDuckVolume = duckMesh->Volume();
+    const math::Vector3d duckScale{0.5, 0.5, 0.5};
+    const double expectedDuckVolume = duckMesh->Volume() *
+        duckScale.X() * duckScale.Y() * duckScale.Z();
+    const math::Pose3d duckCollPose{0, 0, -0.4, 1.57, 0, 0};
+    const math::Vector3d expectedDuckCov = duckCollPose.Pos() +
+        duckCollPose.Rot().RotateVector(duckMesh->Centroid() * duckScale);
+
     auto duckVolume = _ecm.Component<components::Volume>(duckLink);
     ASSERT_NE(duckVolume, nullptr);
     EXPECT_NEAR(expectedDuckVolume, duckVolume->Data(), 1e-6);
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(math::Vector3d(0, 0, -0.4),
-        duckCenterOfVolume->Data());
+    EXPECT_NEAR(expectedDuckCov.X(),
+        duckCenterOfVolume->Data().X(), 1e-6);
+    EXPECT_NEAR(expectedDuckCov.Y(),
+        duckCenterOfVolume->Data().Y(), 1e-6);
+    EXPECT_NEAR(expectedDuckCov.Z(),
+        duckCenterOfVolume->Data().Z(), 1e-6);
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
     ASSERT_NE(submarinePose , nullptr);
@@ -368,8 +384,7 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
       // Drag free rise under constant net buoyancy, symplectic Euler:
       // z_N = a dt^2 N(N+1)/2 with a = g (rho V / m - 1). The same formula
-      // reproduces the previous baked expectation of 171.4 m for the
-      // previous mesh volume of 1.40186 m^3.
+      // reproduced the previous unscaled expectation of 171.4 m.
       const double duckAccel =
           9.8 * (1000 * expectedDuckVolume / 39.0 - 1.0);
       const double expectedDuckZ = duckAccel * 1e-6 *
@@ -382,6 +397,55 @@ TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterations, false);
   EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+// The center of volume must be the collision geometry's centroid, not the
+// collision origin: exact values for an origin offset mesh and the same
+// mesh scaled.
+TEST_F(BuoyancyTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(MeshCenterOfVolume))
+{
+  TestFixture fixture(std::string(PROJECT_BINARY_PATH) +
+    "/test/worlds/buoyancy_mesh_centroid.sdf");
+
+  std::size_t iterations{0};
+  fixture.OnPostUpdate([&](
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+  {
+    // 2 x 3 x 4 box mesh centered at (1, 2, 3): volume 24, centroid there.
+    auto meshLinks = entitiesFromScopedName("mesh_box::link", _ecm);
+    ASSERT_EQ(1u, meshLinks.size());
+    auto meshLink = *meshLinks.begin();
+    auto meshVolume = _ecm.Component<components::Volume>(meshLink);
+    ASSERT_NE(nullptr, meshVolume);
+    EXPECT_NEAR(24.0, meshVolume->Data(), 1e-9);
+    auto meshCov = _ecm.Component<components::CenterOfVolume>(meshLink);
+    ASSERT_NE(nullptr, meshCov);
+    EXPECT_NEAR(1.0, meshCov->Data().X(), 1e-9);
+    EXPECT_NEAR(2.0, meshCov->Data().Y(), 1e-9);
+    EXPECT_NEAR(3.0, meshCov->Data().Z(), 1e-9);
+
+    // <scale>0.5 0.5 2</scale>: volume scales by the product, the centroid
+    // componentwise.
+    auto scaledLinks = entitiesFromScopedName("mesh_box_scaled::link", _ecm);
+    ASSERT_EQ(1u, scaledLinks.size());
+    auto scaledLink = *scaledLinks.begin();
+    auto scaledVolume = _ecm.Component<components::Volume>(scaledLink);
+    ASSERT_NE(nullptr, scaledVolume);
+    EXPECT_NEAR(12.0, scaledVolume->Data(), 1e-9);
+    auto scaledCov = _ecm.Component<components::CenterOfVolume>(scaledLink);
+    ASSERT_NE(nullptr, scaledCov);
+    EXPECT_NEAR(0.5, scaledCov->Data().X(), 1e-9);
+    EXPECT_NEAR(1.0, scaledCov->Data().Y(), 1e-9);
+    EXPECT_NEAR(6.0, scaledCov->Data().Z(), 1e-9);
+
+    iterations++;
+  });
+
+  fixture.Finalize();
+  fixture.Server()->Run(true, 10, false);
+  EXPECT_EQ(10u, iterations);
 }
 
 /////////////////////////////////////////////////
