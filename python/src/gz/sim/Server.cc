@@ -90,6 +90,7 @@ void defineSimServer(pybind11::object module)
     "Resets a specific simulation runner under this server.")
   .def("ecm",
     pybind11::overload_cast<const std::size_t>(&gz::sim::Server::Ecm),
+    pybind11::call_guard<pybind11::gil_scoped_release>(),
     pybind11::arg("runner_id") = 0,
     "Acquire a thread-safe lock on the ECM as a context manager.")
   .def("iteration_count", &gz::sim::Server::IterationCount,
