@@ -1446,13 +1446,11 @@ TEST_F(ServerTest, EcmContextManager)
   // 4. Invalid States
   {
     EXPECT_FALSE(server.Ecm(999).Valid());  // Out of bounds runner
-
     server.Run(false, 0, false);
-    while (!server.Running()) GZ_SLEEP_MS(10);
+    EXPECT_TRUE(test::WaitUntil(1s, [&]() { return server.Running(); }));
     EXPECT_FALSE(server.Ecm().Valid());  // Cannot access while running
-
     server.Stop();
-    while (server.Running()) GZ_SLEEP_MS(10);
+    EXPECT_TRUE(test::WaitUntil(1s, [&]() { return !server.Running(); }));
     EXPECT_TRUE(server.Ecm().Valid());  // Valid again after stop
   }
 }
@@ -1502,18 +1500,11 @@ TEST_F(ServerTest, GuardMutualExclusionWithRun)
         auto guard = server.Ecm();
         EXPECT_TRUE(guard.Valid());
         lockAcquired = true;
-        while (holdLock.load())
-        {
-          std::this_thread::sleep_for(10ms);
-        }
+        EXPECT_TRUE(test::WaitUntil(5s, [&]() { return !holdLock.load(); }));
         guard.Reset();
       });
-
   // Wait until the ECM thread acquires the lock
-  while (!lockAcquired.load())
-  {
-    std::this_thread::sleep_for(5ms);
-  }
+  EXPECT_TRUE(test::WaitUntil(1s, [&]() { return lockAcquired.load(); }));
 
   // Start server.Run in a background thread to verify it blocks
   std::thread runThread(
