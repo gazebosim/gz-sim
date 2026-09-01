@@ -1,0 +1,380 @@
+<?xml version='1.0'?>
+<!--
+  Gazebo drive-to-pose-controller demo
+
+  DriveToPoseController plugin is a simple proportional controller that is attached to a model
+  entity to move it by giving a pose in Gazebo's world coordinate system. This is not a
+  standalone plugin, and requires the DiffDrive and OdometryPublisher plugins respectively.
+
+  The plugin has the following tags:
+
+    `<linear_p_gain>` - (Optional) Proportional gain for the linear velocity controller. Default: 1.0
+    `<angular_p_gain>` - (Optional) Proportional gain for the angular velocity controller. Default: 2.0
+    `<linear_deviation>` - (Optional) Allowable linear deviation (in meters) from the desired coordinate. Default: 0.1
+    `<angular_deviation>` - (Optional) Allowable angular deviation (in radians) from the desired orientation. Default: 0.05
+
+  Sending commands to the robot to navigate it through the industrial warehouse
+
+    1) Send the robot to the first pose in the warehouse, [x, y, orientation] = [1.78, -9.4, -3.14]
+
+      gz topic -t "/model/DeliveryBot/cmd_pose" -m gz.msgs.Pose_V \
+        -p "pose:[{position: {x: 1.78, y: -9.4, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: -0.99, w: 0.0}}]"
+
+  NOTE: Each time the robot reaches the desired pose, it will send a pose acknowledgement
+        on the topic /model/<model_name>/reached_pose.
+
+    2) Send the robot to the second pose, [x, y, orientation] = [-3.75, -9.4, 1.57]
+
+      gz topic -t "/model/DeliveryBot/cmd_pose" -m gz.msgs.Pose_V \
+        -p "pose:[{position: {x: -3.75, y: -9.4, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.707, w: 0.707}}]"
+
+    3) Send the robot to its third pose, [x, y, orientation] = [-3.75, 9.18, 3.14]
+
+      gz topic -t "/model/DeliveryBot/cmd_pose" -m gz.msgs.Pose_V \
+        -p "pose:[{position: {x: -3.75, y: 9.18, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.99, w: 0.0}}]"
+
+    4) Send the robot to its final pose, [x, y, orientation] = [-5.9, 9.18, 3.14]
+
+      gz topic -t "/model/DeliveryBot/cmd_pose" -m gz.msgs.Pose_V \
+        -p "pose:[{position: {x: -5.9, y: 9.18, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.99, w: 0.0}}]"
+
+  This plugin is loosely based on the control schemes introduced in Chapter 4 (pp. 130-142) of
+  Robotics, Vision and Control by Corke, Jachimczyk and Pillat and it can be found at:
+  https://link.springer.com/chapter/10.1007/978-3-031-07262-8_4
+
+-->
+<sdf version="1.9">
+  <world name="drive_to_pose_controller">
+
+    <gui fullscreen="0">
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>7 9 14 0 0.78 -2.35</camera_pose>
+      </plugin>
+
+      <!-- Plugins that add functionality to the scene -->
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="SelectEntities" name="Select Entities">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- World control -->
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>true</start_paused>
+        <use_event>true</use_event>
+      </plugin>
+
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <gz-gui>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <gz-gui>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+    </gui>
+
+    <gravity>0 0 -9.8</gravity>
+    <physics default="0" name="default_physics" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>100</real_time_update_rate>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="aws_robomaker_warehouse_ShelfF_01_001">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfF_01</uri>
+      </include>
+      <pose>-5.795143 -0.956635 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_WallB_01_001">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_WallB_01</uri>
+      </include>
+    </model>
+    <model name="aws_robomaker_warehouse_ShelfE_01_001">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfE_01</uri>
+      </include>
+      <pose>4.73156 0.57943 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ShelfE_01_002">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfE_01</uri>
+      </include>
+      <pose>4.73156 -4.827049 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ShelfE_01_003">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfE_01</uri>
+      </include>
+      <pose>4.73156 -8.6651 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ShelfD_01_001">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfD_01</uri>
+      </include>
+      <pose>4.73156 -1.242668 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ShelfD_01_002">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfD_01</uri>
+      </include>
+      <pose>4.73156 -3.038551 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ShelfD_01_003">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ShelfD_01</uri>
+      </include>
+      <pose>4.73156 -6.750542 0 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_GroundB_01_001">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_GroundB_01</uri>
+      </include>
+      <pose>0.0 0.0 -0.090092 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_Lamp_01_005">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_Lamp_01</uri>
+      </include>
+      <pose>0 0 -4 0 0 0</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_Bucket_01_020">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_Bucket_01</uri>
+      </include>
+      <pose>0.433449 9.631706 0 0 0 -1.563161</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_Bucket_01_021">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_Bucket_01</uri>
+      </include>
+      <pose>-1.8321 -6.3752 0 0 0 -1.563161</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_Bucket_01_022">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_Bucket_01</uri>
+      </include>
+      <pose>0.433449 8.59 0 0 0 -1.563161</pose>
+    </model>
+
+    <model name='aws_robomaker_warehouse_ClutteringA_01_016'>
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringA_01</uri>
+      </include>
+      <pose>5.708138 8.616844 -0.017477 0 0 0</pose>
+    </model>
+
+    <model name='aws_robomaker_warehouse_ClutteringA_01_017'>
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringA_01</uri>
+      </include>
+      <pose>3.408638 8.616844 -0.017477 0 0 0</pose>
+    </model>
+
+    <model name='aws_robomaker_warehouse_ClutteringA_01_018'>
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringA_01</uri>
+      </include>
+      <pose>-1.491287 5.222435 -0.017477 0 0 -1.583185</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_027">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>3.324959 3.822449 -0.012064 0 0 1.563871</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_028">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>5.54171 3.816475 -0.015663 0 0 -1.583191</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_029">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>5.384239 6.137154 0 0 0 3.150000</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_030">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>3.236 6.137154 0 0 0 3.150000</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_031">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>-1.573677 2.301994 -0.015663 0 0 -3.133191</pose>
+    </model>
+
+    <model name="aws_robomaker_warehouse_ClutteringC_01_032">
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringC_01</uri>
+      </include>
+      <pose>-1.2196 9.407 -0.015663 0 0 1.563871</pose>
+    </model>
+
+    <model name='aws_robomaker_warehouse_ClutteringD_01_005'>
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_ClutteringD_01</uri>
+      </include>
+      <pose>-1.634682 -7.811813 -0.319559 0 0 0</pose>
+    </model>
+
+    <model name='aws_robomaker_warehouse_TrashCanC_01_002'>
+      <include>
+        <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/aws_robomaker_warehouse_TrashCanC_01</uri>
+      </include>
+      <pose>-1.592441 7.715420 0 0 0 0</pose>
+    </model>
+
+    <light name="Warehouse_CeilingLight_003" type="point">
+      <pose>0 0 8.5 0 0 0</pose>
+      <diffuse>0.5 0.5 0.5 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>80</range>
+        <constant>0.3</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <cast_shadows>1</cast_shadows>
+      <direction>0.1 0.1 -1</direction>
+    </light>
+
+    <model name="DeliveryBot">
+      <include>
+        <pose>1.78 9.31 0.1 0 0 -1.57</pose>
+        <uri>
+          https://fuel.gazebosim.org/1.0/OpenRobotics/models/DeliveryBot
+        </uri>
+
+        <!-- Differential Drive -->
+        <plugin
+          filename="gz-sim-diff-drive-system"
+          name="gz::sim::systems::DiffDrive">
+          <left_joint>joint_tire_left</left_joint>
+          <right_joint>joint_tire_right</right_joint>
+          <wheel_separation>0.52</wheel_separation>
+          <wheel_radius>0.06137</wheel_radius>
+          <max_linear_acceleration>1</max_linear_acceleration>
+          <min_linear_acceleration>-1</min_linear_acceleration>
+          <max_angular_acceleration>2</max_angular_acceleration>
+          <min_angular_acceleration>-2</min_angular_acceleration>
+          <max_linear_velocity>1.0</max_linear_velocity>
+          <min_linear_velocity>-1.0</min_linear_velocity>
+          <max_angular_velocity>1</max_angular_velocity>
+          <min_angular_velocity>-1</min_angular_velocity>
+        </plugin>
+
+        <!-- Odometry Publisher -->
+        <plugin
+          filename="gz-sim-odometry-publisher-system"
+          name="gz::sim::systems::OdometryPublisher">
+        </plugin>
+
+        <!-- Drive To Pose Controller -->
+        <plugin
+          filename="gz-sim-drive-to-pose-controller-system"
+          name="gz::sim::systems::DriveToPoseController">
+          <linear_p_gain>1.0</linear_p_gain>
+          <angular_p_gain>2.0</angular_p_gain>
+          <linear_deviation>0.1</linear_deviation>
+          <angular_deviation>0.05</angular_deviation>
+        </plugin>
+      </include>
+    </model>
+
+  </world>
+</sdf>
