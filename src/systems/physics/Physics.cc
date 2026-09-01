@@ -26,6 +26,7 @@
 #include <iostream>
 #include <deque>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -228,9 +229,17 @@ class ignition::gazebo::systems::PhysicsPrivate
 
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
+<<<<<<< HEAD
   /// \returns Output data from the physics engine (this currently contains
   /// data for links that experienced a pose change in the physics step)
   public: ignition::physics::ForwardStep::Output Step(
+=======
+  /// \returns Optional output data from the physics engine (this currently
+  /// contains data for links that experienced a pose change in the physics
+  /// step).
+  /// The reference remains valid until the next call to Step.
+  public: const std::optional<gz::physics::ForwardStep::Output> &Step(
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -245,7 +254,19 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// properly (models must be updated in topological order).
   public: std::map<Entity, physics::FrameData3d> ChangedLinks(
               EntityComponentManager &_ecm,
+<<<<<<< HEAD
               const ignition::physics::ForwardStep::Output &_updatedLinks);
+=======
+              const std::optional<gz::physics::ForwardStep::Output>
+                &_updatedLinks);
+
+  /// \brief Check if a model contains any plane collision geometry.
+  /// \param[in] modelEntity The entity of the model to check.
+  /// \param[in] _ecm The entity component manager.
+  /// \return True if any collision geometry is a plane.
+  public: bool ModelContainsPlaneCollision(const Entity &_modelEntity,
+              EntityComponentManager &_ecm) const;
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
 
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
@@ -693,6 +714,12 @@ class ignition::gazebo::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+<<<<<<< HEAD
+=======
+
+  /// \brief Cached physics output, to reduce allocations / deallocations
+  std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
 };
 
 //////////////////////////////////////////////////
@@ -851,12 +878,18 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
+<<<<<<< HEAD
     ignition::physics::ForwardStep::Output stepOutput;
     // Only step if not paused.
     if (!_info.paused)
     {
       stepOutput = this->dataPtr->Step(_info.dt);
     }
+=======
+    const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
+    const auto &stepOutput = _info.paused ? emptyStepOutput :
+        this->dataPtr->Step(_info.dt);
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
@@ -2427,7 +2460,140 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
 ignition::physics::ForwardStep::Output PhysicsPrivate::Step(
+=======
+void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("PhysicsPrivate::ResetPhysics");
+  // Clear worldPoseCmdsToRemove because pose commands that were issued before
+  // the reset will be ignored.
+  this->linkWorldPoses.clear();
+  this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
+  this->modelWorldPoses.clear();
+  this->worldPoseCmdsToRemove.clear();
+  this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
+  this->gravityEnabledCmdsToRemove.clear();
+  this->collisionEnabledCmdsToRemove.clear();
+
+  this->RemovePhysicsEntities(_ecm);
+  this->CreatePhysicsEntities(_ecm, false);
+  this->canonicalLinkModelTracker.AddAllModels(_ecm);
+
+  // Update link pose, linear velocity, and angular velocity
+  _ecm.Each<components::Link>(
+      [&](const Entity &_entity, const components::Link *)
+      {
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+        {
+          gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        auto freeGroup = linkPtrPhys->FindFreeGroup();
+        if (!freeGroup)
+          return true;
+
+        this->entityFreeGroupMap.AddEntity(_entity, freeGroup);
+
+        if (freeGroup->RootLink() == linkPtrPhys)
+        {
+          auto linkWorldPose = worldPose(_entity, _ecm);
+          freeGroup->SetWorldPose(math::eigen3::convert(linkWorldPose));
+        }
+
+        auto worldAngularVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+
+        if (!worldAngularVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to reset link angular velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be reset."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        else
+        {
+          worldAngularVelFeature->SetWorldAngularVelocity(
+              Eigen::Vector3d::Zero());
+        }
+
+        auto worldLinearVelFeature =
+            this->entityFreeGroupMap
+                .EntityCast<WorldVelocityCommandFeatureList>(_entity);
+        if (!worldLinearVelFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link linear velocity, but the "
+                   << "physics engine doesn't support velocity commands. "
+                   << "Velocity won't be set."
+                   << std::endl;
+            informed = true;
+          }
+          return true;
+        }
+        else
+        {
+          worldLinearVelFeature->SetWorldLinearVelocity(
+              Eigen::Vector3d::Zero());
+        }
+
+        return true;
+      });
+
+  // Handle joint state
+  _ecm.Each<components::Joint>(
+      [&](const Entity &_entity, const components::Joint *)
+      {
+        auto jointPhys = this->entityJointMap.Get(_entity);
+        if (nullptr == jointPhys)
+        {
+          gzwarn << "Failed to find joint [" << _entity << "]." << std::endl;
+          return true;
+        }
+
+        // Assume initial joint position and velocities are zero
+        // Reset the velocity
+        for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
+        {
+          jointPhys->SetVelocity(i, 0.0);
+          jointPhys->SetPosition(i, 0.0);
+        }
+
+        return true;
+      });
+
+  // Also update modelWorldPoses. This is a workaround to the problem that we
+  // don't have a way to reset the physics engine and clear its internal cache
+  // of link poses. In the event that a model's canonical link's pose hasn't
+  // changed after reset, the parent model's world pose won't be recorded in
+  // the modelWorldPoses map. If any of the model's other links have changed,
+  // however, we try to look for the parent model's world pose in
+  // modelWorldPoses and fail. So the workaround here is to update the world
+  // poses of all models.
+  _ecm.Each<components::Model>(
+      [&](const Entity &_entity, const components::Model *)
+      {
+        this->modelWorldPoses[_entity] = sim::worldPose(_entity, _ecm);
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
+const std::optional<gz::physics::ForwardStep::Output> &PhysicsPrivate::Step(
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
     const std::chrono::steady_clock::duration &_dt)
 {
   IGN_PROFILE("PhysicsPrivate::Step");
@@ -2439,7 +2605,11 @@ ignition::physics::ForwardStep::Output PhysicsPrivate::Step(
 
   for (const auto &world : this->entityWorldMap.Map())
   {
+<<<<<<< HEAD
     world.second->Step(output, state, input);
+=======
+    world.second->Step(*this->stepOutput, state, input);
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
   }
 
   return output;
@@ -2484,7 +2654,11 @@ math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 //////////////////////////////////////////////////
 std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
+<<<<<<< HEAD
     const ignition::physics::ForwardStep::Output &_updatedLinks)
+=======
+    const std::optional<gz::physics::ForwardStep::Output> &_updatedLinks)
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
 {
   IGN_PROFILE("Links Frame Data");
 
@@ -2492,10 +2666,18 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
+<<<<<<< HEAD
   if (_updatedLinks.Has<ignition::physics::ChangedWorldPoses>())
   {
     for (const auto &link :
         _updatedLinks.Query<ignition::physics::ChangedWorldPoses>()->entries)
+=======
+  if (_updatedLinks &&
+      _updatedLinks->Has<gz::physics::ChangedWorldPoses>())
+  {
+    for (const auto &link :
+        _updatedLinks->Query<gz::physics::ChangedWorldPoses>()->entries)
+>>>>>>> a1ff214 (Avoid copying cached physics step output (#3850))
     {
       // get the gazebo entity that matches the updated physics link entity
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);
