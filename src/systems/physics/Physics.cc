@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <deque>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -263,9 +264,11 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
-  /// \returns Output data from the physics engine (this currently contains
-  /// data for links that experienced a pose change in the physics step)
-  public: gz::physics::ForwardStep::Output Step(
+  /// \returns Optional output data from the physics engine (this currently
+  /// contains data for links that experienced a pose change in the physics
+  /// step).
+  /// The reference remains valid until the next call to Step.
+  public: const std::optional<gz::physics::ForwardStep::Output> &Step(
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -280,7 +283,8 @@ class gz::sim::systems::PhysicsPrivate
   /// properly (models must be updated in topological order).
   public: std::map<Entity, physics::FrameData3d> ChangedLinks(
               EntityComponentManager &_ecm,
-              const gz::physics::ForwardStep::Output &_updatedLinks);
+              const std::optional<gz::physics::ForwardStep::Output>
+                &_updatedLinks);
 
   /// \brief Helper function to update the pose of a model.
   /// \param[in] _model The model to update.
@@ -893,7 +897,7 @@ class gz::sim::systems::PhysicsPrivate
   public: bool contactsEntityNames = true;
 
   /// \brief Cached physics output, to reduce allocations / deallocations
-  physics::ForwardStep::Output stepOutput;
+  std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
 };
 
 //////////////////////////////////////////////////
@@ -1046,12 +1050,9 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    gz::physics::ForwardStep::Output stepOutput;
-    // Only step if not paused.
-    if (!_info.paused)
-    {
-      stepOutput = this->dataPtr->Step(_info.dt);
-    }
+    const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
+    const auto &stepOutput = _info.paused ? emptyStepOutput :
+        this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
@@ -3321,7 +3322,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-gz::physics::ForwardStep::Output PhysicsPrivate::Step(
+const std::optional<gz::physics::ForwardStep::Output> &PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
@@ -3332,7 +3333,7 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(this->stepOutput, state, input);
+    world.second->Step(*this->stepOutput, state, input);
   }
 
   return this->stepOutput;
@@ -3377,7 +3378,7 @@ math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 //////////////////////////////////////////////////
 std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
-    const gz::physics::ForwardStep::Output &_updatedLinks)
+    const std::optional<gz::physics::ForwardStep::Output> &_updatedLinks)
 {
   GZ_PROFILE("Links Frame Data");
 
@@ -3385,10 +3386,11 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
-  if (_updatedLinks.Has<gz::physics::ChangedWorldPoses>())
+  if (_updatedLinks &&
+      _updatedLinks->Has<gz::physics::ChangedWorldPoses>())
   {
     for (const auto &link :
-        _updatedLinks.Query<gz::physics::ChangedWorldPoses>()->entries)
+        _updatedLinks->Query<gz::physics::ChangedWorldPoses>()->entries)
     {
       // get the gazebo entity that matches the updated physics link entity
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);
