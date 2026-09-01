@@ -85,6 +85,7 @@ set(tests
   sdf_frame_semantics.cc
   sdf_include.cc
   sensor.cc
+  test_fixture.cc
   spherical_coordinates.cc
   swerve_drive_system.cc
   thruster.cc

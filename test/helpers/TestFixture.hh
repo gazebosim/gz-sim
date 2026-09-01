@@ -54,6 +54,14 @@ class TestFixture
     common::Console::SetVerbosity(4);
   }
 
+  /// Constructor.
+  /// \param[in] _config Server configuration.
+  public: TestFixture(const sim::ServerConfig &_config)
+    : fixture(_config)
+  {
+    common::Console::SetVerbosity(4);
+  }
+
   virtual ~TestFixture() = default;
 
   /// Pause the simulation in this fixture.
@@ -100,8 +108,7 @@ class TestFixture
   /// \return number of simulation steps taken.
   public: uint64_t Step()
   {
-    this->Simulator()->RunOnce(this->paused);
-    return 1u;
+    return this->Simulator()->RunOnce(this->paused) ? 1u : 0u;
   }
 
   /// Advance the simulation.
@@ -124,15 +131,28 @@ class TestFixture
     uint64_t iterations = 0u;
     // Fetch simulator early to ensure it is initialized
     auto simulator = this->Simulator();
+    if (this->maxStepSize <= 0.0 ||
+        simulator->GetStatus() == sim::Server::Status::EXITED)
+    {
+      return 0u;
+    }
+
     const auto deadline = this->info.simTime + _step;
     do {
       const double stepSize =
           std::chrono::duration<double>(deadline - this->info.simTime).count();
       uint64_t previous_iterations = this->Iterations();
-      simulator->Run(blocking,
+      if (!simulator->Run(blocking,
           static_cast<uint64_t>(std::ceil(stepSize / this->maxStepSize)),
-          this->paused);
-      iterations += this->Iterations() - previous_iterations;
+          this->paused))
+      {
+        break;
+      }
+
+      const auto steppedIterations = this->Iterations() - previous_iterations;
+      iterations += steppedIterations;
+      if (steppedIterations == 0u)
+        break;
     } while (this->info.simTime < deadline);
     return iterations;
   }
@@ -207,7 +227,7 @@ class TestFixture
 
   private: bool paused{false};
 
-  private: double maxStepSize;
+  private: double maxStepSize{0.0};
 
   private: sim::UpdateInfo info;
 
