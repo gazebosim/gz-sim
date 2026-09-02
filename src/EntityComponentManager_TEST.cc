@@ -15,6 +15,11 @@
  *
 */
 
+<<<<<<< HEAD
+=======
+#include <chrono>
+#include <optional>
+>>>>>>> a1ffcda (Fix HasEqualityOperator trait for types with templated equality operators (#3951))
 #include <gtest/gtest.h>
 
 #include <gz/common/Console.hh>
@@ -24,6 +29,7 @@
 #include <gz/utilities/ExtraTestMacros.hh>
 #include <gz/utils/SuppressWarning.hh>
 
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Factory.hh"
@@ -3374,6 +3380,46 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(321, comp->Data());
 }
 
+<<<<<<< HEAD
+=======
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, EntityByName)
+{
+  // Create an entity, and give it a name
+  Entity entity = manager.CreateEntity();
+  manager.CreateComponent(entity, components::Name("entity_name_a"));
+
+  // Try to get an entity that doesn't exist
+  std::optional<Entity> entityByName = manager.EntityByName("a_bad_name");
+  EXPECT_FALSE(entityByName);
+
+  entityByName = manager.EntityByName("entity_name_a");
+  EXPECT_TRUE(entityByName);
+  CompareEntityComponents<components::Name>(manager, entity,
+    *entityByName, true);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, HasEqualityOperator)
+{
+  EXPECT_TRUE(traits::HasEqualityOperator<int>::value);
+  EXPECT_TRUE(
+      traits::HasEqualityOperator<std::chrono::nanoseconds>::value);
+  EXPECT_FALSE(traits::HasEqualityOperator<Custom>::value);
+
+  Entity entity = manager.CreateEntity();
+  using namespace std::chrono_literals;
+  auto comp = manager.CreateComponent<AnimationTime>(entity,
+      AnimationTime(100ms));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(100ms, comp->Data());
+
+  EXPECT_TRUE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+  EXPECT_EQ(200ms, manager.ComponentData<AnimationTime>(entity));
+  EXPECT_FALSE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+}
+
+>>>>>>> a1ffcda (Fix HasEqualityOperator trait for types with templated equality operators (#3951))
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,
