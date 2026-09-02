@@ -613,15 +613,15 @@ namespace components
 
 namespace entt
 {
-template <typename Type>
-struct type_hash<Type, std::void_t<
-    std::enable_if_t<std::is_base_of_v<gz::sim::components::BaseComponent, Type>>,
-    decltype(Type::typeId)
+template <typename T>
+struct type_hash<T, std::void_t<
+    std::enable_if_t<std::is_base_of_v<gz::sim::components::BaseComponent, T>>,
+    decltype(T::typeId)
 >>
 {
   static constexpr ENTT_ID_TYPE value() noexcept
   {
-    return Type::typeId;
+    return T::typeId;
   }
 };
 }
