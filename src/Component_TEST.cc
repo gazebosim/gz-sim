@@ -20,14 +20,20 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include <memory>
+#include <sstream>
+#include <streambuf>
 
 #include <sdf/Element.hh>
 #include <gz/common/Console.hh>
 #include <gz/math/Inertial.hh>
 
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/Serialization.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/SemanticDescription.hh"
+#include "gz/sim/components/SemanticTags.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
@@ -42,6 +48,20 @@ struct SimpleOperator
 };
 
 struct Simple {};
+
+/// \brief A stream buffer which rejects every write.
+class FailingOutputBuffer : public std::streambuf
+{
+  protected: int_type overflow(int_type) override
+  {
+    return traits_type::eof();
+  }
+
+  protected: std::streamsize xsputn(const char *, std::streamsize) override
+  {
+    return 0;
+  }
+};
 
 using CustomComponent =
       components::Component<std::shared_ptr<int>, class CustomComponentTag>;
@@ -530,6 +550,93 @@ TEST_F(ComponentTest, IStream)
     std::istringstream istr("not used");
     comp.Deserialize(istr);
   }
+}
+
+//////////////////////////////////////////////////
+// See https://github.com/gazebosim/gz-sim/issues/3385
+TEST_F(ComponentTest, ProtobufStreamErrors)
+{
+  const std::string invalidProto(1, static_cast<char>(0x80));
+
+  // Parsing failures should set failbit and leave component data unchanged.
+  {
+    msgs::Int32 data;
+    data.set_data(482);
+    CustomMsg comp(data);
+    std::istringstream istr(invalidProto);
+    comp.Deserialize(istr);
+    EXPECT_TRUE(istr.fail());
+    EXPECT_EQ(482, comp.Data().data());
+  }
+
+  {
+    components::JointPosition comp(std::vector<double>{1.0, 2.0});
+    std::istringstream istr(invalidProto);
+    comp.Deserialize(istr);
+    EXPECT_TRUE(istr.fail());
+    EXPECT_EQ((std::vector<double>{1.0, 2.0}), comp.Data());
+  }
+
+  {
+    math::Inertiald inertial;
+    auto massMatrix = inertial.MassMatrix();
+    massMatrix.SetMass(42.0);
+    inertial.SetMassMatrix(massMatrix);
+    components::Inertial comp(inertial);
+    std::istringstream istr(invalidProto);
+    comp.Deserialize(istr);
+    EXPECT_TRUE(istr.fail());
+    EXPECT_DOUBLE_EQ(42.0, comp.Data().MassMatrix().Mass());
+  }
+
+  {
+    std::string description = "original";
+    std::istringstream istr(invalidProto);
+    serializers::SemanticDescriptionSerializer::Deserialize(
+        istr, description);
+    EXPECT_TRUE(istr.fail());
+    EXPECT_EQ("original", description);
+  }
+
+  {
+    components::SemanticTags comp(
+        std::vector<std::string>{"one", "two"});
+    std::istringstream istr(invalidProto);
+    comp.Deserialize(istr);
+    EXPECT_TRUE(istr.fail());
+    EXPECT_EQ((std::vector<std::string>{"one", "two"}), comp.Data());
+  }
+
+  // Serialization failures should be observable through the output stream.
+  auto expectSerializationFailure = [](const auto &_component)
+  {
+    FailingOutputBuffer buffer;
+    std::ostream out(&buffer);
+    EXPECT_TRUE(out.good());
+    _component.Serialize(out);
+    EXPECT_TRUE(out.fail());
+  };
+
+  msgs::Int32 msg;
+  msg.set_data(482);
+  expectSerializationFailure(CustomMsg(msg));
+  expectSerializationFailure(
+      components::JointPosition(std::vector<double>{1.0, 2.0}));
+
+  math::Inertiald inertial;
+  auto massMatrix = inertial.MassMatrix();
+  massMatrix.SetMass(42.0);
+  inertial.SetMassMatrix(massMatrix);
+  expectSerializationFailure(components::Inertial(inertial));
+  {
+    FailingOutputBuffer buffer;
+    std::ostream out(&buffer);
+    EXPECT_TRUE(out.good());
+    serializers::SemanticDescriptionSerializer::Serialize(out, "description");
+    EXPECT_TRUE(out.fail());
+  }
+  expectSerializationFailure(
+      components::SemanticTags(std::vector<std::string>{"one", "two"}));
 }
 
 namespace test_components
