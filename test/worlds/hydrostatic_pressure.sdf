@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<!--
+  Test world for the HydrostaticPressure system. Four static rigs at
+  different Z values exercise the plugin's full input range:
+
+    rig_surface  z =     0  ->  pressure ~= surface_pressure
+    rig_shallow  z =   -10  ->  F&M result, within 0.5 % of P0+rho*g*h
+    rig_deep     z = -1000  ->  F&M at deep operating depth
+    rig_above    z =    +5  ->  above water - sensor clamps to surface
+
+  Each rig advertises on its own topic so the test can drain them in
+  parallel.
+-->
+<sdf version="1.9">
+  <world name="test_hydrostatic_pressure">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+
+    <gravity>0 0 -9.80665</gravity>
+
+    <model name="rig_surface">
+      <static>true</static>
+      <pose>0 0 0 0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrostatic-pressure-system"
+              name="gz::sim::systems::HydrostaticPressure">
+        <link_name>base</link_name>
+        <topic>/test/pressure/surface</topic>
+        <update_rate>200</update_rate>
+        <surface_pressure_pa>101325.0</surface_pressure_pa>
+        <surface_z>0.0</surface_z>
+        <noise_stddev>0.0</noise_stddev>
+      </plugin>
+    </model>
+
+    <model name="rig_shallow">
+      <static>true</static>
+      <pose>10 0 -10 0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrostatic-pressure-system"
+              name="gz::sim::systems::HydrostaticPressure">
+        <link_name>base</link_name>
+        <topic>/test/pressure/shallow</topic>
+        <update_rate>200</update_rate>
+        <surface_pressure_pa>101325.0</surface_pressure_pa>
+        <surface_z>0.0</surface_z>
+        <noise_stddev>0.0</noise_stddev>
+      </plugin>
+    </model>
+
+    <model name="rig_deep">
+      <static>true</static>
+      <pose>20 0 -1000 0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrostatic-pressure-system"
+              name="gz::sim::systems::HydrostaticPressure">
+        <link_name>base</link_name>
+        <topic>/test/pressure/deep</topic>
+        <update_rate>200</update_rate>
+        <surface_pressure_pa>101325.0</surface_pressure_pa>
+        <surface_z>0.0</surface_z>
+        <noise_stddev>0.0</noise_stddev>
+      </plugin>
+    </model>
+
+    <model name="rig_above">
+      <static>true</static>
+      <pose>30 0 5 0 0 0</pose>
+      <link name="base">
+        <inertial>
+          <mass>1.0</mass>
+          <inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrostatic-pressure-system"
+              name="gz::sim::systems::HydrostaticPressure">
+        <link_name>base</link_name>
+        <topic>/test/pressure/above</topic>
+        <update_rate>200</update_rate>
+        <surface_pressure_pa>101325.0</surface_pressure_pa>
+        <surface_z>0.0</surface_z>
+        <noise_stddev>0.0</noise_stddev>
+      </plugin>
+    </model>
+  </world>
+</sdf>
