@@ -20,13 +20,16 @@
 #include "gz/sim/private_msgs/simulation_step.pb.h"
 
 #include <algorithm>
+#include <map>
 #include <string>
+#include <vector>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/common/Profiler.hh>
 
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -95,6 +98,10 @@ bool NetworkManagerSecondary::OnControl(const private_msgs::PeerControl &_req,
 {
   this->enableSim = _req.enable_sim();
   _resp.set_enable_sim(this->enableSim);
+
+  gzdbg << "Received msg PeerControl: enable_sim: "
+        << this->enableSim << std::endl;
+
   return true;
 }
 
@@ -111,36 +118,73 @@ void NetworkManagerSecondary::OnStep(
            << std::endl;
   }
 
-  // Update affinities
+  // Performer-to-secondary mapping. Not using a set as we do not want sorting.
+  std::map<Entity, std::vector<std::string> > pToS;
   for (int i = 0; i < _msg.affinity_size(); ++i)
   {
     const auto &affinityMsg = _msg.affinity(i);
-    const auto &entityId = affinityMsg.entity().id();
-
-    if (affinityMsg.secondary_prefix() == this->Namespace())
+    const auto &perfEntity = affinityMsg.entity().id();
+    if (std::find(pToS[perfEntity].begin(), pToS[perfEntity].end(),
+        affinityMsg.secondary_prefix()) == pToS[perfEntity].end())
     {
-      this->performers.insert(entityId);
-
-      gzmsg << "Secondary [" << this->Namespace()
-             << "] assigned affinity to performer [" << entityId << "]."
-             << std::endl;
+      pToS[perfEntity].push_back(affinityMsg.secondary_prefix());
     }
-    // If performer has been assigned to another secondary, remove it
-    else
-    {
-      auto parent =
-          this->dataPtr->ecm->Component<components::ParentEntity>(entityId);
-      if (parent != nullptr)
-      {
-        this->dataPtr->ecm->RequestRemoveEntity(parent->Data());
-      }
+  }
 
-      if (this->performers.find(entityId) != this->performers.end())
+  // Update affinities
+  for (auto [perfEntity, secondaries] : pToS)
+  {
+    for (auto secondary :  secondaries)
+    {
+      if (secondary == this->Namespace())
       {
+        this->performers.insert(perfEntity);
+
+        // Set performer affinity to this secondary
+        this->dataPtr->ecm->RemoveComponent<components::PerformerAffinity>(
+            perfEntity);
+        auto newAffinity = components::PerformerAffinity(this->Namespace());
+        this->dataPtr->ecm->CreateComponent(perfEntity, newAffinity);
+
         gzmsg << "Secondary [" << this->Namespace()
-               << "] unassigned affinity to performer [" << entityId << "]."
-               << std::endl;
-        this->performers.erase(entityId);
+              << "] assigned affinity to performer ["
+              << perfEntity << "]."
+              << std::endl;
+      }
+      else
+      {
+        // If performer assigned to this secondary is also assigned to another
+        // secondary, remove from performers and the parent model from the ECM.
+        if (this->performers.find(perfEntity) != this->performers.end())
+        {
+          gzmsg << "Secondary [" << this->Namespace()
+                << "] unassigned affinity to performer ["
+                << perfEntity << "]."
+                << std::endl;
+          this->performers.erase(perfEntity);
+
+          // Remove performer affinity from this this secondary
+          this->dataPtr->ecm->RemoveComponent<components::PerformerAffinity>(
+              perfEntity);
+
+          auto parent = this->dataPtr->ecm->Component<components::ParentEntity>(
+              perfEntity);
+          if (parent != nullptr)
+          {
+            this->dataPtr->ecm->RequestRemoveEntity(parent->Data());
+            gzmsg << "Secondary [" << this->Namespace()
+                  << "] request remove model entity ["
+                  << parent->Data() << "]."
+                  << std::endl;
+          }
+          else
+          {
+            gzerr << "Secondary [" << this->Namespace()
+                  << "] should remove parent for performer ["
+                  << perfEntity << "]."
+                  << std::endl;
+          }
+        }
       }
     }
   }
@@ -148,30 +192,40 @@ void NetworkManagerSecondary::OnStep(
   // Update info
   auto info = convert<UpdateInfo>(_msg.stats());
 
+  // Set the secondaryNamespace
+  info.isDistributed = true;
+  info.secondaryNamespace = this->Namespace();
+
   // Step runner
   this->dataPtr->stepFunction(info);
 
   // Update state with all the performer's entities
   std::unordered_set<Entity> entities;
-  for (const auto &perf : this->performers)
+  for (const auto &perfEntity : this->performers)
   {
     // Performer model
-    auto parent = this->dataPtr->ecm->Component<components::ParentEntity>(perf);
+    auto parent =
+        this->dataPtr->ecm->Component<components::ParentEntity>(perfEntity);
     if (parent == nullptr)
     {
-      gzerr << "Failed to get parent for performer [" << perf << "]"
-             << std::endl;
+      gzerr << "Secondary: failed to get parent for performer ["
+            << perfEntity << "]"
+            << std::endl;
       continue;
     }
-    auto modelEntity = parent->Data();
 
+    // Also include the performer's model entity
+    auto modelEntity = parent->Data();
+    entities.insert(modelEntity);
     auto children = this->dataPtr->ecm->Descendants(modelEntity);
     entities.insert(children.begin(), children.end());
   }
 
   msgs::SerializedStateMap stateMsg;
   if (!entities.empty())
+  {
     this->dataPtr->ecm->State(stateMsg, entities);
+  }
   stateMsg.set_has_one_time_component_changes(
     this->dataPtr->ecm->HasOneTimeComponentChanges());
 
