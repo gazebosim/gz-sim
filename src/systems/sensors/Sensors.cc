@@ -19,6 +19,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <mutex>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -867,7 +868,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Reset");
 
@@ -898,6 +899,17 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     this->dataPtr->updateTime =  _info.simTime;
     this->dataPtr->updateTimeToApply =  _info.simTime;
     this->dataPtr->updateTimeApplied =  _info.simTime;
+  }
+
+  {
+    std::unique_lock<std::mutex> lock(this->dataPtr->renderUtilMutex);
+    this->dataPtr->updateTimeCv.wait(lock, [this]()
+    {
+      return !this->dataPtr->updateAvailable ||
+              (this->dataPtr->updateTimeToApply ==
+              this->dataPtr->updateTimeApplied);
+    });
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
   }
 }
 
@@ -1123,6 +1135,18 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
+  }
+
+  // Bail if we already have the sensor
+  auto entityIt = this->dataPtr->entityToIdMap.find(_entity);
+  if (entityIt != this->dataPtr->entityToIdMap.end())
+  {
+    sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(entityIt->second);
+    // TODO(azeey): Don't warn if there has been a Reset.
+    if (s) {
+      gzwarn << "Sensor already exists: " << _entity << "\n";
+      return s->Name();
+    }
   }
 
   // Create within gz-sensors
