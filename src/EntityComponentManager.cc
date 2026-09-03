@@ -209,8 +209,24 @@ class gz::sim::EntityComponentManagerPrivate
   /// \brief Unordered map of removed components. The key is the entity to
   /// which belongs the component, and the value is a set of the component types
   /// being removed.
+  /// This map only contains components that were removed and previously existed
+  /// in the simulation (i.e. they have not been added in this step).
   public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
     removedComponents;
+
+  /// \brief Whether any previously existing component was removed in
+  /// this iteration.
+  public: bool removedExistingComponents = false;
+
+  /// \brief Unordered map of added components. The key is the entity to
+  /// which the component belongs, and the value is a set of the component types
+  /// that has been added in this simulation step.
+  /// This is used for tracking of removed components. A component that has
+  /// both been added and removed in this simulation step will not be counted
+  /// as a removed component, since downstream users won't have access to the
+  /// component value in the first place.
+  public: std::unordered_map<Entity, std::unordered_set<ComponentTypeId>>
+    addedComponents;
 
   /// \brief All components that have been removed. The difference between
   /// removedComponents and componentsMarkedAsRemoved is that removedComponents
@@ -323,7 +339,9 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->lockAddEntitiesToViews = _from.lockAddEntitiesToViews;
   this->descendantCache.clear();
   this->entityCount = _from.entityCount;
+  this->addedComponents = _from.addedComponents;
   this->removedComponents = _from.removedComponents;
+  this->removedExistingComponents = _from.removedExistingComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
   // Rebuild component storage by cloning every component from `_from`.
@@ -689,10 +707,21 @@ bool EntityComponentManager::HasRemovedComponents() const
 }
 
 /////////////////////////////////////////////////
+bool EntityComponentManager::HasRemovedExistingComponents() const
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+  return this->dataPtr->removedExistingComponents;
+}
+
+/////////////////////////////////////////////////
 void EntityComponentManager::ClearRemovedComponents()
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
   this->dataPtr->removedComponents.clear();
+  this->dataPtr->removedExistingComponents = false;
+  // Added component map is used purely to avoid false positives in removed
+  // component detection, so we clear it here.
+  this->dataPtr->addedComponents.clear();
 }
 
 /////////////////////////////////////////////////
@@ -921,6 +950,14 @@ bool EntityComponentManager::RemoveComponent(
   // Add component to map of removed components
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->removedComponentsMutex);
+    const auto addedCompIt = this->dataPtr->addedComponents.find(_entity);
+    if (addedCompIt == this->dataPtr->addedComponents.end() ||
+        addedCompIt->second.find(_typeId) == addedCompIt->second.end())
+    {
+      // Mark that components that were previously existing have been
+      // removed in this iteration.
+      this->dataPtr->removedExistingComponents = true;
+    }
     this->dataPtr->removedComponents[_entity].insert(_typeId);
   }
 
@@ -1198,6 +1235,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     entityCompIter->second.push_back(std::move(newComp));
     this->dataPtr->componentTypeIndex[_entity][_componentTypeId] = vectorIdx;
     this->dataPtr->componentTypeIndexDirty = true;
+    this->dataPtr->addedComponents[_entity].insert(_componentTypeId);
 
     updateData = false;
     for (auto &viewPair : this->dataPtr->views)
@@ -1230,6 +1268,7 @@ bool EntityComponentManager::CreateComponentImplementation(
     else if (this->dataPtr->ComponentMarkedAsRemoved(_entity, _componentTypeId))
     {
       this->dataPtr->componentsMarkedAsRemoved[_entity].erase(_componentTypeId);
+      this->dataPtr->addedComponents[_entity].insert(_componentTypeId);
 
       for (auto &viewPair : this->dataPtr->views)
       {
