@@ -67,6 +67,7 @@ class EnvironmentalSensorSystemPrivate;
 class EnvironmentalSensorSystem:
   public gz::sim::System,
   public gz::sim::ISystemConfigure,
+  public gz::sim::ISystemReset,
   public gz::sim::ISystemPreUpdate,
   public gz::sim::ISystemPostUpdate
 {
@@ -77,6 +78,10 @@ class EnvironmentalSensorSystem:
       const std::shared_ptr<const sdf::Element> &_sdf,
       gz::sim::EntityComponentManager &_ecm,
       gz::sim::EventManager &/*_eventMgr*/) override;
+
+  /// Documentation inherited.
+  public: void Reset(const gz::sim::UpdateInfo &_info,
+    gz::sim::EntityComponentManager &_ecm) final;
 
   // Documentation inherited.
   // During PreUpdate, check for new sensors that were inserted
