@@ -184,7 +184,7 @@ void VelocityControl::PreUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("VelocityControl::PreUpdate");
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
