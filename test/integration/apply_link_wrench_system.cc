@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_wrench.pb.h>
 
@@ -117,6 +119,13 @@ TEST_F(ApplyLinkWrenchTestFixture,
   std::size_t movingIterations{0};
   std::size_t clearedIterations{0};
   bool wrenchesCleared{false};
+
+  // Commands are delivered over transport, which is asynchronous: neither a
+  // successful Publish() nor HasConnections() means the ApplyLinkWrench system
+  // has processed the message. While `settled` is false the server is being
+  // stepped waiting for the latest command to take effect, and no assertions
+  // are made. See https://github.com/gazebosim/gz-sim/issues/2727
+  bool settled{false};
   Link link3, link4;
   fixture.OnConfigure([&](
       const Entity &,
@@ -149,35 +158,50 @@ TEST_F(ApplyLinkWrenchTestFixture,
       {
         auto wrenchComp3 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link3.Entity());
-        EXPECT_NE(nullptr, wrenchComp3);
-
         auto wrenchComp4 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link4.Entity());
-        EXPECT_NE(nullptr, wrenchComp4);
 
         auto linAccel3 = link3.WorldLinearAcceleration(_ecm);
-        ASSERT_TRUE(linAccel3.has_value());
-
         auto linAccel4 = link4.WorldLinearAcceleration(_ecm);
+
+        const double expected3 = wrenchesCleared ? 0.0 : 50.0;
+        const double expected4 = wrenchesCleared ? 0.0 : -100.0;
+
+        // Still waiting for the last published command to reach the system.
+        if (!settled)
+        {
+          settled = nullptr != wrenchComp3 && nullptr != wrenchComp4 &&
+              linAccel3.has_value() && linAccel4.has_value() &&
+              std::fabs(expected3 - linAccel3.value().X()) < tol &&
+              std::fabs(expected4 - linAccel4.value().X()) < tol;
+          return;
+        }
+
+        EXPECT_NE(nullptr, wrenchComp3);
+        EXPECT_NE(nullptr, wrenchComp4);
+
+        ASSERT_TRUE(linAccel3.has_value());
         ASSERT_TRUE(linAccel4.has_value());
 
+        EXPECT_NEAR(expected3, linAccel3.value().X(), tol);
+        EXPECT_NEAR(expected4, linAccel4.value().X(), tol);
+
         if (!wrenchesCleared)
-        {
-          EXPECT_NEAR(50.0, linAccel3.value().X(), tol);
-          EXPECT_NEAR(-100.0, linAccel4.value().X(), tol);
-
           ++movingIterations;
-        }
         else
-        {
-          EXPECT_NEAR(0.0, linAccel3.value().X(), tol);
-          EXPECT_NEAR(0.0, linAccel4.value().X(), tol);
-
           ++clearedIterations;
-        }
 
         ++iterations;
       }).Finalize();
+
+  // Step the server until the last published command has taken effect, so that
+  // the measured iterations below are not racing transport delivery.
+  auto stepUntilSettled = [&]()
+  {
+    const std::size_t maxWaitIterations{1000};
+    for (std::size_t i = 0; i < maxWaitIterations && !settled; ++i)
+      fixture.Server()->Run(true, 1, false);
+  };
 
   // Publish messages
   transport::Node node;
@@ -211,15 +235,29 @@ TEST_F(ApplyLinkWrenchTestFixture,
     pubPersistent.Publish(msg);
   }
 
+  stepUntilSettled();
+  ASSERT_TRUE(settled) << "Persistent wrenches were never applied";
+
   std::size_t targetIterations{100};
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
-  EXPECT_EQ(movingIterations, iterations);
+  EXPECT_EQ(targetIterations, movingIterations);
 
   // Clear wrenches
   auto pubClear = node.Advertise<msgs::Entity>(
       "/world/apply_link_wrench/wrench/clear");
+
+  for (sleep = 0; !pubClear.HasConnections() && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_NE(maxSleep, sleep);
   EXPECT_TRUE(pubClear.HasConnections());
+
+  // Expect zero acceleration from now on, and wait for the clear commands to
+  // be processed before measuring again.
+  wrenchesCleared = true;
+  settled = false;
 
   {
     msgs::Entity msg;
@@ -235,13 +273,13 @@ TEST_F(ApplyLinkWrenchTestFixture,
     pubClear.Publish(msg);
   }
 
-  // \todo(chapulina) Arbitrarily sleeping here isn't very robust
-  std::this_thread::sleep_for(std::chrono::milliseconds(300));
-  wrenchesCleared = true;
+  stepUntilSettled();
+  ASSERT_TRUE(settled) << "Persistent wrenches were never cleared";
+
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations * 2, iterations);
-  EXPECT_EQ(movingIterations, targetIterations);
-  EXPECT_EQ(clearedIterations, targetIterations);
+  EXPECT_EQ(targetIterations, movingIterations);
+  EXPECT_EQ(targetIterations, clearedIterations);
 }
 
 /////////////////////////////////////////////////
@@ -252,7 +290,15 @@ TEST_F(ApplyLinkWrenchTestFixture,
     "test", "worlds", "apply_link_wrench.sdf"));
 
   std::size_t iterations{0};
-  std::size_t impulseIterations{0};
+
+  // Number of time steps in which each link was accelerated. Delivery over
+  // transport is asynchronous, so the impulses are not guaranteed to land on
+  // any particular iteration, and the two commands may even land on different
+  // ones. What must hold is that each wrench is applied for exactly one time
+  // step, with the commanded value.
+  // See https://github.com/gazebosim/gz-sim/issues/2727
+  std::size_t impulseIterations3{0};
+  std::size_t impulseIterations4{0};
   Link link3, link4;
   fixture.OnConfigure([&](
       const Entity &,
@@ -277,16 +323,13 @@ TEST_F(ApplyLinkWrenchTestFixture,
         link4.EnableAccelerationChecks(_ecm);
       })
   .OnPostUpdate([&](
-      const UpdateInfo &_info,
+      const UpdateInfo &,
       const EntityComponentManager &_ecm)
       {
         auto wrenchComp3 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link3.Entity());
-        EXPECT_NE(nullptr, wrenchComp3);
-
         auto wrenchComp4 = _ecm.Component<components::ExternalWorldWrenchCmd>(
             link4.Entity());
-        EXPECT_NE(nullptr, wrenchComp4);
 
         auto linAccel3 = link3.WorldLinearAcceleration(_ecm);
         ASSERT_TRUE(linAccel3.has_value());
@@ -294,17 +337,27 @@ TEST_F(ApplyLinkWrenchTestFixture,
         auto linAccel4 = link4.WorldLinearAcceleration(_ecm);
         ASSERT_TRUE(linAccel4.has_value());
 
-        if (_info.iterations == 1)
+        if (std::fabs(linAccel3.value().X()) > tol)
         {
           EXPECT_NEAR(50.0, linAccel3.value().X(), tol);
-          EXPECT_NEAR(-100.0, linAccel4.value().X(), tol);
-
-          ++impulseIterations;
+          ++impulseIterations3;
         }
-        else
+
+        if (std::fabs(linAccel4.value().X()) > tol)
         {
-          EXPECT_NEAR(0.0, linAccel3.value().X(), tol);
-          EXPECT_NEAR(0.0, linAccel4.value().X(), tol);
+          EXPECT_NEAR(-100.0, linAccel4.value().X(), tol);
+          ++impulseIterations4;
+        }
+
+        // The component is created when the wrench is first applied to the
+        // link, and persists from then on with the values cleared.
+        if (impulseIterations3 > 0u)
+        {
+          EXPECT_NE(nullptr, wrenchComp3);
+        }
+        if (impulseIterations4 > 0u)
+        {
+          EXPECT_NE(nullptr, wrenchComp4);
         }
 
         ++iterations;
@@ -342,8 +395,22 @@ TEST_F(ApplyLinkWrenchTestFixture,
     pubWrench.Publish(msg);
   }
 
+  // Step until both impulses have been applied, one iteration at a time so
+  // that the single time step each wrench acts on is never stepped over.
+  const std::size_t maxWaitIterations{1000};
+  std::size_t waited{0};
+  for (; waited < maxWaitIterations &&
+         (0u == impulseIterations3 || 0u == impulseIterations4); ++waited)
+  {
+    fixture.Server()->Run(true, 1, false);
+  }
+  ASSERT_EQ(1u, impulseIterations3) << "model3 wrench was never applied";
+  ASSERT_EQ(1u, impulseIterations4) << "model4 wrench was never applied";
+
+  // Keep stepping to confirm neither wrench is applied a second time.
   std::size_t targetIterations{20};
   fixture.Server()->Run(true, targetIterations, false);
-  EXPECT_EQ(targetIterations, iterations);
-  EXPECT_EQ(1u, impulseIterations);
+  EXPECT_EQ(targetIterations + waited, iterations);
+  EXPECT_EQ(1u, impulseIterations3);
+  EXPECT_EQ(1u, impulseIterations4);
 }
