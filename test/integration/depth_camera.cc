@@ -30,6 +30,8 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define DEPTH_TOL 1e-4
 
@@ -57,6 +59,33 @@ void depthCb(const msgs::Image &_msg)
     depthBuffer = new float[depthSamples];
   memcpy(depthBuffer, _msg.data().c_str(), depthBufferSize);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+float depthAt(const msgs::Image &_image, unsigned int _x, unsigned int _y)
+{
+  const auto index = _y * _image.step() + _x * sizeof(float);
+  float depth{0.0f};
+  memcpy(&depth, _image.data().data() + index, sizeof(float));
+  return depth;
+}
+
+/////////////////////////////////////////////////
+void expectSameDepthImage(const msgs::Image &_expected,
+    const msgs::Image &_actual)
+{
+  ASSERT_EQ(_expected.width(), _actual.width());
+  ASSERT_EQ(_expected.height(), _actual.height());
+  ASSERT_EQ(_expected.step(), _actual.step());
+
+  const auto y = _actual.height() / 2;
+  const auto left = 0u;
+  const auto mid = _actual.width() / 2 - 1u;
+  const auto right = _actual.width() - 1u;
+  EXPECT_DOUBLE_EQ(depthAt(_expected, left, y), depthAt(_actual, left, y));
+  EXPECT_NEAR(depthAt(_expected, mid, y), depthAt(_actual, mid, y),
+      DEPTH_TOL);
+  EXPECT_DOUBLE_EQ(depthAt(_expected, right, y), depthAt(_actual, right, y));
 }
 
 /////////////////////////////////////////////////
@@ -109,4 +138,44 @@ TEST_F(DepthCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(DepthCameraBox))
   EXPECT_DOUBLE_EQ(depthBuffer[right], math::INF_D);
 
   delete[] depthBuffer;
+}
+
+/////////////////////////////////////////////////
+TEST_F(DepthCameraTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/depth_camera_sensor.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+  Subscription<msgs::Image> initialDepth;
+  initialDepth.Subscribe(node, "/depth_camera", 1);
+  auto waitForDepthImage =
+      [&server](Subscription<msgs::Image> &_image)
+      {
+        return test::StepUntil(server, 3000, [&]
+        {
+          return _image.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForDepthImage(initialDepth));
+  const auto baseline = initialDepth.Last();
+
+  // Advance past the initial depth frame before resetting.
+  server.Run(true, 300, false);
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::Image> postResetDepth;
+  postResetDepth.Subscribe(postResetNode, "/depth_camera", 1);
+
+  ASSERT_TRUE(waitForDepthImage(postResetDepth));
+  const auto postReset = postResetDepth.Last();
+  expectSameDepthImage(baseline, postReset);
 }
