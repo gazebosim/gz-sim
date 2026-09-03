@@ -62,7 +62,7 @@ class EnvironmentVisualizationTool
   private: bool first{true};
 
   /// \brief Enable resampling
-  public: std::atomic<bool> resample{true};
+  private: bool resample{true};
 
   /// \brief Time has come to an end.
   private: bool finishedTime{false};
@@ -77,6 +77,9 @@ class EnvironmentVisualizationTool
 
   /// \brief Invoke when new file is made available.
   public: void FileReloaded();
+
+  /// \brief Invoke when new file is made available.
+  public: void Resample();
 
   /// \brief Step the visualizations
   /// \param[in] _info The simulation info including timestep
