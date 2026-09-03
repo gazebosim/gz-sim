@@ -192,7 +192,10 @@ TEST(PeerTracker, GZ_UTILS_TEST_DISABLED_ON_MAC(PeerTrackerStale))
   }
   EXPECT_LT(sleep, maxSleep);
 
-  EXPECT_EQ(1, stalePeers);
+  // tracker2 keeps publishing slower heartbeats, so tracker1 can rediscover
+  // and mark it stale again before this timing-based wait observes the first
+  // stale event.
+  EXPECT_GE(stalePeers.load(), 1);
 
   // Expect while tracker1 can see tracker2, the opposite is
   // not true.
