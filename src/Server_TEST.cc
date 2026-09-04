@@ -23,7 +23,9 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
+#include <atomic>
 #include <csignal>
+#include <thread>
 #include <vector>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
@@ -1384,3 +1386,145 @@ TEST_P(ServerFixture, WorldControlIgnoredOnExit)
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, ServerFixture, ::testing::Range(1, 2));
+
+/////////////////////////////////////////////////
+class ServerTest : public InternalFixture<::testing::Test>
+{
+};
+
+/////////////////////////////////////////////////
+TEST_F(ServerTest, EcmContextManager)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(
+      common::joinPaths(PROJECT_SOURCE_PATH, "test", "worlds", "shapes.sdf"));
+  serverConfig.SetWaitForAssets(true);
+  sim::Server server(serverConfig);
+
+  // 1. Basic reading
+  {
+    auto guard = server.Ecm();
+    EXPECT_TRUE(guard.Valid());
+    EXPECT_TRUE(static_cast<bool>(guard));
+    EXPECT_EQ(25u, guard->EntityCount());
+
+    std::size_t modelCount = 0;
+    guard->Each<components::Model>(
+        [&](const Entity &, const components::Model *)
+        {
+          modelCount++;
+          return true;
+        });
+    EXPECT_EQ(5u, modelCount);
+  }
+
+  // 2. Entity Creation
+  {
+    auto guard = server.Ecm();
+    Entity newEntity = guard->CreateEntity();
+    EXPECT_NE(kNullEntity, newEntity);
+    EXPECT_EQ(26u, guard->EntityCount());
+  }
+
+  // 3. Move semantics & Reset
+  {
+    auto g1 = server.Ecm();
+    Server::EcmGuard g2;
+    g2 = std::move(g1);
+    EXPECT_FALSE(g1.Valid());
+    EXPECT_TRUE(g2.Valid());
+
+    g2.Reset();
+    EXPECT_FALSE(g2.Valid());
+    EXPECT_NO_THROW(g2.Reset());  // Repeated reset is safe
+
+    // Reset released lock, we can get another
+    auto g3 = server.Ecm();
+    EXPECT_TRUE(g3.Valid());
+  }
+
+  // 4. Invalid States
+  {
+    EXPECT_FALSE(server.Ecm(999).Valid());  // Out of bounds runner
+    server.Run(false, 0, false);
+    EXPECT_TRUE(test::WaitUntil(1s, [&]() { return server.Running(); }));
+    EXPECT_FALSE(server.Ecm().Valid());  // Cannot access while running
+    server.Stop();
+    EXPECT_TRUE(test::WaitUntil(1s, [&]() { return !server.Running(); }));
+    EXPECT_TRUE(server.Ecm().Valid());  // Valid again after stop
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_F(ServerTest, ServerCurrentInfo)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+
+  sim::Server server(serverConfig);
+
+  // Initial update info
+  auto initialInfo = server.CurrentInfo(0);
+  ASSERT_TRUE(initialInfo.has_value());
+  EXPECT_EQ(0u, initialInfo->iterations);
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), initialInfo->simTime);
+  EXPECT_TRUE(initialInfo->paused);
+
+  // Invalid runner / world ID returns nullopt
+  EXPECT_FALSE(server.CurrentInfo(999).has_value());
+
+  // Run simulation for 10 steps (unpaused)
+  EXPECT_TRUE(server.Run(true, 10, false));
+
+  auto updatedInfo = server.CurrentInfo(0);
+  ASSERT_TRUE(updatedInfo.has_value());
+  EXPECT_EQ(10u, updatedInfo->iterations);
+  EXPECT_GT(updatedInfo->simTime, std::chrono::steady_clock::duration::zero());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ServerTest, GuardMutualExclusionWithRun)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetWaitForAssets(true);
+
+  sim::Server server(serverConfig);
+
+  std::atomic<bool> holdLock{true};
+  std::atomic<bool> lockAcquired{false};
+  std::atomic<bool> runFinished{false};
+
+  std::thread ecmThread(
+      [&]()
+      {
+        auto guard = server.Ecm();
+        EXPECT_TRUE(guard.Valid());
+        lockAcquired = true;
+        EXPECT_TRUE(test::WaitUntil(5s, [&]() { return !holdLock.load(); }));
+        guard.Reset();
+      });
+  // Wait until the ECM thread acquires the lock
+  EXPECT_TRUE(test::WaitUntil(1s, [&]() { return lockAcquired.load(); }));
+
+  // Start server.Run in a background thread to verify it blocks
+  std::thread runThread(
+      [&]()
+      {
+        server.Run(true, 1, false);
+        runFinished = true;
+      });
+
+  // Give runThread time to attempt running and block on runMutex
+  std::this_thread::sleep_for(100ms);
+  EXPECT_FALSE(runFinished.load());
+
+  // Release the ECM guard lock
+  holdLock = false;
+
+  // Now runThread should unblock and complete
+  runThread.join();
+  ecmThread.join();
+
+  EXPECT_TRUE(runFinished.load());
+  EXPECT_EQ(1u, *server.IterationCount());
+}

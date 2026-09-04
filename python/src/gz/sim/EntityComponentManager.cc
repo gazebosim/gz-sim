@@ -30,7 +30,15 @@ void defineSimEntityComponentManager(pybind11::object module)
       module, "EntityComponentManager",
     "The Entity Component Manager (ECM) manages entities and their components "
     "in the simulation.")
-  .def(pybind11::init<>());
+    .def(pybind11::init<>())
+    .def("entity_count", &gz::sim::EntityComponentManager::EntityCount,
+      "Get total number of entities.")
+    .def("create_entity",
+      pybind11::overload_cast<>(&gz::sim::EntityComponentManager::CreateEntity),
+      "Create a new entity.")
+    .def("has_entity", &gz::sim::EntityComponentManager::HasEntity,
+      pybind11::arg("entity"),
+      "Check if an entity exists.");
 }
 }  // namespace python
 }  // namespace sim
