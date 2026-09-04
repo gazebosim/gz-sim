@@ -197,7 +197,7 @@ class TestComponents(unittest.TestCase):
             ecm.create_component(e, components.Actuators, "data")
 
         # Non-existent entity
-        with self.assertRaises(TypeError):
+        with self.assertRaises(KeyError):
             ecm.create_component(999999, components.Model)
 
         # Passing non-ComponentProxy arguments

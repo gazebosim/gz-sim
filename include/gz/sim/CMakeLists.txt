@@ -12,7 +12,8 @@ gz_install_all_headers(EXCLUDE_DIRS ${excluded_dirs})
 install(
   DIRECTORY python
   DESTINATION "${GZ_INCLUDE_INSTALL_DIR_FULL}/${PROJECT_INCLUDE_DIR}"
-  COMPONENT headers)
+  COMPONENT headers
+  FILES_MATCHING PATTERN "*.hh")
 
 add_subdirectory(components)
 

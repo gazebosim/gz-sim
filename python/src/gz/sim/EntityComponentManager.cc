@@ -92,7 +92,7 @@ void defineSimEntityComponentManager(pybind11::object module)
            }
            if (!setter(self, _entity, _data, false))
            {
-             throw pybind11::type_error(
+             throw pybind11::key_error(
                  "Failed to create component on entity (entity may not exist)");
            }
          },
