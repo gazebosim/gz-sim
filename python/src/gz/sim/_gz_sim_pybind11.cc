@@ -34,6 +34,8 @@
 #include "Util.hh"
 #include "World.hh"
 
+#include "Components.hh"
+
 PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   m.doc() = "Gazebo Sim Python Library.";
   m.attr("K_NULL_ENTITY") = gz::sim::kNullEntity;
@@ -52,4 +54,8 @@ PYBIND11_MODULE(BINDINGS_MODULE_NAME, m) {
   gz::sim::python::defineSimUpdateInfo(m);
   gz::sim::python::defineSimWorld(m);
   gz::sim::python::defineSimUtil(m);
+
+  auto components_module = m.def_submodule("components");
+  gz::sim::python::defineComponentStructs(components_module);
+  gz::sim::python::populateComponentsModule(components_module);
 }
