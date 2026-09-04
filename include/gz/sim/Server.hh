@@ -423,6 +423,9 @@ namespace gz
                                       const unsigned int _worldIndex = 0);
 
       /// \brief Stop the server. This will stop all running simulations.
+      /// \note Stopping is permanent for this Server instance: subsequent
+      /// calls to Run() and RunOnce() return without stepping simulation and
+      /// report failure. Construct a new Server to run again.
       public: void Stop();
 
       /// \brief Reset all runners in this simulation

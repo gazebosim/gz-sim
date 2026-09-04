@@ -18,6 +18,10 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
@@ -1733,6 +1737,56 @@ TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
 
     EXPECT_FALSE(runner.ParallelPostUpdates());
   }
+}
+
+/////////////////////////////////////////////////
+// A stop request arriving before Run() starts executing must not be lost,
+// otherwise Run() loops forever and Server's destructor blocks joining the
+// run thread (issues #2609 and #3829).
+TEST_P(SimulationRunnerTest, StopBeforeRun)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+  // Emit the stop request before Run, mimicking Server teardown racing the
+  // run thread's startup.
+  runner.Stop();
+
+  std::atomic<bool> returned{false};
+  std::atomic<bool> runResult{true};
+  std::thread runThread([&]()
+  {
+    // Run indefinitely: with the stop request lost this never returns.
+    runResult = runner.Run(0);
+    returned = true;
+  });
+
+  // Bound the wait at 10s so a regression fails fast instead of hanging.
+  for (int sleep = 0; sleep < 100 && !returned; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  EXPECT_TRUE(returned);
+
+  // On regression the runner is spinning in the run loop; a second stop lets
+  // it exit so join() returns and the test fails instead of hanging.
+  if (!returned)
+    runner.Stop();
+  runThread.join();
+
+  // The stop must prevent any stepping and be reported as failure.
+  EXPECT_FALSE(runResult);
+  EXPECT_FALSE(runner.Running());
+  EXPECT_TRUE(runner.StopReceived());
+  EXPECT_EQ(0u, runner.IterationCount());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
