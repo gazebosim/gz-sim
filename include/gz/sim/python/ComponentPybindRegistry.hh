@@ -22,7 +22,6 @@
 #include <pybind11/stl.h>
 
 #include <functional>
-#include <optional>
 #include <string>
 #include <type_traits>
 
@@ -109,11 +108,6 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   /// \return The setter function, or nullptr if not found.
   public: SetterFn Setter(ComponentTypeId _typeId) const;
 
-  /// \brief Get the active python component proxy for a component type.
-  /// \param[in] _typeId The component type ID.
-  /// \return The component proxy, or std::nullopt if not registered.
-  public: std::optional<ComponentProxy> Proxy(ComponentTypeId _typeId) const;
-
   /// \brief Check whether python bindings are registered for a component type.
   /// \param[in] _typeId The component type ID.
   /// \return True if at least one getter/setter pair is registered.
@@ -142,33 +136,37 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
 template <typename T>
 struct AddPybindGetterSetter
 {
-  /// \brief Type-erased python getter for pybind11.
-  /// \param[in] _ecm The EntityComponentManager.
-  /// \param[in] _entity The Entity to read from.
-  /// \return The component data cast to a python object (or ComponentProxy
-  /// proxy for NoData).
-  static pybind11::object Getter(const gz::sim::EntityComponentManager &_ecm,
-                                 const gz::sim::Entity &_entity)
+  /// \brief Create a type-erased python getter for pybind11 capturing the
+  /// component name.
+  /// \param[in] _name Name of the component.
+  /// \return The getter function returning the component data cast to a python
+  /// object (or ComponentProxy for NoData).
+  static ComponentPybindRegistry::GetterFn CreateGetter(const char *_name)
   {
-    if constexpr (std::is_same_v<typename T::Type, gz::sim::components::NoData>)
+    return [_name](const gz::sim::EntityComponentManager &_ecm,
+                   const gz::sim::Entity &_entity) -> pybind11::object
     {
-      if (_ecm.EntityHasComponentType(_entity, T::typeId))
+      (void)_name;
+      if constexpr (std::is_same_v<typename T::Type,
+                                   gz::sim::components::NoData>)
       {
-        auto proxy = ComponentPybindRegistry::Instance()->Proxy(T::typeId);
-        return proxy ? pybind11::cast(*proxy) : pybind11::none();
+        if (_ecm.EntityHasComponentType(_entity, T::typeId))
+        {
+          return pybind11::cast(ComponentProxy{_name, T::typeId});
+        }
+        return pybind11::none();
       }
-      return pybind11::none();
-    }
-    else
-    {
-      auto comp = _ecm.Component<T>(_entity);
-      if (comp)
+      else
       {
-        return pybind11::cast(comp->Data(),
-                              pybind11::return_value_policy::reference);
+        auto comp = _ecm.Component<T>(_entity);
+        if (comp)
+        {
+          return pybind11::cast(comp->Data(),
+                                pybind11::return_value_policy::reference);
+        }
+        return pybind11::none();
       }
-      return pybind11::none();
-    }
+    };
   }
 
   /// \brief Type-erased python setter for pybind11.
@@ -236,10 +234,11 @@ struct AddPybindGetterSetter
 
   /// \brief Register this type's getter/setter pair.
   /// \param[in] _id Unique identity of the loader.
-  static void Register(uintptr_t _id)
+  /// \param[in] _name Name of the component.
+  static void Register(uintptr_t _id, const char *_name)
   {
     ComponentPybindRegistry::Instance()->Register(
-        T::typeId, _id, Getter, Setter);
+        T::typeId, _id, CreateGetter(_name), Setter);
   }
 
   /// \brief Unregister this type's getter/setter pair.

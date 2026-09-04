@@ -26,7 +26,7 @@
   class GzSimPythonComponents##_classname { \
     public: GzSimPythonComponents##_classname() { \
       gz::sim::python::AddPybindGetterSetter<_classname>::Register( \
-          reinterpret_cast<uintptr_t>(this)); \
+          reinterpret_cast<uintptr_t>(this), #_classname); \
     } \
     public: ~GzSimPythonComponents##_classname() { \
       gz::sim::python::AddPybindGetterSetter<_classname>::Unregister( \

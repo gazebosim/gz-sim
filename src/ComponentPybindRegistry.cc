@@ -18,12 +18,10 @@
 #ifdef HAVE_PYBIND11
 
 #include <gz/sim/python/ComponentPybindRegistry.hh>
-#include <gz/sim/components/Factory.hh>
 
 #include <algorithm>
 #include <deque>
 #include <mutex>
-#include <optional>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -40,7 +38,6 @@ class ComponentPybindRegistry::Implementation
   public: struct PybindDescriptor
   {
     uintptr_t id;
-    std::string name;
     ComponentPybindRegistry::GetterFn getter;
     ComponentPybindRegistry::SetterFn setter;
   };
@@ -81,12 +78,9 @@ std::string ComponentPybindRegistry::CleanName(const std::string &_name)
 void ComponentPybindRegistry::Register(ComponentTypeId _typeId, uintptr_t _id,
                                        GetterFn _getter, SetterFn _setter)
 {
-  std::string name = CleanName(
-      gz::sim::components::Factory::Instance()->Name(_typeId));
-
   std::unique_lock<std::shared_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->gettersAndSetters[_typeId].push_front(
-      {_id, std::move(name), std::move(_getter), std::move(_setter)});
+      {_id, std::move(_getter), std::move(_setter)});
 }
 
 /////////////////////////////////////////////////
@@ -129,17 +123,6 @@ ComponentPybindRegistry::SetterFn ComponentPybindRegistry::Setter(
   if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
     return nullptr;
   return it->second.front().setter;
-}
-
-/////////////////////////////////////////////////
-std::optional<ComponentProxy> ComponentPybindRegistry::Proxy(
-    ComponentTypeId _typeId) const
-{
-  std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
-    return std::nullopt;
-  return ComponentProxy{it->second.front().name, _typeId};
 }
 
 /////////////////////////////////////////////////
