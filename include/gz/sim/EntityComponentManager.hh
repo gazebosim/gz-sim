@@ -117,13 +117,16 @@ namespace gz
       /// _name is not unique, _entity will not be cloned. If _name is an
       /// empty string, _allowRename is ignored since the cloned entity will
       /// have an auto-generated unique name.
+      /// \param[in] _ns The namespace that should be given to the cloned
+      /// entity.
       /// \return The cloned entity, which will have a unique name. kNullEntity
       /// is returned if cloning failed. Failure could occur if _entity does not
       /// exist, or if a unique name could not be generated for the entity to be
       /// cloned.
       /// \sa Clone
       public: Entity Clone(Entity _entity, Entity _parent,
-                  const std::string &_name, bool _allowRename);
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_ns = "");
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
@@ -380,10 +383,13 @@ namespace gz
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name.
+      /// \param[in] _ns The namespace that should be given to the cloned
+      /// entity.
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
       private: Entity CloneImpl(Entity _entity, Entity _parent,
-                  const std::string &_name, bool _allowRename);
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_ns = "");
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
