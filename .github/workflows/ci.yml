@@ -20,7 +20,7 @@ jobs:
     name: Ubuntu Noble CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - uses: actions/setup-python@v7
       - uses: pre-commit/action@v3.0.1
         with:
@@ -38,7 +38,7 @@ jobs:
     name: Ubuntu Noble CI (GUI disabled)
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - uses: actions/setup-python@v7
       - name: Compile and test
         id: ci
@@ -55,7 +55,7 @@ jobs:
     name: Ubuntu Resolute CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - uses: actions/setup-python@v7
       - uses: pre-commit/action@v3.0.1
         with:
@@ -73,7 +73,7 @@ jobs:
     name: Ubuntu Resolute CI (GUI disabled)
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - uses: actions/setup-python@v7
       - name: Compile and test
         id: ci
