@@ -1,0 +1,112 @@
+/*
+ * Copyright (C) 2026 Open Source Robotics Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+#ifndef GZ_SIM_SYSTEMS_MUJOCO_PHYSICS_MUJOCOCOMPONENTS_HH_
+#define GZ_SIM_SYSTEMS_MUJOCO_PHYSICS_MUJOCOCOMPONENTS_HH_
+
+#include <istream>
+#include <ostream>
+
+#include <gz/sim/components/Component.hh>
+#include <gz/sim/components/Factory.hh>
+#include <gz/sim/config.hh>
+
+namespace gz
+{
+namespace sim
+{
+// Inline bracket to help doxygen filtering.
+inline namespace GZ_SIM_VERSION_NAMESPACE
+{
+namespace systems
+{
+namespace mujoco_physics
+{
+class NoSerializeSerializer
+{
+  public:
+  static std::ostream &Serialize(std::ostream &_out, const int &_data)
+  {
+    (void)_data;
+    return _out;
+  }
+
+  public:
+  static std::istream &Deserialize(std::istream &_in, int &_data)
+  {
+    (void)_data;
+    return _in;
+  }
+};
+
+using MujocoBodyId =
+    components::Component<int, class MujocoBodyIdTag, NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoBodyId", MujocoBodyId)
+
+using MujocoGeomId =
+    components::Component<int, class MujocoGeomIdTag, NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoGeomId", MujocoGeomId)
+
+using MujocoJointId =
+    components::Component<int, class MujocoJointIdTag, NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoJointId", MujocoJointId)
+
+using MujocoActuatorId = components::Component<int, class MujocoActuatorIdTag,
+                                               NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoActuatorId",
+                          MujocoActuatorId)
+
+class NoSerializeSerializerBool
+{
+  public:
+  static std::ostream &Serialize(std::ostream &_out, const bool &_data)
+  {
+    (void)_data;
+    return _out;
+  }
+
+  public:
+  static std::istream &Deserialize(std::istream &_in, bool &_data)
+  {
+    (void)_data;
+    return _in;
+  }
+};
+
+using MujocoParentSiteId =
+    components::Component<int, class MujocoParentSiteIdTag,
+                          NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoParentSiteId",
+                          MujocoParentSiteId)
+
+using MujocoParentHasPose =
+    components::Component<bool, class MujocoParentHasPoseTag,
+                          NoSerializeSerializerBool>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoParentHasPose",
+                          MujocoParentHasPose)
+
+using MujocoModelSiteId = components::Component<int, class MujocoModelSiteIdTag,
+                                                NoSerializeSerializer>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.MujocoModelSiteId",
+                          MujocoModelSiteId)
+}  // namespace mujoco_physics
+}  // namespace systems
+}  // namespace GZ_SIM_VERSION_NAMESPACE
+}  // namespace sim
+}  // namespace gz
+
+#endif
