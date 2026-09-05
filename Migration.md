@@ -117,6 +117,17 @@ release will remove the deprecated code.
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
+  * Several `EntityComponentManager` APIs have been deprecated as part of the
+    move to the Entt library:
+    * `EachNoCache`, there is no explicit cache anymore, use `Each` instead.
+    * `Entities`, Entities are not stored in a graph anymore, use
+      `EntitiesVector` if you need all the entities in the world, combine it
+      reading the `ParentEntity` and `Children` components if you need hierarchy
+      information.
+    * `ForEach` is an internal function that is not used anymore.
+    * `ComponentTypesWithPeriodicChanges` is significantly more expensive in
+      the new architecture and had no users so it has been deprecated.
+
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
@@ -136,6 +147,23 @@ release will remove the deprecated code.
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
     registered before they are instantiated, else a static assertion failure
     will be triggered at compile time.
+  * The implementation of the EntityComponentManager now uses the entt library
+    behind the scenes. This results in a few breaking changes:
+    * The order of entities returned by the Each APIs is not guaranteed to be
+      sorted anymore. Internal systems have been migrated to work regardless
+      of entity order, downstream systems should be updated.
+    * Entities are not stored in a `gz::math::Graph` anymore. Users that need
+      hierarchy information should read the `ParentEntity` or `Children`
+      components attached to entities.
+    * Deleting a non existing entity now does not mark it for removal.
+    * `HasComponentType` now returns whether the EntityComponentManager has any
+      instance of the component, instead of whether it was ever created.
+    * Removing components now can deallocate the memory, instead of just marking
+      the component as removed and keeping it in place. Users are advised not to
+      store any component pointer.
+    * Queries with a repeated component are not allowed anymore. Users should
+      make sure their `Each` calls don't have duplicated components of the same
+      type.
 
 ## Gazebo Sim 9.x to 10.0
 
