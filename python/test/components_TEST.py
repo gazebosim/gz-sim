@@ -13,14 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import unittest
 
 from gz.math import Pose3d, Temperature, Vector3d
 from gz.sim import EntityComponentManager, components
+import sdformat
 
 # Skiplist of components that are not currently exposed to Python because
 # their underlying data types do not have Python bindings or pybind11 type casters.
 KNOWN_SKIPPED_COMPONENTS = {
+    "Actor",
     "Actuators",
     "BatteryPowerLoad",
     "ContactSensorData",
@@ -136,6 +139,12 @@ class TestComponents(unittest.TestCase):
         self.assertEqual(
             [0.05, 0.05], ecm.component(e, components.SlipComplianceCmd))
 
+        # std::chrono::duration: AnimationTime
+        duration = datetime.timedelta(seconds=1, microseconds=500000)
+        ecm.create_component(e, components.AnimationTime, duration)
+        self.assertEqual(
+            duration, ecm.component(e, components.AnimationTime))
+
     def test_internal_struct_components(self):
         """Test internal C++ struct components."""
         ecm = EntityComponentManager()
@@ -202,6 +211,14 @@ class TestComponents(unittest.TestCase):
         with self.assertRaises(KeyError):
             ecm.create_component(999999, components.Model)
 
+        # Unregistered component with _create_default_component
+        with self.assertRaises(TypeError):
+            ecm._create_default_component(e, components.Actor)
+
+        # Non-existent entity with _create_default_component
+        with self.assertRaises(KeyError):
+            ecm._create_default_component(999999, components.Model)
+
         # Passing non-ComponentProxy arguments
         with self.assertRaises(TypeError):
             ecm.component(e, "invalid_type")
@@ -231,7 +248,6 @@ class TestComponents(unittest.TestCase):
 
     def test_sdformat_components(self):
         """Test SDFormat DOM sensor and element components."""
-        import sdformat
         ecm = EntityComponentManager()
         e = ecm.create_entity()
 
@@ -259,7 +275,7 @@ class TestComponents(unittest.TestCase):
 
     def test_component_registration_parity(self):
         """Test full parity between C++ ComponentFactory and Python bindings."""
-        all_components = components.all_factory_components()
+        all_components = components._all_factory_components()
         self.assertGreater(len(all_components), 0)
 
         for comp in all_components:
@@ -271,6 +287,34 @@ class TestComponents(unittest.TestCase):
                 self.assertTrue(
                     components.has_python_bindings(comp),
                     f"Component '{comp.name}' is missing Python bindings.")
+
+    def test_all_registered_components_roundtrip(self):
+        """Test that every registered component can roundtrip default data."""
+        ecm = EntityComponentManager()
+        e = ecm.create_entity()
+
+        all_factory_comps = components._all_factory_components()
+        tested_count = 0
+        for comp in all_factory_comps:
+            if comp.name in KNOWN_SKIPPED_COMPONENTS:
+                continue
+
+            tested_count += 1
+            ecm._create_default_component(e, comp)
+            self.assertTrue(
+                ecm.entity_has_component_type(e, comp),
+                f"Component '{comp.name}' was not created on entity.")
+            val = ecm.component(e, comp)
+
+            # For data components with non-None default data, roundtrip through setter
+            if val is not None and not isinstance(val, components.ComponentProxy):
+                ecm.set_component_data(e, comp, val)
+
+            ecm.remove_component(e, comp)
+
+        self.assertEqual(
+            len(all_factory_comps) - len(KNOWN_SKIPPED_COMPONENTS),
+            tested_count)
 
 
 if __name__ == "__main__":

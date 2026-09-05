@@ -181,7 +181,7 @@ void populateComponentsModule(pybind11::module &m)
   }, py::arg("comp_type"),
   "Check if a component type has registered Python getter/setter bindings.");
 
-  m.def("all_factory_components", &allFactoryComponents,
+  m.def("_all_factory_components", &allFactoryComponents,
         "Return all component types registered in the C++ ComponentFactory.");
 
   // Pre-populate proxy objects for all currently registered components

@@ -102,6 +102,28 @@ void defineSimEntityComponentManager(pybind11::object module)
          "Create a component for an entity. For data components, initial "
          "data is required; for tag (NoData) components, data must not be "
          "provided.")
+    .def("_create_default_component",
+         [](gz::sim::EntityComponentManager &self,
+            const gz::sim::Entity &_entity,
+            const ComponentProxy &_comp)
+         {
+           auto registry = ComponentPybindRegistry::Instance();
+           auto creator = registry->DefaultCreator(_comp.typeId);
+           if (!creator)
+           {
+             throw pybind11::type_error(
+                 "Component type is not registered for Python manipulation");
+           }
+           if (!creator(self, _entity))
+           {
+             throw pybind11::key_error(
+                 "Failed to create default component on entity "
+                 "(entity may not exist)");
+           }
+         },
+         pybind11::arg("entity"),
+         pybind11::arg("comp_type"),
+         "Create a default-initialized component on an entity.")
     .def("component",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,

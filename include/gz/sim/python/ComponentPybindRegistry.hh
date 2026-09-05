@@ -18,6 +18,7 @@
 
 #ifdef HAVE_PYBIND11
 
+#include <pybind11/chrono.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -84,14 +85,21 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
       const pybind11::object &_obj,
       bool _compare)>;
 
-  /// \brief Register a python getter/setter pair for a component type.
+  public: using DefaultCreatorFn = std::function<bool(
+      gz::sim::EntityComponentManager &_ecm,
+      const gz::sim::Entity &_entity)>;
+
+  /// \brief Register a python getter/setter/default-creator tuple for a
+  /// component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader (usually address of
   /// registration object).
   /// \param[in] _getter The python getter function.
   /// \param[in] _setter The python setter function.
+  /// \param[in] _defaultCreator The default component creator function.
   public: void Register(ComponentTypeId _typeId, uintptr_t _id,
-                        GetterFn _getter, SetterFn _setter);
+                        GetterFn _getter, SetterFn _setter,
+                        DefaultCreatorFn _defaultCreator);
 
   /// \brief Unregister a python getter/setter pair for a component type.
   /// \param[in] _typeId The component type ID.
@@ -107,6 +115,11 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   /// \param[in] _typeId The component type ID.
   /// \return The setter function, or nullptr if not found.
   public: SetterFn Setter(ComponentTypeId _typeId) const;
+
+  /// \brief Get the active default component creator for a component type.
+  /// \param[in] _typeId The component type ID.
+  /// \return The default creator function, or nullptr if not found.
+  public: DefaultCreatorFn DefaultCreator(ComponentTypeId _typeId) const;
 
   /// \brief Check whether python bindings are registered for a component type.
   /// \param[in] _typeId The component type ID.
@@ -232,13 +245,31 @@ struct AddPybindGetterSetter
     }
   }
 
-  /// \brief Register this type's getter/setter pair.
+  /// \brief Create a default-constructed component on an entity.
+  /// \param[in] _ecm The EntityComponentManager.
+  /// \param[in] _entity The Entity to attach to.
+  /// \return True if created successfully or already exists.
+  static bool CreateDefault(gz::sim::EntityComponentManager &_ecm,
+                            const gz::sim::Entity &_entity)
+  {
+    if (!_ecm.HasEntity(_entity))
+    {
+      return false;
+    }
+    if (!_ecm.EntityHasComponentType(_entity, T::typeId))
+    {
+      return _ecm.CreateComponent(_entity, T()) != nullptr;
+    }
+    return true;
+  }
+
+  /// \brief Register this type's getter/setter/default-creator tuple.
   /// \param[in] _id Unique identity of the loader.
   /// \param[in] _name Name of the component.
   static void Register(uintptr_t _id, const char *_name)
   {
     ComponentPybindRegistry::Instance()->Register(
-        T::typeId, _id, CreateGetter(_name), Setter);
+        T::typeId, _id, CreateGetter(_name), Setter, CreateDefault);
   }
 
   /// \brief Unregister this type's getter/setter pair.

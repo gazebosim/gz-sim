@@ -40,6 +40,7 @@ class ComponentPybindRegistry::Implementation
     uintptr_t id;
     ComponentPybindRegistry::GetterFn getter;
     ComponentPybindRegistry::SetterFn setter;
+    ComponentPybindRegistry::DefaultCreatorFn defaultCreator;
   };
 
   public: mutable std::shared_mutex mutex;
@@ -76,11 +77,13 @@ std::string ComponentPybindRegistry::CleanName(const std::string &_name)
 
 /////////////////////////////////////////////////
 void ComponentPybindRegistry::Register(ComponentTypeId _typeId, uintptr_t _id,
-                                       GetterFn _getter, SetterFn _setter)
+                                       GetterFn _getter, SetterFn _setter,
+                                       DefaultCreatorFn _defaultCreator)
 {
   std::unique_lock<std::shared_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->gettersAndSetters[_typeId].push_front(
-      {_id, std::move(_getter), std::move(_setter)});
+      {_id, std::move(_getter), std::move(_setter),
+       std::move(_defaultCreator)});
 }
 
 /////////////////////////////////////////////////
@@ -123,6 +126,17 @@ ComponentPybindRegistry::SetterFn ComponentPybindRegistry::Setter(
   if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
     return nullptr;
   return it->second.front().setter;
+}
+
+/////////////////////////////////////////////////
+ComponentPybindRegistry::DefaultCreatorFn
+ComponentPybindRegistry::DefaultCreator(ComponentTypeId _typeId) const
+{
+  std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
+  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
+  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
+    return nullptr;
+  return it->second.front().defaultCreator;
 }
 
 /////////////////////////////////////////////////
