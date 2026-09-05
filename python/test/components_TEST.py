@@ -22,24 +22,21 @@ from gz.sim import EntityComponentManager, components
 # their underlying data types do not have Python bindings or pybind11 type casters.
 KNOWN_SKIPPED_COMPONENTS = {
     "Actuators",
-    "AirPressureSensor",
-    "AirSpeedSensor",
-    "Altimeter",
     "BatteryPowerLoad",
-    "ContactSensor",
     "ContactSensorData",
     "Environment",
     "ExternalWorldWrenchCmd",
-    "ForceTorque",
-    "Imu",
     "JointTransmittedWrench",
-    "LogicalCamera",
+    "LightCmd",
     "LogPlaybackStatistics",
-    "Magnetometer",
-    "NavSat",
+    "LogicalAudioSource",
+    "LogicalAudioSourcePlayInfo",
+    "LogicalMicrophone",
+    "ParticleEmitter",
     "ParticleEmitterCmd",
+    "PhysicsCmd",
     "SystemPluginInfo",
-    "VisualPlugin",
+    "VisualCmd",
     "WheelSlipCmd",
     "WrenchMeasured",
 }
@@ -134,6 +131,11 @@ class TestComponents(unittest.TestCase):
         ecm.create_component(e, components.LevelEntityNames, {"a", "b"})
         self.assertEqual({"a", "b"}, ecm.component(e, components.LevelEntityNames))
 
+        # Vector of double: SlipComplianceCmd
+        ecm.create_component(e, components.SlipComplianceCmd, [0.05, 0.05])
+        self.assertEqual(
+            [0.05, 0.05], ecm.component(e, components.SlipComplianceCmd))
+
     def test_internal_struct_components(self):
         """Test internal C++ struct components."""
         ecm = EntityComponentManager()
@@ -226,6 +228,34 @@ class TestComponents(unittest.TestCase):
         self.assertEqual(0, ecm.parent_entity(child))
         ecm.set_parent_entity(child, parent)
         self.assertEqual(parent, ecm.parent_entity(child))
+
+    def test_sdformat_components(self):
+        """Test SDFormat DOM sensor and element components."""
+        import sdformat
+        ecm = EntityComponentManager()
+        e = ecm.create_entity()
+
+        # sdf::Sensor: Altimeter
+        sensor = sdformat.Sensor()
+        sensor.set_name("altimeter_sensor")
+        sensor.set_type("altimeter")
+        ecm.create_component(e, components.Altimeter, sensor)
+        ret_sensor = ecm.component(e, components.Altimeter)
+        self.assertIsNotNone(ret_sensor)
+        self.assertEqual("altimeter_sensor", ret_sensor.name())
+
+        # In-place modification via reference
+        ret_sensor.set_name("modified_sensor")
+        self.assertEqual(
+            "modified_sensor", ecm.component(e, components.Altimeter).name())
+
+        # sdf::ElementPtr: ContactSensor
+        elem = sdformat.Element()
+        elem.set_name("contact_elem")
+        ecm.create_component(e, components.ContactSensor, elem)
+        ret_elem = ecm.component(e, components.ContactSensor)
+        self.assertIsNotNone(ret_elem)
+        self.assertEqual("contact_elem", ret_elem.get_name())
 
     def test_component_registration_parity(self):
         """Test full parity between C++ ComponentFactory and Python bindings."""
