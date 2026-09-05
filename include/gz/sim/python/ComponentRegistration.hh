@@ -25,11 +25,11 @@
 #define GZ_SIM_REGISTER_PYTHON_COMPONENT(_classname) \
   class GzSimPythonComponents##_classname { \
     public: GzSimPythonComponents##_classname() { \
-      gz::sim::python::AddPybindGetterSetter<_classname>::Register( \
+      gz::sim::python::detail::AddPybindGetterSetter<_classname>::Register( \
           reinterpret_cast<uintptr_t>(this), #_classname); \
     } \
     public: ~GzSimPythonComponents##_classname() { \
-      gz::sim::python::AddPybindGetterSetter<_classname>::Unregister( \
+      gz::sim::python::detail::AddPybindGetterSetter<_classname>::Unregister( \
           reinterpret_cast<uintptr_t>(this)); \
     } \
   }; \

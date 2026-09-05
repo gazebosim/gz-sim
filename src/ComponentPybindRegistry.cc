@@ -32,6 +32,8 @@ namespace sim
 {
 namespace python
 {
+namespace detail
+{
 
 class ComponentPybindRegistry::Implementation
 {
@@ -147,6 +149,7 @@ bool ComponentPybindRegistry::HasBindings(ComponentTypeId _typeId) const
   return it != this->dataPtr->gettersAndSetters.end() && !it->second.empty();
 }
 
+}  // namespace detail
 }  // namespace python
 }  // namespace sim
 }  // namespace gz

@@ -26,6 +26,8 @@ namespace sim
 {
 namespace python
 {
+using detail::ComponentProxy;
+using detail::ComponentPybindRegistry;
 /////////////////////////////////////////////////
 void defineSimEntityComponentManager(pybind11::object module)
 {

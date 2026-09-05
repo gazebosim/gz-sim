@@ -43,6 +43,9 @@ namespace sim
 namespace python
 {
 
+using detail::ComponentProxy;
+using detail::ComponentPybindRegistry;
+
 /////////////////////////////////////////////////
 void defineComponentStructs(pybind11::module &m)
 {

@@ -38,6 +38,12 @@ namespace sim
 {
 namespace python
 {
+/// \namespace gz::sim::python::detail
+/// \brief Internal implementation details for Python component bindings.
+/// These APIs are not intended for public use and should only be accessed
+/// via the GZ_SIM_REGISTER_PYTHON_COMPONENT registration macro.
+namespace detail
+{
 /// \brief Represents a component type registered in Gazebo for Python.
 struct ComponentProxy
 {
@@ -280,6 +286,7 @@ struct AddPybindGetterSetter
   }
 };
 
+}  // namespace detail
 }  // namespace python
 }  // namespace sim
 }  // namespace gz
