@@ -159,6 +159,11 @@
 1. [Bazel] Update bazel module to use jetty release branches
     * [Pull request #3041](https://github.com/gazebosim/gz-sim/pull/3041)
 
+1. Update `PhysicsEnginePlugin` component to display physics engine version
+    * Adds `GetEngineInfo` feature to physics engine to retrieve name and version separately
+    * Updates `PhysicsEnginePlugin` component to store "name-version" format (e.g., "dartsim-6.13.0")
+    * Engine version displayed in Component Inspector for world entity
+
 1. Parallel asset download
     * [Pull request #2992](https://github.com/gazebosim/gz-sim/pull/2992)
 
