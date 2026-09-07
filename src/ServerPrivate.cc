@@ -153,20 +153,37 @@ void ServerPrivate::Stop()
 
 /////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations,
-    std::optional<std::condition_variable *> _cond)
+    std::shared_ptr<std::promise<bool>> _started)
 {
   // Return early if we've received a signal right before.
   // The ServerPrivate signal handler would set `running=false`,
   // but we immediately would set it to true here, which will essentially ignore
   // the signal. Since we can't reliably use the `running` variable, we return
   // if `signalReceived` is true
-  if (this->signalReceived)
+  const bool signalled = this->signalReceived;
+
+  {
+    // Publish the run state before releasing the waiter below, so that
+    // Server::Run cannot return before `running` is observable.
+    //
+    // Deliberately not written on the signalled path: `running` is already
+    // false there, and storing to it could clobber a concurrent run that
+    // slipped past the precondition check in Server::Run.
+    std::lock_guard<std::mutex> lock(this->runMutex);
+    if (!signalled)
+      this->running = true;
+  }
+
+  // Release the waiter exactly once, on both paths. Even when no run will
+  // happen the promise must be fulfilled, otherwise Server::Run waits forever
+  // for this thread's startup. The value carries whether a run actually
+  // started, so the waiter does not have to re-read `signalReceived` and
+  // mistake a signal arriving after a perfectly good start for a failed one.
+  if (_started)
+    _started->set_value(!signalled);
+
+  if (signalled)
     return false;
-  this->runMutex.lock();
-  this->running = true;
-  if (_cond)
-    _cond.value()->notify_all();
-  this->runMutex.unlock();
 
   bool result = true;
 

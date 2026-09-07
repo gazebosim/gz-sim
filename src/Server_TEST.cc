@@ -27,6 +27,7 @@
 #include <csignal>
 #include <thread>
 #include <vector>
+#include <gz/common/SignalHandler.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Rand.hh>
@@ -599,6 +600,111 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingShortMultiple)
+{
+  // Regression test for the second of the two hangs behind the flaky timeouts
+  // reported in https://github.com/gazebosim/gz-sim/issues/2609 and
+  // https://github.com/gazebosim/gz-sim/issues/3829: Server::Run(false, ...)
+  // waited on `running`, which is false again once a short run completes, so
+  // a run that started and finished before the waiter woke up made
+  // Server::Run wait forever. Short runs maximize that window.
+  //
+  // This is a stress test: it reproduces probabilistically, so the repetition
+  // count is what gives it teeth. Every wait below is bounded so that a
+  // regression fails with a diagnosable message rather than hanging until the
+  // CTest timeout -- which is the very symptom #3829 reports.
+  for (int i = 0; i < 100; ++i)
+  {
+    sim::Server server;
+    server.SetUpdatePeriod(1ns);
+    EXPECT_TRUE(server.Run(false, 1, false)) << "iteration " << i;
+
+    ASSERT_NE(std::nullopt, server.IterationCount());
+    int sleep = 0;
+    const int maxSleep = 5000;
+    while (*server.IterationCount() < 1 && sleep < maxSleep)
+    {
+      GZ_SLEEP_MS(1);
+      ++sleep;
+    }
+    EXPECT_LT(sleep, maxSleep) << "run never executed on iteration " << i;
+    EXPECT_EQ(1u, *server.IterationCount()) << "iteration " << i;
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
+{
+  // A blocking Run() goes through ServerPrivate::Run without ever creating the
+  // run thread. Any state left behind by that call must not be mistaken by the
+  // next non-blocking Run() for its own run thread having started, or the wait
+  // below returns immediately and the caller races the run thread it just
+  // spawned. Server::Run creates the startup handshake fresh for each spawn.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  EXPECT_TRUE(server.Run(true, 1, false));
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(1u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
+
+  // Now a non-blocking run on the same Server. The wait must actually block
+  // until this run thread has started.
+  EXPECT_TRUE(server.Run(false, 1, false));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (*server.IterationCount() < 2 && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  EXPECT_LT(sleep, maxSleep) << "second run never executed";
+  EXPECT_EQ(2u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunAfterSignal)
+{
+  // A signal delivered before Run() aborts the run: ServerPrivate::Run returns
+  // early without stepping anything. Before the fix behind #3829 that early
+  // return never released the startup handshake, so the non-blocking
+  // Server::Run below waited forever. It must now return, and must report the
+  // failure rather than claiming a run was started.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  // gz-common dispatches signals on its own thread, invoking the registered
+  // handlers in registration order. A handler registered after the Server's is
+  // therefore invoked once the Server has finished processing the signal, so
+  // waiting on it beats guessing at a sleep.
+  std::atomic<bool> signalHandled{false};
+  common::SignalHandler testHandler;
+  ASSERT_TRUE(testHandler.Initialized());
+  ASSERT_TRUE(testHandler.AddCallback(
+        [&signalHandled](int) { signalHandled = true; }));
+
+  ASSERT_EQ(0, std::raise(SIGINT));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (!signalHandled && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  ASSERT_TRUE(signalHandled) << "the signal was never dispatched";
+
+  // Neither form of Run may claim success, and neither may step the world.
+  EXPECT_FALSE(server.Run(false, 1, false));
+  EXPECT_FALSE(server.Run(true, 1, false));
+
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
 }
 
 /////////////////////////////////////////////////
