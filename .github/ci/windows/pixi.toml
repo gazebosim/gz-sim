@@ -1,0 +1,28 @@
+[project]
+name = "gz-sim-windows-ci"
+version = "0.1.0"
+description = "conda-forge dependencies for building gz-sim from source on Windows."
+channels = ["conda-forge"]
+platforms = ["win-64"]
+
+# Qt6 needs to be told where its platform plugin and QML imports live before
+# any gz-gui based binary will start. Same values the buildfarm environment and
+# the Windows install tutorials use.
+[target.win-64.activation.env]
+QT_QPA_PLATFORM_PLUGIN_PATH = "%CONDA_PREFIX%\\Library\\lib\\qt6\\plugins\\platforms"
+QML2_IMPORT_PATH = "%CONDA_PREFIX%\\Library\\lib\\qt6\\qml"
+
+# Depending on the released gz-sim package pulls in every upstream Gazebo
+# library at the version the collection actually ships with, which is what the
+# source tree is expected to build against. The gz-sim binaries that come with
+# it are unused: the build under test overrides them.
+[dependencies]
+gz-sim = "10.*"
+
+[target.win-64.dependencies]
+dlfcn-win32 = "*"
+
+[build-dependencies]
+cmake = "3.28.3.*"
+ninja = "*"
+pkg-config = "*"
