@@ -20,14 +20,14 @@ jobs:
           ref: main
           path: src
       - name: build base image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: src/docker/Dockerfile.base
           context: src
           tags: gz-sim:base
           load: true
       - name: build nightly image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           file: src/docker/Dockerfile.nightly
           build-contexts: |
