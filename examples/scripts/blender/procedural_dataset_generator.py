@@ -55,8 +55,9 @@ from typing import Any, Dict, Iterable, List, Optional, TextIO, Tuple, Union
 from xml.dom import minidom
 from xml.etree import ElementTree
 
-# Last tested and working version of Blender for this script (MAJOR, MINOR)
-LAST_WORKING_VERSION: Tuple(int, int) = (3, 2)
+# Supported Blender version range (MAJOR, MINOR)
+MINIMUM_WORKING_VERSION: Tuple[int, int] = (3, 0)
+LAST_WORKING_VERSION: Tuple[int, int] = (4, 2)
 
 ### Default script parameters (adjustable via CLI arguments)
 ## Parameters for SDF model exporter `sdf_model_exporter`
@@ -210,42 +211,78 @@ class sdf_model_exporter(ModuleType):
                     keep_bind_info=False,
                 )
             elif self.STL == self:
-                bpy.ops.export_mesh.stl(
-                    filepath=filepath,
-                    check_existing=False,
-                    use_selection=True,
-                    axis_forward="Y",
-                    axis_up="Z",
-                    global_scale=1,
-                    use_scene_unit=False,
-                    ascii=False,
-                    use_mesh_modifiers=True,
-                )
+                if bpy.app.version >= (4, 1, 0):
+                    bpy.ops.wm.stl_export(
+                        filepath=filepath,
+                        check_existing=False,
+                        export_selected_objects=True,
+                        forward_axis="Y",
+                        up_axis="Z",
+                        global_scale=1,
+                        use_scene_unit=False,
+                        ascii_format=False,
+                        apply_modifiers=True,
+                    )
+                else:
+                    bpy.ops.export_mesh.stl(
+                        filepath=filepath,
+                        check_existing=False,
+                        use_selection=True,
+                        axis_forward="Y",
+                        axis_up="Z",
+                        global_scale=1,
+                        use_scene_unit=False,
+                        ascii=False,
+                        use_mesh_modifiers=True,
+                    )
             elif self.WAVEFRONT == self:
-                bpy.ops.export_scene.obj(
-                    filepath=filepath,
-                    check_existing=False,
-                    axis_forward="Y",
-                    axis_up="Z",
-                    use_selection=True,
-                    use_animation=False,
-                    use_mesh_modifiers=True,
-                    use_edges=True,
-                    use_smooth_groups=False,
-                    use_smooth_groups_bitflags=False,
-                    use_normals=True,
-                    use_uvs=True,
-                    use_materials=True,
-                    use_triangles=True,
-                    use_nurbs=False,
-                    use_vertex_groups=False,
-                    use_blen_objects=True,
-                    group_by_object=False,
-                    group_by_material=False,
-                    keep_vertex_order=False,
-                    global_scale=1,
-                    path_mode="AUTO",
-                )
+                if bpy.app.version >= (4, 0, 0):
+                    bpy.ops.wm.obj_export(
+                        filepath=filepath,
+                        check_existing=False,
+                        forward_axis="Y",
+                        up_axis="Z",
+                        export_selected_objects=True,
+                        export_animation=False,
+                        apply_modifiers=True,
+                        export_smooth_groups=False,
+                        smooth_group_bitflags=False,
+                        export_normals=True,
+                        export_uv=True,
+                        export_materials=True,
+                        export_triangulated_mesh=True,
+                        export_curves_as_nurbs=False,
+                        export_vertex_groups=False,
+                        export_object_groups=False,
+                        export_material_groups=False,
+                        global_scale=1,
+                        path_mode="AUTO",
+                    )
+                else:
+                    bpy.ops.export_scene.obj(
+                        filepath=filepath,
+                        check_existing=False,
+                        axis_forward="Y",
+                        axis_up="Z",
+                        use_selection=True,
+                        use_animation=False,
+                        use_mesh_modifiers=True,
+                        use_edges=True,
+                        use_smooth_groups=False,
+                        use_smooth_groups_bitflags=False,
+                        use_normals=True,
+                        use_uvs=True,
+                        use_materials=True,
+                        use_triangles=True,
+                        use_nurbs=False,
+                        use_vertex_groups=False,
+                        use_blen_objects=True,
+                        group_by_object=False,
+                        group_by_material=False,
+                        keep_vertex_order=False,
+                        global_scale=1,
+                        path_mode="AUTO",
+                    )
             else:
                 raise ValueError(f"Filetype '{self}' is not supported for export.")
 
@@ -1565,8 +1602,18 @@ class procedural_dataset_generator(sdf_model_exporter):
         """
 
         # Try to find the corresponding ID of the input attribute
+        node_group = modifier.node_group
+        if hasattr(node_group, "interface"):
+            attributes = (
+                item
+                for item in node_group.interface.items_tree
+                if item.item_type == "SOCKET" and item.in_out == "INPUT"
+            )
+        else:
+            attributes = node_group.inputs
+
         input_id: Optional[str] = None
-        for attribute in modifier.node_group.inputs:
+        for attribute in attributes:
             if cls._unify_string(attribute.name) in lookup_phrases:
                 input_id = attribute.identifier
                 break
@@ -1603,18 +1650,22 @@ class procedural_dataset_generator(sdf_model_exporter):
 def main(**kwargs):
 
     # Warn the user in case an untested version of Blender is used
-    if bpy.app.version[0] != LAST_WORKING_VERSION[0]:
+    if not (
+        MINIMUM_WORKING_VERSION[0] <= bpy.app.version[0] <= LAST_WORKING_VERSION[0]
+    ):
         sdf_model_exporter._print_bpy(
             f"Err: Untested major version of Blender ({bpy.app.version_string})! "
             "This script will likely fail. Please, use Blender version "
-            f"[~{LAST_WORKING_VERSION[0]}.{LAST_WORKING_VERSION[1]}].",
+            f"[>={MINIMUM_WORKING_VERSION[0]}.{MINIMUM_WORKING_VERSION[1]}, "
+            f"<{LAST_WORKING_VERSION[0] + 1}.0].",
             file=sys.stderr,
         )
-    elif bpy.app.version[1] < LAST_WORKING_VERSION[1]:
+    elif bpy.app.version[:2] < MINIMUM_WORKING_VERSION:
         sdf_model_exporter._print_bpy(
             f"Warn: Untested minor version of Blender ({bpy.app.version_string})! "
             "This script might not work as intended. Please, consider using Blender "
-            f"version [~{LAST_WORKING_VERSION[0]}.{LAST_WORKING_VERSION[1]}].",
+            f"version [>={MINIMUM_WORKING_VERSION[0]}."
+            f"{MINIMUM_WORKING_VERSION[1]}].",
             file=sys.stderr,
         )
 
