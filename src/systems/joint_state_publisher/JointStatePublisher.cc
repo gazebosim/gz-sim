@@ -228,10 +228,10 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   static bool hasWarned {false};
 
   // Process each joint
-  int jointIndex = 0;
-  for (const Entity &joint : this->joints)
+  for (int jointIndex = 0; jointIndex < msg.joint_size(); ++jointIndex)
   {
-    msgs::Joint *jointMsg = msg.mutable_joint(jointIndex++);
+    msgs::Joint *jointMsg = msg.mutable_joint(jointIndex);
+    const Entity joint = jointMsg->id();
 
     // Set the joint pose
     pose = _ecm.Component<components::Pose>(joint);
