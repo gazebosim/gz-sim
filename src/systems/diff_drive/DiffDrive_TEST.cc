@@ -126,3 +126,50 @@ TEST(DiffDriveTest, DefaultTopicNames)
   expectedTopicNames.tfTopic = "ns/tf";
   TestTopicNames(sdfString, expectedTopicNames);
 }
+
+TEST(DiffDriveTest, TopicNamesWithoutNs)
+{
+  // Verify that explicitly configured topic names remain unchanged when no
+  // namespace is specified.
+  // Incomplete sdf, only used to test topic resolution behavior
+  std::string sdfString = R"(
+    <sdf version='1.10'>
+      <world name='diff_drive_test_world'>
+        <model name='diff_drive'>
+          <plugin name='gz::sim::systems::DiffDrive'
+                  filename='gz-sim-diff-drive-system'>
+            <topic>test_cmd_vel</topic>
+            <odom_topic>test_odom</odom_topic>
+            <tf_topic>test_tf</tf_topic>
+          </plugin>
+        </model>
+      </world>
+    </sdf>)";
+
+  DiffDrive::TopicNames expectedTopicNames;
+  expectedTopicNames.cmdVelTopic = "/test_cmd_vel";
+  expectedTopicNames.enableTopic = "/model/diff_drive/enable";
+  expectedTopicNames.odomTopic = "/test_odom";
+  expectedTopicNames.tfTopic = "/test_tf";
+  TestTopicNames(sdfString, expectedTopicNames);
+
+  // Verify that the original default topic names are preserved when no
+  // namespace is specified.
+  // Incomplete sdf, only used to test topic resolution behavior
+  sdfString = R"(
+    <sdf version='1.10'>
+      <world name='diff_drive_test_world'>
+        <model name='diff_drive'>
+          <plugin name='gz::sim::systems::DiffDrive'
+                  filename='gz-sim-diff-drive-system'>
+          </plugin>
+        </model>
+      </world>
+    </sdf>)";
+
+  expectedTopicNames.cmdVelTopic = "/model/diff_drive/cmd_vel";
+  expectedTopicNames.enableTopic = "/model/diff_drive/enable";
+  expectedTopicNames.odomTopic = "/model/diff_drive/odometry";
+  expectedTopicNames.tfTopic = "/model/diff_drive/tf";
+  TestTopicNames(sdfString, expectedTopicNames);
+}
