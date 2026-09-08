@@ -65,7 +65,8 @@ Q_INVOKABLE void AirPressure::OnAirPressureNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
         this->inspector->GetEntity());
@@ -97,7 +98,7 @@ Q_INVOKABLE void AirPressure::OnAirPressureReferenceAltitude(
     double _referenceAltitude)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _referenceAltitude](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::AirPressureSensor>(
         this->inspector->GetEntity());

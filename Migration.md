@@ -14,6 +14,27 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Buoyancy**
+  * The buoyant force now acts at the collision geometry's centroid instead
+    of the collision origin. This changes behavior for cone collisions
+    (centroid a quarter length from the base) and mesh collisions (centroid
+    wherever the geometry puts it); the origin centered primitives are
+    unaffected. In graded mode the layer above the last declared interface
+    uses the shape centroid as well.
+  * Mesh collisions now honor the SDF `<scale>` element in buoyancy
+    calculations: the displaced volume scales by the product of the three
+    components and the centroid componentwise. Models that relied on the
+    unscaled volume will float differently; the shipped example duck
+    displaces an eighth of what it did.
+  * The graded buoyancy mode now accounts for the orientation of each
+    collision when slicing it against a fluid interface. Previously the
+    slicing plane was always axis aligned in the shape's own frame, so a
+    rolled or pitched shape displaced the wrong volume at the wrong
+    centroid, and a heeled floating body could receive a capsizing moment
+    instead of a righting moment. Bodies at nonzero roll or pitch near a
+    fluid interface now float and right themselves per hydrostatic theory;
+    models tuned to compensate for the old behavior may need retuning.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
