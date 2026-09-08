@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+#include <vector>
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/wind.pb.h>
@@ -37,10 +40,14 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/Wind.hh"
 #include "gz/sim/components/WindMode.hh"
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -150,6 +157,7 @@ class BlockingPublisher
         : topic(std::move(_topic)), timeOut(_timeOut)
   {
     this->pub = this->node.template Advertise<T>(this->topic);
+    this->node.Subscribe(this->topic, &BlockingPublisher<T>::OnMsg, this);
   }
 
   public: bool Publish(const T &_msg)
@@ -158,7 +166,6 @@ class BlockingPublisher
       std::lock_guard<std::mutex> lock(this->onMsgMutex);
       this->onMsgCount = 0;
     }
-    this->node.Subscribe(this->topic, &BlockingPublisher<T>::OnMsg, this);
 
     this->pub.Publish(_msg);
     // Publish a second time
@@ -421,4 +428,138 @@ TEST_F(WindEffectsTest,
   // Now box_wind WorldLinearVelocity component should be added
   this->server->Run(true, 10, false);
   ASSERT_FALSE(linkVelocityComponent.values.empty());
+}
+
+/////////////////////////////////////////////////
+/// \brief Callback that records the wind entity's velocity at every
+/// iteration.
+/// \param[out] _values Recorded velocities.
+/// \return Callback to pass to test::Relay::OnPostUpdate.
+MockSystem::CallbackTypeConst windVelocityRecorder(
+    std::vector<math::Vector3d> &_values)
+{
+  return [&_values](const UpdateInfo &, const EntityComponentManager &_ecm)
+  {
+    auto windEntity = _ecm.EntityByComponents(components::Wind());
+    auto windVel =
+        _ecm.Component<components::WorldLinearVelocity>(windEntity);
+    if (windVel)
+      _values.push_back(windVel->Data());
+  };
+}
+
+/////////////////////////////////////////////////
+/// Check that disabling the wind zeroes the wind entity's velocity and
+/// publishes it, so systems that read the component (e.g. LiftDrag) or the
+/// wind information topic do not keep seeing the last wind, and that
+/// re-enabling the wind makes it rise from zero in the direction of the
+/// current seed.
+TEST_F(WindEffectsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(DisableResetsWindVelocity))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer("/test/worlds/wind_effects.sdf");
+
+  std::vector<math::Vector3d> windVelocities;
+  test::Relay recorder;
+  recorder.OnPostUpdate(windVelocityRecorder(windVelocities));
+  this->server->AddSystem(recorder.systemPtr);
+  this->server->SetUpdatePeriod(0ns);
+
+  // Also follow the wind information published on the wind_info topic
+  transport::Node node;
+  Subscription<msgs::Wind> windInfo;
+  windInfo.Subscribe(node, "/world/wind_demo/wind_info");
+
+  // Let the wind rise from the seed specified in the SDF (+X), until both
+  // the wind entity and the wind information report it
+  ASSERT_TRUE(test::StepUntil(*this->server, 1000, [&]()
+  {
+    return !windVelocities.empty() && windVelocities.back().Length() > 0.1 &&
+        windInfo.Count() > 0 &&
+        msgs::Convert(windInfo.Last().linear_velocity()).Length() > 0.1;
+  }));
+  EXPECT_TRUE(windInfo.Last().enable_wind());
+
+  // Disable the wind and, at the same time, turn the seed towards +Y
+  msgs::Wind windCmd;
+  msgs::Set(windCmd.mutable_linear_velocity(),
+            math::Vector3d(0.0, 10.0, 10.0));
+  windCmd.set_enable_wind(false);
+  BlockingPublisher<msgs::Wind> pub("/world/wind_demo/wind", 5000ms);
+  ASSERT_TRUE(pub.Publish(windCmd));
+
+  // The wind velocity drops to zero on the next update and stays there
+  this->server->Run(true, 1, false);
+  EXPECT_EQ(math::Vector3d::Zero, windVelocities.back());
+  this->server->Run(true, 10, false);
+  EXPECT_EQ(math::Vector3d::Zero, windVelocities.back());
+
+  // The published wind information reports no wind and a disabled wind
+  ASSERT_TRUE(test::WaitUntil(5s, [&]()
+  {
+    return msgs::Convert(windInfo.Last().linear_velocity()) ==
+        math::Vector3d::Zero;
+  }));
+  EXPECT_FALSE(windInfo.Last().enable_wind());
+
+  // Re-enable the wind: it rises from zero, in the direction of the new
+  // seed, instead of jumping back to the velocity it had before being
+  // disabled
+  windCmd.set_enable_wind(true);
+  ASSERT_TRUE(pub.Publish(windCmd));
+  this->server->Run(true, 1, false);
+  const math::Vector3d firstWind = windVelocities.back();
+  EXPECT_GT(firstWind.Length(), 0.0);
+  EXPECT_LT(firstWind.Length(), 0.1);
+  EXPECT_LT(std::fabs(firstWind.X()), std::fabs(firstWind.Y()));
+}
+
+/////////////////////////////////////////////////
+/// Check that when several wind commands are received before the next
+/// update, only the newest one is applied.
+TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LastCommandWins))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer("/test/worlds/wind_effects.sdf");
+
+  std::vector<math::Vector3d> windVelocities;
+  test::Relay recorder;
+  recorder.OnPostUpdate(windVelocityRecorder(windVelocities));
+  this->server->AddSystem(recorder.systemPtr);
+  this->server->SetUpdatePeriod(0ns);
+
+  // Let the wind rise from the seed specified in the SDF
+  this->server->Run(true, 100, false);
+  ASSERT_FALSE(windVelocities.empty());
+
+  // Disable and then re-enable the wind, with a new seed, without stepping
+  // in between
+  const math::Vector3d windVelSeed{5.0, 0.0, 5.0};
+  msgs::Wind windCmd;
+  msgs::Set(windCmd.mutable_linear_velocity(), windVelSeed);
+  BlockingPublisher<msgs::Wind> pub("/world/wind_demo/wind", 5000ms);
+  windCmd.set_enable_wind(false);
+  ASSERT_TRUE(pub.Publish(windCmd));
+  windCmd.set_enable_wind(true);
+  ASSERT_TRUE(pub.Publish(windCmd));
+
+  // Only the newest command is applied: the wind keeps rising, and the
+  // new seed is in place with the wind still enabled
+  this->server->Run(true, 20, false);
+  ASSERT_GE(windVelocities.size(), 2u);
+  EXPECT_GT(windVelocities.back().Length(),
+            windVelocities[windVelocities.size() - 2].Length());
+
+  transport::Node node;
+  const std::string windService{"/world/wind_demo/wind_info"};
+  ASSERT_TRUE(test::waitForService(node, windService));
+  msgs::Wind res;
+  bool executed{false};
+  node.Request(windService, 5000u, res, executed);
+  ASSERT_TRUE(executed);
+  EXPECT_EQ(windVelSeed, msgs::Convert(res.linear_velocity()));
+  EXPECT_TRUE(res.enable_wind());
 }
