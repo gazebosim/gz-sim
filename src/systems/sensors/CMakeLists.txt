@@ -16,3 +16,24 @@ gz_add_system(sensors
     gz-sensors${GZ_SENSORS_VER}::thermal_camera
     gz-sensors${GZ_SENSORS_VER}::wide_angle_camera
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    SensorsPrivate_TEST.cc
+  LIB_DEPS
+    ${rendering_target}
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-plugin${GZ_PLUGIN_VER}::register
+    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-sensors${GZ_SENSORS_VER}::boundingbox_camera
+    gz-sensors${GZ_SENSORS_VER}::camera
+    gz-sensors${GZ_SENSORS_VER}::depth_camera
+    gz-sensors${GZ_SENSORS_VER}::gpu_lidar
+    gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
+    gz-sensors${GZ_SENSORS_VER}::lidar
+    gz-sensors${GZ_SENSORS_VER}::rgbd_camera
+    gz-sensors${GZ_SENSORS_VER}::segmentation_camera
+    gz-sensors${GZ_SENSORS_VER}::thermal_camera
+    gz-sensors${GZ_SENSORS_VER}::wide_angle_camera
+)
