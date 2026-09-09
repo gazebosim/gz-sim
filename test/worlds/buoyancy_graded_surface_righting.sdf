@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+<!--
+  Regression world for graded buoyancy at attitude: a box vessel floating
+  half submerged with an initial heel. Its positive transverse metacentric
+  height (+0.2083 m; Fossen 2011, eq. 4.32) must right it; the old axis
+  aligned slicing capsized it.
+-->
+<sdf version="1.6">
+  <world name="buoyancy_surface_righting">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1000</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <!-- 2 x 1 x 0.5 box, mass = half its displacement (500 kg), so the
+         waterline passes through its centre. Heeled 0.3 rad. -->
+    <model name="box_vessel">
+      <pose>0 0 0 0.3 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>500</mass>
+          <inertia>
+            <ixx>52.083</ixx>
+            <iyy>177.083</iyy>
+            <izz>208.333</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>2 1 0.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>2 1 0.5</size></box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

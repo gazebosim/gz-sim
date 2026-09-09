@@ -17,6 +17,7 @@ set(tests
   collada_world_exporter.cc
   components.cc
   contact_system.cc
+  cpu_lidar_system.cc
   detachable_joint.cc
   diff_drive_system.cc
   drive_to_pose_controller_system.cc

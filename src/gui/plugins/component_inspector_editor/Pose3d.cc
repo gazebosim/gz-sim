@@ -36,7 +36,7 @@ Pose3d::Pose3d(ComponentInspectorEditor *_inspector)
   this->inspector = _inspector;
 
   ComponentCreator creator =
-    [=](EntityComponentManager &_ecm, Entity _entity, QStandardItem *_item)
+    [this](EntityComponentManager &_ecm, Entity _entity, QStandardItem *_item)
   {
     auto comp = _ecm.Component<components::Pose>(_entity);
     if (nullptr == _item || nullptr == comp)
@@ -71,7 +71,7 @@ Q_INVOKABLE void Pose3d::PoseUpdate(
     double _x, double _y, double _z, double _roll, double _pitch, double _yaw)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _x, _y, _z, _roll, _pitch, _yaw](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Pose>(this->inspector->GetEntity());
     if (comp)

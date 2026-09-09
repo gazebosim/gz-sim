@@ -69,7 +69,8 @@ Q_INVOKABLE void Altimeter::OnAltimeterPositionNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
         this->inspector->GetEntity());
@@ -103,7 +104,8 @@ Q_INVOKABLE void Altimeter::OnAltimeterVelocityNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Altimeter>(
         this->inspector->GetEntity());

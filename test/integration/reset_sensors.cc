@@ -255,6 +255,14 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(HandleReset))
 
   // The second iteration is where the reset actually occurs.
   reset::ApplyWorldReset(server);
+
+  // The reset rebuilds the ECM component storage (ResetTo -> CopyFrom clones
+  // every component into freshly allocated objects), which invalidates any
+  // component pointer cached before the reset. Re-fetch the pose component
+  // see issue #3635).
+  poseComp = ecm->Component<components::Pose>(entity);
+  ASSERT_NE(nullptr, poseComp);
+
   {
     EXPECT_EQ(1u, this->mockSystem->configureCallCount);
     EXPECT_EQ(1u, this->mockSystem->resetCallCount);
