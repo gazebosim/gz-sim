@@ -33,9 +33,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 {
   class VisualizeContactsPrivate;
 
-  /// \brief Visualize the contacts returned by the Physics plugin. Use the
-  /// checkbox to turn visualization on or off and spin boxes to change
-  /// the size of the markers.
+  /// \brief Visualize the contacts and contact forces returned by the Physics
+  /// plugin. Use the checkboxes to turn visualization on or off and spin boxes
+  /// to change the scale and size of the markers.
   class VisualizeContacts : public gz::sim::GuiSystem
   {
     Q_OBJECT
@@ -61,15 +61,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \param[in] _checked indicates show or hide contact force arrows
     public slots: void OnVisualizeForces(bool _checked);
 
-    /// \brief Update the radius of the contact
-    /// \param[in] _radius new radius of the contact
-    public slots: void UpdateRadius(double _radius);
+    /// \brief Update the radius of the contact point sphere (m)
+    /// \param[in] _radius new radius of the contact point sphere
+    public slots: void UpdateSphereRadius(double _radius);
 
     /// \brief Update the scale of the contact force vectors (m/N)
     /// \param[in] _scale new force scale
     public slots: void UpdateForceScale(double _scale);
 
-    /// \brief Update the radius of the force arrow shaft (m)
+    /// \brief Update the radius of the force arrow (m)
     /// \param[in] _radius new radius of the arrow
     public slots: void UpdateArrowRadius(double _radius);
 
