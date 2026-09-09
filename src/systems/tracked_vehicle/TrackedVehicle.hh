@@ -62,6 +62,10 @@ namespace systems
   ///     center of rotation commands (defaults to
   ///     `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`)
   ///
+  /// - `<body_link>`: The name of the vehicle body link. Should be in between
+  ///   left and right tracks, center of this link will be the center of
+  ///   rotation. This element is optional, default is model's canonical link.
+  ///
   /// - `<tracks_separation>`: Distance between tracks, in meters. Required
   ///   parameter.
   ///
