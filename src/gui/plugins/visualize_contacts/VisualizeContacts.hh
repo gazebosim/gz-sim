@@ -57,9 +57,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \param[in] _checked indicates show or hide contacts
     public slots: void OnVisualize(bool _checked);
 
+    /// \brief Callback when show forces checkbox state is changed
+    /// \param[in] _checked indicates show or hide contact force arrows
+    public slots: void OnVisualizeForces(bool _checked);
+
     /// \brief Update the radius of the contact
     /// \param[in] _radius new radius of the contact
     public slots: void UpdateRadius(double _radius);
+
+    /// \brief Update the scale of the contact force vectors (m/N)
+    /// \param[in] _scale new force scale
+    public slots: void UpdateForceScale(double _scale);
+
+    /// \brief Update the radius of the force arrow shaft (m)
+    /// \param[in] _radius new radius of the arrow
+    public slots: void UpdateArrowRadius(double _radius);
 
     /// \brief Update the update period of the markers
     /// \param[in] _period new update period

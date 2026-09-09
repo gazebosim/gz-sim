@@ -72,6 +72,55 @@ GridLayout {
     onEditingFinished: _VisualizeContacts.UpdateRadius(radius.value)
   }
 
+  CheckBox {
+    Layout.alignment: Qt.AlignHCenter
+    id: visualizeForces
+    Layout.columnSpan: 4
+    text: qsTr("Show Force Vectors")
+    checked: true
+    onClicked: {
+      _VisualizeContacts.OnVisualizeForces(checked)
+    }
+  }
+
+  Text {
+    Layout.columnSpan: 2
+    id: forceScaleText
+    color: "dimgrey"
+    text: "Force scale (m/N)"
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: forceScale
+    maximumValue: 0.1000
+    minimumValue: 0.0001
+    value: 0.0020
+    decimals: 4
+    stepSize: 0.0010
+    onEditingFinished: _VisualizeContacts.UpdateForceScale(forceScale.value)
+  }
+
+  Text {
+    Layout.columnSpan: 2
+    id: arrowRadiusText
+    color: "dimgrey"
+    text: "Arrow radius (m)"
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: arrowRadius
+    maximumValue: 0.500
+    minimumValue: 0.001
+    value: 0.008
+    decimals: 3
+    stepSize: 0.002
+    onEditingFinished: _VisualizeContacts.UpdateArrowRadius(arrowRadius.value)
+  }
+
   Text {
     Layout.columnSpan: 2
     id: updatePeriodText

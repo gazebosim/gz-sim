@@ -83,21 +83,37 @@ void OnMarkerArrayResponse(const gz::msgs::Boolean &, const bool)
     /// \brief Previous state of the checkbox
     public: bool checkboxPrevState{false};
 
-    /// \brief Message for visualizing contact positions
+    /// \brief State of the show forces checkbox
+    public: bool showForcesState{true};
+
+    /// brief Scale of force vectors in m/N
+    public: double forceScale{0.002};
+
+    /// \brief Radius of the force arrow shaft in meters
+    public: double arrowRadius{0.008};
+
+    /// \brief Message template for contact positions (spheres)
     public: gz::msgs::Marker positionMarkerMsg;
 
+    /// \brief Message template for cylinder shafts of force arrows
+    public: gz::msgs::Marker shaftMarkerMsg;
+
+    /// \brief Message template for cone heads of force arrows
+    public: gz::msgs::Marker headMarkerMsg;
+
     /// \brief Radius of the visualized contact sphere
-    public: double contactRadius{0.10};
+    public: double contactRadius{0.03};
 
     /// \brief Update time of the markers in milliseconds
-    public: int64_t markerLifetime{200};
+    public: int64_t markerLifetime{100};
 
     /// \brief Simulation time for the last markers update
     public: std::chrono::steady_clock::duration lastMarkersUpdateTime{0};
 
     /// \brief Mutex for variable mutated by the checkbox and spinboxes
     /// callbacks.
-    /// The variables are: checkboxState, contactRadius and markerLifetime
+    /// The variables are: checkboxState, showForcesState, contactRadius,
+    /// forceScale and markerLifetime
     public: std::mutex serviceMutex;
 
     /// \brief Initialization flag
@@ -128,11 +144,9 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Visualize contacts";
 
-  // Configure Marker messages for position of the contacts
+  // Configure Marker messages for position and forces of contacts
 
-  // Blue spheres for positions
-
-  // Create the marker message
+  // Bright glowing cyan spheres for contact positions
   this->dataPtr->positionMarkerMsg.set_ns("positions");
   this->dataPtr->positionMarkerMsg.set_action(
     gz::msgs::Marker::ADD_MODIFY);
@@ -147,19 +161,71 @@ void VisualizeContacts::LoadConfig(const tinyxml2::XMLElement *)
     positionMarkerMsg.mutable_lifetime()->
       set_nsec(this->dataPtr->markerLifetime * 1000000);
 
-  // Set material properties
   gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_ambient(),
-    gz::math::Color(0, 0, 1, 1));
+    gz::math::Color(0.0, 0.85, 1.0, 1.0));
   gz::msgs::Set(
     this->dataPtr->positionMarkerMsg.mutable_material()->mutable_diffuse(),
-    gz::math::Color(0, 0, 1, 1));
+    gz::math::Color(0.0, 1.0, 1.0, 1.0));
+  gz::msgs::Set(
+    this->dataPtr->positionMarkerMsg.mutable_material()->mutable_emissive(),
+    gz::math::Color(0.0, 0.6, 0.9, 1.0));
 
   // Set contact position scale
   gz::msgs::Set(this->dataPtr->positionMarkerMsg.mutable_scale(),
     gz::math::Vector3d(this->dataPtr->contactRadius,
     this->dataPtr->contactRadius,
     this->dataPtr->contactRadius));
+
+  // Bright glowing amber/gold cylinder shaft for 3D force arrows
+  this->dataPtr->shaftMarkerMsg.set_ns("force_shafts");
+  this->dataPtr->shaftMarkerMsg.set_action(
+    gz::msgs::Marker::ADD_MODIFY);
+  this->dataPtr->shaftMarkerMsg.set_type(
+    gz::msgs::Marker::CYLINDER);
+  this->dataPtr->shaftMarkerMsg.set_visibility(
+    gz::msgs::Marker::GUI);
+  this->dataPtr->
+    shaftMarkerMsg.mutable_lifetime()->
+      set_sec(0);
+  this->dataPtr->
+    shaftMarkerMsg.mutable_lifetime()->
+      set_nsec(this->dataPtr->markerLifetime * 1000000);
+
+  gz::msgs::Set(
+    this->dataPtr->shaftMarkerMsg.mutable_material()->mutable_ambient(),
+    gz::math::Color(1.0, 0.8, 0.0, 1.0));
+  gz::msgs::Set(
+    this->dataPtr->shaftMarkerMsg.mutable_material()->mutable_diffuse(),
+    gz::math::Color(1.0, 0.9, 0.1, 1.0));
+  gz::msgs::Set(
+    this->dataPtr->shaftMarkerMsg.mutable_material()->mutable_emissive(),
+    gz::math::Color(0.9, 0.5, 0.0, 1.0));
+
+  // Bright glowing amber/gold cone head for 3D force arrows
+  this->dataPtr->headMarkerMsg.set_ns("force_heads");
+  this->dataPtr->headMarkerMsg.set_action(
+    gz::msgs::Marker::ADD_MODIFY);
+  this->dataPtr->headMarkerMsg.set_type(
+    gz::msgs::Marker::CONE);
+  this->dataPtr->headMarkerMsg.set_visibility(
+    gz::msgs::Marker::GUI);
+  this->dataPtr->
+    headMarkerMsg.mutable_lifetime()->
+      set_sec(0);
+  this->dataPtr->
+    headMarkerMsg.mutable_lifetime()->
+      set_nsec(this->dataPtr->markerLifetime * 1000000);
+
+  gz::msgs::Set(
+    this->dataPtr->headMarkerMsg.mutable_material()->mutable_ambient(),
+    gz::math::Color(1.0, 0.8, 0.0, 1.0));
+  gz::msgs::Set(
+    this->dataPtr->headMarkerMsg.mutable_material()->mutable_diffuse(),
+    gz::math::Color(1.0, 0.9, 0.1, 1.0));
+  gz::msgs::Set(
+    this->dataPtr->headMarkerMsg.mutable_material()->mutable_emissive(),
+    gz::math::Color(0.9, 0.5, 0.0, 1.0));
 }
 
 /////////////////////////////////////////////////
@@ -167,6 +233,20 @@ void VisualizeContacts::OnVisualize(bool _checked)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
   this->dataPtr->checkboxState = _checked;
+}
+
+/////////////////////////////////////////////////
+void VisualizeContacts::OnVisualizeForces(bool _checked)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->showForcesState = _checked;
+}
+
+/////////////////////////////////////////////////
+void VisualizeContacts::UpdateForceScale(double _scale)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->forceScale = _scale;
 }
 
 //////////////////////////////////////////////////
@@ -198,18 +278,35 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
 
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-    if (this->dataPtr->checkboxPrevState && !this->dataPtr->checkboxState)
+    if (this->dataPtr->checkboxState && !this->dataPtr->checkboxPrevState)
     {
-      // Remove the markers
+      // Re-scan collisions to ensure any newly added models are enabled
+      this->dataPtr->CreateCollisionData(_ecm);
+    }
+    else if (this->dataPtr->checkboxPrevState && !this->dataPtr->checkboxState)
+    {
+      // Remove position markers
       this->dataPtr->positionMarkerMsg.set_action(
         gz::msgs::Marker::DELETE_ALL);
-
-      gzdbg << "Removing markers..." << std::endl;
       this->dataPtr->node.Request(
         "/marker", this->dataPtr->positionMarkerMsg);
-
-      // Change action in case checkbox is checked again
       this->dataPtr->positionMarkerMsg.set_action(
+        gz::msgs::Marker::ADD_MODIFY);
+
+      // Remove force shaft markers
+      this->dataPtr->shaftMarkerMsg.set_action(
+        gz::msgs::Marker::DELETE_ALL);
+      this->dataPtr->node.Request(
+        "/marker", this->dataPtr->shaftMarkerMsg);
+      this->dataPtr->shaftMarkerMsg.set_action(
+        gz::msgs::Marker::ADD_MODIFY);
+
+      // Remove force head markers
+      this->dataPtr->headMarkerMsg.set_action(
+        gz::msgs::Marker::DELETE_ALL);
+      this->dataPtr->node.Request(
+        "/marker", this->dataPtr->headMarkerMsg);
+      this->dataPtr->headMarkerMsg.set_action(
         gz::msgs::Marker::ADD_MODIFY);
     }
 
@@ -234,8 +331,9 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
   // contacts instead of getting new and removed ones
   gz::msgs::Marker_V markerMsgs;
 
-  // Variable for setting the markers id through the iteration
-  int markerID = 1;
+  int posMarkerID = 1;
+  int forceMarkerID = 1;
+
   _ecm.Each<components::ContactSensorData>(
     [&](const Entity &,
         const components::ContactSensorData *_contacts) -> bool
@@ -244,15 +342,63 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
       {
         for (int i = 0; i < contact.position_size(); ++i)
         {
-          // Add marker id and pose to the marker array
+          const auto &pos = contact.position(i);
+          gz::math::Vector3d p(pos.x(), pos.y(), pos.z());
+
+          // Add contact point position sphere marker
           auto markerMsg = markerMsgs.add_marker();
           markerMsg->CopyFrom(this->dataPtr->positionMarkerMsg);
 
-          markerMsg->set_id(markerID++);
+          markerMsg->set_id(posMarkerID++);
           gz::msgs::Set(markerMsg->mutable_pose(),
-            gz::math::Pose3d(contact.position(i).x(),
-              contact.position(i).y(), contact.position(i).z(),
-              0, 0, 0));
+            gz::math::Pose3d(p, gz::math::Quaterniond::Identity));
+
+          // If 3D force arrows are enabled and wrench data is available
+          if (this->dataPtr->showForcesState && i < contact.wrench_size())
+          {
+            const auto &forceMsg = contact.wrench(i).body_1_wrench().force();
+            gz::math::Vector3d force(forceMsg.x(), forceMsg.y(), forceMsg.z());
+            double fNorm = force.Length();
+            if (fNorm > 1e-2)
+            {
+              double L = fNorm * this->dataPtr->forceScale;
+              gz::math::Vector3d u = force / fNorm;
+
+              double shaftDiam = 2.0 * this->dataPtr->arrowRadius;
+              double headDiam = 2.2 * shaftDiam;
+              double headLen = std::max(0.01, 2.5 * shaftDiam);
+              if (headLen > 0.4 * L)
+              {
+                headLen = 0.4 * L;
+              }
+              double shaftLen = std::max(0.001, L - headLen);
+
+              gz::math::Quaterniond rot;
+              rot.SetFrom2Axes(gz::math::Vector3d::UnitZ, u);
+
+              // 1. Shaft (Cylinder)
+              gz::math::Vector3d pShaft = p + (0.5 * shaftLen) * u;
+              auto shaftMarker = markerMsgs.add_marker();
+              shaftMarker->CopyFrom(this->dataPtr->shaftMarkerMsg);
+              shaftMarker->set_id(forceMarkerID);
+              gz::msgs::Set(shaftMarker->mutable_pose(),
+                gz::math::Pose3d(pShaft, rot));
+              gz::msgs::Set(shaftMarker->mutable_scale(),
+                gz::math::Vector3d(shaftDiam, shaftDiam, shaftLen));
+
+              // 2. Head (Cone)
+              gz::math::Vector3d pHead = p + (shaftLen + 0.5 * headLen) * u;
+              auto headMarker = markerMsgs.add_marker();
+              headMarker->CopyFrom(this->dataPtr->headMarkerMsg);
+              headMarker->set_id(forceMarkerID);
+              gz::msgs::Set(headMarker->mutable_pose(),
+                gz::math::Pose3d(pHead, rot));
+              gz::msgs::Set(headMarker->mutable_scale(),
+                gz::math::Vector3d(headDiam, headDiam, headLen));
+
+              forceMarkerID++;
+            }
+          }
         }
       }
       return true;
@@ -318,6 +464,13 @@ void VisualizeContacts::UpdateRadius(double _radius)
 }
 
 //////////////////////////////////////////////////
+void VisualizeContacts::UpdateArrowRadius(double _radius)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  this->dataPtr->arrowRadius = _radius;
+}
+
+//////////////////////////////////////////////////
 void VisualizeContacts::UpdatePeriod(double _period)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
@@ -326,8 +479,13 @@ void VisualizeContacts::UpdatePeriod(double _period)
   // Set markers lifetime
   this->dataPtr->
     positionMarkerMsg.mutable_lifetime()->set_nsec(_period * 1000000);
+  this->dataPtr->
+    shaftMarkerMsg.mutable_lifetime()->set_nsec(_period * 1000000);
+  this->dataPtr->
+    headMarkerMsg.mutable_lifetime()->set_nsec(_period * 1000000);
 }
 
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::VisualizeContacts,
                     gz::gui::Plugin)
+
