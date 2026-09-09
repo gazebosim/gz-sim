@@ -85,7 +85,8 @@ constexpr double kMinimumForceToVisualize = 1e-2;
 /// \param[in] _forceMarkerId ID for the force arrow markers
 /// \param[in] _pos Contact position in world coordinates
 /// \param[in] _force Contact force vector in world coordinates
-/// \param[in] _forceScale Scale factor to convert force magnitude to arrow length
+/// \param[in] _forceScale Scale factor to convert force magnitude to arrow
+/// length
 /// \param[in] _arrowRadius Radius of the arrow body cylinder
 /// \param[in] _bodyMarkerMsg Template marker message for arrow body
 /// \param[in] _headMarkerMsg Template marker message for arrow head
@@ -405,7 +406,7 @@ void VisualizeContacts::Update(const UpdateInfo &_info,
   gz::msgs::Marker_V markerMsgs;
 
   // Marker ID for position spheres and force arrows.
-  // Note that the position spheres, arrow bodies and arrow heads 
+  // Note that the position spheres, arrow bodies and arrow heads
   // are in separate marker namespaces.
   int posMarkerID = 1;
   int forceMarkerID = 1;
