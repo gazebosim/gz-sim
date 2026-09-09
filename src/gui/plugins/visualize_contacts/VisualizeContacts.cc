@@ -537,4 +537,3 @@ void VisualizeContacts::UpdatePeriod(double _period)
 // Register this plugin
 GZ_ADD_PLUGIN(gz::sim::VisualizeContacts,
                     gz::gui::Plugin)
-
