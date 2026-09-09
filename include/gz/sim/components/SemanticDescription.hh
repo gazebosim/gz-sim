@@ -44,8 +44,10 @@ class SemanticDescriptionSerializer
   {
     msgs::StringMsg msg;
     msg.set_data(_desc);
-    auto result = msg.SerializeToOstream(&_out);
-    (void)result;
+    if (!msg.SerializeToOstream(&_out))
+    {
+      _out.setstate(std::ios_base::failbit);
+    }
     return _out;
   }
 
@@ -53,10 +55,13 @@ class SemanticDescriptionSerializer
   static std::istream &Deserialize(std::istream &_in, std::string &_desc)
   {
     msgs::StringMsg msg;
-    if(msg.ParsePartialFromIstream(&_in))
+    if (!msg.ParsePartialFromIstream(&_in))
     {
-      _desc = msg.data();
+      _in.setstate(std::ios_base::failbit);
+      return _in;
     }
+
+    _desc = msg.data();
     return _in;
   }
 };
