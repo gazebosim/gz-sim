@@ -282,6 +282,32 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   return result;
 }
 
+std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
+    const std::string &_sdfElement, const std::string &_ns,
+    const std::string &_defaultTopic)
+{
+  std::vector<std::string> topics;
+
+  if (_sdf->HasElement(_sdfElement))
+  {
+    std::string customTopic = _sdf->Get<std::string>(_sdfElement);
+
+    if (!customTopic.empty())
+    {
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (customTopic.front() != '/')
+      {
+        customTopic = _ns + "/" + customTopic;
+      }
+      topics.push_back(customTopic);
+    }
+  }
+
+  topics.push_back(_defaultTopic);
+  return validTopic(topics);
+}
+
 //////////////////////////////////////////////////
 std::string normalizePluginName(const std::string &_name)
 {
