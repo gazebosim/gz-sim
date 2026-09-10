@@ -382,7 +382,7 @@ void EntityComponentManager::EachNew(Func &&_f)
   // ClearNewlyCreatedEntities call: skip the view lookup entirely.
   if (!this->HasNewEntities())
     return;
-  
+
   auto view = this->Registry().template view<NewEntity, ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
@@ -403,7 +403,7 @@ void EntityComponentManager::EachNew(Func &&_f) const
   // ClearNewlyCreatedEntities call: skip the view lookup entirely.
   if (!this->HasNewEntities())
     return;
-  
+
   auto view = this->Registry().template view<
     const NewEntity, const ComponentTypeTs...>();
 
@@ -425,7 +425,7 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
   // entirely.
   if (!this->HasEntitiesMarkedForRemoval())
     return;
-  
+
   auto view = this->Registry().template view<
     const RemoveEntity, const ComponentTypeTs...>();
 
