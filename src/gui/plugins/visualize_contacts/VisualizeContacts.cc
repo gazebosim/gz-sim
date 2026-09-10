@@ -161,7 +161,7 @@ void AddForceArrowMarkers(
     public: bool showForcesState{false};
 
     /// brief Scale of force vectors in m/N
-    public: double forceScale{0.01};
+    public: double forceScale{0.1};
 
     /// \brief Radius of the force arrow in meters
     public: double arrowRadius{0.01};

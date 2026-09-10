@@ -94,11 +94,11 @@ GridLayout {
     Layout.columnSpan: 2
     Layout.fillWidth: true
     id: forceScale
-    maximumValue: 0.1
-    minimumValue: 0.001
-    value: 0.01
+    maximumValue: 1.0
+    minimumValue: 0.005
+    value: 0.1
     decimals: 3
-    stepSize: 0.001
+    stepSize: 0.005
     onEditingFinished: _VisualizeContacts.UpdateForceScale(forceScale.value)
   }
 
