@@ -1,0 +1,131 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <world name="dvl_reset">
+    <gravity>0 0 0</gravity>
+
+    <physics name="reset_physics" type="dart">
+      <max_step_size>0.02</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+    </plugin>
+    <plugin
+      filename="gz-sim-dvl-system"
+      name="gz::sim::systems::DopplerVelocityLogSystem">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="seabed">
+      <static>true</static>
+      <pose>0 0 -20 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>200 200 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>200 200 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <model name="dvl_model">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="base_link">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </visual>
+
+        <sensor name="teledyne_pathfinder_dvl" type="custom" gz:type="dvl">
+          <pose degrees="true">0 0 -0.16 0 0 180</pose>
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>
+          <topic>/dvl/velocity</topic>
+          <gz:dvl>
+            <type>phased_array</type>
+            <arrangement degrees="true">
+              <beam id="1">
+                <aperture>2</aperture>
+                <rotation>45</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam id="2">
+                <aperture>2</aperture>
+                <rotation>135</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam id="3">
+                <aperture>2</aperture>
+                <rotation>-45</rotation>
+                <tilt>30</tilt>
+              </beam>
+              <beam id="4">
+                <aperture>2</aperture>
+                <rotation>-135</rotation>
+                <tilt>30</tilt>
+              </beam>
+            </arrangement>
+            <tracking>
+              <bottom_mode>
+                <when>best</when>
+                <noise type="gaussian">
+                  <stddev>0.002</stddev>
+                </noise>
+                <visualize>false</visualize>
+              </bottom_mode>
+            </tracking>
+            <resolution>0.01</resolution>
+            <maximum_range>100.</maximum_range>
+            <minimum_range>0.1</minimum_range>
+            <reference_frame>0 0 0 0 0 -1.570796</reference_frame>
+          </gz:dvl>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
