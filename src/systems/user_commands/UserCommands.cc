@@ -36,6 +36,8 @@
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/entity_factory_v.pb.h>
+#include <gz/msgs/entity_factory_with_ns.pb.h>
+#include <gz/msgs/entity_factory_with_ns_v.pb.h>
 #include <gz/msgs/light.pb.h>
 #include <gz/msgs/material_color.pb.h>
 #include <gz/msgs/physics.pb.h>
@@ -165,10 +167,22 @@ class CreateCommand : public UserCommandBase
   public: CreateCommand(msgs::EntityFactory *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
+  /// \brief Constructor
+  /// \param[in] _msg Factory message.
+  /// \param[in] _iface Pointer to user commands interface with namespace.
+  public: CreateCommand(msgs::EntityFactoryWithNs *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
   /// \brief Constructor overload that takes a vector of Factory messages
   /// \param[in] _msg Vector of Factory message.
   /// \param[in] _iface Pointer to user commands interface.
   public: CreateCommand(msgs::EntityFactory_V *_msg,
+      std::shared_ptr<UserCommandsInterface> &_iface);
+
+  /// \brief Constructor overload that takes a vector of Factory messages
+  /// \param[in] _msg Vector of Factory message.
+  /// \param[in] _iface Pointer to user commands interface with namespace.
+  public: CreateCommand(msgs::EntityFactoryWithNs_V *_msg,
       std::shared_ptr<UserCommandsInterface> &_iface);
 
   // Documentation inherited
@@ -176,7 +190,13 @@ class CreateCommand : public UserCommandBase
 
   /// \brief Actual implementation that creates entities from message.
   /// \param[in] Factory message that specifies the entity to create.
-  private: bool CreateFromMsg(const msgs::EntityFactory &_createMsg);
+  /// \param[in] _ns Namespace to apply to the created entity.
+  private: bool CreateFromMsg(const msgs::EntityFactory &_createMsg,
+      const std::string &_ns);
+
+  /// \brief Actual implementation that creates entities from message.
+  /// \param[in] Factory message that specifies the entity to create.
+  private: bool CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg);
 };
 
 /// \brief Command to remove an entity from simulation.
@@ -607,8 +627,12 @@ void UserCommands::Configure(const Entity &_entity,
   // Create service
   this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory>(
       "/world/" + validWorldName + "/create");
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactoryWithNs>(
+      "/world/" + validWorldName + "/create_with_ns");
   this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactory_V>(
       "/world/" + validWorldName + "/create_multiple", "Create");
+  this->dataPtr->AdvertiseService<CreateCommand, msgs::EntityFactoryWithNs_V>(
+      "/world/" + validWorldName + "/create_with_ns_multiple", "Create");
 
   // Remove service
   this->dataPtr->AdvertiseService<RemoveCommand, msgs::Entity>(
@@ -821,11 +845,26 @@ CreateCommand::CreateCommand(msgs::EntityFactory *_msg,
 }
 
 //////////////////////////////////////////////////
+CreateCommand::CreateCommand(msgs::EntityFactoryWithNs *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
+//////////////////////////////////////////////////
 CreateCommand::CreateCommand(msgs::EntityFactory_V *_msg,
     std::shared_ptr<UserCommandsInterface> &_iface)
     : UserCommandBase(_msg, _iface)
 {
 }
+
+//////////////////////////////////////////////////
+CreateCommand::CreateCommand(msgs::EntityFactoryWithNs_V *_msg,
+    std::shared_ptr<UserCommandsInterface> &_iface)
+    : UserCommandBase(_msg, _iface)
+{
+}
+
 //////////////////////////////////////////////////
 bool CreateCommand::Execute()
 {
@@ -833,22 +872,41 @@ bool CreateCommand::Execute()
       gz::msgs::DoDynamicCastMessage<msgs::EntityFactory>(this->msg);
   if (nullptr != createMsg)
   {
-    return this->CreateFromMsg(*createMsg);
+    return this->CreateFromMsg(*createMsg, "");
   }
-  else
+
+  auto createMsgV =
+      gz::msgs::DoDynamicCastMessage<msgs::EntityFactory_V>(this->msg);
+  if (nullptr != createMsgV)
   {
     // It could also be an EntityFactory_V
-    auto createMsgV =
-        gz::msgs::DoDynamicCastMessage<msgs::EntityFactory_V>(this->msg);
-    if (nullptr != createMsgV)
+    bool result = true;
+    for (const auto &msgItem : createMsgV->data())
     {
-      bool result = true;
-      for (const auto &msgItem : createMsgV->data())
-      {
-        result = result && this->CreateFromMsg(msgItem);
-      }
-      return result;
+      result = result && this->CreateFromMsg(msgItem, "");
     }
+    return result;
+  }
+
+  auto createMsgWithNs =
+      gz::msgs::DoDynamicCastMessage<msgs::EntityFactoryWithNs>(this->msg);
+  if (nullptr != createMsgWithNs)
+  {
+    // It could also be an EntityFactoryWithNs
+    return this->CreateFromMsg(*createMsgWithNs);
+  }
+
+  auto createMsgWithNsV =
+      gz::msgs::DoDynamicCastMessage<msgs::EntityFactoryWithNs_V>(this->msg);
+  if (nullptr != createMsgWithNsV)
+  {
+    // It could also be an EntityFactoryWithNs_V
+    bool result = true;
+    for (const auto &msgItem : createMsgWithNsV->data())
+    {
+      result = result && this->CreateFromMsg(msgItem);
+    }
+    return result;
   }
 
   gzerr << "Internal error, null create message" << std::endl;
@@ -856,7 +914,8 @@ bool CreateCommand::Execute()
 }
 
 //////////////////////////////////////////////////
-bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
+bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
+  const std::string &_ns)
 {
   // Load SDF
   sdf::Root root;
@@ -902,7 +961,8 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
         {
           auto parentEntity = parentComp->Data();
           clonedEntity = this->iface->ecm->Clone(entityToClone,
-              parentEntity, _createMsg.name(), _createMsg.allow_renaming());
+              parentEntity, _createMsg.name(),
+              _createMsg.allow_renaming(), _ns);
           validClone = kNullEntity != clonedEntity;
         }
       }
@@ -1027,6 +1087,10 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
   {
     auto model = *root.Model();
     model.SetName(desiredName);
+    if (!_ns.empty())
+    {
+      model.SetRawNamespace(_ns);
+    }
     entity = this->iface->creator->CreateEntitiesWithoutLoadingPlugins(&model);
   }
   else if (isLight && isRoot)
@@ -1116,6 +1180,19 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg)
          << std::endl;
 
   return true;
+}
+
+//////////////////////////////////////////////////
+bool CreateCommand::CreateFromMsg(const msgs::EntityFactoryWithNs &_createMsg)
+{
+  msgs::EntityFactory baseMsg;
+  if (!baseMsg.ParseFromString(_createMsg.SerializeAsString()))
+  {
+    gzerr << "Failed to parse EntityFactoryWithNs message" << std::endl;
+    return false;
+  }
+
+  return this->CreateFromMsg(baseMsg, _createMsg.entity_namespace());
 }
 
 //////////////////////////////////////////////////
