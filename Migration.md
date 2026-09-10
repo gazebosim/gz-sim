@@ -15,6 +15,17 @@ release will remove the deprecated code.
     to load without error; the parameter is simply ignored.
 
 * **Buoyancy**
+  * The buoyant force now acts at the collision geometry's centroid instead
+    of the collision origin. This changes behavior for cone collisions
+    (centroid a quarter length from the base) and mesh collisions (centroid
+    wherever the geometry puts it); the origin centered primitives are
+    unaffected. In graded mode the layer above the last declared interface
+    uses the shape centroid as well.
+  * Mesh collisions now honor the SDF `<scale>` element in buoyancy
+    calculations: the displaced volume scales by the product of the three
+    components and the centroid componentwise. Models that relied on the
+    unscaled volume will float differently; the shipped example duck
+    displaces an eighth of what it did.
   * The graded buoyancy mode now accounts for the orientation of each
     collision when slicing it against a fluid interface. Previously the
     slicing plane was always axis aligned in the shape's own frame, so a

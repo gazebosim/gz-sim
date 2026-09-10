@@ -41,29 +41,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
-  /// \brief Helper struct to determine if an equality operator is present.
-  struct TestEqualityOperator
-  {
-  };
-  template<typename T>
-  TestEqualityOperator operator == (const T&, const T&);
-
   /// \brief Type trait that determines if an operator== is defined for `T`.
-  template<typename T>
-  struct HasEqualityOperator
+  template <typename, typename = std::void_t<>>
+  struct HasEqualityOperator : std::false_type {};
+
+  template <typename T>
+  struct HasEqualityOperator<
+      T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+      : std::true_type
   {
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-    enum
-    {
-      // False positive codecheck "Using C-style cast"
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
-    };
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic pop
-#endif
   };
 }
 
@@ -392,6 +378,11 @@ void EntityComponentManager::ForEach(Function _f,
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f)
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+  
   auto view = this->Registry().template view<NewEntity, ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
@@ -408,6 +399,11 @@ void EntityComponentManager::EachNew(Func &&_f)
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f) const
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+  
   auto view = this->Registry().template view<
     const NewEntity, const ComponentTypeTs...>();
 
@@ -425,6 +421,11 @@ void EntityComponentManager::EachNew(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachRemoved(Func &&_f) const
 {
+  // Nothing to do if no entity is marked for removal: skip the view lookup
+  // entirely.
+  if (!this->HasEntitiesMarkedForRemoval())
+    return;
+  
   auto view = this->Registry().template view<
     const RemoveEntity, const ComponentTypeTs...>();
 
