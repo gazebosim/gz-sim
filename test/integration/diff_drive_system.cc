@@ -213,6 +213,140 @@ class DiffDriveTest : public InternalFixture<::testing::TestWithParam<int>>
   testCmdVel(true /*test forward movement*/);
   testCmdVel(false /*test backward movement*/);
   }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic to subscribe.
+  /// \param[in] _expectedFrameId Expected frame_id in Pose_V header.
+  /// \param[in] _expectedChildFrameId Expected child_frame_id in Pose_V header.
+  protected: void TestOdomTopic(const std::string &_sdfFile,
+                              const std::string &_odomTopic,
+                              const std::string &_expectedFrameId,
+                              const std::string &_expectedChildFrameId)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.SetUpdatePeriod(0ns);
+
+    unsigned int odomPosesCount = 0;
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&odomPosesCount, &_expectedFrameId, &_expectedChildFrameId]
+      (const msgs::Odometry &_msg)
+      {
+        ASSERT_TRUE(_msg.has_header());
+        ASSERT_TRUE(_msg.header().has_stamp());
+
+        ASSERT_GT(_msg.header().data_size(), 1);
+
+        EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
+        EXPECT_STREQ(
+              _msg.header().data(0).value().Get(0).c_str(),
+              _expectedFrameId.c_str());
+
+        EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
+        EXPECT_STREQ(
+              _msg.header().data(1).value().Get(0).c_str(),
+              _expectedChildFrameId.c_str());
+
+        odomPosesCount++;
+      };
+
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+    node.Subscribe(_odomTopic, odomCb);
+
+    msgs::Twist msg;
+    msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+    msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+    pub.Publish(msg);
+
+    server.Run(true, 100, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    // cppcheck-suppress knownConditionTrueFalse
+    for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    EXPECT_EQ(5u, odomPosesCount);
+  }
+
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _tfTopic TF topic to subscribe.
+  /// \param[in] _expectedFrameId Expected frame_id in Pose_V header.
+  /// \param[in] _expectedChildFrameId Expected child_frame_id in Pose_V header.
+  protected: void TestTfTopic(const std::string &_sdfFile,
+                              const std::string &_tfTopic,
+                              const std::string &_expectedFrameId,
+                              const std::string &_expectedChildFrameId)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    server.SetUpdatePeriod(0ns);
+
+    unsigned int tfPosesCount = 0;
+    std::function<void(const msgs::Pose_V &)> pose_VCb =
+      [&tfPosesCount, &_expectedFrameId, &_expectedChildFrameId]
+      (const msgs::Pose_V &_msg)
+      {
+        ASSERT_GT(_msg.pose_size(), 0);
+        ASSERT_TRUE(_msg.pose(0).has_header());
+        ASSERT_TRUE(_msg.pose(0).header().has_stamp());
+
+        ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+
+        EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
+        EXPECT_STREQ(
+            _msg.pose(0).header().data(0).value().Get(0).c_str(),
+            _expectedFrameId.c_str());
+
+        EXPECT_STREQ(
+            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
+        EXPECT_STREQ(
+            _msg.pose(0).header().data(1).value().Get(0).c_str(),
+            _expectedChildFrameId.c_str());
+
+        tfPosesCount++;
+      };
+
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+    node.Subscribe(_tfTopic, pose_VCb);
+
+    msgs::Twist msg;
+    msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+    msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+
+    pub.Publish(msg);
+
+    server.Run(true, 100, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    // cppcheck-suppress knownConditionTrueFalse
+    for (; tfPosesCount < 5 && sleep < maxSleep; ++sleep)
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    EXPECT_EQ(5u, tfPosesCount);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -234,6 +368,16 @@ TEST_P(DiffDriveTest,
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/diff_drive_custom_topics.sdf",
       "/model/foo/cmdvel", "/model/bar/odom");
+}
+
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest,
+       GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PublishCmdCustomRelativeTopics))
+{
+  TestPublishCmd(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_relative_topics.sdf",
+      "/vehicle/cmdvel", "/vehicle/odom");
 }
 
 /////////////////////////////////////////////////
@@ -465,297 +609,56 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
 {
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  server.SetUpdatePeriod(0ns);
-
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Odometry &)> odomCb =
-    [&odomPosesCount](const msgs::Odometry &_msg)
-    {
-      ASSERT_TRUE(_msg.has_header());
-      ASSERT_TRUE(_msg.header().has_stamp());
-
-      ASSERT_GT(_msg.header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(
-            _msg.header().data(0).value().Get(0).c_str(), "vehicle/odom");
-
-      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-            _msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
-
-      odomPosesCount++;
-    };
-
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/odometry", odomCb);
-
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-  pub.Publish(msg);
-
-  server.Run(true, 100, false);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep) // NOLINT
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
-
-  EXPECT_EQ(5u, odomPosesCount);
+  TestOdomTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf",
+      "/model/vehicle/odometry", "vehicle/odom", "vehicle/chassis");
 }
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomCustomFrameId))
 {
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_frame_id.sdf");
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  server.SetUpdatePeriod(0ns);
-
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Odometry &)> odomCb =
-    [&odomPosesCount](const msgs::Odometry &_msg)
-    {
-      ASSERT_TRUE(_msg.has_header());
-      ASSERT_TRUE(_msg.header().has_stamp());
-
-      ASSERT_GT(_msg.header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(_msg.header().data(0).value().Get(0).c_str(), "odom");
-
-      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-            _msg.header().data(1).value().Get(0).c_str(), "base_footprint");
-
-      odomPosesCount++;
-    };
-
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/odometry", odomCb);
-
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-  pub.Publish(msg);
-
-  server.Run(true, 100, false);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
-
-  EXPECT_EQ(5u, odomPosesCount);
+  TestOdomTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_frame_id.sdf",
+      "/model/vehicle/odometry", "odom", "base_footprint");
 }
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VFrameId))
 {
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive.sdf");
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  server.SetUpdatePeriod(0ns);
-
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Pose_V &)> pose_VCb =
-    [&odomPosesCount](const msgs::Pose_V &_msg)
-    {
-      ASSERT_TRUE(_msg.pose(0).has_header());
-      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
-                   "frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
-                   "vehicle/odom");
-
-      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
-                   "child_frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
-                   "vehicle/chassis");
-
-      odomPosesCount++;
-    };
-
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/tf", pose_VCb);
-
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-  pub.Publish(msg);
-
-  server.Run(true, 100, false);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
-
-  EXPECT_EQ(5u, odomPosesCount);
+  TestTfTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf",
+      "/model/vehicle/tf", "vehicle/odom", "vehicle/chassis");
 }
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomFrameId))
 {
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_frame_id.sdf");
-
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  server.SetUpdatePeriod(0ns);
-
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Pose_V &)> Pose_VCb =
-    [&odomPosesCount](const msgs::Pose_V &_msg)
-    {
-      ASSERT_TRUE(_msg.pose(0).has_header());
-      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(),
-                   "frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
-                   "odom");
-
-      EXPECT_STREQ(_msg.pose(0).header().data(1).key().c_str(),
-                   "child_frame_id");
-      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
-            "base_footprint");
-
-      odomPosesCount++;
-    };
-
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/model/vehicle/tf", Pose_VCb);
-
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-  pub.Publish(msg);
-
-  server.Run(true, 100, false);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
-
-  EXPECT_EQ(5u, odomPosesCount);
+  TestTfTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_frame_id.sdf",
+      "/model/vehicle/tf", "odom", "base_footprint");
 }
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
 {
-  // Start server
-  ServerConfig serverConfig;
-  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
-      "/test/worlds/diff_drive_custom_tf_topic.sdf");
+  TestTfTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_tf_topic.sdf",
+      "/tf_foo", "vehicle/odom", "vehicle/chassis");
+}
 
-  Server server(serverConfig);
-  EXPECT_FALSE(server.Running());
-  EXPECT_FALSE(*server.Running(0));
-
-  server.SetUpdatePeriod(0ns);
-
-  unsigned int odomPosesCount = 0;
-  std::function<void(const msgs::Pose_V &)> pose_VCb =
-    [&odomPosesCount](const msgs::Pose_V &_msg)
-    {
-      ASSERT_TRUE(_msg.pose(0).has_header());
-      ASSERT_TRUE(_msg.pose(0).header().has_stamp());
-
-      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
-
-      EXPECT_STREQ(_msg.pose(0).header().data(0).key().c_str(), "frame_id");
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(0).value().Get(0).c_str(),
-            "vehicle/odom");
-
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(1).key().c_str(), "child_frame_id");
-      EXPECT_STREQ(
-            _msg.pose(0).header().data(1).value().Get(0).c_str(),
-            "vehicle/chassis");
-
-      odomPosesCount++;
-    };
-
-  transport::Node node;
-  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
-  node.Subscribe("/tf_foo", pose_VCb);
-
-  msgs::Twist msg;
-  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
-  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
-
-  pub.Publish(msg);
-
-  server.Run(true, 100, false);
-
-  int sleep = 0;
-  int maxSleep = 30;
-  // cppcheck-suppress knownConditionTrueFalse
-  for (; odomPosesCount < 5 && sleep < maxSleep; ++sleep)
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  ASSERT_NE(maxSleep, sleep);
-
-  EXPECT_EQ(5u, odomPosesCount);
+/////////////////////////////////////////////////
+TEST_P(DiffDriveTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomRelativeTfTopic))
+{
+  TestTfTopic(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive_custom_relative_tf_topic.sdf",
+      "/vehicle/tf_foo", "vehicle/odom", "vehicle/chassis");
 }
 
 // Run multiple times
