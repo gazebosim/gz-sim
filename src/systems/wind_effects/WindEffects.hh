@@ -129,6 +129,23 @@ namespace systems
   /// ```
   /// Regions may not overlap.
   ///
+  /// ## Topics
+  ///
+  /// - `/world/<world_name>/wind` (gz.msgs.Wind): commands the wind. The
+  /// message replaces the whole wind state, so both fields must be set:
+  /// `linear_velocity` is the new seed velocity the low pass filters
+  /// converge to, and `enable_wind` turns the wind on or off. When the wind
+  /// gets disabled the forces are no longer applied and the wind entity's
+  /// `WorldLinearVelocity` is set to zero, so that systems reading that
+  /// component see no wind; the seed is kept. When it is enabled again, the
+  /// wind rises from zero in the direction of the current seed.
+  ///
+  /// - `/world/<world_name>/wind_info` (gz.msgs.Wind): publishes the
+  /// current wind velocity and whether the wind is enabled, at every update
+  /// while the wind is enabled and once, with a zero velocity, when the wind
+  /// gets disabled. A service with the same name returns the current seed
+  /// velocity and enable state.
+  ///
   class WindEffects final:
     public System,
     public ISystemConfigure,

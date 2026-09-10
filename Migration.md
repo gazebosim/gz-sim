@@ -35,6 +35,21 @@ release will remove the deprecated code.
     fluid interface now float and right themselves per hydrostatic theory;
     models tuned to compensate for the old behavior may need retuning.
 
+* **WindEffects**
+  * Disabling the wind through the `/world/<world>/wind` topic now sets the
+    wind entity's `WorldLinearVelocity` to zero and publishes it once on
+    `/world/<world>/wind_info`. Previously the velocity kept its last value,
+    so systems reading it (`LiftDrag`, `AdvancedLiftDrag`,
+    `MulticopterMotorModel`) saw the old wind after it was turned off.
+  * Re-enabling the wind now rises from zero in the direction of the current
+    seed, as at startup, instead of resuming the magnitude and direction the
+    wind had before being disabled.
+  * `/world/<world>/wind_info` messages now carry `enable_wind`; it was
+    always `false` before.
+  * When several wind commands are received before the next update, only the
+    newest one is applied. Previously the older ones were applied in later
+    updates.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
