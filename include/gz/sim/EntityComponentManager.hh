@@ -687,6 +687,15 @@ namespace gz
       /// \return True if there are components marked for removal.
       public: bool HasRemovedComponents() const;
 
+      /// \brief Return true if any previously existing component was removed.
+      /// The difference between this and `HasRemovedComponents()` is that
+      /// this API will only return true if a components was removed _and_ was
+      /// previously existing, meaning was not added in this iteration.
+      /// This is meant to be used for state serialization so downstream users
+      /// are notified only when a component that was existing was removed.
+      /// \return True if any existing components was removed.
+      public: bool HasRemovedExistingComponents() const;
+
       /// \brief Get an Entity based on a name component that is associated
       /// with the entity.
       /// \param[in] _name Name associated with the Entity
