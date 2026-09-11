@@ -359,13 +359,28 @@ std::unique_ptr<gz::gui::Application> createGui(
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
   }
 
-  // check for wayland and force to use X for rendering
+  // check for wayland and force to use X for rendering, unless the user
+  // has explicitly opted in to (still-experimental) native Wayland
+  // rendering support.
   if (QString::fromLocal8Bit(qgetenv("XDG_SESSION_TYPE")) == "wayland")
   {
-    if (QString::fromLocal8Bit(qgetenv("QT_QPA_PLATFORM")).isEmpty())
+    bool nativeWaylandRequested =
+        QString::fromLocal8Bit(qgetenv("GZ_GUI_WAYLAND")) == "1";
+
+    if (nativeWaylandRequested)
+    {
+      gzmsg << "Detected Wayland with GZ_GUI_WAYLAND=1: using experimental "
+            << "native Wayland rendering instead of XWayland." << std::endl;
+      // Leave QT_QPA_PLATFORM unset (or as the user set it) so Qt picks
+      // its native wayland platform plugin. gz-gui's MinimalScene detects
+      // this at render-engine load time and routes rendering through
+      // OGRE-Next's native Wayland EGL backend instead of X11/GLX.
+    }
+    else if (QString::fromLocal8Bit(qgetenv("QT_QPA_PLATFORM")).isEmpty())
     {
       gzmsg << "Detected Wayland. Setting Qt to use the xcb plugin: "
-            << "'QT_QPA_PLATFORM=xcb'." << std::endl;
+            << "'QT_QPA_PLATFORM=xcb'. Set GZ_GUI_WAYLAND=1 to try "
+            << "experimental native Wayland rendering instead." << std::endl;
       qputenv("QT_QPA_PLATFORM", "xcb");
     }
   }
