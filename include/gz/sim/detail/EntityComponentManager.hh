@@ -435,6 +435,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -457,6 +462,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -479,13 +489,17 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity is marked for removal: skip the view lookup
+  // entirely.
+  if (!this->HasEntitiesMarkedForRemoval())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
-  // function.
+  // Iterate over the entities in the view that are marked for removal, and
+  // invoke the callback function.
   for (const Entity entity : view->ToRemoveEntities())
   {
     const auto &data = view->EntityComponentData(entity);
