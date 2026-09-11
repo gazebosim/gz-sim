@@ -14,8 +14,11 @@
  * limitations under the License.
  *
  */
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/wrench.pb.h>
 
+#include <deque>
 #include <map>
 #include <mutex>
 #include <string>
@@ -36,6 +39,9 @@
 
 #include <gz/msgs/Utility.hh>
 
+#include <gz/transport/Node.hh>
+#include <gz/transport/TopicUtils.hh>
+
 #include <sdf/sdf.hh>
 
 #include "gz/sim/components/CenterOfVolume.hh"
@@ -43,6 +49,7 @@
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Volume.hh"
@@ -105,6 +112,41 @@ class gz::sim::systems::BuoyancyPrivate
   public: bool IsEnabled(Entity _entity,
       const EntityComponentManager &_ecm) const;
 
+  /// \brief Apply the enable / disable requests that arrived on the services
+  /// since the last call and ask for a full rescan. Returns immediately when
+  /// nothing arrived, which is every iteration but a handful.
+  public: void ProcessPendingRegistrations();
+
+  /// \brief Strip the volume components off every link buoyancy is no longer
+  /// enabled for, so the wrench pass drops it. Runs on the same
+  /// `rescanEntities` signal `CheckForNewEntities` consumes, and has to: that
+  /// pass only ever adds. Both things that raise the flag can leave a link
+  /// holding components it should not - a disable request, and a reset, which
+  /// restores whatever components the initial ECM snapshot held.
+  /// \param[in] _ecm The Entity Component Manager.
+  public: void RemoveDisabledEntities(EntityComponentManager &_ecm);
+
+  /// \brief Queue a request from a transport thread for the ECM thread to
+  /// pick up in the next `ProcessPendingRegistrations`.
+  /// \param[in] _name Scoped entity name, as `<enable>` accepts it.
+  /// \param[in] _enable True to enable buoyancy for it, false to disable.
+  public: void QueueRegistration(const std::string &_name, bool _enable);
+
+  /// \brief Service callback enabling buoyancy for one scoped entity name.
+  /// \param[in] _req The name, as `<enable>` accepts it.
+  /// \param[out] _rep True when the name was queued. A name that matches no
+  /// entity is still queued: registering before the spawn is legitimate.
+  /// \return True, unless the request carried no name at all.
+  public: bool OnEnableService(const msgs::StringMsg &_req,
+      msgs::Boolean &_rep);
+
+  /// \brief Service callback disabling buoyancy for one scoped entity name.
+  /// \param[in] _req The name, as `<enable>` accepts it.
+  /// \param[out] _rep True when the name was queued.
+  /// \return True, unless the request carried no name at all.
+  public: bool OnDisableService(const msgs::StringMsg &_req,
+      msgs::Boolean &_rep);
+
   /// \brief Model interface
   public: Entity world{kNullEntity};
 
@@ -150,9 +192,32 @@ class gz::sim::systems::BuoyancyPrivate
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_linkInWorld);
 
-  /// \brief Scoped names of entities that buoyancy should apply to. If empty,
-  /// all links will receive buoyancy.
+  /// \brief Scoped names of entities that buoyancy should apply to, from
+  /// `<enable>` and from the enable service.
   public: std::unordered_set<std::string> enabled;
+
+  /// \brief Scoped names of entities that buoyancy should not apply to, from
+  /// the disable service. Needed as its own set rather than as an erase from
+  /// `enabled`: in the default mode there is nothing to erase, and a disable
+  /// still has to stick.
+  public: std::unordered_set<std::string> denied;
+
+  /// \brief Whether an entity named by neither set floats. Set from
+  /// `<enable_by_default>`, defaulting to true exactly when there is no
+  /// `<enable>` list, which is the existing rule expressed as a flag.
+  public: bool enableByDefault{true};
+
+  /// \brief Requests from the services, oldest first, waiting for the ECM
+  /// thread. Ordered rather than two sets so that an enable and a disable of
+  /// the same name in one iteration resolve the way they were sent.
+  public: std::deque<std::pair<std::string, bool>> pendingRegistrations;
+
+  /// \brief Guards pendingRegistrations, which the transport threads write
+  /// and the ECM thread drains.
+  public: std::mutex registrationMutex;
+
+  /// \brief Node that carries the enable / disable services.
+  public: transport::Node node;
 
   /// \brief Center of volumes to be added on the next Pre-update
   public: std::unordered_map<Entity, math::Vector3d> centerOfVolumes;
@@ -455,10 +520,6 @@ void BuoyancyPrivate::CommitNewEntities(EntityComponentManager &_ecm)
 bool BuoyancyPrivate::IsEnabled(Entity _entity,
   const EntityComponentManager &_ecm) const
 {
-  // If there's nothing enabled, all entities are enabled
-  if (this->enabled.empty())
-    return true;
-
   auto entity = _entity;
   while (entity != kNullEntity)
   {
@@ -468,6 +529,13 @@ bool BuoyancyPrivate::IsEnabled(Entity _entity,
     // Remove world name
     name = removeParentScope(name, "::");
 
+    // The nearest scope that has an opinion is the one that holds, so a link
+    // can be enabled out of a disabled model and the other way round. Deny
+    // first at each level: naming the same scope both ways is a contradiction,
+    // and refusing to float is the safe reading of it.
+    if (this->denied.find(name) != this->denied.end())
+      return false;
+
     if (this->enabled.find(name) != this->enabled.end())
       return true;
 
@@ -475,12 +543,128 @@ bool BuoyancyPrivate::IsEnabled(Entity _entity,
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
 
     if (nullptr == parentComp)
-      return false;
+      break;
 
     entity = parentComp->Data();
   }
 
-  return false;
+  // Nobody named this entity or anything containing it. With no <enable> list
+  // that means everything floats, which is the long standing behaviour; with
+  // one, or with <enable_by_default>false</enable_by_default>, it means
+  // nothing does until something registers.
+  return this->enableByDefault;
+}
+
+//////////////////////////////////////////////////
+void BuoyancyPrivate::QueueRegistration(const std::string &_name, bool _enable)
+{
+  std::lock_guard<std::mutex> lock(this->registrationMutex);
+  this->pendingRegistrations.emplace_back(_name, _enable);
+}
+
+//////////////////////////////////////////////////
+bool BuoyancyPrivate::OnEnableService(const msgs::StringMsg &_req,
+    msgs::Boolean &_rep)
+{
+  // Queued rather than applied here: this runs on a transport thread, and the
+  // ECM belongs to the server's.
+  if (_req.data().empty())
+  {
+    gzwarn << "Ignoring buoyancy enable request with an empty name."
+      << std::endl;
+    _rep.set_data(false);
+    return false;
+  }
+
+  this->QueueRegistration(_req.data(), true);
+  _rep.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool BuoyancyPrivate::OnDisableService(const msgs::StringMsg &_req,
+    msgs::Boolean &_rep)
+{
+  if (_req.data().empty())
+  {
+    gzwarn << "Ignoring buoyancy disable request with an empty name."
+      << std::endl;
+    _rep.set_data(false);
+    return false;
+  }
+
+  this->QueueRegistration(_req.data(), false);
+  _rep.set_data(true);
+  return true;
+}
+
+//////////////////////////////////////////////////
+void BuoyancyPrivate::ProcessPendingRegistrations()
+{
+  std::deque<std::pair<std::string, bool>> requests;
+  {
+    std::lock_guard<std::mutex> lock(this->registrationMutex);
+    if (this->pendingRegistrations.empty())
+      return;
+    requests.swap(this->pendingRegistrations);
+  }
+
+  for (const auto &[name, enable] : requests)
+  {
+    if (enable)
+    {
+      this->denied.erase(name);
+      this->enabled.insert(name);
+      gzdbg << "Buoyancy enabled for [" << name << "]" << std::endl;
+    }
+    else
+    {
+      this->enabled.erase(name);
+      this->denied.insert(name);
+      gzdbg << "Buoyancy disabled for [" << name << "]" << std::endl;
+    }
+  }
+
+  // A link is otherwise only ever measured on the iteration it is created in,
+  // so a name arriving after the spawn would do nothing without a full pass
+  // over the links that already exist. Reset needs the same pass for its own
+  // reason and already asks for it this way.
+  this->rescanEntities = true;
+}
+
+//////////////////////////////////////////////////
+void BuoyancyPrivate::RemoveDisabledEntities(EntityComponentManager &_ecm)
+{
+  if (!this->rescanEntities)
+    return;
+
+  std::vector<Entity> stale;
+  _ecm.Each<components::Link, components::Inertial>(
+      [&](const Entity &_entity,
+          const components::Link *,
+          const components::Inertial *) -> bool
+  {
+    if (!this->IsEnabled(_entity, _ecm) &&
+        _ecm.EntityHasComponentType(_entity, components::Volume().TypeId()))
+    {
+      // Collected rather than removed here: Each() is iterating the very
+      // components the removal would invalidate.
+      stale.push_back(_entity);
+    }
+
+    return true;
+  });
+
+  for (const Entity &entity : stale)
+  {
+    _ecm.RemoveComponent<components::Volume>(entity);
+    _ecm.RemoveComponent<components::CenterOfVolume>(entity);
+
+    // Anything staged for it this iteration goes too, or CommitNewEntities
+    // would hand the components straight back.
+    this->volumes.erase(entity);
+    this->centerOfVolumes.erase(entity);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -579,6 +763,43 @@ void Buoyancy::Configure(const Entity &_entity,
       this->dataPtr->enabled.insert(enableElem->Get<std::string>());
     }
   }
+
+  // An <enable> list on its own already means "only these", so the flag's
+  // default is read off the list and the tag is only needed to say something
+  // the list cannot: restrict without naming anyone.
+  this->dataPtr->enableByDefault = !_sdf->HasElement("enable");
+  if (_sdf->HasElement("enable_by_default"))
+  {
+    this->dataPtr->enableByDefault = _sdf->Get<bool>("enable_by_default");
+  }
+
+  // Services, so that an entity can register itself at spawn time instead of
+  // the world having to name it before it exists.
+  const auto *nameComp = _ecm.Component<components::Name>(this->dataPtr->world);
+  if (!nameComp)
+  {
+    gzerr << "World has no name component; buoyancy enable and disable "
+      << "services will not be available." << std::endl;
+    return;
+  }
+
+  const std::string prefix = transport::TopicUtils::AsValidTopic(
+      "/world/" + nameComp->Data() + "/buoyancy");
+  if (prefix.empty())
+  {
+    gzerr << "Cannot build a valid service name from world name ["
+      << nameComp->Data() << "]; buoyancy enable and disable services will "
+      << "not be available." << std::endl;
+    return;
+  }
+
+  this->dataPtr->node.Advertise(prefix + "/enable",
+      &BuoyancyPrivate::OnEnableService, this->dataPtr.get());
+  this->dataPtr->node.Advertise(prefix + "/disable",
+      &BuoyancyPrivate::OnDisableService, this->dataPtr.get());
+
+  gzmsg << "Buoyancy registration services on [" << prefix << "/enable] and ["
+    << prefix << "/disable]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -586,6 +807,11 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Buoyancy::PreUpdate");
+  // Before the sweep, so that a link registered since the last iteration is
+  // measured and committed in this one rather than the next. The removal pass
+  // goes first too: CheckForNewEntities consumes the rescan flag both read.
+  this->dataPtr->ProcessPendingRegistrations();
+  this->dataPtr->RemoveDisabledEntities(_ecm);
   this->dataPtr->CheckForNewEntities(_ecm);
   this->dataPtr->CommitNewEntities(_ecm);
   // Only update if not paused.

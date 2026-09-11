@@ -29,6 +29,12 @@
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
+
+#include <gz/transport/Node.hh>
+
 #include "gz/sim/Util.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -1044,4 +1050,203 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
       0.0, 0.05);
   EXPECT_NEAR(postResetSinking400.Pos().Distance(baselineSinking400.Pos()),
       0.0, 0.05);
+}
+
+/////////////////////////////////////////////////
+/// \brief Call one of the buoyancy registration services.
+/// \param[in] _service Full service name.
+/// \param[in] _name Scoped entity name to send.
+/// \return True if the server accepted the request.
+bool RegisterBuoyancy(const std::string &_service, const std::string &_name)
+{
+  transport::Node node;
+  msgs::StringMsg req;
+  req.set_data(_name);
+
+  msgs::Boolean rep;
+  bool result{false};
+  const bool executed = node.Request(_service, req, 5000, rep, result);
+
+  return executed && result && rep.data();
+}
+
+/////////////////////////////////////////////////
+/// \brief Whether a model's link carries both components the wrench pass needs.
+/// \param[in] _ecm Entity component manager.
+/// \param[in] _model Name of the model to look up.
+/// \return True when the link has been measured.
+bool LinkIsMeasured(const EntityComponentManager &_ecm,
+    const std::string &_model)
+{
+  const Entity model = _ecm.EntityByComponents(
+      components::Model(), components::Name(_model));
+  if (kNullEntity == model)
+    return false;
+
+  const Entity link = _ecm.EntityByComponents(
+      components::Link(), components::Name("link"),
+      components::ParentEntity(model));
+  if (kNullEntity == link)
+    return false;
+
+  return nullptr != _ecm.Component<components::Volume>(link) &&
+         nullptr != _ecm.Component<components::CenterOfVolume>(link);
+}
+
+/////////////////////////////////////////////////
+// A world in restricted mode floats nothing on its own. The services have to
+// work on a model that was already in the world when the call arrived, which
+// <enable> cannot express: a link is otherwise only measured on the iteration
+// it appears in. Both decisions then have to survive a world reset.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RegistrationServices))
+{
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_registration.sdf");
+
+  TestFixture fixture(sdfFile);
+
+  bool plainMeasured{false};
+  fixture.OnPostUpdate([&](const UpdateInfo &, const EntityComponentManager &
+      _ecm)
+  {
+    plainMeasured = LinkIsMeasured(_ecm, "plain_box");
+  });
+  fixture.Finalize();
+
+  auto server = fixture.Server();
+  ASSERT_NE(nullptr, server);
+
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_FALSE(plainMeasured) << "nothing should float in restricted mode";
+
+  ASSERT_TRUE(RegisterBuoyancy(
+      "/world/buoyancy_registration/buoyancy/enable", "plain_box::link"));
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_TRUE(plainMeasured) << "enabling should measure the existing link";
+
+  server->ResetAll();
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_TRUE(plainMeasured) << "an enable should survive a reset";
+
+  ASSERT_TRUE(RegisterBuoyancy(
+      "/world/buoyancy_registration/buoyancy/disable", "plain_box::link"));
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_FALSE(plainMeasured) << "disabling should drop the components";
+
+  server->ResetAll();
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_FALSE(plainMeasured) << "a disable should survive a reset too";
+}
+
+/////////////////////////////////////////////////
+// The BuoyancyEnable model plugin registers its model's own links, so the same
+// restricted world floats it without naming it anywhere. It has no Reset, so a
+// world reset reloads it and it re-asserts the links its SDF declares, which is
+// the right way round: the declaration is part of the state a reset returns to.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelSideRegistration))
+{
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_registration.sdf");
+
+  TestFixture fixture(sdfFile);
+
+  bool selfMeasured{false};
+  bool plainMeasured{false};
+  fixture.OnPostUpdate([&](const UpdateInfo &, const EntityComponentManager &
+      _ecm)
+  {
+    selfMeasured = LinkIsMeasured(_ecm, "self_box");
+    plainMeasured = LinkIsMeasured(_ecm, "plain_box");
+  });
+  fixture.Finalize();
+
+  auto server = fixture.Server();
+  ASSERT_NE(nullptr, server);
+
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_TRUE(selfMeasured) << "the model plugin should have registered";
+  EXPECT_FALSE(plainMeasured) << "and reached only what it asked for";
+
+  ASSERT_TRUE(RegisterBuoyancy(
+      "/world/buoyancy_registration/buoyancy/disable", "self_box::link"));
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_FALSE(selfMeasured);
+
+  server->ResetAll();
+  ASSERT_TRUE(server->Run(true, 10, false));
+  EXPECT_TRUE(selfMeasured)
+      << "the reloaded model plugin should re-assert its own links";
+}
+
+/////////////////////////////////////////////////
+/// The case the design exists for: a vehicle spawned into a running world,
+/// under a name that is not the one in its file. Nothing outside the model
+/// knows that name, so nothing outside the model could have put it in an
+/// <enable> list. A model in the world file is configured with its parent
+/// chain already in the ECM; one spawned at runtime is not, so this is a
+/// genuinely different path through the plugin.
+TEST_F(BuoyancyTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnedUnderADifferentName))
+{
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_registration.sdf");
+
+  TestFixture fixture(sdfFile);
+
+  bool spawnedMeasured{false};
+  bool spawnedFound{false};
+  fixture.OnPostUpdate([&](const UpdateInfo &, const EntityComponentManager &
+      _ecm)
+  {
+    spawnedMeasured = LinkIsMeasured(_ecm, "renamed_boat");
+    spawnedFound = kNullEntity != _ecm.EntityByComponents(
+        components::Model(), components::Name("renamed_boat"));
+  });
+  fixture.Finalize();
+
+  auto server = fixture.Server();
+  ASSERT_NE(nullptr, server);
+  ASSERT_TRUE(server->Run(true, 10, false));
+  ASSERT_FALSE(spawnedFound);
+
+  // The model file calls it self_box; it arrives as renamed_boat.
+  msgs::EntityFactory req;
+  req.set_sdf(R"(<?xml version="1.0"?>
+    <sdf version="1.9">
+      <model name="self_box">
+        <pose>0 0 0 0 0 0</pose>
+        <link name="link">
+          <inertial>
+            <mass>500</mass>
+            <inertia>
+              <ixx>83.333</ixx><iyy>83.333</iyy><izz>83.333</izz>
+              <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+            </inertia>
+          </inertial>
+          <collision name="collision">
+            <geometry><box><size>1 1 1</size></box></geometry>
+          </collision>
+        </link>
+        <plugin filename="gz-sim-buoyancy-enable-system"
+                name="gz::sim::systems::BuoyancyEnable">
+          <link>link</link>
+        </plugin>
+      </model>
+    </sdf>)");
+  req.set_name("renamed_boat");
+  req.set_allow_renaming(false);
+
+  transport::Node node;
+  msgs::Boolean rep;
+  bool result{false};
+  ASSERT_TRUE(node.Request("/world/buoyancy_registration/create", req, 5000, rep,
+      result));
+  ASSERT_TRUE(result);
+  ASSERT_TRUE(rep.data());
+
+  ASSERT_TRUE(server->Run(true, 50, false));
+
+  ASSERT_TRUE(spawnedFound) << "the model should have been created";
+  EXPECT_TRUE(spawnedMeasured)
+      << "a model spawned under a new name should still register itself";
 }

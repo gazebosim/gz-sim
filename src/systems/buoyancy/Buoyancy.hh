@@ -64,6 +64,66 @@ namespace systems
   /// scoped from the top level model (i.e. `<model>::<nested_model>::<link>`).
   /// If there are no enabled entities, all models in simulation will be
   /// affected by buoyancy.
+  /// * `<enable_by_default>` sets whether an entity that is named by neither
+  /// `<enable>` nor the services below floats. Defaults to true when there is
+  /// no `<enable>` element and false when there is one, which is exactly the
+  /// behaviour of the tags above on their own. Setting it to false with no
+  /// `<enable>` list opens a world in which nothing floats until something
+  /// asks to, so the world needs to know no model's name in advance.
+  /// [Type: bool]
+  ///
+  /// ## Services
+  ///
+  /// `<enable>` has to name entities before they exist, which a world shared
+  /// by models spawned at runtime cannot do. These two services move a name in
+  /// and out of that set while the simulation runs. Both take a
+  /// `gz.msgs.StringMsg` naming one entity and reply with a `gz.msgs.Boolean`.
+  /// Names are scoped exactly as `<enable>` wants them: `model` or
+  /// `model::link`, as the model was *spawned* rather than as its file names
+  /// it. The reply reports that the request was queued, not that the entity
+  /// exists; a name that matches nothing is not an error, because registering
+  /// before the spawn is legitimate.
+  ///
+  /// * `/world/<world_name>/buoyancy/enable` adds the name and re-scans the
+  /// links that already exist, so registering after a spawn works: without
+  /// the re-scan a link created earlier would never be picked up, as new
+  /// links are otherwise only noticed the iteration they appear in.
+  /// * `/world/<world_name>/buoyancy/disable` removes the name and strips the
+  /// volume components off the links it covers, so they stop floating. It
+  /// works in both modes, including against a name that came from `<enable>`.
+  ///
+  /// Both sets survive a world reset: a reset rewinds entities, not the
+  /// decisions made about them. The one exception runs the other way: a model
+  /// carrying the BuoyancyEnable plugin below re-asserts its own links after a
+  /// reset, overriding a disable issued against it at runtime.
+  ///
+  /// ## The BuoyancyEnable model plugin
+  ///
+  /// Calling the enable service by hand means something outside the model has
+  /// to know its name, which is the problem `<enable>` already has. The
+  /// companion BuoyancyEnable system, attached to a `<model>`, closes that:
+  /// the model lists its own displacement links and the plugin resolves its
+  /// spawned name and calls the service for them. A world can then run with
+  /// `<enable_by_default>false</enable_by_default>` and name nobody, and any
+  /// model that declares what displaces water floats in it.
+  ///
+  /// The resulting modes:
+  ///
+  /// | `<enable>` | `<enable_by_default>` | Effect                          |
+  /// |------------|-----------------------|---------------------------------|
+  /// | absent     | absent (true)         | Everything floats.              |
+  /// | present    | absent (false)        | Only the listed entities float. |
+  /// | absent     | false                 | Nothing floats until a service  |
+  /// |            |                       | call or the BuoyancyEnable      |
+  /// |            |                       | model plugin registers it.      |
+  /// | present    | true                  | Everything floats; the list is  |
+  /// |            |                       | redundant but harmless.         |
+  ///
+  /// The first two rows are the behaviour this system has always had.
+  ///
+  /// A name is resolved nearest-first: walking up from the link, the first
+  /// scope that appears in either set decides, so disabling a model and
+  /// enabling one of its links leaves that link floating.
   ///
   /// ## Examples
   ///
