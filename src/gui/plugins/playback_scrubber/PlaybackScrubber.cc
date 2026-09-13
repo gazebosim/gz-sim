@@ -16,6 +16,7 @@
 */
 
 #include "PlaybackScrubber.hh"
+#include "DurationLiteral.hh"
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/log_playback_control.pb.h>
@@ -23,8 +24,6 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
-#include <limits>
-#include <regex>
 #include <string>
 #include <utility>
 
@@ -202,68 +201,9 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
   // "2h 19m 27s" when the standard dd hh:mm:ss.nnn format is not used.
   if (enteredTime == math::secNsecToTimePoint(-1, 0))
   {
-    static const std::regex durationPart(R"(([0-9]+)\s*([dhms]))");
-    std::sregex_iterator it(time.begin(), time.end(), durationPart);
-    const std::sregex_iterator end;
-
-    int64_t totalSeconds = 0;
-    std::size_t consumed = 0;
-    bool validDuration = false;
-    for (; it != end; ++it)
-    {
-      const auto &match = *it;
-      const std::size_t pos = static_cast<std::size_t>(match.position());
-      if (time.substr(consumed, pos - consumed).find_first_not_of(" \t") !=
-          std::string::npos)
-      {
-        validDuration = false;
-        break;
-      }
-
-      int64_t value = 0;
-      try
-      {
-        value = std::stoll(match[1].str());
-      }
-      catch (const std::exception &)
-      {
-        validDuration = false;
-        break;
-      }
-
-      int64_t multiplier = 1;
-      switch (match[2].str()[0])
-      {
-        case 'd':
-          multiplier = 24 * 60 * 60;
-          break;
-        case 'h':
-          multiplier = 60 * 60;
-          break;
-        case 'm':
-          multiplier = 60;
-          break;
-        case 's':
-          break;
-      }
-
-      if (value > (std::numeric_limits<int64_t>::max() - totalSeconds) /
-          multiplier)
-      {
-        validDuration = false;
-        break;
-      }
-
-      totalSeconds += value * multiplier;
-      consumed = pos + static_cast<std::size_t>(match.length());
-      validDuration = true;
-    }
-
-    if (validDuration &&
-        time.substr(consumed).find_first_not_of(" \t") == std::string::npos)
-    {
-      enteredTime = math::secNsecToTimePoint(totalSeconds, 0);
-    }
+    int64_t durationSeconds = 0;
+    if (detail::ParseDurationLiteral(time, durationSeconds))
+      enteredTime = math::secNsecToTimePoint(durationSeconds, 0);
   }
 
   if (enteredTime == math::secNsecToTimePoint(-1, 0))
