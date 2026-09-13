@@ -212,6 +212,7 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
+            renderDevice(_cfg->renderDevice),
             sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
@@ -264,6 +265,10 @@ class gz::sim::ServerConfigPrivate
   /// \brief String on which API to select.
   /// See --render-engine-server-api-backend for possible options
   public: std::string renderEngineServerApiBackend = "";
+
+  /// \brief Device to use for headless rendering, e.g. /dev/dri/card1.
+  /// Empty means the render engine selects its default device.
+  public: std::string renderDevice = "";
 
   /// \brief File containing render engine gui plugin. If empty, OGRE2
   /// will be used.
@@ -586,6 +591,18 @@ void ServerConfig::SetHeadlessRendering(const bool _headless)
 bool ServerConfig::HeadlessRendering() const
 {
   return this->dataPtr->isHeadlessRendering;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetRenderDevice(const std::string &_device)
+{
+  this->dataPtr->renderDevice = _device;
+}
+
+/////////////////////////////////////////////////
+const std::string &ServerConfig::RenderDevice() const
+{
+  return this->dataPtr->renderDevice;
 }
 
 /////////////////////////////////////////////////
