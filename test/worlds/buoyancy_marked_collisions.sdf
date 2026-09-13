@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!--
+  A world that describes the fluid and floats nothing through unmarked
+  collisions (<enable_by_default>false</enable_by_default>, no <enable>).
+  plain_box has only a contact collision and sinks. marked_box marks a second
+  collision of the same size as buoyancy geometry and floats by it alone;
+  its ballast link marks nothing. Each box is 1 m on a side and 500 kg, so
+  it floats about half out of the water. Nothing damps this world, so the
+  tests assert on direction of motion and on components rather than on a
+  settled height.
+-->
+<sdf version="1.9" xmlns:gz="http://gazebosim.org/schema">
+  <world name="buoyancy_marked">
+    <gravity>0 0 -9.8</gravity>
+    <physics name="fast" type="dart">
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-buoyancy-system"
+            name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1025</default_density>
+        <density_change>
+          <above_depth>0</above_depth>
+          <density>1</density>
+        </density_change>
+      </graded_buoyancy>
+      <enable_by_default>false</enable_by_default>
+    </plugin>
+    <model name="plain_box">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>500</mass>
+          <inertia>
+            <ixx>83.333</ixx><iyy>83.333</iyy><izz>83.333</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="contact">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="marked_box">
+      <pose>5 0 0 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>500</mass>
+          <inertia>
+            <ixx>83.333</ixx><iyy>83.333</iyy><izz>83.333</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="contact">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+        <collision name="hull" gz:buoyancy="true">
+          <geometry><box><size>1 1 1</size></box></geometry>
+          <surface><contact><collide_bitmask>0x00</collide_bitmask></contact></surface>
+        </collision>
+      </link>
+      <link name="ballast">
+        <pose>0 0 -1 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry><box><size>0.2 0.2 0.2</size></box></geometry>
+        </collision>
+      </link>
+      <joint name="ballast_joint" type="fixed">
+        <parent>link</parent>
+        <child>ballast</child>
+      </joint>
+    </model>
+  </world>
+</sdf>

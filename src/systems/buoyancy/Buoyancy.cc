@@ -88,6 +88,19 @@ class gz::sim::systems::BuoyancyPrivate
   void GradedFluidDensity(
     const math::Pose3d &_pose, const T &_shape, const math::Vector3d &_gravity);
 
+  /// \brief The collisions of a link that buoyancy should use: the ones
+  /// marked `gz:buoyancy="true"` if there are any, else all of them. A link
+  /// that marks some of its collisions floats by those alone, whatever the
+  /// `<enable>` list says; the others stay contact geometry. Marked
+  /// collisions should also carry a zero `<collide_bitmask>`, or they touch
+  /// things too.
+  /// \param[in] _link The link.
+  /// \param[in] _ecm The Entity Component Manager.
+  /// \param[out] _marked Whether any collision was marked.
+  /// \return The collisions to use.
+  public: std::vector<Entity> BuoyantCollisions(Entity _link,
+      const EntityComponentManager &_ecm, bool &_marked) const;
+
   /// \brief Check for new links to apply buoyancy forces to. Calculates the
   /// volume and center of volume for every new link and stages them to be
   /// committed when `CommitNewEntities` is called.
@@ -150,9 +163,15 @@ class gz::sim::systems::BuoyancyPrivate
   public: std::pair<math::Vector3d, math::Vector3d> ResolveForces(
     const math::Pose3d &_linkInWorld);
 
-  /// \brief Scoped names of entities that buoyancy should apply to. If empty,
-  /// all links will receive buoyancy.
+  /// \brief Scoped names of entities that buoyancy should apply to through
+  /// their unmarked collisions.
   public: std::unordered_set<std::string> enabled;
+
+  /// \brief Whether a link named by no `<enable>` element floats through its
+  /// unmarked collisions. Set from `<enable_by_default>`, defaulting to true
+  /// exactly when there is no `<enable>` list, which is the rule the list
+  /// expressed on its own. Marked collisions float regardless.
+  public: bool enableByDefault{true};
 
   /// \brief Center of volumes to be added on the next Pre-update
   public: std::unordered_map<Entity, math::Vector3d> centerOfVolumes;
@@ -290,6 +309,34 @@ std::pair<math::Vector3d, math::Vector3d> BuoyancyPrivate::ResolveForces(
 }
 
 //////////////////////////////////////////////////
+std::vector<Entity> BuoyancyPrivate::BuoyantCollisions(Entity _link,
+    const EntityComponentManager &_ecm, bool &_marked) const
+{
+  // The attribute a collision is marked with. Namespaced, so SDFormat keeps
+  // it without knowing it.
+  static const std::string kAttribute{"gz:buoyancy"};
+
+  std::vector<Entity> all = _ecm.ChildrenByComponents(
+      _link, components::Collision());
+  std::vector<Entity> marked;
+  for (const Entity collision : all)
+  {
+    const auto *coll = _ecm.Component<components::CollisionElement>(collision);
+    if (nullptr == coll || nullptr == coll->Data().Element())
+      continue;
+    const auto elem = coll->Data().Element();
+    bool isMarked{false};
+    if (elem->HasAttribute(kAttribute) &&
+        elem->GetAttribute(kAttribute)->Get<bool>(isMarked) && isMarked)
+    {
+      marked.push_back(collision);
+    }
+  }
+  _marked = !marked.empty();
+  return _marked ? marked : all;
+}
+
+//////////////////////////////////////////////////
 void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
 {
   auto checkEntity =
@@ -306,15 +353,18 @@ void BuoyancyPrivate::CheckForNewEntities(const EntityComponentManager &_ecm)
       return true;
     }
 
-    if (!this->IsEnabled(_entity, _ecm))
+    bool marked{false};
+    std::vector<Entity> collisions =
+        this->BuoyantCollisions(_entity, _ecm, marked);
+
+    // A link that marks its buoyancy collisions floats by them whatever
+    // the list says; the rest need to be enabled.
+    if (!marked && !this->IsEnabled(_entity, _ecm))
     {
       return true;
     }
 
     Link link(_entity);
-
-    std::vector<Entity> collisions = _ecm.ChildrenByComponents(
-        _entity, components::Collision());
 
     double volumeSum = 0;
     gz::math::Vector3d weightedPosInLinkSum =
@@ -455,9 +505,9 @@ void BuoyancyPrivate::CommitNewEntities(EntityComponentManager &_ecm)
 bool BuoyancyPrivate::IsEnabled(Entity _entity,
   const EntityComponentManager &_ecm) const
 {
-  // If there's nothing enabled, all entities are enabled
+  // Nothing to match against: the default decides.
   if (this->enabled.empty())
-    return true;
+    return this->enableByDefault;
 
   auto entity = _entity;
   while (entity != kNullEntity)
@@ -475,12 +525,15 @@ bool BuoyancyPrivate::IsEnabled(Entity _entity,
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
 
     if (nullptr == parentComp)
-      return false;
+      break;
 
     entity = parentComp->Data();
   }
 
-  return false;
+  // Nobody named this entity or anything containing it. With no <enable>
+  // list that means everything floats, as before; with one, or with
+  // <enable_by_default>false</enable_by_default>, it means nothing does.
+  return this->enableByDefault;
 }
 
 //////////////////////////////////////////////////
@@ -579,6 +632,16 @@ void Buoyancy::Configure(const Entity &_entity,
       this->dataPtr->enabled.insert(enableElem->Get<std::string>());
     }
   }
+
+  // An <enable> list on its own already means "only these", so the flag's
+  // default is read off the list and the tag is only needed to say something
+  // the list cannot: float nothing through unmarked collisions, so that only
+  // the links marking their buoyancy collisions float.
+  this->dataPtr->enableByDefault = !_sdf->HasElement("enable");
+  if (_sdf->HasElement("enable_by_default"))
+  {
+    this->dataPtr->enableByDefault = _sdf->Get<bool>("enable_by_default");
+  }
 }
 
 //////////////////////////////////////////////////
@@ -639,8 +702,9 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
       else if (this->dataPtr->buoyancyType
         == BuoyancyPrivate::BuoyancyType::GRADED_BUOYANCY)
       {
-        std::vector<Entity> collisions = _ecm.ChildrenByComponents(
-          _entity, components::Collision());
+        bool marked{false};
+        std::vector<Entity> collisions =
+            this->dataPtr->BuoyantCollisions(_entity, _ecm, marked);
         this->dataPtr->buoyancyForces.clear();
 
         for (auto e : collisions)

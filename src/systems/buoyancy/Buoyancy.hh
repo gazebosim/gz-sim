@@ -34,7 +34,34 @@ namespace systems
   /// \brief A system that simulates buoyancy of objects immersed in fluid.
   /// All SDF parameters are optional. This system must be attached to the
   /// world and this system will apply buoyancy to all links that have collision
-  /// shapes.
+  /// shapes, and to every link that marks the collisions that float it.
+  ///
+  /// ## Marked collisions
+  ///
+  /// A world shared by many vehicles cannot name them in an `<enable>` list
+  /// before they exist, and a vehicle's contact geometry is rarely what
+  /// displaces its water. So a link may mark the collisions that do with a
+  /// `gz:buoyancy="true"` attribute. Such a link floats by its marked
+  /// collisions alone, whatever name the model is spawned under and whether
+  /// or not the list names it; its other collisions stay contact geometry.
+  /// A marked collision is still a collision to the physics engine, so give
+  /// it a zero `<collide_bitmask>` if it must not touch anything.
+  ///
+  /// ```
+  /// <link name="base_link">
+  ///   <collision name="hull"> ... contact geometry ... </collision>
+  ///   <collision name="pontoon" gz:buoyancy="true">
+  ///     <pose>0 0.36 0.06 0 0 0</pose>
+  ///     <geometry><box><size>1.05 0.18 0.18</size></box></geometry>
+  ///     <surface><contact>
+  ///       <collide_bitmask>0x00</collide_bitmask>
+  ///     </contact></surface>
+  ///   </collision>
+  /// </link>
+  /// ```
+  ///
+  /// A world that only describes the fluid, and lets every vehicle float
+  /// itself this way, adds `<enable_by_default>false</enable_by_default>`.
   ///
   /// The volume and center of volume will be computed for each link, and
   /// stored as components. During each iteration, Archimedes' principle is
@@ -59,11 +86,18 @@ namespace systems
   /// * `<above_depth>` a child property of `<density_change>`. This determines
   /// the height at which the next fluid layer should start. [Units: m]
   /// * `<density>` the density of the fluid in this layer. [Units: kgm^-3]
-  /// * `<enable>` used to indicate which models will have buoyancy.
-  /// Add one enable element per model or link. This element accepts names
-  /// scoped from the top level model (i.e. `<model>::<nested_model>::<link>`).
-  /// If there are no enabled entities, all models in simulation will be
-  /// affected by buoyancy.
+  /// * `<enable>` used to indicate which models will have buoyancy through
+  /// their unmarked collisions. Add one enable element per model or link.
+  /// This element accepts names scoped from the top level model (i.e.
+  /// `<model>::<nested_model>::<link>`). If there are no enabled entities,
+  /// all models in simulation will be affected by buoyancy. Links with
+  /// marked collisions float regardless of this list.
+  /// * `<enable_by_default>` sets whether a link that no `<enable>` element
+  /// names floats through its unmarked collisions. Defaults to true when
+  /// there is no `<enable>` element and false when there is one, which is
+  /// exactly the behaviour of the tags above on their own. Setting it to
+  /// false with no `<enable>` list gives a world that describes the fluid
+  /// and floats only the links that mark their collisions. [Type: bool]
   ///
   /// ## Examples
   ///
