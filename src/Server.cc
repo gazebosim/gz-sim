@@ -179,6 +179,13 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
       gzwarn << "The server is already runnnng.\n";
       return false;
     }
+
+    if (this->dataPtr->signalReceived)
+    {
+      gzwarn << "A stop signal was received before the run started. "
+             << "Simulation will not run.\n";
+      return false;
+    }
   }
 
   if (_blocking)
@@ -188,15 +195,11 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
   if (this->dataPtr->runThread.get_id() == std::thread::id())
   {
-    std::condition_variable cond;
+    // Set `running` here instead of waiting for the run thread: a short run
+    // could finish and clear it before the wait ever saw it (issue #3829).
+    this->dataPtr->running = true;
     this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
-
-    // Wait for the thread to start. We do this to guarantee that the
-    // running variable gets updated before this function returns. With
-    // a small number of iterations it is possible that the run thread
-    // successfully completes before this function returns.
-    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
+      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
     return true;
   }
 

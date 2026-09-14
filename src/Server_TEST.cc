@@ -23,8 +23,10 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
+#include <atomic>
 #include <csignal>
 #include <vector>
+#include <gz/common/SignalHandler.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Rand.hh>
@@ -597,6 +599,87 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingThenDestroy)
+{
+  // Destroying a Server right after a non-blocking Run() sends the stop while
+  // the run thread may still be starting. If that stop is lost the destructor
+  // blocks forever joining the thread (issue #3829). Repeated to widen the
+  // race window.
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  for (int i = 0; i < 50; ++i)
+  {
+    sim::Server server(serverConfig);
+    EXPECT_TRUE(server.Run(false, 0, false)) << "iteration " << i;
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingAfterBlockingRun)
+{
+  // A blocking Run() never creates the run thread. State it leaves behind
+  // must not confuse the next non-blocking Run() on the same Server.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  EXPECT_TRUE(server.Run(true, 1, false));
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(1u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
+
+  // Now a non-blocking run on the same Server.
+  EXPECT_TRUE(server.Run(false, 1, false));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (*server.IterationCount() < 2 && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  EXPECT_LT(sleep, maxSleep) << "second run never executed";
+  EXPECT_EQ(2u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunAfterSignal)
+{
+  // A signal before Run() aborts the run. The non-blocking Run() below used
+  // to hang forever (issue #3829); it must return and report failure.
+  sim::Server server;
+  server.SetUpdatePeriod(1ns);
+
+  // Signal handlers run in registration order on the gz-common signal thread,
+  // so a handler registered after the Server's runs once the Server is done.
+  std::atomic<bool> signalHandled{false};
+  common::SignalHandler testHandler;
+  ASSERT_TRUE(testHandler.Initialized());
+  ASSERT_TRUE(testHandler.AddCallback(
+        [&signalHandled](int) { signalHandled = true; }));
+
+  ASSERT_EQ(0, std::raise(SIGINT));
+
+  int sleep = 0;
+  const int maxSleep = 5000;
+  while (!signalHandled && sleep < maxSleep)
+  {
+    GZ_SLEEP_MS(1);
+    ++sleep;
+  }
+  ASSERT_TRUE(signalHandled) << "the signal was never dispatched";
+
+  // Neither form of Run may succeed or step the world.
+  EXPECT_FALSE(server.Run(false, 1, false));
+  EXPECT_FALSE(server.Run(true, 1, false));
+
+  ASSERT_NE(std::nullopt, server.IterationCount());
+  EXPECT_EQ(0u, *server.IterationCount());
+  EXPECT_FALSE(server.Running());
 }
 
 /////////////////////////////////////////////////

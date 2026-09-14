@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <mutex>
 #include <ostream>
 #include <unordered_set>
 #ifdef HAVE_PYBIND11
@@ -778,9 +777,7 @@ void SimulationRunner::Stop()
 /////////////////////////////////////////////////
 void SimulationRunner::OnStop()
 {
-  std::lock_guard<std::mutex> lock(this->runStateMutex);
-  this->stopReceived = true;
-  this->running = false;
+  this->runState.Stop();
 }
 
 /////////////////////////////////////////////////
@@ -830,7 +827,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr->IsSecondary())
     {
       gzdbg << "Secondary running." << std::endl;
-      while (!this->stopReceived)
+      while (!this->StopReceived())
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
@@ -843,19 +840,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
-  // A stop request may arrive while this thread is still starting up, e.g.
-  // the Server being destroyed right after a non-blocking Run(). Checking
-  // `stopReceived` and setting `running` under runStateMutex keeps such a
-  // stop from being overwritten (issues #2609 and #3829).
+  // A stop may have arrived while this thread was starting up, e.g. the
+  // Server being destroyed right after a non-blocking Run() (issue #3829).
+  if (!this->runState.TryStart())
   {
-    std::lock_guard<std::mutex> lock(this->runStateMutex);
-    if (this->stopReceived)
-    {
-      gzdbg << "SimulationRunner::Run: a stop request arrived before the run "
-            << "loop started; no iterations will be executed." << std::endl;
-      return false;
-    }
-    this->running = true;
+    gzdbg << "SimulationRunner::Run: a stop request arrived before the run "
+          << "loop started; no iterations will be executed." << std::endl;
+    return false;
   }
 
   // Create the world statistics publisher.
@@ -946,7 +937,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (_iterations > 0)
   {
     bool created = this->entitiesCreated;
-    while (!created && this->running)
+    while (!created && this->Running())
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
@@ -963,7 +954,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   auto nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
-  while (this->running && (_iterations == 0 ||
+  while (this->Running() && (_iterations == 0 ||
        processedIterations < _iterations))
   {
     // Create entities if set. This needs to be called before updating
@@ -1098,10 +1089,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
   }
 
-  {
-    std::lock_guard<std::mutex> lock(this->runStateMutex);
-    this->running = false;
-  }
+  this->runState.Finish();
 
   return true;
 }
@@ -1326,7 +1314,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 /////////////////////////////////////////////////
 bool SimulationRunner::Running() const
 {
-  return this->running;
+  return this->runState.Running();
 }
 
 /////////////////////////////////////////////////
@@ -1338,7 +1326,7 @@ bool SimulationRunner::ParallelPostUpdates() const
 /////////////////////////////////////////////////
 bool SimulationRunner::StopReceived() const
 {
-  return this->stopReceived;
+  return this->runState.Stopped();
 }
 
 /////////////////////////////////////////////////
@@ -1381,7 +1369,7 @@ void SimulationRunner::SetUpdatePeriod(
 void SimulationRunner::SetPaused(const bool _paused)
 {
   // Only update the realtime clock if Run() has been called.
-  if (this->running)
+  if (this->Running())
   {
     // Start or stop the realtime stopwatch based on _paused. We don't need to
     // check the stopwatch state here since the stopwatch class checks its
