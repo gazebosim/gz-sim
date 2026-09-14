@@ -79,15 +79,7 @@ endif()
 # Build the unit tests.
 set(test_sources gz_TEST.cc)
 
-# Add systems that need a valid display here.
-# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-# or Xdummy instead of skipping them
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-  list(APPEND test_sources ModelCommandAPI_TEST.cc)
-else()
-  message(STATUS
-    "Skipping ModelCommandAPI tests because a valid display was not found")
-endif()
+set(tests_needing_display ModelCommandAPI_TEST.cc)
 
 # Build unit tests if Gazebo tools is installed
 if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
@@ -100,6 +92,29 @@ if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
     ENVIRONMENT
         GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
   )
+
+  gz_build_tests(TYPE UNIT
+    SOURCES
+      ${tests_needing_display}
+    TEST_LIST display_test_targets
+    LIB_DEPS
+      gz-utils::gz-utils
+      ${PROJECT_LIBRARY_TARGET_NAME}
+    ENVIRONMENT
+        GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  )
+
+  if(NOT VALID_DISPLAY OR NOT VALID_DRI_DISPLAY)
+    message(STATUS
+      "Disabling these UNIT tests because a valid display was not found:")
+    foreach(test_target ${display_test_targets})
+      message(STATUS " ${test_target}")
+      set_tests_properties(${test_target} PROPERTIES DISABLED TRUE)
+      if(TEST check_${test_target})
+        set_tests_properties(check_${test_target} PROPERTIES DISABLED TRUE)
+      endif()
+    endforeach()
+  endif()
 endif()
 
 foreach(CMD_TEST

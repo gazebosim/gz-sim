@@ -141,26 +141,15 @@ set(tests_needing_display
   Server_Rendering_TEST.cc
 )
 
-# Add systems that need a valid display here.
-# \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-# or Xdummy instead of skipping them
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-  list(APPEND gtest_sources ${tests_needing_display})
-else()
-  message(STATUS
-    "Skipping these UNIT tests because a valid display was not found:")
-  foreach(test ${tests_needing_display})
-    message(STATUS " ${test}")
-  endforeach(test)
-endif()
-
 if (MSVC)
   # Warning #4251 is the "dll-interface" warning that tells you when types used
   # by a class are not being exported. These generated source files have private
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(
+    ${sources} ${gtest_sources} ${tests_needing_display}
+    COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 # Create the library target
@@ -236,6 +225,30 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    ${tests_needing_display}
+  TEST_LIST display_test_targets
+  LIB_DEPS
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
+    gz-sim
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
+
+if(BUILD_TESTING AND (NOT VALID_DISPLAY OR NOT VALID_DRI_DISPLAY))
+  message(STATUS
+    "Disabling these UNIT tests because a valid display was not found:")
+  foreach(test_target ${display_test_targets})
+    message(STATUS " ${test_target}")
+    set_tests_properties(${test_target} PROPERTIES DISABLED TRUE)
+    if(TEST check_${test_target})
+      set_tests_properties(check_${test_target} PROPERTIES DISABLED TRUE)
+    endif()
+  endforeach()
+endif()
 
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
