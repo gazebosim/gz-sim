@@ -143,12 +143,10 @@ set(tests_needing_display
 
 # Add systems that need a valid display here.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-# or Xdummy instead of skipping them
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-  list(APPEND gtest_sources ${tests_needing_display})
-else()
+# or Xdummy instead of disabling them at test time
+if(NOT VALID_DISPLAY OR NOT VALID_DRI_DISPLAY)
   message(STATUS
-    "Skipping these UNIT tests because a valid display was not found:")
+    "Disabling these UNIT tests because a valid display was not found:")
   foreach(test ${tests_needing_display})
     message(STATUS " ${test}")
   endforeach(test)
@@ -160,7 +158,7 @@ if (MSVC)
   # members that don't get exported, so they trigger this warning. However, the
   # warning is not important since those members do not need to be interfaced
   # with.
-  set_source_files_properties(${sources} ${gtest_sources} COMPILE_FLAGS "/wd4251 /wd4146")
+  set_source_files_properties(${sources} ${gtest_sources} ${tests_needing_display} COMPILE_FLAGS "/wd4251 /wd4146")
 endif()
 
 # Create the library target
@@ -236,6 +234,32 @@ gz_build_tests(TYPE UNIT
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    ${tests_needing_display}
+  LIB_DEPS
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    ${EXTRA_TEST_LIB_DEPS}
+    gz-sim
+  TEST_LIST
+    tests_needing_display_targets
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
+
+if(NOT VALID_DISPLAY OR NOT VALID_DRI_DISPLAY)
+  set(disabled_display_tests ${tests_needing_display_targets})
+  if(Python3_Interpreter_FOUND)
+    foreach(test_target ${tests_needing_display_targets})
+      list(APPEND disabled_display_tests check_${test_target})
+    endforeach()
+  endif()
+
+  if(disabled_display_tests)
+    set_tests_properties(${disabled_display_tests} PROPERTIES DISABLED TRUE)
+  endif()
+endif()
 
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
