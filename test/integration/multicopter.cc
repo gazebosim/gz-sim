@@ -18,9 +18,11 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <optional>
 
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
@@ -45,6 +47,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -138,6 +141,72 @@ TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 
   server->AddSystem(testSystem.systemPtr);
   server->Run(true, iterTestStart + nIters, false);
+}
+
+/////////////////////////////////////////////////
+// Test that motor speed feedback is published on motorSpeedPubTopic, with
+// the nominal spin direction as positive regardless of each rotor's
+// turningDirection (quadcopter.sdf mixes cw and ccw rotors).
+TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MotorSpeedPub))
+{
+  // Start server
+  auto server = this->StartServer("/test/worlds/quadcopter.sdf");
+
+  transport::Node node;
+  auto cmdMotorSpeed =
+      node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
+
+  std::array<Subscription<msgs::Double>, 4> motorSpeedSubs;
+  for (std::size_t i = 0; i < motorSpeedSubs.size(); ++i)
+  {
+    motorSpeedSubs[i].Subscribe(node, "/X3/motor_speed/" + std::to_string(i));
+  }
+
+  test::Relay testSystem;
+  const std::size_t iterTestStart{100};
+  const std::size_t nIters{500};
+  const double cmdSpeed{100};
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &_info, const EntityComponentManager &)
+      {
+        if (_info.iterations == iterTestStart)
+        {
+          msgs::Actuators msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+          msg.mutable_velocity()->resize(4, cmdSpeed);
+#else
+          msg.mutable_velocity()->Resize(4, cmdSpeed);
+#endif
+          cmdMotorSpeed.Publish(msg);
+        }
+      });
+
+  server->AddSystem(testSystem.systemPtr);
+  server->Run(true, iterTestStart + nIters, false);
+
+  // Transport discovery is asynchronous, so keep stepping (bounded) until
+  // every motor's feedback topic has delivered at least one message.
+  auto allReceived = [&motorSpeedSubs]()
+  {
+    for (auto &sub : motorSpeedSubs)
+    {
+      if (sub.Count() == 0)
+        return false;
+    }
+    return true;
+  };
+  for (int i = 0; i < 10 && !allReceived(); ++i)
+  {
+    server->Run(true, 100, false);
+  }
+  ASSERT_TRUE(allReceived());
+
+  // The latest message from each motor should have converged to the
+  // commanded speed with a positive sign (nominal spin direction).
+  for (auto &sub : motorSpeedSubs)
+  {
+    EXPECT_NEAR(cmdSpeed, sub.Last().data(), 1e-2);
+  }
 }
 
 /////////////////////////////////////////////////
