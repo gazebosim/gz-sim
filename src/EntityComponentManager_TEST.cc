@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <optional>
 #include <gtest/gtest.h>
 
@@ -24,6 +25,7 @@
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Factory.hh"
@@ -3559,6 +3561,26 @@ TEST_P(EntityComponentManagerFixture, EntityByName)
   EXPECT_TRUE(entityByName);
   CompareEntityComponents<components::Name>(manager, entity,
     *entityByName, true);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, HasEqualityOperator)
+{
+  EXPECT_TRUE(traits::HasEqualityOperator<int>::value);
+  EXPECT_TRUE(
+      traits::HasEqualityOperator<std::chrono::nanoseconds>::value);
+  EXPECT_FALSE(traits::HasEqualityOperator<Custom>::value);
+
+  Entity entity = manager.CreateEntity();
+  using namespace std::chrono_literals;
+  auto comp = manager.CreateComponent<AnimationTime>(entity,
+      AnimationTime(100ms));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(100ms, comp->Data());
+
+  EXPECT_TRUE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+  EXPECT_EQ(200ms, manager.ComponentData<AnimationTime>(entity));
+  EXPECT_FALSE(manager.SetComponentData<AnimationTime>(entity, 200ms));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
