@@ -28,6 +28,7 @@
 #include <string>
 
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 
 #include <gz/common/Profiler.hh>
 
@@ -150,6 +151,15 @@ class gz::sim::systems::MulticopterMotorModelPrivate
 
   /// \brief Topic for actuator commands.
   public: std::string commandSubTopic;
+
+  /// \brief Topic on which to publish motor speed feedback. Empty if
+  /// motorSpeedPubTopic was not set in SDF, in which case motorSpeedPub is
+  /// never advertised.
+  public: std::string motorSpeedPubTopic;
+
+  /// \brief Publisher for motor speed feedback. Only valid if
+  /// motorSpeedPubTopic was set.
+  public: transport::Node::Publisher motorSpeedPub;
 
   /// \brief Topic namespace.
   public: std::string robotNamespace;
@@ -387,6 +397,29 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   this->dataPtr->node.Subscribe(topic,
       &MulticopterMotorModelPrivate::OnActuatorMsg, this->dataPtr.get());
+
+  // Advertise motor speed feedback only if requested, to preserve
+  // pre-existing behavior for worlds that don't set this tag.
+  if (sdfClone->HasElement("motorSpeedPubTopic"))
+  {
+    this->dataPtr->motorSpeedPubTopic =
+        sdfClone->Get<std::string>("motorSpeedPubTopic");
+    std::string motorSpeedTopic = transport::TopicUtils::AsValidTopic(
+        this->dataPtr->robotNamespace + "/" +
+        this->dataPtr->motorSpeedPubTopic);
+    if (motorSpeedTopic.empty())
+    {
+      gzerr << "Failed to create motor speed topic for ["
+             << this->dataPtr->robotNamespace << "]" << std::endl;
+    }
+    else
+    {
+      this->dataPtr->motorSpeedPub =
+          this->dataPtr->node.Advertise<msgs::Double>(motorSpeedTopic);
+      gzdbg << "Publishing motor speed on topic: " << motorSpeedTopic
+            << std::endl;
+    }
+  }
 }
 
 //////////////////////////////////////////////////
@@ -564,6 +597,14 @@ void MulticopterMotorModelPrivate::UpdateForcesAndMoments(
       }
       double realMotorVelocity =
           motorRotVel * this->rotorVelocitySlowdownSim;
+
+      if (this->motorSpeedPub && this->motorSpeedPub.HasConnections())
+      {
+        msgs::Double motorSpeedMsg;
+        motorSpeedMsg.set_data(this->turningDirection * realMotorVelocity);
+        this->motorSpeedPub.Publish(motorSpeedMsg);
+      }
+
       // Get the direction of the rotor rotation.
       int realMotorVelocitySign =
           (realMotorVelocity > 0) - (realMotorVelocity < 0);

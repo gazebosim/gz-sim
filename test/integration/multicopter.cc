@@ -18,9 +18,12 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cmath>
 #include <optional>
 
 #include <gz/msgs/actuators.pb.h>
+#include <gz/msgs/double.pb.h>
 #include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
@@ -45,6 +48,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -138,6 +142,67 @@ TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CommandedMotorSpeed))
 
   server->AddSystem(testSystem.systemPtr);
   server->Run(true, iterTestStart + nIters, false);
+}
+
+/////////////////////////////////////////////////
+// Test that motor speed feedback is published on motorSpeedPubTopic, with
+// the nominal spin direction as positive regardless of each rotor's
+// turningDirection (quadcopter.sdf mixes cw and ccw rotors).
+TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MotorSpeedPub))
+{
+  // Start server
+  auto server = this->StartServer("/test/worlds/quadcopter.sdf");
+
+  transport::Node node;
+  auto cmdMotorSpeed =
+      node.Advertise<msgs::Actuators>("/X3/gazebo/command/motor_speed");
+
+  std::array<Subscription<msgs::Double>, 4> motorSpeedSubs;
+  for (std::size_t i = 0; i < motorSpeedSubs.size(); ++i)
+  {
+    motorSpeedSubs[i].Subscribe(node, "/X3/motor_speed/" + std::to_string(i));
+  }
+
+  // Step until the plugins are subscribed to the command topic.
+  for (int i = 0; i < 10 && !cmdMotorSpeed.HasConnections(); ++i)
+  {
+    server->Run(true, 100, false);
+  }
+  ASSERT_TRUE(cmdMotorSpeed.HasConnections());
+
+  // Command the same positive speed on all 4 rotors.
+  const double cmdSpeed{100};
+  msgs::Actuators msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+  msg.mutable_velocity()->resize(4, cmdSpeed);
+#else
+  msg.mutable_velocity()->Resize(4, cmdSpeed);
+#endif
+  cmdMotorSpeed.Publish(msg);
+
+  // Step until every rotor reports a speed that has converged to the
+  // command. Feedback is only published while a subscriber is connected,
+  // so the first messages may lag discovery by a few steps.
+  const double tol{1e-2};
+  auto converged = [&]()
+  {
+    for (auto &sub : motorSpeedSubs)
+    {
+      if (sub.Count() == 0 || std::abs(sub.Last().data() - cmdSpeed) > tol)
+        return false;
+    }
+    return true;
+  };
+  for (int i = 0; i < 20 && !converged(); ++i)
+  {
+    server->Run(true, 100, false);
+  }
+
+  for (auto &sub : motorSpeedSubs)
+  {
+    ASSERT_GT(sub.Count(), 0u);
+    EXPECT_NEAR(cmdSpeed, sub.Last().data(), tol);
+  }
 }
 
 /////////////////////////////////////////////////
