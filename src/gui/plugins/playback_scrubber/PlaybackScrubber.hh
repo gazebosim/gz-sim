@@ -77,7 +77,8 @@ namespace sim
     public slots: void OnDrop(double _value);
 
     /// \brief Callback when a time is entered by the user.
-    /// \param[in] _time The time in format dd hh:mm:ss.nnn
+    /// \param[in] _time Time in dd hh:mm:ss.nnn format or a compact duration
+    /// literal such as 200s or 2h 19m 27s.
     public slots: void OnTimeEntered(const QString &_time);
 
     /// \brief Notify that progress has advanced in the log file.
