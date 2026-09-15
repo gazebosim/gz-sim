@@ -8,9 +8,12 @@
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
+    <gz:policies>
+      <include_server_config_plugins>false</include_server_config_plugins>
+    </gz:policies>
     <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
+      filename="gz-sim-mujoco-physics-system"
+      name="gz::sim::systems::MujocoPhysics">
     </plugin>
     <plugin
       filename="gz-sim-user-commands-system"
