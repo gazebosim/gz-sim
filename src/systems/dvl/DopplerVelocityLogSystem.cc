@@ -77,8 +77,10 @@ struct DestroySensor
 /// \brief A request for a world state update for sensors.
 struct SetWorldState
 {
-  /// \brief World state
-  gz::sensors::WorldState worldState;
+  /// \brief World state, held by pointer to avoid triggering move-related
+  /// compiler warnings when the containing std::variant is moved.
+  std::unique_ptr<gz::sensors::WorldState> worldState{
+    std::make_unique<gz::sensors::WorldState>()};
 };
 
 /// \brief A request for an environmental data update for sensors.
@@ -364,7 +366,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
     >(gz::sim::worldEntity(_ecm));
     if (component)
     {
-      request.worldState.origin = component->Data();
+      request.worldState->origin = component->Data();
     }
 
     _ecm.Each<gz::sim::components::WorldPose,
@@ -375,7 +377,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
           const gz::sim::components::WorldLinearVelocity *_linearVelocity,
           const gz::sim::components::WorldAngularVelocity *_angularVelocity)
       {
-        auto & kinematicState = request.worldState.kinematics[_entity];
+        auto & kinematicState = request.worldState->kinematics[_entity];
 
         kinematicState.pose = _pose->Data();
         kinematicState.linearVelocity = _linearVelocity->Data();
@@ -516,7 +518,7 @@ void DopplerVelocityLogSystem::Implementation::Handle(
 void DopplerVelocityLogSystem::Implementation::Handle(
     requests::SetWorldState _request)
 {
-  this->latestWorldState = std::move(_request.worldState);
+  this->latestWorldState = std::move(*_request.worldState);
   for (const auto& [_, sensorId] : this->sensorIdPerEntity)
   {
     auto *sensor = dynamic_cast<gz::sensors::DopplerVelocityLog *>(
