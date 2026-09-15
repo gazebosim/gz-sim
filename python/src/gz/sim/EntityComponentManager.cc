@@ -127,7 +127,7 @@ void defineSimEntityComponentManager(pybind11::object module)
          pybind11::arg("comp_type"),
          "Create a default-initialized component on an entity.")
     .def("component",
-         [](gz::sim::EntityComponentManager &self,
+         [](const gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
             const ComponentProxy &_comp) -> pybind11::object
          {
