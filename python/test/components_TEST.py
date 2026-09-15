@@ -90,8 +90,8 @@ class TestComponents(unittest.TestCase):
         self.assertFalse(ecm.entity_has_component_type(e, components.Model))
         self.assertFalse(ecm.remove_component(e, components.Model))
 
-    def test_data_components_and_reference_semantics(self):
-        """Test data components, in-place reference mutation, and change marking."""
+    def test_data_components_and_value_semantics(self):
+        """component() returns a snapshot; set_component_data() writes."""
         ecm = EntityComponentManager()
         e = ecm.create_entity()
 
@@ -101,14 +101,51 @@ class TestComponents(unittest.TestCase):
         pose = ecm.component(e, components.Pose)
         self.assertAlmostEqual(1.0, pose.x())
 
-        # In-place field mutation via reference semantics
+        # Mutating the returned value must NOT reach the ECM.
         pose.set_x(42.0)
+        self.assertAlmostEqual(1.0, ecm.component(e, components.Pose).x())
+
+        # The supported write path.
+        updated = Pose3d(42.0, 2.0, 3.0, 0.0, 0.0, 0.0)
+        self.assertTrue(ecm.set_component_data(e, components.Pose, updated))
         self.assertAlmostEqual(42.0, ecm.component(e, components.Pose).x())
 
-        # Set component data
-        self.assertTrue(ecm.set_component_data(e, components.Pose, init_pose))
-        self.assertAlmostEqual(1.0, ecm.component(e, components.Pose).x())
+        # Change marking stays a separate, explicit call (mirrors C++).
         ecm.set_changed(e, components.Pose)
+
+    def test_component_returns_snapshot_for_every_payload_category(self):
+        """Pin snapshot semantics across all payload caster categories."""
+        ecm = EntityComponentManager()
+        e = ecm.create_entity()
+
+        # (a) pybind11::class_-bound payload: would alias ECM storage
+        #     under return_value_policy::reference.
+        ecm.create_component(e, components.Pose,
+                             Pose3d(1.0, 2.0, 3.0, 0.0, 0.0, 0.0))
+        snap = ecm.component(e, components.Pose)
+        snap.set_x(99.0)
+        self.assertAlmostEqual(
+            1.0, ecm.component(e, components.Pose).x(),
+            msg="component() leaked a reference into ECM storage")
+
+        # (b) type_caster payload: always copied; pinned for symmetry.
+        ecm.create_component(e, components.Name, "original")
+        name = ecm.component(e, components.Name)
+        name += "_mutated"
+        self.assertEqual("original", ecm.component(e, components.Name))
+
+        # (c) container payload.
+        ecm.create_component(e, components.JointPosition, [1.5, 2.5])
+        joints = ecm.component(e, components.JointPosition)
+        joints.append(9.9)
+        self.assertEqual([1.5, 2.5],
+                         ecm.component(e, components.JointPosition))
+
+        # (d) two reads are independent objects.
+        a = ecm.component(e, components.Pose)
+        b = ecm.component(e, components.Pose)
+        a.set_x(7.0)
+        self.assertAlmostEqual(1.0, b.x())
 
     def test_primitive_and_container_components(self):
         """Test primitive and STL container components."""
@@ -158,9 +195,17 @@ class TestComponents(unittest.TestCase):
         ecm.create_component(e, components.DetachableJoint, joint_info)
         self.assertEqual(joint_info, ecm.component(e, components.DetachableJoint))
 
-        # In-place mutation
-        ecm.component(e, components.DetachableJoint).parent_link = 30
-        self.assertEqual(30, ecm.component(e, components.DetachableJoint).parent_link)
+        # component() returns a snapshot; mutating it must not reach the ECM.
+        snapshot = ecm.component(e, components.DetachableJoint)
+        snapshot.parent_link = 30
+        self.assertEqual(
+            10, ecm.component(e, components.DetachableJoint).parent_link)
+
+        # Write the modified snapshot back explicitly.
+        self.assertTrue(
+            ecm.set_component_data(e, components.DetachableJoint, snapshot))
+        self.assertEqual(
+            30, ecm.component(e, components.DetachableJoint).parent_link)
 
         # TemperatureRangeInfo
         temp_range = components.TemperatureRangeInfo()
@@ -260,8 +305,14 @@ class TestComponents(unittest.TestCase):
         self.assertIsNotNone(ret_sensor)
         self.assertEqual("altimeter_sensor", ret_sensor.name())
 
-        # In-place modification via reference
+        # component() returns a snapshot; mutating it must not reach the ECM.
         ret_sensor.set_name("modified_sensor")
+        self.assertEqual(
+            "altimeter_sensor", ecm.component(e, components.Altimeter).name())
+
+        # Write the modified snapshot back explicitly.
+        self.assertTrue(
+            ecm.set_component_data(e, components.Altimeter, ret_sensor))
         self.assertEqual(
             "modified_sensor", ecm.component(e, components.Altimeter).name())
 

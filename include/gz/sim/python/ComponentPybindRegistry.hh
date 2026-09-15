@@ -180,8 +180,29 @@ struct AddPybindGetterSetter
         auto comp = _ecm.Component<T>(_entity);
         if (comp)
         {
+          // Return a snapshot, not an alias into ECM storage.
+          //
+          // `reference` would only produce a live reference for payloads
+          // bound via pybind11::class_; payloads served by a specialized
+          // type_caster (std::string, arithmetic, containers) ignore the
+          // policy and copy. That split makes in-place mutation work for
+          // some component types and silently fail for others.
+          //
+          // It is also unsafe: EnTT erase is swap-and-pop, so a retained
+          // reference can alias another entity's component after a
+          // component or entity removal.
+          //
+          // All writes go through EntityComponentManager::SetComponentData
+          // (exposed as set_component_data), which is the only supported
+          // mutation path.
+          //
+          // NOTE: this yields value semantics only for value-typed
+          // payloads. A pointer-like payload (e.g. sdf::ElementPtr, a
+          // std::shared_ptr) would still alias after copying. No such
+          // component is currently registered in PyComponents.cc; revisit
+          // this if one is added.
           return pybind11::cast(comp->Data(),
-                                pybind11::return_value_policy::reference);
+                                pybind11::return_value_policy::copy);
         }
         return pybind11::none();
       }

@@ -136,8 +136,10 @@ void defineSimEntityComponentManager(pybind11::object module)
            return getter ? getter(self, _entity) : pybind11::none();
          },
          pybind11::arg("entity"), pybind11::arg("comp_type"),
-         "Get the data of a component for an entity and component type if "
-         "it exists.")
+         "Get a snapshot of a component's data for an entity and component "
+         "type, or None if it does not exist. The returned value is a copy; "
+         "modifying it does not affect the ECM. Use set_component_data() to "
+         "write, and set_changed() to mark the component changed.")
     .def("set_component_data",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
@@ -159,7 +161,9 @@ void defineSimEntityComponentManager(pybind11::object module)
          pybind11::arg("data"),
          pybind11::arg("compare") = true,
          "Set the data for an entity's component. If compare is True "
-         "(default), only sets if data changed and returns True if changed.")
+         "(default), only sets if data changed and returns True if changed. "
+         "This does not mark the component as changed in the ECM; call "
+         "set_changed() separately if downstream systems need to be notified.")
     .def("set_changed",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
