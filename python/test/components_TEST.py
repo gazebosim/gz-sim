@@ -105,6 +105,12 @@ class TestComponents(unittest.TestCase):
         pose.set_x(42.0)
         self.assertAlmostEqual(1.0, ecm.component(e, components.Pose).x())
 
+        # Successive reads return independent snapshot objects.
+        a = ecm.component(e, components.Pose)
+        b = ecm.component(e, components.Pose)
+        a.set_x(7.0)
+        self.assertAlmostEqual(1.0, b.x())
+
         # The supported write path.
         updated = Pose3d(42.0, 2.0, 3.0, 0.0, 0.0, 0.0)
         self.assertTrue(ecm.set_component_data(e, components.Pose, updated))
@@ -112,40 +118,6 @@ class TestComponents(unittest.TestCase):
 
         # Change marking stays a separate, explicit call (mirrors C++).
         ecm.set_changed(e, components.Pose)
-
-    def test_component_returns_snapshot_for_every_payload_category(self):
-        """Pin snapshot semantics across all payload caster categories."""
-        ecm = EntityComponentManager()
-        e = ecm.create_entity()
-
-        # (a) pybind11::class_-bound payload: would alias ECM storage
-        #     under return_value_policy::reference.
-        ecm.create_component(e, components.Pose,
-                             Pose3d(1.0, 2.0, 3.0, 0.0, 0.0, 0.0))
-        snap = ecm.component(e, components.Pose)
-        snap.set_x(99.0)
-        self.assertAlmostEqual(
-            1.0, ecm.component(e, components.Pose).x(),
-            msg="component() leaked a reference into ECM storage")
-
-        # (b) type_caster payload: always copied; pinned for symmetry.
-        ecm.create_component(e, components.Name, "original")
-        name = ecm.component(e, components.Name)
-        name += "_mutated"
-        self.assertEqual("original", ecm.component(e, components.Name))
-
-        # (c) container payload.
-        ecm.create_component(e, components.JointPosition, [1.5, 2.5])
-        joints = ecm.component(e, components.JointPosition)
-        joints.append(9.9)
-        self.assertEqual([1.5, 2.5],
-                         ecm.component(e, components.JointPosition))
-
-        # (d) two reads are independent objects.
-        a = ecm.component(e, components.Pose)
-        b = ecm.component(e, components.Pose)
-        a.set_x(7.0)
-        self.assertAlmostEqual(1.0, b.x())
 
     def test_primitive_and_container_components(self):
         """Test primitive and STL container components."""
@@ -165,6 +137,8 @@ class TestComponents(unittest.TestCase):
 
         # Vector of double: JointPosition
         ecm.create_component(e, components.JointPosition, [1.5, 2.5])
+        self.assertEqual([1.5, 2.5], ecm.component(e, components.JointPosition))
+        ecm.component(e, components.JointPosition).append(9.9)
         self.assertEqual([1.5, 2.5], ecm.component(e, components.JointPosition))
 
         # Set of string: LevelEntityNames
