@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cmath>
 #include <optional>
 
 #include <gz/msgs/actuators.pb.h>
@@ -162,50 +163,45 @@ TEST_F(MulticopterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MotorSpeedPub))
     motorSpeedSubs[i].Subscribe(node, "/X3/motor_speed/" + std::to_string(i));
   }
 
-  test::Relay testSystem;
-  const std::size_t iterTestStart{100};
-  const std::size_t nIters{500};
+  // Step until the plugins are subscribed to the command topic.
+  for (int i = 0; i < 10 && !cmdMotorSpeed.HasConnections(); ++i)
+  {
+    server->Run(true, 100, false);
+  }
+  ASSERT_TRUE(cmdMotorSpeed.HasConnections());
+
+  // Command the same positive speed on all 4 rotors.
   const double cmdSpeed{100};
-  testSystem.OnPostUpdate(
-      [&](const UpdateInfo &_info, const EntityComponentManager &)
-      {
-        if (_info.iterations == iterTestStart)
-        {
-          msgs::Actuators msg;
+  msgs::Actuators msg;
 #if GOOGLE_PROTOBUF_VERSION >= 7035000
-          msg.mutable_velocity()->resize(4, cmdSpeed);
+  msg.mutable_velocity()->resize(4, cmdSpeed);
 #else
-          msg.mutable_velocity()->Resize(4, cmdSpeed);
+  msg.mutable_velocity()->Resize(4, cmdSpeed);
 #endif
-          cmdMotorSpeed.Publish(msg);
-        }
-      });
+  cmdMotorSpeed.Publish(msg);
 
-  server->AddSystem(testSystem.systemPtr);
-  server->Run(true, iterTestStart + nIters, false);
-
-  // Transport discovery is asynchronous, so keep stepping (bounded) until
-  // every motor's feedback topic has delivered at least one message.
-  auto allReceived = [&motorSpeedSubs]()
+  // Step until every rotor reports a speed that has converged to the
+  // command. Feedback is only published while a subscriber is connected,
+  // so the first messages may lag discovery by a few steps.
+  const double tol{1e-2};
+  auto converged = [&]()
   {
     for (auto &sub : motorSpeedSubs)
     {
-      if (sub.Count() == 0)
+      if (sub.Count() == 0 || std::abs(sub.Last().data() - cmdSpeed) > tol)
         return false;
     }
     return true;
   };
-  for (int i = 0; i < 10 && !allReceived(); ++i)
+  for (int i = 0; i < 20 && !converged(); ++i)
   {
     server->Run(true, 100, false);
   }
-  ASSERT_TRUE(allReceived());
 
-  // The latest message from each motor should have converged to the
-  // commanded speed with a positive sign (nominal spin direction).
   for (auto &sub : motorSpeedSubs)
   {
-    EXPECT_NEAR(cmdSpeed, sub.Last().data(), 1e-2);
+    ASSERT_GT(sub.Count(), 0u);
+    EXPECT_NEAR(cmdSpeed, sub.Last().data(), tol);
   }
 }
 
