@@ -56,6 +56,7 @@
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
 #include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerHeadlessDevice.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Events.hh"
@@ -1877,6 +1878,10 @@ void SimulationRunner::CreateEntities()
   this->entityCompMgr.CreateComponent(worldEntity,
       components::RenderEngineServerHeadless(
       this->serverConfig.HeadlessRendering()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerHeadlessDevice(
+      this->serverConfig.RenderDevice()));
 
   this->entityCompMgr.CreateComponent(worldEntity,
       components::RenderEngineGuiPlugin(
