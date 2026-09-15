@@ -599,9 +599,16 @@ void SimulationRunner::PublishStats()
     clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
     clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
     clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-    clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+
+    auto curTime = GZ_SYSTEM_TIME();
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+      curTime.time_since_epoch()).count();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      curTime.time_since_epoch()).count();
+    clockMsg.mutable_system()->set_sec(seconds);
     clockMsg.mutable_system()->set_nsec(
-        GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+      ns - seconds * GZ_SEC_TO_NANO);
+
     this->clockPub.Publish(clockMsg);
 
     // Only publish to root topic if no others are.
@@ -742,7 +749,6 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
-    this->entityCompMgr.LockAddingEntitiesToViews(true);
     if (!this->parallelPostUpdates)
     {
       for (auto &system : this->systemMgr->SystemsPostUpdate())
@@ -764,7 +770,7 @@ void SimulationRunner::UpdateSystems()
         this->postUpdateStopBarrier->Wait();
       }
     }
-    this->entityCompMgr.LockAddingEntitiesToViews(false);
+    this->entityCompMgr.CreatePendingGroups();
   }
 }
 
@@ -1579,7 +1585,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
     return;
   }
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.EachNoCache<components::Model,
+  this->entityCompMgr.Each<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
@@ -1648,6 +1654,12 @@ bool SimulationRunner::Paused() const
 
 /////////////////////////////////////////////////
 const EntityComponentManager &SimulationRunner::EntityCompMgr() const
+{
+  return this->entityCompMgr;
+}
+
+/////////////////////////////////////////////////
+EntityComponentManager &SimulationRunner::EntityCompMgr()
 {
   return this->entityCompMgr;
 }
