@@ -239,7 +239,8 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Sensors to be updated next
   public: std::set<sensors::SensorId> sensorsToUpdate;
 
-  /// \brief Mutex to protect sensorMask
+  /// \brief Mutex to protect sensorManager and all containers holding sensor
+  /// IDs or pointers.
   public: std::mutex sensorsMutex;
 
   /// \brief Pointer to the event manager
@@ -432,7 +433,7 @@ void SensorsPrivate::RunOnce()
     // being charged
     if (this->disableOnDrainedBattery)
     {
-      std::unique_lock<std::mutex> lock2(this->sensorStateMutex);
+      std::scoped_lock lock(this->sensorsMutex, this->sensorStateMutex);
       for (const auto &sensorIt : this->sensorStateChanged)
       {
         sensors::Sensor *s =
@@ -471,19 +472,20 @@ void SensorsPrivate::RunOnce()
 
     // disable sensors that have no subscribers to prevent doing unnecessary
     // work
-    std::unordered_set<sensors::RenderingSensor *> tmpDisabledSensors;
-    this->sensorsMutex.lock();
-    for (auto id : this->sensorIds)
+    std::unordered_set<sensors::SensorId> tmpDisabledSensorIds;
     {
-      sensors::Sensor *s = this->sensorManager.Sensor(id);
-      auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-      if (rs->IsActive() && !rs->HasConnections())
+      std::unique_lock<std::mutex> lock(this->sensorsMutex);
+      for (auto id : this->sensorIds)
       {
-        rs->SetActive(false);
-        tmpDisabledSensors.insert(rs);
+        sensors::Sensor *s = this->sensorManager.Sensor(id);
+        auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+        if (nullptr != rs && rs->IsActive() && !rs->HasConnections())
+        {
+          rs->SetActive(false);
+          tmpDisabledSensorIds.insert(id);
+        }
       }
     }
-    this->sensorsMutex.unlock();
 
     // safety check to see if reset occurred while we're rendering
     // avoid publishing outdated data if reset occurred
@@ -492,14 +494,25 @@ void SensorsPrivate::RunOnce()
     {
       // publish data
       GZ_PROFILE("RunOnce");
-      this->sensorManager.RunOnce(this->updateTimeApplied);
+      {
+        std::unique_lock<std::mutex> lock(this->sensorsMutex);
+        this->sensorManager.RunOnce(this->updateTimeApplied);
+      }
       this->eventManager->Emit<events::Render>();
     }
 
     // re-enble sensors
-    for (auto &rs : tmpDisabledSensors)
     {
-      rs->SetActive(true);
+      std::unique_lock<std::mutex> lock(this->sensorsMutex);
+      for (const auto id : tmpDisabledSensorIds)
+      {
+        sensors::Sensor *s = this->sensorManager.Sensor(id);
+        auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
+        if (nullptr != rs)
+        {
+          rs->SetActive(true);
+        }
+      }
     }
 
     {
@@ -542,8 +555,16 @@ void SensorsPrivate::RenderThread()
   this->eventManager->Emit<events::RenderTeardown>();
 
   // clean up before exiting
-  for (const auto id : this->sensorIds)
-    this->sensorManager.Remove(id);
+  {
+    std::unique_lock<std::mutex> lock(this->sensorsMutex);
+    for (const auto id : this->sensorIds)
+      this->sensorManager.Remove(id);
+    this->sensorIds.clear();
+    this->entityToIdMap.clear();
+    this->cameras.clear();
+    this->activeSensors.clear();
+    this->sensorsToUpdate.clear();
+  }
 
   this->giVct.reset();
   this->scene.reset();
@@ -590,17 +611,13 @@ void SensorsPrivate::ForceRender()
 //////////////////////////////////////////////////
 void Sensors::RemoveSensor(const Entity &_entity)
 {
+  std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
   auto idIter = this->dataPtr->entityToIdMap.find(_entity);
   if (idIter != this->dataPtr->entityToIdMap.end())
   {
     // Remove from active sensors as well
-    // Locking mutex to make sure the vector is not being changed while
-    // the rendering thread is iterating over it
-    {
-      std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
-      this->dataPtr->activeSensors.erase(idIter->second);
-      this->dataPtr->sensorsToUpdate.erase(idIter->second);
-    }
+    this->dataPtr->activeSensors.erase(idIter->second);
+    this->dataPtr->sensorsToUpdate.erase(idIter->second);
 
     // update cameras list
     for (auto &it : this->dataPtr->cameras)
@@ -879,19 +896,18 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
       std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
       this->dataPtr->activeSensors.clear();
       this->dataPtr->sensorsToUpdate.clear();
-    }
-
-    for (auto id : this->dataPtr->sensorIds)
-    {
-      sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
-
-      if (nullptr == s)
+      for (auto id : this->dataPtr->sensorIds)
       {
-        gzwarn << "Sensor removed before reset: " << id << "\n";
-        continue;
-      }
+        sensors::Sensor *s = this->dataPtr->sensorManager.Sensor(id);
 
-      s->SetNextDataUpdateTime(_info.simTime);
+        if (nullptr == s)
+        {
+          gzwarn << "Sensor removed before reset: " << id << "\n";
+          continue;
+        }
+
+        s->SetNextDataUpdateTime(_info.simTime);
+      }
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
     std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
@@ -1027,8 +1043,14 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->activeSensors =
             std::move(this->dataPtr->sensorsToUpdate);
         // Add all sensors that have pending triggers.
-        this->dataPtr->activeSensors.insert(sensorsWithPendingTriggers.begin(),
-                                            sensorsWithPendingTriggers.end());
+        for (const auto id : sensorsWithPendingTriggers)
+        {
+          if (this->dataPtr->sensorIds.find(id) !=
+              this->dataPtr->sensorIds.end())
+          {
+            this->dataPtr->activeSensors.insert(id);
+          }
+        }
       }
 
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
@@ -1078,12 +1100,18 @@ void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)
         return true;
       });
 
+  std::vector<std::pair<Entity, sensors::SensorId>> sensors;
+  {
+    std::unique_lock<std::mutex> lock(this->sensorsMutex);
+    sensors.assign(this->entityToIdMap.begin(), this->entityToIdMap.end());
+  }
+
   // disable sensor if parent model is out of battery or re-enable sensor
   // if battery is charging
   for (const auto & modelIt : this->modelBatteryStateChanged)
   {
     // check if sensor is part of this model
-    for (const auto & sensorIt : this->entityToIdMap)
+    for (const auto & sensorIt : sensors)
     {
       // parent link
       auto parentLinkComp =
@@ -1124,6 +1152,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
   }
+
+  std::unique_lock<std::mutex> lock(this->dataPtr->sensorsMutex);
 
   // Create within gz-sensors
   sensors::Sensor *sensor{nullptr};
@@ -1260,6 +1290,7 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
     std::set<sensors::SensorId> &_sensorsToUpdate,
     const std::chrono::steady_clock::duration &_currentTime)
 {
+  std::unique_lock<std::mutex> lock(this->sensorsMutex);
   _sensorsToUpdate.clear();
   std::chrono::steady_clock::duration minNextUpdateTime =
       std::chrono::steady_clock::duration::max();
@@ -1317,6 +1348,7 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
 //////////////////////////////////////////////////
 bool SensorsPrivate::SensorsHaveConnections()
 {
+  std::unique_lock<std::mutex> lock(this->sensorsMutex);
   for (auto id : this->sensorIds)
   {
     sensors::Sensor *s = this->sensorManager.Sensor(id);
@@ -1344,6 +1376,7 @@ bool SensorsPrivate::SensorsHaveConnections()
 std::unordered_set<sensors::SensorId>
 SensorsPrivate::SensorsWithPendingTrigger()
 {
+  std::unique_lock<std::mutex> lock(this->sensorsMutex);
   std::unordered_set<sensors::SensorId> sensorsWithPendingTrigger;
   for (auto id : this->sensorIds)
   {
