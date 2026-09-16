@@ -17,7 +17,7 @@ import datetime
 import unittest
 
 from gz.math import Pose3d, Temperature, Vector3d
-from gz.sim import EntityComponentManager, components
+from gz.sim import ComponentState, EntityComponentManager, components
 import sdformat
 
 # Skiplist of components that are not currently exposed to Python because
@@ -78,12 +78,12 @@ class TestComponents(unittest.TestCase):
         e = ecm.create_entity()
 
         self.assertFalse(ecm.entity_has_component_type(e, components.Model))
-        self.assertIsNone(ecm.component(e, components.Model))
+        self.assertIsNone(ecm.component_data(e, components.Model))
 
         # Create tag component
         ecm.create_component(e, components.Model)
         self.assertTrue(ecm.entity_has_component_type(e, components.Model))
-        self.assertEqual(components.Model, ecm.component(e, components.Model))
+        self.assertEqual(components.Model, ecm.component_data(e, components.Model))
 
         # Removal
         self.assertTrue(ecm.remove_component(e, components.Model))
@@ -91,33 +91,88 @@ class TestComponents(unittest.TestCase):
         self.assertFalse(ecm.remove_component(e, components.Model))
 
     def test_data_components_and_value_semantics(self):
-        """component() returns a snapshot; set_component_data() writes."""
+        """component_data() returns a snapshot; set_component_data() writes."""
         ecm = EntityComponentManager()
         e = ecm.create_entity()
 
         init_pose = Pose3d(1.0, 2.0, 3.0, 0.0, 0.0, 0.0)
         ecm.create_component(e, components.Pose, init_pose)
 
-        pose = ecm.component(e, components.Pose)
+        pose = ecm.component_data(e, components.Pose)
         self.assertAlmostEqual(1.0, pose.x())
 
         # Mutating the returned value must NOT reach the ECM.
         pose.set_x(42.0)
-        self.assertAlmostEqual(1.0, ecm.component(e, components.Pose).x())
+        self.assertAlmostEqual(1.0, ecm.component_data(e, components.Pose).x())
 
         # Successive reads return independent snapshot objects.
-        a = ecm.component(e, components.Pose)
-        b = ecm.component(e, components.Pose)
+        a = ecm.component_data(e, components.Pose)
+        b = ecm.component_data(e, components.Pose)
         a.set_x(7.0)
         self.assertAlmostEqual(1.0, b.x())
 
         # The supported write path.
         updated = Pose3d(42.0, 2.0, 3.0, 0.0, 0.0, 0.0)
         self.assertTrue(ecm.set_component_data(e, components.Pose, updated))
-        self.assertAlmostEqual(42.0, ecm.component(e, components.Pose).x())
+        self.assertAlmostEqual(42.0, ecm.component_data(e, components.Pose).x())
 
         # Change marking stays a separate, explicit call (mirrors C++).
         ecm.set_changed(e, components.Pose)
+
+    def test_create_component_marks_changed(self):
+        """create_component marks the component changed, as C++ does.
+
+        C++ CreateComponent() replaces an existing component and calls
+        SetChanged() unconditionally. create_component must do the same, so
+        that downstream systems and state serialization see the write.
+        """
+        ecm = EntityComponentManager()
+        e = ecm.create_entity()
+
+        ecm.create_component(e, components.Pose, Pose3d(1, 2, 3, 0, 0, 0))
+        self.assertEqual(
+            ComponentState.OneTimeChange,
+            ecm.component_state(e, components.Pose))
+
+        # Clear the flag, then create over the top of the existing component.
+        ecm.set_changed(e, components.Pose, ComponentState.NoChange)
+        self.assertEqual(
+            ComponentState.NoChange,
+            ecm.component_state(e, components.Pose))
+
+        ecm.create_component(e, components.Pose, Pose3d(9, 9, 9, 0, 0, 0))
+        self.assertEqual(
+            ComponentState.OneTimeChange,
+            ecm.component_state(e, components.Pose))
+        self.assertAlmostEqual(
+            9.0, ecm.component_data(e, components.Pose).x())
+
+        # set_component_data, by contrast, leaves change marking to the
+        # caller -- writing a genuinely new value does not mark it changed.
+        ecm.set_changed(e, components.Pose, ComponentState.NoChange)
+        self.assertTrue(
+            ecm.set_component_data(e, components.Pose,
+                                   Pose3d(5, 5, 5, 0, 0, 0)))
+        self.assertEqual(
+            ComponentState.NoChange,
+            ecm.component_state(e, components.Pose))
+
+    def test_unregistered_component_type_raises(self):
+        """Component types without Python bindings raise, not return None.
+
+        Returning None would be indistinguishable from "this entity does not
+        have that component", which is a real answer.
+        """
+        ecm = EntityComponentManager()
+        e = ecm.create_entity()
+
+        unbound = [c for c in components._all_factory_components()
+                   if c.name in KNOWN_SKIPPED_COMPONENTS]
+        self.assertTrue(unbound, "expected at least one unbound component")
+
+        with self.assertRaises(TypeError) as ctx:
+            ecm.component_data(e, unbound[0])
+        self.assertIn(unbound[0].name, str(ctx.exception))
 
     def test_primitive_and_container_components(self):
         """Test primitive and STL container components."""
@@ -126,10 +181,10 @@ class TestComponents(unittest.TestCase):
 
         # String: Name
         ecm.create_component(e, components.Name, "test_name")
-        self.assertEqual("test_name", ecm.component(e, components.Name))
+        self.assertEqual("test_name", ecm.component_data(e, components.Name))
         self.assertFalse(ecm.set_component_data(e, components.Name, "test_name"))
         self.assertTrue(ecm.set_component_data(e, components.Name, "new_name"))
-        self.assertEqual("new_name", ecm.component(e, components.Name))
+        self.assertEqual("new_name", ecm.component_data(e, components.Name))
 
         # Double: LevelBuffer. Setting the same value reports no change.
         ecm.create_component(e, components.LevelBuffer, 12.5)
@@ -137,28 +192,28 @@ class TestComponents(unittest.TestCase):
             ecm.set_component_data(e, components.LevelBuffer, 12.5))
         self.assertTrue(
             ecm.set_component_data(e, components.LevelBuffer, 3.5))
-        self.assertEqual(3.5, ecm.component(e, components.LevelBuffer))
+        self.assertEqual(3.5, ecm.component_data(e, components.LevelBuffer))
 
         # Vector of double: JointPosition
         ecm.create_component(e, components.JointPosition, [1.5, 2.5])
-        self.assertEqual([1.5, 2.5], ecm.component(e, components.JointPosition))
-        ecm.component(e, components.JointPosition).append(9.9)
-        self.assertEqual([1.5, 2.5], ecm.component(e, components.JointPosition))
+        self.assertEqual([1.5, 2.5], ecm.component_data(e, components.JointPosition))
+        ecm.component_data(e, components.JointPosition).append(9.9)
+        self.assertEqual([1.5, 2.5], ecm.component_data(e, components.JointPosition))
 
         # Set of string: LevelEntityNames
         ecm.create_component(e, components.LevelEntityNames, {"a", "b"})
-        self.assertEqual({"a", "b"}, ecm.component(e, components.LevelEntityNames))
+        self.assertEqual({"a", "b"}, ecm.component_data(e, components.LevelEntityNames))
 
         # Vector of double: SlipComplianceCmd
         ecm.create_component(e, components.SlipComplianceCmd, [0.05, 0.05])
         self.assertEqual(
-            [0.05, 0.05], ecm.component(e, components.SlipComplianceCmd))
+            [0.05, 0.05], ecm.component_data(e, components.SlipComplianceCmd))
 
         # std::chrono::duration: AnimationTime
         duration = datetime.timedelta(seconds=1, microseconds=500000)
         ecm.create_component(e, components.AnimationTime, duration)
         self.assertEqual(
-            duration, ecm.component(e, components.AnimationTime))
+            duration, ecm.component_data(e, components.AnimationTime))
 
     def test_internal_struct_components(self):
         """Test internal C++ struct components."""
@@ -171,26 +226,26 @@ class TestComponents(unittest.TestCase):
         joint_info.child_link = 20
         joint_info.joint_type = "fixed"
         ecm.create_component(e, components.DetachableJoint, joint_info)
-        self.assertEqual(joint_info, ecm.component(e, components.DetachableJoint))
+        self.assertEqual(joint_info, ecm.component_data(e, components.DetachableJoint))
 
-        # component() returns a snapshot; mutating it must not reach the ECM.
-        snapshot = ecm.component(e, components.DetachableJoint)
+        # component_data() returns a snapshot; mutating it must not reach the ECM.
+        snapshot = ecm.component_data(e, components.DetachableJoint)
         snapshot.parent_link = 30
         self.assertEqual(
-            10, ecm.component(e, components.DetachableJoint).parent_link)
+            10, ecm.component_data(e, components.DetachableJoint).parent_link)
 
         # Write the modified snapshot back explicitly.
         self.assertTrue(
             ecm.set_component_data(e, components.DetachableJoint, snapshot))
         self.assertEqual(
-            30, ecm.component(e, components.DetachableJoint).parent_link)
+            30, ecm.component_data(e, components.DetachableJoint).parent_link)
 
         # TemperatureRangeInfo
         temp_range = components.TemperatureRangeInfo()
         temp_range.min = Temperature(200.0)
         temp_range.max = Temperature(400.0)
         ecm.create_component(e, components.TemperatureRange, temp_range)
-        self.assertEqual(temp_range, ecm.component(e, components.TemperatureRange))
+        self.assertEqual(temp_range, ecm.component_data(e, components.TemperatureRange))
 
         # RaycastDataInfo
         ray = components.RayInfo()
@@ -201,7 +256,7 @@ class TestComponents(unittest.TestCase):
         data.rays = [ray]
         data.results = [res]
         ecm.create_component(e, components.RaycastData, data)
-        read_data = ecm.component(e, components.RaycastData)
+        read_data = ecm.component_data(e, components.RaycastData)
         self.assertEqual(Vector3d(1.0, 0.0, 0.0), read_data.rays[0].end)
         self.assertEqual(0.5, read_data.results[0].fraction)
 
@@ -244,7 +299,7 @@ class TestComponents(unittest.TestCase):
 
         # Passing non-ComponentProxy arguments
         with self.assertRaises(TypeError):
-            ecm.component(e, "invalid_type")
+            ecm.component_data(e, "invalid_type")
 
         with self.assertRaises(TypeError):
             ecm.entity_has_component_type(e, 12345)
@@ -279,26 +334,26 @@ class TestComponents(unittest.TestCase):
         sensor.set_name("altimeter_sensor")
         sensor.set_type("altimeter")
         ecm.create_component(e, components.Altimeter, sensor)
-        ret_sensor = ecm.component(e, components.Altimeter)
+        ret_sensor = ecm.component_data(e, components.Altimeter)
         self.assertIsNotNone(ret_sensor)
         self.assertEqual("altimeter_sensor", ret_sensor.name())
 
-        # component() returns a snapshot; mutating it must not reach the ECM.
+        # component_data() returns a snapshot; mutating it must not reach the ECM.
         ret_sensor.set_name("modified_sensor")
         self.assertEqual(
-            "altimeter_sensor", ecm.component(e, components.Altimeter).name())
+            "altimeter_sensor", ecm.component_data(e, components.Altimeter).name())
 
         # Write the modified snapshot back explicitly.
         self.assertTrue(
             ecm.set_component_data(e, components.Altimeter, ret_sensor))
         self.assertEqual(
-            "modified_sensor", ecm.component(e, components.Altimeter).name())
+            "modified_sensor", ecm.component_data(e, components.Altimeter).name())
 
         # sdf::ElementPtr: ContactSensor
         elem = sdformat.Element()
         elem.set_name("contact_elem")
         ecm.create_component(e, components.ContactSensor, elem)
-        ret_elem = ecm.component(e, components.ContactSensor)
+        ret_elem = ecm.component_data(e, components.ContactSensor)
         self.assertIsNotNone(ret_elem)
         self.assertEqual("contact_elem", ret_elem.get_name())
 
@@ -314,7 +369,7 @@ class TestComponents(unittest.TestCase):
         This test pins that behaviour deliberately: it is a limitation, not
         a guarantee anyone should rely on for writing. If a future change
         makes these components copy, update the docstring on
-        EntityComponentManager.component() and the LIMITATION note in
+        EntityComponentManager.component_data() and the LIMITATION note in
         ComponentPybindRegistry.hh along with this test.
         """
         ecm = EntityComponentManager()
@@ -326,15 +381,15 @@ class TestComponents(unittest.TestCase):
 
         # The value read back aliases ECM storage, so mutating it writes
         # through. This bypasses change detection -- hence "read-only".
-        ret = ecm.component(e, components.ContactSensor)
-        ret.set_name("mutated_via_component")
+        ret = ecm.component_data(e, components.ContactSensor)
+        ret.set_name("mutated_via_component_data")
         self.assertEqual(
-            "mutated_via_component",
-            ecm.component(e, components.ContactSensor).get_name())
+            "mutated_via_component_data",
+            ecm.component_data(e, components.ContactSensor).get_name())
 
         # The aliasing also runs the other way: create_component stored the
         # caller's handle rather than a copy, so `elem` is still live.
-        self.assertEqual("mutated_via_component", elem.get_name())
+        self.assertEqual("mutated_via_component_data", elem.get_name())
 
     def test_component_registration_parity(self):
         """Test full parity between C++ ComponentFactory and Python bindings."""
@@ -367,7 +422,7 @@ class TestComponents(unittest.TestCase):
             self.assertTrue(
                 ecm.entity_has_component_type(e, comp),
                 f"Component '{comp.name}' was not created on entity.")
-            val = ecm.component(e, comp)
+            val = ecm.component_data(e, comp)
 
             # For data components with non-None default data, roundtrip through setter
             if val is not None and not isinstance(val, components.ComponentProxy):

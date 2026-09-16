@@ -88,23 +88,29 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   public: using SetterFn = std::function<bool(
       gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity,
-      const pybind11::object &_obj,
-      bool _compare)>;
+      const pybind11::object &_obj)>;
+
+  public: using CreatorFn = std::function<bool(
+      gz::sim::EntityComponentManager &_ecm,
+      const gz::sim::Entity &_entity,
+      const pybind11::object &_obj)>;
 
   public: using DefaultCreatorFn = std::function<bool(
       gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity)>;
 
-  /// \brief Register a python getter/setter/default-creator tuple for a
-  /// component type.
+  /// \brief Register a python getter/setter/creator/default-creator tuple for
+  /// a component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader (usually address of
   /// registration object).
   /// \param[in] _getter The python getter function.
   /// \param[in] _setter The python setter function.
+  /// \param[in] _creator The component creator function.
   /// \param[in] _defaultCreator The default component creator function.
   public: void Register(ComponentTypeId _typeId, uintptr_t _id,
                         GetterFn _getter, SetterFn _setter,
+                        CreatorFn _creator,
                         DefaultCreatorFn _defaultCreator);
 
   /// \brief Unregister a python getter/setter pair for a component type.
@@ -121,6 +127,11 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   /// \param[in] _typeId The component type ID.
   /// \return The setter function, or nullptr if not found.
   public: SetterFn Setter(ComponentTypeId _typeId) const;
+
+  /// \brief Get the active component creator for a component type.
+  /// \param[in] _typeId The component type ID.
+  /// \return The creator function, or nullptr if not found.
+  public: CreatorFn Creator(ComponentTypeId _typeId) const;
 
   /// \brief Get the active default component creator for a component type.
   /// \param[in] _typeId The component type ID.
@@ -157,21 +168,28 @@ struct AddPybindGetterSetter
 {
   /// \brief Create a type-erased python getter for pybind11 capturing the
   /// component name.
+  ///
+  /// The name is captured by value. The registration macro passes a string
+  /// literal owned by the registering translation unit, so a raw pointer
+  /// would dangle once that DSO unloads -- which is precisely the situation
+  /// the registry's descriptor queue exists to survive.
+  ///
   /// \param[in] _name Name of the component.
   /// \return The getter function returning the component data cast to a python
   /// object (or ComponentProxy for NoData).
   static ComponentPybindRegistry::GetterFn CreateGetter(const char *_name)
   {
-    return [_name](const gz::sim::EntityComponentManager &_ecm,
-                   const gz::sim::Entity &_entity) -> pybind11::object
+    return [name = std::string(_name)](
+               const gz::sim::EntityComponentManager &_ecm,
+               const gz::sim::Entity &_entity) -> pybind11::object
     {
-      (void)_name;
+      (void)name;
       if constexpr (std::is_same_v<typename T::Type,
                                    gz::sim::components::NoData>)
       {
         if (_ecm.EntityHasComponentType(_entity, T::typeId))
         {
-          return pybind11::cast(ComponentProxy{_name, T::typeId});
+          return pybind11::cast(ComponentProxy{name, T::typeId});
         }
         return pybind11::none();
       }
@@ -220,16 +238,17 @@ struct AddPybindGetterSetter
   }
 
   /// \brief Type-erased python setter for pybind11.
+  ///
+  /// Mirrors C++ SetComponentData<T>(): the new data is compared against the
+  /// current data and written only if it differs.
+  ///
   /// \param[in] _ecm The EntityComponentManager.
   /// \param[in] _entity The Entity to write to.
   /// \param[in] _obj The python object to cast and write.
-  /// \param[in] _compare If true, performs an equality check to only update if
-  /// changed.
   /// \return True if the component was created or modified.
   static bool Setter(gz::sim::EntityComponentManager &_ecm,
                      const gz::sim::Entity &_entity,
-                     const pybind11::object &_obj,
-                     bool _compare)
+                     const pybind11::object &_obj)
   {
     if (!_ecm.HasEntity(_entity))
     {
@@ -243,12 +262,11 @@ struct AddPybindGetterSetter
         throw pybind11::type_error(
             "Tag (NoData) components cannot accept data");
       }
-      (void)_compare;
       if (!_ecm.EntityHasComponentType(_entity, T::typeId))
       {
         return _ecm.CreateComponent(_entity, T()) != nullptr;
       }
-      return true;
+      return false;
     }
     else
     {
@@ -260,18 +278,58 @@ struct AddPybindGetterSetter
       try
       {
         auto data = pybind11::cast<typename T::Type>(_obj);
-        if (_compare)
-        {
-          return _ecm.SetComponentData<T>(_entity, data);
-        }
+        return _ecm.SetComponentData<T>(_entity, data);
+      }
+      catch (const pybind11::cast_error &e)
+      {
+        throw pybind11::type_error(
+            std::string("Failed to cast python object to component data type: ")
+            + e.what());
+      }
+    }
+  }
 
-        T *comp = _ecm.Component<T>(_entity);
-        if (nullptr == comp)
-        {
-          return _ecm.CreateComponent(_entity, T(data)) != nullptr;
-        }
-        comp->Data() = data;
-        return true;
+  /// \brief Type-erased python component creator for pybind11.
+  ///
+  /// Mirrors C++ CreateComponent<T>(): the component is created, or replaced
+  /// if it already exists, and is marked changed either way. This is why
+  /// creation does not go through Setter -- SetComponentData deliberately
+  /// leaves an unchanged component untouched, whereas creation is always a
+  /// write.
+  ///
+  /// \param[in] _ecm The EntityComponentManager.
+  /// \param[in] _entity The Entity to attach to.
+  /// \param[in] _obj The python object to cast and store.
+  /// \return True if the component was created.
+  static bool Creator(gz::sim::EntityComponentManager &_ecm,
+                      const gz::sim::Entity &_entity,
+                      const pybind11::object &_obj)
+  {
+    if (!_ecm.HasEntity(_entity))
+    {
+      return false;
+    }
+
+    if constexpr (std::is_same_v<typename T::Type, gz::sim::components::NoData>)
+    {
+      if (!_obj.is_none())
+      {
+        throw pybind11::type_error(
+            "Tag (NoData) components cannot accept data");
+      }
+      return _ecm.CreateComponent(_entity, T()) != nullptr;
+    }
+    else
+    {
+      if (_obj.is_none())
+      {
+        throw pybind11::type_error(
+            "Component cannot be created or updated without data");
+      }
+      try
+      {
+        auto data = pybind11::cast<typename T::Type>(_obj);
+        return _ecm.CreateComponent(_entity, T(data)) != nullptr;
       }
       catch (const pybind11::cast_error &e)
       {
@@ -300,13 +358,13 @@ struct AddPybindGetterSetter
     return true;
   }
 
-  /// \brief Register this type's getter/setter/default-creator tuple.
+  /// \brief Register this type's getter/setter/creator/default-creator tuple.
   /// \param[in] _id Unique identity of the loader.
   /// \param[in] _name Name of the component.
   static void Register(uintptr_t _id, const char *_name)
   {
     ComponentPybindRegistry::Instance()->Register(
-        T::typeId, _id, CreateGetter(_name), Setter, CreateDefault);
+        T::typeId, _id, CreateGetter(_name), Setter, Creator, CreateDefault);
   }
 
   /// \brief Unregister this type's getter/setter pair.

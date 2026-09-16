@@ -85,14 +85,15 @@ void defineSimEntityComponentManager(pybind11::object module)
             const ComponentProxy &_comp,
             const pybind11::object &_data)
          {
-           auto setter =
-               ComponentPybindRegistry::Instance()->Setter(_comp.typeId);
-           if (!setter)
+           auto creator =
+               ComponentPybindRegistry::Instance()->Creator(_comp.typeId);
+           if (!creator)
            {
              throw pybind11::type_error(
-                 "Component type is not registered for Python manipulation");
+                 "Component type '" + _comp.name + "' is not registered for "
+                 "Python manipulation");
            }
-           if (!setter(self, _entity, _data, false))
+           if (!creator(self, _entity, _data))
            {
              throw pybind11::key_error(
                  "Failed to create component on entity (entity may not exist)");
@@ -101,9 +102,9 @@ void defineSimEntityComponentManager(pybind11::object module)
          pybind11::arg("entity"),
          pybind11::arg("comp_type"),
          pybind11::arg("data") = pybind11::none(),
-         "Create a component for an entity. For data components, initial "
-         "data is required; for tag (NoData) components, data must not be "
-         "provided.")
+         "Create a component for an entity, replacing it if it already "
+         "exists, and mark it changed. For data components, initial data is "
+         "required; for tag (NoData) components, data must not be provided.")
     .def("_create_default_component",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
@@ -126,14 +127,20 @@ void defineSimEntityComponentManager(pybind11::object module)
          pybind11::arg("entity"),
          pybind11::arg("comp_type"),
          "Create a default-initialized component on an entity.")
-    .def("component",
+    .def("component_data",
          [](const gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
             const ComponentProxy &_comp) -> pybind11::object
          {
            auto getter =
                ComponentPybindRegistry::Instance()->Getter(_comp.typeId);
-           return getter ? getter(self, _entity) : pybind11::none();
+           if (!getter)
+           {
+             throw pybind11::type_error(
+                 "Component type '" + _comp.name + "' is not registered for "
+                 "Python data access");
+           }
+           return getter(self, _entity);
          },
          pybind11::arg("entity"), pybind11::arg("comp_type"),
          "Get a snapshot of a component's data for an entity and component "
@@ -153,11 +160,11 @@ void defineSimEntityComponentManager(pybind11::object module)
            if (auto setter =
                    ComponentPybindRegistry::Instance()->Setter(_comp.typeId))
            {
-             return setter(self, _entity, _data, true);
+             return setter(self, _entity, _data);
            }
            throw pybind11::type_error(
-               "Component type is not registered for Python data "
-               "manipulation");
+               "Component type '" + _comp.name + "' is not registered for "
+               "Python data manipulation");
          },
          pybind11::arg("entity"),
          pybind11::arg("comp_type"),
@@ -168,7 +175,7 @@ void defineSimEntityComponentManager(pybind11::object module)
          "This does not mark the component as changed in the ECM; call "
          "set_changed() separately if downstream systems need to be "
          "notified. EXCEPTION: for components whose data is a pointer (see "
-         "component()), the ECM stores the handle you pass rather than a "
+         "component_data()), the ECM stores the handle you pass rather than a "
          "copy, so the object remains a live view onto ECM state after the "
          "call.")
     .def("set_changed",
@@ -181,7 +188,17 @@ void defineSimEntityComponentManager(pybind11::object module)
          },
          pybind11::arg("entity"), pybind11::arg("comp_type"),
          pybind11::arg("state") = sim::ComponentState::OneTimeChange,
-         "Set the changed state of a component.");
+         "Set the changed state of a component.")
+    .def("component_state",
+         [](const gz::sim::EntityComponentManager &self,
+            const gz::sim::Entity &_entity,
+            const ComponentProxy &_comp)
+         {
+           return self.ComponentState(_entity, _comp.typeId);
+         },
+         pybind11::arg("entity"), pybind11::arg("comp_type"),
+         "Get the changed state of a component. Returns "
+         "ComponentState.NoChange if the component does not exist.");
 }
 }  // namespace python
 }  // namespace sim
