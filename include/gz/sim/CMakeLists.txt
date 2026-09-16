@@ -9,11 +9,17 @@ endif()
 
 gz_install_all_headers(EXCLUDE_DIRS ${excluded_dirs})
 
-install(
-  DIRECTORY python
-  DESTINATION "${GZ_INCLUDE_INSTALL_DIR_FULL}/${PROJECT_INCLUDE_DIR}"
-  COMPONENT headers
-  FILES_MATCHING PATTERN "*.hh")
+# Only install these if pybind11 was found. Otherwise the headers would
+# declare ComponentPybindRegistry while src/ComponentPybindRegistry.cc was
+# never compiled into the library, so a downstream consumer that does have
+# pybind11 would fail to link against symbols that are not there.
+if (pybind11_FOUND)
+  install(
+    DIRECTORY python
+    DESTINATION "${GZ_INCLUDE_INSTALL_DIR_FULL}/${PROJECT_INCLUDE_DIR}"
+    COMPONENT headers
+    FILES_MATCHING PATTERN "*.hh")
+endif()
 
 add_subdirectory(components)
 
