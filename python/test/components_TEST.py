@@ -124,16 +124,20 @@ class TestComponents(unittest.TestCase):
         ecm = EntityComponentManager()
         e = ecm.create_entity()
 
-        # String: Name with compare flag
+        # String: Name
         ecm.create_component(e, components.Name, "test_name")
         self.assertEqual("test_name", ecm.component(e, components.Name))
         self.assertFalse(ecm.set_component_data(e, components.Name, "test_name"))
         self.assertTrue(ecm.set_component_data(e, components.Name, "new_name"))
         self.assertEqual("new_name", ecm.component(e, components.Name))
 
-        # Double: LevelBuffer with compare=False
+        # Double: LevelBuffer. Setting the same value reports no change.
         ecm.create_component(e, components.LevelBuffer, 12.5)
-        self.assertTrue(ecm.set_component_data(e, components.LevelBuffer, 12.5, False))
+        self.assertFalse(
+            ecm.set_component_data(e, components.LevelBuffer, 12.5))
+        self.assertTrue(
+            ecm.set_component_data(e, components.LevelBuffer, 3.5))
+        self.assertEqual(3.5, ecm.component(e, components.LevelBuffer))
 
         # Vector of double: JointPosition
         ecm.create_component(e, components.JointPosition, [1.5, 2.5])

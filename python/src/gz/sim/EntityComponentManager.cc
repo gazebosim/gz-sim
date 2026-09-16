@@ -148,13 +148,12 @@ void defineSimEntityComponentManager(pybind11::object module)
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
             const ComponentProxy &_comp,
-            const pybind11::object &_data,
-            bool _compare) -> bool
+            const pybind11::object &_data) -> bool
          {
            if (auto setter =
                    ComponentPybindRegistry::Instance()->Setter(_comp.typeId))
            {
-             return setter(self, _entity, _data, _compare);
+             return setter(self, _entity, _data, true);
            }
            throw pybind11::type_error(
                "Component type is not registered for Python data "
@@ -163,9 +162,9 @@ void defineSimEntityComponentManager(pybind11::object module)
          pybind11::arg("entity"),
          pybind11::arg("comp_type"),
          pybind11::arg("data"),
-         pybind11::arg("compare") = true,
-         "Set the data for an entity's component. If compare is True "
-         "(default), only sets if data changed and returns True if changed. "
+         "Set the data for an entity's component. The new data is compared "
+         "against the current data and only written if it differs; returns "
+         "True if the data changed. "
          "This does not mark the component as changed in the ECM; call "
          "set_changed() separately if downstream systems need to be "
          "notified. EXCEPTION: for components whose data is a pointer (see "
