@@ -139,7 +139,11 @@ void defineSimEntityComponentManager(pybind11::object module)
          "Get a snapshot of a component's data for an entity and component "
          "type, or None if it does not exist. The returned value is a copy; "
          "modifying it does not affect the ECM. Use set_component_data() to "
-         "write, and set_changed() to mark the component changed.")
+         "write, and set_changed() to mark the component changed. "
+         "EXCEPTION: components whose data is a pointer (an sdf.Element, "
+         "for example) return a handle that aliases ECM storage rather "
+         "than a copy. Treat those as read-only: mutating the returned "
+         "object writes through to the ECM and bypasses change detection.")
     .def("set_component_data",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,
@@ -163,7 +167,11 @@ void defineSimEntityComponentManager(pybind11::object module)
          "Set the data for an entity's component. If compare is True "
          "(default), only sets if data changed and returns True if changed. "
          "This does not mark the component as changed in the ECM; call "
-         "set_changed() separately if downstream systems need to be notified.")
+         "set_changed() separately if downstream systems need to be "
+         "notified. EXCEPTION: for components whose data is a pointer (see "
+         "component()), the ECM stores the handle you pass rather than a "
+         "copy, so the object remains a live view onto ECM state after the "
+         "call.")
     .def("set_changed",
          [](gz::sim::EntityComponentManager &self,
             const gz::sim::Entity &_entity,

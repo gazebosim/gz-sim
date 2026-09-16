@@ -196,11 +196,21 @@ struct AddPybindGetterSetter
           // (exposed as set_component_data), which is the only supported
           // mutation path.
           //
-          // NOTE: this yields value semantics only for value-typed
-          // payloads. A pointer-like payload (e.g. sdf::ElementPtr, a
-          // std::shared_ptr) would still alias after copying. No such
-          // component is currently registered in PyComponents.cc; revisit
-          // this if one is added.
+          // LIMITATION: this yields value semantics only for value-typed
+          // payloads. A pointer-like payload (sdf::ElementPtr, or any
+          // std::shared_ptr) is copied as a handle, so the Python object
+          // aliases the component held in ECM storage. Mutating it writes
+          // straight through and bypasses change detection.
+          //
+          // This is accepted rather than fixed. Such components carry
+          // static configuration (an SDF element tree) that is read, not
+          // written, from Python, and deep-copying it on every read would
+          // cost far more than the access it serves.
+          //
+          // Treat any component whose data is a pointer as read-only from
+          // Python. The aliasing also runs the other way: create_component
+          // stores the caller's handle rather than a copy, so the object
+          // passed in stays live.
           return pybind11::cast(comp->Data(),
                                 pybind11::return_value_policy::copy);
         }
