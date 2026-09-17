@@ -284,22 +284,27 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
 }
 
 std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
-    const std::string &_sdfElement, const std::string &_ns,
+    const std::string &_sdfElementName, const std::string &_namespace,
     const std::string &_defaultTopic)
 {
   std::vector<std::string> topics;
 
-  if (_sdf->HasElement(_sdfElement))
+  if (_sdf->HasElement(_sdfElementName))
   {
-    std::string customTopic = _sdf->Get<std::string>(_sdfElement);
+    std::string customTopic = _sdf->Get<std::string>(_sdfElementName);
 
     if (!customTopic.empty())
     {
       // Only prepend namespace to relative topic names.
       // Absolute topic names (starting with '/') are left unchanged.
-      std::string prefix = (_ns == "/" || _ns.empty()) ? _ns : _ns + "/";
       if (customTopic.front() != '/')
       {
+        std::string prefix = _namespace;
+        if (_namespace != "/" && !_namespace.empty())
+        {
+          prefix = prefix + "/";
+        }
+
         customTopic = prefix + customTopic;
       }
       topics.push_back(customTopic);

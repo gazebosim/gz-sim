@@ -92,15 +92,15 @@ namespace gz
     /// namespace, while absolute topic names are left unchanged. If no custom
     /// topic is available, the default topic is used.
     /// \param[in] _sdf SDF to read the topic name from.
-    /// \param[in] _sdfElement Name of the SDF child element containing the
+    /// \param[in] _sdfElementName Name of the SDF child element containing the
     /// topic name.
-    /// \param[in] _ns Namespace to prepend to relative topic name.
+    /// \param[in] _namespace Namespace to prepend to relative topic name.
     /// \param[in] _defaultTopic Topic to use when no custom topic is specified.
     /// \return A valid Gazebo Transport topic name, or an empty string if no
     /// valid topic could be generated.
     std::string GZ_SIM_VISIBLE resolvedTopicName(
         const std::shared_ptr<const sdf::Element> &_sdf,
-        const std::string &_sdfElement, const std::string &_ns,
+        const std::string &_sdfElementName, const std::string &_namespace,
         const std::string &_defaultTopic);
 
     /// \brief Helper function to get an entity given its scoped name.
