@@ -297,9 +297,10 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
     {
       // Only prepend namespace to relative topic names.
       // Absolute topic names (starting with '/') are left unchanged.
+      std::string prefix = (_ns == "/" || _ns.empty()) ? _ns : _ns + "/";
       if (customTopic.front() != '/')
       {
-        customTopic = _ns + "/" + customTopic;
+        customTopic = prefix + customTopic;
       }
       topics.push_back(customTopic);
     }
