@@ -34,6 +34,11 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
+#include <gz/utils/SuppressWarning.hh>
+
+GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
+#include <gz/sim/detail/vendor/entt/entity/registry.hpp>
+GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
@@ -52,6 +57,8 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
+  using StorageType = entt::basic_registry<Entity>::common_type;
+
   /// \brief A base class for an object responsible for creating components.
   class ComponentDescriptorBase
   {
@@ -67,6 +74,12 @@ namespace components
     /// \return Pointer to a component.
     public: virtual std::unique_ptr<BaseComponent> Create(
                 const components::BaseComponent *_data) const = 0;
+
+    /// \brief Create/get the entt storage for this component in the registry.
+    /// \param[in] _registry The registry to register the storage to.
+    /// \return Pointer to the storage.
+    public: virtual StorageType *RegisterToEntt(
+                entt::basic_registry<Entity> &_registry) const = 0;
   };
 
   /// \brief A class for an object responsible for creating components.
@@ -87,6 +100,13 @@ namespace components
     {
       ComponentTypeT comp(*static_cast<const ComponentTypeT *>(_data));
       return std::make_unique<ComponentTypeT>(comp);
+    }
+
+    /// \brief Documentation inherited
+    public: StorageType *RegisterToEntt(
+                entt::basic_registry<Entity> &_registry) const override
+    {
+      return &_registry.storage<ComponentTypeT>();
     }
   };
 
@@ -197,6 +217,20 @@ namespace components
       return {};
     }
 
+    /// \brief Register the component to Entt using the latest available
+    /// component descriptor.
+    /// \param[in] _registry The registry to register to.
+    /// \return Pointer to the storage if registered, nullptr otherwise.
+    public: GZ_SIM_HIDDEN StorageType *RegisterToEntt(
+        entt::basic_registry<Entity> &_registry) const
+    {
+      if (!this->queue.empty())
+      {
+        return this->queue.front().second->RegisterToEntt(_registry);
+      }
+      return nullptr;
+    }
+
     /// \brief Queue of component descriptors registered by static registration
     /// objects.
     private: std::deque<std::pair<RegistrationObjectId,
@@ -278,13 +312,21 @@ namespace components
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
     }
 
-    /// \brief Initialize the storage for all registered components
+    /// \brief Initialize the storage for all components or a specific type.
     /// \param[in] _registry The registry to initialize storages for.
-    public: void RegisterAllToEntt(entt::basic_registry<Entity>& _registry)
+    /// \param[in] _typeId Id to register.
+    /// \return Pointer to the storage if _typeId was registered correctly,
+    /// or nullptr if _typeId was not registered.
+    public: StorageType *RegisterToEntt(
+                entt::basic_registry<Entity>& _registry,
+                const ComponentTypeId _typeId)
     {
-      for (const auto& registerFunc : this->registerList) {
-        registerFunc(_registry);
+      const auto it = this->compsById.find(_typeId);
+      if (it == this->compsById.end())
+      {
+        return nullptr;
       }
+      return it->second.RegisterToEntt(_registry);
     }
 
     /// \brief Unregister a component so that the factory can't create instances
@@ -435,15 +477,6 @@ namespace components
 }
 }
 }
-}
-
-namespace entt {
-template<typename Type>
-struct type_hash<Type, std::void_t<decltype(Type::typeId)>> {
-  static constexpr ENTT_ID_TYPE value() noexcept {
-      return Type::typeId;
-  }
-};
 }
 
 /// \brief Internal macro: ADL helper functions for a component type.

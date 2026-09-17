@@ -70,6 +70,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
@@ -526,6 +527,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
+  const auto ns = _model->Namespace();
+  if (ns.has_value() && !ns->empty())
+  {
+    this->dataPtr->ecm->CreateComponent(modelEntity,
+        components::Namespace(ns.value()));
+  }
   bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(isStatic));

@@ -81,8 +81,8 @@ gz_proto_library(
 public_headers_no_gen = glob(
     [
         "include/gz/sim/*.hh",
-        "include/gz/sim/entt/**/*.hpp",
-        "include/gz/sim/entt/**/*.h",
+        "include/gz/sim/detail/vendor/entt/**/*.hpp",
+        "include/gz/sim/detail/vendor/entt/**/*.h",
         "include/gz/sim/comms/*.hh",
         "include/gz/sim/components/*.hh",
         "include/gz/sim/detail/*.hh",
@@ -162,6 +162,7 @@ cc_library(
         "@gz-transport//parameters",
         "@gz-utils//:ImplPtr",
         "@gz-utils//:NeverDestroyed",
+        "@gz-utils//:SuppressWarning",
         "@sdformat",
         "@tinyxml2",
     ],
@@ -1603,6 +1604,7 @@ gz_sim_system_libraries(
         "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",

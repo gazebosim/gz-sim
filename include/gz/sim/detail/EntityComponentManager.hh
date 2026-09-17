@@ -41,29 +41,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
-  /// \brief Helper struct to determine if an equality operator is present.
-  struct TestEqualityOperator
-  {
-  };
-  template<typename T>
-  TestEqualityOperator operator == (const T&, const T&);
-
   /// \brief Type trait that determines if an operator== is defined for `T`.
-  template<typename T>
-  struct HasEqualityOperator
+  template <typename, typename = std::void_t<>>
+  struct HasEqualityOperator : std::false_type {};
+
+  template <typename T>
+  struct HasEqualityOperator<
+      T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+      : std::true_type
   {
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-    enum
-    {
-      // False positive codecheck "Using C-style cast"
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
-    };
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic pop
-#endif
   };
 }
 
@@ -94,13 +80,8 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  if (!this->CanCreateComponent(_entity, ComponentTypeT::typeId))
-    return nullptr;
-  auto* comp = &this->Registry()
-    .emplace_or_replace<ComponentTypeT>(_entity, _data);
-  this->SetChanged(_entity, ComponentTypeT::typeId,
-      ComponentState::OneTimeChange);
-  return comp;
+  return static_cast<ComponentTypeT *>(this->CreateComponentImplementation(
+      _entity, ComponentTypeT::typeId, &_data));
 }
 
 //////////////////////////////////////////////////
@@ -215,8 +196,8 @@ Entity EntityComponentManager::EntityByComponents(
     {
       for (const auto e : iterable)
       {
-        if (((iterable.template get<const ComponentTypeTs>(e) ==
-                _desiredComponents) && ...))
+        if (std::forward_as_tuple(_desiredComponents...) ==
+            iterable.template get<const ComponentTypeTs...>(e))
           return e;
       }
       return kNullEntity;
@@ -321,8 +302,7 @@ void EntityComponentManager::Each(Func &&_f) const
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<const ComponentTypeTs...>(
-        entt::exclude<RemoveEntity>);
+    auto view = this->Registry().template view<const ComponentTypeTs...>();
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -342,8 +322,7 @@ void EntityComponentManager::Each(Func &&_f) const
     };
 
     if (auto group = this->Registry().template group_if_exists<>(
-        entt::get<const ComponentTypeTs...>, entt::exclude<RemoveEntity>);
-        group)
+        entt::get<const ComponentTypeTs...>); group)
     {
       iterate(group);
       return;
@@ -353,8 +332,7 @@ void EntityComponentManager::Each(Func &&_f) const
     this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
         detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    iterate(this->Registry().template view<const ComponentTypeTs...>(
-          entt::exclude<RemoveEntity>));
+    iterate(this->Registry().template view<const ComponentTypeTs...>());
   }
 }
 
@@ -364,8 +342,7 @@ void EntityComponentManager::Each(Func &&_f)
 {
   if constexpr (sizeof...(ComponentTypeTs) == 1)
   {
-    auto view = this->Registry().template view<ComponentTypeTs...>(
-        entt::exclude<RemoveEntity>);
+    auto view = this->Registry().template view<ComponentTypeTs...>();
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -374,8 +351,8 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    const auto group = this->Registry().template group<>(
-        entt::get<ComponentTypeTs...>, entt::exclude<RemoveEntity>);
+    const auto group =
+      this->Registry().template group<>(entt::get<ComponentTypeTs...>);
     for (const auto entity : group)
     {
       if (!_f(entity, std::addressof(
@@ -401,6 +378,11 @@ void EntityComponentManager::ForEach(Function _f,
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f)
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   auto view = this->Registry().template view<NewEntity, ComponentTypeTs...>();
 
   // Iterate over the entities in the view, and invoke the callback
@@ -417,6 +399,11 @@ void EntityComponentManager::EachNew(Func &&_f)
 template <typename... ComponentTypeTs, typename Func>
 void EntityComponentManager::EachNew(Func &&_f) const
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   auto view = this->Registry().template view<
     const NewEntity, const ComponentTypeTs...>();
 
@@ -434,6 +421,11 @@ void EntityComponentManager::EachNew(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::EachRemoved(Func &&_f) const
 {
+  // Nothing to do if no entity is marked for removal: skip the view lookup
+  // entirely.
+  if (!this->HasEntitiesMarkedForRemoval())
+    return;
+
   auto view = this->Registry().template view<
     const RemoveEntity, const ComponentTypeTs...>();
 
@@ -451,11 +443,7 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
 template<typename ComponentTypeT>
 bool EntityComponentManager::RemoveComponent(Entity _entity)
 {
-  if (!this->HasEntity(_entity))
-    return false;
-  bool removed = this->Registry().remove<ComponentTypeT>(_entity);
-  this->PostRemoveComponent(_entity, ComponentTypeT::typeId);
-  return removed;
+  return this->RemoveComponent(_entity, ComponentTypeT::typeId);
 }
 }
 }

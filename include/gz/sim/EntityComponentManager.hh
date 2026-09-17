@@ -37,6 +37,11 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
+#include <gz/utils/SuppressWarning.hh>
+
+GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
+#include <gz/sim/detail/vendor/entt/entity/registry.hpp>
+GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
 #ifndef ENTT_ID_TYPE
 #  define ENTT_ID_TYPE uint64_t
@@ -74,11 +79,17 @@ namespace gz
       class GroupQueuer;
     }
 
+    /// \brief Marker component for newly created entities.
     struct NewEntity { };
+
+    /// \brief Marker component for entities marked for removal.
     struct RemoveEntity { };
+
+    /// \brief Component containing all the children of an entity.
     struct Children {
       detail::FlatSet<Entity> data;
     };
+
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
     **/
@@ -222,9 +233,9 @@ namespace gz
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
-      /// \brief Get whether a component type has ever been created.
+      /// \brief Get whether a component type is present in the ECM.
       /// \param[in] _typeId ID of the component type to check.
-      /// \return True if the provided _typeId has been created.
+      /// \return True if the provided _typeId is present.
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component type.
@@ -257,13 +268,6 @@ namespace gz
       ///  removed.
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
-
-      /// \brief Internal function to mark components correctly after they are
-      /// removed.
-      /// \param[in] _entity The entity that the component was removed for.
-      /// \param[in] _typeId The type Id of the removed component.
-      private: void PostRemoveComponent(const Entity _entity,
-         const ComponentTypeId &_typeId);
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
@@ -525,7 +529,7 @@ namespace gz
       /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
       /// \deprecated See EntitiesVector
-      public: GZ_DEPRECATED(11) const EntityGraph &Entities() const;
+      public: GZ_DEPRECATED(11) EntityGraph Entities() const;
 
       /// \brief Get all entities.
       /// \return Vector of all entities.
@@ -771,10 +775,9 @@ namespace gz
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
-      /// \param[in] _data The data of the component moved into this function.
-      /// \return True if the component's data needs to be set externally; false
-      /// otherwise.
-      private: bool CreateComponentDynamic(
+      /// \param[in] _data Data used to construct the component.
+      /// \return Pointer to the created component, or nullptr on failure.
+      private: components::BaseComponent *CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
                    std::unique_ptr<components::BaseComponent> _data);

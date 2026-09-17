@@ -64,6 +64,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Performer.hh"
@@ -733,6 +734,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
       this->dataPtr->entityName = comp->Data();
+    }
+    else if (typeId == components::Namespace::typeId)
+    {
+      auto comp = _ecm.Component<components::Namespace>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LightType::typeId)
     {
