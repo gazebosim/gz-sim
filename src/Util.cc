@@ -35,6 +35,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
+#include <sdf/Element.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>

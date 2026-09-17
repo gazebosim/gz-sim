@@ -29,6 +29,7 @@
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Pose3.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/config.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
@@ -37,6 +38,13 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
+namespace sdf
+{
+  inline namespace SDF_VERSION_NAMESPACE
+  {
+    class Element;
+  }
+}
 
 namespace gz
 {
