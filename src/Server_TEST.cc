@@ -1393,7 +1393,7 @@ class ServerTest : public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-TEST_F(ServerTest, EcmContextManager)
+TEST_F(ServerTest, EcmScope)
 {
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(
@@ -1401,9 +1401,9 @@ TEST_F(ServerTest, EcmContextManager)
   serverConfig.SetWaitForAssets(true);
   sim::Server server(serverConfig);
 
-  // 1. Basic reading
+  // 1. Basic reading (using C++17 if statement with initializer)
+  if (auto guard = server.EcmScope(); guard)
   {
-    auto guard = server.Ecm();
     EXPECT_TRUE(guard.Valid());
     EXPECT_TRUE(static_cast<bool>(guard));
     EXPECT_EQ(25u, guard->EntityCount());
@@ -1417,10 +1417,14 @@ TEST_F(ServerTest, EcmContextManager)
         });
     EXPECT_EQ(5u, modelCount);
   }
+  else
+  {
+    FAIL() << "Failed to acquire EcmScope";
+  }
 
   // 2. Entity Creation
   {
-    auto guard = server.Ecm();
+    auto guard = server.EcmScope();
     Entity newEntity = guard->CreateEntity();
     EXPECT_NE(kNullEntity, newEntity);
     EXPECT_EQ(26u, guard->EntityCount());
@@ -1428,7 +1432,7 @@ TEST_F(ServerTest, EcmContextManager)
 
   // 3. Move semantics & Reset
   {
-    auto g1 = server.Ecm();
+    auto g1 = server.EcmScope();
     Server::EcmGuard g2;
     g2 = std::move(g1);
     EXPECT_FALSE(g1.Valid());
@@ -1439,19 +1443,19 @@ TEST_F(ServerTest, EcmContextManager)
     EXPECT_NO_THROW(g2.Reset());  // Repeated reset is safe
 
     // Reset released lock, we can get another
-    auto g3 = server.Ecm();
+    auto g3 = server.EcmScope();
     EXPECT_TRUE(g3.Valid());
   }
 
   // 4. Invalid States
   {
-    EXPECT_FALSE(server.Ecm(999).Valid());  // Out of bounds runner
+    EXPECT_FALSE(server.EcmScope(999).Valid());  // Out of bounds runner
     server.Run(false, 0, false);
     EXPECT_TRUE(test::WaitUntil(1s, [&]() { return server.Running(); }));
-    EXPECT_FALSE(server.Ecm().Valid());  // Cannot access while running
+    EXPECT_FALSE(server.EcmScope().Valid());  // Cannot access while running
     server.Stop();
     EXPECT_TRUE(test::WaitUntil(1s, [&]() { return !server.Running(); }));
-    EXPECT_TRUE(server.Ecm().Valid());  // Valid again after stop
+    EXPECT_TRUE(server.EcmScope().Valid());  // Valid again after stop
   }
 }
 
@@ -1497,7 +1501,7 @@ TEST_F(ServerTest, GuardMutualExclusionWithRun)
   std::thread ecmThread(
       [&]()
       {
-        auto guard = server.Ecm();
+        auto guard = server.EcmScope();
         EXPECT_TRUE(guard.Valid());
         lockAcquired = true;
         EXPECT_TRUE(test::WaitUntil(5s, [&]() { return !holdLock.load(); }));

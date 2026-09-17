@@ -36,8 +36,12 @@ void defineSimServer(pybind11::object module)
 {
   // EcmGuard
   pybind11::class_<gz::sim::Server::EcmGuard>(module, "EcmGuard",
-    "RAII guard for exclusive thread-safe access to the "
-      "EntityComponentManager.")
+    R"(RAII guard for exclusive thread-safe access to the
+EntityComponentManager.
+
+Example:
+    with server.ecm_scope() as ecm:
+        ecm.create_entity())")
     .def("__enter__", [](gz::sim::Server::EcmGuard &self)
         -> gz::sim::EntityComponentManager & {
       if (!self) {
@@ -88,11 +92,15 @@ void defineSimServer(pybind11::object module)
     "Resets all simulation runners under this server.")
   .def("reset", &gz::sim::Server::Reset,
     "Resets a specific simulation runner under this server.")
-  .def("ecm",
-    pybind11::overload_cast<const std::size_t>(&gz::sim::Server::Ecm),
+  .def("ecm_scope",
+    pybind11::overload_cast<const std::size_t>(&gz::sim::Server::EcmScope),
     pybind11::call_guard<pybind11::gil_scoped_release>(),
     pybind11::arg("runner_id") = 0,
-    "Acquire a thread-safe lock on the ECM as a context manager.")
+    R"(Acquire an exclusive scope on the ECM as a context manager.
+
+Example:
+    with server.ecm_scope() as ecm:
+        ecm.create_entity())")
   .def("iteration_count", &gz::sim::Server::IterationCount,
     pybind11::arg("world_index") = 0,
     "Get the number of iterations the server has executed.")

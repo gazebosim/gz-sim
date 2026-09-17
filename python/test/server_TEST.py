@@ -27,7 +27,7 @@ class ServerTest(unittest.TestCase):
         self.assertFalse(server.is_running())
         self.assertEqual(3, server.entity_count(0))
 
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
             self.assertEqual(3, ecm.entity_count())
             self.assertTrue(ecm.has_entity(1))
@@ -37,14 +37,14 @@ class ServerTest(unittest.TestCase):
         server = Server(config)
         self.assertEqual(3, server.entity_count(0))
 
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
             e = ecm.create_entity()
             self.assertTrue(ecm.has_entity(e))
 
         # Confirm entity count reflects the mutation
         self.assertEqual(4, server.entity_count(0))
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertEqual(4, ecm.entity_count())
             self.assertTrue(ecm.has_entity(e))
 
@@ -54,12 +54,12 @@ class ServerTest(unittest.TestCase):
 
         # Verify exception is propagated (not swallowed by __exit__)
         with self.assertRaises(RuntimeError):
-            with server.ecm() as ecm:
+            with server.ecm_scope() as ecm:
                 ecm.create_entity()
                 raise RuntimeError('Test exception inside context manager')
 
         # Verify lock was released and subsequent operations work
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
 
     def test_invalid_runner_id(self):
@@ -68,7 +68,7 @@ class ServerTest(unittest.TestCase):
 
         # Out of bounds runner ID raises ValueError when entered
         with self.assertRaises(ValueError):
-            with server.ecm(999):
+            with server.ecm_scope(999):
                 pass
 
     def test_server_statistics(self):

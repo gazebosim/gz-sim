@@ -135,6 +135,17 @@ namespace gz
       /// \class EcmGuard Server.hh gz/sim/Server.hh
       /// \brief RAII guard providing exclusive read-write access to the
       /// EntityComponentManager.
+      /// \details An instance of EcmGuard is obtained via Server::EcmScope().
+      /// The guard acquires the server's execution mutex upon construction and
+      /// releases it upon destruction or when Reset() is called.
+      ///
+      /// Example usage:
+      /// \code
+      /// if (auto guard = server.EcmScope(); guard)
+      /// {
+      ///   auto entity = guard->CreateEntity();
+      /// }
+      /// \endcode
       public: class GZ_SIM_VISIBLE EcmGuard
       {
         /// \brief Default constructor creating an invalid guard.
@@ -436,11 +447,24 @@ namespace gz
       /// \return The current status (EXITED, STOPPED, or RUNNING).
       public: Status GetStatus() const;
 
-      /// \brief Acquire an exclusive write lock on the ECM for modifications.
+      /// \brief Acquire an exclusive scope on the ECM for inspection or
+      /// modifications.
+      /// \details This returns an \ref EcmGuard RAII handle that acquires
+      /// the server's execution mutex, preventing simulation steps from
+      /// running while the ECM is being accessed.
+      ///
+      /// Example usage:
+      /// \code
+      /// if (auto guard = server.EcmScope(); guard)
+      /// {
+      ///   auto entity = guard->CreateEntity();
+      /// }
+      /// \endcode
       /// \param[in] _runnerId ID of the simulation runner (world index).
-      /// \return EcmGuard RAII handle. Evaluates to false if server is running,
-      /// out of bounds runner ID, or server in error state.
-      public: EcmGuard Ecm(const std::size_t _runnerId = 0);
+      /// \return EcmGuard RAII handle. Evaluates to false if the server is
+      /// running, the runner ID is out of bounds, or the server is in an error
+      /// state.
+      public: EcmGuard EcmScope(const std::size_t _runnerId = 0);
 
       /// \brief Get current simulation update info for a world.
       /// \param[in] _worldIndex Index of the world to query.
