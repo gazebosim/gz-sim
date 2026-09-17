@@ -1239,7 +1239,7 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     double farClip = camSdf->FarClip();
     double angle = camSdf->HorizontalFov().Radian();
     double aspect = static_cast<double>(camSdf->ImageWidth()) /
-                    camSdf->ImageHeight();
+                    static_cast<double>(camSdf->ImageHeight());
     double vfov = 2.0 * atan(tan(angle / 2.0) / aspect);
     double height = tan(vfov / 2.0) * farClip * 2.0;
     double tempRange =
