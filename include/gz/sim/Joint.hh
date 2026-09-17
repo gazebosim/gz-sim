@@ -260,6 +260,12 @@ namespace gz
       public: std::optional<std::vector<double>> Position(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get the velocity limits of the joint.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Velocity limits (min, max) or nullopt if not available.
+      public: std::optional<std::vector<gz::math::Vector2d>> VelocityLimits(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Get the transmitted wrench of the joint
       /// \param[in] _ecm Entity-component manager.
       /// \return Transmitted wrench of the joint or nullopt if transmitted
