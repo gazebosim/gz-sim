@@ -35,7 +35,10 @@ void defineSimServerConfig(pybind11::object module)
   .def(pybind11::init<>())
   .def(
     "set_sdf_file", &gz::sim::ServerConfig::SetSdfFile,
-    "Set an SDF file to be used with the server.");
+    "Set an SDF file to be used with the server.")
+  .def(
+    "set_sdf_string", &gz::sim::ServerConfig::SetSdfString,
+    "Set an SDF string to be used with the server.");
 }
 }  // namespace python
 }  // namespace sim

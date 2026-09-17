@@ -95,5 +95,20 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(10, info_after.iterations)
         self.assertGreater(info_after.sim_time, datetime.timedelta(0))
 
+
+class ServerConfigTest(unittest.TestCase):
+
+    def test_set_sdf_string(self):
+        config = ServerConfig()
+        sdf_string = '''\
+            <sdf version="1.6">
+                <world name="empty_world"/>
+            </sdf>
+            '''
+        config.set_sdf_string(sdf_string)
+        server = Server(config)
+        server.run(True, 1, False)
+        self.assertTrue(server.has_entity("empty_world", 0))
+
 if __name__ == '__main__':
     unittest.main()
