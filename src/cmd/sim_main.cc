@@ -105,6 +105,10 @@ struct SimOptions
   /// \brief Render engine Server API Backend
   std::string renderEngineServerApiBackend{""};
 
+  /// \brief Render device (e.g. /dev/dri/card1) to use for headless rendering.
+  /// Empty means the render engine picks its default device.
+  std::string renderDevice{""};
+
   /// \brief Enable headless rendering
   int headlessRendering{0};
 
@@ -384,6 +388,12 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
   _app.add_flag("--headless-rendering", _opt->headlessRendering,
                 "Run rendering in headless mode.");
 
+  _app.add_option("--render-device", _opt->renderDevice,
+                "Render device to use for headless rendering, e.g.\n"
+                "/dev/dri/card1. Only used together with\n"
+                "--headless-rendering. If empty, the render engine\n"
+                "selects its default device.");
+
   _app.add_flag("-r", _opt->runOnStart,
                 "Run simulation on start.");
 
@@ -525,7 +535,8 @@ int main(int argc, char** argv)
               opt->renderEngineGui.c_str(),
               opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
               opt->recordTopics, opt->waitGui, opt->headlessRendering,
-              opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+              opt->renderDevice.c_str(), opt->recordPeriod, opt->seed,
+              opt->waitForAssets) != 0)
     {
       return -1;
     }
@@ -580,7 +591,8 @@ int main(int argc, char** argv)
                 opt->renderEngineGui.c_str(),
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+                opt->renderDevice.c_str(), opt->recordPeriod, opt->seed,
+                opt->waitForAssets) != 0)
       {
         return -1;
       }

@@ -35,6 +35,7 @@ GZ_SIM_COMPLETION_LIST="
   --log-compress
   --playback
   --headless-rendering
+  --render-device
   -r
   -s
   -v --verbose
