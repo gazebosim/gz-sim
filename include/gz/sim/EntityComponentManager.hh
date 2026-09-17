@@ -43,15 +43,6 @@ GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
 #include <gz/sim/detail/vendor/entt/entity/registry.hpp>
 GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
-#ifndef ENTT_ID_TYPE
-#  define ENTT_ID_TYPE uint64_t
-#endif
-// Entt generates a lot of switch with no default statement warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch-default"
-#include <gz/sim/entt/entity/registry.hpp>
-#pragma GCC diagnostic pop
-
 #include "gz/sim/components/Component.hh"
 
 // Custom implementation
@@ -763,15 +754,7 @@ namespace gz
       /// \return True if the Entity has been marked to be removed.
       private: bool IsMarkedForRemoval(const Entity _entity) const;
 
-      /// \brief Check whether a component of a given type can be created on an
-      /// entity (i.e. whether the entity exists and the type is registered).
-      /// \param[in] _entity The entity id.
-      /// \param[in] _typeId Id of the component type.
-      /// \return True if the component can be created; false otherwise.
-      private: bool CanCreateComponent(const Entity _entity,
-                   const ComponentTypeId _typeId) const;
-
-      /// \brief Create a component given its data and type ID.
+      /// \brief Implementation of CreateComponent.
       /// \param[in] _entity The entity that will be associated with
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
@@ -780,7 +763,7 @@ namespace gz
       private: components::BaseComponent *CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   std::unique_ptr<components::BaseComponent> _data);
+                   const components::BaseComponent *_data);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.

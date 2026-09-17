@@ -40,15 +40,6 @@ GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
 #include <gz/sim/detail/vendor/entt/entity/registry.hpp>
 GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
-#ifndef ENTT_ID_TYPE
-#  define ENTT_ID_TYPE uint64_t
-#endif
-// Entt generates a lot of switch with no default statement warnings
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch-default"
-#include <gz/sim/entt/entity/registry.hpp>
-#pragma GCC diagnostic pop
-
 namespace gz
 {
 namespace sim
@@ -245,7 +236,7 @@ namespace components
     public: void operator=(const Factory &) = delete;
     public: void operator=(Factory &&) = delete;
 
-    private: using RegisterFunc = void (*)(entt::basic_registry<Entity> &);
+    public: using StorageType = components::StorageType;
 
     /// \brief Get an instance of the singleton
     public: GZ_SIM_VISIBLE static Factory *Instance();
@@ -285,14 +276,6 @@ namespace components
             << std::endl;
           return;
         }
-      }
-      else
-      {
-        // Adds to the list a function that will initialize the entt storage
-        this->registerList.push_back(
-          [](entt::basic_registry<Entity>& _registry) {
-            _registry.storage<ComponentTypeT>();
-        });
       }
 
       // This happens at static initialization time, so we can't use common
@@ -470,9 +453,6 @@ namespace components
     /// they try to register different types with the same typeName.
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
-
-    /// \brief A list of functions used to register the types to Entt registry.
-    private: std::vector<RegisterFunc> registerList;
   };
 }
 }
