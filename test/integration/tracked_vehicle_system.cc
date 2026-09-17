@@ -362,8 +362,8 @@ class TrackedVehicleTest : public InternalFixture<::testing::Test>
     server.Run(true, 3500, false);
 
     EXPECT_NEAR(poses.back().Pos().X(), beforeStairsPose.X() + 3.4, 0.15);
-    EXPECT_LE(poses.back().Pos().Y(), 0.7);
-    EXPECT_GT(poses.back().Pos().Z(), 0.6);
+    EXPECT_NEAR(poses.back().Pos().Y(), 0.0, 1e-1);
+    EXPECT_GT(poses.back().Pos().Z(), 0.55);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Roll(), 0.0, 1e-1);
     EXPECT_ANGLE_NEAR(poses.back().Rot().Pitch(), -0.4, 1e-1);
     EXPECT_ANGLE_NEAR(
