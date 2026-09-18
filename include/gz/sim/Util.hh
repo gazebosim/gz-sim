@@ -29,6 +29,7 @@
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Pose3.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/config.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
@@ -37,6 +38,13 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
+namespace sdf
+{
+  inline namespace SDF_VERSION_NAMESPACE
+  {
+    class Element;
+  }
+}
 
 namespace gz
 {
@@ -77,6 +85,23 @@ namespace gz
     /// \return Scoped namespace, or empty string if no namespace is found.
     std::string GZ_SIM_VISIBLE scopedNamespace(
         const EntityComponentManager &_ecm, const Entity &_entity);
+
+    /// \brief Helper function to resolve a topic name from the SDF element.
+    /// If the SDF element exists and contains a non-empty topic name, that
+    /// topic is preferred. Relative topic names are prefixed with the provided
+    /// namespace, while absolute topic names are left unchanged. If no custom
+    /// topic is available, the default topic is used.
+    /// \param[in] _sdf SDF to read the topic name from.
+    /// \param[in] _sdfElementName Name of the SDF child element containing the
+    /// topic name.
+    /// \param[in] _namespace Namespace to prepend to relative topic name.
+    /// \param[in] _defaultTopic Topic to use when no custom topic is specified.
+    /// \return A valid Gazebo Transport topic name, or an empty string if no
+    /// valid topic could be generated.
+    std::string GZ_SIM_VISIBLE resolvedTopicName(
+        const std::shared_ptr<const sdf::Element> &_sdf,
+        const std::string &_sdfElementName, const std::string &_namespace,
+        const std::string &_defaultTopic);
 
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this

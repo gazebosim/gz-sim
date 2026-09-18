@@ -35,6 +35,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
+#include <sdf/Element.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
@@ -280,6 +281,38 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   }
 
   return result;
+}
+
+std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
+    const std::string &_sdfElementName, const std::string &_namespace,
+    const std::string &_defaultTopic)
+{
+  std::vector<std::string> topics;
+
+  if (_sdf->HasElement(_sdfElementName))
+  {
+    std::string customTopic = _sdf->Get<std::string>(_sdfElementName);
+
+    if (!customTopic.empty())
+    {
+      // Only prepend namespace to relative topic names.
+      // Absolute topic names (starting with '/') are left unchanged.
+      if (customTopic.front() != '/')
+      {
+        std::string prefix = _namespace;
+        if (_namespace != "/" && !_namespace.empty())
+        {
+          prefix = prefix + "/";
+        }
+
+        customTopic = prefix + customTopic;
+      }
+      topics.push_back(customTopic);
+    }
+  }
+
+  topics.push_back(_defaultTopic);
+  return validTopic(topics);
 }
 
 //////////////////////////////////////////////////
