@@ -224,6 +224,7 @@ namespace components
   /// It is a template so it has lower priority than the non-template
   /// overloads defined by the macros.
   template <typename T>
+  // NOLINTNEXTLINE(readability/casting)
   constexpr const char *gzSimFactoryComponentTypeName(T*)
   {
     return nullptr;
