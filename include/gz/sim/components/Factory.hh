@@ -528,8 +528,8 @@ static GzSimComponents##_classname\
 /// headers cheap to include: no registration static, no Factory/EnTT
 /// template instantiation in consumer translation units.
 ///
-/// Registration of gz-sim's own components happens once per shared library
-/// in `src/AllComponents.cc`, which defines
+/// Registration of gz-sim's own components happens once per library
+/// in `src/ComponentFactory.cc`, which defines
 /// `GZ_SIM_COMPONENT_DEFINITION_TU` before including every component
 /// header, turning this macro into a full registration there.
 ///
