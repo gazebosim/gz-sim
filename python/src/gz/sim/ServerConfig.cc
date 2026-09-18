@@ -35,10 +35,22 @@ void defineSimServerConfig(pybind11::object module)
   .def(pybind11::init<>())
   .def(
     "set_sdf_file", &gz::sim::ServerConfig::SetSdfFile,
-    "Set an SDF file to be used with the server.")
+    pybind11::arg("file"),
+    "Set an SDF file to be used with the server. This overrides any value "
+    "set by set_sdf_string. Returns False if the path is empty.")
+  .def(
+    "sdf_file", &gz::sim::ServerConfig::SdfFile,
+    "Get the SDF file that has been set. An empty string will be returned "
+    "if an SDF file has not been set.")
   .def(
     "set_sdf_string", &gz::sim::ServerConfig::SetSdfString,
-    "Set an SDF string to be used with the server.");
+    pybind11::arg("sdf_string"),
+    "Set an SDF string to be used with the server. This overrides any value "
+    "set by set_sdf_file.")
+  .def(
+    "sdf_string", &gz::sim::ServerConfig::SdfString,
+    "Get the SDF String that has been set. An empty string will be returned "
+    "if an SDF string has not been set.");
 }
 }  // namespace python
 }  // namespace sim
