@@ -144,15 +144,17 @@ if (MSVC OR NOT GZ_TOOLS_PROGRAM)
 endif()
 
 # Add systems that need a valid display here.
+# Always compile them so missing-display platforms still catch build errors
+# (#3496). When no display is available, mark the ctest entries DISABLED.
 # \todo(anyone) Find a way to run these tests with a virtual display such Xvfb
-# or Xdummy instead of skipping them
-if(VALID_DISPLAY AND VALID_DRI_DISPLAY)
-  list(APPEND tests ${tests_needing_display})
-else()
+# or Xdummy instead of disabling them at runtime
+list(APPEND tests ${tests_needing_display})
+if(NOT (VALID_DISPLAY AND VALID_DRI_DISPLAY))
+  set(GZ_SIM_DISABLE_DISPLAY_INTEGRATION_TESTS TRUE)
   message(STATUS
-    "Skipping these INTEGRATION tests because a valid display was not found:")
+    "Building but disabling these INTEGRATION tests (no valid display):")
   foreach(test ${tests_needing_display})
-    message(STATUS " ${test}")
+    message(STATUS "  ${test}")
   endforeach(test)
 endif()
 
@@ -183,6 +185,16 @@ gz_build_tests(TYPE INTEGRATION
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
 )
+
+if(GZ_SIM_DISABLE_DISPLAY_INTEGRATION_TESTS)
+  foreach(test ${tests_needing_display})
+    get_filename_component(_gz_sim_display_test_name "${test}" NAME_WE)
+    set(_gz_sim_display_ctest "INTEGRATION_${_gz_sim_display_test_name}")
+    if(TEST "${_gz_sim_display_ctest}")
+      set_tests_properties("${_gz_sim_display_ctest}" PROPERTIES DISABLED TRUE)
+    endif()
+  endforeach()
+endif()
 
 
 # For INTEGRATION_physics_system, we need to check what version of DART is
