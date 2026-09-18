@@ -35,16 +35,16 @@ namespace components
 {
   /// \brief Store the gravity acceleration.
   using Gravity = Component<math::Vector3d, class GravityTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Gravity", Gravity)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Gravity", Gravity)
 
   /// \brief Store the gravity enabled flag.
   using GravityEnabled = Component<bool, class GravityEnabledTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.GravityEnabled", GravityEnabled)
 
   /// \brief Store the gravity enabled CMD.
   using GravityEnabledCmd = Component<bool, class GravityEnabledCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
     "gz_sim_components.GravityEnabledCmd", GravityEnabledCmd)
 }
 }

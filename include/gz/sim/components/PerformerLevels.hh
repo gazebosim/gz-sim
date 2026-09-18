@@ -75,7 +75,7 @@ namespace components
   /// \brief Holds all the levels which a performer is in.
   using PerformerLevels = Component<std::set<Entity>, class PerformerLevelsTag,
                                     serializers::PerformerLevelsSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PerformerLevels",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.PerformerLevels",
       PerformerLevels)
 }
 }

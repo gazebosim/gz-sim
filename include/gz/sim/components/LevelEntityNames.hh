@@ -81,7 +81,7 @@ namespace components
       Component<std::set<std::string>, class LevelEntityNamesTag,
                 serializers::LevelEntityNamesSerializer>;
 
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LevelEntityNames",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.LevelEntityNames",
       LevelEntityNames)
 }
 }

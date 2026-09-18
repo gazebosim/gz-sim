@@ -35,7 +35,7 @@ namespace components
   /// sdf::Lidar, information.
   using Lidar = Component<sdf::Sensor, class LidarTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Lidar", Lidar)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Lidar", Lidar)
 }
 }
 }
