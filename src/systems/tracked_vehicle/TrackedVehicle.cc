@@ -275,6 +275,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
       this->dataPtr->tracksSeparation).first;
   this->dataPtr->steeringEfficiency = _sdf->Get<double>("steering_efficiency",
       this->dataPtr->steeringEfficiency).first;
+  this->dataPtr->trackHeight = _sdf->Get<double>("track_height",
+      this->dataPtr->trackHeight).first;
 
   // Instantiate the speed limiters.
   this->dataPtr->limiterLin = std::make_unique<math::SpeedLimiter>();
