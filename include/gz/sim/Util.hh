@@ -50,6 +50,20 @@ namespace gz
 {
   namespace sim
   {
+    /// \brief Options for resolving a topic name
+    struct TopicNameOptions
+    {
+      /// \brief Name of the SDF child element containing the
+      /// topic name
+      std::string sdfElementName;
+
+      /// \brief Topic namespace to prepend to relative topic name
+      std::string topicNamespace;
+
+      /// \brief Topic to use when no custom topic is specified
+      std::string defaultTopic;
+    };
+
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     //
@@ -92,16 +106,11 @@ namespace gz
     /// namespace, while absolute topic names are left unchanged. If no custom
     /// topic is available, the default topic is used.
     /// \param[in] _sdf SDF to read the topic name from.
-    /// \param[in] _sdfElementName Name of the SDF child element containing the
-    /// topic name.
-    /// \param[in] _namespace Namespace to prepend to relative topic name.
-    /// \param[in] _defaultTopic Topic to use when no custom topic is specified.
-    /// \return A valid Gazebo Transport topic name, or an empty string if no
-    /// valid topic could be generated.
+    /// \param[in] _options Options specifying the SDF element name, topic
+    /// namespace, and default topic.
     std::string GZ_SIM_VISIBLE resolvedTopicName(
         const std::shared_ptr<const sdf::Element> &_sdf,
-        const std::string &_sdfElementName, const std::string &_namespace,
-        const std::string &_defaultTopic);
+        const TopicNameOptions &_options);
 
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this

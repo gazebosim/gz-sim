@@ -284,14 +284,13 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
 }
 
 std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
-    const std::string &_sdfElementName, const std::string &_namespace,
-    const std::string &_defaultTopic)
+    const TopicNameOptions &_options)
 {
   std::vector<std::string> topics;
 
-  if (_sdf->HasElement(_sdfElementName))
+  if (_sdf->HasElement(_options.sdfElementName))
   {
-    std::string customTopic = _sdf->Get<std::string>(_sdfElementName);
+    std::string customTopic = _sdf->Get<std::string>(_options.sdfElementName);
 
     if (!customTopic.empty())
     {
@@ -299,8 +298,8 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
       // Absolute topic names (starting with '/') are left unchanged.
       if (customTopic.front() != '/')
       {
-        std::string prefix = _namespace;
-        if (_namespace != "/" && !_namespace.empty())
+        std::string prefix = _options.topicNamespace;
+        if (_options.topicNamespace != "/" && !_options.topicNamespace.empty())
         {
           prefix = prefix + "/";
         }
@@ -311,7 +310,7 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
     }
   }
 
-  topics.push_back(_defaultTopic);
+  topics.push_back(_options.defaultTopic);
   return validTopic(topics);
 }
 

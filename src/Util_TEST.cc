@@ -325,21 +325,29 @@ TEST_F(UtilTest, ResolvedTopicName)
   sdf::readString(sdfString, sdf);
 
   EXPECT_EQ("test_relative_topic",
-    resolvedTopicName(sdf, "relative_topic", "", "/default_relative_topic"));
+    resolvedTopicName(sdf,
+      {"relative_topic", "", "/default_relative_topic"}));
   EXPECT_EQ("/ns/test_relative_topic",
-    resolvedTopicName(sdf, "relative_topic", "/ns", "/default_relative_topic"));
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns", "/default_relative_topic"}));
   EXPECT_EQ("/test_absolute_topic",
-    resolvedTopicName(sdf, "absolute_topic", "", "/default_absolute_topic"));
+    resolvedTopicName(sdf,
+      {"absolute_topic", "", "/default_absolute_topic"}));
   EXPECT_EQ("/test_absolute_topic",
-    resolvedTopicName(sdf, "absolute_topic", "/ns", "/default_absolute_topic"));
+    resolvedTopicName(sdf,
+      {"absolute_topic", "/ns", "/default_absolute_topic"}));
   EXPECT_EQ("/default_empty_topic",
-    resolvedTopicName(sdf, "empty_topic", "", "/default_empty_topic"));
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "/default_empty_topic"}));
   EXPECT_EQ("/default_empty_topic",
-    resolvedTopicName(sdf, "empty_topic", "/ns", "/default_empty_topic"));
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "/default_empty_topic"}));
   EXPECT_EQ("/default_missing_topic",
-    resolvedTopicName(sdf, "missing_topic", "", "/default_missing_topic"));
+    resolvedTopicName(sdf,
+      {"missing_topic", "", "/default_missing_topic"}));
   EXPECT_EQ("/default_missing_topic",
-    resolvedTopicName(sdf, "missing_topic", "/ns", "/default_missing_topic"));
+    resolvedTopicName(sdf,
+      {"missing_topic", "/ns", "/default_missing_topic"}));
 }
 
 /////////////////////////////////////////////////
