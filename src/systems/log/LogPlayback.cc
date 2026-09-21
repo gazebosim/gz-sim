@@ -173,7 +173,8 @@ void LogPlayback::Configure(const Entity &,
   {
     std::string extension = common::lowercase(this->dataPtr->logPath.substr(
         this->dataPtr->logPath.find_last_of(".") + 1));
-    if (extension == "tlog")
+    if (extension == "tlog" && common::basename(this->dataPtr->logPath) ==
+                                   std::string("state.tlog"))
     {
       // The user likely passed the path to the state.tlog file inside a
       // recording, rather than the recording directory itself.
