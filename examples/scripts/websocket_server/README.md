@@ -19,8 +19,8 @@ gz sim -v 4 -s websocket_server.sdf
     ```
       * The `index.html` web page is a simple demo that integrates a snapshot
         version of gzweb for communicating with the local websocket server.
-        It illustrates how gzweb connects to the websocket server
-        the events that it listens to in order to create the scene. It is
+        It illustrates how gzweb connects to the websocket server and
+        which events it listens to in order to create the scene. It is
         hardcoded to connect to the `websocket_server` world and has limited
         support for materials. For a more up-to-date gzweb visualization,
         see Option 2.
@@ -31,7 +31,7 @@ gz sim -v 4 -s websocket_server.sdf
 
 # Authorization
 
-The `websocket_server` plugin accepts to authentication keys:
+The `websocket_server` plugin accepts two authentication keys:
 
 * `<authorization_key>` : If this is set, then a connection must provide the matching key using an "auth" call on the websocket.
 If the `<admin_authorization_key>` is set, then the connection can provide that key.

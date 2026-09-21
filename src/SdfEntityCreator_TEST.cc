@@ -43,6 +43,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Physics.hh"
@@ -161,6 +162,8 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
 
+      const auto ns = this->ecm.Component<components::Namespace>(_entity);
+
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
@@ -170,30 +173,51 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
       {
         EXPECT_EQ(math::Pose3d(1, 2, 3, 0, 0, 1),
             _pose->Data());
+        EXPECT_EQ(nullptr, ns);
         boxModelEntity = _entity;
       }
       else if (_name->Data() == "cylinder")
       {
         EXPECT_EQ(math::Pose3d(-1, -2, -3, 0, 0, 1),
             _pose->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("cylinder", ns->Data());
+        }
         cylModelEntity = _entity;
       }
       else if (_name->Data() == "sphere")
       {
         EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 1),
             _pose->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("sphere_ns", ns->Data());
+        }
         sphModelEntity = _entity;
       }
       else if (_name->Data() == "capsule")
       {
         EXPECT_EQ(math::Pose3d(-4, -5, -6, 0, 0, 1),
             _pose->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("ns", ns->Data());
+        }
         capModelEntity = _entity;
       }
       else if (_name->Data() == "ellipsoid")
       {
         EXPECT_EQ(math::Pose3d(4, 5, 6, 0, 0, 1),
             _pose->Data());
+        EXPECT_NE(nullptr, ns);
+        if (nullptr != ns)
+        {
+          EXPECT_EQ("ellipsoid/ns", ns->Data());
+        }
         ellipModelEntity = _entity;
       }
       return true;
@@ -714,6 +738,8 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_NE(nullptr, _parent);
       EXPECT_NE(nullptr, _name);
 
+      const auto ns = this->ecm.Component<components::Namespace>(_entity);
+
       modelCount++;
 
       EXPECT_EQ(worldEntity, _parent->Data());
@@ -722,6 +748,11 @@ TEST_F(SdfEntityCreatorTest, CreateLights)
       EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0),
           _pose->Data());
       EXPECT_EQ("sphere", _name->Data());
+      EXPECT_NE(nullptr, ns);
+      if (nullptr != ns)
+      {
+        EXPECT_EQ("sphere", ns->Data());
+      }
       sphModelEntity = _entity;
 
       return true;

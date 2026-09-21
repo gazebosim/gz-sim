@@ -52,11 +52,11 @@ namespace systems
   /// - `<joint_index>` Axis of the joint to control. Optional parameter.
   /// The default value is 0.
   ///
-  /// - `<use_actuator_msg>` True to enable the use of actutor message
+  /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for position command. Relies on `<actuator_number>` for the
   /// index of the position actuator and defaults to topic "/actuators".
   ///
-  /// - `<actuator_number>` used with `<use_actuator_commands>` to set
+  /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the position actuator.
   ///
   /// - `<p_gain>` The proportional gain of the PID. Optional parameter.

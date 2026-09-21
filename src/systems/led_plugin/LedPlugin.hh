@@ -47,7 +47,7 @@ namespace systems
   ///
   /// ## System Parameters:
   ///
-  /// \code{.xml}
+  /// ```xml
   /// <plugin
   ///   filename="gz-sim-led-plugin-system"
   ///   name="gz::sim::systems::LedPlugin">
@@ -96,12 +96,10 @@ namespace systems
   ///     </step>
   ///   </mode>
   ///   <mode name="mode_name3">
-  ///   .
-  ///   .
-  ///   .
+  ///     <!-- Additional mode configuration omitted. -->
   ///   </mode>
   /// </plugin>
-  /// \endcode
+  /// ```
 
   class LedPlugin:
     public System,

@@ -79,7 +79,8 @@ Q_INVOKABLE void Lidar::OnLidarNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
         this->inspector->GetEntity());
@@ -117,7 +118,11 @@ Q_INVOKABLE void Lidar::OnLidarChange(
     double _verticalScanMaxAngle)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _rangeMin, _rangeMax, _rangeResolution, _horizontalScanSamples,
+       _horizontalScanResolution, _horizontalScanMinAngle,
+       _horizontalScanMaxAngle, _verticalScanSamples, _verticalScanResolution,
+       _verticalScanMinAngle,
+       _verticalScanMaxAngle](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::GpuLidar>(
         this->inspector->GetEntity());

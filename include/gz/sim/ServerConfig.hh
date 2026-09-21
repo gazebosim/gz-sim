@@ -161,7 +161,7 @@ namespace gz
       ///
       /// \param[in] _file Full path to an SDF file.
       /// \return True if the file was set, false if the file was not set.
-      /// The file will not be set if the provide _file string is empty.
+      /// The file will not be set if the provided _file string is empty.
       public: bool SetSdfFile(const std::string &_file);
 
       /// \brief Get the SDF file that has been set. An empty string will be
@@ -173,7 +173,7 @@ namespace gz
       ///
       /// Setting the SDF string will override any value set by `SetSdfFile`.
       ///
-      /// \param[in] _sdfString Full path to an SDF file.
+      /// \param[in] _sdfString Full contents of the SDF string.
       /// \return (reserved for future use)
       public: bool SetSdfString(const std::string &_sdfString);
 

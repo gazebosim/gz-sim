@@ -339,8 +339,14 @@ math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
 {
   // Compute the first order finite difference between current and previous
   // rotation as quaternion.
+  math::Quaterniond currentRot = _currentPose.Rot();
+  if (currentRot.Dot(_lastPose.Rot()) < 0)
+  {
+    currentRot = -currentRot;
+  }
+
   const math::Quaterniond rotationDiff =
-    _currentPose.Rot() * _lastPose.Rot().Inverse();
+    currentRot * _lastPose.Rot().Inverse();
 
   math::Vector3d rotationAxis;
   double rotationAngle;
