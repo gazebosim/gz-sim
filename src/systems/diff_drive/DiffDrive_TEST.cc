@@ -147,10 +147,10 @@ TEST(DiffDriveTest, TopicNamesWithoutNs)
     </sdf>)";
 
   DiffDrive::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdVelTopic = "/test_cmd_vel";
+  expectedTopicNames.cmdVelTopic = "test_cmd_vel";
   expectedTopicNames.enableTopic = "/model/diff_drive/enable";
-  expectedTopicNames.odomTopic = "/test_odom";
-  expectedTopicNames.tfTopic = "/test_tf";
+  expectedTopicNames.odomTopic = "test_odom";
+  expectedTopicNames.tfTopic = "test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
 
   // Verify that the original default topic names are preserved when no
