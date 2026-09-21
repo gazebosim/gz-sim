@@ -44,10 +44,10 @@ void TestTopicNames(const std::string &_sdfString,
 
   LoadModelContext(_sdfString, ecm, eventMgr, modelEntity, pluginSdf);
 
-  auto plugin = new DiffDrive();
-  plugin->Configure(modelEntity, pluginSdf.Element(), ecm, eventMgr);
+  DiffDrive plugin;
+  plugin.Configure(modelEntity, pluginSdf.Element(), ecm, eventMgr);
 
-  const auto topics = plugin->ResolvedTopicNames();
+  const auto topics = plugin.ResolvedTopicNames();
 
   EXPECT_EQ(topics.cmdVelTopic, _expectedTopicNames.cmdVelTopic);
   EXPECT_EQ(topics.enableTopic, _expectedTopicNames.enableTopic);

@@ -156,7 +156,7 @@ namespace systems
     public: DiffDrive();
 
     /// \brief Destructor
-    public: ~DiffDrive() override = default;
+    public: ~DiffDrive();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,

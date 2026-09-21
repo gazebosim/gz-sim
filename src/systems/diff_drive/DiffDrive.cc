@@ -170,6 +170,9 @@ DiffDrive::DiffDrive()
 }
 
 //////////////////////////////////////////////////
+DiffDrive::~DiffDrive() = default;
+
+//////////////////////////////////////////////////
 void DiffDrive::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
