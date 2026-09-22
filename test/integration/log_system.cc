@@ -847,6 +847,47 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
 
   EXPECT_EQ(numIterations, nTotal);
 
+  // Pointing the playback path at the full path of "state.tlog" should be
+  // recovered to the parent directory (its the common mistake of passing the
+  // recording file rather than the recording directory).
+  {
+    ServerConfig config;
+    config.SetLogPlaybackPath(logPlaybackFile);
+
+    Server playServer(config);
+
+    gz::transport::Node node;
+    std::atomic<std::size_t> numMsgs = 0;
+    std::function<void(const msgs::SerializedStepMap &)> mockClient =
+      [&](const msgs::SerializedStepMap &/*_res*/) { numMsgs++; };
+    EXPECT_TRUE(node.Subscribe("/world/default/state", mockClient));
+
+    playServer.Run(true, 100, false);
+    EXPECT_NE(numMsgs, 0);
+  }
+
+  // An arbitrary ".tlog" filename must not be recovered: if a directory holds
+  // both "state.tlog" and "other.tlog", pointing playback at the latter should
+  // fail rather than silently play the former.
+  {
+    auto otherLogFile = common::joinPaths(logPlaybackDir, "myLog.tlog");
+    EXPECT_TRUE(common::copyFile(logPlaybackFile, otherLogFile));
+
+    ServerConfig config;
+    config.SetLogPlaybackPath(otherLogFile);
+
+    Server playServer(config);
+
+    gz::transport::Node node;
+    std::atomic<std::size_t> numMsgs = 0;
+    std::function<void(const msgs::SerializedStepMap &)> mockClient =
+      [&](const msgs::SerializedStepMap &/*_res*/) { numMsgs++; };
+    EXPECT_TRUE(node.Subscribe("/world/default/state", mockClient));
+
+    playServer.Run(true, 100, false);
+    EXPECT_EQ(numMsgs, 0);
+  }
+
   this->RemoveLogsDir();
 }
 
