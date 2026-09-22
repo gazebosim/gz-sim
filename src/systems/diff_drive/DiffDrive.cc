@@ -339,18 +339,17 @@ void DiffDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
   // Generate namespace
-  std::string ns;
+  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
   std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
-  ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
-  if (!ns.empty())
-  {
-    defaultPrefix = ns;
-  }
 
   // Subscribe to commands
   auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
-  resolvedTopicNames.cmdVelTopic =
-    resolvedTopicName(_sdf, "topic", ns, defaultPrefix + "/cmd_vel");
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.cmdVelTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
   if (resolvedTopicNames.cmdVelTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
@@ -367,8 +366,12 @@ void DiffDrive::Configure(const Entity &_entity,
   }
 
   // Subscribe to enable
-  resolvedTopicNames.enableTopic =
-    resolvedTopicName(_sdf, "enable_topic", ns, defaultPrefix + "/enable");
+  TopicNameOptions enableTopicOptions;
+  enableTopicOptions.sdfElementName = "enable_topic";
+  enableTopicOptions.topicNamespace = ns;
+  enableTopicOptions.defaultTopicPrefix = defaultPrefix;
+  enableTopicOptions.defaultTopicSuffix = "enable";
+  resolvedTopicNames.enableTopic = resolvedTopicName(_sdf, enableTopicOptions);
   if (resolvedTopicNames.enableTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
@@ -385,8 +388,12 @@ void DiffDrive::Configure(const Entity &_entity,
   this->dataPtr->enabled = true;
 
   // Publish odometry
-  resolvedTopicNames.odomTopic =
-    resolvedTopicName(_sdf, "odom_topic", ns, defaultPrefix + "/odometry");
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "odometry";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
   if (resolvedTopicNames.odomTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
@@ -403,8 +410,12 @@ void DiffDrive::Configure(const Entity &_entity,
   }
 
   // Publish tf
-  resolvedTopicNames.tfTopic =
-    resolvedTopicName(_sdf, "tf_topic", ns, defaultPrefix + "/tf");
+  TopicNameOptions tfTopicOptions;
+  tfTopicOptions.sdfElementName = "tf_topic";
+  tfTopicOptions.topicNamespace = ns;
+  tfTopicOptions.defaultTopicPrefix = defaultPrefix;
+  tfTopicOptions.defaultTopicSuffix = "tf";
+  resolvedTopicNames.tfTopic = resolvedTopicName(_sdf, tfTopicOptions);
   if (resolvedTopicNames.tfTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
