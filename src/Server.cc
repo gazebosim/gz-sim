@@ -521,7 +521,7 @@ bool Server::Reset(const std::size_t _runnerId)
 }
 
 //////////////////////////////////////////////////
-Server::EcmGuard Server::Ecm(const std::size_t _runnerId)
+Server::EcmGuard Server::EcmScope(const std::size_t _runnerId)
 {
   EcmGuard guard;
   std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);

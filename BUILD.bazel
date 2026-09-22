@@ -162,6 +162,7 @@ cc_library(
         "@gz-transport//parameters",
         "@gz-utils//:ImplPtr",
         "@gz-utils//:NeverDestroyed",
+        "@gz-utils//:SuppressWarning",
         "@sdformat",
         "@tinyxml2",
     ],

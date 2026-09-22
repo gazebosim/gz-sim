@@ -15,6 +15,7 @@
 
 import datetime
 import unittest
+import os
 
 from gz.sim import EntityComponentManager, Server, ServerConfig, UpdateInfo
 
@@ -27,7 +28,7 @@ class ServerTest(unittest.TestCase):
         self.assertFalse(server.is_running())
         self.assertEqual(3, server.entity_count(0))
 
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
             self.assertEqual(3, ecm.entity_count())
             self.assertTrue(ecm.has_entity(1))
@@ -37,14 +38,14 @@ class ServerTest(unittest.TestCase):
         server = Server(config)
         self.assertEqual(3, server.entity_count(0))
 
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
             e = ecm.create_entity()
             self.assertTrue(ecm.has_entity(e))
 
         # Confirm entity count reflects the mutation
         self.assertEqual(4, server.entity_count(0))
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertEqual(4, ecm.entity_count())
             self.assertTrue(ecm.has_entity(e))
 
@@ -54,12 +55,12 @@ class ServerTest(unittest.TestCase):
 
         # Verify exception is propagated (not swallowed by __exit__)
         with self.assertRaises(RuntimeError):
-            with server.ecm() as ecm:
+            with server.ecm_scope() as ecm:
                 ecm.create_entity()
                 raise RuntimeError('Test exception inside context manager')
 
         # Verify lock was released and subsequent operations work
-        with server.ecm() as ecm:
+        with server.ecm_scope() as ecm:
             self.assertIsInstance(ecm, EntityComponentManager)
 
     def test_invalid_runner_id(self):
@@ -68,7 +69,7 @@ class ServerTest(unittest.TestCase):
 
         # Out of bounds runner ID raises ValueError when entered
         with self.assertRaises(ValueError):
-            with server.ecm(999):
+            with server.ecm_scope(999):
                 pass
 
     def test_server_statistics(self):
@@ -94,6 +95,34 @@ class ServerTest(unittest.TestCase):
         self.assertIsInstance(info_after, UpdateInfo)
         self.assertEqual(10, info_after.iterations)
         self.assertGreater(info_after.sim_time, datetime.timedelta(0))
+
+
+class ServerConfigTest(unittest.TestCase):
+
+    def test_set_sdf_file(self):
+        config = ServerConfig()
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        sdf_file_path = (os.path.join(file_path, 'gravity.sdf'))
+        config.set_sdf_file(sdf_file_path)
+        self.assertEqual(sdf_file_path, config.sdf_file())
+        self.assertEqual(config.sdf_string(), '')
+        server = Server(config)
+        server.run(True, 1, False)
+        self.assertTrue(server.has_entity("gravity", 0))
+
+    def test_set_sdf_string(self):
+        config = ServerConfig()
+        sdf_string = '''\
+            <sdf version="1.6">
+                <world name="empty_world"/>
+            </sdf>
+            '''
+        config.set_sdf_string(sdf_string)
+        self.assertEqual(sdf_string, config.sdf_string())
+        self.assertEqual(config.sdf_file(), '')
+        server = Server(config)
+        server.run(True, 1, False)
+        self.assertTrue(server.has_entity("empty_world", 0))
 
 if __name__ == '__main__':
     unittest.main()
