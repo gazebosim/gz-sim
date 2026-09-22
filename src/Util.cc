@@ -294,12 +294,13 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
 
     if (!customTopic.empty())
     {
-      // Only prepend namespace to relative topic names.
-      // Absolute topic names (starting with '/') are left unchanged.
+      // Only prepend namespace to relative topic name.
+      // Absolute topic name (starting with '/') are left unchanged.
       if (customTopic.front() != '/')
       {
         std::string prefix = _options.topicNamespace;
-        if (_options.topicNamespace != "/" && !_options.topicNamespace.empty())
+        if (!_options.topicNamespace.empty() &&
+            _options.topicNamespace.back() != '/')
         {
           prefix = prefix + "/";
         }
@@ -310,7 +311,24 @@ std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
     }
   }
 
-  topics.push_back(_options.defaultTopic);
+  std::string defaultTopic = _options.defaultTopicSuffix;
+  if (!defaultTopic.empty())
+  {
+    // Only prepend namespace to relative default topic name.
+    // Absolute default topic name (starting with '/') are left unchanged.
+    if (defaultTopic.front() != '/')
+    {
+      std::string prefix = _options.topicNamespace.empty() ?
+        _options.defaultTopicPrefix : _options.topicNamespace;
+      if (!prefix.empty() && prefix.back() != '/')
+      {
+        prefix = prefix + "/";
+      }
+      defaultTopic = prefix + defaultTopic;
+    }
+    topics.push_back(defaultTopic);
+  }
+
   return validTopic(topics);
 }
 

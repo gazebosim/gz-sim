@@ -60,8 +60,12 @@ namespace gz
       /// \brief Topic namespace to prepend to relative topic name
       std::string topicNamespace;
 
+      /// \brief Default topic prefix to use when no topic namespace is
+      /// specified
+      std::string defaultTopicPrefix;
+
       /// \brief Topic to use when no custom topic is specified
-      std::string defaultTopic;
+      std::string defaultTopicSuffix;
     };
 
     // Inline bracket to help doxygen filtering.

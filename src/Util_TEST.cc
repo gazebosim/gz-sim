@@ -326,28 +326,68 @@ TEST_F(UtilTest, ResolvedTopicName)
 
   EXPECT_EQ("test_relative_topic",
     resolvedTopicName(sdf,
-      {"relative_topic", "", "/default_relative_topic"}));
+      {"relative_topic", "", "", "/default_relative_topic"}));
   EXPECT_EQ("/ns/test_relative_topic",
     resolvedTopicName(sdf,
-      {"relative_topic", "/ns", "/default_relative_topic"}));
+      {"relative_topic", "/ns", "", "/default_relative_topic"}));
+  EXPECT_EQ("test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "", "/default_prefix", "/default_relative_topic"}));
+  EXPECT_EQ("/ns/test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns", "/default_prefix", "/default_relative_topic"}));
+
   EXPECT_EQ("/test_absolute_topic",
     resolvedTopicName(sdf,
-      {"absolute_topic", "", "/default_absolute_topic"}));
+      {"absolute_topic", "", "", "/default_absolute_topic"}));
   EXPECT_EQ("/test_absolute_topic",
     resolvedTopicName(sdf,
-      {"absolute_topic", "/ns", "/default_absolute_topic"}));
-  EXPECT_EQ("/default_empty_topic",
+      {"absolute_topic", "/ns", "", "/default_absolute_topic"}));
+  EXPECT_EQ("/test_absolute_topic",
     resolvedTopicName(sdf,
-      {"empty_topic", "", "/default_empty_topic"}));
-  EXPECT_EQ("/default_empty_topic",
+      {"absolute_topic", "", "/default_prefix", "/default_absolute_topic"}));
+  EXPECT_EQ("/test_absolute_topic",
     resolvedTopicName(sdf,
-      {"empty_topic", "/ns", "/default_empty_topic"}));
+      {"absolute_topic", "/ns", "/default_prefix", "/default_absolute_topic"}));
+
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "/default_prefix", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "/default_prefix", "/absolute_default_empty_topic"}));
+
+  EXPECT_EQ("relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "", "relative_default_empty_topic"}));
+  EXPECT_EQ("/ns/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "", "relative_default_empty_topic"}));
+  EXPECT_EQ("/default_prefix/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "/default_prefix", "relative_default_empty_topic"}));
+  EXPECT_EQ("/ns/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "/default_prefix", "relative_default_empty_topic"}));
+
+  EXPECT_EQ("/ns/test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns/", "", "/default_relative_topic"}));
   EXPECT_EQ("/default_missing_topic",
     resolvedTopicName(sdf,
-      {"missing_topic", "", "/default_missing_topic"}));
-  EXPECT_EQ("/default_missing_topic",
+      {"missing_topic", "", "", "/default_missing_topic"}));
+  EXPECT_EQ("/ns/default_missing_topic",
     resolvedTopicName(sdf,
-      {"missing_topic", "/ns", "/default_missing_topic"}));
+      {"missing_topic", "/ns/", "", "default_missing_topic"}));
+  EXPECT_EQ("/default_prefix/default_missing_topic",
+    resolvedTopicName(sdf,
+      {"missing_topic", "", "/default_prefix/", "default_missing_topic"}));
 }
 
 /////////////////////////////////////////////////
