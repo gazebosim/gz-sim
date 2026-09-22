@@ -55,7 +55,7 @@ struct ComponentProxy
 ///
 /// \details This registry allows the Gazebo Entity Component Manager (ECM) to
 /// translate C++ component data into Python objects dynamically at runtime. It
-/// stores type-erased `Getter` and `Setter` functions indexed by
+/// stores type-erased `Getter`, `Setter`, etc functions indexed by
 /// `ComponentTypeId`.
 ///
 /// ### Shared Library Memory Safety (The Queue Paradigm)
@@ -183,7 +183,6 @@ struct AddPybindGetterSetter
                const gz::sim::EntityComponentManager &_ecm,
                const gz::sim::Entity &_entity) -> pybind11::object
     {
-      (void)name;
       if constexpr (std::is_same_v<typename T::Type,
                                    gz::sim::components::NoData>)
       {
@@ -195,6 +194,7 @@ struct AddPybindGetterSetter
       }
       else
       {
+        (void)name;
         auto comp = _ecm.Component<T>(_entity);
         if (comp)
         {
@@ -292,10 +292,9 @@ struct AddPybindGetterSetter
   /// \brief Type-erased python component creator for pybind11.
   ///
   /// Mirrors C++ CreateComponent<T>(): the component is created, or replaced
-  /// if it already exists, and is marked changed either way. This is why
-  /// creation does not go through Setter -- SetComponentData deliberately
-  /// leaves an unchanged component untouched, whereas creation is always a
-  /// write.
+  /// if it already exists, and is marked changed either way. Creation does not
+  /// go through Setter because  SetComponentData leaves an unchanged component
+  /// untouched, whereas creation is always a write.
   ///
   /// \param[in] _ecm The EntityComponentManager.
   /// \param[in] _entity The Entity to attach to.

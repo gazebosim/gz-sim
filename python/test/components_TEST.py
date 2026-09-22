@@ -17,7 +17,7 @@ import datetime
 import unittest
 
 from gz.math import Pose3d, Temperature, Vector3d
-from gz.sim import ComponentState, EntityComponentManager, components
+from gz.sim import ComponentState, EntityComponentManager, components, K_NULL_ENTITY
 import sdformat
 
 # Skiplist of components that are not currently exposed to Python because
@@ -307,6 +307,7 @@ class TestComponents(unittest.TestCase):
         with self.assertRaises(TypeError):
             ecm.remove_component(e, 12345)
 
+        # set_changed takes a component type, not a type ID.
         with self.assertRaises(TypeError):
             ecm.set_changed(e, components.Pose.type_id)
 
@@ -320,7 +321,7 @@ class TestComponents(unittest.TestCase):
         self.assertTrue(ecm.has_entity(child))
         self.assertFalse(ecm.has_entity(999999))
 
-        self.assertEqual(0, ecm.parent_entity(child))
+        self.assertEqual(K_NULL_ENTITY, ecm.parent_entity(child))
         ecm.set_parent_entity(child, parent)
         self.assertEqual(parent, ecm.parent_entity(child))
 
