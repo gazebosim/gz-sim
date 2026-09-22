@@ -99,8 +99,7 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
       gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity)>;
 
-  /// \brief Register a python getter/setter/creator/default-creator tuple for
-  /// a component type.
+  /// \brief Register the ops that back Python access to a component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader (usually address of
   /// registration object).
@@ -113,7 +112,7 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
                         CreatorFn _creator,
                         DefaultCreatorFn _defaultCreator);
 
-  /// \brief Unregister a python getter/setter pair for a component type.
+  /// \brief Unregister the ops a loader contributed for a component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader to remove.
   public: void Unregister(ComponentTypeId _typeId, uintptr_t _id);
@@ -140,7 +139,7 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
 
   /// \brief Check whether python bindings are registered for a component type.
   /// \param[in] _typeId The component type ID.
-  /// \return True if at least one getter/setter pair is registered.
+  /// \return True if at least one ops table is registered.
   public: bool HasBindings(ComponentTypeId _typeId) const;
 
   /// \brief Strip the "gz_sim_components." prefix from a component name if
@@ -163,8 +162,18 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 
+/// \brief The type-erased operations that back Python access to one
+/// component type.
+///
+/// The pybind11 bindings are keyed by ComponentTypeId and therefore cannot
+/// name T. This struct supplies the functions that recover it: each member
+/// closes over T and exposes an interface that does not mention it. The set
+/// is a hand-rolled vtable, registered with ComponentPybindRegistry under
+/// T::typeId and dispatched to from the bindings at runtime.
+///
+/// \tparam T Component type to generate operations for.
 template <typename T>
-struct AddPybindGetterSetter
+struct ComponentOps
 {
   /// \brief Create a type-erased python getter for pybind11 capturing the
   /// component name.
@@ -357,7 +366,7 @@ struct AddPybindGetterSetter
     return true;
   }
 
-  /// \brief Register this type's getter/setter/creator/default-creator tuple.
+  /// \brief Register this type's ops with the registry.
   /// \param[in] _id Unique identity of the loader.
   /// \param[in] _name Name of the component.
   static void Register(uintptr_t _id, const char *_name)
@@ -366,7 +375,7 @@ struct AddPybindGetterSetter
         T::typeId, _id, CreateGetter(_name), Setter, Creator, CreateDefault);
   }
 
-  /// \brief Unregister this type's getter/setter pair.
+  /// \brief Unregister this type's ops from the registry.
   /// \param[in] _id Unique identity of the loader to remove.
   static void Unregister(uintptr_t _id)
   {

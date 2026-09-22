@@ -37,7 +37,10 @@ namespace detail
 
 class ComponentPybindRegistry::Implementation
 {
-  public: struct PybindDescriptor
+  /// \brief One registered ops table, tagged with the loader that
+  /// contributed it so that it can be removed again when that loader
+  /// unloads.
+  public: struct OpsEntry
   {
     uintptr_t id;
     ComponentPybindRegistry::GetterFn getter;
@@ -47,8 +50,10 @@ class ComponentPybindRegistry::Implementation
   };
 
   public: mutable std::shared_mutex mutex;
-  public: std::unordered_map<ComponentTypeId, std::deque<PybindDescriptor>>
-      gettersAndSetters;
+
+  /// \brief Registered ops per component type, most recently registered
+  /// first. See the Queue Paradigm note on ComponentPybindRegistry.
+  public: std::unordered_map<ComponentTypeId, std::deque<OpsEntry>> ops;
 };
 
 /////////////////////////////////////////////////
@@ -85,7 +90,7 @@ void ComponentPybindRegistry::Register(ComponentTypeId _typeId, uintptr_t _id,
                                        DefaultCreatorFn _defaultCreator)
 {
   std::unique_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  this->dataPtr->gettersAndSetters[_typeId].push_front(
+  this->dataPtr->ops[_typeId].push_front(
       {_id, std::move(_getter), std::move(_setter), std::move(_creator),
        std::move(_defaultCreator)});
 }
@@ -94,18 +99,18 @@ void ComponentPybindRegistry::Register(ComponentTypeId _typeId, uintptr_t _id,
 void ComponentPybindRegistry::Unregister(ComponentTypeId _typeId, uintptr_t _id)
 {
   std::unique_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it != this->dataPtr->gettersAndSetters.end())
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it != this->dataPtr->ops.end())
   {
     auto &queue = it->second;
     queue.erase(
         std::remove_if(queue.begin(), queue.end(),
-                       [_id](const auto &_desc) { return _desc.id == _id; }),
+                       [_id](const auto &_entry) { return _entry.id == _id; }),
         queue.end());
 
     if (queue.empty())
     {
-      this->dataPtr->gettersAndSetters.erase(it);
+      this->dataPtr->ops.erase(it);
     }
   }
 }
@@ -115,8 +120,8 @@ ComponentPybindRegistry::GetterFn ComponentPybindRegistry::Getter(
     ComponentTypeId _typeId) const
 {
   std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
     return nullptr;
   return it->second.front().getter;
 }
@@ -126,8 +131,8 @@ ComponentPybindRegistry::SetterFn ComponentPybindRegistry::Setter(
     ComponentTypeId _typeId) const
 {
   std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
     return nullptr;
   return it->second.front().setter;
 }
@@ -137,8 +142,8 @@ ComponentPybindRegistry::CreatorFn ComponentPybindRegistry::Creator(
     ComponentTypeId _typeId) const
 {
   std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
     return nullptr;
   return it->second.front().creator;
 }
@@ -148,8 +153,8 @@ ComponentPybindRegistry::DefaultCreatorFn
 ComponentPybindRegistry::DefaultCreator(ComponentTypeId _typeId) const
 {
   std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  if (it == this->dataPtr->gettersAndSetters.end() || it->second.empty())
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
     return nullptr;
   return it->second.front().defaultCreator;
 }
@@ -158,8 +163,8 @@ ComponentPybindRegistry::DefaultCreator(ComponentTypeId _typeId) const
 bool ComponentPybindRegistry::HasBindings(ComponentTypeId _typeId) const
 {
   std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
-  auto it = this->dataPtr->gettersAndSetters.find(_typeId);
-  return it != this->dataPtr->gettersAndSetters.end() && !it->second.empty();
+  auto it = this->dataPtr->ops.find(_typeId);
+  return it != this->dataPtr->ops.end() && !it->second.empty();
 }
 
 }  // namespace detail
