@@ -361,7 +361,8 @@ TEST_F(UtilTest, ResolvedTopicName)
       {"empty_topic", "", "/default_prefix", "/absolute_default_empty_topic"}));
   EXPECT_EQ("/absolute_default_empty_topic",
     resolvedTopicName(sdf,
-      {"empty_topic", "/ns", "/default_prefix", "/absolute_default_empty_topic"}));
+      {"empty_topic", "/ns", "/default_prefix",
+       "/absolute_default_empty_topic"}));
 
   EXPECT_EQ("relative_default_empty_topic",
     resolvedTopicName(sdf,
@@ -374,7 +375,8 @@ TEST_F(UtilTest, ResolvedTopicName)
       {"empty_topic", "", "/default_prefix", "relative_default_empty_topic"}));
   EXPECT_EQ("/ns/relative_default_empty_topic",
     resolvedTopicName(sdf,
-      {"empty_topic", "/ns", "/default_prefix", "relative_default_empty_topic"}));
+      {"empty_topic", "/ns", "/default_prefix",
+       "relative_default_empty_topic"}));
 
   EXPECT_EQ("/ns/test_relative_topic",
     resolvedTopicName(sdf,
