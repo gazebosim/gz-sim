@@ -54,5 +54,6 @@ TEST(DurationLiteral, Invalid)
   EXPECT_FALSE(sim::detail::ParseDurationLiteral("2H", seconds));
   EXPECT_FALSE(sim::detail::ParseDurationLiteral("2h garbage", seconds));
   EXPECT_FALSE(sim::detail::ParseDurationLiteral("garbage 2h", seconds));
-  EXPECT_FALSE(sim::detail::ParseDurationLiteral("9223372036854775807d", seconds));
+  EXPECT_FALSE(sim::detail::ParseDurationLiteral(
+      "9223372036854775807d", seconds));
 }
