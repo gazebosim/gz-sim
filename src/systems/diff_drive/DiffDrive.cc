@@ -368,7 +368,7 @@ void DiffDrive::Configure(const Entity &_entity,
 
   // Subscribe to enable
   this->dataPtr->resolvedTopicNames.enableTopic =
-    validTopic({defaultPrefix + "/enable"});
+    resolvedTopicName(_sdf, "enable_topic", ns, defaultPrefix + "/enable");
   std::string enableTopic = this->dataPtr->resolvedTopicNames.enableTopic;
   if (enableTopic.empty())
   {

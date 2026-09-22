@@ -66,6 +66,7 @@ TEST(DiffDriveTest, AbsoluteTopicNames)
                   filename='gz-sim-diff-drive-system'>
             <topic>/test_cmd_vel</topic>
             <odom_topic>/test_odom</odom_topic>
+            <enable_topic>/test_enable</enable_topic>
             <tf_topic>/test_tf</tf_topic>
           </plugin>
         </model>
@@ -74,7 +75,7 @@ TEST(DiffDriveTest, AbsoluteTopicNames)
 
   DiffDrive::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic = "/test_cmd_vel";
-  expectedTopicNames.enableTopic = "ns/enable";
+  expectedTopicNames.enableTopic = "/test_enable";
   expectedTopicNames.odomTopic = "/test_odom";
   expectedTopicNames.tfTopic = "/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
@@ -91,6 +92,7 @@ TEST(DiffDriveTest, RelativeTopicNames)
                   filename='gz-sim-diff-drive-system'>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
+            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
           </plugin>
         </model>
@@ -99,7 +101,7 @@ TEST(DiffDriveTest, RelativeTopicNames)
 
   DiffDrive::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic = "ns/test_cmd_vel";
-  expectedTopicNames.enableTopic = "ns/enable";
+  expectedTopicNames.enableTopic = "ns/test_enable";
   expectedTopicNames.odomTopic = "ns/test_odom";
   expectedTopicNames.tfTopic = "ns/test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
@@ -140,6 +142,7 @@ TEST(DiffDriveTest, TopicNamesWithoutNs)
                   filename='gz-sim-diff-drive-system'>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
+            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
           </plugin>
         </model>
@@ -148,7 +151,7 @@ TEST(DiffDriveTest, TopicNamesWithoutNs)
 
   DiffDrive::TopicNames expectedTopicNames;
   expectedTopicNames.cmdVelTopic = "test_cmd_vel";
-  expectedTopicNames.enableTopic = "/model/diff_drive/enable";
+  expectedTopicNames.enableTopic = "test_enable";
   expectedTopicNames.odomTopic = "test_odom";
   expectedTopicNames.tfTopic = "test_tf";
   TestTopicNames(sdfString, expectedTopicNames);
