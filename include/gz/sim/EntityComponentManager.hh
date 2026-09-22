@@ -20,6 +20,7 @@
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -513,6 +514,61 @@ namespace gz
       /// PostUpdate callback.
       public: template<typename ...ComponentTypeTs, typename Func>
               void EachRemoved(Func &&_f) const;
+
+      /// \brief Runtime-typed counterpart of Each<ComponentTypeTs...>().
+      ///
+      /// Use this when component types are not known at compile time, e.g.
+      /// when they come from a script, a GUI, or a serialized query
+      /// description. For compile-time-known types prefer
+      /// Each<ComponentTypeTs...>(), which can use cached groups and is
+      /// faster.
+      ///
+      /// \param[in] _types Component types that every matched entity must
+      /// have. Each id must name a component type registered with
+      /// components::Factory; the ECM also stores internal book-keeping
+      /// types in the same id space, and passing one of those is an error.
+      /// If empty, every entity matches and _components is empty.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// _components holds exactly one non-null pointer per entry in _types,
+      /// in the same order. Return false to stop iteration, true to continue.
+      ///
+      /// \warning _components and the pointers it holds are owned by the ECM,
+      /// are reused between invocations, and are valid only for the duration
+      /// of the callback. Do not retain them.
+      ///
+      /// \note Like Each<ComponentTypeTs...>(), entities that are marked for
+      /// removal but not yet processed are included.
+      ///
+      /// \note If any id in _types is not a registered component type, an
+      /// error is logged and the callback is not invoked at all.
+      public: void Each(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
+
+      /// \brief Runtime-typed counterpart of EachNew<ComponentTypeTs...>().
+      /// \param[in] _types Component types that every matched entity must
+      /// have.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// \sa Each
+      public: void EachNew(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
+
+      /// \brief Runtime-typed counterpart of
+      /// EachRemoved<ComponentTypeTs...>().
+      /// \param[in] _types Component types that every matched entity must
+      /// have.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// \sa Each
+      public: void EachRemoved(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.

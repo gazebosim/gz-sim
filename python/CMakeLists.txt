@@ -80,6 +80,7 @@ if (BUILD_TESTING)
   set(python_tests
     actor_TEST
     components_TEST
+    ecm_each_TEST
     joint_TEST
     light_TEST
     link_TEST
