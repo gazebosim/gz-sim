@@ -78,6 +78,7 @@
 
     <model name="<%= geom_1 %>_<%= m.to_s %>">
       <pose><%= -750 + m*1.5 %> 0 0.5 0 0 0</pose>
+      <static>true</static>
       <link name="box_link">
         <inertial>
           <inertia>
@@ -115,6 +116,7 @@
 
     <model name="<%= geom_2 %>_<%= m.to_s %>">
       <pose><%= -750 + m*1.5 %> -1.5 0.5 0 0 0</pose>
+      <static>true</static>
       <link name="cylinder_link">
         <inertial>
           <inertia>
@@ -154,6 +156,7 @@
 
     <model name="<%= geom_3 %>_<%= m.to_s %>">
       <pose><%= -750 + m*1.5 %> 1.5 0.5 0 0 0</pose>
+      <static>true</static>
       <link name="sphere_link">
         <inertial>
           <inertia>
