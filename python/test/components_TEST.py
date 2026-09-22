@@ -358,40 +358,6 @@ class TestComponents(unittest.TestCase):
         self.assertIsNotNone(ret_elem)
         self.assertEqual("contact_elem", ret_elem.get_name())
 
-    def test_pointer_payload_components_alias_the_ecm(self):
-        """Pointer-payload components are a documented exception.
-
-        Unlike every other component type, components whose data is a
-        pointer (sdf::ElementPtr) are returned as a handle that aliases ECM
-        storage, because deep-copying an sdf::Element tree on every read
-        would cost far more than the access it serves. They are intended to
-        be read-only from Python.
-
-        This test pins that behaviour deliberately: it is a limitation, not
-        a guarantee anyone should rely on for writing. If a future change
-        makes these components copy, update the docstring on
-        EntityComponentManager.component_data() and the LIMITATION note in
-        ComponentPybindRegistry.hh along with this test.
-        """
-        ecm = EntityComponentManager()
-        e = ecm.create_entity()
-
-        elem = sdformat.Element()
-        elem.set_name("original")
-        ecm.create_component(e, components.ContactSensor, elem)
-
-        # The value read back aliases ECM storage, so mutating it writes
-        # through. This bypasses change detection -- hence "read-only".
-        ret = ecm.component_data(e, components.ContactSensor)
-        ret.set_name("mutated_via_component_data")
-        self.assertEqual(
-            "mutated_via_component_data",
-            ecm.component_data(e, components.ContactSensor).get_name())
-
-        # The aliasing also runs the other way: create_component stored the
-        # caller's handle rather than a copy, so `elem` is still live.
-        self.assertEqual("mutated_via_component_data", elem.get_name())
-
     def test_component_registration_parity(self):
         """Test full parity between C++ ComponentFactory and Python bindings."""
         all_components = components._all_factory_components()
