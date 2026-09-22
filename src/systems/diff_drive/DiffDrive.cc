@@ -348,10 +348,10 @@ void DiffDrive::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  this->dataPtr->resolvedTopicNames.cmdVelTopic =
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  resolvedTopicNames.cmdVelTopic =
     resolvedTopicName(_sdf, "topic", ns, defaultPrefix + "/cmd_vel");
-  std::string cmdVelTopic = this->dataPtr->resolvedTopicNames.cmdVelTopic;
-  if (cmdVelTopic.empty())
+  if (resolvedTopicNames.cmdVelTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
           << "twist messages. Check the <topic> and the namespace attribute "
@@ -361,16 +361,15 @@ void DiffDrive::Configure(const Entity &_entity,
   else
   {
     gzmsg << "DiffDrive subscribing to twist messages on ["
-          << cmdVelTopic << "]" << std::endl;
-    this->dataPtr->node.Subscribe(cmdVelTopic, &DiffDrivePrivate::OnCmdVel,
-      this->dataPtr.get());
+          << resolvedTopicNames.cmdVelTopic << "]" << std::endl;
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
+      &DiffDrivePrivate::OnCmdVel, this->dataPtr.get());
   }
 
   // Subscribe to enable
-  this->dataPtr->resolvedTopicNames.enableTopic =
+  resolvedTopicNames.enableTopic =
     resolvedTopicName(_sdf, "enable_topic", ns, defaultPrefix + "/enable");
-  std::string enableTopic = this->dataPtr->resolvedTopicNames.enableTopic;
-  if (enableTopic.empty())
+  if (resolvedTopicNames.enableTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
           << "enable messages. Check the namespace attribute in the SDF."
@@ -379,17 +378,16 @@ void DiffDrive::Configure(const Entity &_entity,
   else
   {
     gzmsg << "DiffDrive subscribing to enable messages on ["
-          << enableTopic << "]" << std::endl;
-    this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
-      this->dataPtr.get());
+          << resolvedTopicNames.enableTopic << "]" << std::endl;
+    this->dataPtr->node.Subscribe(resolvedTopicNames.enableTopic,
+      &DiffDrivePrivate::OnEnable, this->dataPtr.get());
   }
   this->dataPtr->enabled = true;
 
   // Publish odometry
-  this->dataPtr->resolvedTopicNames.odomTopic =
+  resolvedTopicNames.odomTopic =
     resolvedTopicName(_sdf, "odom_topic", ns, defaultPrefix + "/odometry");
-  std::string odomTopic = this->dataPtr->resolvedTopicNames.odomTopic;
-  if (odomTopic.empty())
+  if (resolvedTopicNames.odomTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
           << "odometry messages. Check the <odom_topic> and the namespace "
@@ -399,16 +397,15 @@ void DiffDrive::Configure(const Entity &_entity,
   else
   {
     gzmsg << "DiffDrive publishing odometry messages on ["
-          << odomTopic << "]" << std::endl;
+          << resolvedTopicNames.odomTopic << "]" << std::endl;
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
+      resolvedTopicNames.odomTopic);
   }
 
   // Publish tf
-  this->dataPtr->resolvedTopicNames.tfTopic =
+  resolvedTopicNames.tfTopic =
     resolvedTopicName(_sdf, "tf_topic", ns, defaultPrefix + "/tf");
-  std::string tfTopic = this->dataPtr->resolvedTopicNames.tfTopic;
-  if (tfTopic.empty())
+  if (resolvedTopicNames.tfTopic.empty())
   {
     gzerr << "DiffDrive failed to find a valid topic name for "
           << "tf messages. Check the <tf_topic> and the namespace attribute"
@@ -418,9 +415,9 @@ void DiffDrive::Configure(const Entity &_entity,
   else
   {
     gzmsg << "DiffDrive publishing tf messages on ["
-          << tfTopic << "]" << std::endl;
+          << resolvedTopicNames.tfTopic << "]" << std::endl;
     this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      tfTopic);
+      resolvedTopicNames.tfTopic);
   }
 
   if (_sdf->HasElement("frame_id"))
