@@ -64,10 +64,6 @@ using DoubleComponent = Component<double, class DoubleComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DoubleComponent",
     DoubleComponent)
 
-using FloatComponent = Component<float, class FloatComponentTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.FloatComponent",
-    FloatComponent)
-
 using StringComponent =
     Component<std::string, class StringComponentTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.StringComponent",
@@ -381,16 +377,6 @@ TEST_P(EntityComponentManagerFixture,
     EXPECT_EQ(0.456, data);
 
     EXPECT_FALSE(manager.SetComponentData<DoubleComponent>(eDouble, 0.456));
-  }
-
-  {
-    auto eFloat = manager.CreateEntity();
-    manager.CreateComponent(eFloat, FloatComponent(0.125f));
-
-    EXPECT_TRUE(manager.SetComponentData<FloatComponent>(eFloat, 0.5f));
-    EXPECT_EQ(0.5f, manager.ComponentData<FloatComponent>(eFloat));
-
-    EXPECT_FALSE(manager.SetComponentData<FloatComponent>(eFloat, 0.5f));
   }
 
   {

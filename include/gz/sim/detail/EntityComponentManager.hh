@@ -58,12 +58,12 @@ namespace traits
 /// equality operator.
 /// If `DataType` doesn't have an equality operator defined, it will return
 /// false.
-/// For floating-point types, `gz::math::equal` will be used.
+/// For doubles, `gz::math::equal` will be used.
 template<typename DataType>
 auto CompareData = [](const DataType &_a, const DataType &_b) -> bool
 {
   // cppcheck-suppress syntaxError
-  if constexpr (std::is_floating_point_v<DataType>)
+  if constexpr (std::is_same<DataType, double>::value)
   {
     return math::equal(_a, _b);
   }
