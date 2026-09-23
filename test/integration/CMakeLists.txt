@@ -294,7 +294,9 @@ if(VALID_DISPLAY AND VALID_DRI_DISPLAY AND TARGET INTEGRATION_sensors_system)
 endif()
 
 if (TARGET INTEGRATION_python_system_loader)
-  set_property(TEST INTEGRATION_python_system_loader  APPEND PROPERTY ENVIRONMENT "PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python/:$ENV{PYTHONPATH}")
+  set_property(TEST INTEGRATION_python_system_loader APPEND PROPERTY
+    ENVIRONMENT_MODIFICATION
+    "PYTHONPATH=path_list_prepend:${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/python")
 endif()
 
 if (TARGET INTEGRATION_load_system_static_registry)
