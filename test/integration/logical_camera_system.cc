@@ -35,6 +35,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -62,6 +64,20 @@ void logicalCamera2Cb(const msgs::LogicalCameraImage &_msg)
   mutex.lock();
   logicalCamera2Msgs.push_back(_msg);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+void expectSameLogicalCameraImage(const msgs::LogicalCameraImage &_expected,
+    const msgs::LogicalCameraImage &_actual)
+{
+  EXPECT_EQ(msgs::Convert(_expected.pose()), msgs::Convert(_actual.pose()));
+  ASSERT_EQ(_expected.model_size(), _actual.model_size());
+  for (int i = 0; i < _expected.model_size(); ++i)
+  {
+    EXPECT_EQ(_expected.model(i).name(), _actual.model(i).name());
+    EXPECT_EQ(msgs::Convert(_expected.model(i).pose()),
+        msgs::Convert(_actual.model(i).pose()));
+  }
 }
 
 /////////////////////////////////////////////////
@@ -195,4 +211,61 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   math::Pose3d boxPoseCamera2Frame = sensor2Pose.Inverse() * boxPose;
   EXPECT_EQ(boxPoseCamera2Frame, msgs::Convert(img2.model(0).pose()));
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/logical_camera_sensor.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic1 = "/world/logical_camera_sensor/"
+      "model/logical_camera-1/link/logical_camera_link/"
+      "sensor/logical_camera-1/logical_camera";
+  const std::string topic2 = "/world/logical_camera_sensor/"
+      "model/logical_camera-2/link/logical_camera_link/"
+      "sensor/logical_camera-2/logical_camera";
+
+  transport::Node node;
+  Subscription<msgs::LogicalCameraImage> initialCamera1;
+  Subscription<msgs::LogicalCameraImage> initialCamera2;
+  initialCamera1.Subscribe(node, topic1, 1);
+  initialCamera2.Subscribe(node, topic2, 1);
+  auto waitForCamera =
+      [&server](Subscription<msgs::LogicalCameraImage> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForCamera(initialCamera1));
+  ASSERT_TRUE(waitForCamera(initialCamera2));
+  const auto baseline1 = initialCamera1.Last();
+  const auto baseline2 = initialCamera2.Last();
+
+  // Advance before reset so stale pre-reset messages would differ from
+  // early-episode readings.
+  server.Run(true, 300, false);
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::LogicalCameraImage> postResetCamera1;
+  Subscription<msgs::LogicalCameraImage> postResetCamera2;
+  postResetCamera1.Subscribe(postResetNode, topic1, 1);
+  postResetCamera2.Subscribe(postResetNode, topic2, 1);
+
+  ASSERT_TRUE(waitForCamera(postResetCamera1));
+  ASSERT_TRUE(waitForCamera(postResetCamera2));
+  const auto postReset1 = postResetCamera1.Last();
+  const auto postReset2 = postResetCamera2.Last();
+  expectSameLogicalCameraImage(baseline1, postReset1);
+  expectSameLogicalCameraImage(baseline2, postReset2);
 }

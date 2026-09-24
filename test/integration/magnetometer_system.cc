@@ -37,6 +37,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -140,4 +142,50 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->z(),
       field.Z(), TOL);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/magnetometer.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic =
+      "world/magnetometer_sensor/model/magnetometer_model/link/link/"
+      "sensor/magnetometer_sensor/magnetometer";
+
+  transport::Node node;
+  Subscription<msgs::Magnetometer> initialMagnetometer;
+  initialMagnetometer.Subscribe(node, topic, 1);
+  auto waitForMagnetometer =
+      [&server](Subscription<msgs::Magnetometer> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForMagnetometer(initialMagnetometer));
+  const auto baseline = initialMagnetometer.Last();
+
+  server.Run(true, 500, false);
+  server.ResetAll();
+
+  // Re-subscribe after reset to avoid accepting late pre-reset transport data.
+  transport::Node postResetNode;
+  Subscription<msgs::Magnetometer> postResetMagnetometer;
+  postResetMagnetometer.Subscribe(postResetNode, topic, 1);
+
+  ASSERT_TRUE(waitForMagnetometer(postResetMagnetometer));
+  const auto postReset = postResetMagnetometer.Last();
+  EXPECT_NEAR(baseline.field_tesla().x(), postReset.field_tesla().x(), TOL);
+  EXPECT_NEAR(baseline.field_tesla().y(), postReset.field_tesla().y(), TOL);
+  EXPECT_NEAR(baseline.field_tesla().z(), postReset.field_tesla().z(), TOL);
 }
