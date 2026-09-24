@@ -404,8 +404,10 @@ Rectangle {
               var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
               var type = _EntityTreeModel.EntityType(mi)
               var scopedName = _EntityTreeModel.ScopedName(mi)
+              var entityId = _EntityTreeModel.EntityId(mi)
               var posInTree = mapToItem(entityTree, ma.mouseX, ma.mouseY)
-              entityContextMenu.open(scopedName, type, posInTree.x, posInTree.y)
+              entityContextMenu.open(scopedName, type,
+                entityId.toString(), posInTree.x, posInTree.y)
               // Prevent plugin's context menu from opening
               mouse.accepted = true
             }

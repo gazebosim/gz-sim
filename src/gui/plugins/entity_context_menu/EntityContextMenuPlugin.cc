@@ -17,8 +17,10 @@
 
 #include "EntityContextMenuPlugin.hh"
 
+#include <cstdint>
 #include <memory>
 #include <utility>
+#include <variant>
 
 #include <QtQml>
 
@@ -28,6 +30,8 @@
 #include <gz/gui/GuiEvents.hh>
 #include <gz/gui/Helpers.hh>
 #include <gz/gui/MainWindow.hh>
+
+#include <gz/sim/Entity.hh>
 
 #include <gz/plugin/Register.hh>
 
@@ -159,9 +163,11 @@ void EntityContextMenuItem::SetEntityContextMenuHandler(
 }
 
 ///////////////////////////////////////////////////
-void EntityContextMenuItem::OnContextMenuRequested(QString _entity)
+void EntityContextMenuItem::OnContextMenuRequested(
+  QString _entity, QString _entityId, int _mouseX, int _mouseY)
 {
-  emit openContextMenu(std::move(_entity));
+  emit openContextMenu(std::move(_entity), std::move(_entityId),
+      _mouseX, _mouseY);
 }
 
 /////////////////////////////////////////////////
@@ -197,7 +203,16 @@ void EntityContextMenuHandler::HandleMouseContextMenu(
       visual = std::dynamic_pointer_cast<rendering::Visual>(visual->Parent());
     }
 
-    emit ContextMenuRequested(visual->Name().c_str());
+    gz::sim::Entity entityId = gz::sim::kNullEntity;
+    const auto userData = visual->UserData("gazebo-entity");
+    const auto *entityIdPtr = std::get_if<uint64_t>(&userData);
+    if (entityIdPtr)
+      entityId = *entityIdPtr;
+
+    emit ContextMenuRequested(
+      visual->Name().c_str(),
+      QString::number(static_cast<uint64_t>(entityId)),
+      _mouseEvent.Pos().X(), _mouseEvent.Pos().Y());
   }
 }
 
