@@ -34,6 +34,7 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Util.hh"
 
 #define TOL 1e-4
 
@@ -116,4 +117,63 @@ TEST_F(ApplyJointForceTestFixture,
     }
   }
   EXPECT_DOUBLE_EQ(jointForceCmd.back(), testJointForce);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ApplyJointForceTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/apply_joint_force.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string jointName = "j1";
+  test::Relay testSystem;
+  std::vector<double> jointForceCmd;
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        auto joint = _ecm.EntityByComponents(components::Joint(),
+                                             components::Name(jointName));
+        auto forceComp = _ecm.Component<components::JointForceCmd>(joint);
+        if (forceComp)
+        {
+          jointForceCmd.push_back(forceComp->Data()[0]);
+        }
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Double>(
+      "/model/joint_force_test/joint/j1/cmd_force");
+  ASSERT_TRUE(test::WaitUntil(std::chrono::seconds(3),
+      [&]() { return pub.HasConnections(); }));
+
+  msgs::Double msg;
+  msg.set_data(0.001);
+  pub.Publish(msg);
+
+  ASSERT_TRUE(test::StepUntil(server, 1000, [&]()
+  {
+    return !jointForceCmd.empty() &&
+        std::abs(jointForceCmd.back() - msg.data()) < 1e-6;
+  }));
+
+  server.ResetAll();
+  // Let the reset cycle remove the old JointForceCmd before sampling again.
+  server.Run(true, 2, false);
+  jointForceCmd.clear();
+
+  ASSERT_TRUE(test::StepUntil(server, 1000, [&]()
+  {
+    return !jointForceCmd.empty();
+  }));
+  EXPECT_NEAR(0.0, jointForceCmd.back(), TOL);
+
+  // Fresh command behavior is already covered by JointVelocityCommand above.
 }

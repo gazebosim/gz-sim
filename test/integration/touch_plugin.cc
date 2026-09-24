@@ -31,6 +31,7 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -110,6 +111,41 @@ TEST_F(TouchPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OneLink))
 #if !defined (__APPLE__)
   EXPECT_TRUE(whiteTouched);
 #endif
+}
+
+/////////////////////////////////////////////////
+TEST_F(TouchPluginTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresTouchEvent))
+{
+  this->StartServer("/test/worlds/touch_plugin.sdf");
+
+  const std::string topic{"/white_touches_only_green/touched"};
+
+  transport::Node node;
+  Subscription<msgs::Boolean> initialTouch;
+  initialTouch.Subscribe(node, topic, 1);
+  auto waitForTouchEvent =
+      [this](Subscription<msgs::Boolean> &_events)
+      {
+        return test::StepUntil(*this->server, 4000, [&]
+        {
+          return _events.Count() > 0u && _events.Last().data();
+        });
+      };
+
+  this->server->Run(true, 1000, false);
+  EXPECT_EQ(0u, initialTouch.Count());
+  ASSERT_TRUE(waitForTouchEvent(initialTouch));
+
+  this->server->ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::Boolean> postResetTouch;
+  postResetTouch.Subscribe(postResetNode, topic, 1);
+
+  this->server->Run(true, 1000, false);
+  EXPECT_EQ(0u, postResetTouch.Count());
+  ASSERT_TRUE(waitForTouchEvent(postResetTouch));
 }
 
 //////////////////////////////////////////////////
