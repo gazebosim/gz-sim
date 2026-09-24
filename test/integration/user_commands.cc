@@ -22,6 +22,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/light.pb.h>
@@ -38,6 +39,8 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
@@ -410,6 +413,68 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
 
   EXPECT_NE(kNullEntity, ecm->EntityByComponents(components::Model(),
       components::Name("test_model")));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableCollisions))
+{
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/empty.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  // Create a system just to get the ECM
+  EntityComponentManager *ecm{nullptr};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
+      {
+        ecm = &_ecm;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run server and check we have the ECM
+  EXPECT_EQ(nullptr, ecm);
+  server.Run(true, 1, false);
+  ASSERT_NE(nullptr, ecm);
+
+  auto firstCollision = ecm->EntityByComponents(
+      components::Collision(), components::Name("collision"));
+  ASSERT_NE(kNullEntity, firstCollision);
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::ContactSensorData>(firstCollision));
+
+  msgs::Empty req;
+  transport::Node node;
+  std::string service{"/world/empty/enable_collisions/blocking"};
+  auto requestDataFuture = asyncRequest(node, service, req);
+
+  // Run an iteration and check all existing collisions are enabled.
+  server.Run(true, 1, false);
+  {
+    auto requestData = requestDataFuture.get();
+    EXPECT_TRUE(requestData.retval);
+    EXPECT_TRUE(requestData.result);
+    EXPECT_TRUE(requestData.response.data());
+  }
+  EXPECT_NE(nullptr,
+      ecm->Component<components::ContactSensorData>(firstCollision));
+
+  // Future collisions should be enabled without another service call.
+  auto secondCollision = ecm->CreateEntity();
+  ecm->CreateComponent(secondCollision, components::Collision());
+  EXPECT_EQ(nullptr,
+      ecm->Component<components::ContactSensorData>(secondCollision));
+
+  server.Run(true, 1, false);
+  EXPECT_NE(nullptr,
+      ecm->Component<components::ContactSensorData>(secondCollision));
 }
 
 /////////////////////////////////////////////////
