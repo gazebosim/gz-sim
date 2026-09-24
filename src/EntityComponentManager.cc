@@ -417,8 +417,9 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   {
     // If there is an entity with the same name under the destination parent
     // and user indicated renaming is not allowed then return null entity.
-    // If the entity or one of its ancestor has a Recreate component then carry
-    // on since the ECM is supposed to create a new entity with the same name.
+    // If the conflicting entity or one of its ancestor has a Recreate
+    // component, then carry on since the ECM is supposed to create a new
+    // entity with the same name.
     Entity ent = this->EntityByComponents(components::Name(_name),
         components::ParentEntity(_parent));
 
