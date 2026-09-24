@@ -4234,6 +4234,16 @@
       <ref>tile_2</ref>
     </level>
 
+    <level name="level2">
+      <pose>20 0 2.5 0 0 0</pose>
+      <geometry>
+        <box>
+          <size>40 40 1000</size>
+        </box>
+      </geometry>
+      <ref>tile_3</ref>
+    </level>
+
     <level name="level3">
       <pose>20 20 2.5 0 0 0</pose>
       <geometry>
