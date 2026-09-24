@@ -65,7 +65,7 @@ void OdometerSystem::PreUpdate(const gz::sim::UpdateInfo &,
         }
 
         gz::sensors::SensorFactory sensorFactory;
-        auto sensor = sensorFactory.CreateSensor<custom::Odometer>(data);
+        std::shared_ptr<custom::Odometer> sensor = std::move(sensorFactory.CreateSensor<custom::Odometer>(data));
         if (nullptr == sensor)
         {
           gzerr << "Failed to create odometer [" << sensorScopedName << "]"
@@ -82,9 +82,7 @@ void OdometerSystem::PreUpdate(const gz::sim::UpdateInfo &,
         _ecm.CreateComponent(_entity,
             gz::sim::components::SensorTopic(sensor->Topic()));
 
-        // Keep track of this sensor
-        this->entitySensorMap.insert(std::make_pair(_entity,
-            std::move(sensor)));
+        _ecm.CreateComponent(_entity, custom::OdometerComponent(sensor));
 
         return true;
       });
@@ -97,43 +95,27 @@ void OdometerSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
   // Only update and publish if not paused.
   if (!_info.paused)
   {
-    for (auto &[entity, sensor] : this->entitySensorMap)
+    _ecm.Each<custom::OdometerComponent>([&](
+        const gz::sim::Entity &entity,
+        const custom::OdometerComponent *sensor)->bool
     {
-      sensor->NewPosition(gz::sim::worldPose(entity, _ecm).Pos());
+      sensor->Data()->NewPosition(gz::sim::worldPose(entity, _ecm).Pos());
       // Call base Sensor class' Update function with force = false
       // to make the sensor respect the specified update rate.
-      auto baseSensor = std::dynamic_pointer_cast<gz::sensors::Sensor>(sensor);
+      auto baseSensor = std::dynamic_pointer_cast<gz::sensors::Sensor>(sensor->Data());
       if (baseSensor)
       {
         baseSensor->Update(_info.simTime, false);
       }
       else
       {
-        sensor->Update(_info.simTime);
+        sensor->Data()->Update(_info.simTime);
         gzerr << "Error casting custom sensor to base Sensor class. "
               << "This should not happen." << std::endl;
       }
-    }
+      return true;
+    });
   }
-
-  this->RemoveSensorEntities(_ecm);
-}
-
-//////////////////////////////////////////////////
-void OdometerSystem::RemoveSensorEntities(
-    const gz::sim::EntityComponentManager &_ecm)
-{
-  _ecm.EachRemoved<gz::sim::components::CustomSensor>(
-    [&](const gz::sim::Entity &_entity,
-        const gz::sim::components::CustomSensor *)->bool
-      {
-        if (this->entitySensorMap.erase(_entity) == 0)
-        {
-          gzerr << "Internal error, missing odometer for entity ["
-                         << _entity << "]" << std::endl;
-        }
-        return true;
-      });
 }
 
 GZ_ADD_PLUGIN(OdometerSystem, gz::sim::System,
