@@ -17,8 +17,10 @@
 #ifndef GZ_GAZEBO_EVENTMANAGER_HH_
 #define GZ_GAZEBO_EVENTMANAGER_HH_
 
+#include <cstring>
 #include <functional>
 #include <memory>
+#include <string>
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
@@ -72,6 +74,7 @@ namespace ignition
                   this->events[typeid(E)] = std::make_unique<E>();
                 }
 
+<<<<<<< HEAD
                 E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
@@ -85,6 +88,15 @@ namespace ignition
                     << typeid(E).name() << std::endl;
                   return nullptr;
                 }
+=======
+                // static_cast is used instead of dynamic_cast because
+                // dynamic_cast fails across shared-library boundaries when
+                // plugins are loaded with RTLD_LOCAL and hidden visibility
+                // (the RTTI type_info pointers differ per dylib on macOS).
+                // The map key guarantees the correct type by construction.
+                E *eventPtr = static_cast<E *>(this->events[typeid(E)].get());
+                return eventPtr->Connect(_subscriber);
+>>>>>>> 90e82be8 (Fix EventManager RTTI failures across shared-library boundaries (#3459))
               }
 
       /// \brief Emit an event signal to connected subscribers.
@@ -104,6 +116,7 @@ namespace ignition
                   return;
                 }
 
+<<<<<<< HEAD
                 E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
@@ -116,6 +129,11 @@ namespace ignition
                   ignerr << "Failed to signal event: "
                     << typeid(E).name() << std::endl;
                 }
+=======
+                // static_cast: see Connect() comment on RTTI across dylibs.
+                E *eventPtr = static_cast<E *>(this->events[typeid(E)].get());
+                eventPtr->Signal(std::forward<Args>(_args) ...);
+>>>>>>> 90e82be8 (Fix EventManager RTTI failures across shared-library boundaries (#3459))
               }
 
       /// \brief Get connection count for a particular event
@@ -129,6 +147,7 @@ namespace ignition
                   return 0u;
                 }
 
+<<<<<<< HEAD
                 E *eventPtr = dynamic_cast<E *>(this->events[typeid(E)].get());
                 // All values in the map should be derived from Event,
                 // so this shouldn't be an issue, but it doesn't hurt to check.
@@ -142,17 +161,25 @@ namespace ignition
                       << typeid(E).name() << std::endl;
                   return 0u;
                 }
+=======
+                // static_cast: see Connect() comment on RTTI across dylibs.
+                E *eventPtr = static_cast<E *>(this->events[typeid(E)].get());
+                return eventPtr->ConnectionCount();
+>>>>>>> 90e82be8 (Fix EventManager RTTI failures across shared-library boundaries (#3459))
               }
 
       /// \brief Convenience type for storing typeinfo references.
       private: using TypeInfoRef = std::reference_wrapper<const std::type_info>;
 
       /// \brief Hash functor for TypeInfoRef
+      /// \details Uses name-based hashing so that the same type loaded
+      /// across shared-library boundaries (RTLD_LOCAL) hashes to the same
+      /// bucket on macOS where typeid() pointer identity differs per dylib.
       private: struct Hasher
                {
                  std::size_t operator()(TypeInfoRef _code) const
                  {
-                   return _code.get().hash_code();
+                   return std::hash<std::string>{}(_code.get().name());
                  }
                };
 
@@ -161,7 +188,9 @@ namespace ignition
                {
                  bool operator()(TypeInfoRef _lhs, TypeInfoRef _rhs) const
                  {
-                   return _lhs.get() == _rhs.get();
+                   return _lhs.get() == _rhs.get() ||
+                          std::strcmp(_lhs.get().name(),
+                                     _rhs.get().name()) == 0;
                  }
                };
 
