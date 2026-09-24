@@ -126,12 +126,18 @@ class TestFixture
     auto simulator = this->Simulator();
     const auto deadline = this->info.simTime + _step;
     do {
+      if (simulator->GetStatus() == sim::Server::Status::EXITED)
+        break;
+
       const double stepSize =
           std::chrono::duration<double>(deadline - this->info.simTime).count();
       uint64_t previous_iterations = this->Iterations();
-      simulator->Run(blocking,
-          static_cast<uint64_t>(std::ceil(stepSize / this->maxStepSize)),
-          this->paused);
+      if (!simulator->Run(blocking,
+            static_cast<uint64_t>(std::ceil(stepSize / this->maxStepSize)),
+            this->paused))
+      {
+        break;
+      }
       iterations += this->Iterations() - previous_iterations;
     } while (this->info.simTime < deadline);
     return iterations;
