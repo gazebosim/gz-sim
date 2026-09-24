@@ -1,0 +1,171 @@
+<?xml version="1.0" ?>
+<!--
+  World Magnetic Model (WMM) magnetometer demo
+
+  This example demonstrates the high-resolution World Magnetic Model
+  (WMMHR 2025) magnetometer system plugin. The magnetometer sensor
+  reports the Earth's magnetic field based on the model's geographic
+  position derived from the world's spherical coordinates.
+
+  The world origin is set to Sydney, Australia. The magnetometer
+  outputs the field in ENU frame and Tesla units (configurable via
+  the plugin parameters).
+
+  Run:
+
+    gz sim magnetometer_wmm.sdf
+
+  Listen to the magnetometer topic:
+
+    gz topic -e -t /world/magnetometer_wmm/model/magnetometer_model/link/link/sensor/magnetometer_sensor/magnetometer
+
+  Move the model to a new location and observe the field change:
+
+    gz service \
+      -s /world/magnetometer_wmm/set_spherical_coordinates \
+      --reqtype gz.msgs.SphericalCoordinates \
+      --reptype gz.msgs.Boolean \
+      --timeout 2000 \
+      --req "entity: {name: 'magnetometer_model', type: MODEL}, latitude_deg: 35.6762, longitude_deg: 139.6503"
+
+-->
+<sdf version="1.6">
+  <world name="magnetometer_wmm">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <!--
+      Magnetometer system plugin with WMM enabled.
+
+      Parameters:
+        use_world_magnetic_model  - Enable the WMM (default: false)
+        wmm_coefficient_file      - Path to the WMMHR.COF file.
+                                    If just a filename is given, the plugin
+                                    searches the installed data directory.
+                                    (default: "WMMHR.COF")
+        wmm_date                  - Decimal year for the model evaluation.
+                                    Omit to use the current system date.
+        wmm_recalculation_distance - Distance in meters a sensor must move
+                                     before the field is recomputed.
+                                     (default: 1000)
+        use_units_gauss           - Output in Gauss instead of Tesla
+                                    (default: true)
+        use_earth_frame_ned       - Output in NED frame instead of ENU
+                                    (default: false)
+    -->
+    <plugin
+      filename="gz-sim-magnetometer-system"
+      name="gz::sim::systems::Magnetometer">
+      <use_world_magnetic_model>true</use_world_magnetic_model>
+      <wmm_date>2025.5</wmm_date>
+      <use_units_gauss>false</use_units_gauss>
+      <use_earth_frame_ned>false</use_earth_frame_ned>
+    </plugin>
+
+    <!-- Sydney, Australia -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>-33.8688</latitude_deg>
+      <longitude_deg>151.2093</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="magnetometer_model">
+      <pose>0 0 0.05 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.0 0.0 1.0 1</ambient>
+            <diffuse>0.0 0.0 1.0 1</diffuse>
+          </material>
+        </visual>
+        <sensor name="magnetometer_sensor" type="magnetometer">
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>
