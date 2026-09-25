@@ -72,12 +72,18 @@ namespace gz
       /// \brief Destructor
       public: ~EntityComponentManager();
 
-      /// \brief Copies the contents of `_from` into this object.
+      /// \brief Copies the contents of `_fromEcm` into this object.
       /// \note This is a member function instead of a copy constructor so that
       /// it can have additional parameters if the need arises in the future.
       /// Additionally, not every data member is copied making its behavior
       /// different from what would be expected from a copy constructor.
-      /// \param[in] _from Object to copy from
+      /// \warning This rebuilds the underlying component storage: every
+      /// existing component is destroyed and replaced by a freshly allocated
+      /// clone. Any raw component pointer previously obtained from this ECM
+      /// (e.g. via Component()) is therefore left dangling and must be
+      /// re-fetched after this call. Dereferencing a stale pointer is
+      /// undefined behavior.
+      /// \param[in] _fromEcm Object to copy from
       public: void CopyFrom(const EntityComponentManager &_fromEcm);
 
       /// \brief Creates a new Entity.
@@ -244,7 +250,7 @@ namespace gz
       /// \return A pointer to the component that was created. nullptr is
       /// returned if the component was not able to be created. If _entity
       /// does not exist, nullptr will be returned.
-      public: template<typename ComponentTypeT>
+     public: template<typename ComponentTypeT>
               ComponentTypeT *CreateComponent(
                   const Entity _entity,
                   const ComponentTypeT &_data);
@@ -576,7 +582,7 @@ namespace gz
       /// exist within the ECM.
       /// \sa EntityComponentManager::PeriodicStateFromCache
       public: void UpdatePeriodicChangeCache(std::unordered_map<ComponentTypeId,
-        std::unordered_set<Entity>>&) const;
+        std::unordered_set<Entity>>&_changes) const;
 
       /// \brief Set the absolute state of the ECM from a serialized message.
       /// Entities / components that are in the new state but not in the old
@@ -664,9 +670,15 @@ namespace gz
       /// \param[in] _offset Offset value.
       public: void SetEntityCreateOffset(uint64_t _offset);
 
-      /// \brief Given a diff, apply it to this ECM. Note that for removed
-      /// entities, this would mark them for removal instead of actually
-      /// removing the entities.
+      /// \brief Reset this ECM back to the state captured in `_other`,
+      /// reconciling any entities that were added or removed since `_other` was
+      /// taken. This is the operation used to implement world reset/rewind.
+      /// \warning This rebuilds the underlying component storage via
+      /// CopyFrom(). Any raw component pointer obtained from this ECM before
+      /// the reset (e.g. via Component()) is invalidated and must be
+      /// re-fetched afterwards. Holding such a pointer across a reset and
+      /// dereferencing it is undefined behavior (see issue
+      /// https://github.com/gazebosim/gz-sim/issues/3635).
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
       public: void ResetTo(const EntityComponentManager &_other);
@@ -714,6 +726,7 @@ namespace gz
       /// removing the entities.
       /// \param[in] _other Original EntityComponentManager from which the diff
       /// was computed.
+      /// \param[in] _diff The diff to apply to this EntityComponentManager.
       protected: void ApplyEntityDiff(const EntityComponentManager &_other,
                                       const EntityComponentManagerDiff &_diff);
 

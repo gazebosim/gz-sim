@@ -349,7 +349,7 @@ TEST_F(ComponentTest, OStream)
     comp.Serialize(ostr);
 
     msgs::Int32 dataExpected;
-    dataExpected.ParseFromString(ostr.str());
+    EXPECT_TRUE(dataExpected.ParseFromString(ostr.str()));
     EXPECT_EQ(331, dataExpected.data());
   }
 

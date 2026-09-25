@@ -17,9 +17,12 @@
 
 #include "Contact.hh"
 
+#include <google/protobuf/arena.h>
+
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -68,8 +71,19 @@ class ContactSensor
   /// \brief Topic to publish data to
   public: std::string topic;
 
-  /// \brief Message to publish
-  public: msgs::Contacts contactsMsg;
+  /// \brief Arena for contact message allocation. Reset() is called after
+  /// each publish, retaining the arena's initial block for reuse.
+  public: google::protobuf::Arena arena;
+
+  /// \brief Message to publish (arena-owned). Reallocated on the arena
+  /// after every Reset().
+  public: msgs::Contacts *contactsMsg{
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    google::protobuf::Arena::Create<msgs::Contacts>(&arena)
+#else
+    google::protobuf::Arena::CreateMessage<msgs::Contacts>(&arena)
+#endif
+  };
 
   /// \brief Gazebo transport node
   public: transport::Node node;
@@ -85,7 +99,10 @@ class gz::sim::systems::ContactPrivate
 {
   /// \brief Create sensors that correspond to entities in the simulation
   /// \param[in] _ecm Mutable reference to ECM.
-  public: void CreateSensors(EntityComponentManager &_ecm);
+  /// \param[in] _includeExisting True to scan existing contact sensor
+  /// components as well as newly-created ones.
+  public: void CreateSensors(EntityComponentManager &_ecm,
+              bool _includeExisting = false);
 
   /// \brief Update and publish sensor data
   /// \param[in] _ecm Immutable reference to ECM.
@@ -134,81 +151,108 @@ void ContactSensor::AddContacts(
   auto stamp = convert<msgs::Time>(_stamp);
   for (const auto &contact : _contacts.contact())
   {
-    auto *newContact = this->contactsMsg.add_contact();
+    auto *newContact = this->contactsMsg->add_contact();
     newContact->CopyFrom(contact);
     newContact->mutable_header()->mutable_stamp()->CopyFrom(stamp);
   }
 
-  this->contactsMsg.mutable_header()->mutable_stamp()->CopyFrom(stamp);
+  this->contactsMsg->mutable_header()->mutable_stamp()->CopyFrom(stamp);
 }
 
 //////////////////////////////////////////////////
 void ContactSensor::Publish()
 {
   // Only publish if there are contacts
-  if (this->contactsMsg.contact_size() > 0)
+  if (this->contactsMsg->contact_size() > 0)
   {
-    this->pub.Publish(this->contactsMsg);
-    this->contactsMsg.Clear();
+    this->pub.Publish(*this->contactsMsg);
+    // Reset (not Clear): Clear() walks the field tree, while arena.Reset()
+    // is O(1) and lets the next add_contact() bump-allocate fresh entries.
+    this->arena.Reset();
+#if GOOGLE_PROTOBUF_VERSION >= 4022000
+    this->contactsMsg =
+      google::protobuf::Arena::Create<msgs::Contacts>(&this->arena);
+#else
+    this->contactsMsg =
+      google::protobuf::Arena::CreateMessage<msgs::Contacts>(&this->arena);
+#endif
   }
 }
 
 //////////////////////////////////////////////////
-void ContactPrivate::CreateSensors(EntityComponentManager &_ecm)
+void ContactPrivate::CreateSensors(EntityComponentManager &_ecm,
+    bool _includeExisting)
 {
   GZ_PROFILE("ContactPrivate::CreateSensors");
-  _ecm.EachNew<components::ContactSensor>(
-      [&](const Entity &_entity,
-          const components::ContactSensor *_contact) -> bool
+
+  auto createSensor =
+    [&](const Entity &_entity,
+        const components::ContactSensor *_contact) -> bool
+    {
+      if (this->entitySensorMap.find(_entity) != this->entitySensorMap.end())
+        return true;
+
+      // Check if the parent entity is a link
+      auto *parentEntity = _ecm.Component<components::ParentEntity>(_entity);
+      if (nullptr == parentEntity)
+        return true;
+
+      auto *linkComp = _ecm.Component<components::Link>(parentEntity->Data());
+      if (nullptr == linkComp)
       {
-        // Check if the parent entity is a link
-        auto *parentEntity = _ecm.Component<components::ParentEntity>(_entity);
-        if (nullptr == parentEntity)
-          return true;
+        // Contact sensors should only be attached to links
+        return true;
+      }
 
-        auto *linkComp = _ecm.Component<components::Link>(parentEntity->Data());
-        if (nullptr == linkComp)
+      auto collisionElem =
+          _contact->Data()->GetElement("contact")->GetElement("collision");
+
+      std::vector<Entity> collisionEntities;
+      // Get all the collision elements
+      for (; collisionElem;
+           collisionElem = collisionElem->GetNextElement("collision"))
+      {
+        auto collisionName = collisionElem->Get<std::string>();
+        // Get collision entity that matches the name given by the sensor's
+        // configuration.
+        auto childEntities = _ecm.ChildrenByComponents(
+            parentEntity->Data(), components::Collision(),
+            components::Name(collisionName));
+
+        if (!childEntities.empty())
         {
-          // Contact sensors should only be attached to links
-          return true;
-        }
+          // We assume that if childEntities is not empty, it only has one
+          // element.
+          collisionEntities.push_back(childEntities.front());
 
-        auto collisionElem =
-            _contact->Data()->GetElement("contact")->GetElement("collision");
-
-        std::vector<Entity> collisionEntities;
-        // Get all the collision elements
-        for (; collisionElem;
-             collisionElem = collisionElem->GetNextElement("collision"))
-        {
-          auto collisionName = collisionElem->Get<std::string>();
-          // Get collision entity that matches the name given by the sensor's
-          // configuration.
-          auto childEntities = _ecm.ChildrenByComponents(
-              parentEntity->Data(), components::Collision(),
-              components::Name(collisionName));
-
-          if (!childEntities.empty())
+          // Create component to be filled by physics.
+          if (nullptr == _ecm.Component<components::ContactSensorData>(
+              childEntities.front()))
           {
-            // We assume that if childEntities is not empty, it only has one
-            // element.
-            collisionEntities.push_back(childEntities.front());
-
-            // Create component to be filled by physics.
             _ecm.CreateComponent(childEntities.front(),
                                  components::ContactSensorData());
           }
         }
+      }
 
-        std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/contact";
+      std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/contact";
 
-        auto sensor = std::make_unique<ContactSensor>();
-        sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
-        this->entitySensorMap.insert(
-            std::make_pair(_entity, std::move(sensor)));
+      auto sensor = std::make_unique<ContactSensor>();
+      sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
+      this->entitySensorMap.insert(
+          std::make_pair(_entity, std::move(sensor)));
 
-        return true;
-      });
+      return true;
+    };
+
+  if (_includeExisting)
+  {
+    _ecm.Each<components::ContactSensor>(createSensor);
+  }
+  else
+  {
+    _ecm.EachNew<components::ContactSensor>(createSensor);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -294,9 +338,19 @@ void Contact::PostUpdate(const UpdateInfo &_info,
   this->dataPtr->RemoveSensors(_ecm);
 }
 
+//////////////////////////////////////////////////
+void Contact::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
+{
+  this->dataPtr->entitySensorMap.clear();
+  // After reset, existing sensor entities are not reported as new entities.
+  // Re-scan them so contact sensors keep publishing in the next episode.
+  this->dataPtr->CreateSensors(_ecm, true);
+}
+
 GZ_ADD_PLUGIN(Contact, System,
   Contact::ISystemPreUpdate,
-  Contact::ISystemPostUpdate
+  Contact::ISystemPostUpdate,
+  Contact::ISystemReset
 )
 
 GZ_ADD_PLUGIN_ALIAS(Contact, "gz::sim::systems::Contact")

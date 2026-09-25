@@ -115,6 +115,20 @@ namespace gz
     ///
     class GZ_SIM_VISIBLE Server
     {
+      /// \brief Lifecycle states of the server.
+      public: enum class Status {
+        /// \brief The server encountered a critical error during initialization
+        /// (e.g., an SDF parsing error while SdfErrorBehavior is set to
+        /// EXIT_IMMEDIATELY) and is in a terminal state.
+        /// Calls to Run() or RunOnce() will return false.
+        EXITED,
+        /// \brief The server is initialized and ready, but not currently
+        /// running.
+        STOPPED,
+        /// \brief The server is currently running.
+        RUNNING
+      };
+
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.
       /// \param[in] _config Server configuration parameters. If this
@@ -232,7 +246,7 @@ namespace gz
       /// \param[in] _system system to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -272,7 +286,7 @@ namespace gz
       /// \param[in] _system System to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added
       /// \param[in] _worldIndex Index of the world to add to.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -341,9 +355,13 @@ namespace gz
       /// \brief Reset all runners in this simulation
       public: void ResetAll();
       /// \brief Reset a specific runner in this server
-      /// \param[in] runnerId - The runner which you want to reset
+      /// \param[in] _runnerId - The runner which you want to reset
       /// \ return False if the runner does not exist, true otherwise.
       public: bool Reset(const std::size_t _runnerId);
+
+      /// \brief Get the current lifecycle status of the server.
+      /// \return The current status (EXITED, STOPPED, or RUNNING).
+      public: Status GetStatus() const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

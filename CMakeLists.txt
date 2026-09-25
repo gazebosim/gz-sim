@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim VERSION 10.0.0)
+project(gz-sim VERSION 10.5.0)
 set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
@@ -38,6 +38,13 @@ endif()
 
 set(BACKWARD_TESTS OFF)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
+
+# Fix C4530 warning on MSVC: backward-cpp uses exceptions but /EHsc is not
+# set by default. Applied here instead of in vendor/ to survive updates.
+if(MSVC)
+  target_compile_options(backward_object PRIVATE /EHsc)
+  target_compile_options(backward PRIVATE /EHsc)
+endif()
 
 # Using other CMake interfaces from backwards won't work here since
 # CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
@@ -123,6 +130,7 @@ option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
 
 if(ENABLE_GUI)
   gz_find_package(gz-gui VERSION 10 REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
 
   set(QT_MAJOR_VERSION 6)
   set(QT_MINOR_VERSION 4)
@@ -134,13 +142,6 @@ if(ENABLE_GUI)
       QuickControls2
     REQUIRED
     PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
-
-  set(CMAKE_AUTOMOC TRUE)
-  set(CMAKE_AUTOUIC TRUE)
-  set(CMAKE_AUTORCC TRUE)
-  if(POLICY CMP0100)
-    cmake_policy(SET CMP0100 NEW)
-  endif()
 endif()
 
 #--------------------------------------
@@ -162,6 +163,7 @@ gz_find_package(gz-sensors VERSION 10 REQUIRED
     air_pressure
     air_speed
     altimeter
+    cpu_lidar
     imu
     force_torque
     logical_camera
@@ -288,26 +290,29 @@ configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim${PROJECT_VERSION_MAJOR}.desktop)
 configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo${PROJECT_VERSION_MAJOR}.svg)
 
-# disable doxygen on macOS due to issues with doxygen 1.9.0
-# there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/gazebosim/gz-sim/issues/520
-if (NOT APPLE)
-  gz_create_docs(
-    API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-    TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
-    ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
-    IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
-    TAGFILES
-     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
-  )
+set(gz_sim_doxygen_tagfiles
+  "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
+  "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
+  "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
+  "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
+  "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
+  "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
+  "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
+)
+
+if(EXISTS "${GZ-GUI_DOXYGEN_TAGFILE}")
+  list(APPEND gz_sim_doxygen_tagfiles
+    "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}")
 endif()
+
+gz_create_docs(
+  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
+  ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+  IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
+  TAGFILES
+   ${gz_sim_doxygen_tagfiles}
+)
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)

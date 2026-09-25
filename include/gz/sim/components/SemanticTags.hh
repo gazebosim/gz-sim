@@ -48,7 +48,8 @@ class SemanticTagsSerializer
     {
       msg.add_data(tag);
     }
-    msg.SerializeToOstream(&_out);
+    auto result = msg.SerializeToOstream(&_out);
+    (void)result;
     return _out;
   }
 
@@ -57,7 +58,10 @@ class SemanticTagsSerializer
                                    std::vector<std::string> &_tags)
   {
     msgs::StringMsg_V msg;
-    msg.ParsePartialFromIstream(&_in);
+    if(!msg.ParsePartialFromIstream(&_in))
+    {
+      return _in;
+    }
     _tags.clear();
     for (const auto &item : msg.data())
     {

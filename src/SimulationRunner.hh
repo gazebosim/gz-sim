@@ -69,6 +69,9 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+#ifdef _WIN32
+    class SimulationRunnerWinHandleStorage;
+#endif
 
     class GZ_SIM_VISIBLE SimulationRunner
     {
@@ -167,6 +170,10 @@ namespace gz
       /// then simulation is stepping forward.
       /// \return True if the server is running.
       public: bool Running() const;
+
+      /// \brief Get whether parallel PostUpdate is enabled.
+      /// \return True if parallel PostUpdate is enabled, false otherwise.
+      public: bool ParallelPostUpdates() const;
 
       /// \brief Get whether the runner has received a stop event
       /// \return True if the event has been received.
@@ -291,6 +298,12 @@ namespace gz
       /// \param[in] _step Step size.
       public: void SetStepSize(
           const std::chrono::steady_clock::duration &_step);
+
+      /// \brief Mark the runner as having exited with errors.
+      /// \details This is called by the Server when a critical error occurs
+      /// during initialization (e.g. invalid SDF). A runner in this state
+      /// will refuse to run simulation steps.
+      public: void SetExitedWithErrors();
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -448,13 +461,6 @@ namespace gz
       /// \brief Manager of distributing/receiving network work.
       private: std::unique_ptr<NetworkManager> networkMgr{nullptr};
 
-      /// \brief Wall time of the previous update.
-      private: std::chrono::steady_clock::time_point prevUpdateRealTime;
-
-      /// \brief A duration used to account for inaccuracies associated with
-      /// sleep durations.
-      private: std::chrono::steady_clock::duration sleepOffset{0};
-
       /// \brief This is the rate at which the systems are updated.
       /// The default update rate is 500hz, which is a period of 2ms.
       private: std::chrono::steady_clock::duration updatePeriod{2ms};
@@ -585,6 +591,18 @@ namespace gz
       /// \brief True to create entities.
       private: bool createEntities{false};
       private: bool entitiesCreated{false};
+
+      /// \brief Flag indicating if the server encountered errors during
+      /// initialization and should exit immediately. See
+      /// `SetExitedWithErrors()`.
+      private: bool exitedWithErrors{false};
+
+      /// \brief Whether parallel PostUpdate is enabled.
+      private: bool parallelPostUpdates{true};
+#ifdef _WIN32
+      private: std::unique_ptr<SimulationRunnerWinHandleStorage>
+        winPrecisionTimer;
+#endif
 
       friend class LevelManager;
     };

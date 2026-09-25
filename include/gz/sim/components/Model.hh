@@ -38,7 +38,7 @@ namespace serializers
   {
     /// \brief Serialization for `sdf::Model`.
     /// \param[in] _out Output stream.
-    /// \param[in] _time Model to stream
+    /// \param[in] _model Model to stream
     /// \return The stream.
     public: static std::ostream &Serialize(std::ostream &_out,
                 const sdf::Model &_model)

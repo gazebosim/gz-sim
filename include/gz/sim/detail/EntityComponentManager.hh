@@ -41,29 +41,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
-  /// \brief Helper struct to determine if an equality operator is present.
-  struct TestEqualityOperator
-  {
-  };
-  template<typename T>
-  TestEqualityOperator operator == (const T&, const T&);
-
   /// \brief Type trait that determines if an operator== is defined for `T`.
-  template<typename T>
-  struct HasEqualityOperator
+  template <typename, typename = std::void_t<>>
+  struct HasEqualityOperator : std::false_type {};
+
+  template <typename T>
+  struct HasEqualityOperator<
+      T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+      : std::true_type
   {
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-    enum
-    {
-      // False positive codecheck "Using C-style cast"
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
-    };
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic pop
-#endif
   };
 }
 
@@ -176,6 +162,27 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
   return comp->SetData(_data, CompareData<typename ComponentTypeT::Type>);
 }
 
+
+namespace detail
+{
+template <typename ComponentTypeT>
+bool checkEquality(const ComponentTypeT &_desired,
+                   const components::BaseComponent *_baseComp)
+{
+  const ComponentTypeT *entityComponent =
+      static_cast<const ComponentTypeT *>(_baseComp);
+  return *entityComponent == _desired;
+}
+
+template <typename... ComponentTypeTs, std::size_t... Is>
+bool checkAllEquality(
+    const std::vector<const components::BaseComponent *> &_data,
+    std::index_sequence<Is...>, const ComponentTypeTs &..._desiredComponents)
+{
+  return (... && checkEquality(_desiredComponents, _data[Is]));
+}
+}  // namespace detail
+//
 //////////////////////////////////////////////////
 template<typename ...ComponentTypeTs>
 Entity EntityComponentManager::EntityByComponents(
@@ -185,33 +192,21 @@ Entity EntityComponentManager::EntityByComponents(
   const auto &view = this->FindView<ComponentTypeTs...>();
 
   // Iterate over entities
-  Entity result{kNullEntity};
   for (const Entity entity : view->Entities())
   {
-    bool different{false};
+    const auto &componentVector = view->EntityComponentConstData(entity);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+        componentVector,
+        std::index_sequence_for<ComponentTypeTs...>{},
+        _desiredComponents...);
 
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
+    if (allEqual)
     {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
-    {
-      result = entity;
-      break;
+      return entity;
     }
   }
 
-  return result;
+  return kNullEntity;
 }
 
 //////////////////////////////////////////////////
@@ -226,23 +221,13 @@ std::vector<Entity> EntityComponentManager::EntitiesByComponents(
   std::vector<Entity> result;
   for (const Entity entity : view->Entities())
   {
-    bool different{false};
+    const auto &componentVector = view->EntityComponentConstData(entity);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+        componentVector,
+        std::index_sequence_for<ComponentTypeTs...>{},
+        _desiredComponents...);
 
-    // Iterate over desired components, comparing each of them to the
-    // equivalent component in the entity.
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
-
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
+    if (allEqual)
     {
       result.push_back(entity);
     }
@@ -264,31 +249,24 @@ std::vector<Entity> EntityComponentManager::ChildrenByComponents(Entity _parent,
 
   // Iterate over entities
   std::vector<Entity> result;
-  for (const Entity entity : view->Entities())
+  for (const auto &child : children)
   {
-    if (children.find(entity) == children.end())
+    if (view->Entities().find(child.first) == view->Entities().end())
     {
       continue;
     }
 
     // Iterate over desired components, comparing each of them to the
     // equivalent component in the entity.
-    bool different{false};
-    ForEach([&](const auto &_desiredComponent)
-    {
-      auto entityComponent = this->Component<
-          std::remove_cv_t<std::remove_reference_t<
-              decltype(_desiredComponent)>>>(entity);
+    const auto &componentVector = view->EntityComponentConstData(child.first);
+    bool allEqual = detail::checkAllEquality<ComponentTypeTs...>(
+      componentVector,
+      std::index_sequence_for<ComponentTypeTs...>{},
+      _desiredComponents...);
 
-      if (*entityComponent != _desiredComponent)
-      {
-        different = true;
-      }
-    }, _desiredComponents...);
-
-    if (!different)
+    if (allEqual)
     {
-      result.push_back(entity);
+      result.push_back(child.first);
     }
   }
 
@@ -443,6 +421,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -465,6 +448,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -487,13 +475,17 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity is marked for removal: skip the view lookup
+  // entirely.
+  if (!this->HasEntitiesMarkedForRemoval())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
-  // function.
+  // Iterate over the entities in the view that are marked for removal, and
+  // invoke the callback function.
   for (const Entity entity : view->ToRemoveEntities())
   {
     const auto &data = view->EntityComponentData(entity);

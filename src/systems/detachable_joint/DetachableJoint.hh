@@ -56,7 +56,7 @@ namespace systems
   /// backward compatibility.
   ///
   /// - `<topic>` (optional): Topic name to be used for detaching connections.
-  /// Using <detach_topic> is preferred.
+  /// Using `<detach_topic>` is preferred.
   ///
   /// - `<detach_topic>` (optional): Topic name to be used for detaching
   /// connections. If multiple detachable plugin is used in one model,

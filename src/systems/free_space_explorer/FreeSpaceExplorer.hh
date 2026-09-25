@@ -38,14 +38,14 @@ namespace systems
   /// ## System Parameters
   ///
   /// This system takes in the following parameters:
-  ///    * <lidar_topic> - Topic to listen to LiDAR on
-  ///    * <width> - Number of columns in the occupancy map
-  ///    * <height> - Number of rows in the occupancy map
-  ///    * <resolution> - Resolution of an individual cell
-  ///    * <sensor_link> - Link on which the sensor is attached within the
+  ///    * `<lidar_topic>` - Topic to listen to LiDAR on
+  ///    * `<width>` - Number of columns in the occupancy map
+  ///    * `<height>` - Number of rows in the occupancy map
+  ///    * `<resolution>` - Resolution of an individual cell
+  ///    * `<sensor_link>` - Link on which the sensor is attached within the
   ///                      model.
-  ///    * <image_topic> - Topic to publish occupancy map on
-  ///    * <start_topic> - Topic to listen on before starting exploration.
+  ///    * `<image_topic>` - Topic to publish occupancy map on
+  ///    * `<start_topic>` - Topic to listen on before starting exploration.
   ///
   /// Note: It is assumed the sensor does not implement any pose
   /// offset from the link itself. This may of may not be true.

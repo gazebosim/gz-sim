@@ -117,6 +117,9 @@ class gz::sim::systems::OdometryPublisherPrivate
   /// \brief Allow specifying constant xyz and rpy offsets
   public: gz::math::Pose3d offset = {0, 0, 0, 0, 0, 0};
 
+  /// \brief Allow specifying constant xyz and rpy offsets in global/world frame
+  public: gz::math::Pose3d globalOffset = {0, 0, 0, 0, 0, 0};
+
   /// \brief Gaussian noise
   public: double gaussianNoise = 0.0;
 };
@@ -176,6 +179,19 @@ void OdometryPublisher::Configure(const Entity &_entity,
     this->dataPtr->offset.Rot() =
       gz::math::Quaterniond(_sdf->Get<gz::math::Vector3d>(
         "rpy_offset"));
+  }
+
+  if (_sdf->HasElement("xyz_global_offset"))
+  {
+    this->dataPtr->globalOffset.Pos() = _sdf->Get<gz::math::Vector3d>(
+      "xyz_global_offset");
+  }
+
+  if (_sdf->HasElement("rpy_global_offset"))
+  {
+    this->dataPtr->globalOffset.Rot() =
+      gz::math::Quaterniond(_sdf->Get<gz::math::Vector3d>(
+        "rpy_global_offset"));
   }
 
   if (_sdf->HasElement("gaussian_noise"))
@@ -339,8 +355,14 @@ math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
 {
   // Compute the first order finite difference between current and previous
   // rotation as quaternion.
+  math::Quaterniond currentRot = _currentPose.Rot();
+  if (currentRot.Dot(_lastPose.Rot()) < 0)
+  {
+    currentRot = -currentRot;
+  }
+
   const math::Quaterniond rotationDiff =
-    _currentPose.Rot() * _lastPose.Rot().Inverse();
+    currentRot * _lastPose.Rot().Inverse();
 
   math::Vector3d rotationAxis;
   double rotationAngle;
@@ -383,7 +405,7 @@ void OdometryPublisherPrivate::UpdateOdometry(
   const math::Pose3d rawPose = worldPose(this->model.Entity(), _ecm);
   //! [worldPose]
   //! [setPoseMsg]
-  math::Pose3d pose = rawPose * this->offset;
+  math::Pose3d pose = this->globalOffset.Inverse() * rawPose * this->offset;
   msg.mutable_pose()->mutable_position()->set_x(pose.Pos().X());
   msg.mutable_pose()->mutable_position()->set_y(pose.Pos().Y());
   msgs::Set(msg.mutable_pose()->mutable_orientation(), pose.Rot());

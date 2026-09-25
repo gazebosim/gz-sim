@@ -159,7 +159,7 @@ Classic | Gazebo
 -- | --
 EntityBelowPoint | Requires a system
 ModelBelowPoint | Requires a system
-SceneMsg | Use `gz::sim::systems::SceneBoradcaster`
+SceneMsg | Use `gz::sim::systems::SceneBroadcaster`
 WorldPoseMutex | N/A
 StripWorldName | N/A
 UniqueModelName | TODO

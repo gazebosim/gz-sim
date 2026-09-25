@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <optional>
 #include <gtest/gtest.h>
 
@@ -24,6 +25,7 @@
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Factory.hh"
@@ -708,6 +710,58 @@ TEST_P(EntityComponentManagerFixture,
     }
   }
 }
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsRecreateRemovedComponent))
+{
+  // Create an entity and initialize it with one component of a two-component
+  // view
+  Entity entity = manager.CreateEntity();
+  auto comp1 = manager.CreateComponent<IntComponent>(entity,
+      IntComponent(123));
+  ASSERT_NE(nullptr, comp1);
+
+  // Initialize the view by calling Each with both components.
+  // It shouldn't match yet because the entity only has IntComponent.
+  int count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &, const IntComponent *,
+          const DoubleComponent *) -> bool
+      {
+        count++;
+        return true;
+      });
+  EXPECT_EQ(0, count);
+
+  // Add the second component. This matches the view and marks the entity to
+  // add.
+  auto comp2 = manager.CreateComponent<DoubleComponent>(entity,
+      DoubleComponent(0.456));
+  ASSERT_NE(nullptr, comp2);
+
+  // Remove, then re-add the second component.
+  EXPECT_TRUE(manager.RemoveComponent(entity, DoubleComponent::typeId));
+
+  auto comp3 = manager.CreateComponent<DoubleComponent>(entity,
+      DoubleComponent(0.789));
+  ASSERT_NE(nullptr, comp3);
+
+  // Query the view. The entity should match and be found.
+  count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, const IntComponent *_intComp,
+          const DoubleComponent *_doubleComp) -> bool
+      {
+        EXPECT_EQ(entity, _entity);
+        EXPECT_EQ(123, _intComp->Data());
+        EXPECT_DOUBLE_EQ(0.789, _doubleComp->Data());
+        count++;
+        return true;
+      });
+  EXPECT_EQ(1, count);
+}
+
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
@@ -3437,6 +3491,26 @@ TEST_P(EntityComponentManagerFixture, EntityByName)
   EXPECT_TRUE(entityByName);
   CompareEntityComponents<components::Name>(manager, entity,
     *entityByName, true);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, HasEqualityOperator)
+{
+  EXPECT_TRUE(traits::HasEqualityOperator<int>::value);
+  EXPECT_TRUE(
+      traits::HasEqualityOperator<std::chrono::nanoseconds>::value);
+  EXPECT_FALSE(traits::HasEqualityOperator<Custom>::value);
+
+  Entity entity = manager.CreateEntity();
+  using namespace std::chrono_literals;
+  auto comp = manager.CreateComponent<AnimationTime>(entity,
+      AnimationTime(100ms));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(100ms, comp->Data());
+
+  EXPECT_TRUE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+  EXPECT_EQ(200ms, manager.ComponentData<AnimationTime>(entity));
+  EXPECT_FALSE(manager.SetComponentData<AnimationTime>(entity, 200ms));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

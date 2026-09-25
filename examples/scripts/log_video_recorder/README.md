@@ -43,8 +43,8 @@ timestamped directory where the `record_one_run.bash` is in.
     A: Make sure you have all the fuel models downloaded in ~/.gz/fuel cache
 directory
 
-1. I see `tmp_record` dir, `tmp_recording.mp4` and other left over mp4 files
-in the directory where I ran `record_one_run.bash script.
+1. I see `tmp_record` dir, `tmp_recording.mp4` and other leftover mp4 files
+in the directory where I ran the `record_one_run.bash` script.
     A: The playback and recording process is probably interrupted and the
 script did not have the chance to clean up some of these intermediate files
 

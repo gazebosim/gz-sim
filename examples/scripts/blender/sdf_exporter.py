@@ -7,7 +7,7 @@ from bpy.props import StringProperty
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper
 
-# Tested Blender version: 2.82/3.2
+# Tested Blender version: 4.2/4.3
 
 ########################################################################################################################
 ### Exports model.dae of the scene with textures, its corresponding model.sdf file, and a default model.config file ####
@@ -71,8 +71,7 @@ def export_sdf(prefix_path):
             nodes = o.active_material.node_tree.nodes
             principled = next(n for n in nodes if n.type == "BSDF_PRINCIPLED")
             if principled is not None:
-                base_color = principled.inputs["Base Color"]  # Or principled.inputs[0]
-                value = base_color.default_value
+                base_color = principled.inputs["Base Color"]
                 if len(base_color.links):
                     link_node = base_color.links[0].from_node
                     diffuse_map = link_node.image.name
@@ -98,54 +97,50 @@ def export_sdf(prefix_path):
             cast_shadows.text = "0"
 
     def add_attenuation_tags(light_tag, blender_light):
-        attenuation = ET.SubElement(light, "attenuation")
+        attenuation = ET.SubElement(light_tag, "attenuation")
         range = ET.SubElement(attenuation, "range")
         range.text = str(blender_light.cutoff_distance)
-        linear_attenuation = ET.SubElement(attenuation, "linear")
-        linear_attenuation.text = str(blender_pointlight.linear_attenuation)
-        quad_attenuation = ET.SubElement(attenuation, "quadratic")
-        quad_attenuation.text = str(blender_pointlight.quadratic_coefficient)
-        const_attenuation = ET.SubElement(attenuation, "constant")
-        const_attenuation.text = str(blender_pointlight.constant_coefficient)
+        linear = ET.SubElement(attenuation, "linear")
+        linear.text = "1.0"
+        quadratic = ET.SubElement(attenuation, "quadratic")
+        quadratic.text = "0.0"
+        constant = ET.SubElement(attenuation, "constant")
+        constant.text = "1.0"
+
 
     # export lights
     for l in light_objects:
         blender_light = l.data
 
         if blender_light.type == "POINT":
-            light = ET.SubElement(
-                link, "light", attrib={"name": l.name, "type": "point"}
-            )
+            light = ET.SubElement(link, "light", attrib={"name": l.name, "type": "point"})
             diffuse = ET.SubElement(light, "diffuse")
             diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
-            blender_pointlight = bpy.types.PointLight(blender_light)
-
-            add_attenuation_tags(light, blender_pointlight)
+            add_attenuation_tags(light, blender_light)
 
         if blender_light.type == "SPOT":
-            light = ET.SubElement(
-                link, "light", attrib={"name": l.name, "type": "spot"}
-            )
+            light = ET.SubElement(link, "light", attrib={"name": l.name, "type": "spot"})
             diffuse = ET.SubElement(light, "diffuse")
             diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
-            blender_spotlight = bpy.types.SpotLight(blender_light)
+            add_attenuation_tags(light, blender_light)
 
-            add_attenuation_tags(light, blender_spotlight)
             # note: unsupported <spot> tags in blender
+            spot = ET.SubElement(light, "spot")
+            inner_angle = ET.SubElement(spot, "inner_angle")
+            inner_angle.text = str(blender_light.spot_size * 0.5)
+            outer_angle = ET.SubElement(spot, "outer_angle")
+            outer_angle.text = str(blender_light.spot_size)
+            falloff = ET.SubElement(spot, "falloff")
+            falloff.text = str(blender_light.spot_blend * 10)
 
         if blender_light.type == "SUN":
-            light = ET.SubElement(
-                link, "light", attrib={"name": l.name, "type": "directional"}
-            )
+            light = ET.SubElement(link, "light", attrib={"name": l.name, "type": "directional"})
             diffuse = ET.SubElement(light, "diffuse")
             diffuse.text = f"{blender_light.color.r} {blender_light.color.g} {blender_light.color.b} 1.0"
-            blender_pointlight = bpy.types.SunLight(blender_light)
 
-        if blender_light.type == "SUN" or blender_light.type == "SPOT":
+        if blender_light.type in ["SUN", "SPOT"]:
             direction = ET.SubElement(light, "direction")
-            direction.text = (
-                f"{l.matrix_world[0][2]} {l.matrix_world[1][2]} {l.matrix_world[2][2]}"
-            )
+            direction.text = f"{l.matrix_world[0][2]} {l.matrix_world[1][2]} {l.matrix_world[2][2]}"
 
         # unsupported: AREA lights
 
@@ -154,7 +149,7 @@ def export_sdf(prefix_path):
 
         # todo : bpy.types.light script api lacks an intensity value, possible candidate is energy/power(Watts)?
         intensity = ET.SubElement(light, "intensity")
-        intensity.text = "1.0"
+        intensity.text = str(blender_light.energy)
 
     ## sdf collision tags
     collision = ET.SubElement(link, "collision", attrib={"name": "collision"})
@@ -172,10 +167,8 @@ def export_sdf(prefix_path):
     ## sdf write to file
     xml_string = ET.tostring(sdf, encoding="unicode")
     reparsed = minidom.parseString(xml_string)
-
-    sdf_file = open(path.join(prefix_path, sdf_filename), "w")
-    sdf_file.write(reparsed.toprettyxml(indent="  "))
-    sdf_file.close()
+    with open(path.join(prefix_path, sdf_filename), "w") as sdf_file:
+        sdf_file.write(reparsed.toprettyxml(indent="  "))
 
     ##############################
     ### generate model.config ####
@@ -185,7 +178,7 @@ def export_sdf(prefix_path):
     name.text = model_name
     version = ET.SubElement(model, "version")
     version.text = "1.0"
-    sdf_tag = ET.SubElement(model, "sdf", attrib={"sdf": "1.8"})
+    sdf_tag = ET.SubElement(model, "sdf", attrib={"version": "1.8"})
     sdf_tag.text = sdf_filename
 
     author = ET.SubElement(model, "author")
@@ -194,11 +187,8 @@ def export_sdf(prefix_path):
 
     xml_string = ET.tostring(model, encoding="unicode")
     reparsed = minidom.parseString(xml_string)
-
-    config_file = open(path.join(prefix_path, model_config_filename), "w")
-    config_file.write(reparsed.toprettyxml(indent="  "))
-    config_file.close()
-
+    with open(path.join(prefix_path, model_config_filename), "w") as config_file:
+        config_file.write(reparsed.toprettyxml(indent="  "))
 
 #### UI Handling ####
 class OT_TestOpenFilebrowser(Operator, ImportHelper):
@@ -209,7 +199,6 @@ class OT_TestOpenFilebrowser(Operator, ImportHelper):
 
     def execute(self, context):
         """Do the export with the selected file."""
-
         if not path.isdir(self.directory):
             print(f"{self.directory} is not a directory!")
         else:
@@ -217,14 +206,11 @@ class OT_TestOpenFilebrowser(Operator, ImportHelper):
             export_sdf(self.directory)
         return {"FINISHED"}
 
-
 def register():
     bpy.utils.register_class(OT_TestOpenFilebrowser)
 
-
 def unregister():
     bpy.utils.unregister_class(OT_TestOpenFilebrowser)
-
 
 if __name__ == "__main__":
     register()

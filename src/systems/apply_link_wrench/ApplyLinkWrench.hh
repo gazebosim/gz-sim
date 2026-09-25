@@ -43,17 +43,17 @@ namespace systems
   ///
   /// ## Topics
   ///
-  /// * /world/<world_name>/wrench
+  /// * /world/`<world_name>`/wrench
   ///     * Message type: msgs::EntityWrench
   ///     * Effect: Applies the given wrench during a single time step.
   ///
-  /// * /world/<world_name>/wrench/persistent
+  /// * /world/`<world_name>`/wrench/persistent
   ///     * Message type: msgs::EntityWrench
   ///     * Effect: Keeps applying the given wrench every time step. Persistent
   ///               wrenches can be applied to entities that aren't in
   ///               simulation yet, and will start taking effect once they do.
   ///
-  /// * /world/<world_name>/wrench/clear
+  /// * /world/`<world_name>`/wrench/clear
   ///     * Message type: msgs::Entity
   ///     * Effect: Clears any persistent wrenches that are being applied to
   ///               the given entity.

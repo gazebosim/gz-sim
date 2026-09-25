@@ -10,6 +10,7 @@ gz_add_system(websocket-server
     websockets_shared
     gz-common::gz-common
     gz-common::graphics
+    gz-fuel_tools::gz-fuel_tools
     gz-msgs::core
     gz-plugin::core
     gz-transport::core

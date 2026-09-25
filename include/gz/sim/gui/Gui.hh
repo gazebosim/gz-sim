@@ -61,7 +61,7 @@ namespace gui
   /// \param[in] _waitGui Flag indicating whether the server waits until
   /// it receives a world path from GUI.
   /// \param[in] _renderEngine --render-engine-gui option
-  /// \param[in] _renderEngineGuiApiBackend --render-engine-gui-api-backend
+  /// \param[in] _renderEngineApiBackend --render-engine-gui-api-backend
   /// \return -1 on failure, 0 on success
   GZ_SIM_GUI_VISIBLE int runGui(int &_argc, char **_argv,
         const char *_guiConfig, const char *_sdfFile, int _waitGui,

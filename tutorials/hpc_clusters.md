@@ -431,8 +431,6 @@ dependencies and so on. If your cluster uses e.g. the Lmod modules system, you
 can provide a part of the dependencies just by typing `module load X11`.
 If you can get this working, you would get the definitive answer to which files
 are needed inside the container. If not, you just have to guess.
-</details>
-
 **Explanation why this worked:** The list of files in `nvliblist.conf` is just
 a guess. Some might be missing, some
 [are there and shouldn't](https://github.com/apptainer/apptainer/issues/945#issuecomment-1374524681).

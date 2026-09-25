@@ -524,7 +524,8 @@ class OdometryPublisherTest
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
   protected: void TestOffsetTags(const std::string &_sdfFile,
-                               const std::string &_odomTopic)
+                                 const std::string &_odomTopic,
+                                 const math::Pose3d &_expectedPose)
   {
     // Start server
     ServerConfig serverConfig;
@@ -558,13 +559,13 @@ class OdometryPublisherTest
     // Run for 3s and check the pose in the last message
     ASSERT_FALSE(odomPoses.empty());
     auto lastPose = odomPoses[odomPoses.size() - 1];
-    EXPECT_NEAR(lastPose.Pos().X(), 11, 1e-2);
-    EXPECT_NEAR(lastPose.Pos().Y(), -11, 1e-2);
-    EXPECT_NEAR(lastPose.Pos().Z(), 0, 1e-2);
+    EXPECT_NEAR(lastPose.Pos().X(), _expectedPose.Pos().X(), 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Y(), _expectedPose.Pos().Y(), 1e-2);
+    EXPECT_NEAR(lastPose.Pos().Z(), _expectedPose.Pos().Z(), 1e-2);
 
-    EXPECT_NEAR(lastPose.Rot().Roll(), 1.57, 1e-2);
-    EXPECT_NEAR(lastPose.Rot().Pitch(), 0, 1e-2);
-    EXPECT_NEAR(lastPose.Rot().Yaw(), 0, 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Roll(), _expectedPose.Rot().Roll(), 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Pitch(), _expectedPose.Rot().Pitch(), 1e-2);
+    EXPECT_NEAR(lastPose.Rot().Yaw(), _expectedPose.Rot().Yaw(), 1e-2);
   }
 
   /// \param[in] _sdfFile SDF file to load.
@@ -744,7 +745,19 @@ TEST_P(OdometryPublisherTest,
   TestOffsetTags(
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/odometry_offset.sdf",
-      "/model/vehicle/odometry");
+      "/model/vehicle/odometry",
+      math::Pose3d(11, -11, 0, 1.57, 0, 0));
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(GlobalOffsetTagTest))
+{
+  TestOffsetTags(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_global_offset.sdf",
+      "/model/vehicle/odometry",
+      math::Pose3d(-9, -9, 0, 0, 0, -1.57));
 }
 
 /////////////////////////////////////////////////
