@@ -6,11 +6,14 @@
   <world name="shapes">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
+      <real_time_factor>0.0</real_time_factor>
     </physics>
+    <gz:policies>
+      <include_server_config_plugins>false</include_server_config_plugins>
+    </gz:policies>
     <plugin
-      filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics">
+      filename="gz-sim-mujoco-physics-system"
+      name="gz::sim::systems::MujocoPhysics">
     </plugin>
     <plugin
       filename="gz-sim-user-commands-system"
@@ -20,6 +23,7 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
+    <!-- <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/> -->
 
     <scene>
       <ambient>1.0 1.0 1.0</ambient>
@@ -102,6 +106,14 @@
             <specular>1 0 0 1</specular>
           </material>
         </visual>
+        <!-- <sensor name='sensor_contact' type='contact'> -->
+        <!--   <contact> -->
+        <!--     <collision>box_collision</collision> -->
+        <!--     <topic>/contact_example</topic> -->
+        <!--   </contact> -->
+        <!--   <always_on>1</always_on> -->
+        <!--   <update_rate>100</update_rate> -->
+        <!-- </sensor> -->
       </link>
     </model>
 
