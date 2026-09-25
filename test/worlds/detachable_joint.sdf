@@ -454,5 +454,63 @@
         </collision>
       </link>
     </model>
+
+<!-- Models for testing initial_attach=false -->
+    <model name="M6">
+      <pose>30 0 1 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>body</parent_link>
+        <child_model>M7</child_model>
+        <child_link>body</child_link>
+        <initial_attach>false</initial_attach>
+      </plugin>
+    </model>
+
+    <model name="M7">
+      <pose>30 0 5 0 0 0</pose>
+      <link name="body">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.667</iyy>
+            <iyz>0</iyz>
+            <izz>0.667</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 2.0 2.0</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
   </world>
 </sdf>
+
