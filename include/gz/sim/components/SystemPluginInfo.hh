@@ -37,7 +37,7 @@ namespace components
   /// simulation.
   using SystemPluginInfo = Component<msgs::Plugin_V, class SystemPluginInfoTag,
       serializers::MsgSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SystemPluginInfo",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SystemPluginInfo",
       SystemPluginInfo)
 }
 }

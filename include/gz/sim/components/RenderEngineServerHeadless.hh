@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the headless mode.
   using RenderEngineServerHeadless = Component<bool,
       class RenderEngineServerHeadlessTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.RenderEngineServerHeadless",
       RenderEngineServerHeadless)
 }

@@ -44,7 +44,7 @@ namespace components
   /// sdf::Projector, information.
   using Projector = Component<sdf::Projector, class ProjectorTag,
       serializers::ProjectorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Projector", Projector)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Projector", Projector)
 }
 }
 }

@@ -42,7 +42,7 @@ namespace components
   /// \brief This component holds an entity's material.
   using Material = Component<sdf::Material, class MaterialTag,
                              serializers::MaterialSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Material", Material)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Material", Material)
 }
 }
 }

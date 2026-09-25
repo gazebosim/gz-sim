@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to indicate an lidar reflective value
   using LaserRetro = Component<double, class LaserRetroTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LaserRetro",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.LaserRetro",
       LaserRetro)
 }
 }
