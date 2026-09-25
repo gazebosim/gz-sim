@@ -53,6 +53,7 @@
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerHeadlessDevice.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/components/RgbdCamera.hh"
 #include "gz/sim/components/SegmentationCamera.hh"
@@ -703,6 +704,9 @@ void Sensors::Configure(const Entity &/*_id*/,
   std::string apiBackend =
     _sdf->Get<std::string>("render_engine_api_backend", "").first;
 
+  std::string renderDevice =
+      _sdf->Get<std::string>("render_device", "").first;
+
   // get whether or not to disable sensor when model battery is drained
   this->dataPtr->disableOnDrainedBattery =
       _sdf->Get<bool>("disable_on_drained_battery",
@@ -805,6 +809,7 @@ void Sensors::Configure(const Entity &/*_id*/,
     apiBackend = "metal";
 #endif
   this->dataPtr->renderUtil.SetApiBackend(apiBackend);
+  this->dataPtr->renderUtil.SetRenderDevice(renderDevice);
   this->dataPtr->renderUtil.SetEnableSensors(true,
       std::bind(&Sensors::CreateSensor, this,
       std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -851,6 +856,17 @@ void Sensors::Configure(const Entity &/*_id*/,
     {
       this->dataPtr->renderUtil.SetHeadlessRendering(
         renderEngineServerHeadlessComp->Data());
+    }
+
+    // Set the headless rendering device if specified from command line
+    auto renderEngineServerHeadlessDeviceComp =
+      _ecm.Component<components::RenderEngineServerHeadlessDevice>(
+        worldEntity);
+    if (renderEngineServerHeadlessDeviceComp &&
+        !renderEngineServerHeadlessDeviceComp->Data().empty())
+    {
+      this->dataPtr->renderUtil.SetRenderDevice(
+        renderEngineServerHeadlessDeviceComp->Data());
     }
   }
 
