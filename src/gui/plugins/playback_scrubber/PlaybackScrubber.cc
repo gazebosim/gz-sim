@@ -16,6 +16,7 @@
 */
 
 #include "PlaybackScrubber.hh"
+#include "DurationLiteral.hh"
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/log_playback_control.pb.h>
@@ -23,7 +24,6 @@
 #include <chrono>
 #include <ctime>
 #include <iostream>
-#include <regex>
 #include <string>
 #include <utility>
 
@@ -196,10 +196,21 @@ void PlaybackScrubber::OnTimeEntered(const QString &_time)
   std::string time = _time.toStdString();
   std::chrono::steady_clock::time_point enteredTime =
     math::stringToTimePoint(time);
+
+  // Fall back to compact duration literals such as "200s" or
+  // "2h 19m 27s" when the standard dd hh:mm:ss.nnn format is not used.
+  if (enteredTime == math::secNsecToTimePoint(-1, 0))
+  {
+    int64_t durationSeconds = 0;
+    if (detail::ParseDurationLiteral(time, durationSeconds))
+      enteredTime = math::secNsecToTimePoint(durationSeconds, 0);
+  }
+
   if (enteredTime == math::secNsecToTimePoint(-1, 0))
   {
     gzwarn << "Invalid time entered. "
-      "The format is dd hh:mm:ss.nnn" << std::endl;
+      "Use dd hh:mm:ss.nnn or duration literals such as 200s or 2h 19m 27s."
+           << std::endl;
     return;
   }
 
