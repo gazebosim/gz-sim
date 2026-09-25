@@ -72,6 +72,8 @@ TEST_F(TestFixtureTest, Callbacks)
   unsigned int preUpdates{0u};
   unsigned int updates{0u};
   unsigned int postUpdates{0u};
+  unsigned int resets{0u};
+
   testFixture.
     OnConfigure([&](const Entity &_entity,
         const std::shared_ptr<const sdf::Element> &_sdf,
@@ -85,20 +87,33 @@ TEST_F(TestFixtureTest, Callbacks)
     {
       this->Updates(_info, _ecm);
       preUpdates++;
-      EXPECT_EQ(preUpdates, _info.iterations);
+      if (resets == 0)
+      {
+        EXPECT_EQ(preUpdates, _info.iterations);
+      }
     }).
     OnUpdate([&](const UpdateInfo &_info, EntityComponentManager &_ecm)
     {
       this->Updates(_info, _ecm);
       updates++;
-      EXPECT_EQ(updates, _info.iterations);
+      if (resets == 0)
+      {
+        EXPECT_EQ(updates, _info.iterations);
+      }
     }).
     OnPostUpdate([&](const UpdateInfo &_info,
         const EntityComponentManager &_ecm)
     {
       this->Updates(_info, _ecm);
       postUpdates++;
-      EXPECT_EQ(postUpdates, _info.iterations);
+      if (resets == 0)
+      {
+        EXPECT_EQ(postUpdates, _info.iterations);
+      }
+    }).
+    OnReset([&](const UpdateInfo &, EntityComponentManager &)
+    {
+      resets++;
     }).
     Finalize();
 
@@ -109,6 +124,16 @@ TEST_F(TestFixtureTest, Callbacks)
   EXPECT_EQ(expectedIterations, preUpdates);
   EXPECT_EQ(expectedIterations, updates);
   EXPECT_EQ(expectedIterations, postUpdates);
+  EXPECT_EQ(0u, resets);
+
+  testFixture.Server()->ResetAll();
+
+  testFixture.Server()->Run(true, expectedIterations, false);
+  EXPECT_EQ(1u, configures);
+  EXPECT_EQ(expectedIterations * 2 - 1, preUpdates);
+  EXPECT_EQ(expectedIterations * 2 - 1, updates);
+  EXPECT_EQ(expectedIterations * 2 - 1, postUpdates);
+  EXPECT_EQ(1u, resets);
 }
 
 /////////////////////////////////////////////////

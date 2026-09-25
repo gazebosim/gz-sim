@@ -64,6 +64,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Performer.hh"
@@ -675,7 +676,16 @@ void ComponentInspector::Update(const UpdateInfo &,
       auto comp = _ecm.Component<components::Gravity>(this->dataPtr->entity);
       if (comp)
       {
-        setData(item, comp->Data());
+        if (nullptr == item)
+            return;
+        math::Vector3d _gravity = comp->Data();
+        item->setData(QString("Gravity"),
+            ComponentsModel::RoleNames().key("dataType"));
+        item->setData(QList({
+          QVariant(_gravity.X()),
+          QVariant(_gravity.Y()),
+          QVariant(_gravity.Z())
+        }), ComponentsModel::RoleNames().key("data"));
         setUnit(item, "m/s\u00B2");
       }
     }
@@ -724,6 +734,12 @@ void ComponentInspector::Update(const UpdateInfo &,
       if (this->dataPtr->entity == this->dataPtr->worldEntity)
         this->dataPtr->worldName = comp->Data();
       this->dataPtr->entityName = comp->Data();
+    }
+    else if (typeId == components::Namespace::typeId)
+    {
+      auto comp = _ecm.Component<components::Namespace>(this->dataPtr->entity);
+      if (comp)
+        setData(item, comp->Data());
     }
     else if (typeId == components::LightType::typeId)
     {
@@ -1108,6 +1124,31 @@ void ComponentInspector::OnLight(
     return;
   }
   this->dataPtr->node.Request(lightConfigService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void ComponentInspector::OnGravity(double _x, double _y, double _z)
+{
+  std::function<void(const msgs::Boolean &, const bool)> cb =
+      [](const msgs::Boolean &/*_rep*/, const bool _result)
+  {
+    if (!_result)
+        gzerr << "Error setting gravity" << std::endl;
+  };
+
+  msgs::Physics req;
+  req.mutable_gravity()->set_x(_x);
+  req.mutable_gravity()->set_y(_y);
+  req.mutable_gravity()->set_z(_z);
+  auto gravityService = "/world/" + this->dataPtr->worldName
+      + "/set_physics";
+  gravityService = transport::TopicUtils::AsValidTopic(gravityService);
+  if (gravityService.empty())
+  {
+    gzerr << "Invalid gravity command service topic provided" << std::endl;
+    return;
+  }
+  this->dataPtr->node.Request(gravityService, req, cb);
 }
 
 /////////////////////////////////////////////////

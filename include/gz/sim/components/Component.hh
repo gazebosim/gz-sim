@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <type_traits>
 #include <utility>
 
 #include <gz/common/Console.hh>
@@ -28,6 +29,8 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
+
+#include <gz/sim/detail/vendor/entt/core/type_info.hpp>
 
 namespace gz
 {
@@ -200,6 +203,19 @@ namespace serializers
 
 namespace components
 {
+  /// \brief Fallback function for ADL component registration.
+  /// This returns 0 for components that are not registered using the macro.
+  /// It is a template so it has lower priority than the non-template
+  /// overloads defined by the GZ_SIM_REGISTER_COMPONENT macro.
+  template <typename T>
+  // NOLINTNEXTLINE(readability/casting)
+  constexpr ComponentTypeId gzSimFactoryComponentTypeId(T*)
+  {
+    static_assert(false, "Type ID not set, did you register the component "
+                  "through the GZ_SIM_REGISTER_COMPONENT macro?");
+    return 0;
+  }
+
   /// \brief Convenient type to be used by components that don't wrap any data.
   /// I.e. they act as tags and their presence is enough to infer something
   /// about the entity.
@@ -381,9 +397,21 @@ namespace components
     /// \brief Private data pointer.
     private: DataType data;
 
-    /// \brief Unique ID for this component type. This is set through the
-    /// Factory registration.
-    public: inline static ComponentTypeId typeId{0};
+    // This call triggers Argument Dependent Lookup (ADL) to find the
+    // `gzSimFactoryComponentTypeId` function defined by the
+    // GZ_SIM_REGISTER_COMPONENT macro in the component's namespace.
+    //
+    // We pass a null pointer of the type `Component*` to trigger ADL. ADL
+    // searches the namespaces of the template arguments of `Component`,
+    // which includes the namespace where the tag type (and thus the
+    // component) is defined. This removes the constraint that all
+    // components must be defined in the `gz::sim::components` namespace.
+    //
+    // Passing `Component*` also ensures that components sharing the same
+    // tag type but having different data types generate unique function
+    // overloads, preventing ODR collisions.
+    public: inline static constexpr ComponentTypeId typeId =
+            gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -401,6 +429,7 @@ namespace components
   template <typename Identifier, typename Serializer>
   class Component<NoData, Identifier, Serializer> : public BaseComponent
   {
+    public: using Type = NoData;
     /// \brief Components with no data are always equal to another instance of
     /// the same type.
     /// \param[in] _component Component to compare to
@@ -429,7 +458,21 @@ namespace components
 
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
-    public: inline static ComponentTypeId typeId{0};
+    // This call triggers Argument Dependent Lookup (ADL) to find the
+    // `gzSimFactoryComponentTypeId` function defined by the
+    // GZ_SIM_REGISTER_COMPONENT macro in the component's namespace.
+    //
+    // We pass a null pointer of the type `Component*` to trigger ADL. ADL
+    // searches the namespaces of the template arguments of `Component`,
+    // which includes the namespace where the tag type (and thus the
+    // component) is defined. This removes the constraint that all
+    // components must be defined in the `gz::sim::components` namespace.
+    //
+    // Passing `Component*` also ensures that components sharing the same
+    // tag type but having different data types generate unique function
+    // overloads, preventing ODR collisions.
+    public: inline static constexpr ComponentTypeId typeId =
+            gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
     /// \brief Unique name for this component type. This is set through the
     /// Factory registration.
@@ -567,4 +610,20 @@ namespace components
 }
 }
 }
+
+namespace entt
+{
+template <typename T>
+struct type_hash<T, std::void_t<
+    std::enable_if_t<std::is_base_of_v<gz::sim::components::BaseComponent, T>>,
+    decltype(T::typeId)
+>>
+{
+  static constexpr ENTT_ID_TYPE value() noexcept
+  {
+    return T::typeId;
+  }
+};
+}
+
 #endif

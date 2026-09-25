@@ -332,7 +332,7 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     const std::string innerxml{"<verbose>0</verbose>"};
 
     // Get world entity
-    Entity worldEntity;
+    Entity worldEntity = kNullEntity;
     _ecm.Each<components::World, components::Name>(
       [&](const Entity &_entity,
         const components::World */*_world*/,
@@ -442,12 +442,16 @@ void ApplyForceTorque::Update(const UpdateInfo &/*_info*/,
     }
   }
 
-  if (this->dataPtr->changedIndex)
+  if (this->dataPtr->changedIndex && this->dataPtr->linkIndex >= 0)
   {
     this->dataPtr->changedIndex = false;
 
     if (this->dataPtr->selectedEntity.has_value())
     {
+      if (this->dataPtr->linkNameList.empty())
+      {
+        return;
+      }
       auto parentModel = Link(*this->dataPtr->selectedEntity).ParentModel(_ecm);
       std::string linkName =
         this->dataPtr->linkNameList[this->dataPtr->linkIndex].toStdString();

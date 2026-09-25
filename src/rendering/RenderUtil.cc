@@ -15,6 +15,7 @@
  *
  */
 
+#include <algorithm>
 #include <map>
 #include <stack>
 #include <string>
@@ -1211,6 +1212,12 @@ void RenderUtil::Update()
   // create new entities
   {
     GZ_PROFILE("RenderUtil::Update Create");
+    // Presort to make sure parent models are spawned before their children
+    std::sort(newModels.begin(), newModels.end(),
+        [](const auto &_a, const auto &_b)
+        {
+          return std::get<0>(_a) < std::get<0>(_b);
+        });
     for (const auto &model : newModels)
     {
       uint64_t iteration = std::get<3>(model);
@@ -2474,9 +2481,12 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
-        this->removeEntities[matchLightWithVisuals[_entity]] =
-          _info.iterations;
-        matchLightWithVisuals.erase(_entity);
+        auto visualIt = this->matchLightWithVisuals.find(_entity);
+        if (visualIt != this->matchLightWithVisuals.end())
+        {
+          this->removeEntities[visualIt->second] = _info.iterations;
+          this->matchLightWithVisuals.erase(visualIt);
+        }
         return true;
       });
 
@@ -3002,11 +3012,15 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      rendering::VisualPtr lightVisual =
-          this->sceneManager.VisualById(
-            this->matchLightWithVisuals[light.first]);
-      if (lightVisual)
-        lightVisual->SetVisible(light.second.visualize_visual());
+      // Light visuals exist only when enableSensors is false (see Create path).
+      auto visualIt = this->matchLightWithVisuals.find(light.first);
+      if (visualIt != this->matchLightWithVisuals.end())
+      {
+        rendering::VisualPtr lightVisual =
+            this->sceneManager.VisualById(visualIt->second);
+        if (lightVisual)
+          lightVisual->SetVisible(light.second.visualize_visual());
+      }
 
       if (!light.second.is_light_off())
       {
@@ -3794,13 +3808,39 @@ void RenderUtilPrivate::CreateVisual(
     const components::VisibilityFlags *_visibilityFlags,
     const components::ParentEntity *_parent)
 {
+  if (!_name || !_pose || !_parent)
+  {
+    gzwarn << "Visual entity [" << _entity
+           << "] missing required components (name / pose / parent). "
+           << "Skipping visual creation." << std::endl;
+    return;
+  }
+
+  if (!_geom)
+  {
+    gzwarn << "Visual entity [" << _entity
+           << "] has no geometry component. Skipping visual creation."
+           << std::endl;
+    return;
+  }
+
   sdf::Visual visual;
   visual.SetName(_name->Data());
   visual.SetRawPose(_pose->Data());
   visual.SetGeom(_geom->Data());
-  visual.SetCastShadows(_castShadows->Data());
-  visual.SetTransparency(_transparency->Data());
-  visual.SetVisibilityFlags(_visibilityFlags->Data());
+
+  if (_castShadows)
+  {
+    visual.SetCastShadows(_castShadows->Data());
+  }
+  if (_transparency)
+  {
+    visual.SetTransparency(_transparency->Data());
+  }
+  if (_visibilityFlags)
+  {
+    visual.SetVisibilityFlags(_visibilityFlags->Data());
+  }
 
   // Optional components
   auto material = _ecm.Component<components::Material>(_entity);

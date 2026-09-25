@@ -396,10 +396,10 @@ rendering::VisualPtr SceneManager::CreateVisual(Entity _id,
           // unlike setting transparency above, the parent submesh are not
           // notified about the the cast shadows changes. So we need to set
           // the material back to the submesh.
-          // \todo(anyone) find way to propate cast shadows changes tos submesh
+          // \todo(anyone) find way to propagate cast shadows changes to submesh
           // in gz-rendering
           submeshMat->SetCastShadows(_visual.CastShadows());
-          submesh->SetMaterial(submeshMat);
+          submesh->SetMaterial(submeshMat, false);
         }
       }
     }
@@ -1189,8 +1189,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
   if (this->HasEntity(_id))
   {
-    gzerr << "Light with Id: [" << _id << "] can not be create there is "
-              "another entity with the same entity number" << std::endl;
+    gzerr << "Light with Id: [" << _id << "] cannot be created because "
+              "another entity has the same entity number" << std::endl;
     return nullptr;
   }
 
@@ -2378,7 +2378,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       }
       mapAnimNameId[animName] = numAnims++;
     }
-    else if (extension == "dae")
+    else if (extension == "dae" || extension == "gltf" || extension == "glb")
     {
       // Load the mesh if it has not been loaded before
       const common::Mesh *animMesh = nullptr;

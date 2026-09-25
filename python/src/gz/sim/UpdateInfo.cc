@@ -30,7 +30,10 @@ namespace python
 {
 void defineSimUpdateInfo(pybind11::object module)
 {
-  pybind11::class_<gz::sim::UpdateInfo>(module, "UpdateInfo")
+  pybind11::class_<gz::sim::UpdateInfo>(module, "UpdateInfo",
+  "Information about the current simulation update cycle. Contains timings "
+  "information such as simulation time (sim_time),  real time (real_time), "
+  "time step (dt), pause state (paused), and iteration count (iterations).")
   .def(pybind11::init<>())
   .def_readwrite("sim_time", &gz::sim::UpdateInfo::simTime)
   .def_readwrite("real_time", &gz::sim::UpdateInfo::realTime)

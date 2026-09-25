@@ -37,7 +37,7 @@ mkdir -p ~/gazebo_maritime/models/my_lander && cd ~/gazebo_maritime/models/my_la
 Download the `model.config` file and copy it within that directory:
 
 ```bash
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/model.config -O ~/gazebo_maritime/models/my_lander/model.config
 ```
 
 In its simple version, the lander does not have any moving pieces, so the SDF
@@ -95,7 +95,7 @@ Let's now add nicer-looking visuals to our lander. Download the following
 
 ```bash
 mkdir ~/gazebo_maritime/models/my_lander/meshes
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/inkfish-lander.dae -O ~/gazebo_maritime/models/my_lander/meshes/inkfish-lander.dae
 ```
 
 Replace the `chassis_visual` element in your `model.sdf` with the following
@@ -153,7 +153,7 @@ Let's start with the world. Download the following world:
 
 ```bash
 mkdir -p ~/gazebo_maritime/worlds
-wget https://raw.githubusercontent.com/gazebosim/gz-sim/gz-sim9/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
+wget https://raw.githubusercontent.com/gazebosim/gz-sim/main/tutorials/files/lander/buoyant_lander.sdf -O ~/gazebo_maritime/worlds/buoyant_lander.sdf
 export GZ_SIM_RESOURCE_PATH=:$HOME/gazebo_maritime/models
 ```
 
@@ -235,16 +235,16 @@ However, it's generating very little buoyancy.
 Let's now compute the reference volume that will make the lander neutrally
 buoyant.
 
-$$volume\\_neutral = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683$$
+\f[volume\_neutral = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683\f]
 
 Now, let's account for the volume that our lander already has thanks to the
 low-volume outer collision elements:
 
-$$outer\\_volume = 2*1.1325*1.1503*0.000001 + 2*0.000001*1.1503*1.5 + 2*1.325* 0.000001*1.5 = 1.00313295e-05$$
+\f[outer\_volume = 2*1.1325*1.1503*0.000001 + 2*0.000001*1.1503*1.5 + 2*1.325* 0.000001*1.5 = 1.00313295e-05\f]
 
 Let's now compute the volume of the main buoyancy `<collision>` element:
 
-$$main\\_buoyancy\\_volume = 1.1796829268292683 - 1.00313295e-05 = 1.1796728954997684$$
+\f[main\_buoyancy\_volume = 1.1796829268292683 - 1.00313295e-05 = 1.1796728954997684\f]
 
 Let's verify that our lander is neutrally buoyant now. Add the following
 collision element to your `base_link`:
@@ -297,24 +297,33 @@ Hit play and the lander will slowly sink and hit the seafloor.
 ### Hydrodynamics
 
 As an underwater vehicle, the lander should be influenced by the water as it
-moves. We can do that by attaching the `hydrodynamics` plugin to our lander.
-Add the next SDF block to your `model.sdf`. Note that we have empirically
-adjusted its values. Follow the
-[hydrodynamics tutorial](https://gazebosim.org/api/sim/8/theory_hydrodynamics.html)
-for recommendations about how to tune its values.
+moves. We model this in two parts: added mass (the inertia of the surrounding
+fluid) is specified on the link, and hydrodynamic damping (drag) is handled
+by the Hydrodynamics plugin. Follow the
+\ref theory_hydrodynamics "hydrodynamics tutorial"
+for recommendations about how to tune these values.
+
+First, add `<fluid_added_mass>` inside the `base_link`'s `<inertial>` element
+in your `model.sdf`:
 
 ```xml
-<!-- Hydrodynamics -->
+<fluid_added_mass>
+  <xx>4.876161</xx>
+  <yy>126.324739</yy>
+  <zz>126.324739</zz>
+  <qq>33.46</qq>
+  <rr>33.46</rr>
+</fluid_added_mass>
+```
+
+Then add the Hydrodynamics plugin for damping:
+
+```xml
+<!-- Hydrodynamics (damping only) -->
 <plugin
   filename="gz-sim-hydrodynamics-system"
   name="gz::sim::systems::Hydrodynamics">
   <link_name>base_link</link_name>
-  <xDotU>-4.876161</xDotU>
-  <yDotV>-126.324739</yDotV>
-  <zDotW>-126.324739</zDotW>
-  <kDotP>0</kDotP>
-  <mDotQ>-33.46</mDotQ>
-  <nDotR>-33.46</nDotR>
   <xUabsU>-6.2282</xUabsU>
   <xU>0</xU>
   <yVabsV>-601.27</yVabsV>
@@ -381,9 +390,9 @@ Let's add the following SDF block to your `model.sdf`:
 The mass of the drop weight changes the buoyancy properties of the lander. Let's
 calculate the reference values:
 
-$$volume\\_neutral\\_with\\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175 + 120}{1025} = 1.2967560975609755$$
+\f[volume\_neutral\_with\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175 + 120}{1025} = 1.2967560975609755\f]
 
-$$volume\\_neutral\\_without\\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683$$
+\f[volume\_neutral\_without\_dropweight = \frac{mass}{waterDensity} = \frac{1209.175}{1025} = 1.1796829268292683\f]
 
 We're looking for a volume that's lower than `volume_neutral_with_dropweight` to
 cause the lander to sink from its initial configuration, and bigger than

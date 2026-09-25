@@ -5,6 +5,203 @@ Deprecated code produces compile-time warnings. These warning serve as
 notification to users that their code should be upgraded. The next major
 release will remove the deprecated code.
 
+## Gazebo Sim 10.x to 11.0
+
+* **Removals**
+  * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
+    It was loaded but never used in any computation because the stability
+    derivatives (e.g. `<xUabsU>`, `<yVabsV>`) already incorporate fluid
+    density. Existing SDF files that specify `<water_density>` will continue
+    to load without error; the parameter is simply ignored.
+
+* **Buoyancy**
+  * The buoyant force now acts at the collision geometry's centroid instead
+    of the collision origin. This changes behavior for cone collisions
+    (centroid a quarter length from the base) and mesh collisions (centroid
+    wherever the geometry puts it); the origin centered primitives are
+    unaffected. In graded mode the layer above the last declared interface
+    uses the shape centroid as well.
+  * Mesh collisions now honor the SDF `<scale>` element in buoyancy
+    calculations: the displaced volume scales by the product of the three
+    components and the centroid componentwise. Models that relied on the
+    unscaled volume will float differently; the shipped example duck
+    displaces an eighth of what it did.
+  * The graded buoyancy mode now accounts for the orientation of each
+    collision when slicing it against a fluid interface. Previously the
+    slicing plane was always axis aligned in the shape's own frame, so a
+    rolled or pitched shape displaced the wrong volume at the wrong
+    centroid, and a heeled floating body could receive a capsizing moment
+    instead of a righting moment. Bodies at nonzero roll or pitch near a
+    fluid interface now float and right themselves per hydrostatic theory;
+    models tuned to compensate for the old behavior may need retuning.
+
+* **Entity wrapper classes (`Model`, `Link`, `World`)**
+  * These now store their private data via `gz::utils::ImplPtr` (matching
+    `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
+    `std::unique_ptr` pimpl. This is an **ABI break** — the size and layout of
+    these classes changed — but the public API is unchanged: they remain
+    copyable and movable with the same value semantics.
+  * The `Model` and `World` destructors are **no longer `virtual`**. These are
+    lightweight value handles around an entity id and were never intended to be
+    used as polymorphic base classes (none of the sibling wrapper classes had a
+    virtual destructor). Deriving from `Model` or `World` and deleting through a
+    base pointer is no longer supported.
+
+* **Deprecations**
+  * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
+    `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
+    cross terms `<*Dot*>`) is deprecated **when using the DART physics
+    engine**. The explicit integration used by this path is conditionally
+    stable. These parameters remain required for other physics engines
+    (Bullet, MuJoCo) that do not support native added mass.
+
+    When using the DART physics engine, use the SDF `<fluid_added_mass>`
+    tag on the link's `<inertial>` element instead. The physics engine
+    integrates added mass implicitly (unconditionally stable) and
+    computes the full non-diagonal Coriolis matrix automatically.
+
+    Other physics engines (Bullet, MuJoCo) do not support native added
+    mass, so plugin-based parameters remain the only option for those
+    backends.
+
+    **Warning**: Do not set added mass in both `<fluid_added_mass>` and
+    the plugin simultaneously. If both are active, forces are
+    double-counted. The plugin now emits an error if this is detected.
+
+    **Migration example (DART)** — replace:
+    ```xml
+    <plugin filename="gz-sim-hydrodynamics-system"
+            name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <xDotU>-4.876161</xDotU>
+      <yDotV>-126.324739</yDotV>
+      <zDotW>-126.324739</zDotW>
+      <mDotQ>-33.46</mDotQ>
+      <nDotR>-33.46</nDotR>
+      <xUabsU>-6.2282</xUabsU>
+      ...
+    </plugin>
+    ```
+
+    with:
+    ```xml
+    <link name="base_link">
+      <inertial>
+        <fluid_added_mass>
+          <xx>4.876161</xx>
+          <yy>126.324739</yy>
+          <zz>126.324739</zz>
+          <qq>33.46</qq>
+          <rr>33.46</rr>
+        </fluid_added_mass>
+      </inertial>
+    </link>
+
+    <plugin filename="gz-sim-hydrodynamics-system"
+            name="gz::sim::systems::Hydrodynamics">
+      <link_name>base_link</link_name>
+      <disable_added_mass>true</disable_added_mass>
+      <xUabsU>-6.2282</xUabsU>
+      ...
+    </plugin>
+    ```
+
+    Note that `<fluid_added_mass>` uses positive values (physical
+    convention), while the legacy `<xDotU>` parameters use negative
+    values (Fossen sign convention). See
+    http://sdformat.org/spec?ver=1.11&elem=link#inertial_fluid_added_mass
+
+    When both `<fluid_added_mass>` and an ocean current are active, the
+    plugin automatically corrects the Coriolis force to use the velocity
+    relative to the fluid rather than the absolute velocity.
+  * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
+    which has the same behavior but returns a `std::string_view` and avoids
+    a memory allocation to improve performance.
+  * Several `EntityComponentManager` APIs have been deprecated as part of the
+    move to the Entt library:
+    * `EachNoCache`, there is no explicit cache anymore, use `Each` instead.
+    * `Entities`, Entities are not stored in a graph anymore, use
+      `EntitiesVector` if you need all the entities in the world, combine it
+      reading the `ParentEntity` and `Children` components if you need hierarchy
+      information.
+    * `ForEach` is an internal function that is not used anymore.
+    * `ComponentTypesWithPeriodicChanges` is significantly more expensive in
+      the new architecture and had no users so it has been deprecated.
+
+
+* **Breaking Changes**
+  * Plugins for entities spawned into the world should now be able to
+    correctly find the world entity as its root entity during
+    `System::Configure`. This is a behavior change as it impacts functions
+    such as `scopedName` (from Utils class) which is widely used in the code
+    base for generating a fully scoped name by traversing up the tree of
+    parent entities. The `scopedName` function should now correctly include
+    the world entity in the scope when it is called during `System::Configure`.
+    One example breakage: The pose topic generated by the Pose Publisher system
+    for models spawned into the world is affected, resulting in a change from
+    `/<model_name>/pose` to `/model/<model>/pose`. The new topic name is
+    is consistent with the topic names for models that already exist in the
+    world, i.e. models that are not spawned.
+  * Component's `typeId` is now `constexpr`. It is not allowed to change it
+    at runtime anymore. Furthermore component registration is now only allowed
+    through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
+    registered before they are instantiated, else a static assertion failure
+    will be triggered at compile time.
+  * The implementation of the EntityComponentManager now uses the entt library
+    behind the scenes. This results in a few breaking changes:
+    * The order of entities returned by the Each APIs is not guaranteed to be
+      sorted anymore. Internal systems have been migrated to work regardless
+      of entity order, downstream systems should be updated.
+    * Entities are not stored in a `gz::math::Graph` anymore. Users that need
+      hierarchy information should read the `ParentEntity` or `Children`
+      components attached to entities.
+    * Deleting a non existing entity now does not mark it for removal.
+    * `HasComponentType` now returns whether the EntityComponentManager has any
+      instance of the component, instead of whether it was ever created.
+    * Removing components now can deallocate the memory, instead of just marking
+      the component as removed and keeping it in place. Users are advised not to
+      store any component pointer.
+    * Queries with a repeated component are not allowed anymore. Users should
+      make sure their `Each` calls don't have duplicated components of the same
+      type.
+
+## Gazebo Sim 9.x to 10.0
+
+* Upgraded GUI framework from Qt5 to Qt6. All GUI plugins distributed by gz-sim
+have been migrated. This upgrade affects all users' custom Gazebo GUI plugins.
+Please see the
+[Qt6 Migration tutorial](https://github.com/gazebosim/gz-gui/blob/main/tutorials/09_migration_qt6.md)
+for information on how to port your Qt5 based plugins to Qt6.
+
+### Removals
+
+- **config.hh**:
+   + The macro `GZ_SIM_GUI_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getGUIConfigPath()` instead.
+
+   + The macro `GZ_SIM_SYSTEM_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getSystemConfigPath()` instead.
+
+   + The macro `GZ_SIM_SERVER_CONFIG_PATH` has been removed.
+     Please use `gz::sim::getServerConfigPath()` instead.
+
+   + The macro `GZ_SIM_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getPluginInstallDir()` instead.
+
+   + The macro `GZ_SIM_GUI_PLUGIN_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getGUIPluginInstallDir()` instead.
+
+   + The macro `GZ_SIM_WORLD_INSTALL_DIR` has been removed.
+     Please use `gz::sim::getWorldInstallDir()` instead.
+
+  **components/Factory.hh**:
+    + `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc)` and
+      `gz::sim::components::Factory::Register(const std::string &_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId _regObjId)`
+       have been removed. Instead, please use
+       `gz::sim::components::Factory::Register(const char *_type, ComponentDescriptorBase *_compDesc, RegistrationObjectId  _regObjId)`
+    + `gz::sim::components::Factory::Unregister()` has been removed. Instead, please use
+       `gz::sim::components::Factory::Unregister(RegistrationObjectId  _regObjId)`.
+
 ## Gazebo Sim 8.x to 9.0
 
  * **Modified**:

@@ -1,17 +1,15 @@
 cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
-find_package(gz-cmake4 REQUIRED)
+find_package(gz-cmake REQUIRED)
 
 project(Priority_printer)
 
-gz_find_package(gz-plugin3 REQUIRED COMPONENTS register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+gz_find_package(gz-plugin REQUIRED COMPONENTS register)
 
-gz_find_package(gz-sim9 REQUIRED)
-set(GZ_SIM_VER ${gz-sim9_VERSION_MAJOR})
+gz_find_package(gz-sim REQUIRED)
 
 add_library(PriorityPrinter SHARED PriorityPrinter.cc)
 set_property(TARGET PriorityPrinter PROPERTY CXX_STANDARD 17)
 target_link_libraries(PriorityPrinter
-  PRIVATE gz-plugin${GZ_PLUGIN_VER}::gz-plugin${GZ_PLUGIN_VER}
-  PRIVATE gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER})
+  PRIVATE gz-plugin::gz-plugin
+  PRIVATE gz-sim::gz-sim)

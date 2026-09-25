@@ -71,6 +71,14 @@ namespace systems
   /// - `<include_entity_names>`: Optional. When set
   /// to false, the name of colliding entities is not populated in
   /// the contacts. Remains true by default.
+  /// - `<enforce_fixed_constraint>` (optional): Applicable only when the
+  /// gz-physics bullet-featherstone-plugin is used as the physics engine.
+  /// If true, the system will enforce the fixed constraint between the child
+  /// and parent entities of the fixed joint as if the child is 'welded' to
+  /// the parent. Fixed constraints can be violated, e.g. due to large
+  /// external forces, so this setting tells the phyics engine to manually
+  /// correct and maintain the relative pose between the parent and child
+  /// entities. Defaults to false.
   ///
   /// ## Example
   ///
@@ -81,6 +89,7 @@ namespace systems
   ///    <contacts>
   ///      <include_entity_names>false</include_entity_names>
   ///    </contacts>
+  ///    <enforce_fixed_constraint>false</enforce_fixed_constraint>
   ///  </plugin>
   ///  ```
 

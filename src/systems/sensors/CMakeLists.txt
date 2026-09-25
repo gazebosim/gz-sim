@@ -3,16 +3,16 @@ gz_add_system(sensors
     Sensors.cc
   PUBLIC_LINK_LIBS
     ${rendering_target}
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
-    gz-sensors${GZ_SENSORS_VER}::boundingbox_camera
-    gz-sensors${GZ_SENSORS_VER}::camera
-    gz-sensors${GZ_SENSORS_VER}::depth_camera
-    gz-sensors${GZ_SENSORS_VER}::gpu_lidar
-    gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
-    gz-sensors${GZ_SENSORS_VER}::lidar
-    gz-sensors${GZ_SENSORS_VER}::rgbd_camera
-    gz-sensors${GZ_SENSORS_VER}::segmentation_camera
-    gz-sensors${GZ_SENSORS_VER}::thermal_camera
-    gz-sensors${GZ_SENSORS_VER}::wide_angle_camera
+    gz-common::gz-common
+    gz-rendering::gz-rendering
+    gz-sensors::boundingbox_camera
+    gz-sensors::camera
+    gz-sensors::depth_camera
+    gz-sensors::gpu_lidar
+    gz-sensors::gz-sensors
+    gz-sensors::lidar
+    gz-sensors::rgbd_camera
+    gz-sensors::segmentation_camera
+    gz-sensors::thermal_camera
+    gz-sensors::wide_angle_camera
 )

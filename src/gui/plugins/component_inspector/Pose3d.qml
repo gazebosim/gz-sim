@@ -18,7 +18,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 import "qrc:/ComponentInspector"
 import "qrc:/qml"
 
@@ -37,7 +37,7 @@ Rectangle {
   // Send new pose to C++
   function sendPose(x, y, z, roll, pitch, yaw) {
     // TODO(anyone) There's a loss of precision when these values get to C++
-    Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
+    _Pose3dImpl.OnPose(x, y, z, roll, pitch, yaw);
   }
 
   Column {
@@ -47,7 +47,7 @@ Rectangle {
     Rectangle {
       id: header
       width: parent.width
-      height: typeHeader.height
+      height: Math.max(typeHeader.height, copyButton.implicitHeight)
       color: "transparent"
 
       RowLayout {
@@ -70,12 +70,33 @@ Rectangle {
         Item {
           Layout.fillWidth: true
         }
+        Button {
+          id: copyButton
+          text: "COPY SDF POSE"
+          Layout.alignment: Qt.AlignVCenter
+          enabled: model !== null
+          onClicked: {
+            _Pose3dImpl.CopySdfPose(model.data)
+          }
+        }
       }
       MouseArea {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: {
+        propagateComposedEvents: true
+        onPressed: (mouse) => {
+          var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
+          if (copyButton.enabled && copyButton.contains(local)) {
+            mouse.accepted = false
+          }
+        }
+        onClicked: (mouse) => {
+          var local = copyButton.mapFromItem(header, mouse.x, mouse.y)
+          if (copyButton.enabled && copyButton.contains(local)) {
+            mouse.accepted = false
+            return
+          }
           gzPoseInstance.expand = !gzPoseInstance.expand
         }
         onEntered: {

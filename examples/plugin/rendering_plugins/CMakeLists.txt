@@ -7,16 +7,16 @@ endif()
 project(RenderingPlugins)
 
 # Common to both plugins
-find_package(gz-rendering9 REQUIRED)
+find_package(gz-rendering REQUIRED)
 
 # GUI plugin
 set(GUI_PLUGIN RenderingGuiPlugin)
 
 set(CMAKE_AUTOMOC ON)
 
-find_package(gz-gui9 REQUIRED)
+find_package(gz-gui REQUIRED)
 
-QT5_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
+QT_ADD_RESOURCES(resources_RCC ${GUI_PLUGIN}.qrc)
 
 add_library(${GUI_PLUGIN} SHARED
   ${GUI_PLUGIN}.cc
@@ -24,21 +24,21 @@ add_library(${GUI_PLUGIN} SHARED
 )
 target_link_libraries(${GUI_PLUGIN}
   PRIVATE
-    gz-gui9::gz-gui9
-    gz-rendering9::gz-rendering9
+    gz-gui::gz-gui
+    gz-rendering::gz-rendering
 )
 
 # Server plugin
 set(SERVER_PLUGIN RenderingServerPlugin)
 
-find_package(gz-plugin3 REQUIRED COMPONENTS register)
-find_package(gz-sim9 REQUIRED)
+find_package(gz-plugin REQUIRED COMPONENTS register)
+find_package(gz-sim REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
 set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)
 target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
-    gz-plugin3::gz-plugin3
-    gz-sim9::gz-sim9
-    gz-rendering9::gz-rendering9
+    gz-plugin::gz-plugin
+    gz-sim::gz-sim
+    gz-rendering::gz-rendering
 )

@@ -551,7 +551,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
 
       // Get available links for the model.
       this->dataPtr->modelLinks.clear();
-      _ecm.EachNoCache<
+      _ecm.Each<
         components::Name,
         components::Link,
         components::ParentEntity>([&](const gz::sim::Entity &,
@@ -1392,8 +1392,8 @@ void ComponentInspectorEditor::OnLoadMesh(const QString &_entity,
 
     if (!common::MeshManager::Instance()->IsValidFilename(meshStr))
     {
-      QString errTxt = QString::fromStdString("Invalid URI: " + meshStr +
-        "\nOnly mesh file types DAE, OBJ, and STL are supported.");
+      gzerr << "Invalid URI: " << meshStr <<
+        "\nOnly mesh file types DAE, OBJ, and STL are supported.\n";
       return;
     }
 
@@ -1405,6 +1405,10 @@ void ComponentInspectorEditor::OnLoadMesh(const QString &_entity,
     gz::gui::App()->sendEvent(
         gz::gui::App()->findChild<gz::gui::MainWindow *>(),
         &addEntityEvent);
+  }
+  else
+  {
+    gzerr << meshStr << " should be local file\n";
   }
 }
 

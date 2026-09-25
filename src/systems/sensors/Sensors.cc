@@ -396,7 +396,7 @@ void SensorsPrivate::RunOnce()
 {
   {
     std::unique_lock<std::mutex> cvLock(this->renderMutex);
-    this->renderCv.wait_for(cvLock, std::chrono::microseconds(1000), [this]()
+    this->renderCv.wait_for(cvLock, std::chrono::milliseconds(100), [this]()
     {
       return !this->running || this->updateAvailable;
     });
@@ -1238,7 +1238,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     auto camSdf = _sdf.CameraSensor();
     double farClip = camSdf->FarClip();
     double angle = camSdf->HorizontalFov().Radian();
-    double aspect = camSdf->ImageWidth() / camSdf->ImageHeight();
+    double aspect = static_cast<double>(camSdf->ImageWidth()) /
+                    static_cast<double>(camSdf->ImageHeight());
     double vfov = 2.0 * atan(tan(angle / 2.0) / aspect);
     double height = tan(vfov / 2.0) * farClip * 2.0;
     double tempRange =

@@ -29,7 +29,8 @@ class HelperSystem :
   public ISystemConfigure,
   public ISystemPreUpdate,
   public ISystemUpdate,
-  public ISystemPostUpdate
+  public ISystemPostUpdate,
+  public ISystemReset
 {
   // Documentation inherited
   public: void Configure(
@@ -50,6 +51,10 @@ class HelperSystem :
   public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
 
+  // Documentation inherited
+  public: void Reset(const UpdateInfo &_info,
+                            EntityComponentManager &_ecm) override;
+
   /// \brief Function to call every time  we configure a world
   public: std::function<void(const Entity &_entity,
                 const std::shared_ptr<const sdf::Element> &_sdf,
@@ -68,6 +73,10 @@ class HelperSystem :
   /// \brief Function to call every post-update
   public: std::function<void(const UpdateInfo &,
       const EntityComponentManager &)> postUpdateCallback;
+
+  /// \brief Reset callback
+  public: std::function<void(const UpdateInfo &,
+      EntityComponentManager &)> resetCallback;
 };
 
 /////////////////////////////////////////////////
@@ -103,6 +112,14 @@ void HelperSystem::PostUpdate(const UpdateInfo &_info,
 {
   if (this->postUpdateCallback)
     this->postUpdateCallback(_info, _ecm);
+}
+
+/////////////////////////////////////////////////
+void HelperSystem::Reset(const UpdateInfo &_info,
+    EntityComponentManager &_ecm)
+{
+  if (this->resetCallback)
+    this->resetCallback(_info, _ecm);
 }
 
 //////////////////////////////////////////////////
@@ -197,6 +214,15 @@ TestFixture &TestFixture::OnPostUpdate(std::function<void(
 {
   if (nullptr != this->dataPtr->helperSystem)
     this->dataPtr->helperSystem->postUpdateCallback = std::move(_cb);
+  return *this;
+}
+
+//////////////////////////////////////////////////
+TestFixture &TestFixture::OnReset(std::function<void(
+          const UpdateInfo &, EntityComponentManager &)> _cb)
+{
+  if (nullptr != this->dataPtr->helperSystem)
+    this->dataPtr->helperSystem->resetCallback = std::move(_cb);
   return *this;
 }
 

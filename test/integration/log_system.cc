@@ -331,12 +331,6 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     std::string(PROJECT_SOURCE_PATH), "test", "worlds",
     "log_record_dbl_pendulum.sdf");
 
-  // Change environment variable so that test files aren't written to $HOME
-  std::string homeOrig;
-  common::env(GZ_HOMEDIR, homeOrig);
-  std::string homeFake = common::joinPaths(this->logsDir, "default");
-  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeFake.c_str()));
-
   // Test case 1:
   // No path specified on command line. This does not go through
   // gz.cc, recording should take place in the `.gz` directory
@@ -359,10 +353,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
     recordServer.Run(true, 200, false);
   }
 
-  // We should expect to see "auto_default.log"  and "state.tlog"
+  // We should expect to see "state.tlog"
   EXPECT_FALSE(gzLogDirectory().empty());
-  EXPECT_TRUE(common::exists(
-        common::joinPaths(gzLogDirectory(), "auto_default.log")));
   EXPECT_TRUE(common::exists(
         common::joinPaths(gzLogDirectory(), "state.tlog")));
 
@@ -380,7 +372,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // should be recorded here.
 
   // Store number of files before running
-  auto logPath = common::joinPaths(homeFake.c_str(), ".gz", "sim",
+  auto logPath = common::joinPaths(this->kFakeHome, ".gz", "sim",
       "log");
   int nEntries = entryCount(logPath);
   std::vector<std::string> entriesBefore;
@@ -420,9 +412,6 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogDefaults))
   // Remove artifacts. Recreate new directory
   this->RemoveLogsDir();
 #endif
-
-  // Revert environment variable after test is done
-  EXPECT_TRUE(common::setenv(GZ_HOMEDIR, homeOrig.c_str()));
 }
 
 /////////////////////////////////////////////////
@@ -748,7 +737,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   EXPECT_TRUE(recordedIter->Topic().find("/sdf"));
 
   msgs::StringMsg sdfMsg;
-  sdfMsg.ParseFromString(recordedIter->Data());
+  EXPECT_TRUE(sdfMsg.ParseFromString(recordedIter->Data()));
   EXPECT_FALSE(sdfMsg.data().empty());
   EXPECT_EQ(batch.end(), ++recordedIter);
 
@@ -762,7 +751,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
 
   msgs::SerializedStateMap stateMsg;
-  stateMsg.ParseFromString(recordedIter->Data());
+  EXPECT_TRUE(stateMsg.ParseFromString(recordedIter->Data()));
   // entity size = 28 in dbl pendulum + 4 in nested model
   EXPECT_EQ(33, stateMsg.entities_size());
   EXPECT_NE(batch.end(), ++recordedIter);
@@ -799,7 +788,7 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
         // Get next recorded message
         EXPECT_EQ("gz.msgs.SerializedStateMap", recordedIter->Type());
         EXPECT_EQ(recordedIter->Topic(), "/world/log_pendulum/changed_state");
-        stateMsg.ParseFromString(recordedIter->Data());
+        EXPECT_TRUE(stateMsg.ParseFromString(recordedIter->Data()));
 
         // Loop through all recorded poses, and check them against the
         // playedback poses.
@@ -1144,12 +1133,12 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   test::Relay testSystem;
 
-  EntityGraph entityGraph;
+  std::vector<Entity> entityGraph;
 
   testSystem.OnPostUpdate(
       [&](const UpdateInfo &, const EntityComponentManager &_ecm)
       {
-        entityGraph = _ecm.Entities();
+        entityGraph = _ecm.EntitiesVector();
       });
 
   server.AddSystem(testSystem.systemPtr);
@@ -1157,8 +1146,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store the entities at the beginning of playback
   std::set<uint64_t> entitiesAtTime0;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTime0.insert(v.first);
+  for (const auto &v : entityGraph)
+    entitiesAtTime0.insert(v);
 
   // verify there are entities at the beginning of the playback
   EXPECT_TRUE(!entitiesAtTime0.empty());
@@ -1187,8 +1176,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time A
   std::set<uint64_t> entitiesAtTimeA;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeA.insert(v.first);
+  for (const auto &v : entityGraph)
+    entitiesAtTimeA.insert(v);
 
   // Seek forward again
   req.mutable_seek()->set_sec(timeB);
@@ -1205,8 +1194,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store entities at time B
   std::set<uint64_t> entitiesAtTimeB;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeB.insert(v.first);
+  for (const auto &v : entityGraph)
+    entitiesAtTimeB.insert(v);
 
   // the entities at time B should be different from time A as levels get
   // loaded and unloaded
@@ -1228,8 +1217,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time A after jumping back in time
   std::set<uint64_t> entitiesAtTimeAA;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTimeAA.insert(v.first);
+  for (const auto &v : entityGraph)
+    entitiesAtTimeAA.insert(v);
 
   // verify the entities are the same at time A
   EXPECT_EQ(entitiesAtTimeA.size(), entitiesAtTimeAA.size());
@@ -1257,8 +1246,8 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogControlLevels))
 
   // store another set of entities at time 0 after rewind
   std::set<uint64_t> entitiesAtTime00;
-  for (const auto &v : entityGraph.Vertices())
-    entitiesAtTime00.insert(v.first);
+  for (const auto &v : entityGraph)
+    entitiesAtTime00.insert(v);
 
   // verify the entities are the same at beginning of playback
   EXPECT_EQ(entitiesAtTime0.size(), entitiesAtTime00.size());

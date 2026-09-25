@@ -19,7 +19,7 @@ import QtQuick.Controls 2.1
 import QtQuick.Controls.Material 2.2
 import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-import QtQuick.Controls.Styles 1.4
+
 
 ToolBar {
   Layout.minimumWidth: 280
@@ -66,15 +66,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("min")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("X")
+          _AlignTool.OnAlignConfig("min")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -98,15 +98,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("mid")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("X")
+          _AlignTool.OnAlignConfig("mid")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -130,15 +130,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("X")
-          AlignTool.OnAlignConfig("max")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("X")
+          _AlignTool.OnAlignConfig("max")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -169,15 +169,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("min")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Y")
+          _AlignTool.OnAlignConfig("min")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -200,15 +200,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("mid")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Y")
+          _AlignTool.OnAlignConfig("mid")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -231,15 +231,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Y")
-          AlignTool.OnAlignConfig("max")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Y")
+          _AlignTool.OnAlignConfig("max")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -270,15 +270,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("min")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Z")
+          _AlignTool.OnAlignConfig("min")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -301,15 +301,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("mid")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Z")
+          _AlignTool.OnAlignConfig("mid")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -332,15 +332,15 @@ ToolBar {
         anchors.fill: parent
         hoverEnabled: true
         onEntered: {
-          AlignTool.OnAlignAxis("Z")
-          AlignTool.OnAlignConfig("max")
-          AlignTool.OnHoveredEntered()
+          _AlignTool.OnAlignAxis("Z")
+          _AlignTool.OnAlignConfig("max")
+          _AlignTool.OnHoveredEntered()
         }
         onExited: {
-          AlignTool.OnHoveredExited()
+          _AlignTool.OnHoveredExited()
         }
         onClicked: {
-          AlignTool.OnAlign()
+          _AlignTool.OnAlign()
         }
       }
     }
@@ -351,7 +351,7 @@ ToolBar {
       Layout.leftMargin: 10
       checked: false
       onClicked: {
-        AlignTool.OnReverse(checked)
+        _AlignTool.OnReverse(checked)
       }
     }
     RowLayout {
@@ -374,7 +374,7 @@ ToolBar {
           ListElement { text: "First" }
           ListElement { text: "Last" }
         }
-        onCurrentIndexChanged: AlignTool.OnAlignTarget(relativeAlignList.get(currentIndex).text)
+        onCurrentIndexChanged: _AlignTool.OnAlignTarget(relativeAlignList.get(currentIndex).text)
       }
     }
     Text {

@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim9 VERSION 9.3.0)
-set (GZ_DISTRIBUTION "Ionic")
+project(gz-sim VERSION 11.0.0)
+set (GZ_DISTRIBUTION "Rotary")
 
 #============================================================================
 # Find gz-cmake
 #============================================================================
 # If you get an error at this line, you need to install gz-cmake
-find_package(gz-cmake4 REQUIRED)
+find_package(gz-cmake REQUIRED)
 
 #============================================================================
 # Configure the project
@@ -18,7 +18,7 @@ find_package(gz-cmake4 REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-gz_configure_project(VERSION_SUFFIX)
+gz_configure_project(VERSION_SUFFIX pre1)
 
 #============================================================================
 # Set project-specific options
@@ -32,6 +32,16 @@ else()
   add_definitions("-DGZ_PROFILER_ENABLE=0")
 endif()
 
+#--------------------------------------
+# Find Backward-cpp for stack trace support
+# See https://github.com/gazebosim/gz-cmake/issues/477 before copy this code
+
+set(BACKWARD_TESTS OFF)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/backward-cpp)
+
+# Using other CMake interfaces from backwards won't work here since
+# CMake would not resolve them into gz-cmake (uses EXTRA_TEST_LIB_DEPS)
+# using backward_object set the object file path.
 if (UNIX AND NOT APPLE)
   set (EXTRA_TEST_LIB_DEPS stdc++fs backward_object)
 else()
@@ -74,28 +84,24 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 # as protobuf could be find transitively by any dependency
 set(protobuf_MODULE_COMPATIBLE TRUE)
 
-gz_find_package(sdformat15 REQUIRED)
-set(SDF_VER ${sdformat15_VERSION_MAJOR})
+gz_find_package(sdformat REQUIRED)
 
 #--------------------------------------
 # Find gz-plugin
-gz_find_package(gz-plugin3 REQUIRED COMPONENTS loader register)
-set(GZ_PLUGIN_VER ${gz-plugin3_VERSION_MAJOR})
+gz_find_package(gz-plugin REQUIRED COMPONENTS loader register)
 
 #--------------------------------------
 # Find gz-transport
-gz_find_package(gz-transport14 REQUIRED COMPONENTS log parameters)
-set(GZ_TRANSPORT_VER ${gz-transport14_VERSION_MAJOR})
+gz_find_package(gz-transport REQUIRED COMPONENTS log parameters)
 
 #--------------------------------------
 # Find gz-msgs
-gz_find_package(gz-msgs11 REQUIRED)
-set(GZ_MSGS_VER ${gz-msgs11_VERSION_MAJOR})
+gz_find_package(gz-msgs REQUIRED)
 
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common6
+gz_find_package(gz-common
   COMPONENTS
     av
     events
@@ -105,47 +111,52 @@ gz_find_package(gz-common6
     testing
   REQUIRED
 )
-set(GZ_COMMON_VER ${gz-common6_VERSION_MAJOR})
 
-list(APPEND EXTRA_TEST_LIB_DEPS gz-common${GZ_COMMON_VER}::testing)
+list(APPEND EXTRA_TEST_LIB_DEPS gz-common::testing)
 
 #--------------------------------------
 # Find gz-fuel_tools
-gz_find_package(gz-fuel_tools10 REQUIRED)
-set(GZ_FUEL_TOOLS_VER ${gz-fuel_tools10_VERSION_MAJOR})
+gz_find_package(gz-fuel_tools REQUIRED)
 
-#--------------------------------------
-# Find gz-gui
-gz_find_package(gz-gui9 REQUIRED)
-set(GZ_GUI_VER ${gz-gui9_VERSION_MAJOR})
-gz_find_package (Qt5
-  COMPONENTS
-    Core
-    Quick
-    QuickControls2
-  REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2")
+# Option to build gz-sim with GUI support
+option(ENABLE_GUI "Build gz-sim with GUI enabled" ON)
+
+if(ENABLE_GUI)
+  gz_find_package(gz-gui REQUIRED)
+  gz_find_package(TINYXML2 REQUIRED)
+
+  set(QT_MAJOR_VERSION 6)
+  set(QT_MINOR_VERSION 4)
+  gz_find_package (Qt${QT_MAJOR_VERSION}
+    VERSION ${QT_MAJOR_VERSION}.${QT_MINOR_VERSION}
+    COMPONENTS
+      Core
+      Quick
+      QuickControls2
+    REQUIRED
+    PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
+endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics8
+gz_find_package(gz-physics
   COMPONENTS
     heightmap
     mesh
     sdf
   REQUIRED
 )
-set(GZ_PHYSICS_VER ${gz-physics8_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-sensors
-gz_find_package(gz-sensors9 REQUIRED
+gz_find_package(gz-sensors REQUIRED
   # component order is important
   COMPONENTS
     # non-rendering
     air_pressure
     air_speed
     altimeter
+    cpu_lidar
     imu
     force_torque
     logical_camera
@@ -167,17 +178,14 @@ gz_find_package(gz-sensors9 REQUIRED
     thermal_camera
     wide_angle_camera
 )
-set(GZ_SENSORS_VER ${gz-sensors9_VERSION_MAJOR})
 
 #--------------------------------------
 # Find gz-rendering
-gz_find_package(gz-rendering9 REQUIRED)
-set(GZ_RENDERING_VER ${gz-rendering9_VERSION_MAJOR})
+gz_find_package(gz-rendering REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math8 REQUIRED COMPONENTS eigen3)
-set(GZ_MATH_VER ${gz-math8_VERSION_MAJOR})
+gz_find_package(gz-math REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
@@ -189,12 +197,22 @@ else()
 endif()
 # Note that CLI files are installed regardless of whether the dependency is
 # available during build time
-set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils3 REQUIRED COMPONENTS cli)
-set(GZ_UTILS_VER ${gz-utils3_VERSION_MAJOR})
+gz_find_package(gz-utils REQUIRED COMPONENTS cli)
+
+
+#--------------------------------------
+# Find libwebsockets
+# Disable on windows as there is an issue linking against websockets_shared,
+# see #2802
+if (NOT WIN32)
+  gz_find_package(libwebsockets)
+  if (NOT libwebsockets_FOUND)
+    gz_build_warning("Unable to find libwebsockets. The websocket_server system will not be built.")
+  endif()
+endif()
 
 #--------------------------------------
 # Find protobuf
@@ -202,7 +220,7 @@ gz_find_package(GzProtobuf
                 REQUIRED
                 COMPONENTS all
                 PRETTY Protobuf)
-set(Protobuf_IMPORT_DIRS ${gz-msgs11_INCLUDE_DIRS})
+set(Protobuf_IMPORT_DIRS ${gz-msgs_INCLUDE_DIRS})
 
 #--------------------------------------
 # Find python
@@ -229,13 +247,13 @@ else()
 endif()
 # Plugin install dirs
 set(GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR
-  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}/plugins
 )
 set(GZ_SIM_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR}
 )
 set(GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR
-  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins/gui
+  ${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}/plugins/gui
 )
 set(GZ_SIM_GUI_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${GZ_SIM_GUI_PLUGIN_RELATIVE_INSTALL_DIR}
@@ -261,29 +279,35 @@ endif()
 #============================================================================
 configure_file(${CMAKE_SOURCE_DIR}/api.md.in ${CMAKE_BINARY_DIR}/api.md)
 configure_file(${CMAKE_SOURCE_DIR}/tutorials.md.in ${CMAKE_BINARY_DIR}/tutorials.md)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim${PROJECT_VERSION_MAJOR}.desktop)
-configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo${PROJECT_VERSION_MAJOR}.svg)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-sim.desktop.in ${CMAKE_BINARY_DIR}/gz-sim.desktop)
+configure_file(${CMAKE_SOURCE_DIR}/tools/desktop/gz-logo.svg.in ${CMAKE_BINARY_DIR}/gz-logo.svg)
 
-# disable doxygen on macOS due to issues with doxygen 1.9.0
-# there is an unreleased fix; revert this when 1.9.1 is released
-# https://github.com/gazebosim/gz-sim/issues/520
-if (NOT APPLE)
-  gz_create_docs(
-    API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
-    TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
-    ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
-    IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
-    TAGFILES
-     "${GZ-MATH_DOXYGEN_TAGFILE} = ${GZ-MATH_API_URL}"
-     "${GZ-MSGS_DOXYGEN_TAGFILE} = ${GZ-MSGS_API_URL}"
-     "${GZ-PHYSICS_DOXYGEN_TAGFILE} = ${GZ-PHYSICS_API_URL}"
-     "${GZ-PLUGIN_DOXYGEN_TAGFILE} = ${GZ-PLUGIN_API_URL}"
-     "${GZ-TRANSPORT_DOXYGEN_TAGFILE} = ${GZ-TRANSPORT_API_URL}"
-     "${GZ-SENSORS_DOXYGEN_TAGFILE} = ${GZ-SENSORS_API_URL}"
-     "${GZ-COMMON_DOXYGEN_TAGFILE} = ${GZ-COMMON_API_URL}"
-     "${GZ-GUI_DOXYGEN_TAGFILE} = ${GZ-GUI_API_URL}"
-  )
-endif()
+set(gz_sim_doxygen_tagfiles)
+
+foreach(_gz_dep
+  GZ-MATH
+  GZ-MSGS
+  GZ-PHYSICS
+  GZ-PLUGIN
+  GZ-TRANSPORT
+  GZ-SENSORS
+  GZ-COMMON
+  GZ-GUI
+)
+  if(EXISTS "${${_gz_dep}_DOXYGEN_TAGFILE}")
+    list(APPEND gz_sim_doxygen_tagfiles
+      "${${_gz_dep}_DOXYGEN_TAGFILE} = ${${_gz_dep}_API_URL}")
+  endif()
+endforeach()
+
+gz_create_docs(
+  API_MAINPAGE_MD "${CMAKE_BINARY_DIR}/api.md"
+  TUTORIALS_MAINPAGE_MD "${CMAKE_BINARY_DIR}/tutorials.md"
+  ADDITIONAL_INPUT_DIRS "${CMAKE_SOURCE_DIR}/src/systems ${CMAKE_SOURCE_DIR}/src/gui/plugins"
+  IMAGE_PATH_DIRS "${CMAKE_SOURCE_DIR}/tutorials/files"
+  TAGFILES
+   ${gz_sim_doxygen_tagfiles}
+)
 
 if(TARGET doc)
   file(COPY ${CMAKE_SOURCE_DIR}/tutorials/files/ DESTINATION ${CMAKE_BINARY_DIR}/doxygen/html/files/)

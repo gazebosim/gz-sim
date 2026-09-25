@@ -2,7 +2,7 @@ gz_add_system(forcetorque
   SOURCES
     ForceTorque.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-common::gz-common
   PRIVATE_LINK_LIBS
-    gz-sensors${GZ_SENSORS_VER}::force_torque
+    gz-sensors::force_torque
 )

@@ -31,8 +31,7 @@
 
 static const std::string kBinPath(PROJECT_BINARY_PATH);
 
-static const std::string kGzCommand(
-    std::string(BREW_RUBY) + std::string(GZ_PATH) + " sim -s ");
+static const std::string kGzCommand(std::string(GZ_PATH) + " sim -s");
 
 /////////////////////////////////////////////////
 std::string customExecStr(std::string _cmd)
@@ -249,6 +248,7 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResourcePath))
 
 //////////////////////////////////////////////////
 /// \brief Check --help message and bash completion script for consistent flags
+#ifdef WITH_GUI
 TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
 {
   // Flags in help message
@@ -277,3 +277,4 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(GazeboHelpVsCompletionFlags))
     EXPECT_NE(std::string::npos, helpOutput.find(flag)) << flag;
   }
 }
+#endif

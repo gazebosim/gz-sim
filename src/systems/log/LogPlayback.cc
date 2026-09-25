@@ -247,14 +247,20 @@ bool LogPlaybackPrivate::Start(EntityComponentManager &_ecm)
     if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
       this->Parse(_ecm, msg);
       break;
     }
     else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
       this->Parse(_ecm, msg);
       break;
     }
@@ -495,9 +501,9 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     // Create a list of entities to be removed. The list will be updated later
     // as the log steps forward below
     seekRewind = true;
-    const auto &entities = _ecm.Entities().Vertices();
+    const auto &entities = _ecm.EntitiesVector();
     for (const auto &entity : entities)
-      entitiesToRemove.insert(Entity(entity.first));
+      entitiesToRemove.insert(Entity(entity));
 
     startTime = std::chrono::steady_clock::duration::zero();
   }
@@ -513,7 +519,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     if (msgType == "gz.msgs.SerializedState")
     {
       msgs::SerializedState msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
 
       // For seeking back in time only:
       // While stepping, update the list of entities to be removed
@@ -539,7 +548,10 @@ void LogPlayback::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
     else if (msgType == "gz.msgs.SerializedStateMap")
     {
       msgs::SerializedStateMap msg;
-      msg.ParseFromString(iter->Data());
+      if(!msg.ParseFromString(iter->Data()))
+      {
+        continue;
+      }
 
       // For seeking back in time only:
       // While stepping, update the list of entities to be removed

@@ -41,8 +41,8 @@ namespace systems
   ///
   /// - `<service>`:  Name of topic for the video recorder service. If this is
   ///   not specified, the topic defaults to:
-  ///   /world/<world_name/model/<model_name>/link/<link_name>/
-  ///   sensor/<sensor_name>/record_video
+  ///   /world/`<world_name>`/model/`<model_name>`/link/`<link_name>`/
+  ///   sensor/`<sensor_name>`/record_video
   ///
   /// - `<use_sim_time>`: True/false value that specifies if the video should
   ///   be recorded using simulation time or real time. The default is false,

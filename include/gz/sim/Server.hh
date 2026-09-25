@@ -26,6 +26,9 @@
 #include <gz/sim/Export.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/SystemPluginPtr.hh>
+#include <gz/sim/Types.hh>
+#include <gz/utils/ImplPtr.hh>
+
 #include <sdf/Element.hh>
 #include <sdf/Plugin.hh>
 
@@ -115,6 +118,101 @@ namespace gz
     ///
     class GZ_SIM_VISIBLE Server
     {
+      /// \brief Lifecycle states of the server.
+      public: enum class Status {
+        /// \brief The server encountered a critical error during initialization
+        /// (e.g., an SDF parsing error while SdfErrorBehavior is set to
+        /// EXIT_IMMEDIATELY) and is in a terminal state.
+        /// Calls to Run() or RunOnce() will return false.
+        EXITED,
+        /// \brief The server is initialized and ready, but not currently
+        /// running.
+        STOPPED,
+        /// \brief The server is currently running.
+        RUNNING
+      };
+
+      /// \class EcmGuard Server.hh gz/sim/Server.hh
+      /// \brief RAII guard providing exclusive read-write access to the
+      /// EntityComponentManager.
+      /// \details An instance of EcmGuard is obtained via Server::EcmScope().
+      /// The guard acquires the server's execution mutex upon construction and
+      /// releases it upon destruction or when Reset() is called.
+      ///
+      /// Example usage:
+      /// \code
+      /// if (auto guard = server.EcmScope(); guard)
+      /// {
+      ///   auto entity = guard->CreateEntity();
+      /// }
+      /// \endcode
+      public: class GZ_SIM_VISIBLE EcmGuard
+      {
+        /// \brief Default constructor creating an invalid guard.
+        public: EcmGuard();
+
+        /// \brief Destructor. Releases the exclusive lock on the ECM.
+        public: ~EcmGuard();
+
+        /// \brief Move constructor.
+        /// \param[in] _other Guard to move from.
+        public: EcmGuard(EcmGuard &&_other) noexcept;
+
+        /// \brief Move assignment operator.
+        /// \param[in] _other Guard to move from.
+        /// \return Reference to this guard.
+        public: EcmGuard &operator=(EcmGuard &&_other) noexcept;
+
+        /// \brief Deleted copy constructor.
+        public: EcmGuard(const EcmGuard &) = delete;
+
+        /// \brief Deleted copy assignment operator.
+        public: EcmGuard &operator=(const EcmGuard &) = delete;
+
+        /// \brief Boolean conversion operator to check validity.
+        /// \return True if the guard holds an active exclusive lock and valid
+        /// ECM.
+        public: explicit operator bool() const;
+
+        /// \brief Check whether the guard is valid and holds an active lock.
+        /// \return True if valid.
+        public: bool Valid() const;
+
+        /// \brief Member access operator for the underlying ECM.
+        /// \return Pointer to the EntityComponentManager.
+        public: EntityComponentManager *operator->();
+
+        /// \brief Const member access operator for the underlying ECM.
+        /// \return Const pointer to the EntityComponentManager.
+        public: const EntityComponentManager *operator->() const;
+
+        /// \brief Dereference operator for the underlying ECM.
+        /// \return Reference to the EntityComponentManager.
+        public: EntityComponentManager &operator*();
+
+        /// \brief Const dereference operator for the underlying ECM.
+        /// \return Const reference to the EntityComponentManager.
+        public: const EntityComponentManager &operator*() const;
+
+        /// \brief Get reference to the underlying ECM.
+        /// \return Reference to the EntityComponentManager.
+        public: EntityComponentManager &Ecm();
+
+        /// \brief Get const reference to the underlying ECM.
+        /// \return Const reference to the EntityComponentManager.
+        public: const EntityComponentManager &Ecm() const;
+
+        /// \brief Explicitly release the lock before destruction.
+        public: void Reset();
+
+        /// \internal
+        /// \brief Pointer to private data.
+        private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
+
+        /// \brief Befriend Server to allow construction with private lock.
+        friend class Server;
+      };
+
       /// \brief Construct the server using the parameters specified in a
       /// ServerConfig.
       /// \param[in] _config Server configuration parameters. If this
@@ -232,7 +330,7 @@ namespace gz
       /// \param[in] _system system to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added.
       /// \param[in] _worldIndex Index of the world to query.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -272,7 +370,7 @@ namespace gz
       /// \param[in] _system System to be added
       /// \param[in] _entity Entity of system to be added.
       /// If _entity is std::nullopt, it will be added to the world entity.
-      /// \param[in] _sdf Pointer to the SDF element of a <plugin> tag with
+      /// \param[in] _sdf Pointer to the SDF element of a `<plugin>` tag with
       /// configuration options for the system being added
       /// \param[in] _worldIndex Index of the world to add to.
       /// \return Whether the system was added successfully, or std::nullopt
@@ -337,6 +435,43 @@ namespace gz
 
       /// \brief Stop the server. This will stop all running simulations.
       public: void Stop();
+
+      /// \brief Reset all runners in this simulation
+      public: void ResetAll();
+      /// \brief Reset a specific runner in this server
+      /// \param[in] _runnerId - The runner which you want to reset
+      /// \ return False if the runner does not exist, true otherwise.
+      public: bool Reset(const std::size_t _runnerId);
+
+      /// \brief Get the current lifecycle status of the server.
+      /// \return The current status (EXITED, STOPPED, or RUNNING).
+      public: Status GetStatus() const;
+
+      /// \brief Acquire an exclusive scope on the ECM for inspection or
+      /// modifications.
+      /// \details This returns an \ref EcmGuard RAII handle that acquires
+      /// the server's execution mutex, preventing simulation steps from
+      /// running while the ECM is being accessed.
+      ///
+      /// Example usage:
+      /// \code
+      /// if (auto guard = server.EcmScope(); guard)
+      /// {
+      ///   auto entity = guard->CreateEntity();
+      /// }
+      /// \endcode
+      /// \param[in] _runnerId ID of the simulation runner (world index).
+      /// \return EcmGuard RAII handle. Evaluates to false if the server is
+      /// running, the runner ID is out of bounds, or the server is in an error
+      /// state.
+      public: EcmGuard EcmScope(const std::size_t _runnerId = 0);
+
+      /// \brief Get current simulation update info for a world.
+      /// \param[in] _worldIndex Index of the world to query.
+      /// \return Current update info, or std::nullopt if _worldIndex
+      /// is invalid.
+      public: std::optional<UpdateInfo> CurrentInfo(
+                  const unsigned int _worldIndex = 0) const;
 
       /// \brief Private data
       private: std::unique_ptr<ServerPrivate> dataPtr;

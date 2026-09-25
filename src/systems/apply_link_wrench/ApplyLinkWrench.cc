@@ -71,6 +71,9 @@ class gz::sim::systems::ApplyLinkWrenchPrivate
   /// \brief Communication node.
   public: transport::Node node;
 
+  /// \brief List of subscribers that automatically unsubscribe when destroyed
+  public: std::vector<transport::Node::Subscriber> subscribers;
+
   /// \brief A mutex to protect wrenches
   public: std::mutex mutex;
 };
@@ -200,8 +203,8 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   if (_sdf->HasElement("topic"))
     topic = _sdf->Get<std::string>("topic");
 
-  this->dataPtr->node.Subscribe(topic, &ApplyLinkWrenchPrivate::OnWrench,
-      this->dataPtr.get());
+  this->dataPtr->subscribers.emplace_back(this->dataPtr->node.CreateSubscriber(
+      topic, &ApplyLinkWrenchPrivate::OnWrench, this->dataPtr.get()));
 
   gzmsg << "Listening to instantaneous wrench commands in [" << topic << "]"
         << std::endl;
@@ -211,8 +214,8 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   if (_sdf->HasElement("topic_persistent"))
     topic = _sdf->Get<std::string>("topic_persistent");
 
-  this->dataPtr->node.Subscribe(topic,
-      &ApplyLinkWrenchPrivate::OnWrenchPersistent, this->dataPtr.get());
+  this->dataPtr->subscribers.emplace_back(this->dataPtr->node.CreateSubscriber(
+      topic, &ApplyLinkWrenchPrivate::OnWrenchPersistent, this->dataPtr.get()));
 
   gzmsg << "Listening to persistent wrench commands in [" << topic << "]"
         << std::endl;
@@ -222,8 +225,8 @@ void ApplyLinkWrench::Configure(const Entity &_entity,
   if (_sdf->HasElement("topic_clear"))
     topic = _sdf->Get<std::string>("topic_clear");
 
-  this->dataPtr->node.Subscribe(topic,
-      &ApplyLinkWrenchPrivate::OnWrenchClear, this->dataPtr.get());
+  this->dataPtr->subscribers.emplace_back(this->dataPtr->node.CreateSubscriber(
+      topic, &ApplyLinkWrenchPrivate::OnWrenchClear, this->dataPtr.get()));
 
   gzmsg << "Listening to wrench clear commands in [" << topic << "]"
         << std::endl;

@@ -1,9 +1,10 @@
 name: Bazel CI
 on:
-  push:
-    branches: [gz-sim9, main]
   pull_request:
-    branches: [gz-sim9, main]
+  push:
+    branches:
+      - 'gz-sim[1-9]?[0-9]'
+      - 'main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -11,13 +12,17 @@ concurrency:
 
 jobs:
   test:
-    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.2.2
+    uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
+      # Make sure to keep in sync with version in root's .bazelversion
+      bazel_versions: '["9.1.1"]'
       folders: |
         [
-          ".",
+          "."
         ]
       exclude: |
         [
-          {"folder": ".", "bzlmodEnabled": false},
+          {"folder": ".", "bzlmodEnabled": false}
         ]
+      exclude_windows: true
+      bazel_test_command: "bazel test --repo_env=CC=clang --repo_env=CXX=clang++ --test_output=errors //..."

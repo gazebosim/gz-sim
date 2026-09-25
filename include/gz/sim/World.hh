@@ -26,6 +26,8 @@
 #include <gz/math/Vector3.hh>
 #include <gz/math/SphericalCoordinates.hh>
 
+#include <gz/utils/ImplPtr.hh>
+
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Export.hh"
@@ -37,8 +39,6 @@ namespace gz
   {
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
-    // Forward declarations.
-    class GZ_SIM_HIDDEN WorldPrivate;
     //
     /// \class World World.hh gz/sim/World.hh
     /// \brief This class provides wrappers around entities and components
@@ -62,27 +62,6 @@ namespace gz
       /// \brief Constructor
       /// \param[in] _entity World entity
       public: explicit World(sim::Entity _entity = kNullEntity);
-
-      /// \brief Copy constructor
-      /// \param[in] _world World to copy.
-      public: World(const World &_world);
-
-      /// \brief Move constructor
-      /// \param[in] _world World to move.
-      public: World(World &&_world) noexcept;
-
-      /// \brief Move assignment operator.
-      /// \param[in] _world World component to move.
-      /// \return Reference to this.
-      public: World &operator=(World &&_world) noexcept;
-
-      /// \brief Copy assignment operator.
-      /// \param[in] _world World to copy.
-      /// \return Reference to this.
-      public: World &operator=(const World &_world);
-
-      /// \brief Destructor
-      public: virtual ~World();
 
       /// \brief Get the entity which this World is related to.
       /// \return World entity.
@@ -195,8 +174,8 @@ namespace gz
       /// \return Number of models in this world.
       public: uint64_t ModelCount(const EntityComponentManager &_ecm) const;
 
-      /// \brief Pointer to private data.
-      private: std::unique_ptr<WorldPrivate> dataPtr;
+      /// \brief Private data pointer.
+      GZ_UTILS_IMPL_PTR(dataPtr)
     };
     }
   }

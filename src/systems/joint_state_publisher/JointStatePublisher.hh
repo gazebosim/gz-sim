@@ -18,6 +18,9 @@
 #ifndef GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 #define GZ_SIM_SYSTEMS_STATE_PUBLISHER_HH_
 
+#include <gz/msgs/model.pb.h>
+
+#include <chrono>
 #include <memory>
 #include <set>
 #include <string>
@@ -50,6 +53,10 @@ namespace systems
   /// - `<joint_name>`: Name of a joint to publish. This parameter can be
   /// specified multiple times, and is optional. All joints in a model will
   /// be published if joint names are not specified.
+  ///
+  /// - `<update_rate>`: Maximum publication frequency in Hz. Optional.
+  /// Values > 0 throttle publications using sim time. If absent or set to 0,
+  /// publish every simulation iteration.
   class JointStatePublisher
       : public System,
         public ISystemConfigure,
@@ -90,6 +97,16 @@ namespace systems
 
     /// \brief The topic
     private: std::string topic;
+
+    /// \brief Publication period derived from `<update_rate>`.
+    private: std::chrono::steady_clock::duration updatePeriod{0};
+
+    /// \brief Simulation time of last publication.
+    private: std::chrono::steady_clock::duration lastUpdateTime{0};
+
+    /// \brief Persistent joint-state message, built once then updated in
+    /// place each step.
+    private: msgs::Model jointStateMsg;
   };
   }
 }

@@ -86,7 +86,7 @@ TEST_P(AcousticCommsTestFixture,
     std::string expected = std::to_string(msgCounter);
 
     gz::msgs::StringMsg receivedMsg;
-    receivedMsg.ParseFromString(_msg.data());
+    EXPECT_TRUE(receivedMsg.ParseFromString(_msg.data()));
     EXPECT_EQ(expected, receivedMsg.data());
     msgCounter++;
   };

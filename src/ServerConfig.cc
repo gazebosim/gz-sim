@@ -212,8 +212,10 @@ class gz::sim::ServerConfigPrivate
             seed(_cfg->seed),
             logRecordTopics(_cfg->logRecordTopics),
             isHeadlessRendering(_cfg->isHeadlessRendering),
+            sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
-            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors){ }
+            behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
+            waitForAssets(_cfg->waitForAssets) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -293,7 +295,7 @@ class gz::sim::ServerConfigPrivate
   public: bool isHeadlessRendering{false};
 
   /// \brief Optional SDF root object.
-  public: std::optional<sdf::Root> sdfRoot;
+  public: std::optional<sdf::Root> sdfRoot{std::nullopt};
 
   /// \brief Type of source used.
   public: ServerConfig::SourceType source{ServerConfig::SourceType::kNone};
@@ -301,6 +303,9 @@ class gz::sim::ServerConfigPrivate
   /// \brief Server loading behavior in presence of SDF errors.
   public: ServerConfig::SdfErrorBehavior behaviorOnSdfErrors{
       ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY};
+
+  /// \brief True to block while simulation assets download.
+  public: bool waitForAssets{true};
 };
 
 //////////////////////////////////////////////////
@@ -739,6 +744,18 @@ const std::chrono::time_point<std::chrono::system_clock> &
 ServerConfig::Timestamp() const
 {
   return this->dataPtr->timestamp;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::SetWaitForAssets(bool _set)
+{
+  this->dataPtr->waitForAssets = _set;
+}
+
+/////////////////////////////////////////////////
+bool ServerConfig::WaitForAssets() const
+{
+  return this->dataPtr->waitForAssets;
 }
 
 /////////////////////////////////////////////////

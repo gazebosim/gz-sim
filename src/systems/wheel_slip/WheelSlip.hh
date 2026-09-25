@@ -118,6 +118,7 @@ namespace systems
   class WheelSlip
       : public System,
         public ISystemConfigure,
+        public ISystemConfigureParameters,
         public ISystemPreUpdate
   {
     /// \brief Constructor
@@ -135,6 +136,11 @@ namespace systems
     // Documentation inherited
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
+                gz::sim::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void ConfigureParameters(
+                gz::transport::parameters::ParametersRegistry &_registry,
                 gz::sim::EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer

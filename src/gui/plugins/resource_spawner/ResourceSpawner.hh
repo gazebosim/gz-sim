@@ -94,7 +94,7 @@ namespace sim
     public: explicit PathModel();
 
     /// \brief Destructor
-    public: ~PathModel() override = default;
+    public: ~PathModel() override;
 
     /// \brief Add a path.
     /// param[in] _path The path to be added.
@@ -122,7 +122,7 @@ namespace sim
     public: explicit ResourceModel();
 
     /// \brief Destructor
-    public: ~ResourceModel() override = default;
+    public: ~ResourceModel() override;
 
     /// \brief Add a resource to the grid view.
     /// param[in] _resource The local resource to be added

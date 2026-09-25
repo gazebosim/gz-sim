@@ -21,9 +21,9 @@ gz_add_component(rendering
 
 target_link_libraries(${rendering_target}
   PUBLIC
-    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
+    gz-rendering::gz-rendering
   PRIVATE
-    gz-plugin${GZ_PLUGIN_VER}::register
+    gz-plugin::register
 )
 
 install(TARGETS ${rendering_target} DESTINATION ${GZ_LIB_INSTALL_DIR})

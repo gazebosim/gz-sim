@@ -39,6 +39,93 @@
 using namespace gz;
 using namespace sim;
 
+
+class Server::EcmGuard::Implementation
+{
+  public: std::unique_lock<std::mutex> lock;
+  public: EntityComponentManager *ecm{nullptr};
+};
+
+
+//////////////////////////////////////////////////
+Server::EcmGuard::EcmGuard()
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
+{
+}
+
+//////////////////////////////////////////////////
+Server::EcmGuard::~EcmGuard() = default;
+
+//////////////////////////////////////////////////
+Server::EcmGuard::EcmGuard(EcmGuard &&_other) noexcept = default;
+
+//////////////////////////////////////////////////
+Server::EcmGuard &Server::EcmGuard::operator=(
+    EcmGuard &&_other) noexcept = default;
+
+//////////////////////////////////////////////////
+Server::EcmGuard::operator bool() const
+{
+  return this->Valid();
+}
+
+//////////////////////////////////////////////////
+bool Server::EcmGuard::Valid() const
+{
+  return this->dataPtr != nullptr &&
+         this->dataPtr->ecm != nullptr &&
+         this->dataPtr->lock.owns_lock();
+}
+
+//////////////////////////////////////////////////
+EntityComponentManager *Server::EcmGuard::operator->()
+{
+  return this->dataPtr ? this->dataPtr->ecm : nullptr;
+}
+
+//////////////////////////////////////////////////
+const EntityComponentManager *Server::EcmGuard::operator->() const
+{
+  return this->dataPtr ? this->dataPtr->ecm : nullptr;
+}
+
+//////////////////////////////////////////////////
+EntityComponentManager &Server::EcmGuard::operator*()
+{
+  return *this->dataPtr->ecm;
+}
+
+//////////////////////////////////////////////////
+const EntityComponentManager &Server::EcmGuard::operator*() const
+{
+  return *this->dataPtr->ecm;
+}
+
+//////////////////////////////////////////////////
+EntityComponentManager &Server::EcmGuard::Ecm()
+{
+  return *this->dataPtr->ecm;
+}
+
+//////////////////////////////////////////////////
+const EntityComponentManager &Server::EcmGuard::Ecm() const
+{
+  return *this->dataPtr->ecm;
+}
+
+//////////////////////////////////////////////////
+void Server::EcmGuard::Reset()
+{
+  if (this->dataPtr)
+  {
+    if (this->dataPtr->lock.owns_lock())
+    {
+      this->dataPtr->lock.unlock();
+    }
+    this->dataPtr->ecm = nullptr;
+  }
+}
+
 /////////////////////////////////////////////////
 Server::Server(const ServerConfig &_config)
   : dataPtr(new ServerPrivate)
@@ -69,6 +156,11 @@ Server::Server(const ServerConfig &_config)
     config.SetCacheLocation(_config.ResourceCache());
   this->dataPtr->fuelClient = std::make_unique<fuel_tools::FuelClient>(config);
 
+  // Turn off downloads so that we can do an initial parsing of the SDF
+  // file. This will let us get the world names, and queue the simulation asset
+  // URIs for download.
+  this->dataPtr->enableDownload = false;
+
   // Configure SDF to fetch assets from Gazebo Fuel.
   sdf::setFindCallback(std::bind(&ServerPrivate::FetchResource,
         this->dataPtr.get(), std::placeholders::_1));
@@ -77,51 +169,84 @@ Server::Server(const ServerConfig &_config)
 
   addResourcePaths();
 
-  // Loads the SDF root object based on values in a ServerConfig object.
-  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(_config);
+  sdf::Root sdfRoot;
 
-  if (!errors.empty())
-  {
-    for (auto &err : errors)
-      gzerr << err << "\n";
-    if (_config.BehaviorOnSdfErrors() ==
-        ServerConfig::SdfErrorBehavior::EXIT_IMMEDIATELY)
-    {
-      return;
-    }
-  }
+  // Loads the SDF root object based on values in a ServerConfig object.
+  // Ignore the sdf::Errors returned by this function. The errors will be
+  // displayed later in the downloadThread.
+  ServerConfig cfg = _config;
+  cfg.SetBehaviorOnSdfErrors(
+    ServerConfig::SdfErrorBehavior::CONTINUE_LOADING);
+  sdf::Errors errors = this->dataPtr->LoadSdfRootHelper(
+    cfg, sdfRoot);
 
   // Add record plugin
   if (_config.UseLogRecord())
   {
-    this->dataPtr->AddRecordPlugin(_config);
+    this->dataPtr->AddRecordPlugin(_config, sdfRoot);
   }
+
+  // Remove all the models, lights, and actors from the primary sdfRoot object
+  // so that they can be downloaded and added to simulation in the background.
+  for (uint64_t i = 0; i < sdfRoot.WorldCount(); ++i)
+  {
+    sdfRoot.WorldByIndex(i)->ClearModels();
+    sdfRoot.WorldByIndex(i)->ClearActors();
+    sdfRoot.WorldByIndex(i)->ClearLights();
+  }
+
+  // This will create the simulation runners, but not entities.
+  this->dataPtr->CreateSimulationRunners(sdfRoot);
+
+  // Storing the sdf root. The ServerPrivate.hh header file mentions
+  // that other classes may keep pointers to child nodes of the root,
+  // so we need to keep this object around.
+  // However, everything seems to work fine without storing this.
+  // \todo(nkoenig): Look into removing the sdfRoot member variable.
+  this->dataPtr->sdfRoot = sdfRoot;
+
+  // Establish publishers and subscribers. Setup transport before
+  // downloading simulation assets so that the GUI is not blocked during
+  // download.
+  this->dataPtr->SetupTransport();
 
   // If we've received a signal before we create entities, the Stop event
   // won't be propagated to them. Instead, we just quit early here.
   if (this->dataPtr->signalReceived)
     return;
 
-  this->dataPtr->CreateEntities();
+  // Download the simulation assets. This function will block if
+  // _config.WaitForAssets() is true;
+  this->dataPtr->DownloadAssets(_config);
 
   // Set the desired update period, this will override the desired RTF given in
-  // the world file which was parsed by CreateEntities.
+  // the world file which was parsed by LoadSdfRootHelper.
   if (_config.UpdatePeriod())
   {
     this->SetUpdatePeriod(_config.UpdatePeriod().value());
   }
-
-  // Establish publishers and subscribers.
-  this->dataPtr->SetupTransport();
 }
 
 /////////////////////////////////////////////////
-Server::~Server() = default;
+Server::~Server()
+{
+  // Clear findfile callback to avoid lifetime mismatches between callbacks and
+  // pointers stored in the callbacks in case a new instance of Server is
+  // created afterward (e.g. in tests).
+  common::systemPaths()->ClearFindFileCallbacks();
+  common::systemPaths()->ClearFindFileURICallbacks();
+}
 
 /////////////////////////////////////////////////
 bool Server::Run(const bool _blocking, const uint64_t _iterations,
     const bool _paused)
 {
+  if (this->GetStatus() == Server::Status::EXITED)
+  {
+    gzwarn << "The server has exited with errors and cannot be run.\n";
+    return false;
+  }
+
   // Set the initial pause state of each simulation runner.
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
     runner->SetPaused(_paused);
@@ -168,6 +293,12 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
 /////////////////////////////////////////////////
 bool Server::RunOnce(const bool _paused)
 {
+  if (this->GetStatus() == Server::Status::EXITED)
+  {
+    gzwarn << "The server has exited with errors and cannot be run.\n";
+    return false;
+  }
+
   if (_paused)
   {
     for (auto &runner : this->dataPtr->simRunners)
@@ -368,7 +499,80 @@ bool Server::RequestRemoveEntity(const Entity _entity,
 }
 
 //////////////////////////////////////////////////
+void Server::ResetAll()
+{
+  for (auto worldId = 0u;
+    worldId < this->dataPtr->simRunners.size();
+    worldId++)
+  {
+    this->dataPtr->simRunners[worldId]->Reset(true, false, false);
+  }
+}
+
+//////////////////////////////////////////////////
+bool Server::Reset(const std::size_t _runnerId)
+{
+  if (_runnerId >= this->dataPtr->simRunners.size())
+  {
+    return false;
+  }
+  this->dataPtr->simRunners[_runnerId]->Reset(true, false, false);
+  return true;
+}
+
+//////////////////////////////////////////////////
+Server::EcmGuard Server::EcmScope(const std::size_t _runnerId)
+{
+  EcmGuard guard;
+  std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
+
+  if (this->dataPtr->running)
+  {
+    gzerr << "Cannot access ECM while the server is running.\n";
+    return guard;
+  }
+  if (_runnerId >= this->dataPtr->simRunners.size())
+  {
+    gzerr << "Runner id " << _runnerId << " out of bounds.\n";
+    return guard;
+  }
+  if (this->dataPtr->exitedWithErrors)
+  {
+    gzerr << "Cannot access ECM because server exited with errors.\n";
+    return guard;
+  }
+
+  guard.dataPtr->lock = std::move(lock);
+  guard.dataPtr->ecm =
+      &this->dataPtr->simRunners[_runnerId]->EntityCompMgr();
+  return guard;
+}
+
+//////////////////////////////////////////////////
+std::optional<UpdateInfo> Server::CurrentInfo(
+    const unsigned int _worldIndex) const
+{
+  if (_worldIndex < this->dataPtr->simRunners.size())
+  {
+    return this->dataPtr->simRunners[_worldIndex]->CurrentInfo();
+  }
+  return std::nullopt;
+}
+
+//////////////////////////////////////////////////
 void Server::Stop()
 {
   this->dataPtr->Stop();
+}
+
+//////////////////////////////////////////////////
+Server::Status gz::sim::Server::GetStatus() const
+{
+  if (this->dataPtr->exitedWithErrors)
+    return Server::Status::EXITED;
+
+  if (this->dataPtr->running)
+    return Server::Status::RUNNING;
+
+  return Server::Status::STOPPED;
 }

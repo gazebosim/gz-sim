@@ -1,4 +1,8 @@
-gz_install_all_headers()
+if(ENABLE_GUI)
+  gz_install_all_headers()
+else()
+  gz_install_all_headers(EXCLUDE_DIRS gui)
+endif()
 
 add_subdirectory(components)
 

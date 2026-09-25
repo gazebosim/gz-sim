@@ -17,7 +17,15 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+
 #include <gz/common/Console.hh>
+#include <gz/math/Helpers.hh>
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -43,6 +51,14 @@ using namespace sim;
 class BuoyancyTest : public InternalFixture<::testing::Test>
 {
 };
+
+namespace
+{
+constexpr std::array<const char *, 3> kResetAuditModels{
+    "neutral_buoyancy",
+    "lighter_than_water",
+    "box_no_buoyancy"};
+}
 
 /////////////////////////////////////////////////
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
@@ -161,6 +177,56 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RestoringMoments))
 }
 
 /////////////////////////////////////////////////
+// A surface piercing vessel with positive metacentric height must right
+// itself. Only a surface piercing case exercises the interface plane
+// orientation: with the plane fixed to the shape frame axes the buoyancy
+// centroid rotates rigidly with the hull and the vessel capsizes.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SurfaceRighting))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_surface_righting.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  std::vector<math::Pose3d> poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
+                            const sim::EntityComponentManager &_ecm)
+  {
+    Entity vessel = _ecm.EntityByComponents(
+      components::Model(), components::Name("box_vessel"));
+    auto pose = _ecm.Component<components::Pose>(vessel);
+    ASSERT_NE(pose, nullptr);
+    poses.push_back(pose->Data());
+  });
+
+  Server server(serverConfig);
+  server.AddSystem(testSystem.systemPtr);
+
+  // Several natural roll periods (about 1.4 s each).
+  const std::size_t iterations{4000};
+  server.Run(true, iterations, false);
+  ASSERT_EQ(poses.size(), iterations);
+
+  const double initialRoll{0.3};
+  double minRoll{initialRoll}, maxAbsRoll{0.0};
+  for (const auto &pose : poses)
+  {
+    const double roll = pose.Rot().Euler().X();
+    minRoll = std::min(minRoll, roll);
+    maxAbsRoll = std::max(maxAbsRoll, std::abs(roll));
+
+    // A capsizing vessel passes this bound within the first second.
+    EXPECT_LT(std::abs(roll), initialRoll + 0.15);
+    EXPECT_NEAR(pose.Pos().Z(), 0.0, 0.25);
+  }
+
+  // The moment must drive the roll through upright, not hold the heel.
+  EXPECT_LT(minRoll, 0.0);
+  EXPECT_GT(maxAbsRoll, 0.05);
+}
+
+/////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
 {
@@ -262,15 +328,34 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
       components::Name("link"),
       components::Link());
 
-    // Check the duck volume and center of volume
+    // Check the duck volume and center of volume. The expectations are
+    // computed from the collider mesh the same way the system does: the
+    // SDF <scale> scales the volume by its product and the centroid
+    // componentwise, and the collision pose places the centroid in the
+    // link frame.
+    const common::Mesh *duckMesh = common::MeshManager::Instance()->Load(
+        common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+        "test", "media", "duck_collider.dae"));
+    ASSERT_NE(nullptr, duckMesh);
+    const math::Vector3d duckScale{0.5, 0.5, 0.5};
+    const double expectedDuckVolume = duckMesh->Volume() *
+        duckScale.X() * duckScale.Y() * duckScale.Z();
+    const math::Pose3d duckCollPose{0, 0, -0.4, 1.57, 0, 0};
+    const math::Vector3d expectedDuckCov = duckCollPose.Pos() +
+        duckCollPose.Rot().RotateVector(duckMesh->Centroid() * duckScale);
+
     auto duckVolume = _ecm.Component<components::Volume>(duckLink);
     ASSERT_NE(duckVolume, nullptr);
-    EXPECT_NEAR(1.40186, duckVolume->Data(), 1e-3);
+    EXPECT_NEAR(expectedDuckVolume, duckVolume->Data(), 1e-6);
     auto duckCenterOfVolume =
       _ecm.Component<components::CenterOfVolume>(duckLink);
     ASSERT_NE(duckCenterOfVolume, nullptr);
-    EXPECT_EQ(math::Vector3d(0, 0, -0.4),
-        duckCenterOfVolume->Data());
+    EXPECT_NEAR(expectedDuckCov.X(),
+        duckCenterOfVolume->Data().X(), 1e-6);
+    EXPECT_NEAR(expectedDuckCov.Y(),
+        duckCenterOfVolume->Data().Y(), 1e-6);
+    EXPECT_NEAR(expectedDuckCov.Z(),
+        duckCenterOfVolume->Data().Z(), 1e-6);
 
     auto submarinePose = _ecm.Component<components::Pose>(submarine);
     ASSERT_NE(submarinePose , nullptr);
@@ -305,13 +390,129 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UniformWorldMovement))
     {
       EXPECT_NEAR(-1.64, submarineSinkingPose->Data().Pos().Z(), 1e-2);
       EXPECT_NEAR(4.90, submarineBuoyantPose->Data().Pos().Z(), 1e-2);
-      EXPECT_NEAR(171.4, duckPose->Data().Pos().Z(), 1e-2);
+      // Drag free rise under constant net buoyancy, symplectic Euler:
+      // z_N = a dt^2 N(N+1)/2 with a = g (rho V / m - 1). The same formula
+      // reproduced the previous unscaled expectation of 171.4 m.
+      const double duckAccel =
+          9.8 * (1000 * expectedDuckVolume / 39.0 - 1.0);
+      const double expectedDuckZ = duckAccel * 1e-6 *
+          static_cast<double>(_info.iterations) * (_info.iterations + 1) / 2;
+      EXPECT_NEAR(expectedDuckZ, duckPose->Data().Pos().Z(), 0.1);
       finished = true;
     }
   });
 
   server.AddSystem(testSystem.systemPtr);
   server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+// The center of volume must be the collision geometry's centroid, not the
+// collision origin: exact values for an origin offset mesh, the same mesh
+// scaled, and a rotated cone.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeshAndConeCenterOfVolume))
+{
+  TestFixture fixture(std::string(PROJECT_BINARY_PATH) +
+    "/test/worlds/buoyancy_mesh_centroid.sdf");
+
+  std::size_t iterations{0};
+  fixture.OnPostUpdate([&](
+      const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+  {
+    // 2 x 3 x 4 box mesh centered at (1, 2, 3): volume 24, centroid there.
+    auto meshLinks = entitiesFromScopedName("mesh_box::link", _ecm);
+    ASSERT_EQ(1u, meshLinks.size());
+    auto meshLink = *meshLinks.begin();
+    auto meshVolume = _ecm.Component<components::Volume>(meshLink);
+    ASSERT_NE(nullptr, meshVolume);
+    EXPECT_NEAR(24.0, meshVolume->Data(), 1e-9);
+    auto meshCov = _ecm.Component<components::CenterOfVolume>(meshLink);
+    ASSERT_NE(nullptr, meshCov);
+    EXPECT_NEAR(1.0, meshCov->Data().X(), 1e-9);
+    EXPECT_NEAR(2.0, meshCov->Data().Y(), 1e-9);
+    EXPECT_NEAR(3.0, meshCov->Data().Z(), 1e-9);
+
+    // <scale>0.5 0.5 2</scale>: volume scales by the product, the centroid
+    // componentwise.
+    auto scaledLinks = entitiesFromScopedName("mesh_box_scaled::link", _ecm);
+    ASSERT_EQ(1u, scaledLinks.size());
+    auto scaledLink = *scaledLinks.begin();
+    auto scaledVolume = _ecm.Component<components::Volume>(scaledLink);
+    ASSERT_NE(nullptr, scaledVolume);
+    EXPECT_NEAR(12.0, scaledVolume->Data(), 1e-9);
+    auto scaledCov = _ecm.Component<components::CenterOfVolume>(scaledLink);
+    ASSERT_NE(nullptr, scaledCov);
+    EXPECT_NEAR(0.5, scaledCov->Data().X(), 1e-9);
+    EXPECT_NEAR(1.0, scaledCov->Data().Y(), 1e-9);
+    EXPECT_NEAR(6.0, scaledCov->Data().Z(), 1e-9);
+
+    // Cone r 0.5, l 2 at collision pose (0.3, 0, 0.2) pitched 90 degrees:
+    // centroid (0, 0, -0.5) rotates to (-0.5, 0, 0), so the center of
+    // volume is (-0.2, 0, 0.2). Volume is pi r^2 l / 3.
+    auto coneLinks = entitiesFromScopedName("cone_rotated::link", _ecm);
+    ASSERT_EQ(1u, coneLinks.size());
+    auto coneLink = *coneLinks.begin();
+    auto coneVolume = _ecm.Component<components::Volume>(coneLink);
+    ASSERT_NE(nullptr, coneVolume);
+    EXPECT_NEAR(GZ_PI * 0.25 * 2 / 3, coneVolume->Data(), 1e-9);
+    auto coneCov = _ecm.Component<components::CenterOfVolume>(coneLink);
+    ASSERT_NE(nullptr, coneCov);
+    EXPECT_NEAR(-0.2, coneCov->Data().X(), 1e-9);
+    EXPECT_NEAR(0.0, coneCov->Data().Y(), 1e-9);
+    EXPECT_NEAR(0.2, coneCov->Data().Z(), 1e-9);
+
+    iterations++;
+  });
+
+  fixture.Finalize();
+  fixture.Server()->Run(true, 10, false);
+  EXPECT_EQ(10u, iterations);
+}
+
+/////////////////////////////////////////////////
+// A neutral cone submerged in the layer above the last declared interface,
+// with its center of mass at the shape centroid, must feel no moment. The
+// force for that layer is applied at the shape centroid; applied at the
+// shape origin it has a quarter length arm and the cone spins.
+TEST_F(BuoyancyTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedSubmergedConeBalanced))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_cone.sdf"));
+
+  Server server(serverConfig);
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  const math::Quaterniond initialRot{0, 1.5707963267948966, 0};
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
+                              const EntityComponentManager &_ecm)
+  {
+    Entity cone = _ecm.EntityByComponents(
+        components::Model(), components::Name("cone"));
+    ASSERT_NE(kNullEntity, cone);
+    auto pose = _ecm.Component<components::Pose>(cone);
+    ASSERT_NE(nullptr, pose);
+
+    // Neutral and balanced: it neither turns nor drifts.
+    const math::Quaterniond err =
+        initialRot.Inverse() * pose->Data().Rot();
+    EXPECT_LT(2 * std::acos(std::min(1.0, std::abs(err.W()))), 0.02)
+        << "at iteration " << _info.iterations;
+    EXPECT_NEAR(-5.0, pose->Data().Pos().Z(), 0.05);
+
+    if (_info.iterations == 1000)
+      finished = true;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 1000, false);
   EXPECT_TRUE(finished);
 }
 
@@ -389,10 +590,7 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancy))
                 neutralBoxPose->Data().Pos().Z());
     }
 
-    if (_info.iterations == iterations)
-    {
-      finished = true;
-    }
+    finished = _info.iterations == iterations;
   });
 
   server.AddSystem(testSystem.systemPtr);
@@ -528,4 +726,322 @@ TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OffsetAndRotation))
   std::size_t targetIterations{1000};
   fixture.Server()->Run(true, targetIterations, false);
   EXPECT_EQ(targetIterations, iterations);
+}
+
+/////////////////////////////////////////////////
+// Test that SDF parsing works when <enable> appears before
+// <graded_buoyancy> in the plugin block.
+// GetFirstElement() would grab <enable> instead of <graded_buoyancy>,
+// silently skipping <default_density> and <density_change> parsing.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedSdfParsingOrder))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_sdf_order.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
+  {
+    Entity parseTestBox = _ecm.EntityByComponents(
+      components::Model(), components::Name("parse_test_box"));
+    ASSERT_NE(parseTestBox, kNullEntity);
+
+    auto parseTestBoxPose = _ecm.Component<components::Pose>(parseTestBox);
+    ASSERT_NE(parseTestBoxPose, nullptr);
+
+    // parse_test_box: mass=500, volume=1, default_density=500.
+    // With correct parsing it is neutrally buoyant and stays near z=-5.
+    // With broken parsing (default_density not read, stays at 1000),
+    // buoyancy > weight and the box floats up well past z=-4.
+    EXPECT_NEAR(0, parseTestBoxPose->Data().Pos().X(), 2e-1);
+    EXPECT_NEAR(0, parseTestBoxPose->Data().Pos().Y(), 2e-1);
+    EXPECT_NEAR(-5, parseTestBoxPose->Data().Pos().Z(), 5e-1);
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+// Test that a shape far below all layer boundaries doesn't produce NaN
+// forces from division by zero in the graded buoyancy loop.
+// Two density_change layers with a box below both: the second layer
+// hits vol == prevLayerVol, causing (cov * vol - prev * prevVol) / 0.
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedDivideByZero))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_graded_divide_by_zero.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                              const sim::EntityComponentManager &_ecm)
+  {
+    Entity deepBox = _ecm.EntityByComponents(
+      components::Model(), components::Name("deep_box"));
+    ASSERT_NE(deepBox, kNullEntity);
+
+    auto deepBoxPose = _ecm.Component<components::Pose>(deepBox);
+    ASSERT_NE(deepBoxPose, nullptr);
+
+    // deep_box at z=-100 is below both density_change layers (z=0, z=10).
+    // The second layer in the graded loop hits vol == prevLayerVol.
+    // Without the division-by-zero guard, NaN propagates into forces/pose.
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().X()));
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().Y()));
+    EXPECT_TRUE(std::isfinite(deepBoxPose->Data().Pos().Z()));
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+// Test that cylinder, capsule, ellipsoid, and cone shapes work with graded
+// buoyancy. All shapes are neutrally buoyant and fully submerged, so they
+// should stay at their initial positions. Uses graded buoyancy which
+// exercises both CheckForNewEntities (volume) and GradedFluidDensity.
+TEST_F(BuoyancyTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(GradedBuoyancyCylinderCapsuleEllipsoidCone))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_shapes.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  using namespace std::chrono_literals;
+  server.SetUpdatePeriod(1ns);
+
+  std::size_t iterations = 1000;
+
+  bool finished = false;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
+                             const sim::EntityComponentManager &_ecm)
+  {
+    Entity cylinder = _ecm.EntityByComponents(
+        components::Model(), components::Name("cylinder_neutral"));
+    Entity capsule = _ecm.EntityByComponents(
+        components::Model(), components::Name("capsule_neutral"));
+    Entity ellipsoid = _ecm.EntityByComponents(
+        components::Model(), components::Name("ellipsoid_neutral"));
+    Entity cone = _ecm.EntityByComponents(
+        components::Model(), components::Name("cone_neutral"));
+
+    ASSERT_NE(cylinder, kNullEntity);
+    ASSERT_NE(capsule, kNullEntity);
+    ASSERT_NE(ellipsoid, kNullEntity);
+    ASSERT_NE(cone, kNullEntity);
+
+    // Check Volume components have correct values
+    auto cylinderLink = _ecm.EntityByComponents(
+      components::ParentEntity(cylinder),
+      components::Name("body"),
+      components::Link());
+    auto capsuleLink = _ecm.EntityByComponents(
+      components::ParentEntity(capsule),
+      components::Name("body"),
+      components::Link());
+    auto ellipsoidLink = _ecm.EntityByComponents(
+      components::ParentEntity(ellipsoid),
+      components::Name("body"),
+      components::Link());
+    auto coneLink = _ecm.EntityByComponents(
+      components::ParentEntity(cone),
+      components::Name("body"),
+      components::Link());
+
+    if (cylinderLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(cylinderLink);
+      if (vol)
+      {
+        // Cylinder: pi*r^2*l with r=0.2, l=2.0
+        EXPECT_NEAR(0.2513, vol->Data(), 1e-2);
+      }
+    }
+
+    if (capsuleLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(capsuleLink);
+      if (vol)
+      {
+        // Capsule: pi*r^2*l + (4/3)*pi*r^3 with r=0.5, l=1.0
+        EXPECT_NEAR(1.309, vol->Data(), 1e-2);
+      }
+    }
+
+    if (ellipsoidLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(ellipsoidLink);
+      if (vol)
+      {
+        // Ellipsoid: (4/3)*pi*0.5*0.4*0.3
+        EXPECT_NEAR(0.2513, vol->Data(), 1e-2);
+      }
+    }
+
+    if (coneLink != kNullEntity)
+    {
+      auto vol = _ecm.Component<components::Volume>(coneLink);
+      if (vol)
+      {
+        // Cone: (1/3)*pi*r^2*h with r=0.5, h=1.0
+        EXPECT_NEAR(0.2618, vol->Data(), 1e-2);
+      }
+    }
+
+    // All neutrally buoyant and fully submerged — should stay in place.
+    auto cylinderPose = _ecm.Component<components::Pose>(cylinder);
+    auto capsulePose = _ecm.Component<components::Pose>(capsule);
+    auto ellipsoidPose = _ecm.Component<components::Pose>(ellipsoid);
+    auto conePose = _ecm.Component<components::Pose>(cone);
+
+    ASSERT_NE(cylinderPose, nullptr);
+    ASSERT_NE(capsulePose, nullptr);
+    ASSERT_NE(ellipsoidPose, nullptr);
+    ASSERT_NE(conePose, nullptr);
+
+    EXPECT_NEAR(0, cylinderPose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, cylinderPose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, cylinderPose->Data().Pos().Z(), 1e-1);
+
+    EXPECT_NEAR(3, capsulePose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, capsulePose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, capsulePose->Data().Pos().Z(), 1e-1);
+
+    EXPECT_NEAR(-3, ellipsoidPose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(0, ellipsoidPose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, ellipsoidPose->Data().Pos().Z(), 1e-1);
+
+    EXPECT_NEAR(0, conePose->Data().Pos().X(), 1e-1);
+    EXPECT_NEAR(3, conePose->Data().Pos().Y(), 1e-1);
+    EXPECT_NEAR(-3, conePose->Data().Pos().Z(), 1e-1);
+
+    finished = _info.iterations == iterations;
+  });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, iterations, false);
+  EXPECT_TRUE(finished);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "graded_buoyancy.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(std::chrono::steady_clock::duration::zero());
+
+  std::array<std::vector<math::Pose3d>, kResetAuditModels.size()> poseHistory;
+  test::Relay poseRecorder;
+  poseRecorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+    {
+      for (std::size_t i = 0; i < kResetAuditModels.size(); ++i)
+      {
+        const auto entity = _ecm.EntityByComponents(
+            components::Model(), components::Name(kResetAuditModels[i]));
+        ASSERT_NE(kNullEntity, entity);
+
+        const auto poseComp = _ecm.Component<components::Pose>(entity);
+        ASSERT_NE(nullptr, poseComp);
+        poseHistory[i].push_back(poseComp->Data());
+      }
+    });
+  server.AddSystem(poseRecorder.systemPtr);
+
+  const std::size_t baselineSteps = 400u;
+  server.Run(true, baselineSteps, false);
+  for (const auto &history : poseHistory)
+  {
+    ASSERT_EQ(baselineSteps, history.size());
+  }
+
+  const auto baselineNeutral200 = poseHistory[0][199];
+  const auto baselineNeutral400 = poseHistory[0][399];
+  const auto baselineBuoyant200 = poseHistory[1][199];
+  const auto baselineBuoyant400 = poseHistory[1][399];
+  const auto baselineSinking200 = poseHistory[2][199];
+  const auto baselineSinking400 = poseHistory[2][399];
+
+  // Let the autonomous buoyancy dynamics drift away from the start state so
+  // reset must rewind more than just the latest pose sample.
+  server.Run(true, 600, false);
+  ASSERT_GT(poseHistory[1].back().Pos().Z(), baselineBuoyant400.Pos().Z() +
+      0.1);
+  ASSERT_LT(poseHistory[2].back().Pos().Z(), baselineSinking400.Pos().Z() -
+      0.1);
+
+  server.ResetAll();
+  server.Run(true, 2, false);
+  for (auto &history : poseHistory)
+  {
+    history.clear();
+  }
+
+  server.Run(true, baselineSteps, false);
+  for (const auto &history : poseHistory)
+  {
+    ASSERT_EQ(baselineSteps, history.size());
+  }
+
+  const auto postResetNeutral200 = poseHistory[0][199];
+  const auto postResetNeutral400 = poseHistory[0][399];
+  const auto postResetBuoyant200 = poseHistory[1][199];
+  const auto postResetBuoyant400 = poseHistory[1][399];
+  const auto postResetSinking200 = poseHistory[2][199];
+  const auto postResetSinking400 = poseHistory[2][399];
+
+  // Reset should replay the same early-episode buoyancy evolution rather than
+  // continue the previous episode's motion.
+  EXPECT_NEAR(postResetNeutral200.Pos().Distance(baselineNeutral200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetNeutral400.Pos().Distance(baselineNeutral400.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetBuoyant200.Pos().Distance(baselineBuoyant200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetBuoyant400.Pos().Distance(baselineBuoyant400.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetSinking200.Pos().Distance(baselineSinking200.Pos()),
+      0.0, 0.05);
+  EXPECT_NEAR(postResetSinking400.Pos().Distance(baselineSinking400.Pos()),
+      0.0, 0.05);
 }

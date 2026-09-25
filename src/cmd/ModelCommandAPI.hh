@@ -15,8 +15,6 @@
  *
 */
 
-#include "gz/sim/gz/Export.hh"
-
 /// \brief External hook to get a list of available models.
 void cmdModelList();
 

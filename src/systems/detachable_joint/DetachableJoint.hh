@@ -51,7 +51,7 @@ namespace systems
   /// creating a fixed joint with a link in the parent model.
   ///
   /// - `<topic>` (optional): Topic name to be used for detaching connections.
-  /// Using <detach_topic> is preferred.
+  /// Using `<detach_topic>` is preferred.
   ///
   /// - `<detach_topic>` (optional): Topic name to be used for detaching
   /// connections. If multiple detachable plugin is used in one model,
@@ -73,6 +73,7 @@ namespace systems
   class DetachableJoint
       : public System,
         public ISystemConfigure,
+        public ISystemReset,
         public ISystemPreUpdate
   {
     /// Documentation inherited
@@ -83,6 +84,10 @@ namespace systems
                            const std::shared_ptr<const sdf::Element> &_sdf,
                            EntityComponentManager &_ecm,
                            EventManager &_eventMgr) final;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     /// Documentation inherited
     public: void PreUpdate(
@@ -100,6 +105,10 @@ namespace systems
 
     /// \brief Callback for detach request topic
     private: void OnDetachRequest(const msgs::Empty &_msg);
+
+    /// \brief Retrieve the relevant link entity
+    private: void GetChildModelAndLinkEntities(
+      gz::sim::EntityComponentManager &_ecm);
 
     /// \brief The model associated with this system.
     private: Model model;

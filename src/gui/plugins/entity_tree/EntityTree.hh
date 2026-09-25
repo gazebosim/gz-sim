@@ -40,7 +40,7 @@ namespace sim
     public: explicit TreeModel();
 
     /// \brief Destructor
-    public: ~TreeModel() override = default;
+    public: ~TreeModel() override;
 
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;

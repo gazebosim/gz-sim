@@ -128,6 +128,7 @@ namespace gz
       /// \brief Retrieve the ids of discovered peers.
       public: std::vector<std::string> SecondaryPeers() const
               {
+                PeerLock lock(this->peersMutex);
                 std::vector<std::string> ret;
                 for (const auto& it : this->peers)
                 {

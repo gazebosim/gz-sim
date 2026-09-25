@@ -34,6 +34,7 @@ using namespace sim;
 #else
   constexpr const char *kPluginDir = "lib";
 #endif
+
 /////////////////////////////////////////////////
 TEST(SystemLoader, Constructor)
 {
@@ -44,11 +45,9 @@ TEST(SystemLoader, Constructor)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>") +
-      "<plugin filename='libgz-sim" +
-      GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system.so' "
+      "<plugin filename='libgz-sim-user-commands-system.so' "
       "name='gz::sim::systems::UserCommands'></plugin>"
-      "<plugin filename='gz-sim" +
-      GZ_SIM_MAJOR_VERSION_STR + "-user-commands-system' "
+      "<plugin filename='gz-sim-user-commands-system' "
       "name='gz::sim::systems::UserCommands'></plugin>"
       "<plugin filename='gz-sim-user-commands-system' "
       "name='gz::sim::systems::UserCommands'></plugin>"
@@ -80,6 +79,7 @@ TEST(SystemLoader, FromPluginPathEnv)
       </world>
     </sdf>)");
 
+  // EXPECTED TO FAIL
   ASSERT_NE(root.WorldCount(), 0u);
   auto world = root.WorldByIndex(0);
   ASSERT_TRUE(world != nullptr);
@@ -92,8 +92,8 @@ TEST(SystemLoader, FromPluginPathEnv)
     EXPECT_FALSE(system.has_value());
   }
 
-  const auto libPath = common::joinPaths(PROJECT_BINARY_PATH, kPluginDir);
-
+  // Add test plugin to path (referenced in config)
+  auto libPath = std::string(CMAKE_LIBRARY_OUTPUT_DIRECTORY);
   {
     common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH", libPath.c_str());
 
@@ -198,10 +198,9 @@ TEST(SystemLoader, BadPluginName)
   sdf::Root root;
   root.LoadSdfString(std::string("<?xml version='1.0'?><sdf version='1.6'>"
       "<world name='default'>"
-      "<plugin filename='libgz-sim") +
-      GZ_SIM_MAJOR_VERSION_STR + "-physics-system.so' "
+      "<plugin filename='libgz-sim-physics-system.so' "
       "name='gz::sim::systems::Foo'></plugin>"
-      "</world></sdf>");
+      "</world></sdf>"));
 
   auto worldElem = root.WorldByIndex(0)->Element();
   if (worldElem->HasElement("plugin")) {

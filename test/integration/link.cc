@@ -707,6 +707,230 @@ TEST_F(LinkIntegrationTest, LinkAddWorldForce)
       wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
 }
 
+TEST_F(LinkIntegrationTest, LinkAddForceInInertialFrame)
+{
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SdfEntityCreator creator(ecm, eventMgr);
+
+  auto eLink = ecm.CreateEntity();
+  ecm.CreateComponent(eLink, components::Link());
+
+  Link link(eLink);
+  EXPECT_EQ(eLink, link.Entity());
+
+  ASSERT_TRUE(link.Valid(ecm));
+
+  // No ExternalWorldWrenchCmd should exist by default
+  EXPECT_EQ(nullptr, ecm.Component<components::ExternalWorldWrenchCmd>(eLink));
+
+  // Add force in Inertial Frame
+  math::Vector3d force(0, 0, 1.0);
+  link.AddForceInInertialFrame(ecm, force);
+
+  // No WorldPose or Inertial component exists so command should not work
+  EXPECT_EQ(nullptr, ecm.Component<components::ExternalWorldWrenchCmd>(eLink));
+
+  // create WorldPose and Inertial component and try adding force again
+  math::Pose3d linkWorldPose;
+  linkWorldPose.Set(1.0, 0.0, 0.0, 0, 0, GZ_PI_4);
+  math::Pose3d inertiaPose;
+  inertiaPose.Set(1.0, 2.0, 3.0, 0, GZ_PI_2, 0);
+  math::Inertiald linkInertial;
+  linkInertial.SetPose(inertiaPose);
+  ecm.CreateComponent(eLink, components::WorldPose(linkWorldPose));
+  ecm.CreateComponent(eLink, components::Inertial(linkInertial));
+  link.AddForceInInertialFrame(ecm, force);
+
+  // ExternalWorldWrenchCmd component should now be created
+  auto wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+
+  // Summary of dynamic state at this time in the test:
+  // - The link has a world pose with position (1, 0, 0)
+  // and orientation (0, 0, π/4).
+  // - The link has an inertial pose with position (1, 2, 3)
+  // and orientation (0, π/2, 0).
+  // - A force of (0, 0, 1) N is applied in the inertial frame.
+  // Original force vector in inertial frame
+  // force = [0, 0, 1]
+  // Rotation matrix for inertiaPose (rotation about Y-axis by π/2 radians)
+  // Ry = [ cos(π/2)   0    sin(π/2)
+  //            0      1       0
+  //        -sin(π/2)  0    cos(π/2) ]
+  // Ry = [  0   0   1
+  //         0   1   0
+  //        -1   0   0 ]
+  //
+  // Calculate linkForce = Ry * force:
+  // linkForce_x = (0 * 0) + (0 * 0) + (1 * 1) = 1
+  // linkForce_y = (0 * 0) + (1 * 0) + (0 * 1) = 0
+  // linkForce_z = (-1 * 0) + (0 * 0) + (0 * 1) = 0
+  //
+  // Thus, linkForce = [1, 0, 0]
+  //
+  // Rotation matrix for linkWorldPose (rotation about Z-axis by π/4 radians)
+  // Rz = [ cos(π/4)   -sin(π/4)   0
+  //        sin(π/4)    cos(π/4)   0
+  //           0           0       1 ]
+  //
+  // Rz ≈ [ √2/2   -√2/2    0
+  //        √2/2    √2/2    0
+  //         0       0      1 ]
+  //
+  // Calculate worldForce = Rz * linkForce:
+  // worldForce_x = (√2/2)*1 + (-√2/2)*0 + (0)*0 = √2/2 ≈ 0.7071
+  // worldForce_y = (√2/2)*1 + (√2/2)*0 + (0)*0 = √2/2 ≈ 0.7071
+  // worldForce_z = (0)*1 + (0)*0 + (1)*0 = 0
+  //
+  // Thus, worldForce ≈ [√2/2, √2/2, 0] ≈ [0.7071, 0.7071, 0]
+  //
+  // Expected torque in world frame
+  // First, rotate the inertia pose position to the world frame
+  // using the link's world pose rotation.
+  // Inertia pose position: (1, 2, 3)
+  // Link world pose rotation matrix (around Z-axis by π/4 radians):
+  // R_world = [ √2/2   -√2/2    0
+  //             √2/2    √2/2    0
+  //              0       0      1]
+  //
+  // Rotate inertia pose position to world frame:
+  // r_world = R_world * [1, 2, 3] = [-√2/2, 3√2/2, 3]
+  //
+  // Then, calculate the cross product with the world force
+  // to get the expected torque.
+  // World force: (√2/2, √2/2, 0)
+  // Cross product:
+  // expectedTorque = r_world × F_world
+  // expectedTorque = (-3√2/2, 3√2/2, -2)
+  //
+  // After the calculations the expected wrench is
+  const double expectedForceX = std::sqrt(2) / 2;
+  const double expectedForceY = std::sqrt(2) / 2;
+  const double expectedForceZ = 0;
+  const double expectedTorqueX = -3 * std::sqrt(2)/2;
+  const double expectedTorqueY = 3 * std::sqrt(2)/2;
+  const double expectedTorqueZ = -2;
+
+  // verify Wrench values
+  auto wrenchMsg = wrenchComp->Data();
+
+  // Looser tolerances are needed for the nonzero terms
+  EXPECT_NEAR(expectedForceX, wrenchMsg.force().x(), 1e-2);
+  EXPECT_NEAR(expectedForceY, wrenchMsg.force().y(), 1e-2);
+  EXPECT_NEAR(expectedForceZ, wrenchMsg.force().z(), 1e-6);
+  EXPECT_NEAR(expectedTorqueX, wrenchMsg.torque().x(), 1e-2);
+  EXPECT_NEAR(expectedTorqueY, wrenchMsg.torque().y(), 1e-2);
+  EXPECT_NEAR(expectedTorqueZ, wrenchMsg.torque().z(), 1e-2);
+
+  // apply opposite force. Since the cmd is not processed yet, this should
+  // cancel out the existing wrench cmd
+  link.AddForceInInertialFrame(ecm, -force);
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+  // Add force in Inertial Frame at an offset
+  math::Vector3d offset{1.0, 0.0, 0.0};
+  link.AddForceInInertialFrame(ecm, force, offset);
+
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+
+  // Summary of dynamic state at this time in the test:
+  // - The link has a world pose with position (1, 0, 0)
+  // and orientation (0, 0, π/4).
+  // - The link has an inertial pose with position (1, 2, 3)
+  // and orientation (0, π/2, 0).
+  // - A force of (0, 0, 1) N is applied at an offset (1, 0, 0),
+  // both force and offset are expressed in terms of the inertial frame.
+  // Calculate the offset expressed in terms of link's coordinate frame
+  // First, create a pose for the offset in the inertial frame.
+  // offset = (1, 0, 0)
+  // forceApplicationRelativeToInertialFrame =
+  // Pose3d(offset, Quaterniond::Identity)
+  // This pose represents a translation by the
+  // offset vector without any rotation.
+  // Transform this pose by the inertial pose to get the
+  // offset in the link's frame.
+  // Inertial pose: (1, 2, 3) with orientation (0, π/2, 0)
+  // Inertial rotation matrix (around Y-axis by π/2 radians):
+  // Ry = [ 0   0   1
+  //        0   1   0
+  //       -1   0   0 ]
+  //
+  // Apply this rotation to the offset pose:
+  // offsetInLinkFrame  = Ry * [1, 0, 0]^T
+  //                    = [0  0  1] * [1]
+  //                      [0  1  0]   [0]
+  //                      [-1 0  0]   [0]
+  //                    = [0, 0, -1]
+  // offsetInLInkFrame = [0, 0, -1]
+  //
+  // Calculate the force expressed in link's coordinate frame with offset
+  // First, rotate the force by the inertia pose's rotation.
+  // Inertia pose rotation matrix (around Y-axis by π/2 radians):
+  // Ry = [ 0   0   1
+  //        0   1   0
+  //       -1   0   0 ]
+  // Force in inertial frame: (0, 0, 1)
+  // linkForceWithOffset = Ry * force = [1, 0, 0]
+  // Then, rotate this force by the link's world pose
+  // rotation to get the world force.
+  // Link world pose rotation matrix (around Z-axis by π/4 radians):
+  // Rz = [ √2/2   -√2/2    0
+  //        √2/2    √2/2    0
+  //         0       0      1 ]
+  // worldForceWithOffset = Rz * linkForceWithOffset = [√2/2, √2/2, 0]
+  //
+  // Calculate the expected torque with offset
+  // First, calculate the effective position vector in the world frame.
+  // offsetInLinkFrame = [0, 0, -1]
+  // inertiaPose.Pos() = [1, 2, 3]
+  // effectivePosition = offsetInLinkFrame + inertiaPose.Pos() = [1, 2, 2]
+  // Rotate this effective position by the link's world pose rotation:
+  // effectivePositionWorld = Rz * effectivePosition
+  //                        = [-√2/2, 3√2/2, 2]
+  // Calculate the cross product with the world force to get the torque.
+  // worldForceWithOffset = [√2/2, √2/2, 0]
+  // expectedTorqueWithOffset = effectivePositionWorld × worlapdForceWithOffset
+  // expectedTorqueWithOffset = (-√2, √2, -2)
+  // After the calculations the expected wrench is
+  const double expectedForceWithOffsetX = std::sqrt(2) / 2;
+  const double expectedForceWithOffsetY = std::sqrt(2) / 2;
+  const double expectedForceWithOffsetZ = 0;
+  const double expectedTorqueWithOffsetX = -1 * std::sqrt(2);
+  const double expectedTorqueWithOffsetY = std::sqrt(2);
+  const double expectedTorqueWithOffsetZ = -2;
+
+  wrenchMsg = wrenchComp->Data();
+
+  // Looser tolerances are needed for the nonzero terms
+  EXPECT_NEAR(expectedForceWithOffsetX, wrenchMsg.force().x(), 1e-2);
+  EXPECT_NEAR(expectedForceWithOffsetY, wrenchMsg.force().y(), 1e-2);
+  EXPECT_NEAR(expectedForceWithOffsetZ, wrenchMsg.force().z(), 1e-6);
+  EXPECT_NEAR(expectedTorqueWithOffsetX, wrenchMsg.torque().x(), 1e-2);
+  EXPECT_NEAR(expectedTorqueWithOffsetY, wrenchMsg.torque().y(), 1e-2);
+  EXPECT_NEAR(expectedTorqueWithOffsetZ, wrenchMsg.torque().z(), 1e-2);
+
+  // apply opposite force again and verify the resulting wrench values are zero
+  link.AddForceInInertialFrame(ecm, -force, offset);
+  wrenchComp = ecm.Component<components::ExternalWorldWrenchCmd>(eLink);
+  EXPECT_NE(nullptr, wrenchComp);
+  wrenchMsg = wrenchComp->Data();
+
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.force().x(), wrenchMsg.force().y(), wrenchMsg.force().z()));
+  EXPECT_EQ(math::Vector3d::Zero, math::Vector3d(
+      wrenchMsg.torque().x(), wrenchMsg.torque().y(), wrenchMsg.torque().z()));
+
+}
+
 /////////////////////////////////////////////////
 TEST_F(LinkIntegrationTest, AxisAlignedBoxInLink)
 {

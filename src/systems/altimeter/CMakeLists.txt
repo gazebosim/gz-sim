@@ -2,7 +2,7 @@ gz_add_system(altimeter
   SOURCES
     Altimeter.cc
   PUBLIC_LINK_LIBS
-    gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
+    gz-common::gz-common
   PRIVATE_LINK_LIBS
-    gz-sensors${GZ_SENSORS_VER}::altimeter
+    gz-sensors::altimeter
 )

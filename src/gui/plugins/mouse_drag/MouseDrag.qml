@@ -56,10 +56,10 @@ GridLayout {
     id: rotStiffness
     maximumValue: maxValue
     minimumValue: 0
-    value: MouseDrag.rotStiffness
+    value: _MouseDrag.rotStiffness
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: MouseDrag.rotStiffness = rotStiffness.value
+    onValueChanged: _MouseDrag.rotStiffness = rotStiffness.value
   }
 
   Text {
@@ -81,10 +81,10 @@ GridLayout {
     id: posStiffness
     maximumValue: maxValue
     minimumValue: 0
-    value: MouseDrag.posStiffness
+    value: _MouseDrag.posStiffness
     decimals: decimalPlaces
     stepSize: step
-    onValueChanged: MouseDrag.posStiffness = posStiffness.value
+    onValueChanged: _MouseDrag.posStiffness = posStiffness.value
   }
 
   Switch {
@@ -92,7 +92,7 @@ GridLayout {
     objectName: "switchCOM"
     text: qsTr("Apply force to center of mass")
     onToggled: {
-      MouseDrag.OnSwitchCOM(checked);
+      _MouseDrag.OnSwitchCOM(checked);
     }
   }
 }

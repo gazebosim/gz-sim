@@ -110,7 +110,7 @@ class GZ_SIM_VISIBLE MsgManager
 
   /// \brief Remove a message from the inbound queue.
   /// \param[in] _address The destination address.
-  /// \param[in] _Msg Message pointer to remove.
+  /// \param[in] _msg Message pointer to remove.
   /// \return True if the message was removed or false otherwise.
   public: bool RemoveInbound(const std::string &_address,
                              const msgs::DataframeSharedPtr &_msg);

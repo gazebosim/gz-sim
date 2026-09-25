@@ -172,9 +172,7 @@ Item {
     }
   }
 
-  function open(_entity, _type, _x, _y) {
-    menu.x = _x
-    menu.y = _y
+  function open(_entity, _type) {
     context.entity = _entity
     context.type = _type
     moveToMenu.enabled = false
@@ -232,7 +230,7 @@ Item {
       viewFramesMenu.enabled = true
     }
 
-    menu.open()
+    menu.popup()
   }
 
   GzSim.EntityContextMenuItem {

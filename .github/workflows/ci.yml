@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - 'ign-gazebo[0-9]'
-      - 'gz-sim[0-9]?'
+      - 'gz-sim[1-9]?[0-9]'
       - 'main'
 
 # Every time you make a push to your PR, it cancel immediately the previous checks,
@@ -15,41 +15,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  jammy-ci:
+  resolute-ci:
     runs-on: ubuntu-latest
-    name: Ubuntu Jammy CI
+    name: Ubuntu Resolute CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
+        uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+      - uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
       - name: Compile and test
         id: ci
-        uses: gazebo-tooling/action-gz-ci@jammy
+        uses: gazebo-tooling/action-gz-ci@resolute
         with:
+          gzdev-project-name: rotary
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
-          codecov-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
 
-  noble-ci:
+  resolute-ci-disable-gui:
     runs-on: ubuntu-latest
-    name: Ubuntu Noble CI
+    name: Ubuntu Resolute CI (GUI disabled)
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
-        with:
-          extra_args: --all-files
+        uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
       - name: Compile and test
         id: ci
-        uses: gazebo-tooling/action-gz-ci@noble
+        uses: gazebo-tooling/action-gz-ci@resolute
         with:
+          gzdev-project-name: rotary
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
-          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+          cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_GUI=OFF'
           cppcheck-enabled: true
           cpplint-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev

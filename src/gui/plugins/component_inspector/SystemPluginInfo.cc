@@ -30,7 +30,6 @@ using namespace inspector;
 /////////////////////////////////////////////////
 SystemPluginInfo::SystemPluginInfo(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("SystemPluginInfoImpl", this);
   this->inspector = _inspector;
 
   this->inspector->AddUpdateViewCb(components::SystemPluginInfo::typeId,

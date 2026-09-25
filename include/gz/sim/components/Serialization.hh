@@ -125,7 +125,8 @@ namespace serializers
         msg = gz::msgs::Convert(_data);
       }
 
-      msg.SerializeToOstream(&_out);
+      auto result = msg.SerializeToOstream(&_out);
+      (void)result;
       return _out;
     }
 
@@ -137,7 +138,10 @@ namespace serializers
                                              DataType &_data)
     {
       MsgType msg;
-      msg.ParseFromIstream(&_in);
+      if (!msg.ParseFromIstream(&_in))
+      {
+        return _in;
+      }
 
       if constexpr (traits::HasGazeboConvert<MsgType, DataType>::value)
       {
@@ -166,7 +170,8 @@ namespace serializers
     {
       gz::msgs::Double_V msg;
       *msg.mutable_data() = {_vec.begin(), _vec.end()};
-      msg.SerializeToOstream(&_out);
+      auto result = msg.SerializeToOstream(&_out);
+      (void)result;
       return _out;
     }
 
@@ -178,7 +183,10 @@ namespace serializers
                                              std::vector<double> &_vec)
     {
       gz::msgs::Double_V msg;
-      msg.ParseFromIstream(&_in);
+      if (!msg.ParseFromIstream(&_in))
+      {
+        return _in;
+      }
 
       _vec = {msg.data().begin(), msg.data().end()};
       return _in;
@@ -195,7 +203,8 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
         const google::protobuf::Message &_msg)
     {
-      _msg.SerializeToOstream(&_out);
+      auto result = _msg.SerializeToOstream(&_out);
+      (void)result;
       return _out;
     }
 
@@ -206,7 +215,8 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
         google::protobuf::Message &_msg)
     {
-      _msg.ParseFromIstream(&_in);
+      auto result = _msg.ParseFromIstream(&_in);
+      (void)result;
       return _in;
     }
   };

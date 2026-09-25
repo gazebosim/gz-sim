@@ -30,10 +30,10 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/World.hh"
 
-class gz::sim::WorldPrivate
+class gz::sim::World::Implementation
 {
   /// \brief Id of world entity.
-  public: Entity id{kNullEntity};
+  public: sim::Entity id{kNullEntity};
 };
 
 using namespace gz;
@@ -41,32 +41,10 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 World::World(sim::Entity _entity)
-  : dataPtr(std::make_unique<WorldPrivate>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
-
-/////////////////////////////////////////////////
-World::World(const World &_world)
-  : dataPtr(std::make_unique<WorldPrivate>(*_world.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-World::World(World &&_world) noexcept = default;
-
-//////////////////////////////////////////////////
-World::~World() = default;
-
-/////////////////////////////////////////////////
-World &World::operator=(const World &_world)
-{
-  *this->dataPtr = (*_world.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-World &World::operator=(World &&_world) noexcept = default;
 
 //////////////////////////////////////////////////
 Entity World::Entity() const
@@ -141,8 +119,8 @@ Entity World::LightByName(const EntityComponentManager &_ecm,
 {
   // Can't use components::Light in EntityByComponents, see
   // https://github.com/gazebosim/gz-sim/issues/376
-  auto entities = _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  auto entities = _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Name(_name));
 
   for (const auto &entity : entities)
@@ -159,8 +137,8 @@ Entity World::ActorByName(const EntityComponentManager &_ecm,
 {
   // Can't use components::Actor in EntityByComponents, see
   // https://github.com/gazebosim/gz-sim/issues/376
-  auto entities = _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
+  auto entities = _ecm.ChildrenByComponents(
+      this->dataPtr->id,
       components::Name(_name));
 
   for (const auto &entity : entities)
@@ -218,9 +196,7 @@ std::vector<Entity> World::Actors(const EntityComponentManager &_ecm) const
 //////////////////////////////////////////////////
 std::vector<Entity> World::Models(const EntityComponentManager &_ecm) const
 {
-  return _ecm.EntitiesByComponents(
-      components::ParentEntity(this->dataPtr->id),
-      components::Model());
+  return _ecm.ChildrenByComponents(this->dataPtr->id, components::Model());
 }
 
 //////////////////////////////////////////////////

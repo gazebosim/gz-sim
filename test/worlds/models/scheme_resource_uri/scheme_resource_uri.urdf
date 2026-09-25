@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot name="scheme_resource_uri">
+  <link name="the link">
+    <inertial>
+      <mass value="4.0"/>
+      <inertia ixx="0.004" ixy="0.0" ixz="0.0" iyy="0.004" iyz="0.0" izz="0.004"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="package://scheme_resource_uri/meshes/box.dae"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

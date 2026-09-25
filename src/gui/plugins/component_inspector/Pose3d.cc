@@ -16,6 +16,11 @@
 */
 
 #include <string>
+#include <QGuiApplication>
+#include <QClipboard>
+#include <iomanip>
+#include <limits>
+#include <sstream>
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/pose.pb.h>
@@ -30,7 +35,7 @@ using namespace inspector;
 /////////////////////////////////////////////////
 Pose3d::Pose3d(ComponentInspector *_inspector)
 {
-  _inspector->Context()->setContextProperty("Pose3dImpl", this);
+  _inspector->Context()->setContextProperty("_Pose3dImpl", this);
   this->inspector = _inspector;
 
   this->inspector->AddUpdateViewCb(components::Pose::typeId,
@@ -62,4 +67,27 @@ void Pose3d::OnPose(double _x, double _y, double _z, double _roll,
   std::string poseCmdService("/world/" + this->inspector->WorldName()
       + "/set_pose");
   this->inspector->TransportNode().Request(poseCmdService, req, cb);
+}
+
+/////////////////////////////////////////////////
+void Pose3d::CopySdfPose(const QVariantList &_pose)
+{
+  if (_pose.size() != 6)
+    return;
+
+  std::ostringstream ss;
+  ss << std::setprecision(std::numeric_limits<double>::max_digits10);
+  ss << "<pose>"
+     << _pose[0].toDouble() << " "
+     << _pose[1].toDouble() << " "
+     << _pose[2].toDouble() << " "
+     << _pose[3].toDouble() << " "
+     << _pose[4].toDouble() << " "
+     << _pose[5].toDouble()
+     << "</pose>";
+
+  if (auto *clipboard = QGuiApplication::clipboard())
+  {
+    clipboard->setText(QString::fromStdString(ss.str()));
+  }
 }

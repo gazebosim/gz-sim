@@ -16,12 +16,16 @@
 */
 
 #include <gtest/gtest.h>
+#include <chrono>
+#include <list>
 #include <mutex>
 
+#include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
@@ -38,11 +42,12 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
-
-#define tol 10e-4
+#include "../helpers/Subscription.hh"
+#include "../helpers/TestFixture.hh"
 
 using namespace gz;
 using namespace sim;
+using namespace std::literals::chrono_literals;
 
 /// \brief Test PosePublisher system
 class PosePublisherTest : public InternalFixture<::testing::TestWithParam<int>>
@@ -58,33 +63,29 @@ std::vector<msgs::Pose_V> staticPoseVMsgs;
 /////////////////////////////////////////////////
 void poseCb(const msgs::Pose &_msg)
 {
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
   poseMsgs.push_back(_msg);
-  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
 void staticPoseCb(const msgs::Pose &_msg)
 {
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
   staticPoseMsgs.push_back(_msg);
-  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
 void poseVCb(const msgs::Pose_V &_msg)
 {
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
   poseVMsgs.push_back(_msg);
-  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
 void staticPoseVCb(const msgs::Pose_V &_msg)
 {
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
   staticPoseVMsgs.push_back(_msg);
-  mutex.unlock();
 }
 
 std::string addDelimiter(const std::vector<std::string> &_name,
@@ -223,23 +224,23 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
   bool received = false;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    mutex.lock();
-    received =
+    {
+      const std::lock_guard<std::mutex> lock(mutex);
+      received =
         (poseMsgs.size() == (basePoses.size() + lowerLinkPoses.size() +
                              upperLinkPoses.size() + sensorPoses.size()));
-    mutex.unlock();
+    }
 
     if (received)
       break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_TRUE(received);
 
   int tCounter = 0;
   int numLinks = 3;
   int numSensors = 1;
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
 
   // sort the pose msgs according to timestamp
   std::sort(poseMsgs.begin(), poseMsgs.end(), [](
@@ -268,7 +269,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
     EXPECT_EQ("child_frame_id", msg.header().data(1).key());
     EXPECT_EQ(1, msg.header().data(1).value_size());
 
-    std::string frame = msg.header().data(0).value(0);
+    const auto &frame = msg.header().data(0).value(0);
     if (msg.name() == scopedSensorName)
     {
       // Handle the sensor as a special case
@@ -277,7 +278,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
     else
       EXPECT_EQ(scopedModelName, frame);
 
-    std::string childFrame = msg.header().data(1).value(0);
+    const auto &childFrame = msg.header().data(1).value(0);
     EXPECT_EQ(childFrame, msg.name());
 
     // verify timestamp
@@ -321,7 +322,6 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishCmd))
     }
     EXPECT_EQ(expectedPose, p);
   }
-  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -359,15 +359,14 @@ TEST_F(PosePublisherTest,
   bool received = false;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
     {
-      std::lock_guard<std::mutex> lock(mutex);
-      received = (poseMsgs.size() >= nExpMessages);
+      const std::lock_guard<std::mutex> lock(mutex);
+      received = poseMsgs.size() >= nExpMessages;
     }
 
     if (received)
       break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   ASSERT_TRUE(received);
@@ -527,20 +526,20 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
   bool staticReceived = false;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-    mutex.lock();
-    received = (poseVMsgs.size() == iters);
-    staticReceived = (staticPoseVMsgs.size() == iters);
-    mutex.unlock();
+    {
+      const std::lock_guard<std::mutex> lock(mutex);
+      received = (poseVMsgs.size() == iters);
+      staticReceived = (staticPoseVMsgs.size() == iters);
+    }
 
     if (received && staticReceived)
       break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   EXPECT_TRUE(received);
   EXPECT_TRUE(staticReceived);
 
-  mutex.lock();
+  const std::lock_guard<std::mutex> lock(mutex);
 
   // verify pose msgs against recorded ones
   for (const auto &poseVMsg : poseVMsgs)
@@ -556,10 +555,10 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       EXPECT_EQ("child_frame_id", msg.header().data(1).key());
       EXPECT_EQ(1, msg.header().data(1).value_size());
 
-      std::string frame = msg.header().data(0).value(0);
+      const auto &frame = msg.header().data(0).value(0);
       EXPECT_EQ(scopedModelName, frame);
 
-      std::string childFrame = msg.header().data(1).value(0);
+      const auto &childFrame = msg.header().data(1).value(0);
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
@@ -589,9 +588,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
     }
     timestamps.pop_front();
   }
-  mutex.unlock();
 
-  mutex.lock();
   // verify static pose msgs against recorded ones
   for (const auto &staticPoseVMsg : staticPoseVMsgs)
   {
@@ -605,7 +602,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       EXPECT_EQ(1, msg.header().data(0).value_size());
       EXPECT_EQ("child_frame_id", msg.header().data(1).key());
       EXPECT_EQ(1, msg.header().data(1).value_size());
-      std::string frame = msg.header().data(0).value(0);
+      const auto &frame = msg.header().data(0).value(0);
       if (msg.name() == scopedSensorName)
       {
         // Handle the sensor as a special case
@@ -614,7 +611,7 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
       else
         EXPECT_EQ(scopedModelName, frame);
 
-      std::string childFrame = msg.header().data(1).value(0);
+      const auto &childFrame = msg.header().data(1).value(0);
       EXPECT_EQ(childFrame, msg.name());
 
       // verify timestamp
@@ -644,7 +641,6 @@ TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StaticPosePublisher))
     }
     staticPoseTimestamps.pop_front();
   }
-  mutex.unlock();
 }
 
 /////////////////////////////////////////////////
@@ -683,8 +679,6 @@ TEST_F(PosePublisherTest,
   bool received = false;
   for (int sleep = 0; sleep < 30; ++sleep)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
     {
       std::lock_guard<std::mutex> lock(mutex);
       received = (staticPoseMsgs.size() >= nExpMessages);
@@ -692,6 +686,7 @@ TEST_F(PosePublisherTest,
 
     if (received)
       break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   ASSERT_TRUE(received);
@@ -752,13 +747,13 @@ TEST_F(PosePublisherTest,
   // only the pose of the nested model should be published and no other entity
   std::string expectedEntityName = "model_00::model_01";
   math::Pose3d expectedEntityPose(1, 0, 0, 0, 0, 0);
-  for (auto &msg : poseMsgs)
+  for (const auto &msg : poseMsgs)
   {
     ASSERT_LT(1, msg.header().data_size());
     ASSERT_LT(0, msg.header().data(1).value_size());
-    std::string childFrameId = msg.header().data(1).value(0);
+    const auto &childFrameId = msg.header().data(1).value(0);
     EXPECT_EQ(expectedEntityName, childFrameId);
-    auto p = msgs::Convert(poseMsgs[0]);
+    const auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }
 }
@@ -799,6 +794,97 @@ TEST_F(PosePublisherTest,
   // only the pose of the model should be published and no other entity
   std::string expectedEntityName = "test_publish_only_model_pose";
   math::Pose3d expectedEntityPose(5, 5, 0, 0, 0, 0);
+  for (const auto &msg : poseMsgs)
+  {
+    ASSERT_LT(1, msg.header().data_size());
+    ASSERT_LT(0, msg.header().data(1).value_size());
+    const auto &childFrameId = msg.header().data(1).value(0);
+    EXPECT_EQ(expectedEntityName, childFrameId);
+    const auto p = msgs::Convert(poseMsgs[0]);
+    EXPECT_EQ(expectedEntityPose, p);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawedModelPose))
+{
+  // Verify that pose publisher system works for a model spawned into
+  // the world
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/pose_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  std::string boxSdf = R"EOF(
+  <?xml version="1.0" ?>
+  <sdf version="1.9">
+      <model name="box">
+        <static>0</static>
+        <pose>0 0 0.5 0 0 0</pose>
+        <link name="link">
+          <collision name="collision">
+            <geometry>
+              <box>
+                <size>1 1 1</size>
+              </box>
+            </geometry>
+          </collision>
+        </link>
+        <plugin
+           filename="gz-sim-pose-publisher-system"
+           name="gz::sim::systems::PosePublisher">
+          <publish_link_pose>false</publish_link_pose>
+          <publish_sensor_pose>false</publish_sensor_pose>
+          <publish_collision_pose>false</publish_collision_pose>
+          <publish_visual_pose>false</publish_visual_pose>
+          <publish_nested_model_pose>false</publish_nested_model_pose>
+          <publish_model_pose>true</publish_model_pose>
+        </plugin>
+      </model>
+  </sdf>)EOF";
+
+  // Request entity spawn
+  msgs::EntityFactory req;
+  unsigned int timeout = 5000;
+  std::string service{"/world/pose_publisher/create"};
+  msgs::Boolean res;
+  bool result;
+  req.set_sdf(boxSdf);
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run the server to actually create the entities
+  server.Run(true, 100u, false);
+
+  poseMsgs.clear();
+
+  // Subscribe to the pose publisher
+  node.Subscribe(std::string("/model/box/pose"), &poseCb);
+
+  // Run server
+  server.Run(true, 1000u, false);
+
+  // Wait for messages to be received
+  int sleep = 0;
+  while (poseMsgs.empty() && sleep++ < 30)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  EXPECT_TRUE(!poseMsgs.empty());
+
+  // verify the pose message data are correct
+  std::string expectedEntityName = "box";
+  math::Pose3d expectedEntityPose(0, 0, 0.5, 0, 0, 0);
   for (auto &msg : poseMsgs)
   {
     ASSERT_LT(1, msg.header().data_size());
@@ -808,4 +894,21 @@ TEST_F(PosePublisherTest,
     auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UserDefinedTopic))
+{
+  const auto worldFile = common::joinPaths(
+    std::string(PROJECT_SOURCE_PATH), "test", "worlds", "pose_publisher.sdf");
+
+  ::TestFixture fixture(worldFile);
+
+  transport::Node node;
+  Subscription<msgs::Pose> poseSubscription;
+  poseSubscription.Subscribe(node, "/my/little/topic", 1);
+
+  fixture.Step(50ms);
+
+  ASSERT_TRUE(poseSubscription.WaitForMessages(1, 100ms));
 }

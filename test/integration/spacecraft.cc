@@ -93,7 +93,11 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
         if (_info.iterations == iterTestStart)
         {
           msgs::Actuators msg;
+#if GOOGLE_PROTOBUF_VERSION >= 7035000
+          msg.mutable_normalized()->resize(12, cmdDutyCycle);
+#else
           msg.mutable_normalized()->Resize(12, cmdDutyCycle);
+#endif
           msg.mutable_normalized()->Set(0, 1.0);
           cmdDutyCyclePublisher.Publish(msg);
         }

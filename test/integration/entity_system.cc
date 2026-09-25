@@ -147,9 +147,11 @@ class EntitySystemTest : public InternalFixture<::testing::TestWithParam<int>>
     // publish twist msg and verify that the vehicle now moves forward
     pub.Publish(msg);
     server.Run(true, 1000, false);
-    for (unsigned int i = 1; i < poses.size(); ++i)
+    // Skip comparing poses[0], poses[1] due to issue with dartsim 6.19.1
+    // see https://github.com/gazebosim/gz-sim/issues/3697
+    for (unsigned int i = 2; i < poses.size(); ++i)
     {
-      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X());
+      EXPECT_GT(poses[i].Pos().X(), poses[i-1].Pos().X()) << "i=" << i;
     }
   }
 };

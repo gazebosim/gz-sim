@@ -2,11 +2,19 @@
 <!--
   Gazebo trisphere wheel slip plugin demo
 
-  A demo displaying the wheel slip plugin.  The red trisphere cycle has wheel slip while the blue does not.
+  A demo displaying the wheel slip plugin. The blue trisphere cycle has
+  wheel slip while the red does not. The rear wheels of the trisphere cycles
+  have joint velocity control enabled with initial forward (+x) velocity.
+  Wheel slippage takes effect when a vehicle accelerates, e.g.
+  climbing uphill. So the gravity is set to a small -x direction to simulate
+  an inclined surface.
 
   Run with
 
     gz sim trisphere_cycle_wheel_slip.sdf
+
+  Play the simulation to see both trisphere cycles move forward but the blue
+  trisphere cycle slips so it moves slower than the red one.
 
 -->
 
@@ -282,11 +290,6 @@
       </link>
       <link name="wheel_front">
         <pose>0.08288176767905665 0 0.15  0 0 0</pose>
-          <material>
-            <ambient>0.8 0.3 0.3 1</ambient>
-            <diffuse>0.8 0.3 0.3 1</diffuse>
-            <specular>0.8 0.3 0.3 1</specular>
-          </material>
         <inertial>
           <mass>0.5</mass>
           <inertia>
@@ -335,6 +338,7 @@
           <limit>
             <lower>-0.9599310885968813</lower>
             <upper>0.9599310885968813</upper>
+            <effort>100</effort>
           </limit>
         </axis>
       </joint>
@@ -443,7 +447,25 @@
           <xyz>0 1 0</xyz>
         </axis>
       </joint>
-
+      <plugin
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>wheel_rear_left_spin</joint_name>
+        <initial_velocity>2.0</initial_velocity>
+      </plugin>
+      <plugin
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>wheel_rear_right_spin</joint_name>
+        <initial_velocity>2.0</initial_velocity>
+      </plugin>
+      <plugin
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
+        <joint_name>wheel_front_steer</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <initial_position>0</initial_position>
+      </plugin>
       <plugin
         filename="gz-sim-wheel-slip-system"
         name="gz::sim::systems::WheelSlip">
@@ -732,6 +754,7 @@
           <limit>
             <lower>-0.9599310885968813</lower>
             <upper>0.9599310885968813</upper>
+            <effort>100</effort>
           </limit>
         </axis>
       </joint>
@@ -840,7 +863,25 @@
           <xyz>0 1 0</xyz>
         </axis>
       </joint>
-
+      <plugin
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>wheel_rear_left_spin</joint_name>
+        <initial_velocity>2.0</initial_velocity>
+      </plugin>
+      <plugin
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>wheel_rear_right_spin</joint_name>
+        <initial_velocity>2.0</initial_velocity>
+      </plugin>
+      <plugin
+        filename="gz-sim-joint-position-controller-system"
+        name="gz::sim::systems::JointPositionController">
+        <joint_name>wheel_front_steer</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <initial_position>0</initial_position>
+      </plugin>
       <plugin
         filename="gz-sim-wheel-slip-system"
         name="gz::sim::systems::WheelSlip">

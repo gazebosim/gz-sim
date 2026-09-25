@@ -37,7 +37,9 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/PoseCmd.hh"
 #include "gz/sim/components/WindMode.hh"
+#include "gz/sim/components/DetachableJoint.hh"
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
@@ -67,7 +69,8 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/detachable_joint.sdf");
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
 
   // A lambda that takes a model name and a mutable reference to a vector of
   // poses and returns another lambda that can be passed to
@@ -141,11 +144,69 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(StartConnected))
 }
 
 /////////////////////////////////////////////////
+TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetReattaches))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
+
+  auto poseRecorder =
+      [](const std::string &_modelName, std::vector<math::Pose3d> &_poses)
+  {
+    return [&, _modelName](const UpdateInfo &,
+                           const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+          [&](const Entity &, const components::Model *,
+              const components::Name *_name,
+              const components::Pose *_pose) -> bool
+          {
+            if (_name->Data() == _modelName)
+            {
+              _poses.push_back(_pose->Data());
+            }
+            return true;
+          });
+    };
+  };
+
+  std::vector<math::Pose3d> m2Poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(poseRecorder("M2", m2Poses));
+  this->server->AddSystem(testSystem.systemPtr);
+
+  this->server->Run(true, 20, false);
+  ASSERT_EQ(20u, m2Poses.size());
+  EXPECT_EQ(m2Poses.front(), m2Poses.back());
+  const math::Pose3d initialM2Pose = m2Poses.back();
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M1/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  m2Poses.clear();
+  this->server->Run(true, 100, false);
+  ASSERT_GE(m2Poses.size(), 2u);
+  EXPECT_GT(m2Poses.front().Pos().Z(), m2Poses.back().Pos().Z());
+
+  // Reset should restore the startup attached state, even after a detach.
+  this->server->ResetAll();
+  m2Poses.clear();
+  this->server->Run(true, 100, false);
+  ASSERT_GE(m2Poses.size(), 2u);
+  EXPECT_GE(m2Poses.back().Pos().Z(), m2Poses.front().Pos().Z());
+  EXPECT_NEAR(initialM2Pose.Pos().Z(), m2Poses.back().Pos().Z(), 1e-3);
+}
+
+/////////////////////////////////////////////////
 TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
 {
   using namespace std::chrono_literals;
 
-  this->StartServer("/test/worlds/detachable_joint.sdf");
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint.sdf"));
 
   // A lambda that takes a model name and a mutable reference to a vector of
   // poses and returns another lambda that can be passed to
@@ -218,6 +279,80 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
   EXPECT_GT(b2Poses.front().Pos().Z() - b2Poses.back().Pos().Z(), expDist);
 }
 
+/////////////////////////////////////////////////
+TEST_F(DetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelsWithSameName))
+{
+  using namespace std::chrono_literals;
+
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint_child.sdf"));
+
+
+  std::vector<math::Pose3d> childM4Poses, childM5Poses;
+  test::Relay testSystem1;
+  testSystem1.OnPostUpdate([&childM4Poses, &childM5Poses](
+    const sim::UpdateInfo &,
+    const sim::EntityComponentManager &_ecm)
+  {
+    auto childModels = _ecm.EntitiesByComponents(
+      components::Model(), components::Name("child_model"));
+
+    auto entityM5 = _ecm.EntityByComponents(
+      components::Model(), components::Name("M5"));
+
+    Model modelM5(entityM5);
+    auto childModelsM5 = modelM5.Models(_ecm);
+
+    Entity childEntityM5{kNullEntity}, childEntityM4{kNullEntity};
+    for(auto entity : childModelsM5)
+    {
+      if (entity == childModels[0])
+      {
+        childEntityM5 = childModels[0];
+        childEntityM4 = childModels[1];
+      }
+      if (entity == childModels[1])
+      {
+        childEntityM5 = childModels[1];
+        childEntityM4 = childModels[0];
+      }
+    }
+
+    Model childModelM4(childEntityM4);
+    Model childModelM5(childEntityM5);
+
+    auto poseM4 = _ecm.Component<components::Pose>(childEntityM4);
+    auto poseM5 = _ecm.Component<components::Pose>(childEntityM5);
+
+    childM4Poses.push_back(poseM4->Data());
+    childM5Poses.push_back(poseM5->Data());
+  }
+  );
+
+  this->server->AddSystem(testSystem1.systemPtr);
+
+  const std::size_t nIters{20};
+  this->server->Run(true, nIters, false);
+
+  // Children of model4 and model5 should not move as they are held
+  // in place
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
+  EXPECT_EQ(childM5Poses.front(), childM5Poses.back());
+
+  // Release M5's child only
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Empty>("/model/M5/detachable_joint/detach");
+  pub.Publish(msgs::Empty());
+  std::this_thread::sleep_for(250ms);
+
+  this->server->Run(true, nIters, false);
+  // M5 and M4 start at the same height
+  // Only M5 should fall.
+  EXPECT_LT(childM5Poses.back().Z(), childM4Poses.back().Z());
+  EXPECT_LT(childM5Poses.back().Z(), childM5Poses.front().Z());
+  EXPECT_EQ(childM4Poses.front(), childM4Poses.back());
+}
  /////////////////////////////////////////////////
  // Test for re-attaching a detached joint. This uses the vehicle_blue and B1
  // box models. The B1 model is first detached from the vehicle. Although
@@ -359,3 +494,128 @@ TEST_F(DetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinksInSameModel))
    // should be close.
    EXPECT_TRUE(abs(distTraveledB1 - distTraveledVehicle) < 0.01);
  }
+
+/////////////////////////////////////////////////
+TEST_F(DetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(EnforceFixedConstraint))
+{
+  this->StartServer(common::joinPaths("/test", "worlds",
+       "detachable_joint_enforce.sdf"));
+
+  Entity modelM1 = kNullEntity;
+  Entity modelM3 = kNullEntity;
+  bool initialized = false;
+
+  test::Relay testSystem;
+  testSystem.OnPreUpdate([&](const UpdateInfo &,
+                             EntityComponentManager &_ecm)
+  {
+    if (!initialized)
+    {
+      modelM1 = _ecm.EntityByComponents(
+          components::Model(), components::Name("M1"));
+      ASSERT_NE(kNullEntity, modelM1);
+      modelM3 = _ecm.EntityByComponents(
+          components::Model(), components::Name("M3"));
+      ASSERT_NE(kNullEntity, modelM3);
+
+      // Locate the detachable joints for M1/M2 and M3/M4.
+      Entity jointM1M2 = kNullEntity;
+      Entity jointM3M4 = kNullEntity;
+
+      _ecm.Each<components::DetachableJoint>(
+          [&](const Entity &_entity,
+              const components::DetachableJoint *_joint) -> bool
+          {
+            auto parentComp = _ecm.Component<components::Name>(
+                _joint->Data().parentLink);
+            if (parentComp)
+            {
+              if (parentComp->Data() == "body")
+                jointM1M2 = _entity;
+              else if (parentComp->Data() == "body1")
+                jointM3M4 = _entity;
+            }
+            return true;
+          });
+
+      ASSERT_NE(kNullEntity, jointM1M2);
+      ASSERT_NE(kNullEntity, jointM3M4);
+
+      // Enable enforced fixed constraint for the M1/M2 joint.
+      _ecm.CreateComponent(
+          jointM1M2,
+          components::DetachableJointEnforceFixedConstraint(true));
+
+      // Disable enforced fixed constraint for the M3/M4 joint.
+      _ecm.CreateComponent(
+          jointM3M4,
+          components::DetachableJointEnforceFixedConstraint(false));
+
+      initialized = true;
+    }
+
+    // Teleport the parent models M1 and M3.
+    _ecm.SetComponentData<components::WorldPoseCmd>(
+        modelM1, math::Pose3d(0, 60, 1, 0, 0, 0));
+    _ecm.SetComponentData<components::WorldPoseCmd>(
+        modelM3, math::Pose3d(10, 60, 1, 0, 0, 0));
+  });
+
+  std::vector<math::Pose3d> m1LinkPoses, m2LinkPoses;
+  std::vector<math::Pose3d> m3LinkPoses, m4LinkPoses;
+
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Link>(
+        [&](const Entity &_entity, const components::Link *) -> bool
+        {
+          Link link(_entity);
+          auto worldPose = link.WorldPose(_ecm);
+          if (!worldPose)
+            return true;
+
+          auto parentModel = _ecm.ParentEntity(_entity);
+          auto parentName = _ecm.ComponentData<components::Name>(
+              parentModel).value_or("");
+
+          if (parentName == "M1")
+            m1LinkPoses.push_back(*worldPose);
+          else if (parentName == "M2")
+            m2LinkPoses.push_back(*worldPose);
+          else if (parentName == "M3")
+            m3LinkPoses.push_back(*worldPose);
+          else if (parentName == "M4")
+            m4LinkPoses.push_back(*worldPose);
+
+          return true;
+        });
+  });
+
+  this->server->AddSystem(testSystem.systemPtr);
+
+  const std::size_t nIters{10};
+  this->server->Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, m1LinkPoses.size());
+  ASSERT_EQ(nIters, m2LinkPoses.size());
+  ASSERT_EQ(nIters, m3LinkPoses.size());
+  ASSERT_EQ(nIters, m4LinkPoses.size());
+
+  // M1/M2 has enforce fixed constraint set to true:
+  // the distance should remain at ~2.0m because the child is moved
+  // to maintain the rigid child-to-parent pose offset.
+  double M1M2Dist =
+      (m2LinkPoses.back().Pos() - m1LinkPoses.back().Pos()).Length();
+  EXPECT_NEAR(2.0, M1M2Dist, 1e-5);
+
+  // M3/M4 has enforce fixed constraint set to false:
+  // The parent-child pose offset is not strictly enforced. Their relative
+  // distance is determined by the constraint solver.
+  double M3M4Dist =
+      (m4LinkPoses.back().Pos() - m3LinkPoses.back().Pos()).Length();
+
+  // There should be non-zero difference between M1/M2 and M3/M4 pose offsets
+  EXPECT_GT(std::fabs(M1M2Dist - M3M4Dist), 1e-6);
+}

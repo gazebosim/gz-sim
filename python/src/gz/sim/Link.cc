@@ -29,7 +29,10 @@ namespace python
 {
 void defineSimLink(py::object module)
 {
-  py::class_<gz::sim::Link>(module, "Link")
+   py::class_<gz::sim::Link>(module, "Link",
+    "A convenience wrapper around a link entity. This class provides easy "
+    "access to link properties such as pose, velocity, acceleration, forces, "
+    "and child entities (collisions, sensors, visuals).")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Link>())
   .def("entity", &gz::sim::Link::Entity,
@@ -167,6 +170,24 @@ void defineSimLink(py::object module)
       py::arg("position"),
       "Add a force expressed in world coordinates and applied at "
       "an offset from the center of mass of the link.")
+   .def("add_force_in_inertial_frame",
+      py::overload_cast<EntityComponentManager &, const math::Vector3d &>
+        (&gz::sim::Link::AddForceInInertialFrame, py::const_),
+      py::arg("ecm"),
+      py::arg("force"),
+      "Add a force expressed in link's inertial frame, and applied at"
+      " the link's inertial frame.")
+  .def("add_force_in_inertial_frame",
+      py::overload_cast<EntityComponentManager &,
+                        const math::Vector3d &,
+                        const math::Vector3d &>
+                        (&gz::sim::Link::AddForceInInertialFrame, py::const_),
+      py::arg("ecm"),
+      py::arg("force"),
+      py::arg("position"),
+      "Add a force expressed in link's inertial frame,"
+      " and applied at an offset from the from the link's inertial frame,"
+      "the offset is expressed in link's inertial frame.")
   .def("add_world_wrench",
       py::overload_cast<EntityComponentManager &,
                         const math::Vector3d &,
