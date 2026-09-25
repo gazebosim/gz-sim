@@ -4,6 +4,28 @@ Gazebo provides three joint controller plugins which are `JointController`, `Joi
 
 Let's see a detailed description of each of them and an example usage to help users select the right joint controller for their usage.
 
+## Choosing the right controller
+
+The table below summarizes the main characteristics of each controller, to help you pick the one that matches your use case.
+
+| | JointController | JointPositionController | JointTrajectoryController |
+|---|---|---|---|
+| **What it controls** | Velocity (or force) | Position | Trajectory of position, velocity and effort over time |
+| **Number of joints** | One joint, first axis only | One joint | One or more joints |
+| **How it works** | Direct velocity commands, or PID to reach a target velocity | PID to reach a target joint position | Follows a time-parameterized trajectory (position / velocity / effort) |
+| **Typical message** | `Double` on `cmd_vel` | `Double` on `cmd_pos` | `JointTrajectory` on `joint_trajectory` |
+| **Best suited for** | Continuous rotation, wheel or rotor speed control | Point-to-point positioning of a single joint | Coordinated multi-joint motion, e.g. manipulator arms |
+
+### Decision guide
+
+* Use **JointController** when you only care about how fast a joint spins — for example a wheel, propeller, rotor, or conveyor. Send a target velocity and the joint keeps rotating at that speed. For simple use cases use **velocity mode**; if you need to tune velocity control with a custom PID, use **force mode**.
+* Use **JointPositionController** when you want a *single joint* to reach and hold a commanded angle, like a pan/tilt mechanism or a winch. It drives the joint to the commanded position with a PID controller.
+* Use **JointTrajectoryController** when several joints must move together along a prescribed route over time, which is the common case for a robotic arm or a walking/multilink mechanism. It accepts full trajectories (positions, velocities and efforts sampled over time) and can combine position PID, velocity PID, and directly applied effort for hybrid control.
+
+In short: one joint at a constant speed → `JointController`; one joint to an angle → `JointPositionController`; several joints following a timed motion → `JointTrajectoryController`.
+
+The following sections describe each controller in detail along with a worked example.
+
 ## 1) JointController
 
 - Joint controller which can be attached to a model with a reference to a single joint.
