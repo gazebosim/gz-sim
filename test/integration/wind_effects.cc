@@ -512,6 +512,9 @@ TEST_F(WindEffectsTest,
   this->server->Run(true, 1, false);
   const math::Vector3d firstWind = windVelocities.back();
   EXPECT_GT(firstWind.Length(), 0.0);
+  // With the 1 ms step and <time_for_rise>1</time_for_rise> of
+  // wind_effects.sdf, the first filtered value is about 0.1% of the seed
+  // (~0.014 m/s); revisit the bound below if those settings change.
   EXPECT_LT(firstWind.Length(), 0.1);
   EXPECT_LT(std::fabs(firstWind.X()), std::fabs(firstWind.Y()));
 }

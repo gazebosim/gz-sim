@@ -138,13 +138,15 @@ namespace systems
   /// gets disabled the forces are no longer applied and the wind entity's
   /// `WorldLinearVelocity` is set to zero, so that systems reading that
   /// component see no wind; the seed is kept. When it is enabled again, the
-  /// wind rises from zero in the direction of the current seed.
+  /// wind rises from zero in the direction of the current seed. If several
+  /// commands arrive between two updates, only the newest one is applied.
   ///
   /// - `/world/<world_name>/wind_info` (gz.msgs.Wind): publishes the
   /// current wind velocity and whether the wind is enabled, at every update
   /// while the wind is enabled and once, with a zero velocity, when the wind
-  /// gets disabled. A service with the same name returns the current seed
-  /// velocity and enable state.
+  /// gets disabled. Subscribers that connect while the wind is disabled
+  /// receive nothing until it is enabled again. A service with the same name
+  /// returns the current seed velocity and enable state at any time.
   ///
   class WindEffects final:
     public System,
