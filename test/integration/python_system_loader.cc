@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <gz/common/Filesystem.hh>
+#include <gz/common/SystemPaths.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 #include <optional>
@@ -63,9 +64,15 @@ void worldReset()
 TEST_F(PythonSystemLoaderTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(LoadMultipleSystems))
 {
-  common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH",
-                 common::joinPaths(std::string(PROJECT_SOURCE_PATH), "python",
-                                   "test", "plugins"));
+  // Keep the native plugin path set by InternalFixture while adding the
+  // directory that contains the Python test systems. Both use the same
+  // environment variable.
+  std::string pluginPath;
+  ASSERT_TRUE(common::env("GZ_SIM_SYSTEM_PLUGIN_PATH", pluginPath));
+  pluginPath = common::joinPaths(std::string(PROJECT_SOURCE_PATH), "python",
+                                "test", "plugins") +
+               common::SystemPaths::Delimiter() + pluginPath;
+  ASSERT_TRUE(common::setenv("GZ_SIM_SYSTEM_PLUGIN_PATH", pluginPath));
 
   sim::ServerConfig serverConfig;
   serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
