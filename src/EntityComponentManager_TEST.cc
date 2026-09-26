@@ -2923,13 +2923,13 @@ TEST_P(EntityComponentManagerFixture,
     };
 
   auto validateGrandChildClone =
-    [&](const Entity _clonedEntity, bool _sameParent)
+    [&](const Entity _clonedEntity, bool _sameName, bool _sameParent)
     {
       EXPECT_NE(kNullEntity, _clonedEntity);
       EXPECT_EQ(manager.ComponentTypes(_clonedEntity),
           manager.ComponentTypes(grandChildEntity1));
       CompareEntityComponents<components::Name>(manager, _clonedEntity,
-          grandChildEntity1, false);
+          grandChildEntity1, _sameName);
       CompareEntityComponents<components::ParentEntity>(manager,
           _clonedEntity, grandChildEntity1, _sameParent);
       EXPECT_TRUE(manager.EntitiesByComponents(
@@ -2959,7 +2959,7 @@ TEST_P(EntityComponentManagerFixture,
 
       ASSERT_EQ(1u, clonedGrandChildren.size());
       clonedEntities.insert(clonedGrandChildren[0]);
-      validateGrandChildClone(clonedGrandChildren[0], false);
+      validateGrandChildClone(clonedGrandChildren[0], false, false);
       auto parentComp =
         manager.Component<components::ParentEntity>(clonedGrandChildren[0]);
       ASSERT_NE(nullptr, parentComp);
@@ -2987,25 +2987,36 @@ TEST_P(EntityComponentManagerFixture,
       grandChildParentComp->Data(), "", allowRename);
   EXPECT_EQ(9u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
-  validateGrandChildClone(clonedGrandChildEntity, true);
+  validateGrandChildClone(clonedGrandChildEntity, false, true);
 
-  // Try cloning an entity with a name that already exists, but allow renaming.
-  // This should succeed and generate a cloned entity with a unique name.
+  // Try cloning an entity into a parent that already has a child with the
+  // requested name, but allow renaming. This should succeed and generate a
+  // cloned entity with a unique name.
   const auto existingName = "grandChildEntity1";
   EXPECT_NE(kNullEntity,
       manager.EntityByComponents(components::Name(existingName)));
   auto renamedClonedEntity = manager.Clone(grandChildEntity1,
       grandChildParentComp->Data(), existingName, allowRename);
   EXPECT_EQ(10u, manager.EntityCount());
-  clonedEntities.insert(clonedGrandChildEntity);
-  validateGrandChildClone(renamedClonedEntity, true);
+  clonedEntities.insert(renamedClonedEntity);
+  validateGrandChildClone(renamedClonedEntity, false, true);
 
-  // Try cloning an entity with a name that already exists, without allowing
-  // renaming. This should fail since entities should have unique names.
+  // Try cloning an entity into a parent that already has a child with the
+  // requested name, without allowing renaming. This should fail since sibling
+  // entities should have unique names.
   auto failedClonedEntity = manager.Clone(grandChildEntity1,
       grandChildParentComp->Data(), existingName, noAllowRename);
   EXPECT_EQ(10u, manager.EntityCount());
   EXPECT_EQ(kNullEntity, failedClonedEntity);
+
+  // Try cloning an entity with its existing name into a different parent,
+  // without allowing renaming. This should succeed because duplicate names are
+  // checked under the destination parent.
+  auto noRenameClonedEntity = manager.Clone(grandChildEntity1,
+      childEntity2, existingName, noAllowRename);
+  EXPECT_EQ(11u, manager.EntityCount());
+  clonedEntities.insert(noRenameClonedEntity);
+  validateGrandChildClone(noRenameClonedEntity, true, false);
 
   // create a joint with a parent and child link
   const std::string parentModelEntityName = "parentModelEntity";
@@ -3035,7 +3046,7 @@ TEST_P(EntityComponentManagerFixture,
   manager.CreateComponent(childLinkEntity,
       components::Name(childLinkEntityName));
   manager.CreateComponent(childLinkEntity, components::Link());
-  EXPECT_EQ(14u, manager.EntityCount());
+  EXPECT_EQ(15u, manager.EntityCount());
 
   // clone a joint that has a parent and child link.
   auto clonedParentModelEntity = manager.Clone(parentModelEntity, kNullEntity,
@@ -3043,7 +3054,7 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(kNullEntity, clonedParentModelEntity);
   // We just cloned a model with two links and a joint, a total of 4 new
   // entities.
-  EXPECT_EQ(18u, manager.EntityCount());
+  EXPECT_EQ(19u, manager.EntityCount());
   clonedEntities.insert(clonedParentModelEntity);
   auto clonedJoints = manager.EntitiesByComponents(
       components::ParentEntity(clonedParentModelEntity), components::Joint());
@@ -3080,19 +3091,29 @@ TEST_P(EntityComponentManagerFixture,
   ASSERT_NE(nullptr, clonedChildLinkName);
   EXPECT_EQ(clonedJointChildLinkName->Data(), clonedChildLinkName->Data());
 
-  // make sure that the name given to each cloned entity is unique
-  EXPECT_EQ(9u, clonedEntities.size());
+  // Make sure that each cloned entity's name is unique under its parent.
+  EXPECT_EQ(11u, clonedEntities.size());
   for (const auto &entity : clonedEntities)
   {
     auto nameComp = manager.Component<components::Name>(entity);
     ASSERT_NE(nullptr, nameComp);
-    EXPECT_EQ(1u, manager.EntitiesByComponents(*nameComp).size());
+
+    auto parentComp = manager.Component<components::ParentEntity>(entity);
+    if (parentComp)
+    {
+      EXPECT_EQ(1u, manager.EntitiesByComponents(
+        *nameComp, components::ParentEntity(parentComp->Data())).size());
+    }
+    else
+    {
+      EXPECT_EQ(1u, manager.EntitiesByComponents(*nameComp).size());
+    }
   }
 
   // try to clone an entity that does not exist
   EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
         allowRename));
-  EXPECT_EQ(18u, manager.EntityCount());
+  EXPECT_EQ(19u, manager.EntityCount());
 }
 
 //////////////////////////////////////////////////
