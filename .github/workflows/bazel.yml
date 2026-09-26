@@ -14,6 +14,8 @@ jobs:
   test:
     uses: bazel-contrib/.github/.github/workflows/bazel.yaml@v7.7.0
     with:
+      # Make sure to keep in sync with version in root's .bazelversion
+      bazel_versions: '["9.1.1"]'
       folders: |
         [
           "."
