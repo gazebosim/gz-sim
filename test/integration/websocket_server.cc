@@ -396,3 +396,34 @@ TEST_F(WebsocketServerTest, OnAsset_AllowlistedFileNotReadable)
       << "unreadable allowlisted file was served or wrongly denied; "
          "expected asset_not_found after open() failed";
 }
+
+//////////////////////////////////////////////////
+TEST_F(WebsocketServerTest, OnDisconnect_RemovesPendingMessages)
+{
+  sim::systems::WebsocketServer server;
+  server.OnConnect(1);
+  server.OnConnect(2);
+  server.OnConnect(3);
+
+  const std::string request = "asset," +
+      common::joinPaths(this->allowedDir, "ok.txt") + ",,";
+  server.OnMessage(1, request);
+  server.OnMessage(1, request);
+  server.OnMessage(2, request);
+  ASSERT_EQ(3, server.messageCount);
+
+  // Empty and unknown connections must not change the pending count.
+  server.OnDisconnect(3);
+  EXPECT_EQ(3, server.messageCount);
+  server.OnDisconnect(4);
+  EXPECT_EQ(3, server.messageCount);
+
+  server.OnDisconnect(1);
+  EXPECT_EQ(1, server.messageCount);
+  server.OnDisconnect(1);
+  EXPECT_EQ(1, server.messageCount);
+
+  server.OnDisconnect(2);
+  EXPECT_EQ(0, server.messageCount);
+  EXPECT_TRUE(server.connections.empty());
+}
