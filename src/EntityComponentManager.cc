@@ -415,18 +415,13 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   else if (!_name.empty() && !_allowRename)
   {
-    // Get the entity's original parent. This is used to make sure we get
-    // the correct entity. For example, two different models may have a
-    // child with the name "link".
-    auto origParentComp =
-        this->Component<components::ParentEntity>(_entity);
-
-    // If there is an entity with the same name and user indicated renaming is
-    // not allowed then return null entity.
-    // If the entity or one of its ancestor has a Recreate component then carry
-    // on since the ECM is supposed to create a new entity with the same name.
+    // If there is an entity with the same name under the destination parent
+    // and user indicated renaming is not allowed then return null entity.
+    // If the conflicting entity or one of its ancestor has a Recreate
+    // component, then carry on since the ECM is supposed to create a new
+    // entity with the same name.
     Entity ent = this->EntityByComponents(components::Name(_name),
-        components::ParentEntity(origParentComp->Data()));
+        components::ParentEntity(_parent));
 
     bool hasRecreateComp = false;
     Entity recreateEnt = ent;
