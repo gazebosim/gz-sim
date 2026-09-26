@@ -63,6 +63,18 @@ namespace sim
     /// \brief Callback when user cancels saving the recorded video
     public slots: void OnCancel();
 
+    /// \brief Return true if video recording is currently active
+    public slots: bool Recording() const;
+
+    /// \brief Return true if a save filename was pre-configured
+    public slots: bool HasSaveFilename() const;
+
+    /// \brief Stop video encoding and flush file to disk
+    public: void StopRecording();
+
+    /// \brief Signal emitted when recording state changes
+    signals: void RecordingChanged();
+
     /// \internal
     /// \brief Pointer to private data.
     private: std::unique_ptr<VideoRecorderPrivate> dataPtr;
