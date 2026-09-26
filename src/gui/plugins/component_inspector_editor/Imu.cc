@@ -100,7 +100,8 @@ Q_INVOKABLE void Imu::OnLinearAccelerationXNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
@@ -134,7 +135,8 @@ Q_INVOKABLE void Imu::OnLinearAccelerationYNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
@@ -168,7 +170,8 @@ Q_INVOKABLE void Imu::OnLinearAccelerationZNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
@@ -202,7 +205,8 @@ Q_INVOKABLE void Imu::OnAngularVelocityXNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
@@ -236,7 +240,8 @@ Q_INVOKABLE void Imu::OnAngularVelocityYNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
@@ -270,7 +275,8 @@ Q_INVOKABLE void Imu::OnAngularVelocityZNoise(
     double _dynamicBiasCorrelationTime)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Imu>(
         this->inspector->GetEntity());
