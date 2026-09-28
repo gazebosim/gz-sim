@@ -22,6 +22,7 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/components/SlipComplianceCmd.hh"
 
 #include "../test/helpers/EnvTestFixture.hh"
 
@@ -65,6 +66,20 @@ TEST_F(ComponentFactoryTest, Register)
   // Check factory knows id
   auto ids = factory->TypeIds();
   EXPECT_NE(ids.end(), std::find(ids.begin(), ids.end(), MyCustom::typeId));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentFactoryTest, RegisteredNamesHaveNoWhitespace)
+{
+  auto factory = components::Factory::Instance();
+
+  for (const auto &id : factory->TypeIds())
+  {
+    const std::string name = factory->Name(id);
+    ASSERT_FALSE(name.empty());
+    EXPECT_NE(' ', name.front()) << "Leading space in component name: " << name;
+    EXPECT_NE(' ', name.back()) << "Trailing space in component name: " << name;
+  }
 }
 
 /////////////////////////////////////////////////
