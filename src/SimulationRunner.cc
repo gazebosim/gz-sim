@@ -1578,17 +1578,48 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
   {
     return;
   }
-  // store the original entities to recreate and put in request to remove them
+
+  std::set<Entity> recreateCandidates;
+
+  // Collect all models marked for recreation.
   this->entityCompMgr.Each<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
           const components::Recreate *)->bool
       {
-        this->entitiesToRecreate.insert(_entity);
-        this->entityCompMgr.RequestRemoveEntity(_entity, true);
+        recreateCandidates.insert(_entity);
         return true;
       });
+
+  auto hasRecreatedAncestor = [&](Entity _entity)
+  {
+    auto parentComp = this->entityCompMgr.Component<components::ParentEntity>(
+        _entity);
+
+    while (parentComp)
+    {
+      Entity parent = parentComp->Data();
+      if (recreateCandidates.find(parent) != recreateCandidates.end())
+        return true;
+
+      parentComp = this->entityCompMgr.Component<components::ParentEntity>(
+          parent);
+    }
+
+    return false;
+  };
+
+  // Recreate only the topmost marked models. Their descendants will be removed
+  // and cloned recursively with the parent, so skip nested recreate candidates.
+  for (const auto &ent : recreateCandidates)
+  {
+    if (!hasRecreatedAncestor(ent))
+    {
+      this->entitiesToRecreate.insert(ent);
+      this->entityCompMgr.RequestRemoveEntity(ent, true);
+    }
+  }
 }
 
 /////////////////////////////////////////////////
