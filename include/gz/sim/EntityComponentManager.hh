@@ -536,11 +536,18 @@ namespace gz
       /// are reused between invocations, and are valid only for the duration
       /// of the callback. Do not retain them.
       ///
+      /// \warning The callback _f must not remove components of any entity.
+      /// Doing so can result in undefined behavior.
+      ///
       /// \note Like Each<ComponentTypeTs...>(), entities that are marked for
       /// removal but not yet processed are included.
       ///
       /// \note If any id in _types is not a registered component type, an
       /// error is logged and the callback is not invoked at all.
+      ///
+      /// \note Users must not rely on the iteration order of entities. The
+      /// order follows the storage order of entities in internal data
+      /// structures which is subject to change.
       public: void Each(
           const std::vector<ComponentTypeId> &_types,
           const std::function<bool(Entity,
