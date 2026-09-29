@@ -1599,13 +1599,15 @@ void SimulationRunner::ProcessRecreateEntitiesCreate()
   // clone the original entities
   for (auto & ent : this->entitiesToRecreate)
   {
+    auto creator = std::make_unique<SdfEntityCreator>(this->entityCompMgr,
+      this->eventMgr);
     auto nameComp = this->entityCompMgr.Component<components::Name>(ent);
     auto parentComp =
         this->entityCompMgr.Component<components::ParentEntity>(ent);
     if (nameComp  && parentComp)
     {
       // set allowRenaming to false so the entities keep their original name
-      Entity clonedEntity = this->entityCompMgr.Clone(ent,
+      Entity clonedEntity = creator->Clone(ent,
          parentComp->Data(), nameComp->Data(), false);
 
       // remove the Recreate component so they do not get recreated again in the
