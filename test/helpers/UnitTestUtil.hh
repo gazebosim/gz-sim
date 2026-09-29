@@ -36,7 +36,7 @@ namespace gz::sim::test
 /// \brief Load a world from an SDF string, create entities, and copy the
 /// world's first plugin SDF.
 /// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Immutable reference to ECM.
+/// \param[in] _ecm Mutable reference to ECM.
 /// \param[in] _eventMgr Event manager used while creating entities.
 /// \param[out] _entity The entity corresponding to the world.
 /// \param[out] _pluginSdf Copy of the world's first plugin SDF.
@@ -67,7 +67,7 @@ inline void LoadWorldContext(
 /// \brief Load a world from an SDF string and create entities without
 /// copying the plugin SDF.
 /// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Immutable reference to ECM.
+/// \param[in] _ecm Mutable reference to ECM.
 /// \param[in] _eventMgr Event manager used while creating entities.
 /// \param[out] _entity The entity corresponding to the world.
 inline void LoadWorldContext(
@@ -84,7 +84,7 @@ inline void LoadWorldContext(
 /// \brief Load a model from an SDF string, create entities, and copy the
 /// model's first plugin SDF.
 /// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Immutable reference to ECM.
+/// \param[in] _ecm Mutable reference to ECM.
 /// \param[in] _eventMgr Event manager used while creating entities.
 /// \param[out] _entity The entity corresponding to the model.
 /// \param[out] _pluginSdf Copy of the Model's first plugin SDF.
@@ -118,7 +118,7 @@ inline void LoadModelContext(
 /// \brief Load a model from an SDF string and create entities without
 /// copying the plugin SDF.
 /// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Immutable reference to ECM.
+/// \param[in] _ecm Mutable reference to ECM.
 /// \param[in] _eventMgr Event manager used while creating entities.
 /// \param[out] _entity The entity corresponding to the model.
 inline void LoadModelContext(
