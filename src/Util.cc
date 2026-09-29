@@ -35,6 +35,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
+#include <sdf/Element.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
@@ -280,6 +281,55 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   }
 
   return result;
+}
+
+std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
+    const TopicNameOptions &_options)
+{
+  std::vector<std::string> topics;
+
+  if (_sdf->HasElement(_options.sdfElementName))
+  {
+    std::string customTopic = _sdf->Get<std::string>(_options.sdfElementName);
+
+    if (!customTopic.empty())
+    {
+      // Only prepend namespace to relative topic name.
+      // Absolute topic name (starting with '/') are left unchanged.
+      if (customTopic.front() != '/')
+      {
+        std::string prefix = _options.topicNamespace;
+        if (!_options.topicNamespace.empty() &&
+            _options.topicNamespace.back() != '/')
+        {
+          prefix = prefix + "/";
+        }
+
+        customTopic = prefix + customTopic;
+      }
+      topics.push_back(customTopic);
+    }
+  }
+
+  std::string defaultTopic = _options.defaultTopicSuffix;
+  if (!defaultTopic.empty())
+  {
+    // Only prepend namespace to relative default topic name.
+    // Absolute default topic name (starting with '/') are left unchanged.
+    if (defaultTopic.front() != '/')
+    {
+      std::string prefix = _options.topicNamespace.empty() ?
+        _options.defaultTopicPrefix : _options.topicNamespace;
+      if (!prefix.empty() && prefix.back() != '/')
+      {
+        prefix = prefix + "/";
+      }
+      defaultTopic = prefix + defaultTopic;
+    }
+    topics.push_back(defaultTopic);
+  }
+
+  return validTopic(topics);
 }
 
 //////////////////////////////////////////////////
