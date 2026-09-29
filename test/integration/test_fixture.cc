@@ -23,6 +23,7 @@
 #include <gz/sim/Server.hh>
 
 #include "helpers/TestFixture.hh"
+#include "test_config.hh"
 
 using namespace std::chrono_literals;
 
