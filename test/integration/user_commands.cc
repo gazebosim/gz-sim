@@ -561,7 +561,7 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   // Spawn a model from SDF that doesn't define a namespace through
   // EntityFactoryWithNs with a namespace override.
   reqWithNs.Clear();
-  reqWithNs.set_sdf(modelStrWithoutNs );
+  reqWithNs.set_sdf(modelStrWithoutNs);
   reqWithNs.set_name("grape");
   reqWithNs.set_entity_namespace("test_ns");
 
