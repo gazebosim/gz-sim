@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_DIFFDRIVE_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -139,11 +140,27 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Enable/disable topic name
+      public: std::string enableTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: DiffDrive();
 
     /// \brief Destructor
-    public: ~DiffDrive() override = default;
+    public: ~DiffDrive();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -160,6 +177,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<DiffDrivePrivate> dataPtr;
