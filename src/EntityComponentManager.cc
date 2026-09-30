@@ -475,12 +475,12 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
-  auto originalNsComp = this->Component<components::Namespace>(_entity);
   if (!_namespace.empty())
   {
     this->CreateComponent(clonedEntity, components::Namespace(_namespace));
   }
-  else if (nullptr != originalNsComp)
+  else if (auto originalNsComp =
+    this->Component<components::Namespace>(_entity))
   {
     this->CreateComponent(clonedEntity,
       components::Namespace(originalNsComp->Data()));
@@ -590,8 +590,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       }
     }
 
-    auto clonedChild = this->CloneImpl(
-      childEntity, clonedEntity, name, _allowRename);
+    auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
+        _allowRename);
     if (kNullEntity == clonedChild)
     {
       gzerr << "Cloning child entity [" << childEntity << "] failed.\n";
